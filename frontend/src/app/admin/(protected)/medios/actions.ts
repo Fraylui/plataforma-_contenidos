@@ -1,0 +1,25 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { deleteImage, updateImageAltText, uploadImage } from "@/lib/api/admin-client";
+import { runAdminMutation, type ActionResult } from "@/lib/admin/action-helpers";
+
+export type { ActionResult };
+
+export async function uploadImageAction(formData: FormData): Promise<ActionResult> {
+  const result = await runAdminMutation((token) => uploadImage(token, formData));
+  if (result.ok) revalidatePath("/admin/medios");
+  return result;
+}
+
+export async function updateImageAltTextAction(id: string, altText: string): Promise<ActionResult> {
+  const result = await runAdminMutation((token) => updateImageAltText(token, id, altText));
+  if (result.ok) revalidatePath("/admin/medios");
+  return result;
+}
+
+export async function deleteImageAction(id: string): Promise<ActionResult> {
+  const result = await runAdminMutation((token) => deleteImage(token, id));
+  if (result.ok) revalidatePath("/admin/medios");
+  return result;
+}

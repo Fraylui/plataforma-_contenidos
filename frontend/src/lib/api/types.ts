@@ -16,6 +16,8 @@ export type ArticleType =
   | "TUTORIAL"
   | "OPINION";
 
+export type ArticleStatus = "DRAFT" | "IN_REVIEW" | "APPROVED" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED" | "REJECTED";
+
 export interface ArticleSummary {
   id: string;
   slug: string;
@@ -35,7 +37,7 @@ export interface Article {
   excerpt: string | null;
   body: string;
   articleType: ArticleType;
-  status: string;
+  status: ArticleStatus;
   authorId: string;
   categoryId: string;
   geographyId: string | null;
