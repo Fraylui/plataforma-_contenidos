@@ -38,8 +38,13 @@ cd ../backend
 ./mvnw spring-boot:run
 # health check: http://localhost:8080/actuator/health
 
-# 4. Frontend
-cd ../frontend
+# 4. (Opcional) Datos de ejemplo para probar el sitio con contenido real
+python3 scripts/seed_dev_data.py
+# crea un EDITOR, categorías, geografía y 3 artículos publicados de muestra
+
+# 5. Frontend
+cd frontend
+cp .env.example .env.local   # BACKEND_API_URL=http://localhost:8080 por defecto
 npm install
 npm run dev
 # http://localhost:3000
@@ -123,10 +128,38 @@ cd frontend && npx eslint . && npm run build
   el ID de los 4 formatos reales (`watch?v=`, `youtu.be/`, `/embed/`,
   `/shorts/`) y **solo se persiste el ID**, nunca la URL cruda ni el
   video. URL no reconocida → 400. Ningún archivo de video se sube ni se
-  aloja — el frontend embebe el reproductor de YouTube con ese ID
-  (pendiente, es tarea de frontend).
+  aloja — el frontend embebe el reproductor de YouTube con ese ID.
+- **Endpoints públicos por id** (2026-08-26): `GET /api/v1/categories/{id}`
+  y `GET /api/v1/geography/{id}` — no existían; hacían falta para que el
+  frontend pudiera mostrar el nombre de la categoría/ubicación de un
+  artículo sin exponer las rutas de administración.
+- **Sitio público (frontend)** (2026-08-26): Home (grid de artículos
+  publicados) + página de detalle por slug, construidos con Server
+  Components (el fetch corre en el servidor de Next.js, sin problema de
+  CORS porque nunca sale del navegador — eso solo hará falta cuando exista
+  panel admin con mutaciones desde el cliente). Metadata SEO real por
+  artículo (`generateMetadata`, campos de la sección 15). Estados: loading
+  (skeleton), 404 propio, error con reintento. Video de YouTube con patrón
+  "lite embed" (miniatura real, el iframe de YouTube solo se carga al
+  hacer click — rendimiento). Diseño: tipografía Newsreader (serif,
+  encabezados) + Inter (sans, cuerpo/UI), paleta neutra con acento cálido
+  terracota, ambas adaptables a la marca definitiva (sección 14, nada
+  hardcodeado salvo `platformPlaceholder`). Revisado visualmente en
+  Chrome: home, detalle con/sin ubicación, detalle con video (interacción
+  de click verificada), 404. **No pude verificar el layout responsive de
+  forma visual** — la herramienta de navegador no reflejó el resize de
+  ventana en las capturas; las clases de Tailwind usadas son patrones
+  estándar (`sm:`/`lg:` grid, `max-w`, `flex-wrap`) de bajo riesgo, pero
+  quien lo use en un dispositivo real debería confirmarlo.
+- **Datos de desarrollo** (`scripts/seed_dev_data.py`): script de un solo
+  uso para poblar un `EDITOR`, categorías, geografía y 3 artículos
+  publicados **claramente marcados como "[Contenido de ejemplo]"** — nunca
+  se hacen pasar por periodismo real (sección 44.10, credibilidad).
 
 **Pendiente para un MVP completo** (sección 34): Lugares (post-MVP),
-SEO técnico (sitemap/robots.txt), búsqueda, panel administrativo
-(frontend — el vacío más grande ahora mismo), configuración de marca,
-estadísticas básicas, CI/CD, Dockerfiles de producción, backups.
+SEO técnico (sitemap/robots.txt), búsqueda, panel administrativo (el
+sitio público ya existe; el panel de EDITOR/AUTHOR para gestionar
+contenido desde el navegador sigue sin construirse), configuración de
+marca, estadísticas básicas, CI/CD, Dockerfiles de producción, backups.
+CORS sigue sin configurarse (lo necesita el panel admin, no el sitio
+público).

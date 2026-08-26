@@ -68,6 +68,14 @@ class GeographyFlowIntegrationTest {
         mockMvc.perform(get("/api/v1/geography").param("parentId", ayacuchoId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Huamanga"));
+
+        // Lectura pública por id (sin token) — el frontend la necesita para mostrar el nombre de la ubicación de un artículo
+        mockMvc.perform(get("/api/v1/geography/" + ayacuchoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Ayacucho"));
+
+        mockMvc.perform(get("/api/v1/geography/00000000-0000-0000-0000-000000000000"))
+                .andExpect(status().isNotFound());
     }
 
     @Test

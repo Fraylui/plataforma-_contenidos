@@ -38,6 +38,12 @@ public class CategoryController {
         return categoryService.listActive().stream().map(CategoryResponse::from).toList();
     }
 
+    /** Público: el frontend necesita resolver categoryId -> nombre/slug al renderizar un artículo. */
+    @GetMapping("/categories/{id}")
+    public CategoryResponse getById(@PathVariable UUID id) {
+        return CategoryResponse.from(categoryService.getOrThrow(id));
+    }
+
     @GetMapping("/admin/categories")
     public List<CategoryResponse> listAll() {
         return categoryService.listAll().stream().map(CategoryResponse::from).toList();

@@ -42,6 +42,12 @@ public class GeographyController {
         return geographyService.listChildren(level, parentId).stream().map(GeographicUnitResponse::from).toList();
     }
 
+    /** Público: el frontend necesita resolver geographyId -> nombre al renderizar un artículo. */
+    @GetMapping("/geography/{id}")
+    public GeographicUnitResponse getById(@PathVariable UUID id) {
+        return GeographicUnitResponse.from(geographyService.getOrThrow(id));
+    }
+
     @GetMapping("/admin/geography")
     public List<GeographicUnitResponse> listAll() {
         return geographyService.listAll().stream().map(GeographicUnitResponse::from).toList();

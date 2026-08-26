@@ -35,9 +35,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/tags").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/categories/**", "/api/v1/tags")
+                    .permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/articles", "/api/v1/articles/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/geography").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/geography", "/api/v1/geography/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/images/**").permitAll()
 
                 .requestMatchers("/api/v1/admin/users/**").hasAnyRole("SUPER_ADMIN", "ADMIN")

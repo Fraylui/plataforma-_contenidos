@@ -65,6 +65,14 @@ class CategoryFlowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.slug == 'turismo')]").exists());
 
+        // Lectura pública por id (sin token) — el frontend la necesita para mostrar el nombre de la categoría de un artículo
+        mockMvc.perform(get("/api/v1/categories/" + categoryId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.slug").value("turismo"));
+
+        mockMvc.perform(get("/api/v1/categories/00000000-0000-0000-0000-000000000000"))
+                .andExpect(status().isNotFound());
+
         mockMvc.perform(post("/api/v1/admin/categories/" + categoryId + "/activate")
                         .header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isOk());
