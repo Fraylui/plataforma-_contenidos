@@ -11,3 +11,7 @@ Thumbs.db
 
 # Logs sueltos en la raíz
 *.log
+
+# Almacenamiento local de medios (MEDIA_STORAGE_PATH) — binarios subidos, no código
+data/
+backend/data/

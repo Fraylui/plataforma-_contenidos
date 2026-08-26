@@ -26,6 +26,11 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
 
+  servlet:
+    multipart:
+      max-file-size: ${MEDIA_MAX_FILE_SIZE:10MB} # primera línea de defensa; app.media.max-file-size-bytes revalida
+      max-request-size: ${MEDIA_MAX_FILE_SIZE:10MB}
+
 app:
   security:
     jwt:
@@ -40,6 +45,12 @@ app:
     mfa:
       encryption-key: ${MFA_ENCRYPTION_KEY}
       issuer: ${MFA_ISSUER:Plataforma de Contenidos}
+  media:
+    local-storage-path: ${MEDIA_STORAGE_PATH:./data/media}
+    max-file-size-bytes: ${MEDIA_MAX_FILE_SIZE_BYTES:10485760} # 10 MB
+    max-dimension-pixels: ${MEDIA_MAX_DIMENSION_PIXELS:6000}
+    upload-max-attempts: ${MEDIA_UPLOAD_MAX_ATTEMPTS:30}
+    upload-window-minutes: ${MEDIA_UPLOAD_WINDOW_MINUTES:15}
 
 server:
   port: ${SERVER_PORT:8080}

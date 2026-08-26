@@ -105,6 +105,19 @@ cd frontend && npx eslint . && npm run build
   listado público: `/api/v1/articles?categoryId=&geographyId=`
   (ej. Turismo + Ayacucho, sección 4). Sin FK entre esquemas (igual que
   category_id, sección 38).
+- **Media (Imágenes)** (2026-08-25): almacenamiento local detrás de
+  `StorageService` (interfaz — migrar a Object Storage/CDN después no
+  toca lógica de negocio, sección 10). Cada imagen se **reencodea** con
+  `ImageIO` al subirla: neutraliza archivos polyglot y elimina EXIF/GPS
+  de fotos de colaboradores. Solo JPEG/PNG en el MVP (GIF perdería
+  animación al reencodear, WebP no tiene decoder nativo en el JDK).
+  Límite de tamaño y dimensiones, nombre de archivo generado (UUID, nunca
+  el original), rate limiting de subidas por usuario. `AUTHOR+` sube,
+  dueño o `EDITOR+` edita `altText`/borra. Archivo servido públicamente
+  sin auth (`GET /api/v1/images/{id}/file`) con cache de 30 días.
+  **Pendiente/fuera de esta tarea:** `Article` todavía no tiene un campo
+  tipo `featuredImageId` — conectar Content con Media queda como paso
+  aparte, igual que se hizo con Geography.
 
 **Pendiente para un MVP completo** (sección 34): Lugares (post-MVP),
 Imágenes, integración YouTube, SEO técnico (sitemap/robots.txt), búsqueda, panel

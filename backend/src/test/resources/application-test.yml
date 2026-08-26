@@ -7,3 +7,9 @@ app:
     mfa:
       encryption-key: "ThTrxueov77AMqUM1Fc/4FMJhFUwrUv7d93NHdHOo/0="
       issuer: "Plataforma de Contenidos (test)"
+  media:
+    local-storage-path: "target/test-media"
+    max-file-size-bytes: 10485760
+    max-dimension-pixels: 6000
+    upload-max-attempts: 1000
+    upload-window-minutes: 15

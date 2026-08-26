@@ -38,11 +38,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/tags").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/articles", "/api/v1/articles/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/geography").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/images/**").permitAll()
 
                 .requestMatchers("/api/v1/admin/users/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
                 .requestMatchers("/api/v1/admin/categories/**", "/api/v1/admin/tags/**", "/api/v1/admin/geography/**")
                     .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR")
-                .requestMatchers("/api/v1/admin/articles/**")
+                .requestMatchers("/api/v1/admin/articles/**", "/api/v1/admin/images/**")
                     .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR")
 
                 .requestMatchers("/api/v1/users/me", "/api/v1/users/me/**").authenticated()
