@@ -85,6 +85,11 @@ public class User {
         return status == UserStatus.ACTIVE;
     }
 
+    public void setActive(boolean active) {
+        this.status = active ? UserStatus.ACTIVE : UserStatus.DISABLED;
+        this.updatedAt = Instant.now();
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }

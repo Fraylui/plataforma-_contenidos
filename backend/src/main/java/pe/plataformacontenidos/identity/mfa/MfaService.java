@@ -37,33 +37,63 @@ public class MfaService {
         return credentialRepository.findById(userId).map(MfaTotpCredential::isEnabled).orElse(false);
     }
 
-    /** Genera un secreto nuevo (deshabilitado hasta confirmar) y su URI de aprovisionamiento para el QR. */
+    /**
+     * Genera un secreto nuevo (deshabilitado hasta confirmar) y su URI de
+     * aprovisionamiento para el QR. Si la cuenta YA tiene MFA habilitado,
+     * exige currentCode válido antes de tocar el secreto activo: reemplazarlo
+     * deshabilita el MFA de inmediato (MfaTotpCredential.replaceSecret), así
+     * que sin esta verificación un access token robado (15 min de vida)
+     * bastaría para desactivar el MFA "obligatorio" de un SUPER_ADMIN sin
+     * conocer su código actual (CONTEXTO.md sección 36.5). Primer
+     * enrolamiento o uno abandonado sin confirmar no requieren currentCode:
+     * todavía no hay nada activo que proteger.
+     */
     @Transactional
-    public EnrollmentResult startEnrollment(UUID userId, String accountEmail) {
+    public EnrollmentResult startEnrollment(UUID userId, String accountEmail, String currentCode) {
+        Optional<MfaTotpCredential> existing = credentialRepository.findById(userId);
+        boolean isRotation = existing.isPresent() && existing.get().isEnabled();
+        if (isRotation && !verifyChallenge(userId, currentCode)) {
+            throw new MfaChallengeException("Se requiere el código MFA actual para reemplazarlo");
+        }
+
         byte[] secret = totpService.generateSecret();
         String encrypted = secretEncryptor.encrypt(secret);
 
-        MfaTotpCredential credential = credentialRepository.findById(userId)
-                .orElseGet(() -> new MfaTotpCredential(userId, encrypted));
-        credential.replaceSecret(encrypted);
-        credentialRepository.save(credential);
+        if (isRotation) {
+            // No se toca el secreto activo hasta confirmar: si el usuario
+            // abandona el flujo, la cuenta sigue protegida con el secreto
+            // anterior (ver MfaTotpCredential.stageRotation).
+            existing.get().stageRotation(encrypted);
+            credentialRepository.save(existing.get());
+        } else {
+            MfaTotpCredential credential = existing.orElseGet(() -> new MfaTotpCredential(userId, encrypted));
+            credential.replaceSecret(encrypted);
+            credentialRepository.save(credential);
+        }
 
         String uri = totpService.provisioningUri(secret, accountEmail, properties.issuer());
         return new EnrollmentResult(uri, totpService.toBase32(secret));
     }
 
-    /** Confirma el enrolamiento con un código válido, habilita MFA y emite códigos de respaldo (se muestran una sola vez). */
+    /** Confirma el enrolamiento (o una rotación) con un código válido y emite códigos de respaldo (se muestran una sola vez). */
     @Transactional
     public List<String> confirmEnrollment(UUID userId, String code) {
         MfaTotpCredential credential = credentialRepository.findById(userId)
                 .orElseThrow(() -> new MfaChallengeException("No hay un enrolamiento MFA pendiente"));
 
-        byte[] secret = secretEncryptor.decrypt(credential.getSecretEncrypted());
+        String pendingOrActiveSecret = credential.hasPendingSecret()
+                ? credential.getPendingSecretEncrypted()
+                : credential.getSecretEncrypted();
+        byte[] secret = secretEncryptor.decrypt(pendingOrActiveSecret);
         if (!totpService.verify(secret, code)) {
             throw new MfaChallengeException("Código MFA inválido");
         }
 
-        credential.confirm();
+        if (credential.hasPendingSecret()) {
+            credential.promotePendingSecret();
+        } else {
+            credential.confirm();
+        }
         credentialRepository.save(credential);
 
         return regenerateBackupCodes(userId);

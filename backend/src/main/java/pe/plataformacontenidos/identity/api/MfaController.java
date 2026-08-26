@@ -11,6 +11,7 @@ import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import pe.plataformacontenidos.identity.api.dto.MfaBackupCodesResponse;
 import pe.plataformacontenidos.identity.api.dto.MfaChallengeRequest;
+import pe.plataformacontenidos.identity.api.dto.MfaEnrollRequest;
 import pe.plataformacontenidos.identity.api.dto.MfaEnrollmentResponse;
 import pe.plataformacontenidos.identity.mfa.MfaService;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
@@ -33,9 +34,11 @@ public class MfaController {
     }
 
     @PostMapping("/enroll")
-    public MfaEnrollmentResponse enroll(@AuthenticationPrincipal UserPrincipal principal) {
+    public MfaEnrollmentResponse enroll(@AuthenticationPrincipal UserPrincipal principal,
+            @RequestBody(required = false) MfaEnrollRequest request) {
         User user = userRepository.findById(principal.userId()).orElseThrow(InvalidCredentialsException::new);
-        var result = mfaService.startEnrollment(user.getId(), user.getEmail());
+        String currentCode = request != null ? request.currentCode() : null;
+        var result = mfaService.startEnrollment(user.getId(), user.getEmail(), currentCode);
         return new MfaEnrollmentResponse(result.provisioningUri(), result.secretBase32());
     }
 

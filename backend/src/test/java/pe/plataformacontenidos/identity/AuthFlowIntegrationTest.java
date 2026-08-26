@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.identity;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -141,6 +142,88 @@ class AuthFlowIntegrationTest {
         mockMvc.perform(get("/api/v1/admin/users")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void deactivatingOwnAccountIsBlocked() throws Exception {
+        String adminToken = login(ADMIN_EMAIL, ADMIN_PASSWORD);
+        String ownId = currentUserId(adminToken);
+
+        mockMvc.perform(delete("/api/v1/admin/users/" + ownId).header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isConflict());
+    }
+
+    /** CONTEXTO.md sección 36.4: un ADMIN no gestiona cuentas SUPER_ADMIN. */
+    @Test
+    void adminCannotCreateOrDeactivateSuperAdmin() throws Exception {
+        String superAdminToken = login(ADMIN_EMAIL, ADMIN_PASSWORD);
+        String superAdminId = currentUserId(superAdminToken);
+
+        createUser(superAdminToken, "plain-admin@plataforma-contenidos.test", "AnotherSecret123!", "ADMIN");
+        String plainAdminToken = login("plain-admin@plataforma-contenidos.test", "AnotherSecret123!");
+
+        String createSuperJson = objectMapper.writeValueAsString(new java.util.HashMap<>() {{
+            put("email", "wannabe-super@plataforma-contenidos.test");
+            put("password", "AnotherSecret123!");
+            put("displayName", "Wannabe Super");
+            put("role", "SUPER_ADMIN");
+        }});
+        mockMvc.perform(post("/api/v1/admin/users")
+                        .header("Authorization", "Bearer " + plainAdminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createSuperJson))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(delete("/api/v1/admin/users/" + superAdminId)
+                        .header("Authorization", "Bearer " + plainAdminToken))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void deactivatedUserCannotLoginAndReactivatingRestoresAccess() throws Exception {
+        String adminToken = login(ADMIN_EMAIL, ADMIN_PASSWORD);
+        String email = "to-deactivate@plataforma-contenidos.test";
+        String password = "AnotherSecret123!";
+        String userId = createUser(adminToken, email, password, "AUTHOR");
+
+        login(email, password); // funciona mientras está activo
+
+        mockMvc.perform(delete("/api/v1/admin/users/" + userId).header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("DISABLED"));
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson(email, password)))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/v1/admin/users/" + userId + "/activate")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
+        login(email, password); // vuelve a funcionar
+    }
+
+    private String currentUserId(String accessToken) throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/v1/users/me").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andReturn();
+        return objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asText();
+    }
+
+    private String createUser(String actingAdminToken, String email, String password, String role) throws Exception {
+        String json = objectMapper.writeValueAsString(new java.util.HashMap<>() {{
+            put("email", email);
+            put("password", password);
+            put("displayName", "Usuario de prueba");
+            put("role", role);
+        }});
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/users")
+                        .header("Authorization", "Bearer " + actingAdminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isCreated())
+                .andReturn();
+        return objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asText();
     }
 
     private String login(String email, String password) throws Exception {

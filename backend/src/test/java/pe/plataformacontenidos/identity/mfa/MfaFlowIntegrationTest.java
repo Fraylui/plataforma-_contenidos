@@ -1,5 +1,7 @@
 package pe.plataformacontenidos.identity.mfa;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -76,6 +78,11 @@ class MfaFlowIntegrationTest {
     void fullEnrollmentAndLoginEnforcementFlow() throws Exception {
         String accessToken = login(ADMIN_EMAIL, ADMIN_PASSWORD, null);
 
+        // Antes de enrolar, /users/me y el listado admin deben reflejar mfaEnabled=false.
+        mockMvc.perform(get("/api/v1/users/me").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mfaEnabled").value(false));
+
         // 1. Enroll: obtiene el secreto (vía la URI de aprovisionamiento)
         MvcResult enrollResult = mockMvc.perform(post("/api/v1/users/me/mfa/enroll")
                         .header("Authorization", "Bearer " + accessToken))
@@ -94,6 +101,14 @@ class MfaFlowIntegrationTest {
                 .andReturn();
         String backupCode = objectMapper.readTree(confirmResult.getResponse().getContentAsString())
                 .get("backupCodes").get(0).asText();
+
+        // Después de confirmar, tanto /users/me como el listado admin deben reflejar mfaEnabled=true.
+        mockMvc.perform(get("/api/v1/users/me").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mfaEnabled").value(true));
+        mockMvc.perform(get("/api/v1/admin/users").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.email == '" + ADMIN_EMAIL + "')].mfaEnabled").value(true));
 
         // 3. Login sin código MFA ahora falla (401), aunque la password sea correcta
         mockMvc.perform(post("/api/v1/auth/login")
@@ -119,6 +134,109 @@ class MfaFlowIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson(ADMIN_EMAIL, ADMIN_PASSWORD, backupCode)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    /**
+     * Regresión del gap encontrado en la Fase 1 del panel admin: antes,
+     * POST /mfa/enroll reemplazaba el secreto activo (deshabilitando MFA de
+     * inmediato) con solo un access token válido, sin probar el código MFA
+     * actual — un access token robado (15 min de vida) bastaba para
+     * desactivar el MFA "obligatorio" de un SUPER_ADMIN. Ver
+     * MfaService.startEnrollment.
+     */
+    @Test
+    void reEnrollmentRequiresCurrentMfaCodeAndDoesNotDisableMfaWithoutIt() throws Exception {
+        String email = "mfa-rotation@plataforma-contenidos.test";
+        String password = "RotationSecret!123";
+        userRepository.save(new User(email, passwordEncoder.encode(password), "Rotation Test", Role.SUPER_ADMIN));
+        String accessToken = login(email, password, null);
+
+        byte[] originalSecret = enrollAndConfirm(accessToken);
+
+        // Re-enrolar SIN el código actual debe fallar...
+        mockMvc.perform(post("/api/v1/users/me/mfa/enroll")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isBadRequest());
+
+        // ...y el MFA activo NO debe quedar deshabilitado por el intento fallido.
+        mockMvc.perform(get("/api/v1/users/me").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mfaEnabled").value(true));
+
+        // El secreto original sigue siendo el vigente: un login con él todavía funciona.
+        String stillValidCode = totpService.generateCode(originalSecret, System.currentTimeMillis() / 1000 / 30);
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson(email, password, stillValidCode)))
+                .andExpect(status().isOk());
+
+        // Re-enrolar CON el código actual sí funciona y rota a un secreto distinto.
+        String rotationCode = totpService.generateCode(originalSecret, System.currentTimeMillis() / 1000 / 30);
+        MvcResult reEnrollResult = mockMvc.perform(post("/api/v1/users/me/mfa/enroll")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentCode\":\"" + rotationCode + "\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+        byte[] newSecret = extractSecret(reEnrollResult);
+        assertThat(newSecret).isNotEqualTo(originalSecret);
+
+        // Regresión adicional (encontrada en la revisión de código de esta
+        // fase): la rotación recién iniciada (con currentCode válido) NO
+        // debe deshabilitar MFA ni tocar el secreto activo hasta que se
+        // CONFIRME el nuevo — si el usuario abandona acá, debe seguir
+        // protegido con el secreto original.
+        mockMvc.perform(get("/api/v1/users/me").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mfaEnabled").value(true));
+        String originalStillWorks = totpService.generateCode(originalSecret, System.currentTimeMillis() / 1000 / 30);
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson(email, password, originalStillWorks)))
+                .andExpect(status().isOk());
+        String pendingSecretDoesNotWorkYet = totpService.generateCode(newSecret, System.currentTimeMillis() / 1000 / 30);
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson(email, password, pendingSecretDoesNotWorkYet)))
+                .andExpect(status().isUnauthorized());
+
+        // Confirmar la rotación con el secreto pendiente promueve recién ahí el nuevo secreto.
+        String confirmRotationCode = totpService.generateCode(newSecret, System.currentTimeMillis() / 1000 / 30);
+        mockMvc.perform(post("/api/v1/users/me/mfa/confirm")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"" + confirmRotationCode + "\"}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/users/me").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mfaEnabled").value(true));
+        String newSecretNowWorks = totpService.generateCode(newSecret, System.currentTimeMillis() / 1000 / 30);
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson(email, password, newSecretNowWorks)))
+                .andExpect(status().isOk());
+        String oldSecretNoLongerWorks = totpService.generateCode(originalSecret, System.currentTimeMillis() / 1000 / 30);
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson(email, password, oldSecretNoLongerWorks)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    /** Enrola y confirma MFA para el usuario del token dado; devuelve el secreto TOTP resultante. */
+    private byte[] enrollAndConfirm(String accessToken) throws Exception {
+        MvcResult enrollResult = mockMvc.perform(post("/api/v1/users/me/mfa/enroll")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andReturn();
+        byte[] secret = extractSecret(enrollResult);
+        String confirmCode = totpService.generateCode(secret, System.currentTimeMillis() / 1000 / 30);
+        mockMvc.perform(post("/api/v1/users/me/mfa/confirm")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"" + confirmCode + "\"}"))
+                .andExpect(status().isOk());
+        return secret;
     }
 
     private byte[] extractSecret(MvcResult enrollResult) throws Exception {

@@ -22,7 +22,10 @@ public class UserAdminService {
     }
 
     public User createUser(String email, String rawPassword, String displayName, Role role,
-            UUID actingAdminId, String ipAddress) {
+            UUID actingAdminId, Role actingAdminRole, String ipAddress) {
+        if (role == Role.SUPER_ADMIN && actingAdminRole != Role.SUPER_ADMIN) {
+            throw new SuperAdminManagementDeniedException();
+        }
         if (userRepository.existsByEmailIgnoreCase(email)) {
             throw new EmailAlreadyExistsException();
         }
@@ -37,7 +40,36 @@ public class UserAdminService {
         return saved;
     }
 
+    /**
+     * Activar/desactivar una cuenta. Dos resguardos (CONTEXTO.md sección
+     * 36.4/36.5): nadie se desactiva a sí mismo (evita el bloqueo accidental
+     * más común), y un ADMIN no puede tocar una cuenta SUPER_ADMIN (eso
+     * solo lo hace otro SUPER_ADMIN).
+     */
+    public User setActive(UUID userId, boolean active, UUID actingAdminId, Role actingAdminRole, String ipAddress) {
+        if (!active && userId.equals(actingAdminId)) {
+            throw new CannotModifyOwnAccountException();
+        }
+        User user = getOrThrow(userId);
+        if (user.getRole() == Role.SUPER_ADMIN && actingAdminRole != Role.SUPER_ADMIN) {
+            throw new SuperAdminManagementDeniedException();
+        }
+
+        user.setActive(active);
+        User saved = userRepository.save(user);
+
+        String actingAdminEmail = userRepository.findById(actingAdminId).map(User::getEmail).orElse(null);
+        auditService.record(active ? "USER_ACTIVATED" : "USER_DEACTIVATED", AuditResult.SUCCESS, actingAdminId,
+                actingAdminEmail, "user", userId.toString(), ipAddress);
+
+        return saved;
+    }
+
     public List<User> listUsers() {
         return userRepository.findAll();
+    }
+
+    public User getOrThrow(UUID id) {
+        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     }
 }
