@@ -1,18 +1,42 @@
-export default function Home() {
+import { listPublishedArticles } from "@/lib/api/client";
+import { ArticleCard } from "@/components/article/article-card";
+import { platformPlaceholder } from "@/lib/platform-placeholder";
+
+export default async function Home() {
+  const page = await listPublishedArticles({ size: 24 });
+
   return (
-    <div className="flex flex-1 items-center justify-center bg-neutral-50 px-6 dark:bg-neutral-950">
-      <main className="max-w-md text-center">
-        <p className="text-sm font-medium tracking-wide text-neutral-400 uppercase dark:text-neutral-500">
-          Plataforma de Contenidos
-        </p>
-        <h1 className="mt-3 text-2xl font-semibold text-neutral-900 dark:text-neutral-50">
-          En construcción
+    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+      <header className="max-w-2xl">
+        <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
+          {platformPlaceholder.name}
         </h1>
-        <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-          El sistema de diseño y la interfaz definitiva se implementan en una
-          tarea aparte, una vez exista contenido real que mostrar.
+        <p className="mt-3 text-base leading-relaxed text-muted">
+          {platformPlaceholder.description}
         </p>
-      </main>
+      </header>
+
+      <section className="mt-10" aria-label="Últimos artículos">
+        {page.items.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {page.items.map((article) => (
+              <ArticleCard key={article.id} article={article} />
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="rounded-lg border border-dashed border-border px-6 py-16 text-center">
+      <p className="text-sm text-muted">
+        Todavía no hay artículos publicados. Vuelve pronto.
+      </p>
     </div>
   );
 }
