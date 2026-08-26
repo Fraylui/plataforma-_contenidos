@@ -3,6 +3,7 @@ package pe.plataformacontenidos.content;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
+import pe.plataformacontenidos.geography.GeographicUnitNotFoundException;
+import pe.plataformacontenidos.geography.GeographicUnitService;
 import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
@@ -28,13 +31,15 @@ public class ArticleService {
 
     private final ArticleRepository articleRepository;
     private final CategoryService categoryService;
+    private final GeographicUnitService geographyService;
     private final TagService tagService;
     private final AuditService auditService;
 
     public ArticleService(ArticleRepository articleRepository, CategoryService categoryService,
-            TagService tagService, AuditService auditService) {
+            GeographicUnitService geographyService, TagService tagService, AuditService auditService) {
         this.articleRepository = articleRepository;
         this.categoryService = categoryService;
+        this.geographyService = geographyService;
         this.tagService = tagService;
         this.auditService = auditService;
     }
@@ -43,13 +48,14 @@ public class ArticleService {
         if (!categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
+        validateGeography(input.geographyId());
         Set<UUID> tagIds = resolveTagNames(input.tagNames());
 
         Article article = new Article(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), input.body(),
                 input.articleType(), authorId, input.categoryId());
         article.updateContent(input.title(), input.excerpt(), input.body(), input.articleType(), input.categoryId(),
-                tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(),
-                input.robots());
+                input.geographyId(), tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
+                input.ogImageUrl(), input.robots());
 
         Article saved = articleRepository.save(article);
         audit("ARTICLE_CREATED", saved, authorId);
@@ -63,11 +69,14 @@ public class ArticleService {
         if (!article.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
+        if (!Objects.equals(article.getGeographyId(), input.geographyId())) {
+            validateGeography(input.geographyId());
+        }
         Set<UUID> tagIds = resolveTagNames(input.tagNames());
 
         article.updateContent(input.title(), input.excerpt(), input.body(), input.articleType(), input.categoryId(),
-                tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(),
-                input.robots());
+                input.geographyId(), tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
+                input.ogImageUrl(), input.robots());
         Article saved = articleRepository.save(article);
         audit("ARTICLE_UPDATED", saved, actingUserId);
         return saved;
@@ -170,11 +179,24 @@ public class ArticleService {
                 .orElseThrow(() -> new ArticleNotFoundException(slug));
     }
 
-    public Page<Article> listPublished(UUID categoryId, Pageable pageable) {
+    public Page<Article> listPublished(UUID categoryId, UUID geographyId, Pageable pageable) {
+        if (categoryId != null && geographyId != null) {
+            return articleRepository.findByStatusAndCategoryIdAndGeographyId(
+                    ArticleStatus.PUBLISHED, categoryId, geographyId, pageable);
+        }
         if (categoryId != null) {
             return articleRepository.findByStatusAndCategoryId(ArticleStatus.PUBLISHED, categoryId, pageable);
         }
+        if (geographyId != null) {
+            return articleRepository.findByStatusAndGeographyId(ArticleStatus.PUBLISHED, geographyId, pageable);
+        }
         return articleRepository.findByStatus(ArticleStatus.PUBLISHED, pageable);
+    }
+
+    private void validateGeography(UUID geographyId) {
+        if (geographyId != null && !geographyService.existsActive(geographyId)) {
+            throw new GeographicUnitNotFoundException(geographyId);
+        }
     }
 
     private void requireCanEdit(Article article, UUID actingUserId, Role actingRole) {

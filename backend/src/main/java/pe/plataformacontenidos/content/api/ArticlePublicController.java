@@ -29,11 +29,12 @@ public class ArticlePublicController {
     @GetMapping
     public PageResponse<ArticleSummaryResponse> list(
             @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false) UUID geographyId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         int safeSize = Math.min(size, MAX_PAGE_SIZE);
         var pageable = PageRequest.of(page, safeSize, Sort.by(Sort.Direction.DESC, "publishedAt"));
-        var result = articleService.listPublished(categoryId, pageable);
+        var result = articleService.listPublished(categoryId, geographyId, pageable);
         return PageResponse.from(result, ArticleSummaryResponse::from);
     }
 

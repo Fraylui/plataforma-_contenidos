@@ -17,6 +17,7 @@ public record ArticleResponse(
         ArticleStatus status,
         UUID authorId,
         UUID categoryId,
+        UUID geographyId,
         Set<UUID> tagIds,
         String seoTitle,
         String metaDescription,
@@ -31,8 +32,9 @@ public record ArticleResponse(
     public static ArticleResponse from(Article article) {
         return new ArticleResponse(article.getId(), article.getSlug(), article.getTitle(), article.getExcerpt(),
                 article.getBody(), article.getArticleType(), article.getStatus(), article.getAuthorId(),
-                article.getCategoryId(), article.getTagIds(), article.getSeoTitle(), article.getMetaDescription(),
-                article.getCanonicalUrl(), article.getOgImageUrl(), article.getRobots(), article.getRejectionReason(),
-                article.getPublishedAt(), article.getScheduledAt(), article.getCreatedAt());
+                article.getCategoryId(), article.getGeographyId(), article.getTagIds(), article.getSeoTitle(),
+                article.getMetaDescription(), article.getCanonicalUrl(), article.getOgImageUrl(),
+                article.getRobots(), article.getRejectionReason(), article.getPublishedAt(),
+                article.getScheduledAt(), article.getCreatedAt());
     }
 }

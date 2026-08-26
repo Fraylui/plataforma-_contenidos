@@ -174,6 +174,74 @@ class ArticleWorkflowIntegrationTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    void articleLinksToGeographyAndIsFilterableBySlash() throws Exception {
+        String editorToken = createUserAndLogin("wf-editor-6@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("wf-author-6@plataforma-contenidos.test", Role.AUTHOR);
+        String categoryId = createCategory(editorToken, "Turismo Geografía Test");
+        String peruId = createGeographyUnit(editorToken, "Perú Test", "PAIS", null);
+        String ayacuchoId = createGeographyUnit(editorToken, "Ayacucho Test", "REGION", peruId);
+
+        // geographyId inexistente: rechazado al crear
+        mockMvc.perform(post("/api/v1/admin/articles")
+                        .header("Authorization", "Bearer " + authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(articleJsonWithGeography(categoryId,
+                                "00000000-0000-0000-0000-000000000000", "Artículo con ubicación inválida")))
+                .andExpect(status().isNotFound());
+
+        MvcResult createResult = mockMvc.perform(post("/api/v1/admin/articles")
+                        .header("Authorization", "Bearer " + authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(articleJsonWithGeography(categoryId, ayacuchoId, "Turismo en la región andina")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.geographyId").value(ayacuchoId))
+                .andReturn();
+        String articleId = textField(createResult, "id");
+
+        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/submit")
+                        .header("Authorization", "Bearer " + authorToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/approve")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/articles").param("geographyId", ayacuchoId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.slug == 'turismo-en-la-region-andina')]").exists());
+
+        String otroPaisId = createGeographyUnit(editorToken, "Otro País Test", "PAIS", null);
+        mockMvc.perform(get("/api/v1/articles").param("geographyId", otroPaisId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isEmpty());
+    }
+
+    private String createGeographyUnit(String editorToken, String name, String level, String parentId) throws Exception {
+        String parentField = parentId == null ? "" : ",\"parentId\":\"" + parentId + "\"";
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/geography")
+                        .header("Authorization", "Bearer " + editorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"" + name + "\",\"level\":\"" + level + "\"" + parentField + "}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        return textField(result, "id");
+    }
+
+    private String articleJsonWithGeography(String categoryId, String geographyId, String title) {
+        return "{"
+                + "\"title\":\"" + title + "\","
+                + "\"excerpt\":\"Resumen breve\","
+                + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
+                + "\"articleType\":\"ARTICULO\","
+                + "\"categoryId\":\"" + categoryId + "\","
+                + "\"geographyId\":\"" + geographyId + "\","
+                + "\"tagNames\":[\"ayacucho\",\"turismo\"]"
+                + "}";
+    }
+
     private String createDraftArticle(String authorToken, String categoryId, String title) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v1/admin/articles")
                         .header("Authorization", "Bearer " + authorToken)

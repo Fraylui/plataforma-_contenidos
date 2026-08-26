@@ -13,10 +13,12 @@ public record ArticleSummaryResponse(
         String excerpt,
         ArticleType articleType,
         UUID categoryId,
+        UUID geographyId,
         Instant publishedAt) {
 
     public static ArticleSummaryResponse from(Article article) {
         return new ArticleSummaryResponse(article.getId(), article.getSlug(), article.getTitle(),
-                article.getExcerpt(), article.getArticleType(), article.getCategoryId(), article.getPublishedAt());
+                article.getExcerpt(), article.getArticleType(), article.getCategoryId(), article.getGeographyId(),
+                article.getPublishedAt());
     }
 }

@@ -96,11 +96,15 @@ cd frontend && npx eslint . && npm run build
   estricta de que el padre sea exactamente el nivel inmediato superior
   (no jerarquía libre como en Categorías). Lectura pública
   (`/api/v1/geography?level=&parentId=`), escritura `EDITOR+`. Sin datos
-  semilla (Perú/Ayacucho) — se cargan por API, no se inventan. **Fuera de
-  esta tarea, señalado explícito:** todavía no hay `geographyId` en
-  `Article` (conectar Content con Geography queda como paso aparte);
-  desactivar una unidad no desactiva en cascada a sus hijos (mismo
-  comportamiento que Category, no es una regresión nueva).
+  semilla (Perú/Ayacucho) — se cargan por API, no se inventan. Desactivar
+  una unidad no desactiva en cascada a sus hijos (mismo comportamiento que
+  Category).
+- **Content ↔ Geography** (2026-08-25): `Article.geographyId` opcional
+  (no todo contenido tiene ubicación — ej. Tecnología/IA), validado contra
+  `geography.units` activas al crear/editar. Filtro combinable en el
+  listado público: `/api/v1/articles?categoryId=&geographyId=`
+  (ej. Turismo + Ayacucho, sección 4). Sin FK entre esquemas (igual que
+  category_id, sección 38).
 
 **Pendiente para un MVP completo** (sección 34): Lugares (post-MVP),
 Imágenes, integración YouTube, SEO técnico (sitemap/robots.txt), búsqueda, panel

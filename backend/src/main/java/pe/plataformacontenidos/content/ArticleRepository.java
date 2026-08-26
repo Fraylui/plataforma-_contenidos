@@ -18,6 +18,11 @@ public interface ArticleRepository extends JpaRepository<Article, UUID> {
 
     Page<Article> findByStatusAndCategoryId(ArticleStatus status, UUID categoryId, Pageable pageable);
 
+    Page<Article> findByStatusAndGeographyId(ArticleStatus status, UUID geographyId, Pageable pageable);
+
+    Page<Article> findByStatusAndCategoryIdAndGeographyId(
+            ArticleStatus status, UUID categoryId, UUID geographyId, Pageable pageable);
+
     List<Article> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 
     List<Article> findByStatusAndScheduledAtBefore(ArticleStatus status, Instant threshold);

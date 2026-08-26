@@ -49,6 +49,10 @@ public class GeographicUnitService {
         return repository.findById(id).orElseThrow(() -> new GeographicUnitNotFoundException(id));
     }
 
+    public boolean existsActive(UUID id) {
+        return repository.findById(id).map(GeographicUnit::isActive).orElse(false);
+    }
+
     private void validateParent(GeographyLevel level, UUID parentId) {
         GeographyLevel requiredParentLevel = level.requiredParentLevel();
 
