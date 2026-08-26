@@ -57,8 +57,17 @@ cd frontend && npx eslint . && npm run build
 
 ## Estado actual
 
-Bootstrap inicial (2026-08-25): estructura de repo, esqueleto de backend
-(Spring Boot 4 + PostgreSQL + Redis + Flyway + Actuator + seguridad base
-"deny all excepto health") y esqueleto de frontend (Next.js 16 + Tailwind,
-sin sistema de diseño todavía). Ninguna funcionalidad de negocio
-implementada aún — ver sección 34 de CONTEXTO.md para el orden del MVP.
+- **Bootstrap** (2026-08-25): estructura de repo, esqueleto de backend
+  (Spring Boot 4 + PostgreSQL + Redis + Flyway + Actuator) y esqueleto de
+  frontend (Next.js 16 + Tailwind, sin sistema de diseño todavía).
+- **Identity/Auth** (2026-08-25): login/refresh/logout con JWT (access
+  corto + refresh opaco rotativo en Redis), RBAC por rol (`SUPER_ADMIN`,
+  `ADMIN`, `EDITOR`, `AUTHOR`, `MODERATOR`, `COLLABORATOR`, `USER`),
+  gestión de usuarios por admin (`/api/v1/admin/users`), rate limiting de
+  login, audit log real, bootstrap del primer `SUPER_ADMIN` vía variables
+  de entorno. **Pendiente explícito:** MFA para `SUPER_ADMIN` (CONTEXTO.md
+  36.5), auto-registro público (no hay feature que lo necesite aún), CORS
+  (se configura junto con la integración real del frontend).
+
+Ningún módulo de contenido implementado aún — ver sección 34 de
+CONTEXTO.md para el orden del MVP.

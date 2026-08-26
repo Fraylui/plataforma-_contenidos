@@ -26,6 +26,18 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
 
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
+      access-token-ttl-minutes: ${ACCESS_TOKEN_TTL_MINUTES:15}
+      refresh-token-ttl-days: ${REFRESH_TOKEN_TTL_DAYS:30}
+    login-rate-limit:
+      max-attempts: ${LOGIN_MAX_ATTEMPTS:5}
+      window-minutes: ${LOGIN_ATTEMPT_WINDOW_MINUTES:15}
+    bootstrap-admin-email: ${BOOTSTRAP_ADMIN_EMAIL:}
+    bootstrap-admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+
 server:
   port: ${SERVER_PORT:8080}
   error:

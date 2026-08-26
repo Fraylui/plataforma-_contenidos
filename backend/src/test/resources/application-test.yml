@@ -1,0 +1,6 @@
+app:
+  security:
+    jwt:
+      secret: "test-only-secret-never-use-this-value-outside-automated-tests-32bytes+"
+    bootstrap-admin-email: ""
+    bootstrap-admin-password: ""
