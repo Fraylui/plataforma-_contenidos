@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Newsreader } from "next/font/google";
 import "./globals.css";
 import { platformPlaceholder } from "@/lib/platform-placeholder";
+import { SITE_URL } from "@/lib/site-url";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 
@@ -17,11 +18,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: platformPlaceholder.name,
     template: `%s · ${platformPlaceholder.name}`,
   },
   description: platformPlaceholder.description,
+  alternates: { canonical: "/" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
