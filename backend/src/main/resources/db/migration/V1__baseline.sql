@@ -1,0 +1,5 @@
+-- Migración baseline. Intencionalmente vacía: establece el punto de partida
+-- gobernado por Flyway. Cada módulo (identity, content, taxonomy, geography,
+-- media, ...) añadirá sus propias migraciones versionadas (V2__..., V3__...)
+-- a medida que se implemente, cada una en su propio esquema cuando aplique
+-- (ver CONTEXTO.md, sección 38).

@@ -1,0 +1,13 @@
+# Secretos y configuración local — nunca commitear
+.env
+.env.local
+.env.*.local
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs sueltos en la raíz
+*.log
