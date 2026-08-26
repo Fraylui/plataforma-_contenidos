@@ -91,7 +91,17 @@ cd frontend && npx eslint . && npm run build
   completo) por rendimiento. Sin joins/FK entre esquemas `content` ↔
   `identity`/`taxonomy` (sección 38) — referencias por UUID validadas en
   el servicio.
+- **Geography** (2026-08-25): jerarquía fija de la sección 5
+  (`PAIS → REGION → PROVINCIA → DISTRITO → LOCALIDAD`), validación
+  estricta de que el padre sea exactamente el nivel inmediato superior
+  (no jerarquía libre como en Categorías). Lectura pública
+  (`/api/v1/geography?level=&parentId=`), escritura `EDITOR+`. Sin datos
+  semilla (Perú/Ayacucho) — se cargan por API, no se inventan. **Fuera de
+  esta tarea, señalado explícito:** todavía no hay `geographyId` en
+  `Article` (conectar Content con Geography queda como paso aparte);
+  desactivar una unidad no desactiva en cascada a sus hijos (mismo
+  comportamiento que Category, no es una regresión nueva).
 
-**Pendiente para un MVP completo** (sección 34): Geografía, Imágenes,
-integración YouTube, SEO técnico (sitemap/robots.txt), búsqueda, panel
+**Pendiente para un MVP completo** (sección 34): Lugares (post-MVP),
+Imágenes, integración YouTube, SEO técnico (sitemap/robots.txt), búsqueda, panel
 administrativo (frontend), estadísticas básicas, CI/CD, backups.
