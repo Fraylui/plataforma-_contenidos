@@ -82,6 +82,10 @@ public class Article {
     @Column(name = "og_image_url")
     private String ogImageUrl;
 
+    /** Solo la referencia (Video ID de YouTube), nunca el video en sí — sección 8. */
+    @Column(name = "youtube_video_id")
+    private String youtubeVideoId;
+
     @Column(nullable = false)
     private String robots = "index,follow";
 
@@ -175,6 +179,10 @@ public class Article {
         return ogImageUrl;
     }
 
+    public String getYoutubeVideoId() {
+        return youtubeVideoId;
+    }
+
     public String getRobots() {
         return robots;
     }
@@ -206,7 +214,7 @@ public class Article {
 
     public void updateContent(String title, String excerpt, String body, ArticleType articleType, UUID categoryId,
             UUID geographyId, Set<UUID> tagIds, String seoTitle, String metaDescription, String canonicalUrl,
-            String ogImageUrl, String robots) {
+            String ogImageUrl, String youtubeVideoId, String robots) {
         this.title = title;
         this.excerpt = excerpt;
         this.body = body;
@@ -218,6 +226,7 @@ public class Article {
         this.metaDescription = metaDescription;
         this.canonicalUrl = canonicalUrl;
         this.ogImageUrl = ogImageUrl;
+        this.youtubeVideoId = youtubeVideoId;
         this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
         this.updatedAt = Instant.now();
     }

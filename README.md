@@ -118,7 +118,15 @@ cd frontend && npx eslint . && npm run build
   **Pendiente/fuera de esta tarea:** `Article` todavía no tiene un campo
   tipo `featuredImageId` — conectar Content con Media queda como paso
   aparte, igual que se hizo con Geography.
+- **Content ↔ YouTube** (2026-08-25): `Article.youtubeVideoId` opcional
+  (sección 8). El redactor pega la URL completa; `YouTubeUrlParser` extrae
+  el ID de los 4 formatos reales (`watch?v=`, `youtu.be/`, `/embed/`,
+  `/shorts/`) y **solo se persiste el ID**, nunca la URL cruda ni el
+  video. URL no reconocida → 400. Ningún archivo de video se sube ni se
+  aloja — el frontend embebe el reproductor de YouTube con ese ID
+  (pendiente, es tarea de frontend).
 
 **Pendiente para un MVP completo** (sección 34): Lugares (post-MVP),
-Imágenes, integración YouTube, SEO técnico (sitemap/robots.txt), búsqueda, panel
-administrativo (frontend), estadísticas básicas, CI/CD, backups.
+SEO técnico (sitemap/robots.txt), búsqueda, panel administrativo
+(frontend — el vacío más grande ahora mismo), configuración de marca,
+estadísticas básicas, CI/CD, Dockerfiles de producción, backups.

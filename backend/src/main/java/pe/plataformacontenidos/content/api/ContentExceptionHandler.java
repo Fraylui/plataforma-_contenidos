@@ -9,6 +9,7 @@ import pe.plataformacontenidos.content.ArticleAccessDeniedException;
 import pe.plataformacontenidos.content.ArticleNotFoundException;
 import pe.plataformacontenidos.content.InvalidArticleTransitionException;
 import pe.plataformacontenidos.content.InvalidScheduleException;
+import pe.plataformacontenidos.content.InvalidYouTubeUrlException;
 
 @RestControllerAdvice
 public class ContentExceptionHandler {
@@ -30,6 +31,11 @@ public class ContentExceptionHandler {
 
     @ExceptionHandler(InvalidScheduleException.class)
     public ResponseEntity<ApiError> handleInvalidSchedule(InvalidScheduleException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidYouTubeUrlException.class)
+    public ResponseEntity<ApiError> handleInvalidYouTubeUrl(InvalidYouTubeUrlException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
     }
 

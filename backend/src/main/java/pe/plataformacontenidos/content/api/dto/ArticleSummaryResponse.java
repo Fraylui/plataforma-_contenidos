@@ -14,11 +14,12 @@ public record ArticleSummaryResponse(
         ArticleType articleType,
         UUID categoryId,
         UUID geographyId,
+        boolean hasVideo,
         Instant publishedAt) {
 
     public static ArticleSummaryResponse from(Article article) {
         return new ArticleSummaryResponse(article.getId(), article.getSlug(), article.getTitle(),
                 article.getExcerpt(), article.getArticleType(), article.getCategoryId(), article.getGeographyId(),
-                article.getPublishedAt());
+                article.getYoutubeVideoId() != null, article.getPublishedAt());
     }
 }

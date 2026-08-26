@@ -242,6 +242,46 @@ class ArticleWorkflowIntegrationTest {
                 + "}";
     }
 
+    @Test
+    void articleStoresYoutubeVideoIdParsedFromUrlAndRejectsInvalidUrl() throws Exception {
+        String editorToken = createUserAndLogin("wf-editor-7@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("wf-author-7@plataforma-contenidos.test", Role.AUTHOR);
+        String categoryId = createCategory(editorToken, "Entretenimiento Test");
+
+        mockMvc.perform(post("/api/v1/admin/articles")
+                        .header("Authorization", "Bearer " + authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(articleJsonWithYoutube(categoryId, "https://vimeo.com/12345678",
+                                "Artículo con URL de video inválida")))
+                .andExpect(status().isBadRequest());
+
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/articles")
+                        .header("Authorization", "Bearer " + authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(articleJsonWithYoutube(categoryId,
+                                "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10s", "Artículo con video de YouTube")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.youtubeVideoId").value("dQw4w9WgXcQ"))
+                .andReturn();
+
+        String articleId = textField(result, "id");
+        mockMvc.perform(get("/api/v1/admin/articles/" + articleId)
+                        .header("Authorization", "Bearer " + authorToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.youtubeVideoId").value("dQw4w9WgXcQ"));
+    }
+
+    private String articleJsonWithYoutube(String categoryId, String youtubeUrl, String title) {
+        return "{"
+                + "\"title\":\"" + title + "\","
+                + "\"excerpt\":\"Resumen breve\","
+                + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
+                + "\"articleType\":\"ARTICULO\","
+                + "\"categoryId\":\"" + categoryId + "\","
+                + "\"youtubeUrl\":\"" + youtubeUrl + "\""
+                + "}";
+    }
+
     private String createDraftArticle(String authorToken, String categoryId, String title) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v1/admin/articles")
                         .header("Authorization", "Bearer " + authorToken)

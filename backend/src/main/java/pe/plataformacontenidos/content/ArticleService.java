@@ -49,13 +49,14 @@ public class ArticleService {
             throw new CategoryNotFoundException(input.categoryId());
         }
         validateGeography(input.geographyId());
+        String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
         Set<UUID> tagIds = resolveTagNames(input.tagNames());
 
         Article article = new Article(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), input.body(),
                 input.articleType(), authorId, input.categoryId());
         article.updateContent(input.title(), input.excerpt(), input.body(), input.articleType(), input.categoryId(),
                 input.geographyId(), tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
-                input.ogImageUrl(), input.robots());
+                input.ogImageUrl(), youtubeVideoId, input.robots());
 
         Article saved = articleRepository.save(article);
         audit("ARTICLE_CREATED", saved, authorId);
@@ -72,11 +73,12 @@ public class ArticleService {
         if (!Objects.equals(article.getGeographyId(), input.geographyId())) {
             validateGeography(input.geographyId());
         }
+        String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
         Set<UUID> tagIds = resolveTagNames(input.tagNames());
 
         article.updateContent(input.title(), input.excerpt(), input.body(), input.articleType(), input.categoryId(),
                 input.geographyId(), tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
-                input.ogImageUrl(), input.robots());
+                input.ogImageUrl(), youtubeVideoId, input.robots());
         Article saved = articleRepository.save(article);
         audit("ARTICLE_UPDATED", saved, actingUserId);
         return saved;
@@ -197,6 +199,15 @@ public class ArticleService {
         if (geographyId != null && !geographyService.existsActive(geographyId)) {
             throw new GeographicUnitNotFoundException(geographyId);
         }
+    }
+
+    /** Nunca se persiste la URL cruda: solo el Video ID (sección 8). */
+    private String resolveYoutubeVideoId(String youtubeUrl) {
+        if (youtubeUrl == null || youtubeUrl.isBlank()) {
+            return null;
+        }
+        return YouTubeUrlParser.extractVideoId(youtubeUrl)
+                .orElseThrow(() -> new InvalidYouTubeUrlException(youtubeUrl));
     }
 
     private void requireCanEdit(Article article, UUID actingUserId, Role actingRole) {

@@ -20,10 +20,11 @@ public record ArticleRequest(
         String metaDescription,
         String canonicalUrl,
         String ogImageUrl,
+        String youtubeUrl,
         String robots) {
 
     public ArticleInput toInput() {
         return new ArticleInput(title, excerpt, body, articleType, categoryId, geographyId, tagNames, seoTitle,
-                metaDescription, canonicalUrl, ogImageUrl, robots);
+                metaDescription, canonicalUrl, ogImageUrl, youtubeUrl, robots);
     }
 }
