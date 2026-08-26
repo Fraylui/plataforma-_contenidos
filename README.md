@@ -76,6 +76,22 @@ cd frontend && npx eslint . && npm run build
   `mfaSetupRequired` es una señal, no un bloqueo duro — todavía no hay
   límite de "N logins sin MFA y luego se bloquea". Auto-registro público y
   CORS siguen pendientes (mismos motivos que antes).
+- **Taxonomy (Categorías/Etiquetas)** (2026-08-25): categorías jerárquicas
+  (`/api/v1/categories` lectura pública, `/api/v1/admin/categories`
+  escritura `EDITOR+`), validación de ciclos en la jerarquía, slug único
+  autogenerado. Etiquetas se crean al vuelo al redactar un artículo.
+- **Content (Artículos)** (2026-08-25): los 11 tipos de texto de la sección
+  3, con el flujo editorial completo de la sección 12
+  (`DRAFT → IN_REVIEW → APPROVED → PUBLISHED/SCHEDULED → ARCHIVED`, rama
+  `REJECTED`). Autorización a nivel de objeto (un `AUTHOR` solo edita SU
+  artículo en `DRAFT`/`REJECTED`; `EDITOR+` aprueba/publica/archiva).
+  Publicación programada vía `@Scheduled` (revisa cada 60s). Campos SEO
+  (sección 15) en el modelo. Endpoints públicos (`/api/v1/articles`) solo
+  exponen `PUBLISHED`, con una respuesta liviana en el listado (sin body
+  completo) por rendimiento. Sin joins/FK entre esquemas `content` ↔
+  `identity`/`taxonomy` (sección 38) — referencias por UUID validadas en
+  el servicio.
 
-Ningún módulo de contenido implementado aún — ver sección 34 de
-CONTEXTO.md para el orden del MVP.
+**Pendiente para un MVP completo** (sección 34): Geografía, Imágenes,
+integración YouTube, SEO técnico (sitemap/robots.txt), búsqueda, panel
+administrativo (frontend), estadísticas básicas, CI/CD, backups.

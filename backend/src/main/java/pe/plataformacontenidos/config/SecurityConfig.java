@@ -2,6 +2,7 @@ package pe.plataformacontenidos.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -14,9 +15,14 @@ import pe.plataformacontenidos.identity.security.JwtService;
 /**
  * Cadena de seguridad del monolito. Regla general: todo denegado salvo lo
  * explícitamente permitido (deny-by-default). El filtro JWT resuelve la
- * autenticación; las reglas de abajo resuelven la autorización por rol.
- * Cuando se agreguen módulos (Content, Media, ...) sus endpoints se agregan
- * aquí explícitamente, nunca se abre "anyRequest().authenticated()" a secas.
+ * autenticación; las reglas de abajo resuelven la autorización por rol o
+ * endpoint. Los matchers más específicos van primero (Spring evalúa en
+ * orden y usa el primero que matchee).
+ *
+ * La autorización a nivel de objeto (ej. un AUTHOR solo puede editar SU
+ * PROPIO artículo en DRAFT) no se puede expresar aquí — se resuelve en el
+ * servicio de dominio (ver ArticleService), esta cadena solo decide quién
+ * puede llegar al endpoint.
  */
 @Configuration
 public class SecurityConfig {
@@ -29,7 +35,15 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/api/v1/admin/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/tags").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/articles", "/api/v1/articles/**").permitAll()
+
+                .requestMatchers("/api/v1/admin/users/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
+                .requestMatchers("/api/v1/admin/categories/**", "/api/v1/admin/tags/**")
+                    .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR")
+                .requestMatchers("/api/v1/admin/articles/**")
+                    .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR")
+
                 .requestMatchers("/api/v1/users/me", "/api/v1/users/me/**").authenticated()
                 .anyRequest().denyAll()
             )
