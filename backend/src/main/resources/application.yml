@@ -37,6 +37,9 @@ app:
       window-minutes: ${LOGIN_ATTEMPT_WINDOW_MINUTES:15}
     bootstrap-admin-email: ${BOOTSTRAP_ADMIN_EMAIL:}
     bootstrap-admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+    mfa:
+      encryption-key: ${MFA_ENCRYPTION_KEY}
+      issuer: ${MFA_ISSUER:Plataforma de Contenidos}
 
 server:
   port: ${SERVER_PORT:8080}

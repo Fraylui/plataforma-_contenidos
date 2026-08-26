@@ -4,3 +4,6 @@ app:
       secret: "test-only-secret-never-use-this-value-outside-automated-tests-32bytes+"
     bootstrap-admin-email: ""
     bootstrap-admin-password: ""
+    mfa:
+      encryption-key: "ThTrxueov77AMqUM1Fc/4FMJhFUwrUv7d93NHdHOo/0="
+      issuer: "Plataforma de Contenidos (test)"

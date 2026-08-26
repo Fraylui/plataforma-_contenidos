@@ -65,9 +65,17 @@ cd frontend && npx eslint . && npm run build
   `ADMIN`, `EDITOR`, `AUTHOR`, `MODERATOR`, `COLLABORATOR`, `USER`),
   gestión de usuarios por admin (`/api/v1/admin/users`), rate limiting de
   login, audit log real, bootstrap del primer `SUPER_ADMIN` vía variables
-  de entorno. **Pendiente explícito:** MFA para `SUPER_ADMIN` (CONTEXTO.md
-  36.5), auto-registro público (no hay feature que lo necesite aún), CORS
-  (se configura junto con la integración real del frontend).
+  de entorno.
+- **MFA para SUPER_ADMIN** (2026-08-25): TOTP (RFC 6238, implementación
+  propia sin dependencias externas) + códigos de respaldo de un solo uso.
+  Secreto cifrado en reposo (AES-256-GCM). Enforcement: login de
+  `SUPER_ADMIN` exige código MFA una vez habilitado; el primer login tras
+  el bootstrap lo deja pasar pero marca `mfaSetupRequired: true` y lo
+  audita (`SUPER_ADMIN_LOGIN_WITHOUT_MFA`) — necesario para poder
+  bootstrapear sin quedar bloqueado. **Pendiente explícito:** el
+  `mfaSetupRequired` es una señal, no un bloqueo duro — todavía no hay
+  límite de "N logins sin MFA y luego se bloquea". Auto-registro público y
+  CORS siguen pendientes (mismos motivos que antes).
 
 Ningún módulo de contenido implementado aún — ver sección 34 de
 CONTEXTO.md para el orden del MVP.
