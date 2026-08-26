@@ -44,6 +44,20 @@ export function getPublishedArticleBySlug(slug: string): Promise<Article> {
   return apiFetch(`/api/v1/articles/${encodeURIComponent(slug)}`, 300);
 }
 
+const SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en ArticlePublicController
+const SITEMAP_MAX_PAGES = 200; // tope de seguridad: 10 000 artículos
+
+/** Todos los artículos publicados, para sitemap.xml. No usar para listados de UI. */
+export async function listAllPublishedArticlesForSitemap(): Promise<ArticleSummary[]> {
+  const items: ArticleSummary[] = [];
+  for (let page = 0; page < SITEMAP_MAX_PAGES; page++) {
+    const result = await listPublishedArticles({ page, size: SITEMAP_PAGE_SIZE });
+    items.push(...result.items);
+    if (page + 1 >= result.totalPages) break;
+  }
+  return items;
+}
+
 export function listActiveCategories(): Promise<Category[]> {
   return apiFetch(`/api/v1/categories`, 300);
 }

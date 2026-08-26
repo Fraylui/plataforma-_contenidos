@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   getCategoryById,
@@ -10,6 +11,8 @@ import { NotFoundError } from "@/lib/api/client";
 import { articleTypeLabel, formatPublishedDate } from "@/lib/content-labels";
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { platformPlaceholder } from "@/lib/platform-placeholder";
+import { SITE_URL } from "@/lib/site-url";
+import type { Article, Category } from "@/lib/api/types";
 
 async function loadArticle(slug: string) {
   try {
@@ -37,7 +40,10 @@ export async function generateMetadata(props: PageProps<"/articulos/[slug]">): P
   return {
     title,
     description,
-    alternates: article.canonicalUrl ? { canonical: article.canonicalUrl } : undefined,
+    // Por defecto, cada artículo es canónico de sí mismo (sección 15); solo
+    // se sobreescribe si el editor definió explícitamente otra URL canónica
+    // (ej. republicación de contenido originado en otro sitio).
+    alternates: { canonical: article.canonicalUrl || `/articulos/${slug}` },
     robots: article.robots,
     openGraph: {
       title,
@@ -47,6 +53,45 @@ export async function generateMetadata(props: PageProps<"/articulos/[slug]">): P
       publishedTime: article.publishedAt ?? undefined,
       siteName: platformPlaceholder.name,
     },
+  };
+}
+
+function articleJsonLd(article: Article, category: Category | null) {
+  const url = article.canonicalUrl || `${SITE_URL}/articulos/${article.slug}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.seoTitle || article.title,
+    description: article.metaDescription || article.excerpt || undefined,
+    image: article.ogImageUrl ? [article.ogImageUrl] : undefined,
+    datePublished: article.publishedAt ?? undefined,
+    dateModified: article.publishedAt ?? undefined,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    articleSection: category?.name,
+    publisher: {
+      "@type": "Organization",
+      name: platformPlaceholder.name,
+    },
+  };
+}
+
+function breadcrumbJsonLd(article: Article) {
+  // Solo Inicio → Artículo: todavía no existe una página pública de
+  // categoría (sección 15, "breadcrumbs") a la que enlazar el nivel
+  // intermedio sin generar una URL inexistente.
+  const items = [
+    { name: "Inicio", url: SITE_URL },
+    { name: article.title, url: `${SITE_URL}/articulos/${article.slug}` },
+  ];
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
   };
 }
 
@@ -64,7 +109,34 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
 
   return (
     <article className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-      <div className="flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide text-accent uppercase">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(articleJsonLd(article, category)).replace(/</g, "\\u003c"),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd(article)).replace(/</g, "\\u003c"),
+        }}
+      />
+
+      <nav aria-label="Breadcrumb" className="text-xs text-muted">
+        <ol className="flex flex-wrap items-center gap-1.5">
+          <li>
+            <Link href="/" className="hover:text-accent hover:underline">
+              Inicio
+            </Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li className="max-w-[24rem] truncate text-foreground/80" aria-current="page">
+            {article.title}
+          </li>
+        </ol>
+      </nav>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide text-accent uppercase">
         <span>{articleTypeLabel(article.articleType)}</span>
         {category && (
           <>
