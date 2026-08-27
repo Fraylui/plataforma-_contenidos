@@ -5,6 +5,8 @@ import { getPlatformSettings } from "@/lib/api/client";
 import { SITE_URL } from "@/lib/site-url";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner";
+import { AdsenseLoader } from "@/components/legal/adsense-loader";
 
 const newsreader = Newsreader({
   variable: "--font-serif",
@@ -34,7 +36,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const settings = await getPlatformSettings();
+
   return (
     <html
       lang="es"
@@ -44,6 +48,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />
+        <CookieConsentBanner />
+        {settings.adsenseEnabled && settings.adsenseClientId && (
+          <AdsenseLoader clientId={settings.adsenseClientId} />
+        )}
       </body>
     </html>
   );
