@@ -1,14 +1,15 @@
 import Link from "next/link";
 import type { PlaceSummary } from "@/lib/api/types";
 import { imageUrl } from "@/lib/image-url";
+import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
 
 export function PlaceCard({ place }: { place: PlaceSummary }) {
   return (
     <Link
       href={`/lugares/${place.slug}`}
-      className="group flex flex-col overflow-hidden rounded-lg border border-border bg-surface transition-colors hover:border-accent focus-visible:border-accent"
+      className="group flex flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-accent hover:shadow-md focus-visible:border-accent"
     >
-      <div className="aspect-video bg-border">
+      <div className="aspect-video">
         {place.coverImageId ? (
           // eslint-disable-next-line @next/next/no-img-element -- host propio del backend
           <img
@@ -17,7 +18,7 @@ export function PlaceCard({ place }: { place: PlaceSummary }) {
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-xs text-muted">Sin fotografía</div>
+          <NoImagePlaceholder />
         )}
       </div>
       <div className="flex flex-1 flex-col gap-2 p-5">

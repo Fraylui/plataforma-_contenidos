@@ -4,10 +4,11 @@ import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
 
 const FEATURED_PLACES_SIZE = 4;
+const RECENT_ARTICLES_SIZE = 6;
 
 export default async function Home() {
   const [articlesPage, placesPage, settings] = await Promise.all([
-    listPublishedArticles({ size: 24 }),
+    listPublishedArticles({ size: RECENT_ARTICLES_SIZE }),
     listPublishedPlaces({ size: FEATURED_PLACES_SIZE }),
     getPlatformSettings(),
   ]);
@@ -40,7 +41,14 @@ export default async function Home() {
       )}
 
       <section className="mt-12" aria-label="Artículos recientes">
-        <h2 className="font-serif text-xl font-medium text-foreground">Artículos recientes</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-serif text-xl font-medium text-foreground">Artículos recientes</h2>
+          {articlesPage.items.length > 0 && (
+            <Link href="/articulos" className="text-sm font-medium text-accent hover:underline">
+              Ver todos
+            </Link>
+          )}
+        </div>
         {articlesPage.items.length === 0 ? (
           <EmptyState />
         ) : (

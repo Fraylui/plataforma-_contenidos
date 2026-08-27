@@ -1,6 +1,17 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { searchContent } from "@/lib/api/client";
+import type { SearchResultType } from "@/lib/api/types";
 import { SearchResultCard } from "@/components/search/search-result-card";
+import { Pagination } from "@/components/ui/pagination";
+
+const PAGE_SIZE = 24;
+
+const TYPE_TABS: { value: SearchResultType | null; label: string }[] = [
+  { value: null, label: "Todo" },
+  { value: "ARTICLE", label: "Artículos" },
+  { value: "PLACE", label: "Lugares" },
+];
 
 export const metadata: Metadata = {
   title: "Buscar",
@@ -8,10 +19,19 @@ export const metadata: Metadata = {
   robots: "noindex,follow",
 };
 
+function buildHref(query: string, type: SearchResultType | null, page: number): string {
+  const params = new URLSearchParams({ q: query });
+  if (type) params.set("type", type);
+  if (page > 0) params.set("page", String(page));
+  return `/buscar?${params.toString()}`;
+}
+
 export default async function SearchPage(props: PageProps<"/buscar">) {
-  const { q } = await props.searchParams;
+  const { q, type: typeParam, page: pageParam } = await props.searchParams;
   const query = typeof q === "string" ? q : "";
-  const page = query ? await searchContent(query) : null;
+  const type = typeParam === "ARTICLE" || typeParam === "PLACE" ? typeParam : null;
+  const page = typeof pageParam === "string" ? Math.max(0, parseInt(pageParam, 10) || 0) : 0;
+  const result = query ? await searchContent(query, { page, size: PAGE_SIZE, type: type ?? undefined }) : null;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
@@ -37,19 +57,39 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
         </form>
       </header>
 
-      <section className="mt-10" aria-label="Resultados de búsqueda">
+      {query && (
+        <nav aria-label="Filtrar por tipo" className="mt-6 flex gap-2">
+          {TYPE_TABS.map((tab) => {
+            const active = tab.value === type;
+            return (
+              <Link
+                key={tab.label}
+                href={buildHref(query, tab.value, 0)}
+                className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                  active ? "bg-accent text-accent-foreground" : "bg-surface text-muted hover:text-foreground"
+                }`}
+              >
+                {tab.label}
+              </Link>
+            );
+          })}
+        </nav>
+      )}
+
+      <section className="mt-8" aria-label="Resultados de búsqueda">
         {!query ? (
           <p className="text-sm text-muted">Escribe algo para buscar en todo el contenido publicado.</p>
-        ) : page && page.items.length > 0 ? (
+        ) : result && result.items.length > 0 ? (
           <>
             <p className="mb-6 text-sm text-muted">
-              {page.totalElements} resultado{page.totalElements === 1 ? "" : "s"} para «{query}»
+              {result.totalElements} resultado{result.totalElements === 1 ? "" : "s"} para «{query}»
             </p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {page.items.map((result) => (
-                <SearchResultCard key={`${result.contentType}-${result.id}`} result={result} />
+              {result.items.map((item) => (
+                <SearchResultCard key={`${item.contentType}-${item.id}`} result={item} />
               ))}
             </div>
+            <Pagination page={result.page} totalPages={result.totalPages} buildHref={(p) => buildHref(query, type, p)} />
           </>
         ) : (
           <p className="text-sm text-muted">Sin resultados para «{query}». Prueba con otras palabras.</p>

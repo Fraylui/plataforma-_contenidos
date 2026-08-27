@@ -13,6 +13,7 @@ import type {
   PlaceSummary,
   PlatformSettings,
   SearchResult,
+  SearchResultType,
   Tag,
 } from "./types";
 
@@ -55,11 +56,15 @@ export function listPublishedArticles(params?: {
  * no hace falta validarlo acá. Busca en todos los tipos de contenido
  * buscables (Artículos y Lugares hoy) — antes solo cubría Artículos.
  */
-export function searchContent(q: string, params?: { page?: number; size?: number }): Promise<PageResponse<SearchResult>> {
+export function searchContent(
+  q: string,
+  params?: { page?: number; size?: number; type?: SearchResultType },
+): Promise<PageResponse<SearchResult>> {
   const query = new URLSearchParams();
   query.set("q", q);
   query.set("page", String(params?.page ?? 0));
   query.set("size", String(params?.size ?? 20));
+  if (params?.type) query.set("type", params.type);
   return apiFetch(`/api/v1/search?${query.toString()}`, 60);
 }
 
@@ -120,6 +125,17 @@ export function listActiveCategories(): Promise<Category[]> {
 
 export function getCategoryById(id: string): Promise<Category> {
   return apiFetch(`/api/v1/categories/${encodeURIComponent(id)}`, 300);
+}
+
+/**
+ * No hay endpoint de backend por slug (solo por id, sección arriba) — la
+ * lista de categorías activas es chica (sección 4: ~24 de ejemplo), así
+ * que no justifica un endpoint nuevo. `listActiveCategories()` ya cachea
+ * 300s, así que esto no golpea el backend en cada llamada.
+ */
+export async function getCategoryBySlug(slug: string): Promise<Category | null> {
+  const categories = await listActiveCategories();
+  return categories.find((c) => c.slug === slug) ?? null;
 }
 
 export function listGeographyChildren(params?: {

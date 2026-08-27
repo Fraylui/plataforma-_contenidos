@@ -92,6 +92,41 @@ class SearchIntegrationTest {
     }
 
     @Test
+    void typeParamFiltersOutTheOtherContentTypeEvenIfItMatches() throws Exception {
+        String editorToken = createUserAndLogin("search-type-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("search-type-author@plataforma-contenidos.test", Role.AUTHOR);
+        String categoryId = createCategory(editorToken, "Categoría Filtro Tipo Test");
+
+        // Misma palabra distintiva en un artículo y en un lugar, para probar
+        // que el filtro type= de verdad excluye al otro tipo (y no que
+        // simplemente no había resultados del otro tipo para empezar).
+        publishArticle(authorToken, editorToken, categoryId,
+                "Wamanripa: guía completa", "Todo sobre wamanripa en la región.");
+        String placeId = createPlace(authorToken, categoryId, "Mirador Wamanripa");
+        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
+                        .header("Authorization", "Bearer " + authorToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/approve")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/search").param("q", "Wamanripa").param("type", "PLACE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].contentType", org.hamcrest.Matchers.everyItem(
+                        org.hamcrest.Matchers.is("PLACE"))))
+                .andExpect(jsonPath("$.items[*].title", org.hamcrest.Matchers.hasItem("Mirador Wamanripa")));
+
+        mockMvc.perform(get("/api/v1/search").param("q", "Wamanripa").param("type", "ARTICLE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].contentType", org.hamcrest.Matchers.everyItem(
+                        org.hamcrest.Matchers.is("ARTICLE"))))
+                .andExpect(jsonPath("$.items[*].title", org.hamcrest.Matchers.hasItem("Wamanripa: guía completa")));
+    }
+
+    @Test
     void doesNotReturnDraftArticles() throws Exception {
         String authorToken = createUserAndLogin("search-author-2@plataforma-contenidos.test", Role.AUTHOR);
         String editorToken = createUserAndLogin("search-editor-2@plataforma-contenidos.test", Role.EDITOR);
