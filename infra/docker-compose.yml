@@ -1,5 +1,17 @@
 name: plataforma-contenidos
 
+# Stack completo (CONTEXTO.md secciones 21/25): Postgres + Redis + backend +
+# frontend en contenedores. Para desarrollo del día a día seguí usando
+# `./mvnw spring-boot:run` / `npm run dev` (hot reload) — este compose es
+# para correr/probar el stack "como en producción" o como base de un
+# despliegue real.
+#
+# IMPORTANTE — orden de build: `next build` hace fetch real al backend en
+# build time (páginas públicas con Server Components, sección 43). Compose
+# construye todas las imágenes ANTES de levantar contenedores, así que un
+# solo `docker compose up -d --build` NO alcanza para el frontend la
+# primera vez (el backend todavía no está arriba cuando se arma su imagen).
+# Ver README.md para la secuencia de dos pasos.
 services:
   postgres:
     image: postgres:16-alpine
@@ -32,6 +44,87 @@ services:
       timeout: 5s
       retries: 10
 
+  backend:
+    build: ../backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # DB_HOST/REDIS_HOST son los nombres de servicio de Compose (red
+      # interna), no localhost ni el puerto mapeado al host — eso es lo que
+      # ve el navegador/host, no otro contenedor.
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-plataforma_contenidos}
+      DB_USER: ${DB_USER:-plataforma_contenidos}
+      DB_PASSWORD: ${DB_PASSWORD:?define DB_PASSWORD in .env}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?define REDIS_PASSWORD in .env}
+      SERVER_PORT: 8080
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET in .env}
+      ACCESS_TOKEN_TTL_MINUTES: ${ACCESS_TOKEN_TTL_MINUTES:-15}
+      REFRESH_TOKEN_TTL_DAYS: ${REFRESH_TOKEN_TTL_DAYS:-30}
+      LOGIN_MAX_ATTEMPTS: ${LOGIN_MAX_ATTEMPTS:-5}
+      LOGIN_ATTEMPT_WINDOW_MINUTES: ${LOGIN_ATTEMPT_WINDOW_MINUTES:-15}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?define MFA_ENCRYPTION_KEY in .env}
+      MFA_ISSUER: ${MFA_ISSUER:-Plataforma de Contenidos}
+      MEDIA_STORAGE_PATH: /app/data/media
+      MEDIA_MAX_FILE_SIZE: ${MEDIA_MAX_FILE_SIZE:-10MB}
+      MEDIA_MAX_FILE_SIZE_BYTES: ${MEDIA_MAX_FILE_SIZE_BYTES:-10485760}
+      MEDIA_MAX_DIMENSION_PIXELS: ${MEDIA_MAX_DIMENSION_PIXELS:-6000}
+      MEDIA_UPLOAD_MAX_ATTEMPTS: ${MEDIA_UPLOAD_MAX_ATTEMPTS:-30}
+      MEDIA_UPLOAD_WINDOW_MINUTES: ${MEDIA_UPLOAD_WINDOW_MINUTES:-15}
+    ports:
+      - "127.0.0.1:${SERVER_PORT:-8080}:8080"
+    volumes:
+      # Imágenes subidas por usuarios (sección 10): sobreviven a un
+      # `docker compose down` normal. Migrar a Object Storage/CDN no toca
+      # esto (StorageService es una interfaz).
+      - media_data:/app/data/media
+    healthcheck:
+      # 127.0.0.1 explícito, no "localhost" (ver frontend/Dockerfile: dentro
+      # del contenedor puede resolver a ::1 antes que a IPv4).
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+
+  frontend:
+    build:
+      context: ../frontend
+      # BuildKit no puede adjuntarse por nombre a una red custom de Compose
+      # (probado: "network mode ... not supported by buildkit"), así que el
+      # build usa la red del host y llega al backend por su puerto YA
+      # publicado en 127.0.0.1 (ver servicio backend) — no por DNS de
+      # servicio. Eso solo funciona en Linux/Docker Desktop con soporte de
+      # host networking; el backend debe estar arriba y saludable ANTES de
+      # este build (ver nota de "orden de build" al inicio del archivo).
+      network: host
+      args:
+        # NEXT_PUBLIC_* queda horneado en el bundle del navegador — ver
+        # comentario en frontend/Dockerfile.
+        NEXT_PUBLIC_BACKEND_ASSET_URL: ${NEXT_PUBLIC_BACKEND_ASSET_URL:-http://localhost:8080}
+        BACKEND_API_URL: http://localhost:${SERVER_PORT:-8080}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      # Server Components corren dentro del contenedor: hablan con el
+      # backend por la red interna de Compose, no por localhost.
+      BACKEND_API_URL: http://backend:8080
+      SITE_URL: ${SITE_URL:-http://localhost:3000}
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"
+
 volumes:
   postgres_data:
   redis_data:
+  media_data:
