@@ -195,6 +195,14 @@ public class ArticleService {
         return articleRepository.findByStatus(ArticleStatus.PUBLISHED, pageable);
     }
 
+    /** CONTEXTO.md sección 16. Query en blanco: página vacía, no error — evita un 400 por un input trivial. */
+    public Page<Article> search(String query, Pageable pageable) {
+        if (query == null || query.isBlank()) {
+            return Page.empty(pageable);
+        }
+        return articleRepository.search(query.trim(), pageable);
+    }
+
     private void validateGeography(UUID geographyId) {
         if (geographyId != null && !geographyService.existsActive(geographyId)) {
             throw new GeographicUnitNotFoundException(geographyId);
