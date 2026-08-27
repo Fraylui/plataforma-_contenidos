@@ -15,23 +15,13 @@ export default async function TermsOfUsePage() {
 
   const sections: LegalSection[] = [
     {
-      id: "aceptacion",
-      title: "Aceptación de estos términos",
-      content: (
-        <p>
-          Al navegar {settings.name} aceptas estos términos de uso. Si no estás de acuerdo, la única opción es dejar
-          de usar el sitio — hoy no requiere registro ni pago para leer el contenido publicado.
-        </p>
-      ),
-    },
-    {
       id: "que-es",
       title: "Qué es este sitio",
       content: (
         <p>
-          {settings.name} es una plataforma de contenidos digitales: artículos, lugares, fotografías y video sobre
-          temas de actualidad, turismo, cultura e historias locales. Todo el contenido publicado pasa por un proceso
-          editorial antes de salir al público.
+          {settings.name} es una plataforma de contenidos: artículos, lugares y otros formatos que se van sumando,
+          todos con revisión editorial antes de publicarse. Al navegar el sitio aceptás estos términos — hoy no hace
+          falta registrarte ni pagar para leer nada.
         </p>
       ),
     },
@@ -39,24 +29,23 @@ export default async function TermsOfUsePage() {
       id: "uso-permitido",
       title: "Uso permitido",
       content: (
-        <>
-          <p>Puedes leer, compartir y enlazar el contenido publicado libremente.</p>
-          <p>
-            No está permitido: reproducir artículos completos en otro sitio sin autorización, extraer contenido de
-            forma automatizada y masiva (scraping) para republicarlo, ni usar el sitio para actividades ilegales.
-          </p>
-        </>
+        <p>
+          Podés leer, compartir y enlazar el contenido libremente. No está permitido reproducirlo completo en otro
+          sitio sin autorización, extraerlo de forma automatizada y masiva (scraping), ni usar el sitio para
+          actividades ilegales.
+        </p>
       ),
     },
     {
       id: "contenido-publicidad",
-      title: "Contenido editorial y publicidad",
+      title: "Contenido y publicidad",
       content: (
         <p>
-          El contenido editorial y la publicidad se muestran claramente diferenciados. Cualquier contenido
-          patrocinado se marca como tal de forma visible — nunca se presenta como una nota editorial independiente.
-          {settings.adsenseEnabled &&
-            " Este sitio muestra publicidad a través de Google AdSense; ver la Política de Privacidad para más detalles sobre las cookies asociadas."}
+          El contenido editorial y la publicidad se muestran diferenciados; lo patrocinado se marca como tal, nunca
+          se presenta como nota independiente.{" "}
+          {settings.adsenseEnabled
+            ? "Este sitio muestra publicidad vía Google AdSense — ver la Política de Privacidad."
+            : "Hoy el sitio no muestra publicidad de terceros."}
         </p>
       ),
     },
@@ -65,37 +54,22 @@ export default async function TermsOfUsePage() {
       title: "Propiedad intelectual",
       content: (
         <p>
-          Los textos, fotografías y demás contenido original publicado en {settings.name} son propiedad de{" "}
-          {settings.name} o de sus autores/colaboradores, y están protegidos por derechos de autor. Los videos de
-          YouTube embebidos siguen perteneciendo a sus respectivos canales — este sitio solo referencia el video, no
-          lo aloja.
+          Los textos y fotografías originales son de {settings.name} o de sus autores, protegidos por derechos de
+          autor. Los videos de YouTube embebidos siguen perteneciendo a sus canales — este sitio solo los referencia,
+          no los aloja.
         </p>
       ),
     },
     {
       id: "responsabilidad",
-      title: "Limitación de responsabilidad",
+      title: "Responsabilidad, cambios y ley aplicable",
       content: (
         <p>
-          Hacemos lo posible por publicar información precisa y actualizada, pero no garantizamos que el contenido
-          esté siempre libre de errores. Si encuentras una inexactitud, escríbenos a {contact} y la corregimos.
+          Hacemos lo posible por publicar información precisa; si encontrás un error, escribinos a {contact} y lo
+          corregimos. Podemos actualizar estos términos cuando cambien las funciones del sitio (la fecha de arriba
+          refleja la versión vigente). Se rigen por las leyes de la República del Perú.
         </p>
       ),
-    },
-    {
-      id: "cambios",
-      title: "Cambios a estos términos",
-      content: (
-        <p>
-          Podemos actualizar estos términos cuando cambien las funciones del sitio. La fecha de &ldquo;Última
-          actualización&rdquo; al inicio de esta página refleja la versión vigente.
-        </p>
-      ),
-    },
-    {
-      id: "ley-aplicable",
-      title: "Ley aplicable",
-      content: <p>Estos términos se rigen por las leyes de la República del Perú.</p>,
     },
   ];
 

@@ -9,11 +9,12 @@ export interface LegalSection {
 
 /**
  * Estructura compartida por /privacidad y /terminos — mismo tratamiento
- * tipográfico que un artículo (font-serif para título, max-w-[70ch] para
- * el cuerpo, ver app/articulos/[slug]/page.tsx) para que un documento legal
- * no se sienta como un cuerpo extraño dentro del sitio editorial. La tabla
- * de contenidos (en vez de un muro de texto sin puntos de referencia) es lo
- * que más diferencia esto de una página legal genérica.
+ * tipográfico que un artículo (font-serif, max-w-[70ch]) para que un
+ * documento legal no se sienta como un cuerpo extraño dentro del sitio.
+ * Índice como línea de enlaces envueltos, no una caja con recuadro y
+ * numeración — se siente más liviano, sobre todo en mobile (ver memoria de
+ * feedback de esta sesión: las páginas legales no debían sentirse como
+ * documentación técnica).
  */
 export function LegalPageLayout({
   title,
@@ -40,29 +41,25 @@ export function LegalPageLayout({
         </ol>
       </nav>
 
-      <h1 className="mt-3 font-serif text-3xl font-medium leading-tight text-foreground sm:text-4xl">{title}</h1>
-      <p className="mt-2 text-sm text-muted">Última actualización: {updatedAt}</p>
+      <h1 className="mt-3 font-serif text-2xl font-medium leading-tight text-foreground sm:text-3xl">{title}</h1>
+      <p className="mt-1.5 text-sm text-muted">Última actualización: {updatedAt}</p>
 
-      <nav aria-label="Tabla de contenidos" className="mt-8 rounded-lg border border-border bg-surface p-5">
-        <p className="text-xs font-medium tracking-wide text-muted uppercase">En esta página</p>
-        <ol className="mt-3 space-y-1.5 text-sm">
-          {sections.map((section, index) => (
-            <li key={section.id}>
-              <a href={`#${section.id}`} className="text-foreground hover:text-accent hover:underline">
-                {index + 1}. {section.title}
-              </a>
-            </li>
-          ))}
-        </ol>
+      <nav aria-label="Contenido" className="mt-6 flex flex-wrap gap-x-2 gap-y-1 text-sm text-muted">
+        {sections.map((section, index) => (
+          <span key={section.id} className="flex items-center gap-2">
+            <a href={`#${section.id}`} className="hover:text-accent hover:underline">
+              {section.title}
+            </a>
+            {index < sections.length - 1 && <span aria-hidden="true">·</span>}
+          </span>
+        ))}
       </nav>
 
-      <div className="mt-10 space-y-10">
-        {sections.map((section, index) => (
+      <div className="mt-8 space-y-8">
+        {sections.map((section) => (
           <section key={section.id} id={section.id} className="scroll-mt-6">
-            <h2 className="font-serif text-xl font-medium text-foreground">
-              {index + 1}. {section.title}
-            </h2>
-            <div className="mt-3 max-w-[70ch] space-y-3 text-base leading-relaxed text-foreground/90">
+            <h2 className="font-serif text-lg font-medium text-foreground">{section.title}</h2>
+            <div className="mt-2 max-w-[70ch] space-y-3 text-base leading-relaxed text-foreground/90">
               {section.content}
             </div>
           </section>
