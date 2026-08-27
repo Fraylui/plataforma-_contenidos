@@ -37,17 +37,21 @@ public class SearchService {
         this.placeService = placeService;
     }
 
-    public SearchPageResponse search(String query, int page, int size) {
+    /** `type` es opcional: cuando viene, solo se consulta ese módulo (no se pide trabajo de más al otro). */
+    public SearchPageResponse search(String query, int page, int size, SearchResultType type) {
         if (query == null || query.isBlank()) {
             return new SearchPageResponse(List.of(), page, size, 0, 0);
         }
 
-        var articles = articleService.search(query, PageRequest.of(0, MERGE_FETCH_LIMIT));
-        var places = placeService.search(query, PageRequest.of(0, MERGE_FETCH_LIMIT));
-
-        List<SearchResultResponse> combined = new ArrayList<>(articles.getNumberOfElements() + places.getNumberOfElements());
-        articles.forEach(a -> combined.add(SearchResultResponse.fromArticle(a)));
-        places.forEach(p -> combined.add(SearchResultResponse.fromPlace(p)));
+        List<SearchResultResponse> combined = new ArrayList<>();
+        if (type == null || type == SearchResultType.ARTICLE) {
+            articleService.search(query, PageRequest.of(0, MERGE_FETCH_LIMIT))
+                    .forEach(a -> combined.add(SearchResultResponse.fromArticle(a)));
+        }
+        if (type == null || type == SearchResultType.PLACE) {
+            placeService.search(query, PageRequest.of(0, MERGE_FETCH_LIMIT))
+                    .forEach(p -> combined.add(SearchResultResponse.fromPlace(p)));
+        }
         combined.sort(Comparator.comparing(SearchResultResponse::publishedAt).reversed());
 
         int total = combined.size();

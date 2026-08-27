@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { SearchResult } from "@/lib/api/types";
 import { imageUrl } from "@/lib/image-url";
+import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
 
 const TYPE_LABEL: Record<SearchResult["contentType"], string> = {
   ARTICLE: "Artículo",
@@ -18,9 +19,9 @@ export function SearchResultCard({ result }: { result: SearchResult }) {
   return (
     <Link
       href={href}
-      className="group flex flex-col overflow-hidden rounded-lg border border-border bg-surface transition-colors hover:border-accent focus-visible:border-accent"
+      className="group flex flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-accent hover:shadow-md focus-visible:border-accent"
     >
-      <div className="aspect-video bg-border">
+      <div className="aspect-video">
         {result.featuredImageId ? (
           // eslint-disable-next-line @next/next/no-img-element -- host propio del backend
           <img
@@ -29,7 +30,7 @@ export function SearchResultCard({ result }: { result: SearchResult }) {
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-xs text-muted">Sin fotografía</div>
+          <NoImagePlaceholder />
         )}
       </div>
 

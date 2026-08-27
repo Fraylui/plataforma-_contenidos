@@ -20,6 +20,12 @@ export async function SiteHeader() {
             <Link href="/lugares" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
               Lugares
             </Link>
+            <Link
+              href="/categorias"
+              className="text-sm font-medium text-muted hover:text-foreground transition-colors"
+            >
+              Categorías
+            </Link>
           </nav>
           <form action="/buscar" role="search" className="flex items-center">
             <label htmlFor="site-search" className="sr-only">
