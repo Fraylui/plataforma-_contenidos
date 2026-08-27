@@ -7,13 +7,27 @@ cambia una decisión importante, nunca se reescribe "por las dudas".*
 
 # 1. Descripción
 
-Se desarrollará una **Plataforma de Contenidos Digitales** profesional, escalable, segura y modular.
+Se desarrollará una **Plataforma de Contenidos Digitales** profesional, escalable, segura y modular, diseñada para publicar, organizar y distribuir información de diferentes categorías en un solo lugar.
 
-No será simplemente un blog ni una página de noticias. Será un **sistema de gestión y distribución de contenidos** capaz de manejar diferentes formatos, categorías, ubicaciones geográficas, autores, multimedia, SEO, publicidad y futuras funcionalidades.
+No será simplemente un blog ni una página de noticias. Será un **sistema de gestión y distribución de contenidos** — un ecosistema de contenidos, no una publicación centrada en artículos — capaz de manejar diferentes formatos, categorías, ubicaciones geográficas, autores, multimedia, SEO, publicidad y futuras funcionalidades.
 
-La plataforma inicialmente estará orientada a **Perú**, comenzando con contenido que podamos producir, pero su arquitectura no debe limitarse a Perú.
+## 1.1 Por qué no es un blog
 
-La plataforma debe poder crecer posteriormente hacia otros países y nuevos tipos de contenido.
+Un blog normalmente se centra en artículos. Esta plataforma gestiona **diferentes tipos de contenido y los relaciona entre sí** (ver también el diagrama de la sección 2). Ejemplos concretos:
+
+* Un lugar turístico puede tener historia, fotografías, videos y eventos relacionados.
+* Una festividad puede estar conectada con una ubicación, una galería de imágenes y artículos relacionados.
+* Una comunidad puede tener información cultural, gastronómica y turística asociada.
+
+Esto es lo que debe guiar decisiones de diseño (visual y de arquitectura): ninguna sección — Lugares, Eventos, Directorio, etc. — debe sentirse como un apéndice forzado dentro de un formato pensado solo para artículos/noticias. Ver también sección 43 (estándar de diseño): la identidad visual debe funcionar para todos los tipos de contenido de la sección 3, no solo para el editorial de actualidad.
+
+## 1.2 Alcance geográfico
+
+La plataforma inicialmente estará orientada a **Perú** (comenzando con contenido de Ayacucho, que es lo que se puede producir primero), pero su arquitectura no debe limitarse a una región o país. La visión es crecer hacia otros países, regiones, temas y audiencias — no diseñar como si fuera a quedarse local para siempre (ver también sección 32, principio de escalabilidad).
+
+## 1.3 Visión
+
+Construir una plataforma de contenidos moderna, escalable y preparada para crecer, que reúna información, cultura, conocimiento, turismo y entretenimiento — con el tiempo, evolucionando hacia una empresa digital de contenidos con alcance nacional e internacional (el ángulo de negocio de esa evolución, con sus fases e hipótesis, está en la sección 44 — acá se habla del producto, no de cifras).
 
 ---
 
@@ -32,7 +46,8 @@ Crear un ecosistema donde los usuarios puedan:
 * conocer eventos;
 * explorar cultura y tradiciones;
 * buscar empresas y servicios;
-* descubrir contenido según su ubicación e intereses.
+* descubrir contenido según su ubicación e intereses;
+* compartir contenido con otras personas.
 
 La plataforma debe conectar diferentes contenidos.
 
