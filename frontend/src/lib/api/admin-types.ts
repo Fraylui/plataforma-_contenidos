@@ -31,13 +31,6 @@ export interface MfaBackupCodes {
   backupCodes: string[];
 }
 
-export interface ApiError {
-  timestamp: string;
-  status: number;
-  message: string;
-  details: string[];
-}
-
 /** Cuerpo de POST/PUT /api/v1/admin/articles — ver ArticleRequest.java. */
 export interface ArticleInput {
   title: string;

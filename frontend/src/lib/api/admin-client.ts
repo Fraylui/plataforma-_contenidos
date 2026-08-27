@@ -77,14 +77,6 @@ export function login(email: string, password: string, mfaCode?: string): Promis
   });
 }
 
-export function refreshSession(refreshToken: string): Promise<TokenResponse> {
-  return publicJson("/api/v1/auth/refresh", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
-  });
-}
-
 export async function logoutSession(refreshToken: string): Promise<void> {
   // Best-effort: si el refresh token ya no es válido no hay nada que revocar.
   await fetch(`${BACKEND_API_URL}/api/v1/auth/logout`, {

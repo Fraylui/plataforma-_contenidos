@@ -11,8 +11,8 @@ const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
  * frontend (ver memoria "engineering-guardrails": el navegador solo habla
  * con Next.js).
  *
- * Sin caché a propósito (a diferencia de listGeographyChildren() en
- * src/lib/api/client.ts, que cachea 300s para el sitio público): una
+ * Sin caché a propósito (a diferencia de listPublishedPlaces/etc. en
+ * src/lib/api/client.ts, que cachean para el sitio público): una
  * unidad geográfica recién creada en /admin/geografia debe poder elegirse
  * de inmediato en el selector del formulario de artículo. Encontrado en la
  * revisión de código de esta fase — mismo problema que ya se había

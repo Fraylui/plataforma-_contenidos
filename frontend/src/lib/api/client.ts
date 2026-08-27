@@ -252,16 +252,6 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
   return categories.find((c) => c.slug === slug) ?? null;
 }
 
-export function listGeographyChildren(params?: {
-  level?: string;
-  parentId?: string;
-}): Promise<GeographicUnit[]> {
-  const query = new URLSearchParams();
-  if (params?.level) query.set("level", params.level);
-  if (params?.parentId) query.set("parentId", params.parentId);
-  return apiFetch(`/api/v1/geography?${query.toString()}`, 300);
-}
-
 export function getGeographyUnitById(id: string): Promise<GeographicUnit> {
   return apiFetch(`/api/v1/geography/${encodeURIComponent(id)}`, 300);
 }
