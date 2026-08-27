@@ -31,5 +31,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...articleEntries,
     ...placeEntries,
+    {
+      url: `${SITE_URL}/privacidad`,
+      changeFrequency: "yearly",
+      priority: 0.2,
+    },
+    {
+      url: `${SITE_URL}/terminos`,
+      changeFrequency: "yearly",
+      priority: 0.2,
+    },
   ];
 }
