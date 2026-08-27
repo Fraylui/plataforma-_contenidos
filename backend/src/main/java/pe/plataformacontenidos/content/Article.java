@@ -82,6 +82,14 @@ public class Article {
     @Column(name = "og_image_url")
     private String ogImageUrl;
 
+    /**
+     * Foto destacada para tarjetas/portada — UUID sin FK, igual criterio que
+     * geography_id/category_id (pertenece al módulo Media, sección 38).
+     * Validada en ArticleService contra ImageService antes de persistir.
+     */
+    @Column(name = "featured_image_id")
+    private UUID featuredImageId;
+
     /** Solo la referencia (Video ID de YouTube), nunca el video en sí — sección 8. */
     @Column(name = "youtube_video_id")
     private String youtubeVideoId;
@@ -179,6 +187,10 @@ public class Article {
         return ogImageUrl;
     }
 
+    public UUID getFeaturedImageId() {
+        return featuredImageId;
+    }
+
     public String getYoutubeVideoId() {
         return youtubeVideoId;
     }
@@ -214,7 +226,7 @@ public class Article {
 
     public void updateContent(String title, String excerpt, String body, ArticleType articleType, UUID categoryId,
             UUID geographyId, Set<UUID> tagIds, String seoTitle, String metaDescription, String canonicalUrl,
-            String ogImageUrl, String youtubeVideoId, String robots) {
+            String ogImageUrl, UUID featuredImageId, String youtubeVideoId, String robots) {
         this.title = title;
         this.excerpt = excerpt;
         this.body = body;
@@ -226,6 +238,7 @@ public class Article {
         this.metaDescription = metaDescription;
         this.canonicalUrl = canonicalUrl;
         this.ogImageUrl = ogImageUrl;
+        this.featuredImageId = featuredImageId;
         this.youtubeVideoId = youtubeVideoId;
         this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
         this.updatedAt = Instant.now();

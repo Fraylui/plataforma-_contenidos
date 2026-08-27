@@ -21,6 +21,7 @@ public record ArticleInput(
         String metaDescription,
         String canonicalUrl,
         String ogImageUrl,
+        UUID featuredImageId,
         String youtubeUrl,
         String robots) {
 }

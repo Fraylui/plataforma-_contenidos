@@ -11,6 +11,7 @@ import {
 import { NotFoundError } from "@/lib/api/client";
 import { articleTypeLabel, formatPublishedDate } from "@/lib/content-labels";
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
+import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
 import type { Article, Category } from "@/lib/api/types";
 
@@ -171,6 +172,15 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
           </span>
         )}
       </div>
+
+      {article.featuredImageId && (
+        // eslint-disable-next-line @next/next/no-img-element -- host propio del backend
+        <img
+          src={imageUrl(`/api/v1/images/${article.featuredImageId}/file`)}
+          alt={article.title}
+          className="mt-8 aspect-video w-full rounded-lg object-cover"
+        />
+      )}
 
       {article.youtubeVideoId && (
         <div className="mt-8">

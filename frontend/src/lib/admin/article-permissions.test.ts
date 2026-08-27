@@ -20,6 +20,7 @@ function makeArticle(overrides: Partial<Article> = {}): Article {
     metaDescription: null,
     canonicalUrl: null,
     ogImageUrl: null,
+    featuredImageId: null,
     youtubeVideoId: null,
     robots: "index,follow",
     rejectionReason: null,

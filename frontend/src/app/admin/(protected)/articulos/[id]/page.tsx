@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { AdminApiError, getAdminArticle, listActiveCategoriesFresh } from "@/lib/api/admin-client";
+import { AdminApiError, getAdminArticle, listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
 import { getCategoryById, getGeographyUnitById, listAllTags } from "@/lib/api/client";
 import { computeArticlePermissions } from "@/lib/admin/article-permissions";
 import { ArticleForm } from "@/components/admin/article-form";
@@ -50,9 +50,10 @@ export default async function EditArticlePage(props: PageProps<"/admin/articulos
     throw error;
   }
 
-  const [activeCategories, allTags, geographyChain] = await Promise.all([
+  const [activeCategories, allTags, allImages, geographyChain] = await Promise.all([
     listActiveCategoriesFresh(),
     listAllTags(),
+    listAdminImages(accessToken),
     resolveGeographyChain(article.geographyId),
   ]);
   const categories = await resolveCategories(activeCategories, article.categoryId);
@@ -67,6 +68,7 @@ export default async function EditArticlePage(props: PageProps<"/admin/articulos
           mode="edit"
           article={article}
           categories={categories}
+          allImages={allImages}
           initialGeographyChain={geographyChain}
           initialTagNames={tagNames}
           permissions={permissions}

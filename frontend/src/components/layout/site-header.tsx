@@ -15,7 +15,7 @@ export async function SiteHeader() {
         <div className="flex items-center gap-6">
           <nav aria-label="Principal" className="hidden items-center gap-6 sm:flex">
             <Link href="/" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
-              Artículos
+              Inicio
             </Link>
             <Link href="/lugares" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
               Lugares

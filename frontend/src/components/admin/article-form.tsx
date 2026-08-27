@@ -3,9 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import type { Article, ArticleType, Category, GeographicUnit } from "@/lib/api/types";
-import type { ArticleInput } from "@/lib/api/admin-types";
+import type { AdminImage, ArticleInput } from "@/lib/api/admin-types";
 import type { ArticlePermissions } from "@/lib/admin/article-permissions";
 import { articleTypeLabel, articleStatusLabel } from "@/lib/content-labels";
+import { ArticleFeaturedImagePicker } from "./article-featured-image-picker";
 import { GeographyPicker } from "./geography-picker";
 import { TagInput } from "./tag-input";
 import {
@@ -38,6 +39,7 @@ const ROBOTS_OPTIONS = ["index,follow", "noindex,follow", "index,nofollow", "noi
 
 interface ArticleFormProps {
   categories: Category[];
+  allImages: AdminImage[];
   initialGeographyChain: GeographicUnit[];
   initialTagNames: string[];
   mode: "create" | "edit";
@@ -47,6 +49,7 @@ interface ArticleFormProps {
 
 export function ArticleForm({
   categories,
+  allImages,
   initialGeographyChain,
   initialTagNames,
   mode,
@@ -67,6 +70,7 @@ export function ArticleForm({
   const [metaDescription, setMetaDescription] = useState(article?.metaDescription ?? "");
   const [canonicalUrl, setCanonicalUrl] = useState(article?.canonicalUrl ?? "");
   const [ogImageUrl, setOgImageUrl] = useState(article?.ogImageUrl ?? "");
+  const [featuredImageId, setFeaturedImageId] = useState<string | null>(article?.featuredImageId ?? null);
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [removeYoutube, setRemoveYoutube] = useState(false);
   const [robots, setRobots] = useState(article?.robots ?? "index,follow");
@@ -90,6 +94,7 @@ export function ArticleForm({
       metaDescription: metaDescription || null,
       canonicalUrl: canonicalUrl || null,
       ogImageUrl: ogImageUrl || null,
+      featuredImageId,
       youtubeUrl: resolveYoutubeUrlForSubmit(),
       robots,
     };
@@ -221,6 +226,15 @@ export function ArticleForm({
 
         <Field label="Etiquetas">
           <TagInput value={tags} onChange={setTags} />
+        </Field>
+
+        <Field label="Foto destacada (opcional — se muestra en la tarjeta y la portada)">
+          <ArticleFeaturedImagePicker
+            allImages={allImages}
+            value={featuredImageId}
+            onChange={setFeaturedImageId}
+            disabled={readOnly}
+          />
         </Field>
 
         <Field label="Video de YouTube (URL, opcional)">

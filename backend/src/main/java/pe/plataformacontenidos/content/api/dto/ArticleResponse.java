@@ -23,6 +23,7 @@ public record ArticleResponse(
         String metaDescription,
         String canonicalUrl,
         String ogImageUrl,
+        UUID featuredImageId,
         String youtubeVideoId,
         String robots,
         String rejectionReason,
@@ -35,7 +36,8 @@ public record ArticleResponse(
                 article.getBody(), article.getArticleType(), article.getStatus(), article.getAuthorId(),
                 article.getCategoryId(), article.getGeographyId(), article.getTagIds(), article.getSeoTitle(),
                 article.getMetaDescription(), article.getCanonicalUrl(), article.getOgImageUrl(),
-                article.getYoutubeVideoId(), article.getRobots(), article.getRejectionReason(),
-                article.getPublishedAt(), article.getScheduledAt(), article.getCreatedAt());
+                article.getFeaturedImageId(), article.getYoutubeVideoId(), article.getRobots(),
+                article.getRejectionReason(), article.getPublishedAt(), article.getScheduledAt(),
+                article.getCreatedAt());
     }
 }
