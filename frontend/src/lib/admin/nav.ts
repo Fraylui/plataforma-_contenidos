@@ -49,6 +49,12 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     roles: ["SUPER_ADMIN", "ADMIN"],
   },
   { href: "/admin/mfa-setup", label: "Seguridad (MFA)" },
+  {
+    href: "/admin/configuracion",
+    label: "Configuración",
+    // Debe coincidir con SecurityConfig: /api/v1/admin/platform-settings/** -> SUPER_ADMIN, ADMIN.
+    roles: ["SUPER_ADMIN", "ADMIN"],
+  },
 ];
 
 export function visibleNavItems(role: Role): AdminNavItem[] {

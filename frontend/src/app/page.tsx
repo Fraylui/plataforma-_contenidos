@@ -1,19 +1,21 @@
-import { listPublishedArticles } from "@/lib/api/client";
+import { getPlatformSettings, listPublishedArticles } from "@/lib/api/client";
 import { ArticleCard } from "@/components/article/article-card";
-import { platformPlaceholder } from "@/lib/platform-placeholder";
 
 export default async function Home() {
-  const page = await listPublishedArticles({ size: 24 });
+  const [page, settings] = await Promise.all([
+    listPublishedArticles({ size: 24 }),
+    getPlatformSettings(),
+  ]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
       <header className="max-w-2xl">
         <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
-          {platformPlaceholder.name}
+          {settings.name}
         </h1>
-        <p className="mt-3 text-base leading-relaxed text-muted">
-          {platformPlaceholder.description}
-        </p>
+        {settings.description && (
+          <p className="mt-3 text-base leading-relaxed text-muted">{settings.description}</p>
+        )}
       </header>
 
       <section className="mt-10" aria-label="Últimos artículos">

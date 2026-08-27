@@ -82,6 +82,37 @@ export interface CreateUserInput {
   role: Role;
 }
 
+/** Cuerpo de PUT /api/v1/admin/platform-settings — ver UpdatePlatformSettingsRequest.java. */
+export interface PlatformSettingsInput {
+  name: string;
+  shortName: string | null;
+  description: string | null;
+  slogan: string | null;
+  logoUrl: string | null;
+  logoDarkUrl: string | null;
+  faviconUrl: string | null;
+  ogImageUrl: string | null;
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  backgroundColor: string | null;
+  fontFamily: string | null;
+  theme: "LIGHT" | "DARK" | "AUTO";
+  seoDefaultTitle: string | null;
+  seoDefaultDescription: string | null;
+  seoDefaultImageUrl: string | null;
+  googleSearchConsoleVerification: string | null;
+  facebookUrl: string | null;
+  instagramUrl: string | null;
+  tiktokUrl: string | null;
+  youtubeUrl: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  contactAddress: string | null;
+  adsenseEnabled: boolean;
+  adsenseClientId: string | null;
+  analyticsId: string | null;
+}
+
 /** Ver ImageResponse.java. `url` es relativa — resolver con src/lib/image-url.ts. */
 export interface AdminImage {
   id: string;

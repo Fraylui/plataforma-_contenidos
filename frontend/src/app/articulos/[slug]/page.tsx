@@ -4,13 +4,13 @@ import { notFound } from "next/navigation";
 import {
   getCategoryById,
   getGeographyUnitById,
+  getPlatformSettings,
   getPublishedArticleBySlug,
   listAllTags,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { articleTypeLabel, formatPublishedDate } from "@/lib/content-labels";
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
-import { platformPlaceholder } from "@/lib/platform-placeholder";
 import { SITE_URL } from "@/lib/site-url";
 import type { Article, Category } from "@/lib/api/types";
 
@@ -33,6 +33,7 @@ export async function generateMetadata(props: PageProps<"/articulos/[slug]">): P
   } catch {
     return {};
   }
+  const settings = await getPlatformSettings();
 
   const title = article.seoTitle || article.title;
   const description = article.metaDescription || article.excerpt || undefined;
@@ -51,12 +52,12 @@ export async function generateMetadata(props: PageProps<"/articulos/[slug]">): P
       type: "article",
       images: article.ogImageUrl ? [article.ogImageUrl] : undefined,
       publishedTime: article.publishedAt ?? undefined,
-      siteName: platformPlaceholder.name,
+      siteName: settings.name,
     },
   };
 }
 
-function articleJsonLd(article: Article, category: Category | null) {
+function articleJsonLd(article: Article, category: Category | null, siteName: string) {
   const url = article.canonicalUrl || `${SITE_URL}/articulos/${article.slug}`;
   return {
     "@context": "https://schema.org",
@@ -70,7 +71,7 @@ function articleJsonLd(article: Article, category: Category | null) {
     articleSection: category?.name,
     publisher: {
       "@type": "Organization",
-      name: platformPlaceholder.name,
+      name: siteName,
     },
   };
 }
@@ -99,10 +100,11 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
   const { slug } = await props.params;
   const article = await loadArticle(slug);
 
-  const [category, geography, tags] = await Promise.all([
+  const [category, geography, tags, settings] = await Promise.all([
     getCategoryById(article.categoryId).catch(() => null),
     article.geographyId ? getGeographyUnitById(article.geographyId).catch(() => null) : Promise.resolve(null),
     article.tagIds.length > 0 ? listAllTags().catch(() => []) : Promise.resolve([]),
+    getPlatformSettings(),
   ]);
 
   const articleTags = tags.filter((tag) => article.tagIds.includes(tag.id));
@@ -112,7 +114,7 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(articleJsonLd(article, category)).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(articleJsonLd(article, category, settings.name)).replace(/</g, "\\u003c"),
         }}
       />
       <script

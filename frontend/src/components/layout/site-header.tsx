@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { platformPlaceholder } from "@/lib/platform-placeholder";
+import { getPlatformSettings } from "@/lib/api/client";
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  const settings = await getPlatformSettings();
   return (
     <header className="border-b border-border bg-surface">
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
@@ -9,7 +10,7 @@ export function SiteHeader() {
           href="/"
           className="font-serif text-xl font-medium tracking-tight text-foreground hover:text-accent transition-colors"
         >
-          {platformPlaceholder.name}
+          {settings.shortName || settings.name}
         </Link>
         <nav aria-label="Principal" className="hidden sm:block">
           <Link

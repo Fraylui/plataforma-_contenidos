@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Newsreader } from "next/font/google";
 import "./globals.css";
-import { platformPlaceholder } from "@/lib/platform-placeholder";
+import { getPlatformSettings } from "@/lib/api/client";
 import { SITE_URL } from "@/lib/site-url";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -17,15 +17,22 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: platformPlaceholder.name,
-    template: `%s · ${platformPlaceholder.name}`,
-  },
-  description: platformPlaceholder.description,
-  alternates: { canonical: "/" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getPlatformSettings();
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: settings.seoDefaultTitle || settings.name,
+      template: `%s · ${settings.name}`,
+    },
+    description: settings.seoDefaultDescription || settings.description || undefined,
+    alternates: { canonical: "/" },
+    openGraph: settings.seoDefaultImageUrl ? { images: [settings.seoDefaultImageUrl] } : undefined,
+    verification: settings.googleSearchConsoleVerification
+      ? { google: settings.googleSearchConsoleVerification }
+      : undefined,
+  };
+}
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

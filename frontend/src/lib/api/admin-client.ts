@@ -14,9 +14,10 @@ import type {
   GeographyCreateInput,
   MfaBackupCodes,
   MfaEnrollment,
+  PlatformSettingsInput,
   TokenResponse,
 } from "./admin-types";
-import type { Article, Category, GeographicUnit, Tag } from "./types";
+import type { Article, Category, GeographicUnit, PlatformSettings, Tag } from "./types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 
@@ -326,4 +327,21 @@ export function activateUser(accessToken: string, id: string): Promise<AdminUser
 
 export function deactivateUser(accessToken: string, id: string): Promise<AdminUser> {
   return authedJson(`/api/v1/admin/users/${encodeURIComponent(id)}`, accessToken, { method: "DELETE" });
+}
+
+// --- Configuration module: identidad de plataforma (PlatformSettingsAdminController) ---
+
+export function getAdminPlatformSettings(accessToken: string): Promise<PlatformSettings> {
+  return authedJson("/api/v1/admin/platform-settings", accessToken);
+}
+
+export function updatePlatformSettings(
+  accessToken: string,
+  input: PlatformSettingsInput,
+): Promise<PlatformSettings> {
+  return authedJson("/api/v1/admin/platform-settings", accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
 }
