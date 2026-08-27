@@ -88,3 +88,34 @@ export interface Tag {
   name: string;
   slug: string;
 }
+
+/** Ver PlatformSettingsResponse.java (CONTEXTO.md sección 14). */
+export interface PlatformSettings {
+  name: string;
+  shortName: string | null;
+  description: string | null;
+  slogan: string | null;
+  logoUrl: string | null;
+  logoDarkUrl: string | null;
+  faviconUrl: string | null;
+  ogImageUrl: string | null;
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  backgroundColor: string | null;
+  fontFamily: string | null;
+  theme: "LIGHT" | "DARK" | "AUTO";
+  seoDefaultTitle: string | null;
+  seoDefaultDescription: string | null;
+  seoDefaultImageUrl: string | null;
+  googleSearchConsoleVerification: string | null;
+  facebookUrl: string | null;
+  instagramUrl: string | null;
+  tiktokUrl: string | null;
+  youtubeUrl: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  contactAddress: string | null;
+  adsenseEnabled: boolean;
+  adsenseClientId: string | null;
+  analyticsId: string | null;
+}

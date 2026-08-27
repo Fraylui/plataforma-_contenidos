@@ -3,7 +3,7 @@
 // preocuparse por CORS (eso solo hace falta para mutaciones desde el
 // navegador, que hoy no existen: no hay panel admin todavía).
 import "server-only";
-import type { Article, ArticleSummary, Category, GeographicUnit, PageResponse, Tag } from "./types";
+import type { Article, ArticleSummary, Category, GeographicUnit, PageResponse, PlatformSettings, Tag } from "./types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 
@@ -82,4 +82,9 @@ export function getGeographyUnitById(id: string): Promise<GeographicUnit> {
 
 export function listAllTags(): Promise<Tag[]> {
   return apiFetch(`/api/v1/tags`, 300);
+}
+
+/** Identidad/marca (CONTEXTO.md sección 14): reemplaza src/lib/platform-placeholder.ts. */
+export function getPlatformSettings(): Promise<PlatformSettings> {
+  return apiFetch(`/api/v1/platform-settings`, 300);
 }

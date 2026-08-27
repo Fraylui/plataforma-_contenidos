@@ -40,8 +40,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/articles", "/api/v1/articles/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/geography", "/api/v1/geography/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/images/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/platform-settings").permitAll()
 
                 .requestMatchers("/api/v1/admin/users/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
+                .requestMatchers("/api/v1/admin/platform-settings/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
                 .requestMatchers("/api/v1/admin/categories/**", "/api/v1/admin/tags/**", "/api/v1/admin/geography/**")
                     .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR")
                 .requestMatchers("/api/v1/admin/articles/**", "/api/v1/admin/images/**")
