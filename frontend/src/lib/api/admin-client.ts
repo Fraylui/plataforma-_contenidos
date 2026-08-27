@@ -15,6 +15,7 @@ import type {
   MfaBackupCodes,
   MfaEnrollment,
   PlatformSettingsInput,
+  PlatformStats,
   TokenResponse,
 } from "./admin-types";
 import type { Article, Category, GeographicUnit, PlatformSettings, Tag } from "./types";
@@ -344,4 +345,10 @@ export function updatePlatformSettings(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
+}
+
+// --- Stats module: estadísticas básicas (StatsController) ---
+
+export function getAdminStats(accessToken: string): Promise<PlatformStats> {
+  return authedJson("/api/v1/admin/stats", accessToken);
 }

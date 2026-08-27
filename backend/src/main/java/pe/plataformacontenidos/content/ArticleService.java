@@ -1,8 +1,10 @@
 package pe.plataformacontenidos.content;
 
 import java.time.Instant;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -201,6 +203,19 @@ public class ArticleService {
             return Page.empty(pageable);
         }
         return articleRepository.search(query.trim(), pageable);
+    }
+
+    /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
+    public Map<ArticleStatus, Long> countByStatus() {
+        Map<ArticleStatus, Long> counts = new EnumMap<>(ArticleStatus.class);
+        for (ArticleStatus status : ArticleStatus.values()) {
+            counts.put(status, articleRepository.countByStatus(status));
+        }
+        return counts;
+    }
+
+    public long countPublishedSince(Instant threshold) {
+        return articleRepository.countByStatusAndPublishedAtAfter(ArticleStatus.PUBLISHED, threshold);
     }
 
     private void validateGeography(UUID geographyId) {

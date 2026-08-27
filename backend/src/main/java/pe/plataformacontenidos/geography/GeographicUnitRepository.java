@@ -15,4 +15,6 @@ public interface GeographicUnitRepository extends JpaRepository<GeographicUnit, 
     List<GeographicUnit> findByActiveTrueAndLevelAndParentIdIsNull(GeographyLevel level);
 
     long countByParentId(UUID parentId);
+
+    long countByActiveTrue();
 }

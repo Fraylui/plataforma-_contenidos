@@ -45,6 +45,14 @@ public class GeographicUnitService {
         return repository.findAll();
     }
 
+    public long countAll() {
+        return repository.count();
+    }
+
+    public long countActive() {
+        return repository.countByActiveTrue();
+    }
+
     public GeographicUnit getOrThrow(UUID id) {
         return repository.findById(id).orElseThrow(() -> new GeographicUnitNotFoundException(id));
     }

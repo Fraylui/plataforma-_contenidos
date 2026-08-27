@@ -43,6 +43,14 @@ public class CategoryService {
         return categoryRepository.findAll();
     }
 
+    public long countAll() {
+        return categoryRepository.count();
+    }
+
+    public long countActive() {
+        return categoryRepository.countByActiveTrue();
+    }
+
     public Category getOrThrow(UUID id) {
         return categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(id));
     }

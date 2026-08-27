@@ -13,6 +13,12 @@ export interface AdminNavItem {
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { href: "/admin", label: "Inicio" },
   {
+    href: "/admin/estadisticas",
+    label: "Estadísticas",
+    // Debe coincidir con SecurityConfig: /api/v1/admin/stats/** -> SUPER_ADMIN, ADMIN, EDITOR.
+    roles: ["SUPER_ADMIN", "ADMIN", "EDITOR"],
+  },
+  {
     href: "/admin/articulos",
     label: "Artículos",
     // Debe coincidir con SecurityConfig: /api/v1/admin/articles/** -> SUPER_ADMIN, ADMIN, EDITOR, AUTHOR.
