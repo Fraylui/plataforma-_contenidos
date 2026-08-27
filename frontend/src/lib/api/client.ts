@@ -39,6 +39,15 @@ export function listPublishedArticles(params?: {
   return apiFetch(`/api/v1/articles?${query.toString()}`, 60);
 }
 
+/** CONTEXTO.md sección 16. `q` vacío ya devuelve página vacía en el backend, no hace falta validarlo acá. */
+export function searchArticles(q: string, params?: { page?: number; size?: number }): Promise<PageResponse<ArticleSummary>> {
+  const query = new URLSearchParams();
+  query.set("q", q);
+  query.set("page", String(params?.page ?? 0));
+  query.set("size", String(params?.size ?? 20));
+  return apiFetch(`/api/v1/search?${query.toString()}`, 60);
+}
+
 export function getPublishedArticleBySlug(slug: string): Promise<Article> {
   // Detalle: revalidación más larga, un artículo publicado rara vez cambia.
   return apiFetch(`/api/v1/articles/${encodeURIComponent(slug)}`, 300);
