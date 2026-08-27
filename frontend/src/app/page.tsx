@@ -3,9 +3,16 @@ import { getPlatformSettings, listPublishedArticles, listPublishedEvents, listPu
 import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
 import { EventCard } from "@/components/event/event-card";
+import { articleTypeLabel } from "@/lib/content-labels";
+import { imageUrl } from "@/lib/image-url";
+import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
 
 const FEATURED_PLACES_SIZE = 4;
-const RECENT_ARTICLES_SIZE = 6;
+// +1: el primero se usa como destacado grande, el resto en la grilla — evita
+// que el sitio se sienta un muro homogéneo de tarjetas idénticas (mismo
+// criterio que usan los agregadores de contenido: jerarquía por tamaño, no
+// solo por orden).
+const RECENT_ARTICLES_SIZE = 7;
 const UPCOMING_EVENTS_SIZE = 3;
 
 export default async function Home() {
@@ -15,6 +22,7 @@ export default async function Home() {
     listPublishedEvents({ when: "upcoming", size: UPCOMING_EVENTS_SIZE }),
     getPlatformSettings(),
   ]);
+  const [featuredArticle, ...recentArticles] = articlesPage.items;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
@@ -26,6 +34,37 @@ export default async function Home() {
           <p className="mt-3 text-base leading-relaxed text-muted">{settings.description}</p>
         )}
       </header>
+
+      {featuredArticle && (
+        <Link
+          href={`/articulos/${featuredArticle.slug}`}
+          className="group mt-10 grid grid-cols-1 gap-6 overflow-hidden rounded-xl border border-border bg-surface shadow-sm transition-all duration-200 hover:border-accent hover:shadow-md sm:grid-cols-2"
+        >
+          <div className="aspect-video sm:aspect-auto">
+            {featuredArticle.featuredImageId ? (
+              // eslint-disable-next-line @next/next/no-img-element -- host propio del backend
+              <img
+                src={imageUrl(`/api/v1/images/${featuredArticle.featuredImageId}/file`)}
+                alt={featuredArticle.title}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <NoImagePlaceholder />
+            )}
+          </div>
+          <div className="flex flex-col justify-center gap-3 p-6 sm:p-8">
+            <span className="text-xs font-medium tracking-wide text-accent uppercase">
+              {articleTypeLabel(featuredArticle.articleType)}
+            </span>
+            <h2 className="font-serif text-2xl font-medium leading-tight text-foreground transition-colors group-hover:text-accent sm:text-3xl">
+              {featuredArticle.title}
+            </h2>
+            {featuredArticle.excerpt && (
+              <p className="text-base leading-relaxed text-muted line-clamp-3">{featuredArticle.excerpt}</p>
+            )}
+          </div>
+        </Link>
+      )}
 
       {placesPage.items.length > 0 && (
         <section className="mt-12" aria-label="Lugares destacados">
@@ -70,9 +109,11 @@ export default async function Home() {
         </div>
         {articlesPage.items.length === 0 ? (
           <EmptyState />
+        ) : recentArticles.length === 0 ? (
+          <p className="mt-4 text-sm text-muted">Todavía no hay más artículos publicados.</p>
         ) : (
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {articlesPage.items.map((article) => (
+            {recentArticles.map((article) => (
               <ArticleCard key={article.id} article={article} />
             ))}
           </div>

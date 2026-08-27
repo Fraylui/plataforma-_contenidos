@@ -17,18 +17,6 @@ export async function SiteHeader() {
             <Link href="/" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
               Inicio
             </Link>
-            <Link href="/lugares" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
-              Lugares
-            </Link>
-            <Link href="/eventos" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
-              Eventos
-            </Link>
-            <Link href="/galerias" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
-              Galerías
-            </Link>
-            <Link href="/resenas" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
-              Reseñas
-            </Link>
             <Link
               href="/categorias"
               className="text-sm font-medium text-muted hover:text-foreground transition-colors"
