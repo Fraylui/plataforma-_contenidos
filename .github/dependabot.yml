@@ -1,0 +1,29 @@
+# Dependency scanning (CONTEXTO.md sección 27). Dependabot abre un PR
+# automático cuando encuentra una versión con vulnerabilidad conocida (y,
+# aparte, actualizaciones de rutina agrupadas semanalmente) — no reemplaza
+# el CI (.github/workflows/ci.yml sigue corriendo tests sobre cada PR que
+# Dependabot abra), solo detecta que existe la actualización.
+#
+# No corre hasta que el repo tenga un remoto de GitHub (todavía no existe,
+# ver README.md) — Dependabot es una función de GitHub, no de este código.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    groups:
+      # Evita un PR separado por cada paquete de dev-tooling menor —
+      # solo las de producción se revisan una por una.
+      dev-dependencies:
+        dependency-type: development
+
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
