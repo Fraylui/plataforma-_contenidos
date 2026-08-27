@@ -65,6 +65,42 @@ public class AuditEvent {
         return new Builder(action, result);
     }
 
+    public UUID getId() {
+        return id;
+    }
+
+    public Instant getOccurredAt() {
+        return occurredAt;
+    }
+
+    public UUID getActorUserId() {
+        return actorUserId;
+    }
+
+    public String getActorEmail() {
+        return actorEmail;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public String getResourceType() {
+        return resourceType;
+    }
+
+    public String getResourceId() {
+        return resourceId;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public String getResult() {
+        return result;
+    }
+
     public static class Builder {
         private final String action;
         private final AuditResult result;
