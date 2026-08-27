@@ -3,7 +3,17 @@
 // preocuparse por CORS (eso solo hace falta para mutaciones desde el
 // navegador, que hoy no existen: no hay panel admin todavía).
 import "server-only";
-import type { Article, ArticleSummary, Category, GeographicUnit, PageResponse, PlatformSettings, Tag } from "./types";
+import type {
+  Article,
+  ArticleSummary,
+  Category,
+  GeographicUnit,
+  PageResponse,
+  Place,
+  PlaceSummary,
+  PlatformSettings,
+  Tag,
+} from "./types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 
@@ -61,6 +71,38 @@ export async function listAllPublishedArticlesForSitemap(): Promise<ArticleSumma
   const items: ArticleSummary[] = [];
   for (let page = 0; page < SITEMAP_MAX_PAGES; page++) {
     const result = await listPublishedArticles({ page, size: SITEMAP_PAGE_SIZE });
+    items.push(...result.items);
+    if (page + 1 >= result.totalPages) break;
+  }
+  return items;
+}
+
+export function listPublishedPlaces(params?: {
+  categoryId?: string;
+  geographyId?: string;
+  page?: number;
+  size?: number;
+}): Promise<PageResponse<PlaceSummary>> {
+  const query = new URLSearchParams();
+  if (params?.categoryId) query.set("categoryId", params.categoryId);
+  if (params?.geographyId) query.set("geographyId", params.geographyId);
+  query.set("page", String(params?.page ?? 0));
+  query.set("size", String(params?.size ?? 20));
+  return apiFetch(`/api/v1/places?${query.toString()}`, 60);
+}
+
+export function getPublishedPlaceBySlug(slug: string): Promise<Place> {
+  return apiFetch(`/api/v1/places/${encodeURIComponent(slug)}`, 300);
+}
+
+const PLACES_SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en PlacePublicController
+const PLACES_SITEMAP_MAX_PAGES = 200;
+
+/** Todos los lugares publicados, para sitemap.xml. No usar para listados de UI. */
+export async function listAllPublishedPlacesForSitemap(): Promise<PlaceSummary[]> {
+  const items: PlaceSummary[] = [];
+  for (let page = 0; page < PLACES_SITEMAP_MAX_PAGES; page++) {
+    const result = await listPublishedPlaces({ page, size: PLACES_SITEMAP_PAGE_SIZE });
     items.push(...result.items);
     if (page + 1 >= result.totalPages) break;
   }

@@ -3,11 +3,13 @@ package pe.plataformacontenidos.stats.api.dto;
 import java.util.Map;
 import pe.plataformacontenidos.content.ArticleStatus;
 import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.places.PlaceStatus;
 
 /** CONTEXTO.md sección 34. Ver StatsService — pura agregación, sin persistencia propia. */
 public record PlatformStatsResponse(
         Map<ArticleStatus, Long> articlesByStatus,
         long articlesPublishedLast30Days,
+        Map<PlaceStatus, Long> placesByStatus,
         long totalCategories,
         long activeCategories,
         long totalTags,
