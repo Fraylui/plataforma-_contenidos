@@ -1,0 +1,19 @@
+# Dispara plataforma-backup.service todos los días a las 03:00 (hora del
+# servidor) — fuera del horario esperado de mayor tráfico. Ver README.md
+# "Backups" para instalación y cómo cambiar el horario/frecuencia.
+[Unit]
+Description=Ejecuta el backup diario de plataforma-contenidos
+
+[Timer]
+OnCalendar=*-*-* 03:00:00
+# Si el servidor estuvo apagado a la hora programada, corre apenas vuelve
+# a estar disponible en vez de esperar al día siguiente (evita "silencios"
+# de varios días si hubo un reinicio/mantenimiento).
+Persistent=true
+# Reparte la hora exacta en una ventana de 10 minutos — evita que, si hay
+# más de un servicio en el mismo host con backups a las 03:00, todos
+# arranquen en el mismo segundo.
+RandomizedDelaySec=600
+
+[Install]
+WantedBy=timers.target
