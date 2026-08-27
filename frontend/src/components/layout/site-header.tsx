@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getPlatformSettings } from "@/lib/api/client";
+import { MobileNav } from "./mobile-nav";
 
 export async function SiteHeader() {
   const settings = await getPlatformSettings();
@@ -12,8 +13,8 @@ export async function SiteHeader() {
         >
           {settings.shortName || settings.name}
         </Link>
-        <div className="flex flex-1 flex-wrap items-center justify-end gap-x-4 gap-y-3 sm:gap-6">
-          <nav aria-label="Principal" className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-3 sm:gap-6">
+          <nav aria-label="Principal" className="hidden items-center gap-4 sm:flex">
             <Link
               href="/"
               className="rounded-md px-2 py-3 text-sm font-medium text-muted transition-colors hover:text-foreground"
@@ -39,6 +40,7 @@ export async function SiteHeader() {
               className="h-11 w-28 rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none transition-[width] focus-visible:w-44 focus-visible:border-accent sm:w-40 sm:focus-visible:w-56"
             />
           </form>
+          <MobileNav />
         </div>
       </div>
     </header>
