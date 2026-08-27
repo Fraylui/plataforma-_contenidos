@@ -7,13 +7,19 @@ import {
   getPlatformSettings,
   getPublishedArticleBySlug,
   listAllTags,
+  listPublishedArticles,
+  listPublishedPlaces,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { articleTypeLabel, formatPublishedDate } from "@/lib/content-labels";
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
+import { ArticleCard } from "@/components/article/article-card";
+import { PlaceCard } from "@/components/place/place-card";
 import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
 import type { Article, Category } from "@/lib/api/types";
+
+const RELATED_SIZE = 4;
 
 async function loadArticle(slug: string) {
   try {
@@ -77,12 +83,10 @@ function articleJsonLd(article: Article, category: Category | null, siteName: st
   };
 }
 
-function breadcrumbJsonLd(article: Article) {
-  // Solo Inicio → Artículo: todavía no existe una página pública de
-  // categoría (sección 15, "breadcrumbs") a la que enlazar el nivel
-  // intermedio sin generar una URL inexistente.
+function breadcrumbJsonLd(article: Article, category: Category | null) {
   const items = [
     { name: "Inicio", url: SITE_URL },
+    ...(category ? [{ name: category.name, url: `${SITE_URL}/categorias/${category.slug}` }] : []),
     { name: article.title, url: `${SITE_URL}/articulos/${article.slug}` },
   ];
   return {
@@ -110,6 +114,17 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
 
   const articleTags = tags.filter((tag) => article.tagIds.includes(tag.id));
 
+  const [relatedArticlesResult, relatedPlacesResult] = category
+    ? await Promise.all([
+        listPublishedArticles({ categoryId: category.id, size: RELATED_SIZE + 1 }),
+        listPublishedPlaces({ categoryId: category.id, size: RELATED_SIZE }),
+      ])
+    : [null, null];
+  const relatedArticles = (relatedArticlesResult?.items ?? [])
+    .filter((a) => a.id !== article.id)
+    .slice(0, RELATED_SIZE);
+  const relatedPlaces = relatedPlacesResult?.items ?? [];
+
   return (
     <article className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
       <script
@@ -121,7 +136,7 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbJsonLd(article)).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(breadcrumbJsonLd(article, category)).replace(/</g, "\\u003c"),
         }}
       />
 
@@ -133,6 +148,16 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
             </Link>
           </li>
           <li aria-hidden="true">/</li>
+          {category && (
+            <>
+              <li>
+                <Link href={`/categorias/${category.slug}`} className="hover:text-accent hover:underline">
+                  {category.name}
+                </Link>
+              </li>
+              <li aria-hidden="true">/</li>
+            </>
+          )}
           <li className="max-w-[24rem] truncate text-foreground/80" aria-current="page">
             {article.title}
           </li>
@@ -209,6 +234,36 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
             </li>
           ))}
         </ul>
+      )}
+
+      {(relatedPlaces.length > 0 || relatedArticles.length > 0) && (
+        <div className="mt-14 max-w-none border-t border-border pt-10">
+          {relatedPlaces.length > 0 && (
+            <section aria-label="Lugares relacionados">
+              <h2 className="font-serif text-lg font-medium text-foreground">
+                Lugares en {category!.name}
+              </h2>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {relatedPlaces.map((place) => (
+                  <PlaceCard key={place.id} place={place} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {relatedArticles.length > 0 && (
+            <section aria-label="Más artículos" className={relatedPlaces.length > 0 ? "mt-10" : undefined}>
+              <h2 className="font-serif text-lg font-medium text-foreground">
+                Más de {category!.name}
+              </h2>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {relatedArticles.map((related) => (
+                  <ArticleCard key={related.id} article={related} />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
       )}
     </article>
   );
