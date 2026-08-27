@@ -23,7 +23,7 @@ export async function SiteHeader() {
           </nav>
           <form action="/buscar" role="search" className="flex items-center">
             <label htmlFor="site-search" className="sr-only">
-              Buscar artículos
+              Buscar contenido
             </label>
             <input
               id="site-search"

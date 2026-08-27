@@ -1,4 +1,4 @@
-package pe.plataformacontenidos.content;
+package pe.plataformacontenidos.search;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -22,7 +22,11 @@ import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-/** CONTEXTO.md sección 16: búsqueda de texto completo sobre artículos publicados (V12__article_search.sql). */
+/**
+ * CONTEXTO.md sección 16: búsqueda de texto completo, unificada sobre
+ * Artículos (V12__article_search.sql) y Lugares (V15__place_search.sql) —
+ * antes solo cubría Artículos.
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -42,21 +46,49 @@ class SearchIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void findsPublishedArticleByTitleWordAndRanksItAboveUnrelatedMatches() throws Exception {
+    void findsPublishedArticleByTitleWordAndNotUnrelatedMatches() throws Exception {
         String editorToken = createUserAndLogin("search-editor@plataforma-contenidos.test", Role.EDITOR);
         String authorToken = createUserAndLogin("search-author@plataforma-contenidos.test", Role.AUTHOR);
         String categoryId = createCategory(editorToken, "Turismo Búsqueda Test");
 
+        // Palabra distintiva (no "turismo"/"andino" sueltos: la suite completa
+        // comparte una sola base entre clases de test, y esas son demasiado
+        // comunes en otros fixtures — daría falsos positivos de tamaño exacto).
         publishArticle(authorToken, editorToken, categoryId,
-                "Quinua, Ayacucho: historia y turismo andino",
+                "Quinua, Ayacucho: historia y kimsapampatur andino",
                 "Un recorrido por la plaza y la iglesia colonial de Quinua.");
         publishArticle(authorToken, editorToken, categoryId,
                 "Receta tradicional de puca picante",
-                "Un plato típico ayacuchano, sin relación con turismo.");
+                "Un plato típico ayacuchano, sin relación con lo anterior.");
 
-        mockMvc.perform(get("/api/v1/search").param("q", "turismo andino"))
+        mockMvc.perform(get("/api/v1/search").param("q", "kimsapampatur"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[0].title").value("Quinua, Ayacucho: historia y turismo andino"));
+                .andExpect(jsonPath("$.items", org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$.items[0].title").value("Quinua, Ayacucho: historia y kimsapampatur andino"))
+                .andExpect(jsonPath("$.items[0].contentType").value("ARTICLE"));
+    }
+
+    @Test
+    void findsPublishedPlace() throws Exception {
+        String editorToken = createUserAndLogin("search-place-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("search-place-author@plataforma-contenidos.test", Role.AUTHOR);
+        String categoryId = createCategory(editorToken, "Categoría Lugar Búsqueda Test");
+
+        String placeId = createPlace(authorToken, categoryId, "Templo colonial de Huamanguilla");
+        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
+                        .header("Authorization", "Bearer " + authorToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/approve")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/search").param("q", "Huamanguilla"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].title").value("Templo colonial de Huamanguilla"))
+                .andExpect(jsonPath("$.items[0].contentType").value("PLACE"));
     }
 
     @Test
@@ -102,6 +134,18 @@ class SearchIntegrationTest {
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isOk());
+    }
+
+    private String createPlace(String authorToken, String categoryId, String name) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/places")
+                        .header("Authorization", "Bearer " + authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"" + name + "\",\"excerpt\":\"Resumen breve\","
+                                + "\"body\":\"Historia del lugar con suficiente contenido para el índice.\","
+                                + "\"categoryId\":\"" + categoryId + "\"}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        return textField(result, "id");
     }
 
     private String articleJsonWithBody(String categoryId, String title, String body) {
