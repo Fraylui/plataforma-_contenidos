@@ -68,3 +68,21 @@ export function formatPublishedDate(iso: string | null): string {
     year: "numeric",
   }).format(new Date(iso));
 }
+
+/**
+ * Fecha y hora de un Evento — siempre absoluta ("vie 12 dic, 7:00 p. m."),
+ * nunca relativa ("hace 3 días", "en 5 horas"): a diferencia de la fecha de
+ * publicación de Artículo/Lugar (un dato secundario de "qué tan viejo es
+ * esto"), la fecha de un evento es información que el usuario necesita para
+ * decidir si asiste — mismo criterio que usan Eventbrite/Meetup/Atlas
+ * Obscura.
+ */
+export function formatEventDateTime(iso: string): string {
+  return new Intl.DateTimeFormat("es-PE", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(iso));
+}

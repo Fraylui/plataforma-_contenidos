@@ -20,6 +20,9 @@ export async function SiteHeader() {
             <Link href="/lugares" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
               Lugares
             </Link>
+            <Link href="/eventos" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
+              Eventos
+            </Link>
             <Link
               href="/categorias"
               className="text-sm font-medium text-muted hover:text-foreground transition-colors"

@@ -127,6 +127,29 @@ class SearchIntegrationTest {
     }
 
     @Test
+    void findsPublishedEvent() throws Exception {
+        String editorToken = createUserAndLogin("search-event-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("search-event-author@plataforma-contenidos.test", Role.AUTHOR);
+        String categoryId = createCategory(editorToken, "Categoría Evento Búsqueda Test");
+
+        String eventId = createEvent(authorToken, categoryId, "Festival Puyllay de Quinua");
+        mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/submit")
+                        .header("Authorization", "Bearer " + authorToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/approve")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/publish")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/search").param("q", "Puyllay").param("type", "EVENT"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].title").value("Festival Puyllay de Quinua"))
+                .andExpect(jsonPath("$.items[0].contentType").value("EVENT"));
+    }
+
+    @Test
     void doesNotReturnDraftArticles() throws Exception {
         String authorToken = createUserAndLogin("search-author-2@plataforma-contenidos.test", Role.AUTHOR);
         String editorToken = createUserAndLogin("search-editor-2@plataforma-contenidos.test", Role.EDITOR);
@@ -178,6 +201,18 @@ class SearchIntegrationTest {
                         .content("{\"name\":\"" + name + "\",\"excerpt\":\"Resumen breve\","
                                 + "\"body\":\"Historia del lugar con suficiente contenido para el índice.\","
                                 + "\"categoryId\":\"" + categoryId + "\"}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        return textField(result, "id");
+    }
+
+    private String createEvent(String authorToken, String categoryId, String title) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/events")
+                        .header("Authorization", "Bearer " + authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"" + title + "\",\"excerpt\":\"Resumen breve\","
+                                + "\"body\":\"Descripción del evento con suficiente contenido para el índice.\","
+                                + "\"categoryId\":\"" + categoryId + "\",\"startsAt\":\"2030-06-14T19:00:00Z\"}"))
                 .andExpect(status().isCreated())
                 .andReturn();
         return textField(result, "id");

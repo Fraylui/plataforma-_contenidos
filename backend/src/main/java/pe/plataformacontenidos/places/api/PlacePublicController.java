@@ -44,4 +44,10 @@ public class PlacePublicController {
         Place place = placeService.getPublishedBySlug(slug);
         return PlaceResponse.from(place, placeService.relatedArticles(place));
     }
+
+    /** Usado por Events para resolver el nombre/slug de un lugar vinculado (placeId) — ver EventResponse.placeId. */
+    @GetMapping("/by-id/{id}")
+    public PlaceSummaryResponse getById(@PathVariable UUID id) {
+        return PlaceSummaryResponse.from(placeService.getPublishedById(id));
+    }
 }
