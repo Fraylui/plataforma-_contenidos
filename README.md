@@ -83,8 +83,8 @@ correspondiente (`build` + `up -d`) del servicio que cambió.
 # Backend — usa Testcontainers, requiere Docker corriendo
 cd backend && ./mvnw test
 
-# Frontend
-cd frontend && npx eslint . && npm run build
+# Frontend — unit tests (Vitest) + lint + build
+cd frontend && npm test && npx eslint . && npm run build
 ```
 
 ## Backups (CONTEXTO.md sección 29)
@@ -288,6 +288,14 @@ en sí (sección 25).
   backend (SSG de páginas públicas), así que el build del frontend necesita
   el backend ya arriba — no hay forma de hacerlo con un solo
   `docker compose up --build` (ver README, sección "Stack completo").
+- **Frontend — primeros tests unitarios** (2026-08-27): Vitest (sin jsdom,
+  solo lógica pura — sección 27) sobre `lib/admin/*-permissions.ts` (espejo
+  de las reglas de autorización de `ArticleService`/`PlaceService`, la
+  lógica con más riesgo si se desincroniza del backend), `lib/admin/tree.ts`
+  y derivados (incluye ciclos y huérfanos), `lib/admin/nav.ts` (visibilidad
+  por rol) y helpers de formateo/URL. 90 tests, integrados a CI
+  (`npm test` antes del build). **No cubre** componentes ni E2E — eso sigue
+  pendiente (sección 27), esto es solo la lógica de negocio del frontend.
 
 **Pendiente para un MVP completo** (sección 34): despliegue real en Contabo
 (sección 25 — hoy el stack en contenedores corre pero no está desplegado en
