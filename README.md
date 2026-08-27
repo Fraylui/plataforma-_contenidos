@@ -255,6 +255,15 @@ en sí (sección 25).
   (Testcontainers) y build del frontend (lint + typecheck + `next build`
   contra un backend real) en cada push/PR. **Sin remoto de GitHub
   configurado todavía** — el pipeline no corre hasta que exista.
+- **SAST + dependency scanning** (2026-08-27, sección 27/35.3): `npm audit
+  --omit=dev --audit-level=high` agregado a `ci.yml` (falla el build si una
+  dependencia de producción tiene una vulnerabilidad alta/crítica conocida,
+  hoy en 0). `.github/dependabot.yml` (npm, Maven, GitHub Actions —
+  actualizaciones semanales + PR automático ante CVE). `.github/workflows/codeql.yml`
+  (SAST estático sobre JS/TS y Java, en cada PR a `main` + semanal). DAST
+  sigue fuera de alcance (sección 27, fase posterior). **Igual que CI/CD:
+  no corre hasta que exista un remoto de GitHub** — solo se validó la
+  sintaxis YAML localmente, no una corrida real de CodeQL/Dependabot.
 - **Backups** (2026-08-26): `scripts/backup.sh` (pg_dump formato custom +
   tar de medios locales, retención configurable) y `scripts/restore.sh`
   (restaura en una base nueva — es la prueba de restauración de la sección

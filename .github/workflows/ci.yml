@@ -132,6 +132,15 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      # Dependency scanning (sección 27/35.3): falla el build si una
+      # dependencia de PRODUCCIÓN tiene una vulnerabilidad conocida alta o
+      # crítica. --omit=dev porque devDependencies (linters, test runner)
+      # nunca corren en el servidor — más ruido, no más riesgo real.
+      # Complementa a dependabot.yml (que además abre el PR con el fix).
+      - name: Dependency audit (npm)
+        working-directory: frontend
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Lint
         working-directory: frontend
         run: npm run lint
