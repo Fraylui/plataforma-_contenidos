@@ -15,3 +15,6 @@ Thumbs.db
 # Almacenamiento local de medios (MEDIA_STORAGE_PATH) — binarios subidos, no código
 data/
 backend/data/
+
+# Backups locales (scripts/backup.sh) — dumps de la base de datos, nunca commitear
+/backups/
