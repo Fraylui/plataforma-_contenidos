@@ -56,8 +56,8 @@ export interface Article {
   createdAt: string;
 }
 
-/** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de Artículos, Lugares, Eventos y Galerías. */
-export type SearchResultType = "ARTICLE" | "PLACE" | "EVENT" | "GALLERY";
+/** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de Artículos, Lugares, Eventos, Galerías y Reseñas. */
+export type SearchResultType = "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "REVIEW";
 
 export interface SearchResult {
   contentType: SearchResultType;
@@ -223,6 +223,49 @@ export interface Gallery {
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
+  robots: string;
+  rejectionReason: string | null;
+  publishedAt: string | null;
+  scheduledAt: string | null;
+  createdAt: string;
+}
+
+/** Mismos valores que ArticleStatus/PlaceStatus/EventStatus/GalleryStatus (CONTEXTO.md sección 12) — ReviewStatus es un enum propio en el backend (sección 38). */
+export type ReviewStatus = ArticleStatus;
+
+export interface ReviewSummary {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  categoryId: string;
+  geographyId: string | null;
+  placeId: string | null;
+  subjectName: string | null;
+  rating: number;
+  coverImageId: string | null;
+  publishedAt: string | null;
+}
+
+export interface Review {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  body: string;
+  status: ReviewStatus;
+  authorId: string;
+  categoryId: string;
+  geographyId: string | null;
+  placeId: string | null;
+  subjectName: string | null;
+  rating: number;
+  imageIds: string[];
+  seoTitle: string | null;
+  metaDescription: string | null;
+  canonicalUrl: string | null;
+  ogImageUrl: string | null;
+  youtubeVideoId: string | null;
   robots: string;
   rejectionReason: string | null;
   publishedAt: string | null;

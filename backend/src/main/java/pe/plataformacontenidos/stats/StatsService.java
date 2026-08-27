@@ -9,6 +9,7 @@ import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.geography.GeographicUnitService;
 import pe.plataformacontenidos.identity.UserAdminService;
 import pe.plataformacontenidos.places.PlaceService;
+import pe.plataformacontenidos.reviews.ReviewService;
 import pe.plataformacontenidos.stats.api.dto.PlatformStatsResponse;
 import pe.plataformacontenidos.taxonomy.CategoryService;
 import pe.plataformacontenidos.taxonomy.TagService;
@@ -29,18 +30,20 @@ public class StatsService {
     private final PlaceService placeService;
     private final EventService eventService;
     private final GalleryService galleryService;
+    private final ReviewService reviewService;
     private final CategoryService categoryService;
     private final TagService tagService;
     private final GeographicUnitService geographyService;
     private final UserAdminService userAdminService;
 
     public StatsService(ArticleService articleService, PlaceService placeService, EventService eventService,
-            GalleryService galleryService, CategoryService categoryService, TagService tagService,
-            GeographicUnitService geographyService, UserAdminService userAdminService) {
+            GalleryService galleryService, ReviewService reviewService, CategoryService categoryService,
+            TagService tagService, GeographicUnitService geographyService, UserAdminService userAdminService) {
         this.articleService = articleService;
         this.placeService = placeService;
         this.eventService = eventService;
         this.galleryService = galleryService;
+        this.reviewService = reviewService;
         this.categoryService = categoryService;
         this.tagService = tagService;
         this.geographyService = geographyService;
@@ -55,6 +58,7 @@ public class StatsService {
                 placeService.countByStatus(),
                 eventService.countByStatus(),
                 galleryService.countByStatus(),
+                reviewService.countByStatus(),
                 categoryService.countAll(),
                 categoryService.countActive(),
                 tagService.countAll(),

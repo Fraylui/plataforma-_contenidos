@@ -6,6 +6,7 @@ import pe.plataformacontenidos.content.Article;
 import pe.plataformacontenidos.events.Event;
 import pe.plataformacontenidos.galleries.Gallery;
 import pe.plataformacontenidos.places.Place;
+import pe.plataformacontenidos.reviews.Review;
 import pe.plataformacontenidos.search.SearchResultType;
 
 /**
@@ -85,5 +86,20 @@ public record SearchResultResponse(
                 coverImageId,
                 false,
                 gallery.getPublishedAt());
+    }
+
+    public static SearchResultResponse fromReview(Review review) {
+        UUID coverImageId = review.getImageIds().isEmpty() ? null : review.getImageIds().get(0);
+        return new SearchResultResponse(
+                SearchResultType.REVIEW,
+                review.getId(),
+                review.getSlug(),
+                review.getTitle(),
+                review.getExcerpt(),
+                review.getCategoryId(),
+                review.getGeographyId(),
+                coverImageId,
+                review.getYoutubeVideoId() != null,
+                review.getPublishedAt());
     }
 }

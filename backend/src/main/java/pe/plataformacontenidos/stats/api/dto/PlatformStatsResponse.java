@@ -6,6 +6,7 @@ import pe.plataformacontenidos.events.EventStatus;
 import pe.plataformacontenidos.galleries.GalleryStatus;
 import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.places.PlaceStatus;
+import pe.plataformacontenidos.reviews.ReviewStatus;
 
 /** CONTEXTO.md sección 34. Ver StatsService — pura agregación, sin persistencia propia. */
 public record PlatformStatsResponse(
@@ -14,6 +15,7 @@ public record PlatformStatsResponse(
         Map<PlaceStatus, Long> placesByStatus,
         Map<EventStatus, Long> eventsByStatus,
         Map<GalleryStatus, Long> galleriesByStatus,
+        Map<ReviewStatus, Long> reviewsByStatus,
         long totalCategories,
         long activeCategories,
         long totalTags,
