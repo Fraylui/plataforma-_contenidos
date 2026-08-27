@@ -11,9 +11,9 @@ importante.
 ## Estructura
 
 ```text
-frontend/   Next.js (TypeScript, App Router, Tailwind)
-backend/    Spring Boot (Java 21, Maven)
-infra/      docker-compose para desarrollo local (PostgreSQL + Redis)
+frontend/   Next.js (TypeScript, App Router, Tailwind) — Dockerfile propio
+backend/    Spring Boot (Java 21, Maven) — Dockerfile propio
+infra/      docker-compose (Postgres + Redis + backend + frontend)
 docs/       documentación adicional
 ```
 
@@ -49,6 +49,33 @@ npm install
 npm run dev
 # http://localhost:3000
 ```
+
+## Stack completo en contenedores (backend + frontend)
+
+Para desarrollo del día a día seguí usando `./mvnw spring-boot:run` / `npm run
+dev` (hot reload, más rápido). Esto es para correr/probar el stack completo
+"como en producción", o como base de un despliegue real.
+
+`next build` hace fetch real al backend en build time (páginas públicas con
+Server Components, sección 43) — por eso el build del frontend necesita el
+backend **ya arriba y saludable**, y por eso no alcanza un solo
+`docker compose up -d --build`:
+
+```bash
+cd infra
+
+# 1. Infra + backend primero, y esperar a que el backend esté "healthy"
+#    (docker ps, o docker inspect --format='{{.State.Health.Status}}' plataforma-contenidos-backend-1)
+docker compose --env-file ../.env up -d --build postgres redis backend
+
+# 2. Recién ahí, el frontend (su build necesita el backend healthy del paso 1)
+docker compose --env-file ../.env build frontend
+docker compose --env-file ../.env up -d frontend
+```
+
+http://localhost:8080/actuator/health (backend) y http://localhost:3000
+(frontend). Para reconstruir tras un cambio de código, repetir el paso
+correspondiente (`build` + `up -d`) del servicio que cambió.
 
 ## Tests
 
@@ -207,8 +234,29 @@ infraestructura de despliegue, que todavía no existe (sección 25).
   periódica y definir el destino de la copia externa — ambos dependen de
   la infraestructura de despliegue, que todavía no existe.
 
-**Pendiente para un MVP completo** (sección 34): Lugares (post-MVP),
-Dockerfiles de producción y despliegue real (sección 25 — hoy `infra/`
-solo trae Postgres/Redis para desarrollo local), automatización de backups
-en el servidor. CORS sigue sin configurarse (el panel admin corre en Server
-Actions, no lo necesita todavía).
+- **Auditoría — consulta desde el panel** (2026-08-27): el audit log se
+  registraba desde el bootstrap del proyecto pero nadie podía consultarlo
+  (secciones 18/35.3, fase 1). `GET /api/v1/admin/audit`
+  (`SUPER_ADMIN`/`ADMIN`, más sensible que un listado editorial normal —
+  incluye IPs y acciones de otros admins, sección 37) con filtros
+  combinables (usuario, acción, tipo de recurso, resultado, rango de
+  fechas) vía `JpaSpecificationExecutor` — de solo lectura, no reintroduce
+  update/delete en el repositorio append-only. Pantalla
+  `/admin/auditoria`.
+- **Dockerfiles + stack completo en contenedores** (2026-08-27): imágenes
+  multi-stage para backend (JRE Alpine, sin JDK/Maven en la imagen final) y
+  frontend (`next.config.ts` con `output: "standalone"`, sin
+  `node_modules` completo). `infra/docker-compose.yml` ahora levanta
+  Postgres + Redis + backend + frontend con healthchecks reales. Sin
+  usuario root en ninguna imagen. Probado extremo a extremo: los 4
+  contenedores healthy, home/login sirviendo 200 contra el backend
+  containerizado. **Limitación conocida:** `next build` hace fetch real al
+  backend (SSG de páginas públicas), así que el build del frontend necesita
+  el backend ya arriba — no hay forma de hacerlo con un solo
+  `docker compose up --build` (ver README, sección "Stack completo").
+
+**Pendiente para un MVP completo** (sección 34): despliegue real en Contabo
+(sección 25 — hoy el stack en contenedores corre pero no está desplegado en
+ningún servidor), automatización de backups en el servidor, Nginx/reverse
+proxy delante del stack. CORS sigue sin configurarse (el panel admin corre
+en Server Actions, no lo necesita todavía).

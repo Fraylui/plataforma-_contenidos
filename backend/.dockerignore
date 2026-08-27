@@ -1,0 +1,9 @@
+target/
+data/
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+HELP.md
