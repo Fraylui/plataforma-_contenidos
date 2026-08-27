@@ -1,0 +1,6 @@
+# Scripts de shell deben mantener LF siempre — corren en bash (Git Bash en
+# Windows, nativo en el servidor de despliegue, sección 25/21). Un shebang
+# con CRLF rompe la ejecución en Linux. core.autocrlf=true en Windows
+# reescribiría estos archivos a CRLF en el working tree si no se fuerza acá.
+*.sh text eol=lf
+mvnw text eol=lf

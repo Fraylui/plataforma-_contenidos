@@ -60,6 +60,27 @@ cd backend && ./mvnw test
 cd frontend && npx eslint . && npm run build
 ```
 
+## Backups (CONTEXTO.md sección 29)
+
+```bash
+# Volcado de PostgreSQL (formato custom, comprimido) + tar de medios locales
+# (si existen). Lee las mismas variables que docker-compose/backend desde
+# .env. Requiere bash (Git Bash en Windows) y el stack de infra/ corriendo.
+scripts/backup.sh
+
+# Restaura un dump en una base de datos NUEVA (nunca sobrescribe la real) —
+# es también la prueba de restauración que exige la sección 29.
+scripts/restore.sh backups/db_plataforma_contenidos_<fecha>.dump
+```
+
+Variables opcionales: `BACKUP_DIR` (default `./backups`),
+`BACKUP_RETENTION_DAYS` (default 14), `BACKUP_REMOTE_COPY_CMD` (comando para
+la copia externa que exige la sección 29 — ej. `rclone copy`; sin definir,
+el backup queda solo en disco local, no se inventa un proveedor). Falta
+automatizar la ejecución periódica (cron en el host de producción) y
+definir el destino real de la copia externa — ambos dependen de la
+infraestructura de despliegue, que todavía no existe (sección 25).
+
 ## Estado actual
 
 - **Bootstrap** (2026-08-25): estructura de repo, esqueleto de backend
@@ -155,11 +176,39 @@ cd frontend && npx eslint . && npm run build
   uso para poblar un `EDITOR`, categorías, geografía y 3 artículos
   publicados **claramente marcados como "[Contenido de ejemplo]"** — nunca
   se hacen pasar por periodismo real (sección 44.10, credibilidad).
+- **SEO técnico** (2026-08-26): sitemap.xml y robots.txt dinámicos, canonical
+  por artículo, JSON-LD (`Article`, `BreadcrumbList`).
+- **Panel administrativo** (2026-08-26): login con MFA, gestión de
+  artículos (flujo editorial completo), categorías, etiquetas, geografía,
+  medios y usuarios desde el navegador — `frontend/src/app/admin/(protected)`.
+  Server Actions, sin mutaciones directas desde el cliente (sigue sin hacer
+  falta CORS).
+- **Configuration (identidad de plataforma)** (2026-08-26): fila única
+  `platform_settings` (sección 14) editable desde `/admin/configuracion`
+  (`SUPER_ADMIN`/`ADMIN`), auditada. El sitio público y el layout ya no
+  usan un placeholder hardcodeado — leen la marca del backend.
+- **Búsqueda** (2026-08-26): full-text search de PostgreSQL sobre artículos
+  publicados (columna `tsvector` generada + índice GIN, ranking con
+  `ts_rank`), `GET /api/v1/search` + página `/buscar` (sección 16). Vive en
+  el módulo Content hasta que exista más de un tipo de contenido buscable.
+- **Estadísticas básicas** (2026-08-26): `/admin/estadisticas` — artículos
+  por estado, publicados últimos 30 días, alcance (categorías/etiquetas/
+  geografía), usuarios por rol. Diseño propio (línea editorial como barra
+  de producción), no una tabla más — dirección guardada en
+  `.interface-design/system.md`.
+- **CI/CD** (2026-08-26): `.github/workflows/ci.yml` — tests del backend
+  (Testcontainers) y build del frontend (lint + typecheck + `next build`
+  contra un backend real) en cada push/PR. **Sin remoto de GitHub
+  configurado todavía** — el pipeline no corre hasta que exista.
+- **Backups** (2026-08-26): `scripts/backup.sh` (pg_dump formato custom +
+  tar de medios locales, retención configurable) y `scripts/restore.sh`
+  (restaura en una base nueva — es la prueba de restauración de la sección
+  29). Verificados contra Postgres real. Falta automatizar la ejecución
+  periódica y definir el destino de la copia externa — ambos dependen de
+  la infraestructura de despliegue, que todavía no existe.
 
 **Pendiente para un MVP completo** (sección 34): Lugares (post-MVP),
-SEO técnico (sitemap/robots.txt), búsqueda, panel administrativo (el
-sitio público ya existe; el panel de EDITOR/AUTHOR para gestionar
-contenido desde el navegador sigue sin construirse), configuración de
-marca, estadísticas básicas, CI/CD, Dockerfiles de producción, backups.
-CORS sigue sin configurarse (lo necesita el panel admin, no el sitio
-público).
+Dockerfiles de producción y despliegue real (sección 25 — hoy `infra/`
+solo trae Postgres/Redis para desarrollo local), automatización de backups
+en el servidor. CORS sigue sin configurarse (el panel admin corre en Server
+Actions, no lo necesita todavía).
