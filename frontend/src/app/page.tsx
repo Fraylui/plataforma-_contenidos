@@ -1,9 +1,14 @@
-import { getPlatformSettings, listPublishedArticles } from "@/lib/api/client";
+import Link from "next/link";
+import { getPlatformSettings, listPublishedArticles, listPublishedPlaces } from "@/lib/api/client";
 import { ArticleCard } from "@/components/article/article-card";
+import { PlaceCard } from "@/components/place/place-card";
+
+const FEATURED_PLACES_SIZE = 4;
 
 export default async function Home() {
-  const [page, settings] = await Promise.all([
+  const [articlesPage, placesPage, settings] = await Promise.all([
     listPublishedArticles({ size: 24 }),
+    listPublishedPlaces({ size: FEATURED_PLACES_SIZE }),
     getPlatformSettings(),
   ]);
 
@@ -18,12 +23,29 @@ export default async function Home() {
         )}
       </header>
 
-      <section className="mt-10" aria-label="Últimos artículos">
-        {page.items.length === 0 ? (
+      {placesPage.items.length > 0 && (
+        <section className="mt-12" aria-label="Lugares destacados">
+          <div className="flex items-center justify-between">
+            <h2 className="font-serif text-xl font-medium text-foreground">Lugares destacados</h2>
+            <Link href="/lugares" className="text-sm font-medium text-accent hover:underline">
+              Ver todos
+            </Link>
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {placesPage.items.map((place) => (
+              <PlaceCard key={place.id} place={place} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="mt-12" aria-label="Artículos recientes">
+        <h2 className="font-serif text-xl font-medium text-foreground">Artículos recientes</h2>
+        {articlesPage.items.length === 0 ? (
           <EmptyState />
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {page.items.map((article) => (
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {articlesPage.items.map((article) => (
               <ArticleCard key={article.id} article={article} />
             ))}
           </div>
@@ -35,7 +57,7 @@ export default async function Home() {
 
 function EmptyState() {
   return (
-    <div className="rounded-lg border border-dashed border-border px-6 py-16 text-center">
+    <div className="mt-4 rounded-lg border border-dashed border-border px-6 py-16 text-center">
       <p className="text-sm text-muted">
         Todavía no hay artículos publicados. Vuelve pronto.
       </p>

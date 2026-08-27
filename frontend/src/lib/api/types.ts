@@ -26,6 +26,7 @@ export interface ArticleSummary {
   articleType: ArticleType;
   categoryId: string;
   geographyId: string | null;
+  featuredImageId: string | null;
   hasVideo: boolean;
   publishedAt: string | null;
 }
@@ -46,6 +47,7 @@ export interface Article {
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
+  featuredImageId: string | null;
   youtubeVideoId: string | null;
   robots: string;
   rejectionReason: string | null;

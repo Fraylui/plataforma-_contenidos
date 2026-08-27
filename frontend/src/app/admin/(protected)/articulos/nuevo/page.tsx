@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { listActiveCategoriesFresh } from "@/lib/api/admin-client";
+import { listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
 import { ArticleForm } from "@/components/admin/article-form";
 
 export const metadata: Metadata = {
@@ -9,14 +9,20 @@ export const metadata: Metadata = {
 };
 
 export default async function NewArticlePage() {
-  await requireAdminUser();
-  const categories = await listActiveCategoriesFresh();
+  const { accessToken } = await requireAdminUser();
+  const [categories, allImages] = await Promise.all([listActiveCategoriesFresh(), listAdminImages(accessToken)]);
 
   return (
     <div>
       <h1 className="font-serif text-2xl font-medium text-foreground">Nuevo artículo</h1>
       <div className="mt-6">
-        <ArticleForm mode="create" categories={categories} initialGeographyChain={[]} initialTagNames={[]} />
+        <ArticleForm
+          mode="create"
+          categories={categories}
+          allImages={allImages}
+          initialGeographyChain={[]}
+          initialTagNames={[]}
+        />
       </div>
     </div>
   );

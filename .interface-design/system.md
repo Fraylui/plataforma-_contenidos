@@ -2,11 +2,22 @@
 
 ## Dirección y sensación
 
-Panel editorial de un medio de contenidos local (Perú/Ayacucho, CONTEXTO.md
-sección 1). Para pantallas de **datos/visualización** (no formularios ni
-tablas CRUD), el lenguaje visual es el de una redacción de diario: cierre de
-edición, línea de producción editorial, índice de sección, colofón/staff —
-no un dashboard SaaS genérico de tarjetas con íconos.
+Panel de gestión de una **plataforma de contenidos** (Perú/Ayacucho para
+empezar, CONTEXTO.md sección 1) — un ecosistema de contenidos conectados
+(artículos, lugares, y a futuro eventos/directorio/cultura, sección 1.1),
+no una redacción de diario. "Editorial" acá significa **curado y
+confiable** (hay revisión antes de publicar, sección 12) — no "sección de
+periódico". Ningún tipo de contenido debe sentirse como un apéndice
+forzado dentro de un formato pensado solo para artículos de actualidad.
+
+Para pantallas de **datos/visualización específicamente** (no formularios
+ni tablas CRUD) — hoy solo Estadísticas — sigue teniendo sentido tomar
+prestado el lenguaje de "línea de producción editorial, índice de
+sección, colofón/staff" descrito más abajo, porque ahí sí se está
+mostrando el proceso editorial (workflow de aprobación, quién publica) —
+no porque el producto entero sea un diario. Si se agrega Eventos/
+Directorio, sus pantallas de datos pueden necesitar su propio lenguaje
+(ej. agenda/calendario para Eventos, no "cierre de edición").
 
 Las tablas CRUD (Categorías, Geografía, Usuarios) y los formularios
 (Configuración, crear artículo) siguen el patrón simple ya establecido:

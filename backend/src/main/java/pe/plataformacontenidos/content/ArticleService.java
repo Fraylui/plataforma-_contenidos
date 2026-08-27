@@ -17,6 +17,7 @@ import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.geography.GeographicUnitNotFoundException;
 import pe.plataformacontenidos.geography.GeographicUnitService;
 import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
@@ -36,14 +37,17 @@ public class ArticleService {
     private final GeographicUnitService geographyService;
     private final TagService tagService;
     private final AuditService auditService;
+    private final ImageService imageService;
 
     public ArticleService(ArticleRepository articleRepository, CategoryService categoryService,
-            GeographicUnitService geographyService, TagService tagService, AuditService auditService) {
+            GeographicUnitService geographyService, TagService tagService, AuditService auditService,
+            ImageService imageService) {
         this.articleRepository = articleRepository;
         this.categoryService = categoryService;
         this.geographyService = geographyService;
         this.tagService = tagService;
         this.auditService = auditService;
+        this.imageService = imageService;
     }
 
     public Article create(ArticleInput input, UUID authorId) {
@@ -51,6 +55,7 @@ public class ArticleService {
             throw new CategoryNotFoundException(input.categoryId());
         }
         validateGeography(input.geographyId());
+        validateFeaturedImage(input.featuredImageId());
         String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
         Set<UUID> tagIds = resolveTagNames(input.tagNames());
 
@@ -58,7 +63,7 @@ public class ArticleService {
                 input.articleType(), authorId, input.categoryId());
         article.updateContent(input.title(), input.excerpt(), input.body(), input.articleType(), input.categoryId(),
                 input.geographyId(), tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
-                input.ogImageUrl(), youtubeVideoId, input.robots());
+                input.ogImageUrl(), input.featuredImageId(), youtubeVideoId, input.robots());
 
         Article saved = articleRepository.save(article);
         audit("ARTICLE_CREATED", saved, authorId);
@@ -75,12 +80,15 @@ public class ArticleService {
         if (!Objects.equals(article.getGeographyId(), input.geographyId())) {
             validateGeography(input.geographyId());
         }
+        if (!Objects.equals(article.getFeaturedImageId(), input.featuredImageId())) {
+            validateFeaturedImage(input.featuredImageId());
+        }
         String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
         Set<UUID> tagIds = resolveTagNames(input.tagNames());
 
         article.updateContent(input.title(), input.excerpt(), input.body(), input.articleType(), input.categoryId(),
                 input.geographyId(), tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
-                input.ogImageUrl(), youtubeVideoId, input.robots());
+                input.ogImageUrl(), input.featuredImageId(), youtubeVideoId, input.robots());
         Article saved = articleRepository.save(article);
         audit("ARTICLE_UPDATED", saved, actingUserId);
         return saved;
@@ -221,6 +229,13 @@ public class ArticleService {
     private void validateGeography(UUID geographyId) {
         if (geographyId != null && !geographyService.existsActive(geographyId)) {
             throw new GeographicUnitNotFoundException(geographyId);
+        }
+    }
+
+    /** Mismo patrón que PlaceService.validateImages, pero para una sola imagen (destacada, no galería). */
+    private void validateFeaturedImage(UUID featuredImageId) {
+        if (featuredImageId != null) {
+            imageService.getOrThrow(featuredImageId);
         }
     }
 

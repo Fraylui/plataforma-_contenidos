@@ -51,6 +51,7 @@ export interface ArticleInput {
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
+  featuredImageId: string | null;
   youtubeUrl: string | null;
   robots: string;
 }
