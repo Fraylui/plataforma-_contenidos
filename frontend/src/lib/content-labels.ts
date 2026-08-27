@@ -70,6 +70,35 @@ export function formatPublishedDate(iso: string | null): string {
 }
 
 /**
+ * Fecha de publicación de Artículo: tiempo relativo que se extiende
+ * indefinidamente (segundos→minutos→horas→días→meses→años), nunca fecha
+ * absoluta, nunca vacío — mismo patrón que usan YouTube/Reddit/GitHub, a
+ * pedido explícito del usuario tras comparar con otros sitios grandes.
+ * Solo para Artículo: es el único tipo de contenido donde "qué tan
+ * reciente es" sigue siendo la señal relevante después de publicado (a
+ * diferencia de Lugar/Galería, atemporales, o Evento, donde la fecha es
+ * de agenda, no de antigüedad — ver formatEventDateTime).
+ */
+export function formatArticleDate(iso: string | null): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  const diffMs = Date.now() - date.getTime();
+  const diffSeconds = Math.floor(diffMs / 1000);
+
+  if (diffSeconds < 60) return "justo ahora";
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  if (diffMinutes < 60) return `hace ${diffMinutes} min`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `hace ${diffHours} h`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 30) return `hace ${diffDays} d`;
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths < 12) return `hace ${diffMonths} mes${diffMonths === 1 ? "" : "es"}`;
+  const diffYears = Math.floor(diffMonths / 12);
+  return `hace ${diffYears} año${diffYears === 1 ? "" : "s"}`;
+}
+
+/**
  * Fecha y hora de un Evento — siempre absoluta ("vie 12 dic, 7:00 p. m."),
  * nunca relativa ("hace 3 días", "en 5 horas"): a diferencia de la fecha de
  * publicación de Artículo/Lugar (un dato secundario de "qué tan viejo es

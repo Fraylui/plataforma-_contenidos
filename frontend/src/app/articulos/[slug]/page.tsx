@@ -11,7 +11,7 @@ import {
   listPublishedPlaces,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { articleTypeLabel, formatPublishedDate } from "@/lib/content-labels";
+import { articleTypeLabel, formatArticleDate, formatPublishedDate } from "@/lib/content-labels";
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
@@ -182,7 +182,9 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
 
       <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
         {article.publishedAt && (
-          <time dateTime={article.publishedAt}>{formatPublishedDate(article.publishedAt)}</time>
+          <time dateTime={article.publishedAt} title={formatPublishedDate(article.publishedAt)}>
+            {formatArticleDate(article.publishedAt)}
+          </time>
         )}
         {geography && (
           <span className="inline-flex items-center gap-1">
