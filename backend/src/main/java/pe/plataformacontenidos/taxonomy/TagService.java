@@ -29,6 +29,10 @@ public class TagService {
         return tagRepository.findAll();
     }
 
+    public long countAll() {
+        return tagRepository.count();
+    }
+
     public void delete(UUID id) {
         tagRepository.deleteById(id);
     }

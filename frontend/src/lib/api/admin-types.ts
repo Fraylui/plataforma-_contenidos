@@ -1,6 +1,6 @@
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
-import type { ArticleType, GeographyLevel } from "./types";
+import type { ArticleStatus, ArticleType, GeographyLevel } from "./types";
 
 export type Role = "SUPER_ADMIN" | "ADMIN" | "EDITOR" | "AUTHOR" | "MODERATOR" | "COLLABORATOR" | "USER";
 
@@ -111,6 +111,19 @@ export interface PlatformSettingsInput {
   adsenseEnabled: boolean;
   adsenseClientId: string | null;
   analyticsId: string | null;
+}
+
+/** Ver PlatformStatsResponse.java (CONTEXTO.md sección 34, estadísticas básicas). */
+export interface PlatformStats {
+  articlesByStatus: Record<ArticleStatus, number>;
+  articlesPublishedLast30Days: number;
+  totalCategories: number;
+  activeCategories: number;
+  totalTags: number;
+  totalGeographyUnits: number;
+  activeGeographyUnits: number;
+  usersByRole: Record<Role, number>;
+  activeUsers: number;
 }
 
 /** Ver ImageResponse.java. `url` es relativa — resolver con src/lib/image-url.ts. */

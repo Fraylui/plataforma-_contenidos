@@ -29,6 +29,10 @@ public interface ArticleRepository extends JpaRepository<Article, UUID> {
 
     List<Article> findByStatusAndScheduledAtBefore(ArticleStatus status, Instant threshold);
 
+    long countByStatus(ArticleStatus status);
+
+    long countByStatusAndPublishedAtAfter(ArticleStatus status, Instant threshold);
+
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre artículos
      * publicados, vía la columna generada search_vector (V12__article_search.sql).

@@ -45,7 +45,8 @@ public class SecurityConfig {
 
                 .requestMatchers("/api/v1/admin/users/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
                 .requestMatchers("/api/v1/admin/platform-settings/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
-                .requestMatchers("/api/v1/admin/categories/**", "/api/v1/admin/tags/**", "/api/v1/admin/geography/**")
+                .requestMatchers("/api/v1/admin/categories/**", "/api/v1/admin/tags/**", "/api/v1/admin/geography/**",
+                        "/api/v1/admin/stats/**")
                     .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR")
                 .requestMatchers("/api/v1/admin/articles/**", "/api/v1/admin/images/**")
                     .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR")

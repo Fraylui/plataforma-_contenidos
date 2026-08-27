@@ -1,6 +1,8 @@
 package pe.plataformacontenidos.identity;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -67,6 +69,19 @@ public class UserAdminService {
 
     public List<User> listUsers() {
         return userRepository.findAll();
+    }
+
+    /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
+    public Map<Role, Long> countByRole() {
+        Map<Role, Long> counts = new EnumMap<>(Role.class);
+        for (Role role : Role.values()) {
+            counts.put(role, userRepository.countByRole(role));
+        }
+        return counts;
+    }
+
+    public long countActive() {
+        return userRepository.countByStatus(UserStatus.ACTIVE);
     }
 
     public User getOrThrow(UUID id) {
