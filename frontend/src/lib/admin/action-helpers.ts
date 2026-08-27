@@ -13,7 +13,7 @@ import { ACCESS_TOKEN_COOKIE } from "./session";
  * eliminación, ej. un 409 por etiqueta en uso, y crasheaba a la pantalla
  * de error genérica en vez de mostrar el mensaje).
  */
-export async function requireAccessToken(): Promise<string> {
+async function requireAccessToken(): Promise<string> {
   const store = await cookies();
   const token = store.get(ACCESS_TOKEN_COOKIE)?.value;
   if (!token) {
