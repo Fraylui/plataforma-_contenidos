@@ -157,3 +157,29 @@ export interface AdminImage {
   uploadedBy: string;
   createdAt: string;
 }
+
+/** Ver AuditEventResponse.java (CONTEXTO.md secciones 18 y 35.3, fase 1). */
+export type AuditResult = "SUCCESS" | "FAILURE";
+
+export interface AuditEvent {
+  id: string;
+  occurredAt: string;
+  actorUserId: string | null;
+  actorEmail: string | null;
+  action: string;
+  resourceType: string | null;
+  resourceId: string | null;
+  ipAddress: string | null;
+  result: AuditResult;
+}
+
+export interface AuditSearchFilters {
+  actorEmail?: string;
+  action?: string;
+  resourceType?: string;
+  result?: AuditResult;
+  from?: string;
+  to?: string;
+  page?: number;
+  size?: number;
+}

@@ -8,6 +8,8 @@ import type {
   AdminImage,
   AdminUser,
   ArticleInput,
+  AuditEvent,
+  AuditSearchFilters,
   CategoryCreateInput,
   CategoryUpdateInput,
   CreateUserInput,
@@ -19,7 +21,7 @@ import type {
   PlatformStats,
   TokenResponse,
 } from "./admin-types";
-import type { Article, Category, GeographicUnit, Place, PlatformSettings, Tag } from "./types";
+import type { Article, Category, GeographicUnit, PageResponse, Place, PlatformSettings, Tag } from "./types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 
@@ -410,4 +412,22 @@ export function updatePlatformSettings(
 
 export function getAdminStats(accessToken: string): Promise<PlatformStats> {
   return authedJson("/api/v1/admin/stats", accessToken);
+}
+
+// --- Audit module: audit log (AuditController) ---
+
+export function listAdminAuditLog(
+  accessToken: string,
+  filters: AuditSearchFilters,
+): Promise<PageResponse<AuditEvent>> {
+  const params = new URLSearchParams();
+  if (filters.actorEmail) params.set("actorEmail", filters.actorEmail);
+  if (filters.action) params.set("action", filters.action);
+  if (filters.resourceType) params.set("resourceType", filters.resourceType);
+  if (filters.result) params.set("result", filters.result);
+  if (filters.from) params.set("from", filters.from);
+  if (filters.to) params.set("to", filters.to);
+  params.set("page", String(filters.page ?? 0));
+  params.set("size", String(filters.size ?? 20));
+  return authedJson(`/api/v1/admin/audit?${params.toString()}`, accessToken);
 }

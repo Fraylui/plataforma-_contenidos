@@ -67,6 +67,12 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     // Debe coincidir con SecurityConfig: /api/v1/admin/platform-settings/** -> SUPER_ADMIN, ADMIN.
     roles: ["SUPER_ADMIN", "ADMIN"],
   },
+  {
+    href: "/admin/auditoria",
+    label: "Auditoría",
+    // Debe coincidir con SecurityConfig: /api/v1/admin/audit/** -> SUPER_ADMIN, ADMIN.
+    roles: ["SUPER_ADMIN", "ADMIN"],
+  },
 ];
 
 export function visibleNavItems(role: Role): AdminNavItem[] {
