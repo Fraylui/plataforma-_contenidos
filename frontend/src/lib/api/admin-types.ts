@@ -94,6 +94,20 @@ export interface EventInput {
   robots: string;
 }
 
+/** Cuerpo de POST/PUT /api/v1/admin/galleries — ver GalleryRequest.java. */
+export interface GalleryInput {
+  title: string;
+  excerpt: string | null;
+  categoryId: string;
+  geographyId: string | null;
+  imageIds: string[];
+  seoTitle: string | null;
+  metaDescription: string | null;
+  canonicalUrl: string | null;
+  ogImageUrl: string | null;
+  robots: string;
+}
+
 /** Cuerpo de POST /api/v1/admin/categories — ver CreateCategoryRequest.java. */
 export interface CategoryCreateInput {
   name: string;

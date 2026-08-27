@@ -14,6 +14,7 @@ import type {
   CategoryUpdateInput,
   CreateUserInput,
   EventInput,
+  GalleryInput,
   GeographyCreateInput,
   MfaBackupCodes,
   MfaEnrollment,
@@ -22,7 +23,17 @@ import type {
   PlatformStats,
   TokenResponse,
 } from "./admin-types";
-import type { Article, Category, Event, GeographicUnit, PageResponse, Place, PlatformSettings, Tag } from "./types";
+import type {
+  Article,
+  Category,
+  Event,
+  Gallery,
+  GeographicUnit,
+  PageResponse,
+  Place,
+  PlatformSettings,
+  Tag,
+} from "./types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 
@@ -293,6 +304,64 @@ export function scheduleEvent(accessToken: string, id: string, scheduledAt: stri
 
 export function archiveEvent(accessToken: string, id: string): Promise<Event> {
   return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
+}
+
+// --- Galleries module: galerías (GalleryAdminController, rutas /admin/galleries) ---
+
+export function listAdminGalleries(accessToken: string): Promise<Gallery[]> {
+  return authedJson("/api/v1/admin/galleries", accessToken);
+}
+
+export function getAdminGallery(accessToken: string, id: string): Promise<Gallery> {
+  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}`, accessToken);
+}
+
+export function createGallery(accessToken: string, input: GalleryInput): Promise<Gallery> {
+  return authedJson("/api/v1/admin/galleries", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateGallery(accessToken: string, id: string, input: GalleryInput): Promise<Gallery> {
+  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function submitGallery(accessToken: string, id: string): Promise<Gallery> {
+  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
+}
+
+export function approveGallery(accessToken: string, id: string): Promise<Gallery> {
+  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
+}
+
+export function rejectGallery(accessToken: string, id: string, reason: string): Promise<Gallery> {
+  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/reject`, accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export function publishGallery(accessToken: string, id: string): Promise<Gallery> {
+  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
+}
+
+export function scheduleGallery(accessToken: string, id: string, scheduledAt: string): Promise<Gallery> {
+  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/schedule`, accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ scheduledAt }),
+  });
+}
+
+export function archiveGallery(accessToken: string, id: string): Promise<Gallery> {
+  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
 }
 
 // --- Taxonomy module: categorías (CategoryController, rutas /admin/categories) ---

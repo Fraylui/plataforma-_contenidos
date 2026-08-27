@@ -266,6 +266,14 @@ solo un nombre de lugar libre (`venueName`) cuando ese lugar todavía no
 tiene su propia página — no se obliga a crear un Lugar solo para poder
 publicar un evento.
 
+## 6.2 Galerías
+
+Tercer tipo de contenido implementado (sección 3, "Multimedia" →
+"Galerías"). Mismo flujo editorial que el resto, pero sin cuerpo de texto
+largo: el contenido *es* la colección de fotografías, así que
+`GalleryService` exige al menos una imagen — la única regla de negocio
+de este tipo que no existe en ningún otro módulo de contenido.
+
 ---
 
 # 7. Historias y cultura

@@ -3,15 +3,17 @@ import {
   listActiveCategories,
   listAllPublishedArticlesForSitemap,
   listAllPublishedEventsForSitemap,
+  listAllPublishedGalleriesForSitemap,
   listAllPublishedPlacesForSitemap,
 } from "@/lib/api/client";
 import { SITE_URL } from "@/lib/site-url";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [articles, places, events, categories] = await Promise.all([
+  const [articles, places, events, galleries, categories] = await Promise.all([
     listAllPublishedArticlesForSitemap(),
     listAllPublishedPlacesForSitemap(),
     listAllPublishedEventsForSitemap(),
+    listAllPublishedGalleriesForSitemap(),
     listActiveCategories(),
   ]);
 
@@ -32,6 +34,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const eventEntries: MetadataRoute.Sitemap = events.map((event) => ({
     url: `${SITE_URL}/eventos/${event.slug}`,
     changeFrequency: "weekly",
+    priority: 0.5,
+  }));
+
+  const galleryEntries: MetadataRoute.Sitemap = galleries.map((gallery) => ({
+    url: `${SITE_URL}/galerias/${gallery.slug}`,
+    lastModified: gallery.publishedAt ?? undefined,
+    changeFrequency: "monthly",
     priority: 0.5,
   }));
 
@@ -59,6 +68,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     },
     {
+      url: `${SITE_URL}/galerias`,
+      changeFrequency: "weekly",
+      priority: 0.5,
+    },
+    {
       url: `${SITE_URL}/categorias`,
       changeFrequency: "weekly",
       priority: 0.5,
@@ -66,6 +80,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...articleEntries,
     ...placeEntries,
     ...eventEntries,
+    ...galleryEntries,
     ...categoryEntries,
     {
       url: `${SITE_URL}/privacidad`,

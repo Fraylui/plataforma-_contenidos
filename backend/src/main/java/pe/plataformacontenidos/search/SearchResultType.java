@@ -4,5 +4,6 @@ package pe.plataformacontenidos.search;
 public enum SearchResultType {
     ARTICLE,
     PLACE,
-    EVENT
+    EVENT,
+    GALLERY
 }
