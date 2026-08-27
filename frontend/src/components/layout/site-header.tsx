@@ -13,12 +13,12 @@ export async function SiteHeader() {
           {settings.shortName || settings.name}
         </Link>
         <div className="flex items-center gap-6">
-          <nav aria-label="Principal" className="hidden sm:block">
-            <Link
-              href="/"
-              className="text-sm font-medium text-muted hover:text-foreground transition-colors"
-            >
+          <nav aria-label="Principal" className="hidden items-center gap-6 sm:flex">
+            <Link href="/" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
               Artículos
+            </Link>
+            <Link href="/lugares" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
+              Lugares
             </Link>
           </nav>
           <form action="/buscar" role="search" className="flex items-center">

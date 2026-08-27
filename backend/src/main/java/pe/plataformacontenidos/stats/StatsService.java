@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import pe.plataformacontenidos.content.ArticleService;
 import pe.plataformacontenidos.geography.GeographicUnitService;
 import pe.plataformacontenidos.identity.UserAdminService;
+import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.stats.api.dto.PlatformStatsResponse;
 import pe.plataformacontenidos.taxonomy.CategoryService;
 import pe.plataformacontenidos.taxonomy.TagService;
@@ -23,14 +24,16 @@ public class StatsService {
     private static final int RECENT_WINDOW_DAYS = 30;
 
     private final ArticleService articleService;
+    private final PlaceService placeService;
     private final CategoryService categoryService;
     private final TagService tagService;
     private final GeographicUnitService geographyService;
     private final UserAdminService userAdminService;
 
-    public StatsService(ArticleService articleService, CategoryService categoryService, TagService tagService,
-            GeographicUnitService geographyService, UserAdminService userAdminService) {
+    public StatsService(ArticleService articleService, PlaceService placeService, CategoryService categoryService,
+            TagService tagService, GeographicUnitService geographyService, UserAdminService userAdminService) {
         this.articleService = articleService;
+        this.placeService = placeService;
         this.categoryService = categoryService;
         this.tagService = tagService;
         this.geographyService = geographyService;
@@ -42,6 +45,7 @@ public class StatsService {
         return new PlatformStatsResponse(
                 articleService.countByStatus(),
                 articleService.countPublishedSince(recentThreshold),
+                placeService.countByStatus(),
                 categoryService.countAll(),
                 categoryService.countActive(),
                 tagService.countAll(),

@@ -14,11 +14,12 @@ import type {
   GeographyCreateInput,
   MfaBackupCodes,
   MfaEnrollment,
+  PlaceInput,
   PlatformSettingsInput,
   PlatformStats,
   TokenResponse,
 } from "./admin-types";
-import type { Article, Category, GeographicUnit, PlatformSettings, Tag } from "./types";
+import type { Article, Category, GeographicUnit, Place, PlatformSettings, Tag } from "./types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 
@@ -173,6 +174,64 @@ export function scheduleArticle(accessToken: string, id: string, scheduledAt: st
 
 export function archiveArticle(accessToken: string, id: string): Promise<Article> {
   return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
+}
+
+// --- Places module: lugares (PlaceAdminController, rutas /admin/places) — CONTEXTO.md sección 6 ---
+
+export function listAdminPlaces(accessToken: string): Promise<Place[]> {
+  return authedJson("/api/v1/admin/places", accessToken);
+}
+
+export function getAdminPlace(accessToken: string, id: string): Promise<Place> {
+  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}`, accessToken);
+}
+
+export function createPlace(accessToken: string, input: PlaceInput): Promise<Place> {
+  return authedJson("/api/v1/admin/places", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updatePlace(accessToken: string, id: string, input: PlaceInput): Promise<Place> {
+  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function submitPlace(accessToken: string, id: string): Promise<Place> {
+  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
+}
+
+export function approvePlace(accessToken: string, id: string): Promise<Place> {
+  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
+}
+
+export function rejectPlace(accessToken: string, id: string, reason: string): Promise<Place> {
+  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/reject`, accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export function publishPlace(accessToken: string, id: string): Promise<Place> {
+  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
+}
+
+export function schedulePlace(accessToken: string, id: string, scheduledAt: string): Promise<Place> {
+  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/schedule`, accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ scheduledAt }),
+  });
+}
+
+export function archivePlace(accessToken: string, id: string): Promise<Place> {
+  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
 }
 
 // --- Taxonomy module: categorías (CategoryController, rutas /admin/categories) ---

@@ -1,15 +1,25 @@
 import type { MetadataRoute } from "next";
-import { listAllPublishedArticlesForSitemap } from "@/lib/api/client";
+import { listAllPublishedArticlesForSitemap, listAllPublishedPlacesForSitemap } from "@/lib/api/client";
 import { SITE_URL } from "@/lib/site-url";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const articles = await listAllPublishedArticlesForSitemap();
+  const [articles, places] = await Promise.all([
+    listAllPublishedArticlesForSitemap(),
+    listAllPublishedPlacesForSitemap(),
+  ]);
 
   const articleEntries: MetadataRoute.Sitemap = articles.map((article) => ({
     url: `${SITE_URL}/articulos/${article.slug}`,
     lastModified: article.publishedAt ?? undefined,
     changeFrequency: "weekly",
     priority: 0.7,
+  }));
+
+  const placeEntries: MetadataRoute.Sitemap = places.map((place) => ({
+    url: `${SITE_URL}/lugares/${place.slug}`,
+    lastModified: place.publishedAt ?? undefined,
+    changeFrequency: "monthly",
+    priority: 0.6,
   }));
 
   return [
@@ -20,5 +30,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     ...articleEntries,
+    ...placeEntries,
   ];
 }

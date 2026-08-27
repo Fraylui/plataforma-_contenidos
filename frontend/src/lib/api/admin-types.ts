@@ -55,6 +55,24 @@ export interface ArticleInput {
   robots: string;
 }
 
+/** Cuerpo de POST/PUT /api/v1/admin/places — ver PlaceRequest.java (CONTEXTO.md sección 6). */
+export interface PlaceInput {
+  name: string;
+  excerpt: string | null;
+  body: string;
+  categoryId: string;
+  geographyId: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  imageIds: string[];
+  seoTitle: string | null;
+  metaDescription: string | null;
+  canonicalUrl: string | null;
+  ogImageUrl: string | null;
+  youtubeUrl: string | null;
+  robots: string;
+}
+
 /** Cuerpo de POST /api/v1/admin/categories — ver CreateCategoryRequest.java. */
 export interface CategoryCreateInput {
   name: string;

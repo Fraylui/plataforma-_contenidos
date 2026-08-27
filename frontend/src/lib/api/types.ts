@@ -89,6 +89,49 @@ export interface Tag {
   slug: string;
 }
 
+/** Mismos valores que ArticleStatus (CONTEXTO.md sección 12) — PlaceStatus es un enum propio en el backend (sección 38), pero el frontend no tiene esa restricción de bounded context. */
+export type PlaceStatus = ArticleStatus;
+
+export interface PlaceSummary {
+  id: string;
+  slug: string;
+  name: string;
+  excerpt: string | null;
+  categoryId: string;
+  geographyId: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  coverImageId: string | null;
+  hasVideo: boolean;
+  publishedAt: string | null;
+}
+
+export interface Place {
+  id: string;
+  slug: string;
+  name: string;
+  excerpt: string | null;
+  body: string;
+  status: PlaceStatus;
+  authorId: string;
+  categoryId: string;
+  geographyId: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  imageIds: string[];
+  seoTitle: string | null;
+  metaDescription: string | null;
+  canonicalUrl: string | null;
+  ogImageUrl: string | null;
+  youtubeVideoId: string | null;
+  robots: string;
+  rejectionReason: string | null;
+  publishedAt: string | null;
+  scheduledAt: string | null;
+  createdAt: string;
+  relatedArticles: ArticleSummary[];
+}
+
 /** Ver PlatformSettingsResponse.java (CONTEXTO.md sección 14). */
 export interface PlatformSettings {
   name: string;
