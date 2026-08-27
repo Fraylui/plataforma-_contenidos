@@ -5,21 +5,24 @@ export async function SiteHeader() {
   const settings = await getPlatformSettings();
   return (
     <header className="border-b border-border bg-surface">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
+      <div className="mx-auto flex min-h-16 max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-3 sm:px-6">
         <Link
           href="/"
           className="font-serif text-xl font-medium tracking-tight text-foreground hover:text-accent transition-colors"
         >
           {settings.shortName || settings.name}
         </Link>
-        <div className="flex items-center gap-6">
-          <nav aria-label="Principal" className="hidden items-center gap-6 sm:flex">
-            <Link href="/" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
+        <div className="flex flex-1 flex-wrap items-center justify-end gap-x-4 gap-y-3 sm:gap-6">
+          <nav aria-label="Principal" className="flex items-center gap-2 sm:gap-4">
+            <Link
+              href="/"
+              className="rounded-md px-2 py-3 text-sm font-medium text-muted transition-colors hover:text-foreground"
+            >
               Inicio
             </Link>
             <Link
               href="/categorias"
-              className="text-sm font-medium text-muted hover:text-foreground transition-colors"
+              className="rounded-md px-2 py-3 text-sm font-medium text-muted transition-colors hover:text-foreground"
             >
               Categorías
             </Link>
@@ -33,7 +36,7 @@ export async function SiteHeader() {
               type="search"
               name="q"
               placeholder="Buscar…"
-              className="w-32 rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none transition-[width] focus-visible:w-48 focus-visible:border-accent sm:w-40 sm:focus-visible:w-56"
+              className="h-11 w-28 rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none transition-[width] focus-visible:w-44 focus-visible:border-accent sm:w-40 sm:focus-visible:w-56"
             />
           </form>
         </div>

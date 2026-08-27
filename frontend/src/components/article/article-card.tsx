@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ArticleSummary } from "@/lib/api/types";
-import { articleTypeLabel, formatPublishedDate } from "@/lib/content-labels";
+import { articleTypeLabel, formatArticleDate, formatPublishedDate } from "@/lib/content-labels";
 import { imageUrl } from "@/lib/image-url";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
 
@@ -52,9 +52,10 @@ export function ArticleCard({ article }: { article: ArticleSummary }) {
         {article.publishedAt && (
           <time
             dateTime={article.publishedAt}
+            title={formatPublishedDate(article.publishedAt)}
             className="mt-auto text-xs text-muted"
           >
-            {formatPublishedDate(article.publishedAt)}
+            {formatArticleDate(article.publishedAt)}
           </time>
         )}
       </div>
