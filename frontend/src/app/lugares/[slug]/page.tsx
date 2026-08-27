@@ -1,13 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCategoryById, getGeographyUnitById, getPlatformSettings, getPublishedPlaceBySlug } from "@/lib/api/client";
+import {
+  getCategoryById,
+  getGeographyUnitById,
+  getPlatformSettings,
+  getPublishedPlaceBySlug,
+  listPublishedArticles,
+  listPublishedPlaces,
+} from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { formatPublishedDate } from "@/lib/content-labels";
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
+import { ArticleCard } from "@/components/article/article-card";
+import { PlaceCard } from "@/components/place/place-card";
 import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
 import type { Category, Place } from "@/lib/api/types";
+
+const RELATED_SIZE = 4;
 
 async function loadPlace(slug: string) {
   try {
@@ -77,6 +88,17 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
     place.geographyId ? getGeographyUnitById(place.geographyId).catch(() => null) : Promise.resolve(null),
     getPlatformSettings(),
   ]);
+
+  const [relatedPlacesResult, relatedArticlesResult] = category
+    ? await Promise.all([
+        listPublishedPlaces({ categoryId: category.id, size: RELATED_SIZE + 1 }),
+        listPublishedArticles({ categoryId: category.id, size: RELATED_SIZE }),
+      ])
+    : [null, null];
+  const morePlaces = (relatedPlacesResult?.items ?? [])
+    .filter((p) => p.id !== place.id)
+    .slice(0, RELATED_SIZE);
+  const moreArticles = relatedArticlesResult?.items ?? [];
 
   return (
     <article className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
@@ -183,6 +205,36 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
             ))}
           </ul>
         </section>
+      )}
+
+      {(morePlaces.length > 0 || moreArticles.length > 0) && (
+        <div className={`max-w-none border-border pt-10 ${place.relatedArticles.length > 0 ? "mt-10" : "mt-14 border-t"}`}>
+          {morePlaces.length > 0 && (
+            <section aria-label="Más lugares">
+              <h2 className="font-serif text-lg font-medium text-foreground">
+                Más lugares en {category!.name}
+              </h2>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {morePlaces.map((related) => (
+                  <PlaceCard key={related.id} place={related} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {moreArticles.length > 0 && (
+            <section aria-label="Artículos de esta categoría" className={morePlaces.length > 0 ? "mt-10" : undefined}>
+              <h2 className="font-serif text-lg font-medium text-foreground">
+                Artículos sobre {category!.name}
+              </h2>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {moreArticles.map((article) => (
+                  <ArticleCard key={article.id} article={article} />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
       )}
     </article>
   );
