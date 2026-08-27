@@ -39,6 +39,7 @@ public class SecurityConfig {
                     .permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/articles", "/api/v1/articles/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/places", "/api/v1/places/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/events", "/api/v1/events/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/search").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/geography", "/api/v1/geography/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/images/**").permitAll()
@@ -52,7 +53,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/admin/categories/**", "/api/v1/admin/tags/**", "/api/v1/admin/geography/**",
                         "/api/v1/admin/stats/**")
                     .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR")
-                .requestMatchers("/api/v1/admin/articles/**", "/api/v1/admin/images/**", "/api/v1/admin/places/**")
+                .requestMatchers("/api/v1/admin/articles/**", "/api/v1/admin/images/**", "/api/v1/admin/places/**",
+                        "/api/v1/admin/events/**")
                     .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR")
 
                 .requestMatchers("/api/v1/users/me", "/api/v1/users/me/**").authenticated()

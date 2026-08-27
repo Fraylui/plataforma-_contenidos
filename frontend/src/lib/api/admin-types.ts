@@ -74,6 +74,26 @@ export interface PlaceInput {
   robots: string;
 }
 
+/** Cuerpo de POST/PUT /api/v1/admin/events — ver EventRequest.java. */
+export interface EventInput {
+  title: string;
+  excerpt: string | null;
+  body: string;
+  categoryId: string;
+  geographyId: string | null;
+  placeId: string | null;
+  venueName: string | null;
+  startsAt: string;
+  endsAt: string | null;
+  imageIds: string[];
+  seoTitle: string | null;
+  metaDescription: string | null;
+  canonicalUrl: string | null;
+  ogImageUrl: string | null;
+  youtubeUrl: string | null;
+  robots: string;
+}
+
 /** Cuerpo de POST /api/v1/admin/categories — ver CreateCategoryRequest.java. */
 export interface CategoryCreateInput {
   name: string;

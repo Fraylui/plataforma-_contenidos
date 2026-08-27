@@ -1,15 +1,18 @@
 import Link from "next/link";
-import { getPlatformSettings, listPublishedArticles, listPublishedPlaces } from "@/lib/api/client";
+import { getPlatformSettings, listPublishedArticles, listPublishedEvents, listPublishedPlaces } from "@/lib/api/client";
 import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
+import { EventCard } from "@/components/event/event-card";
 
 const FEATURED_PLACES_SIZE = 4;
 const RECENT_ARTICLES_SIZE = 6;
+const UPCOMING_EVENTS_SIZE = 3;
 
 export default async function Home() {
-  const [articlesPage, placesPage, settings] = await Promise.all([
+  const [articlesPage, placesPage, eventsPage, settings] = await Promise.all([
     listPublishedArticles({ size: RECENT_ARTICLES_SIZE }),
     listPublishedPlaces({ size: FEATURED_PLACES_SIZE }),
+    listPublishedEvents({ when: "upcoming", size: UPCOMING_EVENTS_SIZE }),
     getPlatformSettings(),
   ]);
 
@@ -35,6 +38,22 @@ export default async function Home() {
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {placesPage.items.map((place) => (
               <PlaceCard key={place.id} place={place} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {eventsPage.items.length > 0 && (
+        <section className="mt-12" aria-label="Próximos eventos">
+          <div className="flex items-center justify-between">
+            <h2 className="font-serif text-xl font-medium text-foreground">Próximos eventos</h2>
+            <Link href="/eventos" className="text-sm font-medium text-accent hover:underline">
+              Ver todos
+            </Link>
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {eventsPage.items.map((event) => (
+              <EventCard key={event.id} event={event} />
             ))}
           </div>
         </section>

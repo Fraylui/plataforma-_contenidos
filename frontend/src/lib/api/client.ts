@@ -7,6 +7,8 @@ import type {
   Article,
   ArticleSummary,
   Category,
+  Event,
+  EventSummary,
   GeographicUnit,
   PageResponse,
   Place,
@@ -105,6 +107,11 @@ export function getPublishedPlaceBySlug(slug: string): Promise<Place> {
   return apiFetch(`/api/v1/places/${encodeURIComponent(slug)}`, 300);
 }
 
+/** Usado por la página de detalle de Evento para resolver el nombre/slug de un lugar vinculado (placeId). */
+export function getPublishedPlaceById(id: string): Promise<PlaceSummary> {
+  return apiFetch(`/api/v1/places/by-id/${encodeURIComponent(id)}`, 300);
+}
+
 const PLACES_SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en PlacePublicController
 const PLACES_SITEMAP_MAX_PAGES = 200;
 
@@ -113,6 +120,49 @@ export async function listAllPublishedPlacesForSitemap(): Promise<PlaceSummary[]
   const items: PlaceSummary[] = [];
   for (let page = 0; page < PLACES_SITEMAP_MAX_PAGES; page++) {
     const result = await listPublishedPlaces({ page, size: PLACES_SITEMAP_PAGE_SIZE });
+    items.push(...result.items);
+    if (page + 1 >= result.totalPages) break;
+  }
+  return items;
+}
+
+/**
+ * Eventos públicos. `when` separa próximos de pasados (razón de ser de este
+ * módulo — CONTEXTO.md, ver EventService.listPublished en el backend):
+ * a diferencia de Artículo/Lugar, no se ordena por fecha de publicación.
+ */
+export function listPublishedEvents(params?: {
+  categoryId?: string;
+  geographyId?: string;
+  when?: "upcoming" | "past";
+  page?: number;
+  size?: number;
+}): Promise<PageResponse<EventSummary>> {
+  const query = new URLSearchParams();
+  if (params?.categoryId) query.set("categoryId", params.categoryId);
+  if (params?.geographyId) query.set("geographyId", params.geographyId);
+  query.set("when", params?.when ?? "upcoming");
+  query.set("page", String(params?.page ?? 0));
+  query.set("size", String(params?.size ?? 20));
+  return apiFetch(`/api/v1/events?${query.toString()}`, 60);
+}
+
+export function getPublishedEventBySlug(slug: string): Promise<Event> {
+  return apiFetch(`/api/v1/events/${encodeURIComponent(slug)}`, 60);
+}
+
+const EVENTS_SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en EventPublicController
+
+export async function listAllPublishedEventsForSitemap(): Promise<EventSummary[]> {
+  const items: EventSummary[] = [];
+  for (let page = 0; ; page++) {
+    const result = await listPublishedEvents({ when: "upcoming", page, size: EVENTS_SITEMAP_PAGE_SIZE });
+    items.push(...result.items);
+    if (page + 1 >= result.totalPages) break;
+  }
+  // Los eventos pasados también deben quedar indexados (contenido evergreen), no solo los próximos.
+  for (let page = 0; ; page++) {
+    const result = await listPublishedEvents({ when: "past", page, size: EVENTS_SITEMAP_PAGE_SIZE });
     items.push(...result.items);
     if (page + 1 >= result.totalPages) break;
   }

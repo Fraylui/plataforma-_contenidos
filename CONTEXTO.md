@@ -247,6 +247,25 @@ relacionados.
 
 Esto permitirá construir progresivamente una base de conocimiento geográfica.
 
+## 6.1 Eventos
+
+Segundo tipo de contenido implementado más allá de Artículo (sección 3,
+"Información estructurada"). Mismo flujo editorial que Artículo/Lugar
+(sección 12), con dos diferencias de fondo:
+
+* **Fecha de inicio (obligatoria) y fin (opcional)** en vez de solo fecha
+  de publicación — un evento tiene una vigencia real, no solo una fecha
+  en la que se escribió.
+* **El listado público separa "próximos" de "pasados"** (por fecha de
+  inicio, no de publicación) en vez de un único orden cronológico —
+  evita que el sitio se sienta un muro homogéneo cuando hay miles de
+  contenidos con estados temporales distintos.
+
+Un evento puede vincularse a un Lugar ya existente (`placeId`) o llevar
+solo un nombre de lugar libre (`venueName`) cuando ese lugar todavía no
+tiene su propia página — no se obliga a crear un Lugar solo para poder
+publicar un evento.
+
 ---
 
 # 7. Historias y cultura

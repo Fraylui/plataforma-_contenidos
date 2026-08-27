@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCategoryBySlug, listPublishedArticles, listPublishedPlaces } from "@/lib/api/client";
+import { getCategoryBySlug, listPublishedArticles, listPublishedEvents, listPublishedPlaces } from "@/lib/api/client";
 import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
+import { EventCard } from "@/components/event/event-card";
 import { Pagination } from "@/components/ui/pagination";
 
 const FEATURED_PLACES_SIZE = 4;
+const UPCOMING_EVENTS_SIZE = 3;
 const ARTICLES_PAGE_SIZE = 24;
 
 export async function generateMetadata(props: PageProps<"/categorias/[slug]">): Promise<Metadata> {
@@ -27,8 +29,9 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
-  const [placesResult, articlesResult] = await Promise.all([
+  const [placesResult, eventsResult, articlesResult] = await Promise.all([
     listPublishedPlaces({ categoryId: category.id, size: FEATURED_PLACES_SIZE }),
+    listPublishedEvents({ categoryId: category.id, when: "upcoming", size: UPCOMING_EVENTS_SIZE }),
     listPublishedArticles({ categoryId: category.id, page, size: ARTICLES_PAGE_SIZE }),
   ]);
 
@@ -69,6 +72,17 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {placesResult.items.map((place) => (
               <PlaceCard key={place.id} place={place} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {eventsResult.items.length > 0 && (
+        <section className="mt-12" aria-label="Próximos eventos">
+          <h2 className="font-serif text-xl font-medium text-foreground">Próximos eventos</h2>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {eventsResult.items.map((event) => (
+              <EventCard key={event.id} event={event} />
             ))}
           </div>
         </section>

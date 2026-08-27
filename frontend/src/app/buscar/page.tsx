@@ -11,6 +11,7 @@ const TYPE_TABS: { value: SearchResultType | null; label: string }[] = [
   { value: null, label: "Todo" },
   { value: "ARTICLE", label: "Artículos" },
   { value: "PLACE", label: "Lugares" },
+  { value: "EVENT", label: "Eventos" },
 ];
 
 export const metadata: Metadata = {
@@ -29,7 +30,7 @@ function buildHref(query: string, type: SearchResultType | null, page: number): 
 export default async function SearchPage(props: PageProps<"/buscar">) {
   const { q, type: typeParam, page: pageParam } = await props.searchParams;
   const query = typeof q === "string" ? q : "";
-  const type = typeParam === "ARTICLE" || typeParam === "PLACE" ? typeParam : null;
+  const type = typeParam === "ARTICLE" || typeParam === "PLACE" || typeParam === "EVENT" ? typeParam : null;
   const page = typeof pageParam === "string" ? Math.max(0, parseInt(pageParam, 10) || 0) : 0;
   const result = query ? await searchContent(query, { page, size: PAGE_SIZE, type: type ?? undefined }) : null;
 

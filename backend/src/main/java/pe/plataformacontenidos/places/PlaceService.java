@@ -187,9 +187,23 @@ public class PlaceService {
         return placeRepository.findByAuthorIdOrderByCreatedAtDesc(actingUserId);
     }
 
+    /** Usado por otros módulos (ej. Events) para validar un placeId sin exponer el objeto Place completo (sección 38). */
+    public boolean existsById(UUID placeId) {
+        return placeRepository.existsById(placeId);
+    }
+
     public Place getPublishedBySlug(String slug) {
         return placeRepository.findBySlugAndStatus(slug, PlaceStatus.PUBLISHED)
                 .orElseThrow(() -> new PlaceNotFoundException(slug));
+    }
+
+    /** Usado por Events para resolver el nombre/slug de un lugar vinculado (placeId) sin exponer su body completo. */
+    public Place getPublishedById(UUID placeId) {
+        Place place = getOrThrow(placeId);
+        if (place.getStatus() != PlaceStatus.PUBLISHED) {
+            throw new PlaceNotFoundException(placeId);
+        }
+        return place;
     }
 
     public Page<Place> listPublished(UUID categoryId, UUID geographyId, Pageable pageable) {

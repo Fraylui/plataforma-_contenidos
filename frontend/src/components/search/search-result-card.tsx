@@ -6,6 +6,7 @@ import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
 const TYPE_LABEL: Record<SearchResult["contentType"], string> = {
   ARTICLE: "Artículo",
   PLACE: "Lugar",
+  EVENT: "Evento",
 };
 
 /**
@@ -14,7 +15,12 @@ const TYPE_LABEL: Record<SearchResult["contentType"], string> = {
  * visual que ArticleCard/PlaceCard, con la URL armada según `contentType`.
  */
 export function SearchResultCard({ result }: { result: SearchResult }) {
-  const href = result.contentType === "ARTICLE" ? `/articulos/${result.slug}` : `/lugares/${result.slug}`;
+  const href =
+    result.contentType === "ARTICLE"
+      ? `/articulos/${result.slug}`
+      : result.contentType === "PLACE"
+        ? `/lugares/${result.slug}`
+        : `/eventos/${result.slug}`;
 
   return (
     <Link

@@ -3,6 +3,7 @@ package pe.plataformacontenidos.search.api.dto;
 import java.time.Instant;
 import java.util.UUID;
 import pe.plataformacontenidos.content.Article;
+import pe.plataformacontenidos.events.Event;
 import pe.plataformacontenidos.places.Place;
 import pe.plataformacontenidos.search.SearchResultType;
 
@@ -53,5 +54,20 @@ public record SearchResultResponse(
                 coverImageId,
                 place.getYoutubeVideoId() != null,
                 place.getPublishedAt());
+    }
+
+    public static SearchResultResponse fromEvent(Event event) {
+        UUID coverImageId = event.getImageIds().isEmpty() ? null : event.getImageIds().get(0);
+        return new SearchResultResponse(
+                SearchResultType.EVENT,
+                event.getId(),
+                event.getSlug(),
+                event.getTitle(),
+                event.getExcerpt(),
+                event.getCategoryId(),
+                event.getGeographyId(),
+                coverImageId,
+                event.getYoutubeVideoId() != null,
+                event.getPublishedAt());
     }
 }

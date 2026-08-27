@@ -56,8 +56,8 @@ export interface Article {
   createdAt: string;
 }
 
-/** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de Artículos y Lugares. */
-export type SearchResultType = "ARTICLE" | "PLACE";
+/** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de Artículos, Lugares y Eventos. */
+export type SearchResultType = "ARTICLE" | "PLACE" | "EVENT";
 
 export interface SearchResult {
   contentType: SearchResultType;
@@ -148,6 +148,51 @@ export interface Place {
   scheduledAt: string | null;
   createdAt: string;
   relatedArticles: ArticleSummary[];
+}
+
+/** Mismos valores que ArticleStatus/PlaceStatus (CONTEXTO.md sección 12) — EventStatus es un enum propio en el backend (sección 38). */
+export type EventStatus = ArticleStatus;
+
+export interface EventSummary {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  categoryId: string;
+  geographyId: string | null;
+  placeId: string | null;
+  venueName: string | null;
+  startsAt: string;
+  endsAt: string | null;
+  coverImageId: string | null;
+  hasVideo: boolean;
+}
+
+export interface Event {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  body: string;
+  status: EventStatus;
+  authorId: string;
+  categoryId: string;
+  geographyId: string | null;
+  placeId: string | null;
+  venueName: string | null;
+  startsAt: string;
+  endsAt: string | null;
+  imageIds: string[];
+  seoTitle: string | null;
+  metaDescription: string | null;
+  canonicalUrl: string | null;
+  ogImageUrl: string | null;
+  youtubeVideoId: string | null;
+  robots: string;
+  rejectionReason: string | null;
+  publishedAt: string | null;
+  scheduledAt: string | null;
+  createdAt: string;
 }
 
 /** Ver PlatformSettingsResponse.java (CONTEXTO.md sección 14). */

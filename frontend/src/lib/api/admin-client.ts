@@ -13,6 +13,7 @@ import type {
   CategoryCreateInput,
   CategoryUpdateInput,
   CreateUserInput,
+  EventInput,
   GeographyCreateInput,
   MfaBackupCodes,
   MfaEnrollment,
@@ -21,7 +22,7 @@ import type {
   PlatformStats,
   TokenResponse,
 } from "./admin-types";
-import type { Article, Category, GeographicUnit, PageResponse, Place, PlatformSettings, Tag } from "./types";
+import type { Article, Category, Event, GeographicUnit, PageResponse, Place, PlatformSettings, Tag } from "./types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 
@@ -234,6 +235,64 @@ export function schedulePlace(accessToken: string, id: string, scheduledAt: stri
 
 export function archivePlace(accessToken: string, id: string): Promise<Place> {
   return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
+}
+
+// --- Events module: eventos (EventAdminController, rutas /admin/events) ---
+
+export function listAdminEvents(accessToken: string): Promise<Event[]> {
+  return authedJson("/api/v1/admin/events", accessToken);
+}
+
+export function getAdminEvent(accessToken: string, id: string): Promise<Event> {
+  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}`, accessToken);
+}
+
+export function createEvent(accessToken: string, input: EventInput): Promise<Event> {
+  return authedJson("/api/v1/admin/events", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateEvent(accessToken: string, id: string, input: EventInput): Promise<Event> {
+  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function submitEvent(accessToken: string, id: string): Promise<Event> {
+  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
+}
+
+export function approveEvent(accessToken: string, id: string): Promise<Event> {
+  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
+}
+
+export function rejectEvent(accessToken: string, id: string, reason: string): Promise<Event> {
+  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/reject`, accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export function publishEvent(accessToken: string, id: string): Promise<Event> {
+  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
+}
+
+export function scheduleEvent(accessToken: string, id: string, scheduledAt: string): Promise<Event> {
+  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/schedule`, accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ scheduledAt }),
+  });
+}
+
+export function archiveEvent(accessToken: string, id: string): Promise<Event> {
+  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
 }
 
 // --- Taxonomy module: categorías (CategoryController, rutas /admin/categories) ---
