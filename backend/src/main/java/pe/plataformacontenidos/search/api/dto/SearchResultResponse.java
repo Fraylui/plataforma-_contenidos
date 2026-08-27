@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 import pe.plataformacontenidos.content.Article;
 import pe.plataformacontenidos.events.Event;
+import pe.plataformacontenidos.galleries.Gallery;
 import pe.plataformacontenidos.places.Place;
 import pe.plataformacontenidos.search.SearchResultType;
 
@@ -69,5 +70,20 @@ public record SearchResultResponse(
                 coverImageId,
                 event.getYoutubeVideoId() != null,
                 event.getPublishedAt());
+    }
+
+    public static SearchResultResponse fromGallery(Gallery gallery) {
+        UUID coverImageId = gallery.getImageIds().isEmpty() ? null : gallery.getImageIds().get(0);
+        return new SearchResultResponse(
+                SearchResultType.GALLERY,
+                gallery.getId(),
+                gallery.getSlug(),
+                gallery.getTitle(),
+                gallery.getExcerpt(),
+                gallery.getCategoryId(),
+                gallery.getGeographyId(),
+                coverImageId,
+                false,
+                gallery.getPublishedAt());
     }
 }

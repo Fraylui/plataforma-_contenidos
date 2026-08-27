@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import pe.plataformacontenidos.content.ArticleService;
 import pe.plataformacontenidos.events.EventService;
+import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.search.api.dto.SearchPageResponse;
 import pe.plataformacontenidos.search.api.dto.SearchResultResponse;
@@ -33,11 +34,14 @@ public class SearchService {
     private final ArticleService articleService;
     private final PlaceService placeService;
     private final EventService eventService;
+    private final GalleryService galleryService;
 
-    public SearchService(ArticleService articleService, PlaceService placeService, EventService eventService) {
+    public SearchService(ArticleService articleService, PlaceService placeService, EventService eventService,
+            GalleryService galleryService) {
         this.articleService = articleService;
         this.placeService = placeService;
         this.eventService = eventService;
+        this.galleryService = galleryService;
     }
 
     /** `type` es opcional: cuando viene, solo se consulta ese módulo (no se pide trabajo de más al otro). */
@@ -58,6 +62,10 @@ public class SearchService {
         if (type == null || type == SearchResultType.EVENT) {
             eventService.search(query, PageRequest.of(0, MERGE_FETCH_LIMIT))
                     .forEach(e -> combined.add(SearchResultResponse.fromEvent(e)));
+        }
+        if (type == null || type == SearchResultType.GALLERY) {
+            galleryService.search(query, PageRequest.of(0, MERGE_FETCH_LIMIT))
+                    .forEach(g -> combined.add(SearchResultResponse.fromGallery(g)));
         }
         combined.sort(Comparator.comparing(SearchResultResponse::publishedAt).reversed());
 

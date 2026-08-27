@@ -1,16 +1,21 @@
 package pe.plataformacontenidos.search;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import javax.imageio.ImageIO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -150,6 +155,30 @@ class SearchIntegrationTest {
     }
 
     @Test
+    void findsPublishedGallery() throws Exception {
+        String editorToken = createUserAndLogin("search-gallery-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("search-gallery-author@plataforma-contenidos.test", Role.AUTHOR);
+        String categoryId = createCategory(editorToken, "Categoría Galería Búsqueda Test");
+        String imageId = uploadImage(authorToken);
+
+        String galleryId = createGallery(authorToken, categoryId, "Carnaval de Ayacucho en fotos", imageId);
+        mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/submit")
+                        .header("Authorization", "Bearer " + authorToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/approve")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/publish")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/search").param("q", "Carnaval").param("type", "GALLERY"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].title").value("Carnaval de Ayacucho en fotos"))
+                .andExpect(jsonPath("$.items[0].contentType").value("GALLERY"));
+    }
+
+    @Test
     void doesNotReturnDraftArticles() throws Exception {
         String authorToken = createUserAndLogin("search-author-2@plataforma-contenidos.test", Role.AUTHOR);
         String editorToken = createUserAndLogin("search-editor-2@plataforma-contenidos.test", Role.EDITOR);
@@ -213,6 +242,29 @@ class SearchIntegrationTest {
                         .content("{\"title\":\"" + title + "\",\"excerpt\":\"Resumen breve\","
                                 + "\"body\":\"Descripción del evento con suficiente contenido para el índice.\","
                                 + "\"categoryId\":\"" + categoryId + "\",\"startsAt\":\"2030-06-14T19:00:00Z\"}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        return textField(result, "id");
+    }
+
+    private String uploadImage(String authorToken) throws Exception {
+        BufferedImage image = new BufferedImage(40, 30, BufferedImage.TYPE_INT_RGB);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", out);
+        MockMultipartFile file = new MockMultipartFile("file", "search-test.png", "image/png", out.toByteArray());
+        MvcResult result = mockMvc.perform(multipart("/api/v1/admin/images").file(file)
+                        .header("Authorization", "Bearer " + authorToken))
+                .andExpect(status().isCreated())
+                .andReturn();
+        return textField(result, "id");
+    }
+
+    private String createGallery(String authorToken, String categoryId, String title, String imageId) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/galleries")
+                        .header("Authorization", "Bearer " + authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"" + title + "\",\"excerpt\":\"Resumen breve\","
+                                + "\"categoryId\":\"" + categoryId + "\",\"imageIds\":[\"" + imageId + "\"]}"))
                 .andExpect(status().isCreated())
                 .andReturn();
         return textField(result, "id");

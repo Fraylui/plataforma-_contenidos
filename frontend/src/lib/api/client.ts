@@ -9,6 +9,8 @@ import type {
   Category,
   Event,
   EventSummary,
+  Gallery,
+  GallerySummary,
   GeographicUnit,
   PageResponse,
   Place,
@@ -163,6 +165,36 @@ export async function listAllPublishedEventsForSitemap(): Promise<EventSummary[]
   // Los eventos pasados también deben quedar indexados (contenido evergreen), no solo los próximos.
   for (let page = 0; ; page++) {
     const result = await listPublishedEvents({ when: "past", page, size: EVENTS_SITEMAP_PAGE_SIZE });
+    items.push(...result.items);
+    if (page + 1 >= result.totalPages) break;
+  }
+  return items;
+}
+
+export function listPublishedGalleries(params?: {
+  categoryId?: string;
+  geographyId?: string;
+  page?: number;
+  size?: number;
+}): Promise<PageResponse<GallerySummary>> {
+  const query = new URLSearchParams();
+  if (params?.categoryId) query.set("categoryId", params.categoryId);
+  if (params?.geographyId) query.set("geographyId", params.geographyId);
+  query.set("page", String(params?.page ?? 0));
+  query.set("size", String(params?.size ?? 20));
+  return apiFetch(`/api/v1/galleries?${query.toString()}`, 60);
+}
+
+export function getPublishedGalleryBySlug(slug: string): Promise<Gallery> {
+  return apiFetch(`/api/v1/galleries/${encodeURIComponent(slug)}`, 300);
+}
+
+const GALLERIES_SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en GalleryPublicController
+
+export async function listAllPublishedGalleriesForSitemap(): Promise<GallerySummary[]> {
+  const items: GallerySummary[] = [];
+  for (let page = 0; ; page++) {
+    const result = await listPublishedGalleries({ page, size: GALLERIES_SITEMAP_PAGE_SIZE });
     items.push(...result.items);
     if (page + 1 >= result.totalPages) break;
   }

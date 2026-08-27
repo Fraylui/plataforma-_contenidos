@@ -7,6 +7,7 @@ const TYPE_LABEL: Record<SearchResult["contentType"], string> = {
   ARTICLE: "Artículo",
   PLACE: "Lugar",
   EVENT: "Evento",
+  GALLERY: "Galería",
 };
 
 /**
@@ -20,7 +21,9 @@ export function SearchResultCard({ result }: { result: SearchResult }) {
       ? `/articulos/${result.slug}`
       : result.contentType === "PLACE"
         ? `/lugares/${result.slug}`
-        : `/eventos/${result.slug}`;
+        : result.contentType === "EVENT"
+          ? `/eventos/${result.slug}`
+          : `/galerias/${result.slug}`;
 
   return (
     <Link

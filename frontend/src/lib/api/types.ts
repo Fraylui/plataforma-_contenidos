@@ -56,8 +56,8 @@ export interface Article {
   createdAt: string;
 }
 
-/** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de Artículos, Lugares y Eventos. */
-export type SearchResultType = "ARTICLE" | "PLACE" | "EVENT";
+/** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de Artículos, Lugares, Eventos y Galerías. */
+export type SearchResultType = "ARTICLE" | "PLACE" | "EVENT" | "GALLERY";
 
 export interface SearchResult {
   contentType: SearchResultType;
@@ -188,6 +188,41 @@ export interface Event {
   canonicalUrl: string | null;
   ogImageUrl: string | null;
   youtubeVideoId: string | null;
+  robots: string;
+  rejectionReason: string | null;
+  publishedAt: string | null;
+  scheduledAt: string | null;
+  createdAt: string;
+}
+
+/** Mismos valores que ArticleStatus/PlaceStatus/EventStatus (CONTEXTO.md sección 12) — GalleryStatus es un enum propio en el backend (sección 38). */
+export type GalleryStatus = ArticleStatus;
+
+export interface GallerySummary {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  categoryId: string;
+  geographyId: string | null;
+  imageIds: string[];
+  publishedAt: string | null;
+}
+
+export interface Gallery {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  status: GalleryStatus;
+  authorId: string;
+  categoryId: string;
+  geographyId: string | null;
+  imageIds: string[];
+  seoTitle: string | null;
+  metaDescription: string | null;
+  canonicalUrl: string | null;
+  ogImageUrl: string | null;
   robots: string;
   rejectionReason: string | null;
   publishedAt: string | null;
