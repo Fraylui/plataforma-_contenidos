@@ -179,6 +179,29 @@ class SearchIntegrationTest {
     }
 
     @Test
+    void findsPublishedReview() throws Exception {
+        String editorToken = createUserAndLogin("search-review-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("search-review-author@plataforma-contenidos.test", Role.AUTHOR);
+        String categoryId = createCategory(editorToken, "Categoría Reseña Búsqueda Test");
+
+        String reviewId = createReview(authorToken, categoryId, "Delicioso puca picante huamanguino");
+        mockMvc.perform(post("/api/v1/admin/reviews/" + reviewId + "/submit")
+                        .header("Authorization", "Bearer " + authorToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/admin/reviews/" + reviewId + "/approve")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/admin/reviews/" + reviewId + "/publish")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/search").param("q", "huamanguino").param("type", "REVIEW"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].title").value("Delicioso puca picante huamanguino"))
+                .andExpect(jsonPath("$.items[0].contentType").value("REVIEW"));
+    }
+
+    @Test
     void doesNotReturnDraftArticles() throws Exception {
         String authorToken = createUserAndLogin("search-author-2@plataforma-contenidos.test", Role.AUTHOR);
         String editorToken = createUserAndLogin("search-editor-2@plataforma-contenidos.test", Role.EDITOR);
@@ -265,6 +288,18 @@ class SearchIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"" + title + "\",\"excerpt\":\"Resumen breve\","
                                 + "\"categoryId\":\"" + categoryId + "\",\"imageIds\":[\"" + imageId + "\"]}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        return textField(result, "id");
+    }
+
+    private String createReview(String authorToken, String categoryId, String title) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/reviews")
+                        .header("Authorization", "Bearer " + authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"" + title + "\",\"excerpt\":\"Resumen breve\","
+                                + "\"body\":\"Descripcion de la resena con suficiente contenido para el indice.\","
+                                + "\"categoryId\":\"" + categoryId + "\",\"rating\":5}"))
                 .andExpect(status().isCreated())
                 .andReturn();
         return textField(result, "id");

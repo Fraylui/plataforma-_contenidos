@@ -7,16 +7,19 @@ import {
   listPublishedEvents,
   listPublishedGalleries,
   listPublishedPlaces,
+  listPublishedReviews,
 } from "@/lib/api/client";
 import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
 import { EventCard } from "@/components/event/event-card";
 import { GalleryCard } from "@/components/gallery/gallery-card";
+import { ReviewCard } from "@/components/review/review-card";
 import { Pagination } from "@/components/ui/pagination";
 
 const FEATURED_PLACES_SIZE = 4;
 const UPCOMING_EVENTS_SIZE = 3;
 const FEATURED_GALLERIES_SIZE = 3;
+const FEATURED_REVIEWS_SIZE = 3;
 const ARTICLES_PAGE_SIZE = 24;
 
 export async function generateMetadata(props: PageProps<"/categorias/[slug]">): Promise<Metadata> {
@@ -37,10 +40,11 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
-  const [placesResult, eventsResult, galleriesResult, articlesResult] = await Promise.all([
+  const [placesResult, eventsResult, galleriesResult, reviewsResult, articlesResult] = await Promise.all([
     listPublishedPlaces({ categoryId: category.id, size: FEATURED_PLACES_SIZE }),
     listPublishedEvents({ categoryId: category.id, when: "upcoming", size: UPCOMING_EVENTS_SIZE }),
     listPublishedGalleries({ categoryId: category.id, size: FEATURED_GALLERIES_SIZE }),
+    listPublishedReviews({ categoryId: category.id, size: FEATURED_REVIEWS_SIZE }),
     listPublishedArticles({ categoryId: category.id, page, size: ARTICLES_PAGE_SIZE }),
   ]);
 
@@ -103,6 +107,17 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {galleriesResult.items.map((gallery) => (
               <GalleryCard key={gallery.id} gallery={gallery} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {reviewsResult.items.length > 0 && (
+        <section className="mt-12" aria-label="Reseñas">
+          <h2 className="font-serif text-xl font-medium text-foreground">Reseñas</h2>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {reviewsResult.items.map((review) => (
+              <ReviewCard key={review.id} review={review} />
             ))}
           </div>
         </section>

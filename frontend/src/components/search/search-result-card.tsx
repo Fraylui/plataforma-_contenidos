@@ -8,6 +8,7 @@ const TYPE_LABEL: Record<SearchResult["contentType"], string> = {
   PLACE: "Lugar",
   EVENT: "Evento",
   GALLERY: "Galería",
+  REVIEW: "Reseña",
 };
 
 /**
@@ -15,15 +16,16 @@ const TYPE_LABEL: Record<SearchResult["contentType"], string> = {
  * sección 16 — la búsqueda ya no es solo de artículos). Mismo tratamiento
  * visual que ArticleCard/PlaceCard, con la URL armada según `contentType`.
  */
+const CONTENT_TYPE_PATH: Record<SearchResult["contentType"], string> = {
+  ARTICLE: "articulos",
+  PLACE: "lugares",
+  EVENT: "eventos",
+  GALLERY: "galerias",
+  REVIEW: "resenas",
+};
+
 export function SearchResultCard({ result }: { result: SearchResult }) {
-  const href =
-    result.contentType === "ARTICLE"
-      ? `/articulos/${result.slug}`
-      : result.contentType === "PLACE"
-        ? `/lugares/${result.slug}`
-        : result.contentType === "EVENT"
-          ? `/eventos/${result.slug}`
-          : `/galerias/${result.slug}`;
+  const href = `/${CONTENT_TYPE_PATH[result.contentType]}/${result.slug}`;
 
   return (
     <Link

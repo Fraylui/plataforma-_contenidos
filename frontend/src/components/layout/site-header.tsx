@@ -26,6 +26,9 @@ export async function SiteHeader() {
             <Link href="/galerias" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
               Galerías
             </Link>
+            <Link href="/resenas" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
+              Reseñas
+            </Link>
             <Link
               href="/categorias"
               className="text-sm font-medium text-muted hover:text-foreground transition-colors"

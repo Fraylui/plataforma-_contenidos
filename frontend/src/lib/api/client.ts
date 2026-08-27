@@ -16,6 +16,8 @@ import type {
   Place,
   PlaceSummary,
   PlatformSettings,
+  Review,
+  ReviewSummary,
   SearchResult,
   SearchResultType,
   Tag,
@@ -195,6 +197,36 @@ export async function listAllPublishedGalleriesForSitemap(): Promise<GallerySumm
   const items: GallerySummary[] = [];
   for (let page = 0; ; page++) {
     const result = await listPublishedGalleries({ page, size: GALLERIES_SITEMAP_PAGE_SIZE });
+    items.push(...result.items);
+    if (page + 1 >= result.totalPages) break;
+  }
+  return items;
+}
+
+export function listPublishedReviews(params?: {
+  categoryId?: string;
+  geographyId?: string;
+  page?: number;
+  size?: number;
+}): Promise<PageResponse<ReviewSummary>> {
+  const query = new URLSearchParams();
+  if (params?.categoryId) query.set("categoryId", params.categoryId);
+  if (params?.geographyId) query.set("geographyId", params.geographyId);
+  query.set("page", String(params?.page ?? 0));
+  query.set("size", String(params?.size ?? 20));
+  return apiFetch(`/api/v1/reviews?${query.toString()}`, 60);
+}
+
+export function getPublishedReviewBySlug(slug: string): Promise<Review> {
+  return apiFetch(`/api/v1/reviews/${encodeURIComponent(slug)}`, 300);
+}
+
+const REVIEWS_SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en ReviewPublicController
+
+export async function listAllPublishedReviewsForSitemap(): Promise<ReviewSummary[]> {
+  const items: ReviewSummary[] = [];
+  for (let page = 0; ; page++) {
+    const result = await listPublishedReviews({ page, size: REVIEWS_SITEMAP_PAGE_SIZE });
     items.push(...result.items);
     if (page + 1 >= result.totalPages) break;
   }

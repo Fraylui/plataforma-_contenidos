@@ -21,6 +21,7 @@ import type {
   PlaceInput,
   PlatformSettingsInput,
   PlatformStats,
+  ReviewInput,
   TokenResponse,
 } from "./admin-types";
 import type {
@@ -32,6 +33,7 @@ import type {
   PageResponse,
   Place,
   PlatformSettings,
+  Review,
   Tag,
 } from "./types";
 
@@ -362,6 +364,64 @@ export function scheduleGallery(accessToken: string, id: string, scheduledAt: st
 
 export function archiveGallery(accessToken: string, id: string): Promise<Gallery> {
   return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
+}
+
+// --- Reviews module: reseñas (ReviewAdminController, rutas /admin/reviews) ---
+
+export function listAdminReviews(accessToken: string): Promise<Review[]> {
+  return authedJson("/api/v1/admin/reviews", accessToken);
+}
+
+export function getAdminReview(accessToken: string, id: string): Promise<Review> {
+  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}`, accessToken);
+}
+
+export function createReview(accessToken: string, input: ReviewInput): Promise<Review> {
+  return authedJson("/api/v1/admin/reviews", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateReview(accessToken: string, id: string, input: ReviewInput): Promise<Review> {
+  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function submitReview(accessToken: string, id: string): Promise<Review> {
+  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
+}
+
+export function approveReview(accessToken: string, id: string): Promise<Review> {
+  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
+}
+
+export function rejectReview(accessToken: string, id: string, reason: string): Promise<Review> {
+  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}/reject`, accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export function publishReview(accessToken: string, id: string): Promise<Review> {
+  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
+}
+
+export function scheduleReview(accessToken: string, id: string, scheduledAt: string): Promise<Review> {
+  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}/schedule`, accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ scheduledAt }),
+  });
+}
+
+export function archiveReview(accessToken: string, id: string): Promise<Review> {
+  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
 }
 
 // --- Taxonomy module: categorías (CategoryController, rutas /admin/categories) ---

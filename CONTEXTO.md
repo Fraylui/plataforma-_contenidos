@@ -274,6 +274,16 @@ largo: el contenido *es* la colección de fotografías, así que
 `GalleryService` exige al menos una imagen — la única regla de negocio
 de este tipo que no existe en ningún otro módulo de contenido.
 
+## 6.3 Reseñas
+
+Cuarto tipo de contenido implementado (sección 3, "Información
+estructurada"). Mismo flujo editorial que el resto, con cuerpo de texto
+largo (a diferencia de Galería). Su diferenciador real: una calificación
+(`rating`, 1-5, validada tanto en la API como con un CHECK real en la
+base de datos). Puede reseñar un Lugar ya existente (`placeId`) o algo
+que todavía no tiene página propia (`subjectName` libre) — mismo patrón
+que Evento con `placeId`/`venueName`.
+
 ---
 
 # 7. Historias y cultura
