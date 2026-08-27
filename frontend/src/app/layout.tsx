@@ -48,7 +48,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <SiteHeader />
         <main className="flex-1">{children}</main>
         <SiteFooter />
-        <CookieConsentBanner />
+        <CookieConsentBanner adsenseEnabled={settings.adsenseEnabled} />
         {settings.adsenseEnabled && settings.adsenseClientId && (
           <AdsenseLoader clientId={settings.adsenseClientId} />
         )}

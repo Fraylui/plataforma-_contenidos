@@ -7,7 +7,7 @@ import { getCookieConsent, setCookieConsent, subscribeToCookieConsent } from "@/
 
 const getServerSnapshot = () => null;
 
-export function CookieConsentBanner() {
+export function CookieConsentBanner({ adsenseEnabled }: { adsenseEnabled: boolean }) {
   const pathname = usePathname();
   // null tanto en el servidor (sin localStorage) como en el cliente antes
   // de decidir — React reconcilia la diferencia servidor↔cliente sola acá,
@@ -33,8 +33,9 @@ export function CookieConsentBanner() {
       >
         <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted">
-            Usamos cookies propias para el panel administrativo y, si las aceptas, cookies de terceros (Google) para
-            mostrar publicidad.{" "}
+            {adsenseEnabled
+              ? "Usamos cookies técnicas necesarias y, si aceptás, cookies de terceros (Google) para mostrar publicidad."
+              : "Usamos cookies técnicas necesarias para el funcionamiento del sitio. Si en el futuro sumamos publicidad o analítica de terceros, te lo vamos a preguntar de nuevo."}{" "}
             <Link href="/privacidad" className="text-foreground underline underline-offset-2 hover:text-accent">
               Más información
             </Link>
