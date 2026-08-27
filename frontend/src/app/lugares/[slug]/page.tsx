@@ -10,7 +10,6 @@ import {
   listPublishedPlaces,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { formatPublishedDate } from "@/lib/content-labels";
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
@@ -144,7 +143,6 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
       <h1 className="mt-3 font-serif text-3xl font-medium leading-tight text-foreground sm:text-4xl">{place.name}</h1>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-        {place.publishedAt && <time dateTime={place.publishedAt}>{formatPublishedDate(place.publishedAt)}</time>}
         {geography && (
           <span className="inline-flex items-center gap-1">
             <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
