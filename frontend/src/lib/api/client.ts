@@ -12,6 +12,7 @@ import type {
   Place,
   PlaceSummary,
   PlatformSettings,
+  SearchResult,
   Tag,
 } from "./types";
 
@@ -49,8 +50,12 @@ export function listPublishedArticles(params?: {
   return apiFetch(`/api/v1/articles?${query.toString()}`, 60);
 }
 
-/** CONTEXTO.md sección 16. `q` vacío ya devuelve página vacía en el backend, no hace falta validarlo acá. */
-export function searchArticles(q: string, params?: { page?: number; size?: number }): Promise<PageResponse<ArticleSummary>> {
+/**
+ * CONTEXTO.md sección 16. `q` vacío ya devuelve página vacía en el backend,
+ * no hace falta validarlo acá. Busca en todos los tipos de contenido
+ * buscables (Artículos y Lugares hoy) — antes solo cubría Artículos.
+ */
+export function searchContent(q: string, params?: { page?: number; size?: number }): Promise<PageResponse<SearchResult>> {
   const query = new URLSearchParams();
   query.set("q", q);
   query.set("page", String(params?.page ?? 0));

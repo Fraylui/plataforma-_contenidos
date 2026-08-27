@@ -56,6 +56,22 @@ export interface Article {
   createdAt: string;
 }
 
+/** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de Artículos y Lugares. */
+export type SearchResultType = "ARTICLE" | "PLACE";
+
+export interface SearchResult {
+  contentType: SearchResultType;
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  categoryId: string | null;
+  geographyId: string | null;
+  featuredImageId: string | null;
+  hasVideo: boolean;
+  publishedAt: string | null;
+}
+
 export interface PageResponse<T> {
   items: T[];
   page: number;

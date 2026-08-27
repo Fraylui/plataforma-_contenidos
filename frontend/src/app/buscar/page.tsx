@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { searchArticles } from "@/lib/api/client";
-import { ArticleCard } from "@/components/article/article-card";
+import { searchContent } from "@/lib/api/client";
+import { SearchResultCard } from "@/components/search/search-result-card";
 
 export const metadata: Metadata = {
   title: "Buscar",
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default async function SearchPage(props: PageProps<"/buscar">) {
   const { q } = await props.searchParams;
   const query = typeof q === "string" ? q : "";
-  const page = query ? await searchArticles(query) : null;
+  const page = query ? await searchContent(query) : null;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
@@ -24,7 +24,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
             type="search"
             name="q"
             defaultValue={query}
-            placeholder="Buscar artículos…"
+            placeholder="Buscar contenido…"
             autoFocus
             className="w-full rounded-md border border-border bg-background px-4 py-2.5 text-base text-foreground outline-none focus-visible:border-accent"
           />
@@ -39,15 +39,15 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
 
       <section className="mt-10" aria-label="Resultados de búsqueda">
         {!query ? (
-          <p className="text-sm text-muted">Escribe algo para buscar en los artículos publicados.</p>
+          <p className="text-sm text-muted">Escribe algo para buscar en todo el contenido publicado.</p>
         ) : page && page.items.length > 0 ? (
           <>
             <p className="mb-6 text-sm text-muted">
               {page.totalElements} resultado{page.totalElements === 1 ? "" : "s"} para «{query}»
             </p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {page.items.map((article) => (
-                <ArticleCard key={article.id} article={article} />
+              {page.items.map((result) => (
+                <SearchResultCard key={`${result.contentType}-${result.id}`} result={result} />
               ))}
             </div>
           </>

@@ -206,6 +206,14 @@ public class PlaceService {
         return placeRepository.findByStatus(PlaceStatus.PUBLISHED, pageable);
     }
 
+    /** CONTEXTO.md sección 16. Mismo criterio que ArticleService.search (query en blanco: página vacía, no error). */
+    public Page<Place> search(String query, Pageable pageable) {
+        if (query == null || query.isBlank()) {
+            return Page.empty(pageable);
+        }
+        return placeRepository.search(query.trim(), pageable);
+    }
+
     /**
      * Artículos relacionados (sección 6): artículos publicados que comparten la
      * misma ubicación geográfica que el lugar (sección 4, "Turismo → Ayacucho →
