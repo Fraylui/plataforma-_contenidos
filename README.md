@@ -102,11 +102,39 @@ scripts/restore.sh backups/db_plataforma_contenidos_<fecha>.dump
 
 Variables opcionales: `BACKUP_DIR` (default `./backups`),
 `BACKUP_RETENTION_DAYS` (default 14), `BACKUP_REMOTE_COPY_CMD` (comando para
-la copia externa que exige la sección 29 — ej. `rclone copy`; sin definir,
-el backup queda solo en disco local, no se inventa un proveedor). Falta
-automatizar la ejecución periódica (cron en el host de producción) y
-definir el destino real de la copia externa — ambos dependen de la
-infraestructura de despliegue, que todavía no existe (sección 25).
+la copia externa que exige la sección 29 — ver `.env.example`; sin definir,
+el backup queda solo en disco local, no se inventa un proveedor).
+
+### Ejecución periódica (systemd timer)
+
+`infra/systemd/plataforma-backup.{service,timer}` corren `scripts/backup.sh`
+todos los días a las 03:00. **No hay servidor de producción todavía**
+(sección 25) — estas unidades están listas para instalar cuando exista, no
+se pudieron probar contra un timer real (no hay systemd en el entorno de
+desarrollo). Instalación en el servidor (Linux con systemd y Docker):
+
+```bash
+# 1. El repo (con .env real, nunca el de ejemplo) ya desplegado en, por
+#    ejemplo, /opt/plataforma-contenidos — ajustar WorkingDirectory/ExecStart
+#    en el .service si la ruta es otra.
+sudo cp infra/systemd/plataforma-backup.service infra/systemd/plataforma-backup.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now plataforma-backup.timer
+
+# Verificar
+systemctl list-timers plataforma-backup.timer
+journalctl -u plataforma-backup.service -n 50 --no-pager
+
+# Probar una corrida manual sin esperar al horario programado
+sudo systemctl start plataforma-backup.service
+```
+
+El usuario `deploy` que corre el `.service` necesita pertenecer al grupo
+`docker` (el script hace `docker compose exec`) y permiso de escritura en
+`BACKUP_DIR`. Sigue pendiente, y depende de decisiones que todavía no están
+tomadas: el destino real de la copia externa (sección 29 exige que exista
+antes de confiar en esto para producción) y el despliegue real en Contabo
+en sí (sección 25).
 
 ## Estado actual
 
@@ -230,9 +258,15 @@ infraestructura de despliegue, que todavía no existe (sección 25).
 - **Backups** (2026-08-26): `scripts/backup.sh` (pg_dump formato custom +
   tar de medios locales, retención configurable) y `scripts/restore.sh`
   (restaura en una base nueva — es la prueba de restauración de la sección
-  29). Verificados contra Postgres real. Falta automatizar la ejecución
-  periódica y definir el destino de la copia externa — ambos dependen de
-  la infraestructura de despliegue, que todavía no existe.
+  29). Verificados contra Postgres real.
+- **Backups — ejecución periódica** (2026-08-27): `infra/systemd/plataforma-backup.{service,timer}`
+  (ver README "Backups"), listos para instalar en el servidor cuando
+  exista — corren `backup.sh` diario vía systemd timer. **No se pudieron
+  probar contra un timer real** (no hay servidor de producción ni systemd
+  en el entorno de desarrollo, sección 25); sí se re-verificó `backup.sh`
+  en sí (dump real contra el Postgres de `infra/`). El destino de la copia
+  externa (`BACKUP_REMOTE_COPY_CMD`) sigue sin definirse — depende de un
+  proveedor que todavía no se eligió, no se inventa uno (sección 44.13).
 
 - **Auditoría — consulta desde el panel** (2026-08-27): el audit log se
   registraba desde el bootstrap del proyecto pero nadie podía consultarlo
@@ -257,6 +291,7 @@ infraestructura de despliegue, que todavía no existe (sección 25).
 
 **Pendiente para un MVP completo** (sección 34): despliegue real en Contabo
 (sección 25 — hoy el stack en contenedores corre pero no está desplegado en
-ningún servidor), automatización de backups en el servidor, Nginx/reverse
-proxy delante del stack. CORS sigue sin configurarse (el panel admin corre
-en Server Actions, no lo necesita todavía).
+ningún servidor; el timer de backups está listo pero sin instalar por lo
+mismo), destino real de copia externa de backups, Nginx/reverse proxy
+delante del stack. CORS sigue sin configurarse (el panel admin corre en
+Server Actions, no lo necesita todavía).

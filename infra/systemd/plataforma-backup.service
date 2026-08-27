@@ -1,0 +1,23 @@
+# Unidad systemd que ejecuta scripts/backup.sh (CONTEXTO.md sección 29).
+# No se instala sola — la activa infra/systemd/plataforma-backup.timer.
+# Ver README.md "Backups" para la instalación completa en el servidor.
+#
+# Type=oneshot: systemd espera a que el script termine y usa su código de
+# salida para marcar la corrida como éxito/fallo en el journal — no queda
+# un proceso residente, coherente con que esto es un cron, no un servicio.
+[Unit]
+Description=Backup de plataforma-contenidos (PostgreSQL + medios locales)
+# El backup usa `docker compose exec`, así que necesita Docker arriba y el
+# stack (infra/docker-compose.yml) ya levantado.
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+# WorkingDirectory se sobreescribe en la instalación real (ver README) —
+# acá apunta al lugar convencional de despliegue, ajustar si cambia.
+WorkingDirectory=/opt/plataforma-contenidos
+ExecStart=/opt/plataforma-contenidos/scripts/backup.sh
+# Nunca correr esto como root: el script solo necesita poder ejecutar
+# `docker compose exec` (grupo `docker`) y escribir en BACKUP_DIR.
+User=deploy
