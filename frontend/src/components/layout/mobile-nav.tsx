@@ -11,6 +11,7 @@ const LINKS = [
   { href: "/eventos", label: "Eventos" },
   { href: "/galerias", label: "Galerías" },
   { href: "/resenas", label: "Reseñas" },
+  { href: "/directorio", label: "Directorio" },
 ];
 
 /** Menú hamburguesa para mobile/tablet — en desktop el nav principal ya alcanza, este solo se muestra en pantallas chicas (sm:hidden en el botón). */
