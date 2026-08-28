@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { listPublishedEvents } from "@/lib/api/client";
+import { listActiveCategories, listPublishedEvents } from "@/lib/api/client";
 import { EventCard } from "@/components/event/event-card";
 import { Pagination } from "@/components/ui/pagination";
+import { ListingFilters } from "@/components/filters/listing-filters";
+import { resolveGeographyChain } from "@/lib/geography-chain";
 
 const PAGE_SIZE = 24;
+const BASE_PATH = "/eventos";
 
 const WHEN_TABS: { value: "upcoming" | "past"; label: string }[] = [
   { value: "upcoming", label: "Próximos" },
@@ -16,18 +19,36 @@ export const metadata: Metadata = {
   description: "Eventos próximos y pasados de la región.",
 };
 
-function buildHref(when: "upcoming" | "past", page: number): string {
+function buildHref(
+  when: "upcoming" | "past",
+  categoryId: string | null,
+  geographyId: string | null,
+  page: number,
+): string {
   const params = new URLSearchParams({ when });
+  if (categoryId) params.set("categoryId", categoryId);
+  if (geographyId) params.set("geographyId", geographyId);
   if (page > 0) params.set("page", String(page));
-  return `/eventos?${params.toString()}`;
+  return `${BASE_PATH}?${params.toString()}`;
 }
 
 export default async function EventsPage(props: PageProps<"/eventos">) {
-  const { when: whenParam, page: pageParam } = await props.searchParams;
+  const {
+    when: whenParam,
+    page: pageParam,
+    categoryId: categoryIdParam,
+    geographyId: geographyIdParam,
+  } = await props.searchParams;
   const when = whenParam === "past" ? "past" : "upcoming";
   const page = typeof pageParam === "string" ? Math.max(0, parseInt(pageParam, 10) || 0) : 0;
+  const categoryId = typeof categoryIdParam === "string" ? categoryIdParam : null;
+  const geographyId = typeof geographyIdParam === "string" ? geographyIdParam : null;
 
-  const result = await listPublishedEvents({ when, page, size: PAGE_SIZE });
+  const [result, categories, geographyChain] = await Promise.all([
+    listPublishedEvents({ when, page, size: PAGE_SIZE, categoryId: categoryId ?? undefined, geographyId: geographyId ?? undefined }),
+    listActiveCategories(),
+    resolveGeographyChain(geographyId),
+  ]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
@@ -44,7 +65,7 @@ export default async function EventsPage(props: PageProps<"/eventos">) {
           return (
             <Link
               key={tab.value}
-              href={buildHref(tab.value, 0)}
+              href={buildHref(tab.value, categoryId, geographyId, 0)}
               className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                 active ? "bg-accent text-accent-foreground" : "bg-surface text-muted hover:text-foreground"
               }`}
@@ -55,10 +76,18 @@ export default async function EventsPage(props: PageProps<"/eventos">) {
         })}
       </nav>
 
+      <div className="mt-4">
+        <ListingFilters basePath={BASE_PATH} categories={categories} initialGeographyChain={geographyChain} />
+      </div>
+
       <section className="mt-8" aria-label="Eventos">
         {result.items.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">
-            {when === "upcoming" ? "Todavía no hay eventos próximos." : "Todavía no hay eventos pasados."}
+            {categoryId || geographyId
+              ? "Ningún evento coincide con este filtro."
+              : when === "upcoming"
+                ? "Todavía no hay eventos próximos."
+                : "Todavía no hay eventos pasados."}
           </p>
         ) : (
           <>
@@ -67,7 +96,11 @@ export default async function EventsPage(props: PageProps<"/eventos">) {
                 <EventCard key={event.id} event={event} />
               ))}
             </div>
-            <Pagination page={result.page} totalPages={result.totalPages} buildHref={(p) => buildHref(when, p)} />
+            <Pagination
+              page={result.page}
+              totalPages={result.totalPages}
+              buildHref={(p) => buildHref(when, categoryId, geographyId, p)}
+            />
           </>
         )}
       </section>

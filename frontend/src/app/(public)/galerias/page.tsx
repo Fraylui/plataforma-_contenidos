@@ -1,20 +1,38 @@
 import type { Metadata } from "next";
-import { listPublishedGalleries } from "@/lib/api/client";
+import { listActiveCategories, listPublishedGalleries } from "@/lib/api/client";
 import { GalleryCard } from "@/components/gallery/gallery-card";
 import { Pagination } from "@/components/ui/pagination";
+import { ListingFilters } from "@/components/filters/listing-filters";
+import { resolveGeographyChain } from "@/lib/geography-chain";
 
 const PAGE_SIZE = 24;
+const BASE_PATH = "/galerias";
 
 export const metadata: Metadata = {
   title: "Galerías",
   description: "Colecciones de fotografías de la región.",
 };
 
-export default async function GalleriesPage(props: PageProps<"/galerias">) {
-  const { page: pageParam } = await props.searchParams;
-  const page = typeof pageParam === "string" ? Math.max(0, parseInt(pageParam, 10) || 0) : 0;
+function buildHref(categoryId: string | null, geographyId: string | null, page: number): string {
+  const params = new URLSearchParams();
+  if (categoryId) params.set("categoryId", categoryId);
+  if (geographyId) params.set("geographyId", geographyId);
+  if (page > 0) params.set("page", String(page));
+  const query = params.toString();
+  return query ? `${BASE_PATH}?${query}` : BASE_PATH;
+}
 
-  const result = await listPublishedGalleries({ page, size: PAGE_SIZE });
+export default async function GalleriesPage(props: PageProps<"/galerias">) {
+  const { page: pageParam, categoryId: categoryIdParam, geographyId: geographyIdParam } = await props.searchParams;
+  const page = typeof pageParam === "string" ? Math.max(0, parseInt(pageParam, 10) || 0) : 0;
+  const categoryId = typeof categoryIdParam === "string" ? categoryIdParam : null;
+  const geographyId = typeof geographyIdParam === "string" ? geographyIdParam : null;
+
+  const [result, categories, geographyChain] = await Promise.all([
+    listPublishedGalleries({ page, size: PAGE_SIZE, categoryId: categoryId ?? undefined, geographyId: geographyId ?? undefined }),
+    listActiveCategories(),
+    resolveGeographyChain(geographyId),
+  ]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
@@ -25,10 +43,14 @@ export default async function GalleriesPage(props: PageProps<"/galerias">) {
         </p>
       </header>
 
+      <div className="mt-6">
+        <ListingFilters basePath={BASE_PATH} categories={categories} initialGeographyChain={geographyChain} />
+      </div>
+
       <section className="mt-8" aria-label="Galerías">
         {result.items.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">
-            Todavía no hay galerías publicadas.
+            {categoryId || geographyId ? "Ninguna galería publicada coincide con este filtro." : "Todavía no hay galerías publicadas."}
           </p>
         ) : (
           <>
@@ -40,7 +62,7 @@ export default async function GalleriesPage(props: PageProps<"/galerias">) {
             <Pagination
               page={result.page}
               totalPages={result.totalPages}
-              buildHref={(p) => `/galerias?page=${p}`}
+              buildHref={(p) => buildHref(categoryId, geographyId, p)}
             />
           </>
         )}
