@@ -15,6 +15,7 @@ import { articleTypeLabel, formatArticleDate, formatPublishedDate } from "@/lib/
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
+import { AdBlock } from "@/components/legal/ad-block";
 import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
 import type { Article, Category } from "@/lib/api/types";
@@ -223,6 +224,10 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
 
       <div className="mt-6 max-w-[70ch] text-base leading-relaxed whitespace-pre-line text-foreground">
         {article.body}
+      </div>
+
+      <div className="mt-10">
+        <AdBlock position="article" />
       </div>
 
       {articleTags.length > 0 && (

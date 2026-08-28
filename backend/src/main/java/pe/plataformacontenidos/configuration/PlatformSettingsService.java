@@ -70,6 +70,8 @@ public class PlatformSettingsService {
         settings.setAdsenseEnabled(request.adsenseEnabled());
         settings.setAdsenseClientId(request.adsenseClientId());
         settings.setAnalyticsId(request.analyticsId());
+        settings.setAdsenseSlotArticle(request.adsenseSlotArticle());
+        settings.setAdsenseSlotListing(request.adsenseSlotListing());
 
         settings.setUpdatedAt(Instant.now());
         settings.setUpdatedBy(actingAdminId);

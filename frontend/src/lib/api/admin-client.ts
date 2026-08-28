@@ -10,6 +10,7 @@ import type {
   ArticleInput,
   AuditEvent,
   AuditSearchFilters,
+  BusinessInput,
   CategoryCreateInput,
   CategoryUpdateInput,
   CreateUserInput,
@@ -26,6 +27,7 @@ import type {
 } from "./admin-types";
 import type {
   Article,
+  Business,
   Category,
   Event,
   Gallery,
@@ -120,6 +122,15 @@ export function enrollMfa(accessToken: string): Promise<MfaEnrollment> {
 
 export function confirmMfa(accessToken: string, code: string): Promise<MfaBackupCodes> {
   return authedJson("/api/v1/users/me/mfa/confirm", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code }),
+  });
+}
+
+/** El backend rechaza esto con 403 si la cuenta es SUPER_ADMIN (CONTEXTO.md sección 36.5, obligatorio sin excepción). */
+export function disableMfa(accessToken: string, code: string): Promise<void> {
+  return authedJson("/api/v1/users/me/mfa/disable", accessToken, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code }),
@@ -414,6 +425,64 @@ export function scheduleReview(accessToken: string, id: string, scheduledAt: str
 
 export function archiveReview(accessToken: string, id: string): Promise<Review> {
   return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
+}
+
+// --- Directory module: fichas de directorio (BusinessAdminController, rutas /admin/directory) ---
+
+export function listAdminBusinesses(accessToken: string): Promise<Business[]> {
+  return authedJson("/api/v1/admin/directory", accessToken);
+}
+
+export function getAdminBusiness(accessToken: string, id: string): Promise<Business> {
+  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}`, accessToken);
+}
+
+export function createBusiness(accessToken: string, input: BusinessInput): Promise<Business> {
+  return authedJson("/api/v1/admin/directory", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateBusiness(accessToken: string, id: string, input: BusinessInput): Promise<Business> {
+  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function submitBusiness(accessToken: string, id: string): Promise<Business> {
+  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
+}
+
+export function approveBusiness(accessToken: string, id: string): Promise<Business> {
+  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
+}
+
+export function rejectBusiness(accessToken: string, id: string, reason: string): Promise<Business> {
+  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/reject`, accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export function publishBusiness(accessToken: string, id: string): Promise<Business> {
+  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
+}
+
+export function scheduleBusiness(accessToken: string, id: string, scheduledAt: string): Promise<Business> {
+  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/schedule`, accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ scheduledAt }),
+  });
+}
+
+export function archiveBusiness(accessToken: string, id: string): Promise<Business> {
+  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
 }
 
 // --- Taxonomy module: categorías (CategoryController, rutas /admin/categories) ---

@@ -38,6 +38,8 @@ function toFormState(settings: PlatformSettings): FormState {
     adsenseEnabled: settings.adsenseEnabled,
     adsenseClientId: settings.adsenseClientId ?? "",
     analyticsId: settings.analyticsId ?? "",
+    adsenseSlotArticle: settings.adsenseSlotArticle ?? "",
+    adsenseSlotListing: settings.adsenseSlotListing ?? "",
   };
 }
 
@@ -71,6 +73,8 @@ function toInput(state: FormState): PlatformSettingsInput {
     adsenseEnabled: state.adsenseEnabled,
     adsenseClientId: blankToNull(state.adsenseClientId),
     analyticsId: blankToNull(state.analyticsId),
+    adsenseSlotArticle: blankToNull(state.adsenseSlotArticle),
+    adsenseSlotListing: blankToNull(state.adsenseSlotListing),
   };
 }
 
@@ -230,6 +234,16 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
           onChange={(v) => set("adsenseClientId", v)}
         />
         <TextField label="Analytics ID" value={state.analyticsId} onChange={(v) => set("analyticsId", v)} />
+        <TextField
+          label="Slot de anuncio — detalle de contenido"
+          value={state.adsenseSlotArticle}
+          onChange={(v) => set("adsenseSlotArticle", v)}
+        />
+        <TextField
+          label="Slot de anuncio — listados"
+          value={state.adsenseSlotListing}
+          onChange={(v) => set("adsenseSlotListing", v)}
+        />
       </Section>
 
       {error && (

@@ -57,7 +57,7 @@ export interface Article {
 }
 
 /** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de Artículos, Lugares, Eventos, Galerías y Reseñas. */
-export type SearchResultType = "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "REVIEW";
+export type SearchResultType = "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "REVIEW" | "BUSINESS";
 
 export interface SearchResult {
   contentType: SearchResultType;
@@ -273,6 +273,57 @@ export interface Review {
   createdAt: string;
 }
 
+/** Mismos valores que ReviewStatus (CONTEXTO.md sección 12) — BusinessStatus es un enum propio en el backend (sección 38). */
+export type BusinessStatus = ArticleStatus;
+
+/** Ver BusinessType.java (CONTEXTO.md sección 6) — eje de filtrado del Directorio, distinto de la categoría editorial. */
+export type BusinessType = "RESTAURANT" | "HOTEL" | "SERVICE" | "SHOP" | "OTHER";
+
+export interface BusinessSummary {
+  id: string;
+  slug: string;
+  name: string;
+  excerpt: string | null;
+  businessType: BusinessType;
+  categoryId: string;
+  geographyId: string | null;
+  placeId: string | null;
+  address: string | null;
+  coverImageId: string | null;
+  publishedAt: string | null;
+}
+
+export interface Business {
+  id: string;
+  slug: string;
+  name: string;
+  excerpt: string | null;
+  body: string;
+  status: BusinessStatus;
+  businessType: BusinessType;
+  authorId: string;
+  categoryId: string;
+  geographyId: string | null;
+  placeId: string | null;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  imageIds: string[];
+  seoTitle: string | null;
+  metaDescription: string | null;
+  canonicalUrl: string | null;
+  ogImageUrl: string | null;
+  youtubeVideoId: string | null;
+  robots: string;
+  rejectionReason: string | null;
+  publishedAt: string | null;
+  scheduledAt: string | null;
+  createdAt: string;
+}
+
 /** Ver PlatformSettingsResponse.java (CONTEXTO.md sección 14). */
 export interface PlatformSettings {
   name: string;
@@ -302,4 +353,6 @@ export interface PlatformSettings {
   adsenseEnabled: boolean;
   adsenseClientId: string | null;
   analyticsId: string | null;
+  adsenseSlotArticle: string | null;
+  adsenseSlotListing: string | null;
 }

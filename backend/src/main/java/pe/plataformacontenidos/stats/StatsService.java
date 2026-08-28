@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import org.springframework.stereotype.Service;
 import pe.plataformacontenidos.content.ArticleService;
+import pe.plataformacontenidos.directory.BusinessService;
 import pe.plataformacontenidos.events.EventService;
 import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.geography.GeographicUnitService;
@@ -31,19 +32,22 @@ public class StatsService {
     private final EventService eventService;
     private final GalleryService galleryService;
     private final ReviewService reviewService;
+    private final BusinessService businessService;
     private final CategoryService categoryService;
     private final TagService tagService;
     private final GeographicUnitService geographyService;
     private final UserAdminService userAdminService;
 
     public StatsService(ArticleService articleService, PlaceService placeService, EventService eventService,
-            GalleryService galleryService, ReviewService reviewService, CategoryService categoryService,
-            TagService tagService, GeographicUnitService geographyService, UserAdminService userAdminService) {
+            GalleryService galleryService, ReviewService reviewService, BusinessService businessService,
+            CategoryService categoryService, TagService tagService, GeographicUnitService geographyService,
+            UserAdminService userAdminService) {
         this.articleService = articleService;
         this.placeService = placeService;
         this.eventService = eventService;
         this.galleryService = galleryService;
         this.reviewService = reviewService;
+        this.businessService = businessService;
         this.categoryService = categoryService;
         this.tagService = tagService;
         this.geographyService = geographyService;
@@ -59,6 +63,7 @@ public class StatsService {
                 eventService.countByStatus(),
                 galleryService.countByStatus(),
                 reviewService.countByStatus(),
+                businessService.countByStatus(),
                 categoryService.countAll(),
                 categoryService.countActive(),
                 tagService.countAll(),

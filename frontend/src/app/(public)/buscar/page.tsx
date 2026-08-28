@@ -14,6 +14,7 @@ const TYPE_TABS: { value: SearchResultType | null; label: string }[] = [
   { value: "EVENT", label: "Eventos" },
   { value: "GALLERY", label: "Galerías" },
   { value: "REVIEW", label: "Reseñas" },
+  { value: "BUSINESS", label: "Directorio" },
 ];
 
 export const metadata: Metadata = {
@@ -37,7 +38,8 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
     typeParam === "PLACE" ||
     typeParam === "EVENT" ||
     typeParam === "GALLERY" ||
-    typeParam === "REVIEW"
+    typeParam === "REVIEW" ||
+    typeParam === "BUSINESS"
       ? typeParam
       : null;
   const page = typeof pageParam === "string" ? Math.max(0, parseInt(pageParam, 10) || 0) : 0;
