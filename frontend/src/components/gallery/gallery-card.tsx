@@ -50,7 +50,7 @@ export function GalleryCard({ gallery }: { gallery: GallerySummary }) {
         <span className="text-xs font-medium tracking-wide text-accent uppercase">
           Galería · {gallery.imageIds.length} foto{gallery.imageIds.length === 1 ? "" : "s"}
         </span>
-        <h2 className="font-serif text-lg font-medium leading-snug text-foreground transition-colors group-hover:text-accent">
+        <h2 className="text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-accent">
           {gallery.title}
         </h2>
         {gallery.excerpt && <p className="text-sm leading-relaxed text-muted line-clamp-2">{gallery.excerpt}</p>}

@@ -146,12 +146,12 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
         )}
       </div>
 
-      <h1 className="mt-3 max-w-2xl font-serif text-3xl font-medium leading-tight text-foreground sm:text-4xl">
+      <h1 className="mt-3 max-w-2xl text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
         {gallery.title}
       </h1>
 
       {gallery.excerpt && (
-        <p className="mt-4 max-w-2xl font-serif text-lg leading-relaxed text-foreground/90 italic">
+        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-foreground/90">
           {gallery.excerpt}
         </p>
       )}
@@ -172,7 +172,7 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
         <div className="mt-14 max-w-none border-t border-border pt-10">
           {relatedGalleries.length > 0 && (
             <section aria-label="Otras galerías">
-              <h2 className="font-serif text-lg font-medium text-foreground">Otras galerías en {category!.name}</h2>
+              <h2 className="text-lg font-semibold text-foreground">Otras galerías en {category!.name}</h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {relatedGalleries.map((related) => (
                   <GalleryCard key={related.id} gallery={related} />
@@ -183,7 +183,7 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
 
           {relatedPlaces.length > 0 && (
             <section aria-label="Lugares relacionados" className={relatedGalleries.length > 0 ? "mt-10" : undefined}>
-              <h2 className="font-serif text-lg font-medium text-foreground">Lugares en {category!.name}</h2>
+              <h2 className="text-lg font-semibold text-foreground">Lugares en {category!.name}</h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {relatedPlaces.map((related) => (
                   <PlaceCard key={related.id} place={related} />
@@ -197,7 +197,7 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
               aria-label="Más artículos"
               className={relatedGalleries.length > 0 || relatedPlaces.length > 0 ? "mt-10" : undefined}
             >
-              <h2 className="font-serif text-lg font-medium text-foreground">Más de {category!.name}</h2>
+              <h2 className="text-lg font-semibold text-foreground">Más de {category!.name}</h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {relatedArticles.map((related) => (
                   <ArticleCard key={related.id} article={related} />

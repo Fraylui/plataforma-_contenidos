@@ -140,7 +140,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
         )}
       </div>
 
-      <h1 className="mt-3 font-serif text-3xl font-medium leading-tight text-foreground sm:text-4xl">{place.name}</h1>
+      <h1 className="mt-3 text-3xl font-semibold leading-tight text-foreground sm:text-4xl">{place.name}</h1>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
         {geography && (
@@ -183,7 +183,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
       )}
 
       {place.excerpt && (
-        <p className="mt-8 font-serif text-lg leading-relaxed text-foreground/90 italic">{place.excerpt}</p>
+        <p className="mt-8 text-lg leading-relaxed text-foreground/90">{place.excerpt}</p>
       )}
 
       <div className="mt-6 max-w-[70ch] text-base leading-relaxed whitespace-pre-line text-foreground">
@@ -192,7 +192,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
 
       {place.relatedArticles.length > 0 && (
         <section className="mt-12 border-t border-border pt-8">
-          <h2 className="font-serif text-xl font-medium text-foreground">Artículos relacionados</h2>
+          <h2 className="text-xl font-semibold text-foreground">Artículos relacionados</h2>
           <ul className="mt-4 space-y-3">
             {place.relatedArticles.map((article) => (
               <li key={article.id}>
@@ -209,7 +209,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
         <div className={`max-w-none border-border pt-10 ${place.relatedArticles.length > 0 ? "mt-10" : "mt-14 border-t"}`}>
           {morePlaces.length > 0 && (
             <section aria-label="Más lugares">
-              <h2 className="font-serif text-lg font-medium text-foreground">
+              <h2 className="text-lg font-semibold text-foreground">
                 Más lugares en {category!.name}
               </h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -222,7 +222,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
 
           {moreArticles.length > 0 && (
             <section aria-label="Artículos de esta categoría" className={morePlaces.length > 0 ? "mt-10" : undefined}>
-              <h2 className="font-serif text-lg font-medium text-foreground">
+              <h2 className="text-lg font-semibold text-foreground">
                 Artículos sobre {category!.name}
               </h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">

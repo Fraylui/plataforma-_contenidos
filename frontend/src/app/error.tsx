@@ -16,7 +16,7 @@ export default function Error({
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col items-center px-4 py-24 text-center sm:px-6">
-      <h1 className="font-serif text-2xl font-medium text-foreground">
+      <h1 className="text-2xl font-semibold text-foreground">
         Algo no funcionó como esperábamos
       </h1>
       <p className="mt-2 text-sm text-muted">

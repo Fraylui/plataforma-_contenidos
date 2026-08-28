@@ -25,7 +25,7 @@ export function ReviewCard({ review }: { review: ReviewSummary }) {
 
       <div className="flex flex-1 flex-col gap-2 p-5">
         <StarRating rating={review.rating} />
-        <h2 className="font-serif text-lg font-medium leading-snug text-foreground transition-colors group-hover:text-accent">
+        <h2 className="text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-accent">
           {review.title}
         </h2>
         {review.subjectName && <p className="text-sm text-muted">{review.subjectName}</p>}

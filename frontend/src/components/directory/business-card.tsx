@@ -27,7 +27,7 @@ export function BusinessCard({ business }: { business: BusinessSummary }) {
         <span className="text-xs font-medium tracking-wide text-accent uppercase">
           {businessTypeLabel(business.businessType)}
         </span>
-        <h2 className="font-serif text-lg font-medium leading-snug text-foreground transition-colors group-hover:text-accent">
+        <h2 className="text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-accent">
           {business.name}
         </h2>
         {business.address && <p className="text-sm text-muted">{business.address}</p>}

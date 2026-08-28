@@ -22,7 +22,7 @@ export function PlaceCard({ place }: { place: PlaceSummary }) {
         )}
       </div>
       <div className="flex flex-1 flex-col gap-2 p-5">
-        <h2 className="font-serif text-lg font-medium leading-snug text-foreground transition-colors group-hover:text-accent">
+        <h2 className="text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-accent">
           {place.name}
         </h2>
         {place.excerpt && <p className="text-sm leading-relaxed text-muted line-clamp-3">{place.excerpt}</p>}

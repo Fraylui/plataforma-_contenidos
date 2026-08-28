@@ -31,7 +31,7 @@ export function EventCard({ event }: { event: EventSummary }) {
         <span className="text-xs font-medium tracking-wide text-accent uppercase">
           {formatEventDateTime(event.startsAt)}
         </span>
-        <h2 className="font-serif text-lg font-medium leading-snug text-foreground transition-colors group-hover:text-accent">
+        <h2 className="text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-accent">
           {event.title}
         </h2>
         {event.venueName && <p className="text-sm text-muted">{event.venueName}</p>}

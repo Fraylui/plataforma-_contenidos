@@ -137,7 +137,7 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
         )}
       </div>
 
-      <h1 className="mt-3 font-serif text-3xl font-medium leading-tight text-foreground sm:text-4xl">
+      <h1 className="mt-3 text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
         {business.name}
       </h1>
 
@@ -196,7 +196,7 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
       )}
 
       {business.excerpt && (
-        <p className="mt-8 font-serif text-lg leading-relaxed text-foreground/90 italic">{business.excerpt}</p>
+        <p className="mt-8 text-lg leading-relaxed text-foreground/90">{business.excerpt}</p>
       )}
 
       <div className="mt-6 max-w-[70ch] text-base leading-relaxed whitespace-pre-line text-foreground">
@@ -210,7 +210,7 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
       {related.length > 0 && (
         <div className="mt-14 max-w-none border-t border-border pt-10">
           <section aria-label="Más en el directorio">
-            <h2 className="font-serif text-lg font-medium text-foreground">
+            <h2 className="text-lg font-semibold text-foreground">
               Más {businessTypeLabel(business.businessType).toLowerCase()}s
             </h2>
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">

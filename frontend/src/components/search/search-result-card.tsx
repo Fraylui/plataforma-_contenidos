@@ -51,7 +51,7 @@ export function SearchResultCard({ result }: { result: SearchResult }) {
         <span className="text-xs font-medium tracking-wide text-accent uppercase">
           {TYPE_LABEL[result.contentType]}
         </span>
-        <h2 className="font-serif text-lg font-medium leading-snug text-foreground transition-colors group-hover:text-accent">
+        <h2 className="text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-accent">
           {result.title}
         </h2>
         {result.excerpt && <p className="text-sm leading-relaxed text-muted line-clamp-3">{result.excerpt}</p>}
