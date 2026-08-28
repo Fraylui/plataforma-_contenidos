@@ -14,7 +14,8 @@ export interface TokenResponse {
 export interface AdminUser {
   id: string;
   email: string;
-  displayName: string;
+  firstName: string;
+  lastName: string;
   role: Role;
   status: string;
   createdAt: string;
@@ -167,7 +168,8 @@ export interface GeographyCreateInput {
 export interface CreateUserInput {
   email: string;
   password: string;
-  displayName: string;
+  firstName: string;
+  lastName: string;
   role: Role;
 }
 

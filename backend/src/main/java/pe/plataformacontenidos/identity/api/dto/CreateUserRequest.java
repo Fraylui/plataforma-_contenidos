@@ -9,6 +9,7 @@ import pe.plataformacontenidos.identity.Role;
 public record CreateUserRequest(
         @NotBlank @Email String email,
         @NotBlank @Size(min = 12, message = "la contraseña debe tener al menos 12 caracteres") String password,
-        @NotBlank String displayName,
+        @NotBlank @Size(max = 100) String firstName,
+        @NotBlank @Size(max = 100) String lastName,
         @NotNull Role role) {
 }

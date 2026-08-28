@@ -74,6 +74,34 @@ class AuthFlowIntegrationTest {
                 .andExpect(status().isTooManyRequests());
     }
 
+    /**
+     * Regresión del hallazgo de la auditoría COBIT 2019 (2026-08-27):
+     * AuthController.clientIp() confiaba en X-Forwarded-For sin validar que
+     * viniera de un proxy confiable — un atacante podía mandar un valor
+     * distinto en cada intento y evadir el rate limit por completo. Ahora
+     * usa getRemoteAddr(), así que variar esa cabecera no debe cambiar nada:
+     * el límite se cumple igual (mismo comportamiento que
+     * repeatedFailedLoginsAreRateLimited, pero probando que la cabecera
+     * falsificada no lo evade).
+     */
+    @Test
+    void spoofedForwardedForHeaderDoesNotBypassRateLimit() throws Exception {
+        String email = "xff-spoof-user@plataforma-contenidos.test";
+        for (int i = 0; i < 3; i++) {
+            mockMvc.perform(post("/api/v1/auth/login")
+                            .header("X-Forwarded-For", "10.0.0." + i)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(loginJson(email, "whatever")))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .header("X-Forwarded-For", "10.0.0.99")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson(email, "whatever")))
+                .andExpect(status().isTooManyRequests());
+    }
+
     @Test
     void meEndpointRequiresAuthentication() throws Exception {
         mockMvc.perform(get("/api/v1/users/me"))
@@ -122,7 +150,8 @@ class AuthFlowIntegrationTest {
         String createUserJson = objectMapper.writeValueAsString(new java.util.HashMap<>() {{
             put("email", "editor@plataforma-contenidos.test");
             put("password", "AnotherSecret123!");
-            put("displayName", "Editor de Prueba");
+            put("firstName", "Editor");
+            put("lastName", "de Prueba");
             put("role", "EDITOR");
         }});
 
@@ -165,7 +194,8 @@ class AuthFlowIntegrationTest {
         String createSuperJson = objectMapper.writeValueAsString(new java.util.HashMap<>() {{
             put("email", "wannabe-super@plataforma-contenidos.test");
             put("password", "AnotherSecret123!");
-            put("displayName", "Wannabe Super");
+            put("firstName", "Wannabe");
+            put("lastName", "Super");
             put("role", "SUPER_ADMIN");
         }});
         mockMvc.perform(post("/api/v1/admin/users")
@@ -214,7 +244,8 @@ class AuthFlowIntegrationTest {
         String json = objectMapper.writeValueAsString(new java.util.HashMap<>() {{
             put("email", email);
             put("password", password);
-            put("displayName", "Usuario de prueba");
+            put("firstName", "Usuario");
+            put("lastName", "de prueba");
             put("role", role);
         }});
         MvcResult result = mockMvc.perform(post("/api/v1/admin/users")

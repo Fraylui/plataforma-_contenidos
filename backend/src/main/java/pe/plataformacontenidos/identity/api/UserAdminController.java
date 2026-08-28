@@ -52,8 +52,9 @@ public class UserAdminController {
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse create(@Valid @RequestBody CreateUserRequest request,
             @AuthenticationPrincipal UserPrincipal actingAdmin, HttpServletRequest httpRequest) {
-        var created = userAdminService.createUser(request.email(), request.password(), request.displayName(),
-                request.role(), actingAdmin.userId(), actingAdmin.role(), httpRequest.getRemoteAddr());
+        var created = userAdminService.createUser(request.email(), request.password(), request.firstName(),
+                request.lastName(), request.role(), actingAdmin.userId(), actingAdmin.role(),
+                httpRequest.getRemoteAddr());
         // Usuario recién creado: MFA nunca puede estar habilitado todavía.
         return UserResponse.from(created, false);
     }

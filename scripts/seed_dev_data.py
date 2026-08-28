@@ -39,7 +39,7 @@ def main():
     try:
         request("POST", "/api/v1/admin/users", token=admin_token, body={
             "email": editor_email, "password": editor_password,
-            "displayName": "Editor de Prueba", "role": "EDITOR",
+            "firstName": "Editor", "lastName": "de Prueba", "role": "EDITOR",
         })
         print("Editor creado.")
     except urllib.error.HTTPError as e:

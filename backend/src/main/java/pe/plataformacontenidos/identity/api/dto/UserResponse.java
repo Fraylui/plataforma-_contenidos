@@ -9,7 +9,8 @@ import pe.plataformacontenidos.identity.UserStatus;
 public record UserResponse(
         UUID id,
         String email,
-        String displayName,
+        String firstName,
+        String lastName,
         Role role,
         UserStatus status,
         Instant createdAt,
@@ -23,7 +24,7 @@ public record UserResponse(
      * admin sí lo consultan (CONTEXTO.md sección 36.5).
      */
     public static UserResponse from(User user, boolean mfaEnabled) {
-        return new UserResponse(user.getId(), user.getEmail(), user.getDisplayName(), user.getRole(),
-                user.getStatus(), user.getCreatedAt(), user.getLastLoginAt(), mfaEnabled);
+        return new UserResponse(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(),
+                user.getRole(), user.getStatus(), user.getCreatedAt(), user.getLastLoginAt(), mfaEnabled);
     }
 }

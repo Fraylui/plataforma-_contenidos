@@ -46,7 +46,7 @@ public class IdentityBootstrap implements ApplicationRunner {
         }
 
         User admin = new User(bootstrapEmail, passwordEncoder.encode(bootstrapPassword),
-                "Administrador inicial", Role.SUPER_ADMIN);
+                "Administrador", "Inicial", Role.SUPER_ADMIN);
         userRepository.save(admin);
         log.info("SUPER_ADMIN inicial creado para {}", bootstrapEmail);
     }

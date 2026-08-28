@@ -26,8 +26,11 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Column(name = "display_name", nullable = false)
-    private String displayName;
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -50,10 +53,11 @@ public class User {
         // JPA
     }
 
-    public User(String email, String passwordHash, String displayName, Role role) {
+    public User(String email, String passwordHash, String firstName, String lastName, Role role) {
         this.email = email.toLowerCase();
         this.passwordHash = passwordHash;
-        this.displayName = displayName;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.role = role;
     }
 
@@ -69,8 +73,16 @@ public class User {
         return passwordHash;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public String getFullName() {
+        return firstName + " " + lastName;
     }
 
     public Role getRole() {

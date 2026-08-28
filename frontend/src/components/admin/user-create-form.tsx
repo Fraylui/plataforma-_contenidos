@@ -14,7 +14,8 @@ export function UserCreateForm({ viewerRole }: { viewerRole: Role }) {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [role, setRole] = useState<Role>(availableRoles[availableRoles.length - 1] ?? "USER");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +23,7 @@ export function UserCreateForm({ viewerRole }: { viewerRole: Role }) {
   async function handleSubmit() {
     setPending(true);
     setError(null);
-    const result = await createUserAction({ email, password, displayName, role });
+    const result = await createUserAction({ email, password, firstName, lastName, role });
     setPending(false);
     if (!result.ok) {
       setError(result.error);
@@ -32,15 +33,27 @@ export function UserCreateForm({ viewerRole }: { viewerRole: Role }) {
 
   return (
     <div className="max-w-md space-y-4">
-      <label className="block text-sm font-medium text-foreground">
-        Nombre para mostrar
-        <input
-          type="text"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-        />
-      </label>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <label className="block text-sm font-medium text-foreground">
+          Nombres
+          <input
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
+          />
+        </label>
+
+        <label className="block text-sm font-medium text-foreground">
+          Apellidos
+          <input
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
+          />
+        </label>
+      </div>
 
       <label className="block text-sm font-medium text-foreground">
         Correo electrónico
@@ -92,7 +105,7 @@ export function UserCreateForm({ viewerRole }: { viewerRole: Role }) {
 
       <button
         type="button"
-        disabled={pending || !email || password.length < 12 || !displayName.trim()}
+        disabled={pending || !email || password.length < 12 || !firstName.trim() || !lastName.trim()}
         onClick={handleSubmit}
         className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-60"
       >
