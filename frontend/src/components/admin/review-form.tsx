@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import type { AdminImage, ReviewInput } from "@/lib/api/admin-types";
 import type { Category, GeographicUnit, Place, Review } from "@/lib/api/types";
 import type { ReviewPermissions } from "@/lib/admin/review-permissions";
 import { articleStatusLabel } from "@/lib/content-labels";
+import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
 import { GeographyPicker } from "./geography-picker";
 import { PlaceGalleryPicker } from "./place-gallery-picker";
 import {
@@ -138,38 +139,38 @@ export function ReviewForm({
       )}
 
       <div className="space-y-4">
-        <Field label="Título">
-          <input type="text" value={title} disabled={readOnly} onChange={(e) => setTitle(e.target.value)} className={inputClass} />
-        </Field>
+        <FormField label="Título">
+          <input type="text" value={title} disabled={readOnly} onChange={(e) => setTitle(e.target.value)} className={formInputClass} />
+        </FormField>
 
-        <Field label="Descripción breve (opcional)">
-          <textarea value={excerpt} disabled={readOnly} onChange={(e) => setExcerpt(e.target.value)} rows={2} className={inputClass} />
-        </Field>
+        <FormField label="Descripción breve (opcional)">
+          <textarea value={excerpt} disabled={readOnly} onChange={(e) => setExcerpt(e.target.value)} rows={2} className={formInputClass} />
+        </FormField>
 
-        <Field label="Reseña completa">
-          <textarea value={body} disabled={readOnly} onChange={(e) => setBody(e.target.value)} rows={14} className={inputClass} />
-        </Field>
+        <FormField label="Reseña completa">
+          <textarea value={body} disabled={readOnly} onChange={(e) => setBody(e.target.value)} rows={14} className={formInputClass} />
+        </FormField>
 
-        <Field label="Categoría">
-          <select value={categoryId} disabled={readOnly} onChange={(e) => setCategoryId(e.target.value)} className={inputClass}>
+        <FormField label="Categoría">
+          <select value={categoryId} disabled={readOnly} onChange={(e) => setCategoryId(e.target.value)} className={formInputClass}>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
               </option>
             ))}
           </select>
-        </Field>
+        </FormField>
 
-        <Field label="Ubicación geográfica (opcional)">
+        <FormField label="Ubicación geográfica (opcional)">
           <GeographyPicker initialChain={initialGeographyChain} onChange={setGeographyId} />
-        </Field>
+        </FormField>
 
-        <Field label="Lugar reseñado (opcional, si ya existe en Lugares)">
+        <FormField label="Lugar reseñado (opcional, si ya existe en Lugares)">
           <select
             value={placeId}
             disabled={readOnly}
             onChange={(e) => setPlaceId(e.target.value)}
-            className={inputClass}
+            className={formInputClass}
           >
             <option value="">Sin lugar (especificar nombre abajo)</option>
             {places.map((place) => (
@@ -178,22 +179,22 @@ export function ReviewForm({
               </option>
             ))}
           </select>
-        </Field>
+        </FormField>
 
         {!placeId && (
-          <Field label="Nombre de lo reseñado (opcional, texto libre)">
+          <FormField label="Nombre de lo reseñado (opcional, texto libre)">
             <input
               type="text"
               value={subjectName}
               disabled={readOnly}
               onChange={(e) => setSubjectName(e.target.value)}
               placeholder="Ej. Restaurante Wamanripa"
-              className={inputClass}
+              className={formInputClass}
             />
-          </Field>
+          </FormField>
         )}
 
-        <Field label="Calificación">
+        <FormField label="Calificación">
           <div className="mt-1 flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((value) => (
               <button
@@ -220,22 +221,22 @@ export function ReviewForm({
             ))}
             <span className="ml-2 text-sm text-muted">{rating} / 5</span>
           </div>
-        </Field>
+        </FormField>
 
-        <Field label="Fotografías (opcional)">
+        <FormField label="Fotografías (opcional)">
           <PlaceGalleryPicker allImages={allImages} value={imageIds} onChange={setImageIds} disabled={readOnly} />
-        </Field>
+        </FormField>
 
-        <Field label="Video de YouTube (URL, opcional)">
+        <FormField label="Video de YouTube (URL, opcional)">
           <input
             type="text"
             value={youtubeUrl}
             disabled={readOnly || removeYoutube}
             onChange={(e) => setYoutubeUrl(e.target.value)}
             placeholder={review?.youtubeVideoId ? "Ya tiene un video — pega otra URL para reemplazarlo" : "https://www.youtube.com/watch?v=…"}
-            className={inputClass}
+            className={formInputClass}
           />
-        </Field>
+        </FormField>
         {review?.youtubeVideoId && (
           <label className="flex items-center gap-2 text-sm text-foreground">
             <input type="checkbox" checked={removeYoutube} disabled={readOnly} onChange={(e) => setRemoveYoutube(e.target.checked)} />
@@ -246,29 +247,29 @@ export function ReviewForm({
 
       <fieldset className="space-y-4 border-t border-border pt-6">
         <legend className="text-sm font-medium text-foreground">SEO</legend>
-        <Field label="Título SEO (opcional, si no se define usa el título)">
-          <input type="text" value={seoTitle} disabled={readOnly} onChange={(e) => setSeoTitle(e.target.value)} className={inputClass} />
-        </Field>
-        <Field label="Meta descripción (opcional)">
-          <textarea value={metaDescription} disabled={readOnly} onChange={(e) => setMetaDescription(e.target.value)} rows={2} className={inputClass} />
-        </Field>
+        <FormField label="Título SEO (opcional, si no se define usa el título)">
+          <input type="text" value={seoTitle} disabled={readOnly} onChange={(e) => setSeoTitle(e.target.value)} className={formInputClass} />
+        </FormField>
+        <FormField label="Meta descripción (opcional)">
+          <textarea value={metaDescription} disabled={readOnly} onChange={(e) => setMetaDescription(e.target.value)} rows={2} className={formInputClass} />
+        </FormField>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="URL canónica (opcional)">
-            <input type="text" value={canonicalUrl} disabled={readOnly} onChange={(e) => setCanonicalUrl(e.target.value)} className={inputClass} />
-          </Field>
-          <Field label="Imagen para Open Graph (URL, opcional)">
-            <input type="text" value={ogImageUrl} disabled={readOnly} onChange={(e) => setOgImageUrl(e.target.value)} className={inputClass} />
-          </Field>
+          <FormField label="URL canónica (opcional)">
+            <input type="text" value={canonicalUrl} disabled={readOnly} onChange={(e) => setCanonicalUrl(e.target.value)} className={formInputClass} />
+          </FormField>
+          <FormField label="Imagen para Open Graph (URL, opcional)">
+            <input type="text" value={ogImageUrl} disabled={readOnly} onChange={(e) => setOgImageUrl(e.target.value)} className={formInputClass} />
+          </FormField>
         </div>
-        <Field label="Robots">
-          <select value={robots} disabled={readOnly} onChange={(e) => setRobots(e.target.value)} className={inputClass}>
+        <FormField label="Robots">
+          <select value={robots} disabled={readOnly} onChange={(e) => setRobots(e.target.value)} className={formInputClass}>
             {ROBOTS_OPTIONS.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>
             ))}
           </select>
-        </Field>
+        </FormField>
       </fieldset>
 
       {error && (
@@ -279,14 +280,12 @@ export function ReviewForm({
       {notice && <p className="text-sm text-accent">{notice}</p>}
 
       {!readOnly && (
-        <button
-          type="button"
+        <AdminButton
           disabled={pending || !title || !body || !categoryId}
           onClick={handleSubmit}
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-60"
         >
           {pending ? "Guardando…" : mode === "create" ? "Crear borrador" : "Guardar cambios"}
-        </button>
+        </AdminButton>
       )}
 
       {mode === "edit" && review && permissions && (
@@ -294,56 +293,58 @@ export function ReviewForm({
           <h2 className="text-sm font-medium text-foreground">Flujo editorial</h2>
           <div className="flex flex-wrap gap-2">
             {permissions.canSubmit && (
-              <WorkflowButton pending={pending} onClick={() => runWorkflow(() => submitReviewAction(review.id), "Enviada a revisión.")}>
+              <AdminButton type="button" variant="secondary" disabled={pending} onClick={() => runWorkflow(() => submitReviewAction(review.id), "Enviada a revisión.")}>
                 Enviar a revisión
-              </WorkflowButton>
+              </AdminButton>
             )}
             {permissions.canApprove && (
-              <WorkflowButton pending={pending} onClick={() => runWorkflow(() => approveReviewAction(review.id), "Reseña aprobada.")}>
+              <AdminButton type="button" variant="secondary" disabled={pending} onClick={() => runWorkflow(() => approveReviewAction(review.id), "Reseña aprobada.")}>
                 Aprobar
-              </WorkflowButton>
+              </AdminButton>
             )}
             {permissions.canPublish && (
-              <WorkflowButton pending={pending} onClick={() => runWorkflow(() => publishReviewAction(review.id), "Reseña publicada.")}>
+              <AdminButton type="button" variant="secondary" disabled={pending} onClick={() => runWorkflow(() => publishReviewAction(review.id), "Reseña publicada.")}>
                 Publicar ahora
-              </WorkflowButton>
+              </AdminButton>
             )}
             {permissions.canArchive && (
-              <WorkflowButton pending={pending} onClick={() => runWorkflow(() => archiveReviewAction(review.id), "Reseña archivada.")}>
+              <AdminButton type="button" variant="secondary" disabled={pending} onClick={() => runWorkflow(() => archiveReviewAction(review.id), "Reseña archivada.")}>
                 Archivar
-              </WorkflowButton>
+              </AdminButton>
             )}
           </div>
 
           {permissions.canReject && (
             <div className="flex flex-wrap items-end gap-2">
-              <Field label="Motivo de rechazo">
-                <input type="text" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className={inputClass} />
-              </Field>
-              <WorkflowButton
-                pending={pending}
-                disabled={!rejectReason.trim()}
+              <FormField label="Motivo de rechazo">
+                <input type="text" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className={formInputClass} />
+              </FormField>
+              <AdminButton
+                type="button"
+                variant="secondary"
+                disabled={pending || !rejectReason.trim()}
                 onClick={() => runWorkflow(() => rejectReviewAction(review.id, rejectReason), "Reseña rechazada.")}
               >
                 Rechazar
-              </WorkflowButton>
+              </AdminButton>
             </div>
           )}
 
           {permissions.canSchedule && (
             <div className="flex flex-wrap items-end gap-2">
-              <Field label="Programar publicación para">
-                <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} className={inputClass} />
-              </Field>
-              <WorkflowButton
-                pending={pending}
-                disabled={!scheduleAt}
+              <FormField label="Programar publicación para">
+                <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} className={formInputClass} />
+              </FormField>
+              <AdminButton
+                type="button"
+                variant="secondary"
+                disabled={pending || !scheduleAt}
                 onClick={() =>
                   runWorkflow(() => scheduleReviewAction(review.id, new Date(scheduleAt).toISOString()), "Publicación programada.")
                 }
               >
                 Programar
-              </WorkflowButton>
+              </AdminButton>
             </div>
           )}
         </div>
@@ -352,37 +353,3 @@ export function ReviewForm({
   );
 }
 
-const inputClass =
-  "mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent disabled:opacity-60";
-
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <label className="block text-sm font-medium text-foreground">
-      {label}
-      {children}
-    </label>
-  );
-}
-
-function WorkflowButton({
-  children,
-  onClick,
-  pending,
-  disabled,
-}: {
-  children: ReactNode;
-  onClick: () => void;
-  pending: boolean;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      disabled={pending || disabled}
-      onClick={onClick}
-      className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent-soft hover:text-accent disabled:opacity-50"
-    >
-      {children}
-    </button>
-  );
-}

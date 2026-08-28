@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { disableMfaAction } from "./actions";
+import { AdminButton, formInputClass } from "@/components/admin/ui";
 
 /** Exige el código TOTP actual — mismo criterio que MfaService.disable() en el backend, nunca solo el access token. */
 export function MfaDisableFlow() {
@@ -47,7 +48,7 @@ export function MfaDisableFlow() {
         autoComplete="one-time-code"
         value={code}
         onChange={(e) => setCode(e.target.value)}
-        className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
+        className={formInputClass}
       />
       {error && (
         <p role="alert" className="text-sm text-red-600 dark:text-red-400">
@@ -55,26 +56,20 @@ export function MfaDisableFlow() {
         </p>
       )}
       <div className="flex gap-2">
-        <button
-          type="button"
-          disabled={pending || code.length === 0}
-          onClick={handleDisable}
-          className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60 dark:bg-red-500"
-        >
+        <AdminButton variant="danger" disabled={pending || code.length === 0} onClick={handleDisable}>
           {pending ? "Desactivando…" : "Confirmar y desactivar"}
-        </button>
-        <button
-          type="button"
+        </AdminButton>
+        <AdminButton
+          variant="secondary"
           disabled={pending}
           onClick={() => {
             setOpen(false);
             setError(null);
             setCode("");
           }}
-          className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent-soft"
         >
           Cancelar
-        </button>
+        </AdminButton>
       </div>
     </div>
   );

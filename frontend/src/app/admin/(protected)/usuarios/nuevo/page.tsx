@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { UserCreateForm } from "@/components/admin/user-create-form";
+import { AdminPageHeader } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
   title: "Nuevo usuario",
@@ -12,7 +13,7 @@ export default async function NewUserPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-2xl font-medium text-foreground">Nuevo usuario</h1>
+      <AdminPageHeader title="Nuevo usuario" />
       <div className="mt-6">
         <UserCreateForm viewerRole={user.role} />
       </div>

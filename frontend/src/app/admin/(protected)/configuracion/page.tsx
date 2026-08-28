@@ -4,6 +4,7 @@ import { getAdminPlatformSettings } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { PlatformSettingsForm } from "@/components/admin/platform-settings-form";
+import { AdminPageHeader } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
   title: "Configuración de plataforma",
@@ -17,11 +18,10 @@ export default async function AdminConfigurationPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-2xl font-medium text-foreground">Configuración de plataforma</h1>
-      <p className="mt-1 text-sm text-muted">
-        Identidad, apariencia, SEO por defecto, redes y contacto. Se aplica en todo el sitio sin redeploy
-        (CONTEXTO.md sección 14).
-      </p>
+      <AdminPageHeader
+        title="Configuración de plataforma"
+        description="Identidad, apariencia, SEO por defecto, redes y contacto. Se aplica en todo el sitio sin redeploy (CONTEXTO.md sección 14)."
+      />
       <div className="mt-6">
         <PlatformSettingsForm settings={result.data} />
       </div>

@@ -4,6 +4,8 @@ import { useState } from "react";
 import type { PlatformSettings } from "@/lib/api/types";
 import type { PlatformSettingsInput } from "@/lib/api/admin-types";
 import { updatePlatformSettingsAction } from "@/app/admin/(protected)/configuracion/actions";
+import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
+import { isValidHexColor } from "@/lib/theme";
 
 type FormState = {
   [K in keyof PlatformSettingsInput]: PlatformSettingsInput[K] extends boolean ? boolean : string;
@@ -78,10 +80,6 @@ function toInput(state: FormState): PlatformSettingsInput {
   };
 }
 
-const inputClass =
-  "mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent";
-const labelClass = "block text-sm font-medium text-foreground";
-
 function TextField({
   label,
   value,
@@ -94,10 +92,38 @@ function TextField({
   type?: string;
 }) {
   return (
-    <label className={labelClass}>
-      {label}
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className={inputClass} />
-    </label>
+    <FormField label={label}>
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className={formInputClass} />
+    </FormField>
+  );
+}
+
+/**
+ * Selector de color real (no texto libre): el campo veía guardarse basura
+ * como "rojo" en vez de un hex, lo que rompía la variable CSS que lo
+ * consume en el sitio (ver lib/theme.ts, isValidHexColor). El input de
+ * texto queda al lado para copiar/pegar un hex exacto si se prefiere.
+ */
+function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+  const swatch = isValidHexColor(value) ? value : "#000000";
+  return (
+    <FormField label={label}>
+      <div className="mt-1 flex items-center gap-2">
+        <input
+          type="color"
+          value={swatch}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-9 w-12 shrink-0 cursor-pointer rounded-md border border-border bg-background p-1"
+        />
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="#B91C1C"
+          className={formInputClass.replace("mt-1 ", "")}
+        />
+      </div>
+    </FormField>
   );
 }
 
@@ -147,34 +173,32 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
           value={state.ogImageUrl}
           onChange={(v) => set("ogImageUrl", v)}
         />
-        <label className={labelClass}>
-          Descripción
+        <FormField label="Descripción">
           <textarea
             value={state.description}
             onChange={(e) => set("description", e.target.value)}
             rows={2}
-            className={inputClass}
+            className={formInputClass}
           />
-        </label>
+        </FormField>
       </Section>
 
       <Section title="Apariencia">
-        <TextField label="Color principal" value={state.primaryColor} onChange={(v) => set("primaryColor", v)} />
-        <TextField label="Color secundario" value={state.secondaryColor} onChange={(v) => set("secondaryColor", v)} />
-        <TextField label="Color de fondo" value={state.backgroundColor} onChange={(v) => set("backgroundColor", v)} />
+        <ColorField label="Color principal" value={state.primaryColor} onChange={(v) => set("primaryColor", v)} />
+        <ColorField label="Color secundario" value={state.secondaryColor} onChange={(v) => set("secondaryColor", v)} />
+        <ColorField label="Color de fondo" value={state.backgroundColor} onChange={(v) => set("backgroundColor", v)} />
         <TextField label="Tipografía" value={state.fontFamily} onChange={(v) => set("fontFamily", v)} />
-        <label className={labelClass}>
-          Tema
+        <FormField label="Tema">
           <select
             value={state.theme}
             onChange={(e) => set("theme", e.target.value as FormState["theme"])}
-            className={inputClass}
+            className={formInputClass}
           >
             <option value="AUTO">Auto (según el sistema)</option>
             <option value="LIGHT">Claro</option>
             <option value="DARK">Oscuro</option>
           </select>
-        </label>
+        </FormField>
       </Section>
 
       <Section title="SEO por defecto">
@@ -184,15 +208,14 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
           value={state.seoDefaultImageUrl}
           onChange={(v) => set("seoDefaultImageUrl", v)}
         />
-        <label className={labelClass}>
-          Meta descripción por defecto
+        <FormField label="Meta descripción por defecto">
           <textarea
             value={state.seoDefaultDescription}
             onChange={(e) => set("seoDefaultDescription", e.target.value)}
             rows={2}
-            className={inputClass}
+            className={formInputClass}
           />
-        </label>
+        </FormField>
         <TextField
           label="Google Search Console (verificación)"
           value={state.googleSearchConsoleVerification}
@@ -257,13 +280,9 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={pending || !state.name.trim()}
-        className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-60"
-      >
+      <AdminButton type="submit" disabled={pending || !state.name.trim()}>
         {pending ? "Guardando…" : "Guardar cambios"}
-      </button>
+      </AdminButton>
     </form>
   );
 }

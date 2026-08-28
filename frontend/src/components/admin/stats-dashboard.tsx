@@ -2,6 +2,7 @@ import type { PlatformStats, Role } from "@/lib/api/admin-types";
 import type { ArticleStatus } from "@/lib/api/types";
 import { articleStatusLabel } from "@/lib/content-labels";
 import { roleLabel } from "@/lib/admin/role-labels";
+import { AdminPageHeader } from "@/components/admin/ui";
 
 // Orden real del flujo editorial (CONTEXTO.md sección 12) — la "línea de
 // producción". ARCHIVED/REJECTED son estados terminales fuera de la línea
@@ -55,13 +56,10 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
 
   return (
     <div className="max-w-4xl">
-      <header className="flex items-baseline justify-between gap-4 border-b border-border pb-4">
-        <h1 className="font-serif text-2xl font-medium text-foreground">Estadísticas</h1>
-        <p className="text-xs tracking-wide text-muted uppercase first-letter:capitalize">Cierre de edición · {dateline}</p>
-      </header>
+      <AdminPageHeader title="Estadísticas" description={dateline.replace(/^./, (c) => c.toUpperCase())} />
 
-      {/* Cifras destacadas, cifras serif tabulares — sin íconos: el número es el protagonista. */}
-      <dl className="mt-8 grid grid-cols-2 divide-x divide-border border-y border-border sm:grid-cols-4">
+      {/* Cifras destacadas, tabulares — sin íconos: el número es el protagonista. */}
+      <dl className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <EditionFigure label="Publicados" value={stats.articlesByStatus.PUBLISHED} />
         <EditionFigure label="Últimos 30 días" value={stats.articlesPublishedLast30Days} />
         <EditionFigure label="En redacción" value={inProgress} />
@@ -69,7 +67,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
       </dl>
 
       {/* La firma de la página: la línea editorial como barra de producción, no un donut genérico. */}
-      <section className="mt-10">
+      <section className="mt-8 rounded-lg border border-border bg-surface p-6 shadow-sm">
         <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Línea editorial</h2>
 
         {pipelineTotal === 0 ? (
@@ -97,7 +95,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
                 <li key={status} className="flex items-center gap-2 text-muted">
                   <span className={`h-2.5 w-2.5 rounded-full ${PIPELINE_INTENSITY[status]}`} aria-hidden="true" />
                   {articleStatusLabel(status)}
-                  <span className="font-serif tabular-nums text-foreground">{stats.articlesByStatus[status] ?? 0}</span>
+                  <span className="tabular-nums font-medium text-foreground">{stats.articlesByStatus[status] ?? 0}</span>
                 </li>
               ))}
             </ul>
@@ -110,7 +108,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
             <span key={status}>
               {articleStatusLabel(status)}{" "}
               <span
-                className={`font-serif tabular-nums ${status === "REJECTED" ? "text-red-600 dark:text-red-400" : "text-foreground"}`}
+                className={`tabular-nums font-medium ${status === "REJECTED" ? "text-red-600 dark:text-red-400" : "text-foreground"}`}
               >
                 {stats.articlesByStatus[status] ?? 0}
               </span>
@@ -120,7 +118,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
       </section>
 
       {/* Los otros 5 tipos de contenido — sin esto, Estadísticas parecía la de un blog de solo artículos. */}
-      <section className="mt-10">
+      <section className="mt-6 rounded-lg border border-border bg-surface p-6 shadow-sm">
         <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Otros formatos</h2>
         <ul className="mt-3 grid grid-cols-1 gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
           {OTHER_CONTENT_TYPES.map(({ label, key }) => {
@@ -133,9 +131,8 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
         <p className="mt-2 text-xs text-muted">Publicados / total.</p>
       </section>
 
-      <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2">
-        {/* Índice, al estilo de la caja de sumario de un diario: etiqueta — guía de puntos — valor. */}
-        <section>
+      <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <section className="rounded-lg border border-border bg-surface p-6 shadow-sm">
           <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Alcance</h2>
           <ul className="mt-3 space-y-2 text-sm">
             <IndexRow label="Categorías activas" value={`${stats.activeCategories} / ${stats.totalCategories}`} />
@@ -147,9 +144,8 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
           </ul>
         </section>
 
-        {/* Redacción: staff por rol, como el colofón de una edición impresa. */}
-        <section>
-          <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Redacción</h2>
+        <section className="rounded-lg border border-border bg-surface p-6 shadow-sm">
+          <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Equipo</h2>
           <RoleRoster usersByRole={stats.usersByRole} />
         </section>
       </div>
@@ -159,8 +155,8 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
 
 function EditionFigure({ label, value }: { label: string; value: number }) {
   return (
-    <div className="px-4 py-4 first:pl-0 last:pr-0">
-      <dd className="font-serif text-3xl font-medium tabular-nums text-foreground">{value}</dd>
+    <div className="rounded-lg border border-border bg-surface px-4 py-4 shadow-sm">
+      <dd className="text-3xl font-semibold tabular-nums text-foreground">{value}</dd>
       <dt className="mt-1 text-xs tracking-wide text-muted uppercase">{label}</dt>
     </div>
   );
@@ -171,7 +167,7 @@ function IndexRow({ label, value }: { label: string; value: string | number }) {
     <li className="flex items-baseline gap-2">
       <span className="text-foreground">{label}</span>
       <span className="h-px flex-1 border-b border-dotted border-border" aria-hidden="true" />
-      <span className="font-serif tabular-nums text-foreground">{value}</span>
+      <span className="tabular-nums font-medium text-foreground">{value}</span>
     </li>
   );
 }
@@ -197,7 +193,7 @@ function RoleRoster({ usersByRole }: { usersByRole: Record<Role, number> }) {
                 style={{ width: `${(count / max) * 100}%` }}
               />
             </span>
-            <span className="w-6 shrink-0 text-right font-serif tabular-nums text-foreground">{count}</span>
+            <span className="w-6 shrink-0 text-right tabular-nums font-medium text-foreground">{count}</span>
           </li>
         );
       })}

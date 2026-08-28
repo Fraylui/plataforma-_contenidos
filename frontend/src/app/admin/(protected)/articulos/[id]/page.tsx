@@ -62,7 +62,7 @@ export default async function EditArticlePage(props: PageProps<"/admin/articulos
 
   return (
     <div>
-      <h1 className="font-serif text-2xl font-medium text-foreground">{article.title}</h1>
+      <h1 className="text-2xl font-semibold text-foreground">{article.title}</h1>
       <div className="mt-6">
         <ArticleForm
           mode="edit"

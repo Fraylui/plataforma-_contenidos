@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import type { AdminImage, GalleryInput } from "@/lib/api/admin-types";
 import type { Category, Gallery, GeographicUnit } from "@/lib/api/types";
 import type { GalleryPermissions } from "@/lib/admin/gallery-permissions";
 import { articleStatusLabel } from "@/lib/content-labels";
+import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
 import { GeographyPicker } from "./geography-picker";
 import { PlaceGalleryPicker } from "./place-gallery-picker";
 import {
@@ -117,58 +118,58 @@ export function GalleryForm({
       )}
 
       <div className="space-y-4">
-        <Field label="Título">
-          <input type="text" value={title} disabled={readOnly} onChange={(e) => setTitle(e.target.value)} className={inputClass} />
-        </Field>
+        <FormField label="Título">
+          <input type="text" value={title} disabled={readOnly} onChange={(e) => setTitle(e.target.value)} className={formInputClass} />
+        </FormField>
 
-        <Field label="Descripción breve (opcional)">
-          <textarea value={excerpt} disabled={readOnly} onChange={(e) => setExcerpt(e.target.value)} rows={2} className={inputClass} />
-        </Field>
+        <FormField label="Descripción breve (opcional)">
+          <textarea value={excerpt} disabled={readOnly} onChange={(e) => setExcerpt(e.target.value)} rows={2} className={formInputClass} />
+        </FormField>
 
-        <Field label="Categoría">
-          <select value={categoryId} disabled={readOnly} onChange={(e) => setCategoryId(e.target.value)} className={inputClass}>
+        <FormField label="Categoría">
+          <select value={categoryId} disabled={readOnly} onChange={(e) => setCategoryId(e.target.value)} className={formInputClass}>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
               </option>
             ))}
           </select>
-        </Field>
+        </FormField>
 
-        <Field label="Ubicación geográfica (opcional)">
+        <FormField label="Ubicación geográfica (opcional)">
           <GeographyPicker initialChain={initialGeographyChain} onChange={setGeographyId} />
-        </Field>
+        </FormField>
 
-        <Field label="Fotografías (al menos una)">
+        <FormField label="Fotografías (al menos una)">
           <PlaceGalleryPicker allImages={allImages} value={imageIds} onChange={setImageIds} disabled={readOnly} />
-        </Field>
+        </FormField>
       </div>
 
       <fieldset className="space-y-4 border-t border-border pt-6">
         <legend className="text-sm font-medium text-foreground">SEO</legend>
-        <Field label="Título SEO (opcional, si no se define usa el título)">
-          <input type="text" value={seoTitle} disabled={readOnly} onChange={(e) => setSeoTitle(e.target.value)} className={inputClass} />
-        </Field>
-        <Field label="Meta descripción (opcional)">
-          <textarea value={metaDescription} disabled={readOnly} onChange={(e) => setMetaDescription(e.target.value)} rows={2} className={inputClass} />
-        </Field>
+        <FormField label="Título SEO (opcional, si no se define usa el título)">
+          <input type="text" value={seoTitle} disabled={readOnly} onChange={(e) => setSeoTitle(e.target.value)} className={formInputClass} />
+        </FormField>
+        <FormField label="Meta descripción (opcional)">
+          <textarea value={metaDescription} disabled={readOnly} onChange={(e) => setMetaDescription(e.target.value)} rows={2} className={formInputClass} />
+        </FormField>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="URL canónica (opcional)">
-            <input type="text" value={canonicalUrl} disabled={readOnly} onChange={(e) => setCanonicalUrl(e.target.value)} className={inputClass} />
-          </Field>
-          <Field label="Imagen para Open Graph (URL, opcional)">
-            <input type="text" value={ogImageUrl} disabled={readOnly} onChange={(e) => setOgImageUrl(e.target.value)} className={inputClass} />
-          </Field>
+          <FormField label="URL canónica (opcional)">
+            <input type="text" value={canonicalUrl} disabled={readOnly} onChange={(e) => setCanonicalUrl(e.target.value)} className={formInputClass} />
+          </FormField>
+          <FormField label="Imagen para Open Graph (URL, opcional)">
+            <input type="text" value={ogImageUrl} disabled={readOnly} onChange={(e) => setOgImageUrl(e.target.value)} className={formInputClass} />
+          </FormField>
         </div>
-        <Field label="Robots">
-          <select value={robots} disabled={readOnly} onChange={(e) => setRobots(e.target.value)} className={inputClass}>
+        <FormField label="Robots">
+          <select value={robots} disabled={readOnly} onChange={(e) => setRobots(e.target.value)} className={formInputClass}>
             {ROBOTS_OPTIONS.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>
             ))}
           </select>
-        </Field>
+        </FormField>
       </fieldset>
 
       {error && (
@@ -179,14 +180,12 @@ export function GalleryForm({
       {notice && <p className="text-sm text-accent">{notice}</p>}
 
       {!readOnly && (
-        <button
-          type="button"
+        <AdminButton
           disabled={pending || !title || !categoryId || imageIds.length === 0}
           onClick={handleSubmit}
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-60"
         >
           {pending ? "Guardando…" : mode === "create" ? "Crear borrador" : "Guardar cambios"}
-        </button>
+        </AdminButton>
       )}
 
       {mode === "edit" && gallery && permissions && (
@@ -194,56 +193,58 @@ export function GalleryForm({
           <h2 className="text-sm font-medium text-foreground">Flujo editorial</h2>
           <div className="flex flex-wrap gap-2">
             {permissions.canSubmit && (
-              <WorkflowButton pending={pending} onClick={() => runWorkflow(() => submitGalleryAction(gallery.id), "Enviada a revisión.")}>
+              <AdminButton type="button" variant="secondary" disabled={pending} onClick={() => runWorkflow(() => submitGalleryAction(gallery.id), "Enviada a revisión.")}>
                 Enviar a revisión
-              </WorkflowButton>
+              </AdminButton>
             )}
             {permissions.canApprove && (
-              <WorkflowButton pending={pending} onClick={() => runWorkflow(() => approveGalleryAction(gallery.id), "Galería aprobada.")}>
+              <AdminButton type="button" variant="secondary" disabled={pending} onClick={() => runWorkflow(() => approveGalleryAction(gallery.id), "Galería aprobada.")}>
                 Aprobar
-              </WorkflowButton>
+              </AdminButton>
             )}
             {permissions.canPublish && (
-              <WorkflowButton pending={pending} onClick={() => runWorkflow(() => publishGalleryAction(gallery.id), "Galería publicada.")}>
+              <AdminButton type="button" variant="secondary" disabled={pending} onClick={() => runWorkflow(() => publishGalleryAction(gallery.id), "Galería publicada.")}>
                 Publicar ahora
-              </WorkflowButton>
+              </AdminButton>
             )}
             {permissions.canArchive && (
-              <WorkflowButton pending={pending} onClick={() => runWorkflow(() => archiveGalleryAction(gallery.id), "Galería archivada.")}>
+              <AdminButton type="button" variant="secondary" disabled={pending} onClick={() => runWorkflow(() => archiveGalleryAction(gallery.id), "Galería archivada.")}>
                 Archivar
-              </WorkflowButton>
+              </AdminButton>
             )}
           </div>
 
           {permissions.canReject && (
             <div className="flex flex-wrap items-end gap-2">
-              <Field label="Motivo de rechazo">
-                <input type="text" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className={inputClass} />
-              </Field>
-              <WorkflowButton
-                pending={pending}
-                disabled={!rejectReason.trim()}
+              <FormField label="Motivo de rechazo">
+                <input type="text" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className={formInputClass} />
+              </FormField>
+              <AdminButton
+                type="button"
+                variant="secondary"
+                disabled={pending || !rejectReason.trim()}
                 onClick={() => runWorkflow(() => rejectGalleryAction(gallery.id, rejectReason), "Galería rechazada.")}
               >
                 Rechazar
-              </WorkflowButton>
+              </AdminButton>
             </div>
           )}
 
           {permissions.canSchedule && (
             <div className="flex flex-wrap items-end gap-2">
-              <Field label="Programar publicación para">
-                <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} className={inputClass} />
-              </Field>
-              <WorkflowButton
-                pending={pending}
-                disabled={!scheduleAt}
+              <FormField label="Programar publicación para">
+                <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} className={formInputClass} />
+              </FormField>
+              <AdminButton
+                type="button"
+                variant="secondary"
+                disabled={pending || !scheduleAt}
                 onClick={() =>
                   runWorkflow(() => scheduleGalleryAction(gallery.id, new Date(scheduleAt).toISOString()), "Publicación programada.")
                 }
               >
                 Programar
-              </WorkflowButton>
+              </AdminButton>
             </div>
           )}
         </div>
@@ -252,37 +253,3 @@ export function GalleryForm({
   );
 }
 
-const inputClass =
-  "mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent disabled:opacity-60";
-
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <label className="block text-sm font-medium text-foreground">
-      {label}
-      {children}
-    </label>
-  );
-}
-
-function WorkflowButton({
-  children,
-  onClick,
-  pending,
-  disabled,
-}: {
-  children: ReactNode;
-  onClick: () => void;
-  pending: boolean;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      disabled={pending || disabled}
-      onClick={onClick}
-      className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent-soft hover:text-accent disabled:opacity-50"
-    >
-      {children}
-    </button>
-  );
-}

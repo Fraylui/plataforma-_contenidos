@@ -30,7 +30,7 @@ export default async function EditCategoryPage(props: PageProps<"/admin/categori
 
   return (
     <div>
-      <h1 className="font-serif text-2xl font-medium text-foreground">{category.name}</h1>
+      <h1 className="text-2xl font-semibold text-foreground">{category.name}</h1>
       <div className="mt-6">
         <CategoryForm mode="edit" category={category} parentOptions={categoryParentOptions(result.data, category.id)} />
       </div>

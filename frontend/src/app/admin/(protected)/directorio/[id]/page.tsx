@@ -65,7 +65,7 @@ export default async function EditBusinessPage(props: PageProps<"/admin/director
 
   return (
     <div>
-      <h1 className="font-serif text-2xl font-medium text-foreground">{business.name}</h1>
+      <h1 className="text-2xl font-semibold text-foreground">{business.name}</h1>
       <div className="mt-6">
         <BusinessForm
           mode="edit"

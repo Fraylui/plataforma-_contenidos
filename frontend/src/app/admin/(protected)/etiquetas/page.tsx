@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { listAdminTags } from "@/lib/api/admin-client";
+import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
 import { deleteTagAction } from "./actions";
 
 export const metadata: Metadata = {
@@ -15,14 +16,13 @@ export default async function AdminTagsPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-2xl font-medium text-foreground">Etiquetas</h1>
-      <p className="mt-2 max-w-2xl text-sm text-muted">
-        Las etiquetas se crean automáticamente al escribirlas en un artículo — no hay un formulario de alta acá.
-        Elimina las que ya no quieras que se sigan ofreciendo.
-      </p>
+      <AdminPageHeader
+        title="Etiquetas"
+        description="Se crean automáticamente al escribirlas en un artículo — no hay un formulario de alta acá. Elimina las que ya no quieras que se sigan ofreciendo."
+      />
 
       {sorted.length === 0 ? (
-        <p className="mt-8 text-sm text-muted">Todavía no hay etiquetas.</p>
+        <EmptyState title="Todavía no hay etiquetas" />
       ) : (
         <ul className="mt-6 flex flex-wrap gap-2">
           {sorted.map((tag) => (

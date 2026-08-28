@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Category } from "@/lib/api/types";
 import { createCategoryAction, updateCategoryAction, type ActionResult } from "@/app/admin/(protected)/categorias/actions";
+import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
 
 interface CategoryFormProps {
   mode: "create" | "edit";
@@ -39,33 +40,16 @@ export function CategoryForm({ mode, category, parentOptions }: CategoryFormProp
 
   return (
     <div className="max-w-lg space-y-4">
-      <label className="block text-sm font-medium text-foreground">
-        Nombre
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-        />
-      </label>
+      <FormField label="Nombre">
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={formInputClass} />
+      </FormField>
 
-      <label className="block text-sm font-medium text-foreground">
-        Descripción (opcional)
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={3}
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-        />
-      </label>
+      <FormField label="Descripción (opcional)">
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className={formInputClass} />
+      </FormField>
 
-      <label className="block text-sm font-medium text-foreground">
-        Categoría padre (opcional, para subcategorías)
-        <select
-          value={parentId}
-          onChange={(e) => setParentId(e.target.value)}
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-        >
+      <FormField label="Categoría padre (opcional, para subcategorías)">
+        <select value={parentId} onChange={(e) => setParentId(e.target.value)} className={formInputClass}>
           <option value="">Ninguna (categoría raíz)</option>
           {parentOptions.map((option) => (
             <option key={option.id} value={option.id}>
@@ -74,18 +58,17 @@ export function CategoryForm({ mode, category, parentOptions }: CategoryFormProp
             </option>
           ))}
         </select>
-      </label>
+      </FormField>
 
       {mode === "edit" && (
-        <label className="block text-sm font-medium text-foreground">
-          Orden
+        <FormField label="Orden">
           <input
             type="number"
             value={sortOrder}
             onChange={(e) => setSortOrder(Number(e.target.value))}
-            className="mt-1 w-32 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
+            className={`${formInputClass} w-32`}
           />
-        </label>
+        </FormField>
       )}
 
       {error && (
@@ -95,14 +78,9 @@ export function CategoryForm({ mode, category, parentOptions }: CategoryFormProp
       )}
       {notice && <p className="text-sm text-accent">{notice}</p>}
 
-      <button
-        type="button"
-        disabled={pending || !name.trim()}
-        onClick={handleSubmit}
-        className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-60"
-      >
+      <AdminButton disabled={pending || !name.trim()} onClick={handleSubmit}>
         {pending ? "Guardando…" : mode === "create" ? "Crear categoría" : "Guardar cambios"}
-      </button>
+      </AdminButton>
     </div>
   );
 }

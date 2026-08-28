@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { loginAction } from "./actions";
+import { AdminButton, formInputClass } from "@/components/admin/ui";
 
 export function LoginForm({ redirectTo }: { redirectTo: string | null }) {
   const [email, setEmail] = useState("");
@@ -46,7 +47,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string | null }) {
           disabled={needsMfa}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent disabled:opacity-60"
+          className={formInputClass}
         />
       </div>
 
@@ -63,7 +64,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string | null }) {
           disabled={needsMfa}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent disabled:opacity-60"
+          className={formInputClass}
         />
       </div>
 
@@ -82,7 +83,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string | null }) {
             required
             value={mfaCode}
             onChange={(e) => setMfaCode(e.target.value)}
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
+            className={formInputClass}
           />
         </div>
       )}
@@ -93,13 +94,9 @@ export function LoginForm({ redirectTo }: { redirectTo: string | null }) {
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-      >
+      <AdminButton type="submit" disabled={pending} className="w-full">
         {pending ? "Verificando…" : needsMfa ? "Verificar código" : "Iniciar sesión"}
-      </button>
+      </AdminButton>
     </form>
   );
 }

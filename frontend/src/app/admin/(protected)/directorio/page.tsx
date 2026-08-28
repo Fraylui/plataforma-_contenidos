@@ -1,21 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { listAdminBusinesses } from "@/lib/api/admin-client";
 import { articleStatusLabel, articleStatusTone, businessTypeLabel, formatPublishedDate } from "@/lib/content-labels";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
+import { AdminPageHeader, EmptyState, ListCard, StatusPill } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
   title: "Directorio",
   robots: "noindex,nofollow",
-};
-
-const TONE_CLASSES: Record<string, string> = {
-  neutral: "bg-border text-foreground",
-  warning: "bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-300",
-  success: "bg-accent-soft text-accent",
-  danger: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
 };
 
 export default async function AdminDirectoryPage() {
@@ -26,53 +19,21 @@ export default async function AdminDirectoryPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="font-serif text-2xl font-medium text-foreground">Directorio</h1>
-        <Link
-          href="/admin/directorio/nuevo"
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
-        >
-          Nueva ficha
-        </Link>
-      </div>
+      <AdminPageHeader title="Directorio" action={{ href: "/admin/directorio/nuevo", label: "Nueva ficha" }} />
 
       {sorted.length === 0 ? (
-        <p className="mt-8 text-sm text-muted">Todavía no hay fichas de directorio. Crea la primera.</p>
+        <EmptyState title="Todavía no hay fichas de directorio" description="Crea la primera para empezar." />
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-lg border border-border">
-          <table className="w-full min-w-[560px] text-left text-sm">
-            <thead className="border-b border-border bg-surface text-xs uppercase tracking-wide text-muted">
-              <tr>
-                <th className="px-4 py-3 font-medium">Nombre</th>
-                <th className="px-4 py-3 font-medium">Tipo</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
-                <th className="px-4 py-3 font-medium">Creado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sorted.map((business) => (
-                <tr key={business.id} className="border-b border-border last:border-0 hover:bg-surface">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/directorio/${business.id}`}
-                      className="font-medium text-foreground hover:text-accent"
-                    >
-                      {business.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-muted">{businessTypeLabel(business.businessType)}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${TONE_CLASSES[articleStatusTone(business.status)]}`}
-                    >
-                      {articleStatusLabel(business.status)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-muted">{formatPublishedDate(business.createdAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mt-6 space-y-2">
+          {sorted.map((business) => (
+            <ListCard
+              key={business.id}
+              href={`/admin/directorio/${business.id}`}
+              title={business.name}
+              meta={`${businessTypeLabel(business.businessType)} · ${formatPublishedDate(business.createdAt)}`}
+              pill={<StatusPill tone={articleStatusTone(business.status)} label={articleStatusLabel(business.status)} />}
+            />
+          ))}
         </div>
       )}
     </div>

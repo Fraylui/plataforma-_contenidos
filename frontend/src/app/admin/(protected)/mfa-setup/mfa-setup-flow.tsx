@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { confirmMfaEnrollmentAction, startMfaEnrollmentAction } from "./actions";
+import { AdminButton, AdminLinkButton, formInputClass } from "@/components/admin/ui";
 
 // El backend también devuelve provisioningUri (otpauth://...) pensado para
 // un código QR, pero no lo renderizamos: generar el QR client-side
@@ -64,12 +64,7 @@ export function MfaSetupFlow() {
             Cada código funciona una sola vez y sirve para entrar si pierdes acceso a tu app de autenticación.
           </p>
         </div>
-        <Link
-          href="/admin"
-          className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
-        >
-          Ir al panel
-        </Link>
+        <AdminLinkButton href="/admin">Ir al panel</AdminLinkButton>
       </div>
     );
   }
@@ -96,7 +91,7 @@ export function MfaSetupFlow() {
             autoComplete="one-time-code"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
+            className={formInputClass}
           />
         </div>
         {error && (
@@ -104,14 +99,9 @@ export function MfaSetupFlow() {
             {error}
           </p>
         )}
-        <button
-          type="button"
-          disabled={step.kind === "confirming" || code.length === 0}
-          onClick={() => handleConfirm(step.secretBase32)}
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-60"
-        >
+        <AdminButton disabled={step.kind === "confirming" || code.length === 0} onClick={() => handleConfirm(step.secretBase32)}>
           {step.kind === "confirming" ? "Verificando…" : "Confirmar y activar"}
-        </button>
+        </AdminButton>
       </div>
     );
   }
@@ -123,14 +113,9 @@ export function MfaSetupFlow() {
           {error}
         </p>
       )}
-      <button
-        type="button"
-        disabled={step.kind === "enrolling"}
-        onClick={handleStart}
-        className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-60"
-      >
+      <AdminButton disabled={step.kind === "enrolling"} onClick={handleStart}>
         {step.kind === "enrolling" ? "Generando…" : "Comenzar configuración"}
-      </button>
+      </AdminButton>
     </div>
   );
 }

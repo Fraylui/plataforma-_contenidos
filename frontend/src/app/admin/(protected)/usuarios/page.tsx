@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { listAdminUsers } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { roleLabel } from "@/lib/admin/role-labels";
 import { formatPublishedDate } from "@/lib/content-labels";
+import { AdminPageHeader, StatusPill } from "@/components/admin/ui";
 import { setUserActiveAction } from "./actions";
 
 export const metadata: Metadata = {
@@ -21,15 +21,7 @@ export default async function AdminUsersPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="font-serif text-2xl font-medium text-foreground">Usuarios</h1>
-        <Link
-          href="/admin/usuarios/nuevo"
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
-        >
-          Nuevo usuario
-        </Link>
-      </div>
+      <AdminPageHeader title="Usuarios" action={{ href: "/admin/usuarios/nuevo", label: "Nuevo usuario" }} />
 
       <div className="mt-6 overflow-x-auto rounded-lg border border-border">
         <table className="w-full min-w-[720px] text-left text-sm">
@@ -62,13 +54,7 @@ export default async function AdminUsersPage() {
                   </td>
                   <td className="px-4 py-3 text-muted">{roleLabel(user.role)}</td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        user.status === "ACTIVE" ? "bg-accent-soft text-accent" : "bg-border text-muted"
-                      }`}
-                    >
-                      {user.status === "ACTIVE" ? "Activo" : "Desactivado"}
-                    </span>
+                    <StatusPill tone={user.status === "ACTIVE" ? "success" : "neutral"} label={user.status === "ACTIVE" ? "Activo" : "Desactivado"} />
                   </td>
                   <td className="px-4 py-3 text-muted">{user.mfaEnabled ? "Sí" : "No"}</td>
                   <td className="px-4 py-3 text-muted">

@@ -58,7 +58,7 @@ export default async function EditGalleryPage(props: PageProps<"/admin/galerias/
 
   return (
     <div>
-      <h1 className="font-serif text-2xl font-medium text-foreground">{gallery.title}</h1>
+      <h1 className="text-2xl font-semibold text-foreground">{gallery.title}</h1>
       <div className="mt-6">
         <GalleryForm
           mode="edit"
