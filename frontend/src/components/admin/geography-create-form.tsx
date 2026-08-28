@@ -5,6 +5,7 @@ import type { GeographicUnit, GeographyLevel } from "@/lib/api/types";
 import { geographyLevelLabel } from "@/lib/content-labels";
 import { parentCandidates } from "@/lib/admin/geography-tree";
 import { createGeographyAction } from "@/app/admin/(protected)/geografia/actions";
+import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
 
 const LEVELS: GeographyLevel[] = ["PAIS", "REGION", "PROVINCIA", "DISTRITO", "LOCALIDAD"];
 
@@ -37,15 +38,14 @@ export function GeographyCreateForm({ allUnits }: { allUnits: GeographicUnit[] }
 
   return (
     <div className="max-w-lg space-y-4">
-      <label className="block text-sm font-medium text-foreground">
-        Nivel
+      <FormField label="Nivel">
         <select
           value={level}
           onChange={(e) => {
             setLevel(e.target.value as GeographyLevel);
             setParentId("");
           }}
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
+          className={formInputClass}
         >
           {LEVELS.map((l) => (
             <option key={l} value={l}>
@@ -53,16 +53,11 @@ export function GeographyCreateForm({ allUnits }: { allUnits: GeographicUnit[] }
             </option>
           ))}
         </select>
-      </label>
+      </FormField>
 
       {needsParent && (
-        <label className="block text-sm font-medium text-foreground">
-          {geographyLevelLabel(LEVELS[LEVELS.indexOf(level) - 1])} (padre)
-          <select
-            value={parentId}
-            onChange={(e) => setParentId(e.target.value)}
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-          >
+        <FormField label={`${geographyLevelLabel(LEVELS[LEVELS.indexOf(level) - 1])} (padre)`}>
+          <select value={parentId} onChange={(e) => setParentId(e.target.value)} className={formInputClass}>
             <option value="">Selecciona…</option>
             {candidates.map((unit) => (
               <option key={unit.id} value={unit.id}>
@@ -75,18 +70,12 @@ export function GeographyCreateForm({ allUnits }: { allUnits: GeographicUnit[] }
               Todavía no hay ninguna unidad de nivel {geographyLevelLabel(LEVELS[LEVELS.indexOf(level) - 1])} — créala primero.
             </span>
           )}
-        </label>
+        </FormField>
       )}
 
-      <label className="block text-sm font-medium text-foreground">
-        Nombre
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-        />
-      </label>
+      <FormField label="Nombre">
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={formInputClass} />
+      </FormField>
 
       {error && (
         <p role="alert" className="text-sm text-red-600 dark:text-red-400">
@@ -94,14 +83,9 @@ export function GeographyCreateForm({ allUnits }: { allUnits: GeographicUnit[] }
         </p>
       )}
 
-      <button
-        type="button"
-        disabled={pending || !name.trim() || (needsParent && !parentId)}
-        onClick={handleSubmit}
-        className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-60"
-      >
+      <AdminButton disabled={pending || !name.trim() || (needsParent && !parentId)} onClick={handleSubmit}>
         {pending ? "Creando…" : "Crear"}
-      </button>
+      </AdminButton>
     </div>
   );
 }

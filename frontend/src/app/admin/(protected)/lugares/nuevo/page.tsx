@@ -14,7 +14,7 @@ export default async function NewPlacePage() {
 
   return (
     <div>
-      <h1 className="font-serif text-2xl font-medium text-foreground">Nuevo lugar</h1>
+      <h1 className="text-2xl font-semibold text-foreground">Nuevo lugar</h1>
       <div className="mt-6">
         <PlaceForm mode="create" categories={categories} allImages={allImages} initialGeographyChain={[]} />
       </div>

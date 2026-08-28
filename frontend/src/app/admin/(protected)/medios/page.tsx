@@ -5,6 +5,7 @@ import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { ImageUploadForm } from "@/components/admin/image-upload-form";
 import { ImageCard } from "@/components/admin/image-card";
+import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
   title: "Medios",
@@ -22,18 +23,17 @@ export default async function AdminMediaPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-2xl font-medium text-foreground">Medios</h1>
-      <p className="mt-2 max-w-2xl text-sm text-muted">
-        Imágenes disponibles para usar como imagen destacada u Open Graph en un artículo. Copia la URL del archivo
-        desde acá y pégala en el campo correspondiente del formulario de artículo.
-      </p>
+      <AdminPageHeader
+        title="Medios"
+        description="Imágenes disponibles para usar como imagen destacada u Open Graph en un artículo. Copia la URL del archivo desde acá y pégala en el campo correspondiente del formulario de artículo."
+      />
 
       <div className="mt-6">
         <ImageUploadForm />
       </div>
 
       {sorted.length === 0 ? (
-        <p className="mt-8 text-sm text-muted">Todavía no hay imágenes.</p>
+        <EmptyState title="Todavía no hay imágenes" />
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sorted.map((image) => (

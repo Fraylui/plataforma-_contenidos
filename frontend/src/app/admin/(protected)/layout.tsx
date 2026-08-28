@@ -1,32 +1,36 @@
-import Link from "next/link";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { visibleNavItems } from "@/lib/admin/nav";
+import { ADMIN_NAV_GROUP_LABELS, groupedNavItems } from "@/lib/admin/nav";
 import { roleLabel } from "@/lib/admin/role-labels";
 import { logoutAction } from "./actions";
+import { AdminNavLink } from "@/components/admin/admin-nav-link";
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const { user } = await requireAdminUser();
-  const navItems = visibleNavItems(user.role);
+  const groups = groupedNavItems(user.role);
 
   return (
     <div className="flex min-h-dvh flex-col bg-background sm:flex-row">
       <aside className="flex flex-col border-b border-border bg-surface sm:w-56 sm:shrink-0 sm:border-b-0 sm:border-r">
         <div className="px-4 py-4">
-          <span className="font-serif text-lg font-medium text-foreground">Panel admin</span>
+          <span className="text-lg font-semibold text-foreground">Panel admin</span>
         </div>
-        <nav aria-label="Panel administrativo" className="flex-1 px-2 pb-4">
-          <ul className="space-y-1">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="block rounded-md px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-accent-soft hover:text-accent"
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+        <nav aria-label="Panel administrativo" className="flex-1 space-y-4 px-2 pb-4">
+          {groups.map(({ group, items }) => (
+            <div key={group}>
+              {ADMIN_NAV_GROUP_LABELS[group] ? (
+                <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">
+                  {ADMIN_NAV_GROUP_LABELS[group]}
+                </p>
+              ) : null}
+              <ul className="space-y-1">
+                {items.map((item) => (
+                  <li key={item.href}>
+                    <AdminNavLink href={item.href} label={item.label} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </nav>
       </aside>
 

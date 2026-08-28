@@ -5,6 +5,7 @@ import { listAdminAuditLog } from "@/lib/api/admin-client";
 import type { AuditResult } from "@/lib/api/admin-types";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
+import { AdminButton, AdminPageHeader, StatusPill, type StatusTone } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
   title: "Auditoría",
@@ -18,9 +19,9 @@ const RESULT_LABELS: Record<AuditResult, string> = {
   FAILURE: "Fallo",
 };
 
-const RESULT_TONE_CLASSES: Record<AuditResult, string> = {
-  SUCCESS: "bg-accent-soft text-accent",
-  FAILURE: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+const RESULT_TONE: Record<AuditResult, StatusTone> = {
+  SUCCESS: "success",
+  FAILURE: "danger",
 };
 
 // Tipos de recurso realmente emitidos hoy por AuditService.record(...) en
@@ -84,12 +85,10 @@ export default async function AdminAuditPage(props: PageProps<"/admin/auditoria"
 
   return (
     <div>
-      <div>
-        <h1 className="font-serif text-2xl font-medium text-foreground">Auditoría</h1>
-        <p className="mt-1 text-sm text-muted">
-          Registro de acciones administrativas y de seguridad (solo lectura, no editable).
-        </p>
-      </div>
+      <AdminPageHeader
+        title="Auditoría"
+        description="Registro de acciones administrativas y de seguridad (solo lectura, no editable)."
+      />
 
       <form
         method="get"
@@ -179,12 +178,7 @@ export default async function AdminAuditPage(props: PageProps<"/admin/auditoria"
           />
         </div>
         <div className="col-span-2 flex items-end gap-2 sm:col-span-3 lg:col-span-6">
-          <button
-            type="submit"
-            className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
-          >
-            Filtrar
-          </button>
+          <AdminButton type="submit">Filtrar</AdminButton>
           <Link href="/admin/auditoria" className="text-sm text-muted underline underline-offset-2 hover:text-accent">
             Limpiar filtros
           </Link>
@@ -219,11 +213,7 @@ export default async function AdminAuditPage(props: PageProps<"/admin/auditoria"
                   </td>
                   <td className="px-4 py-3 font-mono text-xs text-muted">{event.ipAddress ?? "—"}</td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${RESULT_TONE_CLASSES[event.result]}`}
-                    >
-                      {RESULT_LABELS[event.result]}
-                    </span>
+                    <StatusPill tone={RESULT_TONE[event.result]} label={RESULT_LABELS[event.result]} />
                   </td>
                 </tr>
               ))}

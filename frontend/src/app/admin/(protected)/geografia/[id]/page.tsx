@@ -26,7 +26,7 @@ export default async function EditGeographyPage(props: PageProps<"/admin/geograf
 
   return (
     <div>
-      <h1 className="font-serif text-2xl font-medium text-foreground">{unit.name}</h1>
+      <h1 className="text-2xl font-semibold text-foreground">{unit.name}</h1>
       <p className="mt-2 text-sm text-muted">
         {geographyLevelLabel(unit.level)}
         {parent && <> · dentro de {parent.name}</>}

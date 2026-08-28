@@ -5,6 +5,7 @@ import { listAdminCategories } from "@/lib/api/admin-client";
 import { sortCategoriesHierarchically } from "@/lib/admin/category-tree";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
+import { AdminPageHeader, EmptyState, StatusPill } from "@/components/admin/ui";
 import { setCategoryActiveAction } from "./actions";
 
 export const metadata: Metadata = {
@@ -20,18 +21,10 @@ export default async function AdminCategoriesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="font-serif text-2xl font-medium text-foreground">Categorías</h1>
-        <Link
-          href="/admin/categorias/nueva"
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
-        >
-          Nueva categoría
-        </Link>
-      </div>
+      <AdminPageHeader title="Categorías" action={{ href: "/admin/categorias/nueva", label: "Nueva categoría" }} />
 
       {rows.length === 0 ? (
-        <p className="mt-8 text-sm text-muted">Todavía no hay categorías.</p>
+        <EmptyState title="Todavía no hay categorías" />
       ) : (
         <div className="mt-6 overflow-x-auto rounded-lg border border-border">
           <table className="w-full min-w-[560px] text-left text-sm">
@@ -53,13 +46,7 @@ export default async function AdminCategoriesPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        category.active ? "bg-accent-soft text-accent" : "bg-border text-muted"
-                      }`}
-                    >
-                      {category.active ? "Activa" : "Inactiva"}
-                    </span>
+                    <StatusPill tone={category.active ? "success" : "neutral"} label={category.active ? "Activa" : "Inactiva"} />
                   </td>
                   <td className="px-4 py-3 text-right">
                     <form action={setCategoryActiveAction.bind(null, category.id, !category.active)}>

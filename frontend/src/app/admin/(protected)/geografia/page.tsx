@@ -6,6 +6,7 @@ import { sortGeographyHierarchically } from "@/lib/admin/geography-tree";
 import { geographyLevelLabel } from "@/lib/content-labels";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
+import { AdminPageHeader, EmptyState, StatusPill } from "@/components/admin/ui";
 import { setGeographyActiveAction } from "./actions";
 
 export const metadata: Metadata = {
@@ -21,18 +22,10 @@ export default async function AdminGeographyPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h1 className="font-serif text-2xl font-medium text-foreground">Geografía</h1>
-        <Link
-          href="/admin/geografia/nueva"
-          className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90"
-        >
-          Nueva unidad
-        </Link>
-      </div>
+      <AdminPageHeader title="Geografía" action={{ href: "/admin/geografia/nueva", label: "Nueva unidad" }} />
 
       {rows.length === 0 ? (
-        <p className="mt-8 text-sm text-muted">Todavía no hay unidades geográficas.</p>
+        <EmptyState title="Todavía no hay unidades geográficas" />
       ) : (
         <div className="mt-6 overflow-x-auto rounded-lg border border-border">
           <table className="w-full min-w-[640px] text-left text-sm">
@@ -56,13 +49,7 @@ export default async function AdminGeographyPage() {
                   </td>
                   <td className="px-4 py-3 text-muted">{geographyLevelLabel(unit.level)}</td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        unit.active ? "bg-accent-soft text-accent" : "bg-border text-muted"
-                      }`}
-                    >
-                      {unit.active ? "Activa" : "Inactiva"}
-                    </span>
+                    <StatusPill tone={unit.active ? "success" : "neutral"} label={unit.active ? "Activa" : "Inactiva"} />
                   </td>
                   <td className="px-4 py-3 text-right">
                     <form action={setGeographyActiveAction.bind(null, unit.id, !unit.active)}>

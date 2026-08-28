@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Role } from "@/lib/api/admin-types";
 import { roleLabel } from "@/lib/admin/role-labels";
 import { createUserAction } from "@/app/admin/(protected)/usuarios/actions";
+import { AdminButton } from "@/components/admin/ui";
 
 const ALL_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR", "MODERATOR", "COLLABORATOR", "USER"];
 
@@ -103,14 +104,13 @@ export function UserCreateForm({ viewerRole }: { viewerRole: Role }) {
         </p>
       )}
 
-      <button
+      <AdminButton
         type="button"
         disabled={pending || !email || password.length < 12 || !firstName.trim() || !lastName.trim()}
         onClick={handleSubmit}
-        className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 disabled:opacity-60"
       >
         {pending ? "Creando…" : "Crear usuario"}
-      </button>
+      </AdminButton>
     </div>
   );
 }

@@ -17,7 +17,7 @@ export default async function NewGeographyPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-2xl font-medium text-foreground">Nueva unidad geográfica</h1>
+      <h1 className="text-2xl font-semibold text-foreground">Nueva unidad geográfica</h1>
       <div className="mt-6">
         <GeographyCreateForm allUnits={result.data} />
       </div>

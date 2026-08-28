@@ -18,7 +18,7 @@ export default async function NewCategoryPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-2xl font-medium text-foreground">Nueva categoría</h1>
+      <h1 className="text-2xl font-semibold text-foreground">Nueva categoría</h1>
       <div className="mt-6">
         <CategoryForm mode="create" parentOptions={categoryParentOptions(result.data)} />
       </div>

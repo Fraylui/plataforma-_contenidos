@@ -18,7 +18,7 @@ export default async function NewReviewPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-2xl font-medium text-foreground">Nueva reseña</h1>
+      <h1 className="text-2xl font-semibold text-foreground">Nueva reseña</h1>
       <div className="mt-6">
         <ReviewForm mode="create" categories={categories} places={places} allImages={allImages} initialGeographyChain={[]} />
       </div>

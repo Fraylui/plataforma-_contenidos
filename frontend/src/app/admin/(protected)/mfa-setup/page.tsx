@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { MfaSetupFlow } from "./mfa-setup-flow";
 import { MfaDisableFlow } from "./mfa-disable-flow";
+import { AdminPageHeader } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
   title: "Autenticación en dos pasos",
@@ -13,10 +14,10 @@ export default async function MfaSetupPage() {
 
   return (
     <div className="max-w-lg">
-      <h1 className="font-serif text-2xl font-medium text-foreground">Autenticación en dos pasos (MFA)</h1>
-      <p className="mt-2 text-sm text-muted">
-        Protege tu cuenta con un código temporal generado por una app como Google Authenticator, Authy o 1Password.
-      </p>
+      <AdminPageHeader
+        title="Autenticación en dos pasos (MFA)"
+        description="Protege tu cuenta con un código temporal generado por una app como Google Authenticator, Authy o 1Password."
+      />
 
       {user.mfaEnabled ? (
         <div className="mt-6 rounded-md border border-border bg-surface px-4 py-3 text-sm text-foreground">
