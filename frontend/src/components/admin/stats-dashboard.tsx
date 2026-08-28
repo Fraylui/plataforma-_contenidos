@@ -23,6 +23,22 @@ const PIPELINE_INTENSITY: Record<string, string> = {
 
 const ROLE_ORDER: Role[] = ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR", "MODERATOR", "COLLABORATOR", "USER"];
 
+// Los otros 5 tipos de contenido (CONTEXTO.md sección 3) además de Artículo
+// — hasta esta revisión, invisibles en Estadísticas aunque el backend ya
+// los devolvía (PlatformStatsResponse.java).
+const OTHER_CONTENT_TYPES: { label: string; key: keyof Pick<PlatformStats,
+  "placesByStatus" | "eventsByStatus" | "galleriesByStatus" | "reviewsByStatus" | "businessesByStatus"> }[] = [
+  { label: "Lugares", key: "placesByStatus" },
+  { label: "Eventos", key: "eventsByStatus" },
+  { label: "Galerías", key: "galleriesByStatus" },
+  { label: "Reseñas", key: "reviewsByStatus" },
+  { label: "Directorio", key: "businessesByStatus" },
+];
+
+function totalOf(byStatus: Record<ArticleStatus, number>): number {
+  return Object.values(byStatus).reduce((sum, count) => sum + count, 0);
+}
+
 function todayDateline(): string {
   return new Intl.DateTimeFormat("es-PE", {
     weekday: "long",
@@ -101,6 +117,20 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
             </span>
           ))}
         </div>
+      </section>
+
+      {/* Los otros 5 tipos de contenido — sin esto, Estadísticas parecía la de un blog de solo artículos. */}
+      <section className="mt-10">
+        <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Otros formatos</h2>
+        <ul className="mt-3 grid grid-cols-1 gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
+          {OTHER_CONTENT_TYPES.map(({ label, key }) => {
+            const byStatus = stats[key];
+            const published = byStatus.PUBLISHED ?? 0;
+            const total = totalOf(byStatus);
+            return <IndexRow key={key} label={label} value={`${published} / ${total}`} />;
+          })}
+        </ul>
+        <p className="mt-2 text-xs text-muted">Publicados / total.</p>
       </section>
 
       <div className="mt-10 grid grid-cols-1 gap-8 sm:grid-cols-2">

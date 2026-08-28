@@ -23,26 +23,19 @@ public class AuthController {
 
     @PostMapping("/login")
     public TokenResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
-        var tokens = authService.login(request.email(), request.password(), request.mfaCode(), clientIp(httpRequest));
+        var tokens = authService.login(
+                request.email(), request.password(), request.mfaCode(), httpRequest.getRemoteAddr());
         return TokenResponse.of(tokens.accessToken(), tokens.refreshToken(), tokens.mfaSetupRequired());
     }
 
     @PostMapping("/refresh")
     public TokenResponse refresh(@Valid @RequestBody RefreshRequest request, HttpServletRequest httpRequest) {
-        var tokens = authService.refresh(request.refreshToken(), clientIp(httpRequest));
+        var tokens = authService.refresh(request.refreshToken(), httpRequest.getRemoteAddr());
         return TokenResponse.of(tokens.accessToken(), tokens.refreshToken(), tokens.mfaSetupRequired());
     }
 
     @PostMapping("/logout")
     public void logout(@Valid @RequestBody RefreshRequest request) {
         authService.logout(request.refreshToken());
-    }
-
-    private String clientIp(HttpServletRequest request) {
-        String forwardedFor = request.getHeader("X-Forwarded-For");
-        if (forwardedFor != null && !forwardedFor.isBlank()) {
-            return forwardedFor.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
     }
 }

@@ -23,6 +23,9 @@ export async function SiteFooter() {
           <Link href="/resenas" className="text-muted hover:text-foreground hover:underline">
             Reseñas
           </Link>
+          <Link href="/directorio" className="text-muted hover:text-foreground hover:underline">
+            Directorio
+          </Link>
           <Link href="/categorias" className="text-muted hover:text-foreground hover:underline">
             Categorías
           </Link>

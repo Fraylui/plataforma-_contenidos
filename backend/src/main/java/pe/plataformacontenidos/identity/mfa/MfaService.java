@@ -8,6 +8,8 @@ import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.UserRepository;
 
 @Service
 public class MfaService {
@@ -21,16 +23,18 @@ public class MfaService {
     private final SecretEncryptor secretEncryptor;
     private final PasswordEncoder passwordEncoder;
     private final MfaProperties properties;
+    private final UserRepository userRepository;
 
     public MfaService(MfaTotpCredentialRepository credentialRepository, MfaBackupCodeRepository backupCodeRepository,
             TotpService totpService, SecretEncryptor secretEncryptor, PasswordEncoder passwordEncoder,
-            MfaProperties properties) {
+            MfaProperties properties, UserRepository userRepository) {
         this.credentialRepository = credentialRepository;
         this.backupCodeRepository = backupCodeRepository;
         this.totpService = totpService;
         this.secretEncryptor = secretEncryptor;
         this.passwordEncoder = passwordEncoder;
         this.properties = properties;
+        this.userRepository = userRepository;
     }
 
     public boolean isEnabled(UUID userId) {
@@ -101,6 +105,11 @@ public class MfaService {
 
     @Transactional
     public void disable(UUID userId, String code) {
+        boolean isSuperAdmin = userRepository.findById(userId).map(u -> u.getRole() == Role.SUPER_ADMIN)
+                .orElse(false);
+        if (isSuperAdmin) {
+            throw new MfaDisableForbiddenException();
+        }
         if (!verifyChallenge(userId, code)) {
             throw new MfaChallengeException("Código MFA inválido");
         }
