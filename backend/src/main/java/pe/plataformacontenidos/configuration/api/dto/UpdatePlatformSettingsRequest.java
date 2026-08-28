@@ -31,5 +31,7 @@ public record UpdatePlatformSettingsRequest(
         String contactAddress,
         boolean adsenseEnabled,
         String adsenseClientId,
-        String analyticsId) {
+        String analyticsId,
+        String adsenseSlotArticle,
+        String adsenseSlotListing) {
 }

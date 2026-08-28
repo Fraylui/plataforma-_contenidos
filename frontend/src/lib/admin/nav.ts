@@ -49,6 +49,12 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR"],
   },
   {
+    href: "/admin/directorio",
+    label: "Directorio",
+    // Debe coincidir con SecurityConfig: /api/v1/admin/directory/** -> SUPER_ADMIN, ADMIN, EDITOR, AUTHOR.
+    roles: ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR"],
+  },
+  {
     href: "/admin/categorias",
     label: "Categorías",
     // Debe coincidir con SecurityConfig: /api/v1/admin/categories/** -> SUPER_ADMIN, ADMIN, EDITOR.

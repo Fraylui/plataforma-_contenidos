@@ -105,6 +105,12 @@ public class PlatformSettings {
     @Column(name = "analytics_id")
     private String analyticsId;
 
+    @Column(name = "adsense_slot_article")
+    private String adsenseSlotArticle;
+
+    @Column(name = "adsense_slot_listing")
+    private String adsenseSlotListing;
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
@@ -333,6 +339,22 @@ public class PlatformSettings {
 
     public void setAnalyticsId(String analyticsId) {
         this.analyticsId = analyticsId;
+    }
+
+    public String getAdsenseSlotArticle() {
+        return adsenseSlotArticle;
+    }
+
+    public void setAdsenseSlotArticle(String adsenseSlotArticle) {
+        this.adsenseSlotArticle = adsenseSlotArticle;
+    }
+
+    public String getAdsenseSlotListing() {
+        return adsenseSlotListing;
+    }
+
+    public void setAdsenseSlotListing(String adsenseSlotListing) {
+        this.adsenseSlotListing = adsenseSlotListing;
     }
 
     public Instant getUpdatedAt() {

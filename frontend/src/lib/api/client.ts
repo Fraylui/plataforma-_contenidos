@@ -6,6 +6,9 @@ import "server-only";
 import type {
   Article,
   ArticleSummary,
+  Business,
+  BusinessSummary,
+  BusinessType,
   Category,
   Event,
   EventSummary,
@@ -227,6 +230,38 @@ export async function listAllPublishedReviewsForSitemap(): Promise<ReviewSummary
   const items: ReviewSummary[] = [];
   for (let page = 0; ; page++) {
     const result = await listPublishedReviews({ page, size: REVIEWS_SITEMAP_PAGE_SIZE });
+    items.push(...result.items);
+    if (page + 1 >= result.totalPages) break;
+  }
+  return items;
+}
+
+export function listPublishedBusinesses(params?: {
+  categoryId?: string;
+  geographyId?: string;
+  businessType?: BusinessType;
+  page?: number;
+  size?: number;
+}): Promise<PageResponse<BusinessSummary>> {
+  const query = new URLSearchParams();
+  if (params?.categoryId) query.set("categoryId", params.categoryId);
+  if (params?.geographyId) query.set("geographyId", params.geographyId);
+  if (params?.businessType) query.set("businessType", params.businessType);
+  query.set("page", String(params?.page ?? 0));
+  query.set("size", String(params?.size ?? 20));
+  return apiFetch(`/api/v1/directory?${query.toString()}`, 60);
+}
+
+export function getPublishedBusinessBySlug(slug: string): Promise<Business> {
+  return apiFetch(`/api/v1/directory/${encodeURIComponent(slug)}`, 300);
+}
+
+const DIRECTORY_SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en BusinessPublicController
+
+export async function listAllPublishedBusinessesForSitemap(): Promise<BusinessSummary[]> {
+  const items: BusinessSummary[] = [];
+  for (let page = 0; ; page++) {
+    const result = await listPublishedBusinesses({ page, size: DIRECTORY_SITEMAP_PAGE_SIZE });
     items.push(...result.items);
     if (page + 1 >= result.totalPages) break;
   }

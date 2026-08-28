@@ -1,6 +1,6 @@
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
-import type { ArticleStatus, ArticleType, GeographyLevel } from "./types";
+import type { ArticleStatus, ArticleType, BusinessType, GeographyLevel } from "./types";
 
 export type Role = "SUPER_ADMIN" | "ADMIN" | "EDITOR" | "AUTHOR" | "MODERATOR" | "COLLABORATOR" | "USER";
 
@@ -120,6 +120,30 @@ export interface ReviewInput {
   robots: string;
 }
 
+/** Cuerpo de POST/PUT /api/v1/admin/directory — ver BusinessRequest.java. */
+export interface BusinessInput {
+  name: string;
+  excerpt: string | null;
+  body: string;
+  categoryId: string;
+  geographyId: string | null;
+  businessType: BusinessType;
+  placeId: string | null;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  imageIds: string[];
+  seoTitle: string | null;
+  metaDescription: string | null;
+  canonicalUrl: string | null;
+  ogImageUrl: string | null;
+  youtubeUrl: string | null;
+  robots: string;
+}
+
 /** Cuerpo de POST /api/v1/admin/categories — ver CreateCategoryRequest.java. */
 export interface CategoryCreateInput {
   name: string;
@@ -176,12 +200,19 @@ export interface PlatformSettingsInput {
   adsenseEnabled: boolean;
   adsenseClientId: string | null;
   analyticsId: string | null;
+  adsenseSlotArticle: string | null;
+  adsenseSlotListing: string | null;
 }
 
 /** Ver PlatformStatsResponse.java (CONTEXTO.md sección 34, estadísticas básicas). */
 export interface PlatformStats {
   articlesByStatus: Record<ArticleStatus, number>;
   articlesPublishedLast30Days: number;
+  placesByStatus: Record<ArticleStatus, number>;
+  eventsByStatus: Record<ArticleStatus, number>;
+  galleriesByStatus: Record<ArticleStatus, number>;
+  reviewsByStatus: Record<ArticleStatus, number>;
+  businessesByStatus: Record<ArticleStatus, number>;
   totalCategories: number;
   activeCategories: number;
   totalTags: number;

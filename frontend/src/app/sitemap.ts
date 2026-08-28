@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import {
   listActiveCategories,
   listAllPublishedArticlesForSitemap,
+  listAllPublishedBusinessesForSitemap,
   listAllPublishedEventsForSitemap,
   listAllPublishedGalleriesForSitemap,
   listAllPublishedPlacesForSitemap,
@@ -10,12 +11,13 @@ import {
 import { SITE_URL } from "@/lib/site-url";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [articles, places, events, galleries, reviews, categories] = await Promise.all([
+  const [articles, places, events, galleries, reviews, businesses, categories] = await Promise.all([
     listAllPublishedArticlesForSitemap(),
     listAllPublishedPlacesForSitemap(),
     listAllPublishedEventsForSitemap(),
     listAllPublishedGalleriesForSitemap(),
     listAllPublishedReviewsForSitemap(),
+    listAllPublishedBusinessesForSitemap(),
     listActiveCategories(),
   ]);
 
@@ -49,6 +51,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const reviewEntries: MetadataRoute.Sitemap = reviews.map((review) => ({
     url: `${SITE_URL}/resenas/${review.slug}`,
     lastModified: review.publishedAt ?? undefined,
+    changeFrequency: "monthly",
+    priority: 0.5,
+  }));
+
+  const businessEntries: MetadataRoute.Sitemap = businesses.map((business) => ({
+    url: `${SITE_URL}/directorio/${business.slug}`,
+    lastModified: business.publishedAt ?? undefined,
     changeFrequency: "monthly",
     priority: 0.5,
   }));
@@ -87,6 +96,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     {
+      url: `${SITE_URL}/directorio`,
+      changeFrequency: "weekly",
+      priority: 0.5,
+    },
+    {
       url: `${SITE_URL}/categorias`,
       changeFrequency: "weekly",
       priority: 0.5,
@@ -96,6 +110,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...eventEntries,
     ...galleryEntries,
     ...reviewEntries,
+    ...businessEntries,
     ...categoryEntries,
     {
       url: `${SITE_URL}/privacidad`,

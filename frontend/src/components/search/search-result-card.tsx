@@ -9,6 +9,7 @@ const TYPE_LABEL: Record<SearchResult["contentType"], string> = {
   EVENT: "Evento",
   GALLERY: "Galería",
   REVIEW: "Reseña",
+  BUSINESS: "Directorio",
 };
 
 /**
@@ -22,6 +23,7 @@ const CONTENT_TYPE_PATH: Record<SearchResult["contentType"], string> = {
   EVENT: "eventos",
   GALLERY: "galerias",
   REVIEW: "resenas",
+  BUSINESS: "directorio",
 };
 
 export function SearchResultCard({ result }: { result: SearchResult }) {

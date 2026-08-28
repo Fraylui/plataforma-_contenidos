@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import pe.plataformacontenidos.content.ArticleService;
+import pe.plataformacontenidos.directory.BusinessService;
 import pe.plataformacontenidos.events.EventService;
 import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.places.PlaceService;
@@ -37,14 +38,16 @@ public class SearchService {
     private final EventService eventService;
     private final GalleryService galleryService;
     private final ReviewService reviewService;
+    private final BusinessService businessService;
 
     public SearchService(ArticleService articleService, PlaceService placeService, EventService eventService,
-            GalleryService galleryService, ReviewService reviewService) {
+            GalleryService galleryService, ReviewService reviewService, BusinessService businessService) {
         this.articleService = articleService;
         this.placeService = placeService;
         this.eventService = eventService;
         this.galleryService = galleryService;
         this.reviewService = reviewService;
+        this.businessService = businessService;
     }
 
     /** `type` es opcional: cuando viene, solo se consulta ese módulo (no se pide trabajo de más al otro). */
@@ -73,6 +76,10 @@ public class SearchService {
         if (type == null || type == SearchResultType.REVIEW) {
             reviewService.search(query, PageRequest.of(0, MERGE_FETCH_LIMIT))
                     .forEach(r -> combined.add(SearchResultResponse.fromReview(r)));
+        }
+        if (type == null || type == SearchResultType.BUSINESS) {
+            businessService.search(query, PageRequest.of(0, MERGE_FETCH_LIMIT))
+                    .forEach(b -> combined.add(SearchResultResponse.fromBusiness(b)));
         }
         combined.sort(Comparator.comparing(SearchResultResponse::publishedAt).reversed());
 

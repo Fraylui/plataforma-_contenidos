@@ -3,6 +3,7 @@ package pe.plataformacontenidos.search.api.dto;
 import java.time.Instant;
 import java.util.UUID;
 import pe.plataformacontenidos.content.Article;
+import pe.plataformacontenidos.directory.Business;
 import pe.plataformacontenidos.events.Event;
 import pe.plataformacontenidos.galleries.Gallery;
 import pe.plataformacontenidos.places.Place;
@@ -101,5 +102,20 @@ public record SearchResultResponse(
                 coverImageId,
                 review.getYoutubeVideoId() != null,
                 review.getPublishedAt());
+    }
+
+    public static SearchResultResponse fromBusiness(Business business) {
+        UUID coverImageId = business.getImageIds().isEmpty() ? null : business.getImageIds().get(0);
+        return new SearchResultResponse(
+                SearchResultType.BUSINESS,
+                business.getId(),
+                business.getSlug(),
+                business.getName(),
+                business.getExcerpt(),
+                business.getCategoryId(),
+                business.getGeographyId(),
+                coverImageId,
+                business.getYoutubeVideoId() != null,
+                business.getPublishedAt());
     }
 }
