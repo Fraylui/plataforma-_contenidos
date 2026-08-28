@@ -337,7 +337,7 @@ class SearchIntegrationTest {
 
     private String createUserAndLogin(String email, Role role) throws Exception {
         String password = "SomeStrongPassword123!";
-        userRepository.save(new User(email, passwordEncoder.encode(password), "Test User", role));
+        userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
 
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

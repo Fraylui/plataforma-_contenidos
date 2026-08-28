@@ -33,7 +33,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-between gap-4 border-b border-border bg-surface px-4 py-3 sm:px-6">
           <div className="text-sm">
-            <p className="font-medium text-foreground">{user.displayName}</p>
+            <p className="font-medium text-foreground">{user.firstName} {user.lastName}</p>
             <p className="text-muted">
               {user.email} · {roleLabel(user.role)}
             </p>

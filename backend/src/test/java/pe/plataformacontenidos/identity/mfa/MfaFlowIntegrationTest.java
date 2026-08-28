@@ -65,7 +65,7 @@ class MfaFlowIntegrationTest {
     void loginWithoutMfaEnabledSucceedsButFlagsSetupRequired() throws Exception {
         String email = "fresh-super-admin@plataforma-contenidos.test";
         String password = "AnotherSup3rSecret!";
-        userRepository.save(new User(email, passwordEncoder.encode(password), "Fresh Admin", Role.SUPER_ADMIN));
+        userRepository.save(new User(email, passwordEncoder.encode(password), "Fresh", "Admin", Role.SUPER_ADMIN));
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -148,7 +148,7 @@ class MfaFlowIntegrationTest {
     void reEnrollmentRequiresCurrentMfaCodeAndDoesNotDisableMfaWithoutIt() throws Exception {
         String email = "mfa-rotation@plataforma-contenidos.test";
         String password = "RotationSecret!123";
-        userRepository.save(new User(email, passwordEncoder.encode(password), "Rotation Test", Role.SUPER_ADMIN));
+        userRepository.save(new User(email, passwordEncoder.encode(password), "Rotation", "Test", Role.SUPER_ADMIN));
         String accessToken = login(email, password, null);
 
         byte[] originalSecret = enrollAndConfirm(accessToken);
@@ -221,6 +221,79 @@ class MfaFlowIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson(email, password, oldSecretNoLongerWorks)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    /**
+     * Regresión del hallazgo de la auditoría COBIT 2019 (2026-08-27): antes,
+     * POST /mfa/disable no distinguía rol — un SUPER_ADMIN podía desactivar
+     * su propio MFA "obligatorio, sin excepción" (CONTEXTO.md sección 36.5)
+     * con solo su código actual. Ver MfaService.disable.
+     */
+    @Test
+    void superAdminCannotDisableOwnMfa() throws Exception {
+        String email = "mfa-disable-super-admin@plataforma-contenidos.test";
+        String password = "DisableSuperAdmin!123";
+        userRepository.save(new User(email, passwordEncoder.encode(password), "Disable", "Test", Role.SUPER_ADMIN));
+        String accessToken = login(email, password, null);
+        byte[] secret = enrollAndConfirm(accessToken);
+
+        String code = totpService.generateCode(secret, System.currentTimeMillis() / 1000 / 30);
+        mockMvc.perform(post("/api/v1/users/me/mfa/disable")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"" + code + "\"}"))
+                .andExpect(status().isForbidden());
+
+        // El MFA sigue habilitado: el intento bloqueado no debe haber tocado el estado.
+        mockMvc.perform(get("/api/v1/users/me").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mfaEnabled").value(true));
+        String stillEnforced = totpService.generateCode(secret, System.currentTimeMillis() / 1000 / 30);
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson(email, password, stillEnforced)))
+                .andExpect(status().isOk());
+    }
+
+    /** Un rol distinto de SUPER_ADMIN sí puede autogestionar su MFA — la restricción de 36.5 es específica de ese rol. */
+    @Test
+    void nonSuperAdminCanDisableOwnMfa() throws Exception {
+        String email = "mfa-disable-editor@plataforma-contenidos.test";
+        String password = "DisableEditor!123";
+        userRepository.save(new User(email, passwordEncoder.encode(password), "Editor", "Test", Role.EDITOR));
+        String accessToken = login(email, password, null);
+        byte[] secret = enrollAndConfirm(accessToken);
+
+        String code = totpService.generateCode(secret, System.currentTimeMillis() / 1000 / 30);
+        mockMvc.perform(post("/api/v1/users/me/mfa/disable")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"" + code + "\"}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/users/me").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mfaEnabled").value(false));
+    }
+
+    /** Un código inválido no debe filtrar si la cuenta es SUPER_ADMIN antes de validar el código (evita enumeración de rol vía timing/mensaje). */
+    @Test
+    void disableWithInvalidCodeFailsForNonSuperAdmin() throws Exception {
+        String email = "mfa-disable-bad-code@plataforma-contenidos.test";
+        String password = "DisableBadCode!123";
+        userRepository.save(new User(email, passwordEncoder.encode(password), "Bad", "Code Test", Role.AUTHOR));
+        String accessToken = login(email, password, null);
+        enrollAndConfirm(accessToken);
+
+        mockMvc.perform(post("/api/v1/users/me/mfa/disable")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"code\":\"000000\"}"))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(get("/api/v1/users/me").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mfaEnabled").value(true));
     }
 
     /** Enrola y confirma MFA para el usuario del token dado; devuelve el secreto TOTP resultante. */

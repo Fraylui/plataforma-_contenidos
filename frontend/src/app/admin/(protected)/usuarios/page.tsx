@@ -55,7 +55,7 @@ export default async function AdminUsersPage() {
                 <tr key={user.id} className="border-b border-border last:border-0 hover:bg-surface">
                   <td className="px-4 py-3">
                     <p className="font-medium text-foreground">
-                      {user.displayName}
+                      {user.firstName} {user.lastName}
                       {isSelf && <span className="ml-1.5 text-xs font-normal text-muted">(tú)</span>}
                     </p>
                     <p className="text-xs text-muted">{user.email}</p>

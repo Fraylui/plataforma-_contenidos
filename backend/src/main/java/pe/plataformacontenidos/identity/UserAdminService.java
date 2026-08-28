@@ -23,7 +23,7 @@ public class UserAdminService {
         this.auditService = auditService;
     }
 
-    public User createUser(String email, String rawPassword, String displayName, Role role,
+    public User createUser(String email, String rawPassword, String firstName, String lastName, Role role,
             UUID actingAdminId, Role actingAdminRole, String ipAddress) {
         if (role == Role.SUPER_ADMIN && actingAdminRole != Role.SUPER_ADMIN) {
             throw new SuperAdminManagementDeniedException();
@@ -32,7 +32,7 @@ public class UserAdminService {
             throw new EmailAlreadyExistsException();
         }
 
-        User user = new User(email, passwordEncoder.encode(rawPassword), displayName, role);
+        User user = new User(email, passwordEncoder.encode(rawPassword), firstName, lastName, role);
         User saved = userRepository.save(user);
 
         String actingAdminEmail = userRepository.findById(actingAdminId).map(User::getEmail).orElse(null);

@@ -13,7 +13,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="font-serif text-2xl font-medium text-foreground">Bienvenido, {user.displayName}</h1>
+      <h1 className="font-serif text-2xl font-medium text-foreground">Bienvenido, {user.firstName} {user.lastName}</h1>
       <p className="mt-2 text-sm text-muted">
         Sesión activa como <strong className="text-foreground">{roleLabel(user.role)}</strong> ({user.email}).
       </p>

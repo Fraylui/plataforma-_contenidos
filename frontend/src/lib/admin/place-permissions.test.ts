@@ -36,7 +36,8 @@ function makeUser(overrides: Partial<AdminUser> = {}): AdminUser {
   return {
     id: "author-1",
     email: "user@test.local",
-    displayName: "Usuario de prueba",
+    firstName: "Usuario",
+    lastName: "de prueba",
     role: "AUTHOR",
     status: "ACTIVE",
     createdAt: "2026-01-01T00:00:00Z",
