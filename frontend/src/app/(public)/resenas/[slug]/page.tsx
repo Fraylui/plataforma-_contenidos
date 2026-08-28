@@ -170,7 +170,7 @@ export default async function ReviewPage(props: PageProps<"/resenas/[slug]">) {
         )}
       </div>
 
-      <h1 className="mt-3 font-serif text-3xl font-medium leading-tight text-foreground sm:text-4xl">
+      <h1 className="mt-3 text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
         {review.title}
       </h1>
 
@@ -203,7 +203,7 @@ export default async function ReviewPage(props: PageProps<"/resenas/[slug]">) {
       )}
 
       {review.excerpt && (
-        <p className="mt-8 font-serif text-lg leading-relaxed text-foreground/90 italic">{review.excerpt}</p>
+        <p className="mt-8 text-lg leading-relaxed text-foreground/90">{review.excerpt}</p>
       )}
 
       <div className="mt-6 max-w-[70ch] text-base leading-relaxed whitespace-pre-line text-foreground">
@@ -214,7 +214,7 @@ export default async function ReviewPage(props: PageProps<"/resenas/[slug]">) {
         <div className="mt-14 max-w-none border-t border-border pt-10">
           {relatedReviews.length > 0 && (
             <section aria-label="Otras reseñas">
-              <h2 className="font-serif text-lg font-medium text-foreground">Otras reseñas en {category!.name}</h2>
+              <h2 className="text-lg font-semibold text-foreground">Otras reseñas en {category!.name}</h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {relatedReviews.map((related) => (
                   <ReviewCard key={related.id} review={related} />
@@ -225,7 +225,7 @@ export default async function ReviewPage(props: PageProps<"/resenas/[slug]">) {
 
           {relatedPlaces.length > 0 && (
             <section aria-label="Lugares relacionados" className={relatedReviews.length > 0 ? "mt-10" : undefined}>
-              <h2 className="font-serif text-lg font-medium text-foreground">Lugares en {category!.name}</h2>
+              <h2 className="text-lg font-semibold text-foreground">Lugares en {category!.name}</h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {relatedPlaces.map((related) => (
                   <PlaceCard key={related.id} place={related} />
@@ -239,7 +239,7 @@ export default async function ReviewPage(props: PageProps<"/resenas/[slug]">) {
               aria-label="Más artículos"
               className={relatedReviews.length > 0 || relatedPlaces.length > 0 ? "mt-10" : undefined}
             >
-              <h2 className="font-serif text-lg font-medium text-foreground">Más de {category!.name}</h2>
+              <h2 className="text-lg font-semibold text-foreground">Más de {category!.name}</h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {relatedArticles.map((related) => (
                   <ArticleCard key={related.id} article={related} />

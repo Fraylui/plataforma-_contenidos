@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
-import { Inter, Newsreader } from "next/font/google";
+import { Inter } from "next/font/google";
+import Script from "next/script";
+import type { CSSProperties } from "react";
 import "./globals.css";
 import { getPlatformSettings } from "@/lib/api/client";
 import { SITE_URL } from "@/lib/site-url";
-
-const newsreader = Newsreader({
-  variable: "--font-serif",
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-});
+import { contrastingForeground, isValidHexColor } from "@/lib/theme";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -17,6 +14,7 @@ const inter = Inter({
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPlatformSettings();
+  const ogImage = settings.seoDefaultImageUrl || settings.ogImageUrl || undefined;
   return {
     metadataBase: new URL(SITE_URL),
     title: {
@@ -25,20 +23,64 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: settings.seoDefaultDescription || settings.description || undefined,
     alternates: { canonical: "/" },
-    openGraph: settings.seoDefaultImageUrl ? { images: [settings.seoDefaultImageUrl] } : undefined,
+    openGraph: ogImage ? { images: [ogImage] } : undefined,
     verification: settings.googleSearchConsoleVerification
       ? { google: settings.googleSearchConsoleVerification }
       : undefined,
+    icons: settings.faviconUrl ? { icon: settings.faviconUrl } : undefined,
   };
 }
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const settings = await getPlatformSettings();
+
+  const dataTheme = settings.theme === "LIGHT" ? "light" : settings.theme === "DARK" ? "dark" : undefined;
+
+  // Solo primaryColor/backgroundColor se conectan a tokens existentes
+  // (--accent/--background). secondaryColor se deja sin usar a propósito:
+  // el sistema de diseño (.interface-design/system.md) prohíbe un segundo
+  // hue, y no hay ningún token pensado para él todavía.
+  const themeStyle: CSSProperties & Record<string, string> = {};
+  if (settings.primaryColor && isValidHexColor(settings.primaryColor)) {
+    themeStyle["--accent"] = settings.primaryColor;
+    themeStyle["--accent-foreground"] = contrastingForeground(settings.primaryColor);
+  }
+  if (settings.backgroundColor && isValidHexColor(settings.backgroundColor)) {
+    themeStyle["--background"] = settings.backgroundColor;
+  }
+  if (settings.fontFamily) {
+    themeStyle["--font-sans"] = `"${settings.fontFamily}", ${inter.style.fontFamily}, ui-sans-serif, system-ui, sans-serif`;
+  }
+
   return (
     <html
       lang="es"
-      className={`${newsreader.variable} ${inter.variable} h-full antialiased`}
+      data-theme={dataTheme}
+      className={`${inter.variable} h-full antialiased`}
+      style={themeStyle}
     >
-      <body className="min-h-full bg-background text-foreground">{children}</body>
+      <head>
+        {settings.fontFamily && (
+          <link
+            rel="stylesheet"
+            href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(settings.fontFamily)}:wght@400;500;600;700&display=swap`}
+          />
+        )}
+      </head>
+      <body className="min-h-full bg-background text-foreground">
+        {children}
+        {settings.analyticsId && (
+          <>
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${settings.analyticsId}`} strategy="afterInteractive" />
+            <Script id="analytics-init" strategy="afterInteractive">
+              {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${settings.analyticsId}');`}
+            </Script>
+          </>
+        )}
+      </body>
     </html>
   );
 }

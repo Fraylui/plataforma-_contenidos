@@ -39,7 +39,7 @@ export function ArticleCard({ article }: { article: ArticleSummary }) {
           )}
         </div>
 
-        <h2 className="font-serif text-lg font-medium leading-snug text-foreground transition-colors group-hover:text-accent">
+        <h2 className="text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-accent">
           {article.title}
         </h2>
 

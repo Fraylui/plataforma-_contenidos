@@ -164,7 +164,7 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
         )}
       </div>
 
-      <h1 className="mt-3 font-serif text-3xl font-medium leading-tight text-foreground sm:text-4xl">
+      <h1 className="mt-3 text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
         {event.title}
       </h1>
 
@@ -201,7 +201,7 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
       )}
 
       {event.excerpt && (
-        <p className="mt-8 font-serif text-lg leading-relaxed text-foreground/90 italic">{event.excerpt}</p>
+        <p className="mt-8 text-lg leading-relaxed text-foreground/90">{event.excerpt}</p>
       )}
 
       <div className="mt-6 max-w-[70ch] text-base leading-relaxed whitespace-pre-line text-foreground">
@@ -212,7 +212,7 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
         <div className="mt-14 max-w-none border-t border-border pt-10">
           {relatedEvents.length > 0 && (
             <section aria-label="Otros eventos">
-              <h2 className="font-serif text-lg font-medium text-foreground">Otros eventos en {category!.name}</h2>
+              <h2 className="text-lg font-semibold text-foreground">Otros eventos en {category!.name}</h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {relatedEvents.map((related) => (
                   <EventCard key={related.id} event={related} />
@@ -223,7 +223,7 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
 
           {relatedPlaces.length > 0 && (
             <section aria-label="Lugares relacionados" className={relatedEvents.length > 0 ? "mt-10" : undefined}>
-              <h2 className="font-serif text-lg font-medium text-foreground">Lugares en {category!.name}</h2>
+              <h2 className="text-lg font-semibold text-foreground">Lugares en {category!.name}</h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {relatedPlaces.map((related) => (
                   <PlaceCard key={related.id} place={related} />
@@ -237,7 +237,7 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
               aria-label="Más artículos"
               className={relatedEvents.length > 0 || relatedPlaces.length > 0 ? "mt-10" : undefined}
             >
-              <h2 className="font-serif text-lg font-medium text-foreground">Más de {category!.name}</h2>
+              <h2 className="text-lg font-semibold text-foreground">Más de {category!.name}</h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {relatedArticles.map((related) => (
                   <ArticleCard key={related.id} article={related} />

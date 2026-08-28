@@ -14,7 +14,7 @@ export default async function CategoriesPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
       <header className="max-w-2xl">
-        <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">Categorías</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Categorías</h1>
         <p className="mt-3 text-base leading-relaxed text-muted">
           Artículos y lugares organizados por tema.
         </p>
@@ -38,7 +38,7 @@ export default async function CategoriesPage() {
                     <path d="M2 4.5A1.5 1.5 0 0 1 3.5 3h4.379a1.5 1.5 0 0 1 1.06.44l1.122 1.12A1.5 1.5 0 0 0 11.12 5H16.5A1.5 1.5 0 0 1 18 6.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 2 15.5v-11Z" />
                   </svg>
                 </span>
-                <h2 className="font-serif text-lg font-medium text-foreground transition-colors group-hover:text-accent">
+                <h2 className="text-lg font-semibold text-foreground transition-colors group-hover:text-accent">
                   {category.name}
                 </h2>
                 {category.description && (

@@ -37,7 +37,7 @@ export default async function ReviewsPage(props: PageProps<"/resenas">) {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
       <header className="max-w-2xl">
-        <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">Reseñas</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Reseñas</h1>
         <p className="mt-3 text-base leading-relaxed text-muted">
           Opiniones y calificaciones sobre lugares y experiencias de la región.
         </p>

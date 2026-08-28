@@ -76,7 +76,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
       </nav>
 
       <header className="mt-3 max-w-2xl">
-        <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           {category.name}
         </h1>
         {category.description && (
@@ -86,7 +86,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
 
       {placesResult.items.length > 0 && (
         <section className="mt-12" aria-label="Lugares">
-          <h2 className="font-serif text-xl font-medium text-foreground">Lugares</h2>
+          <h2 className="text-xl font-semibold text-foreground">Lugares</h2>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {placesResult.items.map((place) => (
               <PlaceCard key={place.id} place={place} />
@@ -97,7 +97,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
 
       {eventsResult.items.length > 0 && (
         <section className="mt-12" aria-label="Próximos eventos">
-          <h2 className="font-serif text-xl font-medium text-foreground">Próximos eventos</h2>
+          <h2 className="text-xl font-semibold text-foreground">Próximos eventos</h2>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {eventsResult.items.map((event) => (
               <EventCard key={event.id} event={event} />
@@ -108,7 +108,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
 
       {galleriesResult.items.length > 0 && (
         <section className="mt-12" aria-label="Galerías">
-          <h2 className="font-serif text-xl font-medium text-foreground">Galerías</h2>
+          <h2 className="text-xl font-semibold text-foreground">Galerías</h2>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {galleriesResult.items.map((gallery) => (
               <GalleryCard key={gallery.id} gallery={gallery} />
@@ -119,7 +119,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
 
       {reviewsResult.items.length > 0 && (
         <section className="mt-12" aria-label="Reseñas">
-          <h2 className="font-serif text-xl font-medium text-foreground">Reseñas</h2>
+          <h2 className="text-xl font-semibold text-foreground">Reseñas</h2>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {reviewsResult.items.map((review) => (
               <ReviewCard key={review.id} review={review} />
@@ -130,7 +130,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
 
       {businessesResult.items.length > 0 && (
         <section className="mt-12" aria-label="Directorio">
-          <h2 className="font-serif text-xl font-medium text-foreground">Directorio</h2>
+          <h2 className="text-xl font-semibold text-foreground">Directorio</h2>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {businessesResult.items.map((business) => (
               <BusinessCard key={business.id} business={business} />
@@ -140,7 +140,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
       )}
 
       <section className="mt-12" aria-label="Artículos">
-        <h2 className="font-serif text-xl font-medium text-foreground">Artículos</h2>
+        <h2 className="text-xl font-semibold text-foreground">Artículos</h2>
         {articlesResult.items.length === 0 ? (
           <p className="mt-4 rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">
             Todavía no hay artículos publicados en esta categoría.

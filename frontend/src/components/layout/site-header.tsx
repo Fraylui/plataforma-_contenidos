@@ -9,9 +9,24 @@ export async function SiteHeader() {
       <div className="mx-auto flex min-h-16 max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-3 sm:px-6">
         <Link
           href="/"
-          className="font-serif text-xl font-medium tracking-tight text-foreground hover:text-accent transition-colors"
+          className="flex items-center text-xl font-semibold tracking-tight text-foreground hover:text-accent transition-colors"
         >
-          {settings.shortName || settings.name}
+          {settings.logoUrl ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element -- URL de logo definida por el usuario en Configuración, host arbitrario */}
+              <img
+                src={settings.logoUrl}
+                alt={settings.name}
+                className={`h-8 w-auto ${settings.logoDarkUrl ? "logo-light" : ""}`}
+              />
+              {settings.logoDarkUrl && (
+                // eslint-disable-next-line @next/next/no-img-element -- ídem, variante oscura
+                <img src={settings.logoDarkUrl} alt={settings.name} className="logo-dark h-8 w-auto" />
+              )}
+            </>
+          ) : (
+            settings.shortName || settings.name
+          )}
         </Link>
         <div className="flex items-center gap-3 sm:gap-6">
           <nav aria-label="Principal" className="hidden items-center gap-4 sm:flex">

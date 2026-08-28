@@ -27,7 +27,7 @@ export default async function Home() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
       <header className="max-w-2xl">
-        <h1 className="font-serif text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           {settings.name}
         </h1>
         {settings.description && (
@@ -56,7 +56,7 @@ export default async function Home() {
             <span className="text-xs font-medium tracking-wide text-accent uppercase">
               {articleTypeLabel(featuredArticle.articleType)}
             </span>
-            <h2 className="font-serif text-2xl font-medium leading-tight text-foreground transition-colors group-hover:text-accent sm:text-3xl">
+            <h2 className="text-2xl font-semibold leading-tight text-foreground transition-colors group-hover:text-accent sm:text-3xl">
               {featuredArticle.title}
             </h2>
             {featuredArticle.excerpt && (
@@ -69,7 +69,7 @@ export default async function Home() {
       {placesPage.items.length > 0 && (
         <section className="mt-12" aria-label="Lugares destacados">
           <div className="flex items-center justify-between">
-            <h2 className="font-serif text-xl font-medium text-foreground">Lugares destacados</h2>
+            <h2 className="text-xl font-semibold text-foreground">Lugares destacados</h2>
             <Link href="/lugares" className="text-sm font-medium text-accent hover:underline">
               Ver todos
             </Link>
@@ -85,7 +85,7 @@ export default async function Home() {
       {eventsPage.items.length > 0 && (
         <section className="mt-12" aria-label="Próximos eventos">
           <div className="flex items-center justify-between">
-            <h2 className="font-serif text-xl font-medium text-foreground">Próximos eventos</h2>
+            <h2 className="text-xl font-semibold text-foreground">Próximos eventos</h2>
             <Link href="/eventos" className="text-sm font-medium text-accent hover:underline">
               Ver todos
             </Link>
@@ -100,7 +100,7 @@ export default async function Home() {
 
       <section className="mt-12" aria-label="Artículos recientes">
         <div className="flex items-center justify-between">
-          <h2 className="font-serif text-xl font-medium text-foreground">Artículos recientes</h2>
+          <h2 className="text-xl font-semibold text-foreground">Artículos recientes</h2>
           {articlesPage.items.length > 0 && (
             <Link href="/articulos" className="text-sm font-medium text-accent hover:underline">
               Ver todos

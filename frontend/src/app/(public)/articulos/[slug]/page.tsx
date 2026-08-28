@@ -177,7 +177,7 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
         )}
       </div>
 
-      <h1 className="mt-3 font-serif text-3xl font-medium leading-tight text-foreground sm:text-4xl">
+      <h1 className="mt-3 text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
         {article.title}
       </h1>
 
@@ -217,7 +217,7 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
       )}
 
       {article.excerpt && (
-        <p className="mt-8 font-serif text-lg leading-relaxed text-foreground/90 italic">
+        <p className="mt-8 text-lg leading-relaxed text-foreground/90">
           {article.excerpt}
         </p>
       )}
@@ -247,7 +247,7 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
         <div className="mt-14 max-w-none border-t border-border pt-10">
           {relatedPlaces.length > 0 && (
             <section aria-label="Lugares relacionados">
-              <h2 className="font-serif text-lg font-medium text-foreground">
+              <h2 className="text-lg font-semibold text-foreground">
                 Lugares en {category!.name}
               </h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -260,7 +260,7 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
 
           {relatedArticles.length > 0 && (
             <section aria-label="Más artículos" className={relatedPlaces.length > 0 ? "mt-10" : undefined}>
-              <h2 className="font-serif text-lg font-medium text-foreground">
+              <h2 className="text-lg font-semibold text-foreground">
                 Más de {category!.name}
               </h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
