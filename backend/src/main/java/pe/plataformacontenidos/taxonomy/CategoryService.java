@@ -18,6 +18,7 @@ public class CategoryService {
 
     public Category create(String name, String description, UUID parentId) {
         validateParent(parentId, null);
+        validateUniqueName(name, null);
         String slug = uniqueSlugFrom(name);
         return categoryRepository.save(new Category(name, slug, description, parentId));
     }
@@ -25,6 +26,7 @@ public class CategoryService {
     public Category update(UUID id, String name, String description, UUID parentId, int sortOrder) {
         Category category = getOrThrow(id);
         validateParent(parentId, id);
+        validateUniqueName(name, id);
         category.update(name, description, parentId, sortOrder);
         return categoryRepository.save(category);
     }
@@ -83,6 +85,15 @@ public class CategoryService {
             current = categoryRepository.findById(current).map(Category::getParentId).orElse(null);
         }
         return false;
+    }
+
+    private void validateUniqueName(String name, UUID selfId) {
+        boolean duplicate = selfId == null
+                ? categoryRepository.existsByNameIgnoreCase(name)
+                : categoryRepository.existsByNameIgnoreCaseAndIdNot(name, selfId);
+        if (duplicate) {
+            throw new DuplicateCategoryNameException(name);
+        }
     }
 
     private String uniqueSlugFrom(String name) {
