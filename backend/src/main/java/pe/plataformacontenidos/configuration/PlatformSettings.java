@@ -34,7 +34,6 @@ public class PlatformSettings {
     private String shortName;
 
     private String description;
-    private String slogan;
 
     @Column(name = "logo_url")
     private String logoUrl;
@@ -75,26 +74,8 @@ public class PlatformSettings {
     @Column(name = "google_search_console_verification")
     private String googleSearchConsoleVerification;
 
-    @Column(name = "facebook_url")
-    private String facebookUrl;
-
-    @Column(name = "instagram_url")
-    private String instagramUrl;
-
-    @Column(name = "tiktok_url")
-    private String tiktokUrl;
-
-    @Column(name = "youtube_url")
-    private String youtubeUrl;
-
     @Column(name = "contact_email")
     private String contactEmail;
-
-    @Column(name = "contact_phone")
-    private String contactPhone;
-
-    @Column(name = "contact_address")
-    private String contactAddress;
 
     @Column(name = "adsense_enabled", nullable = false)
     private boolean adsenseEnabled;
@@ -147,14 +128,6 @@ public class PlatformSettings {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getSlogan() {
-        return slogan;
-    }
-
-    public void setSlogan(String slogan) {
-        this.slogan = slogan;
     }
 
     public String getLogoUrl() {
@@ -261,60 +234,12 @@ public class PlatformSettings {
         this.googleSearchConsoleVerification = googleSearchConsoleVerification;
     }
 
-    public String getFacebookUrl() {
-        return facebookUrl;
-    }
-
-    public void setFacebookUrl(String facebookUrl) {
-        this.facebookUrl = facebookUrl;
-    }
-
-    public String getInstagramUrl() {
-        return instagramUrl;
-    }
-
-    public void setInstagramUrl(String instagramUrl) {
-        this.instagramUrl = instagramUrl;
-    }
-
-    public String getTiktokUrl() {
-        return tiktokUrl;
-    }
-
-    public void setTiktokUrl(String tiktokUrl) {
-        this.tiktokUrl = tiktokUrl;
-    }
-
-    public String getYoutubeUrl() {
-        return youtubeUrl;
-    }
-
-    public void setYoutubeUrl(String youtubeUrl) {
-        this.youtubeUrl = youtubeUrl;
-    }
-
     public String getContactEmail() {
         return contactEmail;
     }
 
     public void setContactEmail(String contactEmail) {
         this.contactEmail = contactEmail;
-    }
-
-    public String getContactPhone() {
-        return contactPhone;
-    }
-
-    public void setContactPhone(String contactPhone) {
-        this.contactPhone = contactPhone;
-    }
-
-    public String getContactAddress() {
-        return contactAddress;
-    }
-
-    public void setContactAddress(String contactAddress) {
-        this.contactAddress = contactAddress;
     }
 
     public boolean isAdsenseEnabled() {

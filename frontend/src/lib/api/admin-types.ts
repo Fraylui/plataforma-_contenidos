@@ -178,7 +178,6 @@ export interface PlatformSettingsInput {
   name: string;
   shortName: string | null;
   description: string | null;
-  slogan: string | null;
   logoUrl: string | null;
   logoDarkUrl: string | null;
   faviconUrl: string | null;
@@ -192,13 +191,7 @@ export interface PlatformSettingsInput {
   seoDefaultDescription: string | null;
   seoDefaultImageUrl: string | null;
   googleSearchConsoleVerification: string | null;
-  facebookUrl: string | null;
-  instagramUrl: string | null;
-  tiktokUrl: string | null;
-  youtubeUrl: string | null;
   contactEmail: string | null;
-  contactPhone: string | null;
-  contactAddress: string | null;
   adsenseEnabled: boolean;
   adsenseClientId: string | null;
   analyticsId: string | null;
