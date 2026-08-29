@@ -86,6 +86,23 @@ class CategoryFlowIntegrationTest {
     }
 
     @Test
+    void categoryNameMustBeUniqueIgnoringCase() throws Exception {
+        String editorToken = createUserAndLogin("cat-dup@plataforma-contenidos.test", Role.EDITOR);
+
+        mockMvc.perform(post("/api/v1/admin/categories")
+                        .header("Authorization", "Bearer " + editorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Gastronomía\"}"))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/api/v1/admin/categories")
+                        .header("Authorization", "Bearer " + editorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"gastronomía\"}"))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
     void categoryCannotBeItsOwnParent() throws Exception {
         String editorToken = createUserAndLogin("cat-hierarchy@plataforma-contenidos.test", Role.EDITOR);
 

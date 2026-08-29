@@ -162,6 +162,16 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
             <dd>{business.phone}</dd>
           </div>
         )}
+        {business.email && (
+          <div className="flex gap-2">
+            <dt className="font-medium text-foreground/80">Email</dt>
+            <dd>
+              <a href={`mailto:${business.email}`} className="hover:text-accent hover:underline">
+                {business.email}
+              </a>
+            </dd>
+          </div>
+        )}
         {business.website && (
           <div className="flex gap-2">
             <dt className="font-medium text-foreground/80">Web</dt>
