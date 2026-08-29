@@ -16,7 +16,6 @@ function toFormState(settings: PlatformSettings): FormState {
     name: settings.name,
     shortName: settings.shortName ?? "",
     description: settings.description ?? "",
-    slogan: settings.slogan ?? "",
     logoUrl: settings.logoUrl ?? "",
     logoDarkUrl: settings.logoDarkUrl ?? "",
     faviconUrl: settings.faviconUrl ?? "",
@@ -30,13 +29,7 @@ function toFormState(settings: PlatformSettings): FormState {
     seoDefaultDescription: settings.seoDefaultDescription ?? "",
     seoDefaultImageUrl: settings.seoDefaultImageUrl ?? "",
     googleSearchConsoleVerification: settings.googleSearchConsoleVerification ?? "",
-    facebookUrl: settings.facebookUrl ?? "",
-    instagramUrl: settings.instagramUrl ?? "",
-    tiktokUrl: settings.tiktokUrl ?? "",
-    youtubeUrl: settings.youtubeUrl ?? "",
     contactEmail: settings.contactEmail ?? "",
-    contactPhone: settings.contactPhone ?? "",
-    contactAddress: settings.contactAddress ?? "",
     adsenseEnabled: settings.adsenseEnabled,
     adsenseClientId: settings.adsenseClientId ?? "",
     analyticsId: settings.analyticsId ?? "",
@@ -51,7 +44,6 @@ function toInput(state: FormState): PlatformSettingsInput {
     name: state.name.trim(),
     shortName: blankToNull(state.shortName),
     description: blankToNull(state.description),
-    slogan: blankToNull(state.slogan),
     logoUrl: blankToNull(state.logoUrl),
     logoDarkUrl: blankToNull(state.logoDarkUrl),
     faviconUrl: blankToNull(state.faviconUrl),
@@ -65,13 +57,7 @@ function toInput(state: FormState): PlatformSettingsInput {
     seoDefaultDescription: blankToNull(state.seoDefaultDescription),
     seoDefaultImageUrl: blankToNull(state.seoDefaultImageUrl),
     googleSearchConsoleVerification: blankToNull(state.googleSearchConsoleVerification),
-    facebookUrl: blankToNull(state.facebookUrl),
-    instagramUrl: blankToNull(state.instagramUrl),
-    tiktokUrl: blankToNull(state.tiktokUrl),
-    youtubeUrl: blankToNull(state.youtubeUrl),
     contactEmail: blankToNull(state.contactEmail),
-    contactPhone: blankToNull(state.contactPhone),
-    contactAddress: blankToNull(state.contactAddress),
     adsenseEnabled: state.adsenseEnabled,
     adsenseClientId: blankToNull(state.adsenseClientId),
     analyticsId: blankToNull(state.analyticsId),
@@ -164,7 +150,6 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
       <Section title="Identidad">
         <TextField label="Nombre de la plataforma" value={state.name} onChange={(v) => set("name", v)} />
         <TextField label="Nombre corto" value={state.shortName} onChange={(v) => set("shortName", v)} />
-        <TextField label="Slogan" value={state.slogan} onChange={(v) => set("slogan", v)} />
         <TextField label="Logo (URL)" value={state.logoUrl} onChange={(v) => set("logoUrl", v)} />
         <TextField label="Logo modo oscuro (URL)" value={state.logoDarkUrl} onChange={(v) => set("logoDarkUrl", v)} />
         <TextField label="Favicon (URL)" value={state.faviconUrl} onChange={(v) => set("faviconUrl", v)} />
@@ -223,13 +208,6 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
         />
       </Section>
 
-      <Section title="Redes sociales">
-        <TextField label="Facebook" value={state.facebookUrl} onChange={(v) => set("facebookUrl", v)} />
-        <TextField label="Instagram" value={state.instagramUrl} onChange={(v) => set("instagramUrl", v)} />
-        <TextField label="TikTok" value={state.tiktokUrl} onChange={(v) => set("tiktokUrl", v)} />
-        <TextField label="YouTube" value={state.youtubeUrl} onChange={(v) => set("youtubeUrl", v)} />
-      </Section>
-
       <Section title="Contacto">
         <TextField
           label="Correo de contacto"
@@ -237,8 +215,6 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
           value={state.contactEmail}
           onChange={(v) => set("contactEmail", v)}
         />
-        <TextField label="Teléfono" value={state.contactPhone} onChange={(v) => set("contactPhone", v)} />
-        <TextField label="Dirección" value={state.contactAddress} onChange={(v) => set("contactAddress", v)} />
       </Section>
 
       <Section title="Monetización">

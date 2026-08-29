@@ -41,7 +41,6 @@ public class PlatformSettingsService {
         settings.setName(request.name());
         settings.setShortName(request.shortName());
         settings.setDescription(request.description());
-        settings.setSlogan(request.slogan());
         settings.setLogoUrl(request.logoUrl());
         settings.setLogoDarkUrl(request.logoDarkUrl());
         settings.setFaviconUrl(request.faviconUrl());
@@ -58,14 +57,7 @@ public class PlatformSettingsService {
         settings.setSeoDefaultImageUrl(request.seoDefaultImageUrl());
         settings.setGoogleSearchConsoleVerification(request.googleSearchConsoleVerification());
 
-        settings.setFacebookUrl(request.facebookUrl());
-        settings.setInstagramUrl(request.instagramUrl());
-        settings.setTiktokUrl(request.tiktokUrl());
-        settings.setYoutubeUrl(request.youtubeUrl());
-
         settings.setContactEmail(request.contactEmail());
-        settings.setContactPhone(request.contactPhone());
-        settings.setContactAddress(request.contactAddress());
 
         settings.setAdsenseEnabled(request.adsenseEnabled());
         settings.setAdsenseClientId(request.adsenseClientId());
