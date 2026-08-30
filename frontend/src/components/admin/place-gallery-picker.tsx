@@ -1,13 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import type { AdminImage } from "@/lib/api/admin-types";
 import { imageUrl } from "@/lib/image-url";
+import { InlineImageUpload } from "./inline-image-upload";
 
 /**
  * Selector de galería (sección 6, "Fotografías"): clic para agregar/quitar,
  * el orden de selección es el orden de la galería (sin drag & drop — fuera
- * de alcance para el MVP). Requiere haber subido imágenes desde Medios
- * primero.
+ * de alcance para el MVP). Puede subir fotos nuevas ahí mismo (InlineImageUpload),
+ * no depende de haber pasado antes por Medios.
  */
 export function PlaceGalleryPicker({
   allImages,
@@ -20,25 +22,25 @@ export function PlaceGalleryPicker({
   onChange: (imageIds: string[]) => void;
   disabled?: boolean;
 }) {
+  const [images, setImages] = useState(allImages);
+
   function toggle(imageId: string) {
     if (disabled) return;
     onChange(value.includes(imageId) ? value.filter((id) => id !== imageId) : [...value, imageId]);
   }
 
-  if (allImages.length === 0) {
-    return (
-      <p className="mt-1 text-sm text-muted">
-        Todavía no hay imágenes subidas. Sube algunas desde{" "}
-        <a href="/admin/medios" className="underline underline-offset-2 hover:text-accent">
-          Medios
-        </a>{" "}
-        primero.
-      </p>
-    );
+  function handleUploaded(image: AdminImage) {
+    setImages((prev) => [image, ...prev]);
+    onChange([...value, image.id]);
+  }
+
+  if (images.length === 0) {
+    return <InlineImageUpload disabled={disabled} onUploaded={handleUploaded} />;
   }
 
   return (
     <div>
+      <InlineImageUpload disabled={disabled} onUploaded={handleUploaded} compact />
       {value.length > 0 && (
         <p className="mt-1 text-xs text-muted">
           {value.length} imagen{value.length === 1 ? "" : "es"} seleccionada{value.length === 1 ? "" : "s"}, en este
@@ -46,7 +48,7 @@ export function PlaceGalleryPicker({
         </p>
       )}
       <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
-        {allImages.map((image) => {
+        {images.map((image) => {
           const selected = value.includes(image.id);
           const order = value.indexOf(image.id);
           return (

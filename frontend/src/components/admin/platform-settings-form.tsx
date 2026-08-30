@@ -5,7 +5,9 @@ import type { PlatformSettings } from "@/lib/api/types";
 import type { PlatformSettingsInput } from "@/lib/api/admin-types";
 import { updatePlatformSettingsAction } from "@/app/admin/(protected)/configuracion/actions";
 import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
-import { isValidHexColor } from "@/lib/theme";
+import { InlineImageUpload } from "@/components/admin/inline-image-upload";
+import { imageUrl } from "@/lib/image-url";
+import type { AdminImage } from "@/lib/api/admin-types";
 
 type FormState = {
   [K in keyof PlatformSettingsInput]: PlatformSettingsInput[K] extends boolean ? boolean : string;
@@ -85,29 +87,40 @@ function TextField({
 }
 
 /**
- * Selector de color real (no texto libre): el campo veía guardarse basura
- * como "rojo" en vez de un hex, lo que rompía la variable CSS que lo
- * consume en el sitio (ver lib/theme.ts, isValidHexColor). El input de
- * texto queda al lado para copiar/pegar un hex exacto si se prefiere.
+ * Igual que TextField pero para imágenes de marca (logo/favicon/OG): antes
+ * solo aceptaba pegar una URL a mano, lo que obligaba a subir la imagen a
+ * otro lado primero para conseguir un link. Ahora se puede subir el
+ * archivo acá mismo (mismo InlineImageUpload que Foto destacada/Fotografías
+ * en los formularios de contenido) y la URL se completa sola.
  */
-function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
-  const swatch = isValidHexColor(value) ? value : "#000000";
+function ImageUrlField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  function handleUploaded(image: AdminImage) {
+    onChange(imageUrl(image.url));
+  }
+
   return (
     <FormField label={label}>
-      <div className="mt-1 flex items-center gap-2">
-        <input
-          type="color"
-          value={swatch}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-12 shrink-0 cursor-pointer rounded-md border border-border bg-background p-1"
-        />
+      <div className="flex flex-wrap items-center gap-2">
+        {value && (
+          // eslint-disable-next-line @next/next/no-img-element -- vista previa de una URL arbitraria, no un asset local
+          <img src={value} alt="" className="h-9 w-9 shrink-0 rounded border border-border object-contain" />
+        )}
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="#B91C1C"
-          className={formInputClass.replace("mt-1 ", "")}
+          placeholder="URL de la imagen"
+          className={`${formInputClass} flex-1`}
         />
+        <InlineImageUpload onUploaded={handleUploaded} compact />
       </div>
     </FormField>
   );
@@ -149,12 +162,11 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
     <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
       <Section title="Identidad">
         <TextField label="Nombre de la plataforma" value={state.name} onChange={(v) => set("name", v)} />
-        <TextField label="Nombre corto" value={state.shortName} onChange={(v) => set("shortName", v)} />
-        <TextField label="Logo (URL)" value={state.logoUrl} onChange={(v) => set("logoUrl", v)} />
-        <TextField label="Logo modo oscuro (URL)" value={state.logoDarkUrl} onChange={(v) => set("logoDarkUrl", v)} />
-        <TextField label="Favicon (URL)" value={state.faviconUrl} onChange={(v) => set("faviconUrl", v)} />
-        <TextField
-          label="Imagen para compartir / Open Graph (URL)"
+        <ImageUrlField label="Logo" value={state.logoUrl} onChange={(v) => set("logoUrl", v)} />
+        <ImageUrlField label="Logo modo oscuro" value={state.logoDarkUrl} onChange={(v) => set("logoDarkUrl", v)} />
+        <ImageUrlField label="Favicon" value={state.faviconUrl} onChange={(v) => set("faviconUrl", v)} />
+        <ImageUrlField
+          label="Imagen para compartir / Open Graph"
           value={state.ogImageUrl}
           onChange={(v) => set("ogImageUrl", v)}
         />
@@ -169,10 +181,6 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
       </Section>
 
       <Section title="Apariencia">
-        <ColorField label="Color principal" value={state.primaryColor} onChange={(v) => set("primaryColor", v)} />
-        <ColorField label="Color secundario" value={state.secondaryColor} onChange={(v) => set("secondaryColor", v)} />
-        <ColorField label="Color de fondo" value={state.backgroundColor} onChange={(v) => set("backgroundColor", v)} />
-        <TextField label="Tipografía" value={state.fontFamily} onChange={(v) => set("fontFamily", v)} />
         <FormField label="Tema">
           <select
             value={state.theme}

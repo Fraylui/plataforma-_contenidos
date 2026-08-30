@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
-import type { CSSProperties } from "react";
 import "./globals.css";
 import { getPlatformSettings } from "@/lib/api/client";
 import { SITE_URL } from "@/lib/site-url";
-import { contrastingForeground, isValidHexColor } from "@/lib/theme";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -36,37 +34,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
 
   const dataTheme = settings.theme === "LIGHT" ? "light" : settings.theme === "DARK" ? "dark" : undefined;
 
-  // Solo primaryColor/backgroundColor se conectan a tokens existentes
-  // (--accent/--background). secondaryColor se deja sin usar a propósito:
-  // el sistema de diseño (.interface-design/system.md) prohíbe un segundo
-  // hue, y no hay ningún token pensado para él todavía.
-  const themeStyle: CSSProperties & Record<string, string> = {};
-  if (settings.primaryColor && isValidHexColor(settings.primaryColor)) {
-    themeStyle["--accent"] = settings.primaryColor;
-    themeStyle["--accent-foreground"] = contrastingForeground(settings.primaryColor);
-  }
-  if (settings.backgroundColor && isValidHexColor(settings.backgroundColor)) {
-    themeStyle["--background"] = settings.backgroundColor;
-  }
-  if (settings.fontFamily) {
-    themeStyle["--font-sans"] = `"${settings.fontFamily}", ${inter.style.fontFamily}, ui-sans-serif, system-ui, sans-serif`;
-  }
-
   return (
-    <html
-      lang="es"
-      data-theme={dataTheme}
-      className={`${inter.variable} h-full antialiased`}
-      style={themeStyle}
-    >
-      <head>
-        {settings.fontFamily && (
-          <link
-            rel="stylesheet"
-            href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(settings.fontFamily)}:wght@400;500;600;700&display=swap`}
-          />
-        )}
-      </head>
+    <html lang="es" data-theme={dataTheme} className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full bg-background text-foreground">
         {children}
         {settings.analyticsId && (

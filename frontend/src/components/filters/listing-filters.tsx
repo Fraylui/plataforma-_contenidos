@@ -135,11 +135,11 @@ export function ListingFilters({
 
   const hasGeography = selected.some(Boolean);
   const selectClass =
-    "rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground outline-none focus-visible:border-accent disabled:opacity-50";
+    "w-full sm:w-auto rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground outline-none focus-visible:border-accent disabled:opacity-50";
 
   return (
-    <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
-      <div>
+    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:gap-x-6 sm:gap-y-3">
+      <div className="w-full sm:w-auto">
         <label htmlFor="listing-filter-category" className="sr-only">
           Filtrar por categoría
         </label>
@@ -158,13 +158,15 @@ export function ListingFilters({
         </select>
       </div>
 
-      <div>
-        <div className="flex flex-wrap gap-2">
+      <div className="w-full sm:w-auto">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
           {LEVELS.map((levelInfo, i) => {
             const disabled = i > 0 && !selected[i - 1];
             return (
               <select
                 key={levelInfo.level}
+                id={`listing-filter-${levelInfo.level.toLowerCase()}`}
+                name={levelInfo.level.toLowerCase()}
                 aria-label={levelInfo.label}
                 disabled={disabled || loading > 0}
                 value={selected[i]?.id ?? ""}

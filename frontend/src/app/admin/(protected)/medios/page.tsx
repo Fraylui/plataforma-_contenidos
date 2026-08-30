@@ -25,7 +25,7 @@ export default async function AdminMediaPage() {
     <div>
       <AdminPageHeader
         title="Medios"
-        description="Imágenes disponibles para usar como imagen destacada u Open Graph en un artículo. Copia la URL del archivo desde acá y pégala en el campo correspondiente del formulario de artículo."
+        description="Sube tus fotos aquí una sola vez. Al crear o editar cualquier contenido (Artículo, Lugar, Evento, Galería, Reseña, Directorio) las eliges directamente de una galería visual — no hace falta copiar ninguna URL."
       />
 
       <div className="mt-6">

@@ -23,8 +23,28 @@
   --danger-foreground: #ffffff;
 }
 
-:root[data-theme="dark"],
-:root:not([data-theme="light"]) {
+/*
+ * "Oscuro" elegido a mano en Configuración → Apariencia debe aplicar
+ * siempre, sin importar el sistema operativo del visitante — por eso va
+ * SIN @media, aparte de la regla de "Auto" de abajo (antes estaban
+ * agrupadas bajo el mismo @media, lo que hacía que "Oscuro" no hiciera
+ * nada si el sistema operativo estaba en modo claro).
+ */
+:root[data-theme="dark"] {
+  --background: #0a0a0a;
+  --surface: #171717;
+  --foreground: #f5f5f5;
+  --muted: #9ca3af;
+  --border: #262626;
+  --accent: #ef4444;
+  --accent-foreground: #111111;
+  --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
+  --danger: #dc2626;
+  --danger-foreground: #111111;
+}
+
+/* "Auto": sin elección explícita, sigue el sistema operativo del visitante. */
+:root:not([data-theme="light"]):not([data-theme="dark"]) {
   @media (prefers-color-scheme: dark) {
     --background: #0a0a0a;
     --surface: #171717;
@@ -73,14 +93,18 @@ body {
 .logo-dark {
   display: none;
 }
-:root[data-theme="dark"] .logo-dark,
-:root:not([data-theme="light"]) .logo-dark {
+:root[data-theme="dark"] .logo-dark {
+  display: block;
+}
+:root[data-theme="dark"] .logo-light {
+  display: none;
+}
+:root:not([data-theme="light"]):not([data-theme="dark"]) .logo-dark {
   @media (prefers-color-scheme: dark) {
     display: block;
   }
 }
-:root[data-theme="dark"] .logo-light,
-:root:not([data-theme="light"]) .logo-light {
+:root:not([data-theme="light"]):not([data-theme="dark"]) .logo-light {
   @media (prefers-color-scheme: dark) {
     display: none;
   }
