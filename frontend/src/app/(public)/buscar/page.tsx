@@ -9,7 +9,7 @@ const PAGE_SIZE = 24;
 
 const TYPE_TABS: { value: SearchResultType | null; label: string }[] = [
   { value: null, label: "Todo" },
-  { value: "ARTICLE", label: "Artículos" },
+  { value: "ARTICLE", label: "Publicaciones" },
   { value: "PLACE", label: "Lugares" },
   { value: "EVENT", label: "Eventos" },
   { value: "GALLERY", label: "Galerías" },
@@ -48,7 +48,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <header className="max-w-2xl">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           Buscar
         </h1>
         <form action="/buscar" className="mt-6 flex gap-2">
@@ -70,7 +70,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
       </header>
 
       {query && (
-        <nav aria-label="Filtrar por tipo" className="mt-6 flex gap-2">
+        <nav aria-label="Filtrar por tipo" className="mt-6 flex flex-wrap gap-2">
           {TYPE_TABS.map((tab) => {
             const active = tab.value === type;
             return (
@@ -96,7 +96,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
             <p className="mb-6 text-sm text-muted">
               {result.totalElements} resultado{result.totalElements === 1 ? "" : "s"} para «{query}»
             </p>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
               {result.items.map((item) => (
                 <SearchResultCard key={`${item.contentType}-${item.id}`} result={item} />
               ))}

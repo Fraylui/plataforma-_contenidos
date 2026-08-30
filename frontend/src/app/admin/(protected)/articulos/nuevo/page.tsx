@@ -4,7 +4,7 @@ import { listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-clie
 import { ArticleForm } from "@/components/admin/article-form";
 
 export const metadata: Metadata = {
-  title: "Nuevo artículo",
+  title: "Nueva publicación",
   robots: "noindex,nofollow",
 };
 
@@ -14,7 +14,7 @@ export default async function NewArticlePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-foreground">Nuevo artículo</h1>
+      <h1 className="text-2xl font-semibold text-foreground">Nueva publicación</h1>
       <div className="mt-6">
         <ArticleForm
           mode="create"

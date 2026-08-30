@@ -10,7 +10,7 @@ const PAGE_SIZE = 24;
 const BASE_PATH = "/articulos";
 
 export const metadata: Metadata = {
-  title: "Artículos",
+  title: "Publicaciones",
 };
 
 function buildHref(categoryId: string | null, geographyId: string | null, page: number): string {
@@ -37,9 +37,9 @@ export default async function ArticlesPage(props: PageProps<"/articulos">) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <header className="max-w-2xl">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Artículos</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Publicaciones</h1>
         <p className="mt-3 text-base leading-relaxed text-muted">
-          Todo el contenido editorial publicado, más reciente primero.
+          Todo el contenido publicado, más reciente primero.
         </p>
       </header>
 
@@ -47,7 +47,7 @@ export default async function ArticlesPage(props: PageProps<"/articulos">) {
         <ListingFilters basePath={BASE_PATH} categories={categories} initialGeographyChain={geographyChain} />
       </div>
 
-      <section className="mt-8" aria-label="Artículos">
+      <section className="mt-8" aria-label="Publicaciones">
         {result.items.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">
             {categoryId || geographyId
@@ -55,7 +55,7 @@ export default async function ArticlesPage(props: PageProps<"/articulos">) {
               : "Todavía no hay artículos publicados. Vuelve pronto."}
           </p>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
             {result.items.map((article) => (
               <ArticleCard key={article.id} article={article} />
             ))}

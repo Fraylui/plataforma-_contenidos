@@ -76,7 +76,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
       </nav>
 
       <header className="mt-3 max-w-2xl">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           {category.name}
         </h1>
         {category.description && (
@@ -87,7 +87,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
       {placesResult.items.length > 0 && (
         <section className="mt-12" aria-label="Lugares">
           <h2 className="text-xl font-semibold text-foreground">Lugares</h2>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="mt-4 grid gap-4 grid-cols-[repeat(auto-fit,minmax(220px,1fr))]">
             {placesResult.items.map((place) => (
               <PlaceCard key={place.id} place={place} />
             ))}
@@ -98,7 +98,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
       {eventsResult.items.length > 0 && (
         <section className="mt-12" aria-label="Próximos eventos">
           <h2 className="text-xl font-semibold text-foreground">Próximos eventos</h2>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-4 grid gap-4 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
             {eventsResult.items.map((event) => (
               <EventCard key={event.id} event={event} />
             ))}
@@ -109,7 +109,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
       {galleriesResult.items.length > 0 && (
         <section className="mt-12" aria-label="Galerías">
           <h2 className="text-xl font-semibold text-foreground">Galerías</h2>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-4 grid gap-4 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
             {galleriesResult.items.map((gallery) => (
               <GalleryCard key={gallery.id} gallery={gallery} />
             ))}
@@ -120,7 +120,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
       {reviewsResult.items.length > 0 && (
         <section className="mt-12" aria-label="Reseñas">
           <h2 className="text-xl font-semibold text-foreground">Reseñas</h2>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-4 grid gap-4 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
             {reviewsResult.items.map((review) => (
               <ReviewCard key={review.id} review={review} />
             ))}
@@ -131,7 +131,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
       {businessesResult.items.length > 0 && (
         <section className="mt-12" aria-label="Directorio">
           <h2 className="text-xl font-semibold text-foreground">Directorio</h2>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-4 grid gap-4 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
             {businessesResult.items.map((business) => (
               <BusinessCard key={business.id} business={business} />
             ))}
@@ -139,14 +139,14 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
         </section>
       )}
 
-      <section className="mt-12" aria-label="Artículos">
-        <h2 className="text-xl font-semibold text-foreground">Artículos</h2>
+      <section className="mt-12" aria-label="Publicaciones">
+        <h2 className="text-xl font-semibold text-foreground">Publicaciones</h2>
         {articlesResult.items.length === 0 ? (
           <p className="mt-4 rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">
             Todavía no hay artículos publicados en esta categoría.
           </p>
         ) : (
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-4 grid gap-4 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
             {articlesResult.items.map((article) => (
               <ArticleCard key={article.id} article={article} />
             ))}

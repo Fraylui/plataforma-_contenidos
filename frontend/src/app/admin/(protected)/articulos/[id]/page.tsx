@@ -8,7 +8,7 @@ import { ArticleForm } from "@/components/admin/article-form";
 import type { Category, GeographicUnit } from "@/lib/api/types";
 
 export const metadata: Metadata = {
-  title: "Editar artículo",
+  title: "Editar publicación",
   robots: "noindex,nofollow",
 };
 

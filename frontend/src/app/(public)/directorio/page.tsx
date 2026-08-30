@@ -62,7 +62,7 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <header className="max-w-2xl">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Directorio</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Directorio</h1>
         <p className="mt-3 text-base leading-relaxed text-muted">
           Restaurantes, hoteles y servicios locales.
         </p>
@@ -103,7 +103,7 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
           </p>
         ) : (
           <>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
               {result.items.map((business) => (
                 <BusinessCard key={business.id} business={business} />
               ))}
