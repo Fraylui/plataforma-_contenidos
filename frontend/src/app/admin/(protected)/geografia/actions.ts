@@ -4,7 +4,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { activateGeography, createGeography, deactivateGeography, renameGeography } from "@/lib/api/admin-client";
 import type { GeographyCreateInput } from "@/lib/api/admin-types";
-import { runAdminMutation, type ActionResult } from "@/lib/admin/action-helpers";
+import type { GeographicUnit } from "@/lib/api/types";
+import { runAdminMutation, type ActionResult, type MutationResult } from "@/lib/admin/action-helpers";
 
 export type { ActionResult };
 
@@ -13,6 +14,19 @@ export async function createGeographyAction(input: GeographyCreateInput): Promis
   if (!result.ok) return result;
   revalidatePath("/admin/geografia");
   redirect("/admin/geografia");
+}
+
+/**
+ * Igual que createGeographyAction pero sin redirect: para crear una unidad
+ * geográfica "al vuelo" desde GeographyPicker, sin sacar al usuario del
+ * formulario de contenido que está llenando (Artículo/Lugar/Evento/...).
+ */
+export async function createGeographyInlineAction(
+  input: GeographyCreateInput,
+): Promise<MutationResult<GeographicUnit>> {
+  const result = await runAdminMutation((token) => createGeography(token, input));
+  if (result.ok) revalidatePath("/admin/geografia");
+  return result;
 }
 
 export async function renameGeographyAction(id: string, name: string): Promise<ActionResult> {

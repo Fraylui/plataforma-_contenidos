@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import type { AdminImage } from "@/lib/api/admin-types";
 import { imageUrl } from "@/lib/image-url";
+import { InlineImageUpload } from "./inline-image-upload";
 
 /**
  * Variante de selección única de PlaceGalleryPicker (mismo grid visual):
@@ -19,27 +21,27 @@ export function ArticleFeaturedImagePicker({
   onChange: (imageId: string | null) => void;
   disabled?: boolean;
 }) {
+  const [images, setImages] = useState(allImages);
+
   function toggle(imageId: string) {
     if (disabled) return;
     onChange(value === imageId ? null : imageId);
   }
 
-  if (allImages.length === 0) {
-    return (
-      <p className="mt-1 text-sm text-muted">
-        Todavía no hay imágenes subidas. Sube algunas desde{" "}
-        <a href="/admin/medios" className="underline underline-offset-2 hover:text-accent">
-          Medios
-        </a>{" "}
-        primero.
-      </p>
-    );
+  function handleUploaded(image: AdminImage) {
+    setImages((prev) => [image, ...prev]);
+    onChange(image.id);
+  }
+
+  if (images.length === 0) {
+    return <InlineImageUpload disabled={disabled} onUploaded={handleUploaded} />;
   }
 
   return (
     <div>
+      <InlineImageUpload disabled={disabled} onUploaded={handleUploaded} compact />
       <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4">
-        {allImages.map((image) => {
+        {images.map((image) => {
           const selected = value === image.id;
           return (
             <button
