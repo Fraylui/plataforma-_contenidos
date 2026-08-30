@@ -9,7 +9,6 @@ const ARTICLE_TYPE_LABELS: Record<ArticleType, string> = {
   ENTREVISTA: "Entrevista",
   HISTORIA: "Historia",
   RANKING: "Ranking",
-  RESENA: "Reseña",
   TUTORIAL: "Tutorial",
   OPINION: "Opinión",
 };

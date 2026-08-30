@@ -31,7 +31,6 @@ const ARTICLE_TYPES: ArticleType[] = [
   "ENTREVISTA",
   "HISTORIA",
   "RANKING",
-  "RESENA",
   "TUTORIAL",
   "OPINION",
 ];
