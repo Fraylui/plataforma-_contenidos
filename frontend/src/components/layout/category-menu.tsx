@@ -35,7 +35,7 @@ export function CategoryMenu({ categories }: { categories: Category[] }) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="true"
-        className="flex items-center gap-1 rounded-md px-2 py-3 text-sm font-medium text-background/75 transition-colors hover:text-background"
+        className="flex items-center gap-1 rounded-md px-2 py-3 text-sm font-medium text-muted transition-colors hover:text-foreground"
       >
         Categorías
         <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
@@ -48,15 +48,15 @@ export function CategoryMenu({ categories }: { categories: Category[] }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.97 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute left-1/2 top-full z-30 mt-1 w-[28rem] max-w-[90vw] -translate-x-1/2 rounded-lg border border-border bg-surface p-4 shadow-lg"
+            className="absolute left-1/2 top-full z-30 mt-1 w-[32rem] max-w-[90vw] -translate-x-1/2 rounded-lg border border-border bg-surface p-4 shadow-lg"
           >
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
               {sorted.map((category) => (
                 <Link
                   key={category.id}
                   href={`/categorias/${category.slug}`}
                   onClick={() => setOpen(false)}
-                  className="rounded-full border border-border px-3 py-1.5 text-sm text-muted transition-colors hover:border-accent hover:bg-accent-soft hover:text-accent"
+                  className="truncate rounded-full bg-border/40 px-3 py-1.5 text-center text-xs font-medium text-muted transition-colors hover:bg-accent-soft hover:text-accent"
                 >
                   {category.name}
                 </Link>
