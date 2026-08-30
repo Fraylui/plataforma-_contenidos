@@ -46,7 +46,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
   const result = query ? await searchContent(query, { page, size: PAGE_SIZE, type: type ?? undefined }) : null;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <header className="max-w-2xl">
         <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           Buscar
@@ -96,7 +96,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
             <p className="mb-6 text-sm text-muted">
               {result.totalElements} resultado{result.totalElements === 1 ? "" : "s"} para «{query}»
             </p>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {result.items.map((item) => (
                 <SearchResultCard key={`${item.contentType}-${item.id}`} result={item} />
               ))}

@@ -6,7 +6,7 @@ export async function SiteHeader() {
   const settings = await getPlatformSettings();
   return (
     <header className="border-b border-border bg-surface">
-      <div className="mx-auto flex min-h-16 max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-3 sm:px-6">
+      <div className="mx-auto flex min-h-16 max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-3 sm:px-6 lg:px-8">
         <Link
           href="/"
           className="flex items-center text-xl font-semibold tracking-tight text-foreground hover:text-accent transition-colors"
