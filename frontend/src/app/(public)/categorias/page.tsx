@@ -12,7 +12,7 @@ export default async function CategoriesPage() {
   const sorted = [...categories].sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <header className="max-w-2xl">
         <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Categorías</h1>
         <p className="mt-3 text-base leading-relaxed text-muted">
@@ -26,7 +26,7 @@ export default async function CategoriesPage() {
             Todavía no hay categorías activas.
           </p>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {sorted.map((category) => (
               <Link
                 key={category.id}

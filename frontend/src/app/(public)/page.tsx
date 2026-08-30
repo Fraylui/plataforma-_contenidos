@@ -25,7 +25,7 @@ export default async function Home() {
   const [featuredArticle, ...recentArticles] = articlesPage.items;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <header className="max-w-2xl">
         <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           {settings.name}
@@ -74,7 +74,7 @@ export default async function Home() {
               Ver todos
             </Link>
           </div>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
             {placesPage.items.map((place) => (
               <PlaceCard key={place.id} place={place} />
             ))}
@@ -90,7 +90,7 @@ export default async function Home() {
               Ver todos
             </Link>
           </div>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {eventsPage.items.map((event) => (
               <EventCard key={event.id} event={event} />
             ))}
@@ -112,7 +112,7 @@ export default async function Home() {
         ) : recentArticles.length === 0 ? (
           <p className="mt-4 text-sm text-muted">Todavía no hay más artículos publicados.</p>
         ) : (
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {recentArticles.map((article) => (
               <ArticleCard key={article.id} article={article} />
             ))}
