@@ -37,7 +37,7 @@ export default async function GalleriesPage(props: PageProps<"/galerias">) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <header className="max-w-2xl">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">Galerías</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Galerías</h1>
         <p className="mt-3 text-base leading-relaxed text-muted">
           Colecciones de fotografías de lugares, eventos y momentos de la región.
         </p>
@@ -54,7 +54,7 @@ export default async function GalleriesPage(props: PageProps<"/galerias">) {
           </p>
         ) : (
           <>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
               {result.items.map((gallery) => (
                 <GalleryCard key={gallery.id} gallery={gallery} />
               ))}

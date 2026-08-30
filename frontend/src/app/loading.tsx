@@ -6,7 +6,7 @@ export default function Loading() {
         <div className="mt-4 h-4 w-full animate-pulse rounded bg-border" />
       </div>
 
-      <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="mt-10 grid gap-4 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}

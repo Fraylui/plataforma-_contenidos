@@ -7,7 +7,7 @@ import { AccessDenied } from "@/components/admin/access-denied";
 import { AdminPageHeader, EmptyState, ListCard, StatusPill } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
-  title: "Artículos",
+  title: "Publicaciones",
   robots: "noindex,nofollow",
 };
 
@@ -19,7 +19,7 @@ export default async function AdminArticlesPage() {
 
   return (
     <div>
-      <AdminPageHeader title="Artículos" action={{ href: "/admin/articulos/nuevo", label: "Nuevo artículo" }} />
+      <AdminPageHeader title="Publicaciones" action={{ href: "/admin/articulos/nuevo", label: "Nueva publicación" }} />
 
       {sorted.length === 0 ? (
         <EmptyState title="Todavía no hay artículos" description="Crea el primero para empezar." />
