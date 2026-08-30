@@ -16,8 +16,16 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
 
   return (
     <div className="flex min-h-full flex-col">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-accent-foreground"
+      >
+        Saltar al contenido principal
+      </a>
       <SiteHeader />
-      <main className="flex-1">{children}</main>
+      <main id="main-content" className="flex-1">
+        {children}
+      </main>
       <SiteFooter />
       <CookieConsentBanner adsenseEnabled={settings.adsenseEnabled} />
       {settings.adsenseEnabled && settings.adsenseClientId && (

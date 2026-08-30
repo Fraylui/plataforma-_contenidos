@@ -5,41 +5,35 @@ export async function SiteFooter() {
   const settings = await getPlatformSettings();
   const year = new Date().getFullYear();
   return (
-    <footer className="border-t border-border bg-surface">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <nav aria-label="Explorar" className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-          <Link href="/articulos" className="text-muted hover:text-foreground hover:underline">
-            Artículos
-          </Link>
-          <Link href="/lugares" className="text-muted hover:text-foreground hover:underline">
-            Lugares
-          </Link>
-          <Link href="/eventos" className="text-muted hover:text-foreground hover:underline">
-            Eventos
-          </Link>
-          <Link href="/galerias" className="text-muted hover:text-foreground hover:underline">
-            Galerías
-          </Link>
-          <Link href="/resenas" className="text-muted hover:text-foreground hover:underline">
-            Reseñas
-          </Link>
-          <Link href="/directorio" className="text-muted hover:text-foreground hover:underline">
-            Directorio
-          </Link>
-          <Link href="/categorias" className="text-muted hover:text-foreground hover:underline">
-            Categorías
-          </Link>
-        </nav>
-
-        <div className="mt-6 flex flex-col gap-3 border-t border-border pt-6 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {year} {settings.name}. Todos los derechos reservados.
-          </p>
+    <footer
+      className="text-background"
+      style={
+        {
+          background:
+            "radial-gradient(130% 200% at 0% 100%, var(--accent) 0%, transparent 40%), " +
+            "radial-gradient(100% 160% at 100% 0%, rgba(255,255,255,0.04) 0%, transparent 55%), " +
+            "#0d0d0d",
+          "--background": "#f5f5f5",
+          "--foreground": "#0d0d0d",
+        } as React.CSSProperties
+      }
+    >
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-3 text-sm text-background/75 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            {(settings.logoDarkUrl || settings.logoUrl) && (
+              // eslint-disable-next-line @next/next/no-img-element -- URL de logo definida por el usuario en Configuración, host arbitrario
+              <img src={settings.logoDarkUrl || settings.logoUrl!} alt={settings.name} className="h-6 w-auto" />
+            )}
+            <p>
+              © {year} {settings.name}. Todos los derechos reservados.
+            </p>
+          </div>
           <nav aria-label="Legal" className="flex items-center gap-4">
-            <Link href="/privacidad" className="hover:text-foreground hover:underline">
+            <Link href="/privacidad" className="transition-colors hover:text-accent hover:underline">
               Privacidad
             </Link>
-            <Link href="/terminos" className="hover:text-foreground hover:underline">
+            <Link href="/terminos" className="transition-colors hover:text-accent hover:underline">
               Términos
             </Link>
           </nav>
