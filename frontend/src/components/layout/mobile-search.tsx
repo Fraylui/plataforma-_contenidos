@@ -21,11 +21,11 @@ export function MobileSearch() {
         type="search"
         name="q"
         placeholder="Buscar…"
-        className="peer h-11 w-11 rounded-md border border-transparent bg-transparent py-2 pr-3 pl-11 text-sm text-background outline-none transition-[width,background-color,border-color,color] duration-200 focus:w-48 focus:border-border focus:bg-background focus:pl-9 focus:text-foreground"
+        className="peer h-11 w-11 rounded-md border border-transparent bg-transparent py-2 pr-3 pl-11 text-sm text-foreground outline-none transition-[width,background-color,border-color,color] duration-200 focus:w-48 focus:border-border focus:bg-background focus:pl-9 focus:text-foreground"
       />
       <Search
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-background transition-[left,transform,color] duration-200 peer-focus:left-3 peer-focus:translate-x-0 peer-focus:text-foreground"
+        className="pointer-events-none absolute top-1/2 left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-muted transition-[left,transform,color] duration-200 peer-focus:left-3 peer-focus:translate-x-0 peer-focus:text-foreground"
       />
     </form>
   );

@@ -1,7 +1,9 @@
 import { AnimatedCard } from "@/components/ui/animated-card";
+import { CardMedia } from "@/components/ui/card-media";
 import type { GallerySummary } from "@/lib/api/types";
 import { imageUrl } from "@/lib/image-url";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
+import { SkeletonImage } from "@/components/ui/skeleton-image";
 
 const MOSAIC_SIZE = 4;
 
@@ -9,52 +11,40 @@ const MOSAIC_SIZE = 4;
  * A diferencia de Article/Place/EventCard (una sola imagen de portada),
  * acá se muestra un mosaico de hasta 4 miniaturas — comunica visualmente
  * "esto es una colección" antes de entrar, coherente con que el contenido
- * de una Galería ES el conjunto de fotos, no una sola portada.
+ * de una Galería ES el conjunto de fotos, no una sola portada. Por eso pasa
+ * el mosaico como children de CardMedia en vez de un imageId único: el
+ * degradado/barra/badge de CardMedia siguen aplicando encima.
  */
 export function GalleryCard({ gallery }: { gallery: GallerySummary }) {
   const thumbnails = gallery.imageIds.slice(0, MOSAIC_SIZE);
+  const badge = `Galería · ${gallery.imageIds.length} foto${gallery.imageIds.length === 1 ? "" : "s"}`;
 
   return (
-    <AnimatedCard
-      href={`/galerias/${gallery.slug}`}
-      className="group flex flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-sm transition-all duration-200 hover:border-accent hover:shadow-md focus-visible:border-accent"
-    >
-      <div className="relative aspect-video">
+    <AnimatedCard href={`/galerias/${gallery.slug}`}>
+      <CardMedia alt={gallery.title} badge={badge}>
         {thumbnails.length === 0 ? (
           <NoImagePlaceholder />
         ) : thumbnails.length === 1 ? (
-          // eslint-disable-next-line @next/next/no-img-element -- host propio del backend
-          <img
+          <SkeletonImage
             src={imageUrl(`/api/v1/images/${thumbnails[0]}/file`)}
             alt={gallery.title}
-            className="h-full w-full object-cover"
+            className="object-cover"
           />
         ) : (
           <div className="grid h-full w-full grid-cols-2 gap-0.5">
             {thumbnails.map((imageId, index) => (
-              // eslint-disable-next-line @next/next/no-img-element -- host propio del backend
-              <img
+              <div
                 key={imageId}
-                src={imageUrl(`/api/v1/images/${imageId}/file`)}
-                alt=""
-                className={`h-full w-full object-cover ${
-                  thumbnails.length === 3 && index === 0 ? "row-span-2" : ""
-                }`}
-              />
+                className={`relative overflow-hidden ${thumbnails.length === 3 && index === 0 ? "row-span-2" : ""}`}
+              >
+                <SkeletonImage src={imageUrl(`/api/v1/images/${imageId}/file`)} alt="" className="object-cover" />
+              </div>
             ))}
           </div>
         )}
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
-          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.35) 40%, transparent 100%)" }}
-        />
-        <span className="absolute inset-x-0 bottom-0 h-1 bg-accent" aria-hidden="true" />
-      </div>
+      </CardMedia>
 
       <div className="flex flex-1 flex-col gap-2 p-5">
-        <span className="text-xs font-medium tracking-wide text-accent uppercase">
-          Galería · {gallery.imageIds.length} foto{gallery.imageIds.length === 1 ? "" : "s"}
-        </span>
         <h2 className="text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-accent">
           {gallery.title}
         </h2>

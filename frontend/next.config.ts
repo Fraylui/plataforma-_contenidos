@@ -24,7 +24,10 @@ const CSP = [
   `img-src 'self' data: ${backendAssetOrigin}`,
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
-  "script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net",
+  // 'unsafe-eval' solo en dev: Turbopack/React lo usan para reconstruir
+  // stack traces (Fast Refresh, overlay de errores); nunca se emite en
+  // producción, así que no debilita la CSP servida a usuarios reales.
+  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV !== "production" ? " 'unsafe-eval'" : ""} https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net`,
   "connect-src 'self' https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net",
   "frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com",
   "object-src 'none'",
@@ -33,10 +36,27 @@ const CSP = [
   "frame-ancestors 'none'",
 ].join("; ");
 
+const backendAssetUrl = new URL(backendAssetOrigin);
+
 const nextConfig: NextConfig = {
   // Imagen Docker (backend/Dockerfile hermano): empaqueta solo el server y
   // las dependencias de producción realmente usadas, no todo node_modules.
   output: "standalone",
+
+  images: {
+    // Solo el host de imágenes del backend (ImagePublicController) — los
+    // logos de marca (platformSettings.logoUrl, host arbitrario definido
+    // por el usuario en Configuración) siguen usando <img> plano a
+    // propósito, no se puede allowlist-ear un host arbitrario acá.
+    remotePatterns: [
+      {
+        protocol: backendAssetUrl.protocol.replace(":", "") as "http" | "https",
+        hostname: backendAssetUrl.hostname,
+        port: backendAssetUrl.port,
+        pathname: "/api/v1/images/**",
+      },
+    ],
+  },
 
   async headers() {
     return [

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CalendarDays, MapPin } from "lucide-react";
 import {
   getCategoryById,
   getGeographyUnitById,
@@ -18,6 +19,7 @@ import { PlaceCard } from "@/components/place/place-card";
 import { AdBlock } from "@/components/legal/ad-block";
 import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
+import { SkeletonImage } from "@/components/ui/skeleton-image";
 import type { Article, Category } from "@/lib/api/types";
 
 const RELATED_SIZE = 4;
@@ -126,8 +128,10 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
     .slice(0, RELATED_SIZE);
   const relatedPlaces = relatedPlacesResult?.items ?? [];
 
+  const hasSidebar = relatedPlaces.length > 0 || relatedArticles.length > 0;
+
   return (
-    <article className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -141,137 +145,144 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
         }}
       />
 
-      <nav aria-label="Breadcrumb" className="text-xs text-muted">
-        <ol className="flex flex-wrap items-center gap-1.5">
-          <li>
-            <Link href="/" className="hover:text-accent hover:underline">
-              Inicio
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          {category && (
-            <>
+      <div className={hasSidebar ? "lg:grid lg:grid-cols-12 lg:gap-12" : undefined}>
+        <article className={`mx-auto max-w-3xl ${hasSidebar ? "lg:col-span-8 lg:mx-0 lg:max-w-none" : ""}`}>
+          <nav aria-label="Breadcrumb" className="mb-4 flex max-w-[280px] items-center gap-2 truncate text-xs text-muted sm:max-w-none">
+            <ol className="flex flex-wrap items-center gap-1.5 truncate">
               <li>
-                <Link href={`/categorias/${category.slug}`} className="hover:text-accent hover:underline">
-                  {category.name}
+                <Link href="/" className="hover:text-accent hover:underline">
+                  Inicio
                 </Link>
               </li>
               <li aria-hidden="true">/</li>
-            </>
-          )}
-          <li className="max-w-[24rem] truncate text-foreground/80" aria-current="page">
+              {category && (
+                <>
+                  <li>
+                    <Link href={`/categorias/${category.slug}`} className="hover:text-accent hover:underline">
+                      {category.name}
+                    </Link>
+                  </li>
+                  <li aria-hidden="true">/</li>
+                </>
+              )}
+              <li className="max-w-[12rem] truncate text-foreground/80 sm:max-w-[24rem]" aria-current="page">
+                {article.title}
+              </li>
+            </ol>
+          </nav>
+
+          <div className="flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide text-accent uppercase">
+            <span>{articleTypeLabel(article.articleType)}</span>
+            {category && (
+              <>
+                <span aria-hidden="true" className="text-border">
+                  ·
+                </span>
+                <span>{category.name}</span>
+              </>
+            )}
+          </div>
+
+          <h1 className="mt-4 text-2xl leading-tight font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
             {article.title}
-          </li>
-        </ol>
-      </nav>
+          </h1>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide text-accent uppercase">
-        <span>{articleTypeLabel(article.articleType)}</span>
-        {category && (
-          <>
-            <span aria-hidden="true" className="text-border">
-              ·
-            </span>
-            <span>{category.name}</span>
-          </>
-        )}
-      </div>
+          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border pb-6 text-xs text-muted sm:text-sm">
+            {article.publishedAt && (
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+                <time dateTime={article.publishedAt} title={formatPublishedDate(article.publishedAt)}>
+                  {formatArticleDate(article.publishedAt)}
+                </time>
+              </span>
+            )}
+            {geography && (
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                {geography.name}
+              </span>
+            )}
+          </div>
 
-      <h1 className="mt-3 text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
-        {article.title}
-      </h1>
-
-      <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-        {article.publishedAt && (
-          <time dateTime={article.publishedAt} title={formatPublishedDate(article.publishedAt)}>
-            {formatArticleDate(article.publishedAt)}
-          </time>
-        )}
-        {geography && (
-          <span className="inline-flex items-center gap-1">
-            <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden="true">
-              <path
-                fillRule="evenodd"
-                d="M9.69 18.933c.185.11.404.11.59 0 .014-.008 3.652-2.153 5.652-5.155C16.652 12.05 17 10.55 17 9c0-3.866-3.134-7-7-7S3 5.134 3 9c0 1.55.348 3.05 1.068 4.778 2 3.002 5.638 5.147 5.652 5.155ZM10 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"
-                clipRule="evenodd"
+          {article.featuredImageId && (
+            <div className="relative my-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-zinc-950 shadow-lg">
+              <SkeletonImage
+                src={imageUrl(`/api/v1/images/${article.featuredImageId}/file`)}
+                alt={article.title}
+                className="object-cover"
               />
-            </svg>
-            {geography.name}
-          </span>
+            </div>
+          )}
+
+          {article.youtubeVideoId && (
+            // YouTubeEmbed ya trae su propio aspect-video (button/iframe) — este
+            // wrapper solo agrega el borde/sombra consistente con la imagen de
+            // portada, no un segundo aspect-ratio anidado.
+            <div className="my-8 overflow-hidden rounded-2xl border border-border shadow-lg">
+              <YouTubeEmbed videoId={article.youtubeVideoId} title={article.title} />
+            </div>
+          )}
+
+          {article.excerpt && (
+            <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">
+              {article.excerpt}
+            </p>
+          )}
+
+          <div className="prose prose-slate sm:prose-lg mt-6 max-w-none whitespace-pre-line prose-headings:font-bold prose-a:text-accent">
+            {article.body}
+          </div>
+
+          <div className="mt-10">
+            <AdBlock position="article" />
+          </div>
+
+          {articleTags.length > 0 && (
+            <ul className="mt-10 flex flex-wrap gap-2" aria-label="Etiquetas">
+              {articleTags.map((tag) => (
+                <li
+                  key={tag.id}
+                  className="rounded-full bg-border/50 px-3 py-1.5 text-xs font-semibold text-muted transition-colors hover:bg-accent-soft hover:text-accent"
+                >
+                  {tag.name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </article>
+
+        {hasSidebar && (
+          <aside className="mt-14 lg:col-span-4 lg:mt-0">
+            <div className="space-y-10 lg:sticky lg:top-24">
+              {relatedPlaces.length > 0 && (
+                <section aria-label="Lugares relacionados">
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Lugares en {category!.name}
+                  </h2>
+                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                    {relatedPlaces.map((place) => (
+                      <PlaceCard key={place.id} place={place} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {relatedArticles.length > 0 && (
+                <section aria-label="Más artículos">
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Más de {category!.name}
+                  </h2>
+                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                    {relatedArticles.map((related) => (
+                      <ArticleCard key={related.id} article={related} />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+          </aside>
         )}
       </div>
-
-      {article.featuredImageId && (
-        // eslint-disable-next-line @next/next/no-img-element -- host propio del backend
-        <img
-          src={imageUrl(`/api/v1/images/${article.featuredImageId}/file`)}
-          alt={article.title}
-          className="mt-8 aspect-video w-full rounded-lg object-cover"
-        />
-      )}
-
-      {article.youtubeVideoId && (
-        <div className="mt-8">
-          <YouTubeEmbed videoId={article.youtubeVideoId} title={article.title} />
-        </div>
-      )}
-
-      {article.excerpt && (
-        <p className="mt-8 text-lg leading-relaxed text-foreground/90">
-          {article.excerpt}
-        </p>
-      )}
-
-      <div className="mt-6 max-w-[70ch] text-base leading-relaxed whitespace-pre-line text-foreground">
-        {article.body}
-      </div>
-
-      <div className="mt-10">
-        <AdBlock position="article" />
-      </div>
-
-      {articleTags.length > 0 && (
-        <ul className="mt-10 flex flex-wrap gap-2" aria-label="Etiquetas">
-          {articleTags.map((tag) => (
-            <li
-              key={tag.id}
-              className="rounded-full border border-border bg-accent-soft px-3 py-1 text-xs font-medium text-accent"
-            >
-              {tag.name}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {(relatedPlaces.length > 0 || relatedArticles.length > 0) && (
-        <div className="mt-14 max-w-none border-t border-border pt-10">
-          {relatedPlaces.length > 0 && (
-            <section aria-label="Lugares relacionados">
-              <h2 className="text-lg font-semibold text-foreground">
-                Lugares en {category!.name}
-              </h2>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {relatedPlaces.map((place) => (
-                  <PlaceCard key={place.id} place={place} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {relatedArticles.length > 0 && (
-            <section aria-label="Más artículos" className={relatedPlaces.length > 0 ? "mt-10" : undefined}>
-              <h2 className="text-lg font-semibold text-foreground">
-                Más de {category!.name}
-              </h2>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {relatedArticles.map((related) => (
-                  <ArticleCard key={related.id} article={related} />
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-      )}
-    </article>
+    </div>
   );
 }

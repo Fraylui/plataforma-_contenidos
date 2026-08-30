@@ -103,7 +103,7 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
           </p>
         ) : (
           <>
-            <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {result.items.map((business) => (
                 <BusinessCard key={business.id} business={business} />
               ))}

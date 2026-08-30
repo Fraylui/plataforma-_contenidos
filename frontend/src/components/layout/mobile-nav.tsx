@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 
@@ -17,10 +17,14 @@ const LINKS = [
   { href: "/directorio", label: "Directorio" },
 ];
 
-/** Menú hamburguesa para mobile/tablet — en desktop el nav principal ya alcanza, este solo se muestra en pantallas chicas (sm:hidden en el botón). */
+/**
+ * Menú hamburguesa mobile/tablet: panel lateral (Sheet) que entra desde la
+ * derecha con overlay, no un dropdown flotante — con 8 enlaces necesita el
+ * alto completo de la pantalla, no una tarjeta chica. Bloquea el scroll del
+ * body mientras está abierto (patrón estándar de Sheet/Drawer).
+ */
 export function MobileNav() {
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -28,60 +32,80 @@ export function MobileNav() {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
     }
-    function onClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
     document.addEventListener("keydown", onKeyDown);
-    document.addEventListener("mousedown", onClickOutside);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.removeEventListener("mousedown", onClickOutside);
+      document.body.style.overflow = previousOverflow;
     };
   }, [open]);
 
   return (
-    <div ref={containerRef} className="relative sm:hidden">
+    <div className="sm:hidden">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(true)}
         aria-expanded={open}
-        aria-controls="mobile-nav-menu"
-        aria-label={open ? "Cerrar menú" : "Abrir menú"}
-        className="flex h-11 w-11 items-center justify-center rounded-md text-background hover:bg-background/10"
+        aria-controls="mobile-nav-sheet"
+        aria-label="Abrir menú"
+        className="flex h-11 w-11 items-center justify-center rounded-md text-foreground hover:bg-border/60"
       >
-        {open ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
+        <Menu className="h-6 w-6" aria-hidden="true" />
       </button>
 
       <AnimatePresence>
         {open && (
-          <motion.nav
-            id="mobile-nav-menu"
-            aria-label="Principal (mobile)"
-            initial={{ opacity: 0, y: -8, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.97 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            className="fixed right-4 top-20 z-50 w-64 max-h-[75vh] overflow-y-auto rounded-lg border border-border bg-surface py-2 shadow-lg"
-          >
-            {LINKS.map((link) => {
-              const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setOpen(false)}
+              aria-hidden="true"
+              className="fixed inset-0 z-50 bg-black/40"
+            />
+            <motion.nav
+              id="mobile-nav-sheet"
+              aria-label="Principal (mobile)"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="fixed inset-y-0 right-0 z-50 flex w-72 max-w-[85vw] flex-col overflow-y-auto border-l border-border bg-surface shadow-xl"
+            >
+              <div className="flex h-16 items-center justify-between border-b border-border px-4">
+                <span className="text-sm font-semibold text-foreground">Menú</span>
+                <button
+                  type="button"
                   onClick={() => setOpen(false)}
-                  aria-current={active ? "page" : undefined}
-                  className={`block px-4 py-3 text-sm font-medium transition-colors hover:bg-accent-soft hover:text-accent ${
-                    active ? "text-accent font-semibold" : "text-foreground"
-                  }`}
+                  aria-label="Cerrar menú"
+                  className="flex h-11 w-11 items-center justify-center rounded-md text-foreground hover:bg-border/60"
                 >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </motion.nav>
+                  <X className="h-6 w-6" aria-hidden="true" />
+                </button>
+              </div>
+              <div className="flex flex-1 flex-col py-2">
+                {LINKS.map((link) => {
+                  const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setOpen(false)}
+                      aria-current={active ? "page" : undefined}
+                      className={`block px-5 py-3.5 text-base font-medium transition-colors hover:bg-accent-soft hover:text-accent ${
+                        active ? "text-accent font-semibold" : "text-foreground"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </motion.nav>
+          </>
         )}
       </AnimatePresence>
     </div>

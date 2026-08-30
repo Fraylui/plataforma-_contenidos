@@ -96,7 +96,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
             <p className="mb-6 text-sm text-muted">
               {result.totalElements} resultado{result.totalElements === 1 ? "" : "s"} para «{query}»
             </p>
-            <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {result.items.map((item) => (
                 <SearchResultCard key={`${item.contentType}-${item.id}`} result={item} />
               ))}

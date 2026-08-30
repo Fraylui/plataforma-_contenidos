@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /*
  * Marca: rojo/negro/blanco, un solo set de tokens para todo el sitio
@@ -6,14 +7,19 @@
  * público e índigo en admin; unificadas cuando el usuario definió marca
  * real). El día que exista platformSettings con colores propios, solo se
  * reescriben estos valores.
+ *
+ * Paleta "Crimson News" (refresco 2026): neutros zinc en vez de gris frío
+ * plano — el fondo/borde/texto comparten la misma familia cromática, así
+ * que el rojo (accent) es lo único que llama la atención en vez de competir
+ * con un gris genérico.
  */
 :root {
-  --background: #f6f7f9;
+  --background: #fafafa;
   --surface: #ffffff;
-  --foreground: #111111;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --accent: #b91c1c;
+  --foreground: #18181b;
+  --muted: #71717a;
+  --border: #e4e4e7;
+  --accent: #dc2626;
   --accent-foreground: #ffffff;
   /* Derivado de --accent, no un valor fijo: así una marca personalizada
      (primaryColor en Configuración de plataforma) también obtiene un tinte
@@ -46,16 +52,16 @@
 /* "Auto": sin elección explícita, sigue el sistema operativo del visitante. */
 :root:not([data-theme="light"]):not([data-theme="dark"]) {
   @media (prefers-color-scheme: dark) {
-    --background: #0a0a0a;
-    --surface: #171717;
-    --foreground: #f5f5f5;
-    --muted: #9ca3af;
-    --border: #262626;
+    --background: #09090b;
+    --surface: #18181b;
+    --foreground: #fafafa;
+    --muted: #a1a1aa;
+    --border: #27272a;
     --accent: #ef4444;
-    --accent-foreground: #111111;
+    --accent-foreground: #18181b;
     --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
     --danger: #dc2626;
-    --danger-foreground: #111111;
+    --danger-foreground: #18181b;
   }
 }
 
