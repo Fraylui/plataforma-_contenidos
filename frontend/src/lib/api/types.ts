@@ -12,7 +12,6 @@ export type ArticleType =
   | "ENTREVISTA"
   | "HISTORIA"
   | "RANKING"
-  | "RESENA"
   | "TUTORIAL"
   | "OPINION";
 

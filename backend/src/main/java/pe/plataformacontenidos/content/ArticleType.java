@@ -10,7 +10,6 @@ public enum ArticleType {
     ENTREVISTA,
     HISTORIA,
     RANKING,
-    RESENA,
     TUTORIAL,
     OPINION
 }
