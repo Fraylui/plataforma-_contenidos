@@ -1,7 +1,7 @@
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { CardMedia } from "@/components/ui/card-media";
 import type { GallerySummary } from "@/lib/api/types";
-import { imageUrl } from "@/lib/image-url";
+import { serverImageUrl } from "@/lib/server-image-url";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
 import { SkeletonImage } from "@/components/ui/skeleton-image";
 
@@ -26,7 +26,7 @@ export function GalleryCard({ gallery }: { gallery: GallerySummary }) {
           <NoImagePlaceholder />
         ) : thumbnails.length === 1 ? (
           <SkeletonImage
-            src={imageUrl(`/api/v1/images/${thumbnails[0]}/file`)}
+            src={serverImageUrl(`/api/v1/images/${thumbnails[0]}/file`)}
             alt={gallery.title}
             className="object-cover"
           />
@@ -37,7 +37,7 @@ export function GalleryCard({ gallery }: { gallery: GallerySummary }) {
                 key={imageId}
                 className={`relative overflow-hidden ${thumbnails.length === 3 && index === 0 ? "row-span-2" : ""}`}
               >
-                <SkeletonImage src={imageUrl(`/api/v1/images/${imageId}/file`)} alt="" className="object-cover" />
+                <SkeletonImage src={serverImageUrl(`/api/v1/images/${imageId}/file`)} alt="" className="object-cover" />
               </div>
             ))}
           </div>

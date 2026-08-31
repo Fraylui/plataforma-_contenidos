@@ -21,7 +21,7 @@ import { LikeShareBar } from "@/components/content/like-share-bar";
 import { ReadingProgressBar } from "@/components/article/reading-progress-bar";
 import { PlaceCard } from "@/components/place/place-card";
 import { AdBlock } from "@/components/legal/ad-block";
-import { imageUrl } from "@/lib/image-url";
+import { serverImageUrl } from "@/lib/server-image-url";
 import { SITE_URL } from "@/lib/site-url";
 import { SkeletonImage } from "@/components/ui/skeleton-image";
 import type { Article, Category } from "@/lib/api/types";
@@ -231,7 +231,7 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
           {article.featuredImageId && (
             <div className="relative my-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-zinc-950 shadow-lg">
               <SkeletonImage
-                src={imageUrl(`/api/v1/images/${article.featuredImageId}/file`)}
+                src={serverImageUrl(`/api/v1/images/${article.featuredImageId}/file`)}
                 alt={article.title}
                 className="object-cover"
               />

@@ -25,6 +25,12 @@ ENV NEXT_PUBLIC_BACKEND_ASSET_URL=${NEXT_PUBLIC_BACKEND_ASSET_URL}
 # alcanzable en build time, igual que el job "frontend" de CI.
 ARG BACKEND_API_URL
 ENV BACKEND_API_URL=${BACKEND_API_URL}
+# Ver comentario en docker-compose.yml — distinto de BACKEND_API_URL: ese
+# vale otra cosa en build time (red host) que en runtime (red del compose),
+# este es el mismo valor en ambos porque next.config.ts lo necesita fijo
+# para el allowlist de next/image.
+ARG RUNTIME_BACKEND_INTERNAL_URL
+ENV RUNTIME_BACKEND_INTERNAL_URL=${RUNTIME_BACKEND_INTERNAL_URL}
 
 RUN npm run build
 
