@@ -31,20 +31,19 @@ public record PlaceResponse(
         Instant scheduledAt,
         Instant createdAt,
         List<ArticleSummaryResponse> relatedArticles,
-        long likeCount,
-        boolean likedByVisitor) {
+        long likeCount) {
 
-    public static PlaceResponse from(Place place, List<ArticleSummaryResponse> relatedArticles, long likeCount, boolean likedByVisitor) {
+    public static PlaceResponse from(Place place, List<ArticleSummaryResponse> relatedArticles, long likeCount) {
         return new PlaceResponse(place.getId(), place.getSlug(), place.getName(), place.getExcerpt(),
                 place.getBody(), place.getStatus(), place.getAuthorId(), place.getCategoryId(),
                 place.getGeographyId(), place.getLatitude(), place.getLongitude(), place.getImageIds(),
                 place.getSeoTitle(), place.getMetaDescription(), place.getCanonicalUrl(), place.getOgImageUrl(),
                 place.getYoutubeVideoId(), place.getRobots(), place.getRejectionReason(), place.getPublishedAt(),
-                place.getScheduledAt(), place.getCreatedAt(), relatedArticles, likeCount, likedByVisitor);
+                place.getScheduledAt(), place.getCreatedAt(), relatedArticles, likeCount);
     }
 
     /** Para respuestas admin (creación/edición/transiciones), sin costo de calcular relacionados/likes. */
     public static PlaceResponse fromAdmin(Place place) {
-        return from(place, List.of(), 0, false);
+        return from(place, List.of(), 0);
     }
 }

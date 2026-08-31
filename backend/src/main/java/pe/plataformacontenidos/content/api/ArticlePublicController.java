@@ -47,11 +47,10 @@ public class ArticlePublicController {
     }
 
     @GetMapping("/{slug}")
-    public ArticleResponse getBySlug(@PathVariable String slug, @RequestParam(required = false) UUID visitorId) {
+    public ArticleResponse getBySlug(@PathVariable String slug) {
         Article article = articleService.getPublishedBySlug(slug);
         long likeCount = contentLikeService.countLikes(ContentType.ARTICLE, article.getId());
-        boolean likedByVisitor = visitorId != null && contentLikeService.isLikedBy(ContentType.ARTICLE, article.getId(), visitorId);
-        return ArticleResponse.from(article, likeCount, likedByVisitor);
+        return ArticleResponse.from(article, likeCount);
     }
 
     @GetMapping("/{slug}/neighbors")

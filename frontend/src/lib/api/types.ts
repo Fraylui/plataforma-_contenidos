@@ -60,7 +60,6 @@ export interface Article {
   createdAt: string;
   updatedAt: string;
   likeCount: number;
-  likedByVisitor: boolean;
 }
 
 /** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de Artículos, Lugares, Eventos, Galerías y Reseñas. */
@@ -156,7 +155,6 @@ export interface Place {
   createdAt: string;
   relatedArticles: ArticleSummary[];
   likeCount: number;
-  likedByVisitor: boolean;
 }
 
 /** Mismos valores que ArticleStatus/PlaceStatus (CONTEXTO.md sección 12) — EventStatus es un enum propio en el backend (sección 38). */
@@ -203,7 +201,6 @@ export interface Event {
   scheduledAt: string | null;
   createdAt: string;
   likeCount: number;
-  likedByVisitor: boolean;
 }
 
 /** Mismos valores que ArticleStatus/PlaceStatus/EventStatus (CONTEXTO.md sección 12) — GalleryStatus es un enum propio en el backend (sección 38). */
@@ -240,7 +237,6 @@ export interface Gallery {
   scheduledAt: string | null;
   createdAt: string;
   likeCount: number;
-  likedByVisitor: boolean;
 }
 
 /** Mismos valores que ArticleStatus/PlaceStatus/EventStatus/GalleryStatus (CONTEXTO.md sección 12) — ReviewStatus es un enum propio en el backend (sección 38). */
@@ -285,7 +281,6 @@ export interface Review {
   scheduledAt: string | null;
   createdAt: string;
   likeCount: number;
-  likedByVisitor: boolean;
 }
 
 /** Mismos valores que ReviewStatus (CONTEXTO.md sección 12) — BusinessStatus es un enum propio en el backend (sección 38). */
@@ -338,7 +333,6 @@ export interface Business {
   scheduledAt: string | null;
   createdAt: string;
   likeCount: number;
-  likedByVisitor: boolean;
 }
 
 /** Ver PlatformSettingsResponse.java (CONTEXTO.md sección 14). */

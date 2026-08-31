@@ -29,7 +29,6 @@ function makePlace(overrides: Partial<Place> = {}): Place {
     createdAt: "2026-01-01T00:00:00Z",
     relatedArticles: [],
     likeCount: 0,
-    likedByVisitor: false,
     ...overrides,
   };
 }

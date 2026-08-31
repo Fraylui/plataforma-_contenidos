@@ -29,7 +29,6 @@ function makeArticle(overrides: Partial<Article> = {}): Article {
     createdAt: "2026-01-01T00:00:00Z",
     updatedAt: "2026-01-01T00:00:00Z",
     likeCount: 0,
-    likedByVisitor: false,
     ...overrides,
   };
 }

@@ -19,10 +19,6 @@ public class ContentLikeService {
         return contentLikeRepository.countByContentTypeAndContentId(type, contentId);
     }
 
-    public boolean isLikedBy(ContentType type, UUID contentId, UUID visitorId) {
-        return contentLikeRepository.findByContentTypeAndContentIdAndVisitorId(type, contentId, visitorId).isPresent();
-    }
-
     /** Alterna el "me gusta" de un lector anónimo. Devuelve el nuevo estado y el contador actualizado. */
     public LikeResult toggleLike(ContentType type, UUID contentId, UUID visitorId) {
         var existing = contentLikeRepository.findByContentTypeAndContentIdAndVisitorId(type, contentId, visitorId);

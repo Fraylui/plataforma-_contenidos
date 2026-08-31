@@ -52,11 +52,10 @@ public class EventPublicController {
     }
 
     @GetMapping("/{slug}")
-    public EventResponse getBySlug(@PathVariable String slug, @RequestParam(required = false) UUID visitorId) {
+    public EventResponse getBySlug(@PathVariable String slug) {
         Event event = eventService.getPublishedBySlug(slug);
         long likeCount = contentLikeService.countLikes(ContentType.EVENT, event.getId());
-        boolean likedByVisitor = visitorId != null && contentLikeService.isLikedBy(ContentType.EVENT, event.getId(), visitorId);
-        return EventResponse.from(event, likeCount, likedByVisitor);
+        return EventResponse.from(event, likeCount);
     }
 
     @PostMapping("/{slug}/like")

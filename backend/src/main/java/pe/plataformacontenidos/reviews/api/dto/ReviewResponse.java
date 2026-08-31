@@ -30,20 +30,19 @@ public record ReviewResponse(
         Instant publishedAt,
         Instant scheduledAt,
         Instant createdAt,
-        long likeCount,
-        boolean likedByVisitor) {
+        long likeCount) {
 
-    public static ReviewResponse from(Review review, long likeCount, boolean likedByVisitor) {
+    public static ReviewResponse from(Review review, long likeCount) {
         return new ReviewResponse(review.getId(), review.getSlug(), review.getTitle(), review.getExcerpt(),
                 review.getBody(), review.getStatus(), review.getAuthorId(), review.getCategoryId(),
                 review.getGeographyId(), review.getPlaceId(), review.getSubjectName(), review.getRating(),
                 review.getImageIds(), review.getSeoTitle(), review.getMetaDescription(), review.getCanonicalUrl(),
                 review.getOgImageUrl(), review.getYoutubeVideoId(), review.getRobots(),
                 review.getRejectionReason(), review.getPublishedAt(), review.getScheduledAt(),
-                review.getCreatedAt(), likeCount, likedByVisitor);
+                review.getCreatedAt(), likeCount);
     }
 
     public static ReviewResponse from(Review review) {
-        return from(review, 0, false);
+        return from(review, 0);
     }
 }

@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Bookmark, Check, Heart, Share2 } from "lucide-react";
 import { getOrCreateVisitorId } from "@/lib/visitor-id";
 
 export type LikeableContentType = "articles" | "places" | "events" | "galleries" | "reviews" | "directory";
 
+const CHANGE_EVENT = "like-share-bar-change";
+
 function savedKey(type: LikeableContentType): string {
   return `saved-${type}`;
+}
+
+function likedKey(type: LikeableContentType, slug: string): string {
+  return `liked:${type}:${slug}`;
 }
 
 function readSaved(type: LikeableContentType): Set<string> {
@@ -18,12 +24,30 @@ function readSaved(type: LikeableContentType): Set<string> {
   }
 }
 
-function writeSaved(type: LikeableContentType, saved: Set<string>) {
+/** Dispara CHANGE_EVENT para que useSyncExternalStore reaccione en el mismo tab (el evento "storage" del navegador no se dispara en el tab que hizo el cambio, solo en otros — mismo patrón que lib/cookie-consent.ts). */
+function writeLocalStorage(key: string, value: string) {
   try {
-    localStorage.setItem(savedKey(type), JSON.stringify([...saved]));
+    localStorage.setItem(key, value);
+    window.dispatchEvent(new Event(CHANGE_EVENT));
   } catch {
-    // localStorage no disponible (modo privado) — guardar es solo una conveniencia del visitante, no falla la página.
+    // localStorage no disponible (modo privado) — guardar/me-gusta-recordado es solo una conveniencia del visitante, no falla la página.
   }
+}
+
+function subscribe(listener: () => void): () => void {
+  window.addEventListener(CHANGE_EVENT, listener);
+  return () => window.removeEventListener(CHANGE_EVENT, listener);
+}
+
+/**
+ * Lee un booleano derivado de localStorage vía useSyncExternalStore en vez
+ * de useEffect+setState (mismo motivo que lib/cookie-consent.ts: evita el
+ * lint react-hooks/set-state-in-effect y una hidratación con doble render;
+ * getServerSnapshot fijo en `false` porque el servidor nunca ve el estado
+ * real del visitante, así que empezar en "no" es lo único honesto ahí).
+ */
+function useLocalStorageFlag(getSnapshot: () => boolean): boolean {
+  return useSyncExternalStore(subscribe, getSnapshot, () => false);
 }
 
 /**
@@ -45,20 +69,11 @@ export function LikeShareBar({
   initialLikeCount: number;
   title: string;
 }) {
-  const [liked, setLiked] = useState(false);
+  const liked = useLocalStorageFlag(() => localStorage.getItem(likedKey(contentType, slug)) === "1");
+  const saved = useLocalStorageFlag(() => readSaved(contentType).has(slug));
   const [likeCount, setLikeCount] = useState(initialLikeCount);
-  const [saved, setSaved] = useState(false);
   const [pending, setPending] = useState(false);
   const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    try {
-      setLiked(localStorage.getItem(`liked:${contentType}:${slug}`) === "1");
-    } catch {
-      // sin localStorage: el estado "me gusta" propio no persiste entre visitas, el contador global igual funciona.
-    }
-    setSaved(readSaved(contentType).has(slug));
-  }, [contentType, slug]);
 
   async function handleLike() {
     if (pending) return;
@@ -70,13 +85,8 @@ export function LikeShareBar({
       });
       if (res.ok) {
         const result: { liked: boolean; likeCount: number } = await res.json();
-        setLiked(result.liked);
         setLikeCount(result.likeCount);
-        try {
-          localStorage.setItem(`liked:${contentType}:${slug}`, result.liked ? "1" : "0");
-        } catch {
-          // ver arriba
-        }
+        writeLocalStorage(likedKey(contentType, slug), result.liked ? "1" : "0");
       }
     } finally {
       setPending(false);
@@ -87,12 +97,15 @@ export function LikeShareBar({
     const current = readSaved(contentType);
     if (current.has(slug)) {
       current.delete(slug);
-      setSaved(false);
     } else {
       current.add(slug);
-      setSaved(true);
     }
-    writeSaved(contentType, current);
+    try {
+      localStorage.setItem(savedKey(contentType), JSON.stringify([...current]));
+      window.dispatchEvent(new Event(CHANGE_EVENT));
+    } catch {
+      // ver writeLocalStorage
+    }
   }
 
   async function handleShare() {

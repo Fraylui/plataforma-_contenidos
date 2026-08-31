@@ -36,10 +36,9 @@ public record BusinessResponse(
         Instant publishedAt,
         Instant scheduledAt,
         Instant createdAt,
-        long likeCount,
-        boolean likedByVisitor) {
+        long likeCount) {
 
-    public static BusinessResponse from(Business business, long likeCount, boolean likedByVisitor) {
+    public static BusinessResponse from(Business business, long likeCount) {
         return new BusinessResponse(business.getId(), business.getSlug(), business.getName(), business.getExcerpt(),
                 business.getBody(), business.getStatus(), business.getBusinessType(), business.getAuthorId(),
                 business.getCategoryId(), business.getGeographyId(), business.getPlaceId(), business.getAddress(),
@@ -47,10 +46,10 @@ public record BusinessResponse(
                 business.getLongitude(), business.getImageIds(), business.getSeoTitle(),
                 business.getMetaDescription(), business.getCanonicalUrl(), business.getOgImageUrl(),
                 business.getYoutubeVideoId(), business.getRobots(), business.getRejectionReason(),
-                business.getPublishedAt(), business.getScheduledAt(), business.getCreatedAt(), likeCount, likedByVisitor);
+                business.getPublishedAt(), business.getScheduledAt(), business.getCreatedAt(), likeCount);
     }
 
     public static BusinessResponse from(Business business) {
-        return from(business, 0, false);
+        return from(business, 0);
     }
 }

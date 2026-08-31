@@ -48,11 +48,10 @@ public class BusinessPublicController {
     }
 
     @GetMapping("/{slug}")
-    public BusinessResponse getBySlug(@PathVariable String slug, @RequestParam(required = false) UUID visitorId) {
+    public BusinessResponse getBySlug(@PathVariable String slug) {
         Business business = businessService.getPublishedBySlug(slug);
         long likeCount = contentLikeService.countLikes(ContentType.BUSINESS, business.getId());
-        boolean likedByVisitor = visitorId != null && contentLikeService.isLikedBy(ContentType.BUSINESS, business.getId(), visitorId);
-        return BusinessResponse.from(business, likeCount, likedByVisitor);
+        return BusinessResponse.from(business, likeCount);
     }
 
     @PostMapping("/{slug}/like")
