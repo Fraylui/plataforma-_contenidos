@@ -2,7 +2,7 @@
 
 const STORAGE_KEY = "visitor-id";
 
-/** UUID anónimo por navegador, usado solo para deduplicar "me gusta" (ver ArticleLike en el backend). No identifica a la persona. */
+/** UUID anónimo por navegador, usado solo para deduplicar "me gusta" (ver engagement.ContentLike en el backend). No identifica a la persona. */
 export function getOrCreateVisitorId(): string {
   try {
     const existing = localStorage.getItem(STORAGE_KEY);
