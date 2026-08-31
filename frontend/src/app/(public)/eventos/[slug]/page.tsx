@@ -12,7 +12,7 @@ import {
   listPublishedPlaces,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { formatEventDateTime } from "@/lib/content-labels";
+import { formatEventDateTime, isEventFinished } from "@/lib/content-labels";
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
@@ -112,6 +112,7 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
   const relatedEvents = (relatedEventsResult?.items ?? []).filter((e) => e.id !== event.id).slice(0, RELATED_SIZE);
 
   const venue = place ? { name: place.name, slug: place.slug } : null;
+  const finished = isEventFinished(event);
 
   return (
     <article className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
@@ -160,6 +161,14 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
               ·
             </span>
             <span>{category.name}</span>
+          </>
+        )}
+        {finished && (
+          <>
+            <span aria-hidden="true" className="text-border">
+              ·
+            </span>
+            <span className="rounded-full bg-surface px-2 py-0.5 text-muted normal-case">Finalizado</span>
           </>
         )}
       </div>

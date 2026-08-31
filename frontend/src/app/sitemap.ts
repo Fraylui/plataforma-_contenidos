@@ -9,6 +9,7 @@ import {
   listAllPublishedReviewsForSitemap,
 } from "@/lib/api/client";
 import { SITE_URL } from "@/lib/site-url";
+import { isEventFinished } from "@/lib/content-labels";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [articles, places, events, galleries, reviews, businesses, categories] = await Promise.all([
@@ -22,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]);
 
   const articleEntries: MetadataRoute.Sitemap = articles.map((article) => ({
-    url: `${SITE_URL}/articulos/${article.slug}`,
+    url: `${SITE_URL}/publicaciones/${article.slug}`,
     lastModified: article.publishedAt ?? undefined,
     changeFrequency: "weekly",
     priority: 0.7,
@@ -35,11 +36,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  const eventEntries: MetadataRoute.Sitemap = events.map((event) => ({
-    url: `${SITE_URL}/eventos/${event.slug}`,
-    changeFrequency: "weekly",
-    priority: 0.5,
-  }));
+  const eventEntries: MetadataRoute.Sitemap = events.map((event) => {
+    const finished = isEventFinished(event);
+    return {
+      url: `${SITE_URL}/eventos/${event.slug}`,
+      // Un evento pasado ya no cambia y ya no es prioridad de rastreo (crawl
+      // budget mejor gastado en próximos/nuevos) — sigue indexado, solo baja.
+      changeFrequency: finished ? "yearly" : "weekly",
+      priority: finished ? 0.3 : 0.5,
+    };
+  });
 
   const galleryEntries: MetadataRoute.Sitemap = galleries.map((gallery) => ({
     url: `${SITE_URL}/galerias/${gallery.slug}`,
@@ -76,7 +82,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     {
-      url: `${SITE_URL}/articulos`,
+      url: `${SITE_URL}/publicaciones`,
       changeFrequency: "daily",
       priority: 0.6,
     },
