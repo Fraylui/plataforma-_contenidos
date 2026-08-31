@@ -15,9 +15,7 @@ export default async function CategoriesPage() {
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <header className="max-w-2xl">
         <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Categorías</h1>
-        <p className="mt-3 text-base leading-relaxed text-muted">
-          Artículos y lugares organizados por tema.
-        </p>
+        <p className="mt-3 text-base leading-relaxed text-muted">Explora todo el contenido del sitio por tema.</p>
       </header>
 
       <section className="mt-10" aria-label="Categorías">
@@ -26,15 +24,18 @@ export default async function CategoriesPage() {
             Todavía no hay categorías activas.
           </p>
         ) : (
-          <div className="flex flex-wrap gap-2.5">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {sorted.map((category) => (
               <Link
                 key={category.id}
                 href={`/categorias/${category.slug}`}
-                title={category.description ?? undefined}
-                className="rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-accent hover:bg-accent-soft hover:text-accent focus-visible:border-accent"
+                className="group relative overflow-hidden rounded-2xl border border-border bg-surface p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-xl focus-visible:-translate-y-1 focus-visible:border-accent focus-visible:shadow-xl focus-visible:outline-none"
               >
-                {category.name}
+                <span className="absolute inset-x-0 top-0 h-1 bg-accent opacity-70 transition-opacity group-hover:opacity-100" aria-hidden="true" />
+                <span className="block text-base font-semibold text-foreground transition-colors group-hover:text-accent">
+                  {category.name}
+                </span>
+                {category.description && <p className="mt-1.5 text-sm text-muted">{category.description}</p>}
               </Link>
             ))}
           </div>
