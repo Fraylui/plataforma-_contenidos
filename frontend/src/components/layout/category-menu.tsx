@@ -62,15 +62,6 @@ export function CategoryMenu({ categories }: { categories: Category[] }) {
                 </Link>
               ))}
             </div>
-            <div className="mt-3 border-t border-border pt-3">
-              <Link
-                href="/categorias"
-                onClick={() => setOpen(false)}
-                className="text-sm font-medium text-accent hover:underline"
-              >
-                Ver todas las categorías →
-              </Link>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
