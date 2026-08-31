@@ -5,10 +5,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import pe.plataformacontenidos.content.Article;
 import pe.plataformacontenidos.content.ArticleService;
+import pe.plataformacontenidos.content.api.dto.ArticleLikeResponse;
+import pe.plataformacontenidos.content.api.dto.ArticleNeighborsResponse;
 import pe.plataformacontenidos.content.api.dto.ArticleResponse;
 import pe.plataformacontenidos.content.api.dto.ArticleSummaryResponse;
 import pe.plataformacontenidos.content.api.dto.PageResponse;
@@ -39,7 +43,24 @@ public class ArticlePublicController {
     }
 
     @GetMapping("/{slug}")
-    public ArticleResponse getBySlug(@PathVariable String slug) {
-        return ArticleResponse.from(articleService.getPublishedBySlug(slug));
+    public ArticleResponse getBySlug(@PathVariable String slug, @RequestParam(required = false) UUID visitorId) {
+        Article article = articleService.getPublishedBySlug(slug);
+        long likeCount = articleService.countLikes(article.getId());
+        boolean likedByVisitor = visitorId != null && articleService.isLikedBy(article.getId(), visitorId);
+        return ArticleResponse.from(article, likeCount, likedByVisitor);
+    }
+
+    @GetMapping("/{slug}/neighbors")
+    public ArticleNeighborsResponse getNeighbors(@PathVariable String slug) {
+        Article article = articleService.getPublishedBySlug(slug);
+        return ArticleNeighborsResponse.from(articleService.getNeighbors(article));
+    }
+
+    /** visitorId es un UUID generado y persistido en el navegador del lector (no requiere cuenta) — ver ArticleLike. */
+    @PostMapping("/{slug}/like")
+    public ArticleLikeResponse toggleLike(@PathVariable String slug, @RequestParam UUID visitorId) {
+        Article article = articleService.getPublishedBySlug(slug);
+        var result = articleService.toggleLike(article.getId(), visitorId);
+        return new ArticleLikeResponse(result.liked(), result.likeCount());
     }
 }

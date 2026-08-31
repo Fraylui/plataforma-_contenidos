@@ -30,6 +30,11 @@ export interface ArticleSummary {
   publishedAt: string | null;
 }
 
+export interface ArticleNeighbors {
+  previous: ArticleSummary | null;
+  next: ArticleSummary | null;
+}
+
 export interface Article {
   id: string;
   slug: string;
@@ -53,6 +58,9 @@ export interface Article {
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;
+  updatedAt: string;
+  likeCount: number;
+  likedByVisitor: boolean;
 }
 
 /** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de Artículos, Lugares, Eventos, Galerías y Reseñas. */

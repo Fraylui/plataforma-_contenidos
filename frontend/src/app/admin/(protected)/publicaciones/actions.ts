@@ -20,15 +20,15 @@ export type { ActionResult };
 export async function createArticleAction(input: ArticleInput): Promise<ActionResult> {
   const result = await runAdminMutation((token) => createArticle(token, input));
   if (!result.ok) return result;
-  revalidatePath("/admin/articulos");
-  redirect(`/admin/articulos/${result.data.id}`);
+  revalidatePath("/admin/publicaciones");
+  redirect(`/admin/publicaciones/${result.data.id}`);
 }
 
 export async function updateArticleAction(id: string, input: ArticleInput): Promise<ActionResult> {
   const result = await runAdminMutation((token) => updateArticle(token, id, input));
   if (result.ok) {
-    revalidatePath("/admin/articulos");
-    revalidatePath(`/admin/articulos/${id}`);
+    revalidatePath("/admin/publicaciones");
+    revalidatePath(`/admin/publicaciones/${id}`);
   }
   return result;
 }
@@ -63,8 +63,8 @@ async function runWorkflowAction(
 ): Promise<ActionResult> {
   const result = await runAdminMutation((token) => call(token, id));
   if (result.ok) {
-    revalidatePath("/admin/articulos");
-    revalidatePath(`/admin/articulos/${id}`);
+    revalidatePath("/admin/publicaciones");
+    revalidatePath(`/admin/publicaciones/${id}`);
   }
   return result;
 }

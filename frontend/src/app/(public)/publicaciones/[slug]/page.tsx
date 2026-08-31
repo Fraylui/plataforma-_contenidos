@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
+  getArticleNeighbors,
   getCategoryById,
   getGeographyUnitById,
   getPlatformSettings,
@@ -15,6 +17,8 @@ import { NotFoundError } from "@/lib/api/client";
 import { articleTypeLabel, formatArticleDate, formatPublishedDate } from "@/lib/content-labels";
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { ArticleCard } from "@/components/article/article-card";
+import { ArticleActionsBar } from "@/components/article/article-actions-bar";
+import { ReadingProgressBar } from "@/components/article/reading-progress-bar";
 import { PlaceCard } from "@/components/place/place-card";
 import { AdBlock } from "@/components/legal/ad-block";
 import { imageUrl } from "@/lib/image-url";
@@ -35,7 +39,7 @@ async function loadArticle(slug: string) {
   }
 }
 
-export async function generateMetadata(props: PageProps<"/articulos/[slug]">): Promise<Metadata> {
+export async function generateMetadata(props: PageProps<"/publicaciones/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
   let article;
   try {
@@ -54,7 +58,7 @@ export async function generateMetadata(props: PageProps<"/articulos/[slug]">): P
     // Por defecto, cada artículo es canónico de sí mismo (sección 15); solo
     // se sobreescribe si el editor definió explícitamente otra URL canónica
     // (ej. republicación de contenido originado en otro sitio).
-    alternates: { canonical: article.canonicalUrl || `/articulos/${slug}` },
+    alternates: { canonical: article.canonicalUrl || `/publicaciones/${slug}` },
     robots: article.robots,
     openGraph: {
       title,
@@ -68,7 +72,7 @@ export async function generateMetadata(props: PageProps<"/articulos/[slug]">): P
 }
 
 function articleJsonLd(article: Article, category: Category | null, siteName: string) {
-  const url = article.canonicalUrl || `${SITE_URL}/articulos/${article.slug}`;
+  const url = article.canonicalUrl || `${SITE_URL}/publicaciones/${article.slug}`;
   return {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -76,7 +80,7 @@ function articleJsonLd(article: Article, category: Category | null, siteName: st
     description: article.metaDescription || article.excerpt || undefined,
     image: article.ogImageUrl ? [article.ogImageUrl] : undefined,
     datePublished: article.publishedAt ?? undefined,
-    dateModified: article.publishedAt ?? undefined,
+    dateModified: article.updatedAt ?? article.publishedAt ?? undefined,
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     articleSection: category?.name,
     publisher: {
@@ -90,7 +94,7 @@ function breadcrumbJsonLd(article: Article, category: Category | null) {
   const items = [
     { name: "Inicio", url: SITE_URL },
     ...(category ? [{ name: category.name, url: `${SITE_URL}/categorias/${category.slug}` }] : []),
-    { name: article.title, url: `${SITE_URL}/articulos/${article.slug}` },
+    { name: article.title, url: `${SITE_URL}/publicaciones/${article.slug}` },
   ];
   return {
     "@context": "https://schema.org",
@@ -104,15 +108,16 @@ function breadcrumbJsonLd(article: Article, category: Category | null) {
   };
 }
 
-export default async function ArticlePage(props: PageProps<"/articulos/[slug]">) {
+export default async function ArticlePage(props: PageProps<"/publicaciones/[slug]">) {
   const { slug } = await props.params;
   const article = await loadArticle(slug);
 
-  const [category, geography, tags, settings] = await Promise.all([
+  const [category, geography, tags, settings, neighbors] = await Promise.all([
     getCategoryById(article.categoryId).catch(() => null),
     article.geographyId ? getGeographyUnitById(article.geographyId).catch(() => null) : Promise.resolve(null),
     article.tagIds.length > 0 ? listAllTags().catch(() => []) : Promise.resolve([]),
     getPlatformSettings(),
+    getArticleNeighbors(slug).catch(() => ({ previous: null, next: null })),
   ]);
 
   const articleTags = tags.filter((tag) => article.tagIds.includes(tag.id));
@@ -132,6 +137,7 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+      <ReadingProgressBar />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -196,6 +202,15 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
                 </time>
               </span>
             )}
+            {article.publishedAt && article.updatedAt
+              && new Date(article.updatedAt).getTime() - new Date(article.publishedAt).getTime() > 5 * 60 * 1000 && (
+              <span>
+                Actualizado el{" "}
+                <time dateTime={article.updatedAt} title={formatPublishedDate(article.updatedAt)}>
+                  {formatPublishedDate(article.updatedAt)}
+                </time>
+              </span>
+            )}
             {geography && (
               <span className="inline-flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
@@ -203,6 +218,8 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
               </span>
             )}
           </div>
+
+          <ArticleActionsBar slug={article.slug} initialLikeCount={article.likeCount} title={article.title} />
 
           {article.featuredImageId && (
             <div className="relative my-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-zinc-950 shadow-lg">
@@ -248,6 +265,37 @@ export default async function ArticlePage(props: PageProps<"/articulos/[slug]">)
                 </li>
               ))}
             </ul>
+          )}
+
+          {(neighbors.previous || neighbors.next) && (
+            <nav aria-label="Navegación entre publicaciones" className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {neighbors.previous ? (
+                <Link
+                  href={`/publicaciones/${neighbors.previous.slug}`}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4 text-sm transition-colors hover:border-accent hover:bg-accent-soft"
+                >
+                  <ChevronLeft className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+                  <span>
+                    <span className="block text-xs text-muted">Anterior</span>
+                    <span className="line-clamp-1 font-semibold text-foreground">{neighbors.previous.title}</span>
+                  </span>
+                </Link>
+              ) : (
+                <span />
+              )}
+              {neighbors.next && (
+                <Link
+                  href={`/publicaciones/${neighbors.next.slug}`}
+                  className="flex items-center justify-end gap-3 rounded-xl border border-border bg-surface p-4 text-right text-sm transition-colors hover:border-accent hover:bg-accent-soft sm:text-right"
+                >
+                  <span>
+                    <span className="block text-xs text-muted">Siguiente</span>
+                    <span className="line-clamp-1 font-semibold text-foreground">{neighbors.next.title}</span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+                </Link>
+              )}
+            </nav>
           )}
         </article>
 

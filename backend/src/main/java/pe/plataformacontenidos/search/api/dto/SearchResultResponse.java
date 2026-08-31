@@ -16,7 +16,7 @@ import pe.plataformacontenidos.search.SearchResultType;
  * Lugares/Eventos/Directorio, esto se separa a un módulo Search propio que
  * agregue resultados de varios módulos" — ya hay dos tipos buscables, este
  * es ese momento). El frontend arma la URL a partir de `contentType` +
- * `slug` (/articulos/{slug} o /lugares/{slug}).
+ * `slug` (/publicaciones/{slug} o /lugares/{slug}).
  */
 public record SearchResultResponse(
         SearchResultType contentType,

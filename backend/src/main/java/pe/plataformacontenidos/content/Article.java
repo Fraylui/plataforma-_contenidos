@@ -215,6 +215,10 @@ public class Article {
         return createdAt;
     }
 
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
     public boolean isOwnedBy(UUID userId) {
         return authorId.equals(userId);
     }

@@ -30,7 +30,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR"],
   },
   {
-    href: "/admin/articulos",
+    href: "/admin/publicaciones",
     label: "Publicaciones",
     group: "contenido",
     // Debe coincidir con SecurityConfig: /api/v1/admin/articles/** -> SUPER_ADMIN, ADMIN, EDITOR, AUTHOR.
