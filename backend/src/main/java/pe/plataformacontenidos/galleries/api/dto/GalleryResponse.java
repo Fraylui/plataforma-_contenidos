@@ -24,13 +24,19 @@ public record GalleryResponse(
         String rejectionReason,
         Instant publishedAt,
         Instant scheduledAt,
-        Instant createdAt) {
+        Instant createdAt,
+        long likeCount,
+        boolean likedByVisitor) {
 
-    public static GalleryResponse from(Gallery gallery) {
+    public static GalleryResponse from(Gallery gallery, long likeCount, boolean likedByVisitor) {
         return new GalleryResponse(gallery.getId(), gallery.getSlug(), gallery.getTitle(), gallery.getExcerpt(),
                 gallery.getStatus(), gallery.getAuthorId(), gallery.getCategoryId(), gallery.getGeographyId(),
                 gallery.getImageIds(), gallery.getSeoTitle(), gallery.getMetaDescription(), gallery.getCanonicalUrl(),
                 gallery.getOgImageUrl(), gallery.getRobots(), gallery.getRejectionReason(), gallery.getPublishedAt(),
-                gallery.getScheduledAt(), gallery.getCreatedAt());
+                gallery.getScheduledAt(), gallery.getCreatedAt(), likeCount, likedByVisitor);
+    }
+
+    public static GalleryResponse from(Gallery gallery) {
+        return from(gallery, 0, false);
     }
 }

@@ -4,36 +4,43 @@ import { useEffect, useState } from "react";
 import { Bookmark, Check, Heart, Share2 } from "lucide-react";
 import { getOrCreateVisitorId } from "@/lib/visitor-id";
 
-const SAVED_KEY = "saved-articles";
+export type LikeableContentType = "articles" | "places" | "events" | "galleries" | "reviews" | "directory";
 
-function readSaved(): Set<string> {
+function savedKey(type: LikeableContentType): string {
+  return `saved-${type}`;
+}
+
+function readSaved(type: LikeableContentType): Set<string> {
   try {
-    return new Set(JSON.parse(localStorage.getItem(SAVED_KEY) ?? "[]"));
+    return new Set(JSON.parse(localStorage.getItem(savedKey(type)) ?? "[]"));
   } catch {
     return new Set();
   }
 }
 
-function writeSaved(saved: Set<string>) {
+function writeSaved(type: LikeableContentType, saved: Set<string>) {
   try {
-    localStorage.setItem(SAVED_KEY, JSON.stringify([...saved]));
+    localStorage.setItem(savedKey(type), JSON.stringify([...saved]));
   } catch {
     // localStorage no disponible (modo privado) — guardar es solo una conveniencia del visitante, no falla la página.
   }
 }
 
 /**
- * Barra de acciones bajo los metadatos del artículo: "Me gusta" es real
- * (persistido en el backend, deduplicado por visitorId anónimo — ver
- * ArticleLike); "Guardar" es solo del navegador del lector (localStorage,
- * no hay backend de favoritos todavía); "Compartir" usa Web Share API
- * nativa con fallback de copiar enlace.
+ * Barra de acciones al final del contenido: "Me gusta" es real (persistido
+ * en el backend, deduplicado por visitorId anónimo — ver
+ * engagement.ContentLike, un solo mecanismo para los 6 tipos de
+ * contenido); "Guardar" es solo del navegador del lector (localStorage, no
+ * hay backend de favoritos todavía); "Compartir" usa Web Share API nativa
+ * con fallback de copiar enlace.
  */
-export function ArticleActionsBar({
+export function LikeShareBar({
+  contentType,
   slug,
   initialLikeCount,
   title,
 }: {
+  contentType: LikeableContentType;
   slug: string;
   initialLikeCount: number;
   title: string;
@@ -46,19 +53,19 @@ export function ArticleActionsBar({
 
   useEffect(() => {
     try {
-      setLiked(localStorage.getItem(`liked:${slug}`) === "1");
+      setLiked(localStorage.getItem(`liked:${contentType}:${slug}`) === "1");
     } catch {
       // sin localStorage: el estado "me gusta" propio no persiste entre visitas, el contador global igual funciona.
     }
-    setSaved(readSaved().has(slug));
-  }, [slug]);
+    setSaved(readSaved(contentType).has(slug));
+  }, [contentType, slug]);
 
   async function handleLike() {
     if (pending) return;
     setPending(true);
     const visitorId = getOrCreateVisitorId();
     try {
-      const res = await fetch(`/api/articles/${encodeURIComponent(slug)}/like?visitorId=${visitorId}`, {
+      const res = await fetch(`/api/content/${contentType}/${encodeURIComponent(slug)}/like?visitorId=${visitorId}`, {
         method: "POST",
       });
       if (res.ok) {
@@ -66,7 +73,7 @@ export function ArticleActionsBar({
         setLiked(result.liked);
         setLikeCount(result.likeCount);
         try {
-          localStorage.setItem(`liked:${slug}`, result.liked ? "1" : "0");
+          localStorage.setItem(`liked:${contentType}:${slug}`, result.liked ? "1" : "0");
         } catch {
           // ver arriba
         }
@@ -77,7 +84,7 @@ export function ArticleActionsBar({
   }
 
   function handleSave() {
-    const current = readSaved();
+    const current = readSaved(contentType);
     if (current.has(slug)) {
       current.delete(slug);
       setSaved(false);
@@ -85,7 +92,7 @@ export function ArticleActionsBar({
       current.add(slug);
       setSaved(true);
     }
-    writeSaved(current);
+    writeSaved(contentType, current);
   }
 
   async function handleShare() {

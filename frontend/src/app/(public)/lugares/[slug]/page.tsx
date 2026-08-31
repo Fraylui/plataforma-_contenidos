@@ -13,6 +13,7 @@ import { NotFoundError } from "@/lib/api/client";
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
+import { LikeShareBar } from "@/components/content/like-share-bar";
 import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
 import type { Category, Place } from "@/lib/api/types";
@@ -189,6 +190,8 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
       <div className="mt-6 max-w-[70ch] text-base leading-relaxed whitespace-pre-line text-foreground">
         {place.body}
       </div>
+
+      <LikeShareBar contentType="places" slug={place.slug} initialLikeCount={place.likeCount} title={place.name} />
 
       {place.relatedArticles.length > 0 && (
         <section className="mt-12 border-t border-border pt-8">

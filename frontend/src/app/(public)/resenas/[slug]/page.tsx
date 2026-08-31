@@ -17,6 +17,7 @@ import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
 import { ReviewCard } from "@/components/review/review-card";
 import { StarRating } from "@/components/review/star-rating";
+import { LikeShareBar } from "@/components/content/like-share-bar";
 import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
 import type { Category, Review } from "@/lib/api/types";
@@ -209,6 +210,8 @@ export default async function ReviewPage(props: PageProps<"/resenas/[slug]">) {
       <div className="mt-6 max-w-[70ch] text-base leading-relaxed whitespace-pre-line text-foreground">
         {review.body}
       </div>
+
+      <LikeShareBar contentType="reviews" slug={review.slug} initialLikeCount={review.likeCount} title={review.title} />
 
       {(relatedReviews.length > 0 || relatedPlaces.length > 0 || relatedArticles.length > 0) && (
         <div className="mt-14 max-w-none border-t border-border pt-10">

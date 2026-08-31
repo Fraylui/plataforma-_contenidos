@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,6 +15,9 @@ import pe.plataformacontenidos.directory.BusinessType;
 import pe.plataformacontenidos.directory.api.dto.BusinessResponse;
 import pe.plataformacontenidos.directory.api.dto.BusinessSummaryResponse;
 import pe.plataformacontenidos.directory.api.dto.PageResponse;
+import pe.plataformacontenidos.engagement.ContentLikeService;
+import pe.plataformacontenidos.engagement.ContentType;
+import pe.plataformacontenidos.engagement.LikeResponse;
 
 /** Solo contenido PUBLISHED — nada de estados intermedios visibles públicamente. */
 @RestController
@@ -23,9 +27,11 @@ public class BusinessPublicController {
     private static final int MAX_PAGE_SIZE = 50;
 
     private final BusinessService businessService;
+    private final ContentLikeService contentLikeService;
 
-    public BusinessPublicController(BusinessService businessService) {
+    public BusinessPublicController(BusinessService businessService, ContentLikeService contentLikeService) {
         this.businessService = businessService;
+        this.contentLikeService = contentLikeService;
     }
 
     @GetMapping
@@ -42,8 +48,16 @@ public class BusinessPublicController {
     }
 
     @GetMapping("/{slug}")
-    public BusinessResponse getBySlug(@PathVariable String slug) {
+    public BusinessResponse getBySlug(@PathVariable String slug, @RequestParam(required = false) UUID visitorId) {
         Business business = businessService.getPublishedBySlug(slug);
-        return BusinessResponse.from(business);
+        long likeCount = contentLikeService.countLikes(ContentType.BUSINESS, business.getId());
+        boolean likedByVisitor = visitorId != null && contentLikeService.isLikedBy(ContentType.BUSINESS, business.getId(), visitorId);
+        return BusinessResponse.from(business, likeCount, likedByVisitor);
+    }
+
+    @PostMapping("/{slug}/like")
+    public LikeResponse toggleLike(@PathVariable String slug, @RequestParam UUID visitorId) {
+        Business business = businessService.getPublishedBySlug(slug);
+        return LikeResponse.from(contentLikeService.toggleLike(ContentType.BUSINESS, business.getId(), visitorId));
     }
 }

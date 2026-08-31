@@ -16,6 +16,7 @@ import { businessTypeLabel } from "@/lib/content-labels";
 import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
 import { AdBlock } from "@/components/legal/ad-block";
+import { LikeShareBar } from "@/components/content/like-share-bar";
 import type { Business, Category } from "@/lib/api/types";
 
 const RELATED_SIZE = 4;
@@ -216,6 +217,8 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
       <div className="mt-10">
         <AdBlock position="article" />
       </div>
+
+      <LikeShareBar contentType="directory" slug={business.slug} initialLikeCount={business.likeCount} title={business.name} />
 
       {related.length > 0 && (
         <div className="mt-14 max-w-none border-t border-border pt-10">

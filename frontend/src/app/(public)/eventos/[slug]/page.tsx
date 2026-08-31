@@ -17,6 +17,7 @@ import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
 import { EventCard } from "@/components/event/event-card";
+import { LikeShareBar } from "@/components/content/like-share-bar";
 import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
 import type { Category, Event } from "@/lib/api/types";
@@ -216,6 +217,8 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
       <div className="mt-6 max-w-[70ch] text-base leading-relaxed whitespace-pre-line text-foreground">
         {event.body}
       </div>
+
+      <LikeShareBar contentType="events" slug={event.slug} initialLikeCount={event.likeCount} title={event.title} />
 
       {(relatedEvents.length > 0 || relatedPlaces.length > 0 || relatedArticles.length > 0) && (
         <div className="mt-14 max-w-none border-t border-border pt-10">
