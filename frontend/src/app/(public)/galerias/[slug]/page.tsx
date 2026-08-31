@@ -13,6 +13,7 @@ import { NotFoundError } from "@/lib/api/client";
 import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
 import { GalleryCard } from "@/components/gallery/gallery-card";
+import { LikeShareBar } from "@/components/content/like-share-bar";
 import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
 import type { Category, Gallery } from "@/lib/api/types";
@@ -167,6 +168,8 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
           />
         ))}
       </div>
+
+      <LikeShareBar contentType="galleries" slug={gallery.slug} initialLikeCount={gallery.likeCount} title={gallery.title} />
 
       {(relatedGalleries.length > 0 || relatedPlaces.length > 0 || relatedArticles.length > 0) && (
         <div className="mt-14 max-w-none border-t border-border pt-10">

@@ -5,9 +5,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import pe.plataformacontenidos.engagement.ContentLikeService;
+import pe.plataformacontenidos.engagement.ContentType;
+import pe.plataformacontenidos.engagement.LikeResponse;
 import pe.plataformacontenidos.galleries.Gallery;
 import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.galleries.api.dto.GalleryResponse;
@@ -22,9 +26,11 @@ public class GalleryPublicController {
     private static final int MAX_PAGE_SIZE = 50;
 
     private final GalleryService galleryService;
+    private final ContentLikeService contentLikeService;
 
-    public GalleryPublicController(GalleryService galleryService) {
+    public GalleryPublicController(GalleryService galleryService, ContentLikeService contentLikeService) {
         this.galleryService = galleryService;
+        this.contentLikeService = contentLikeService;
     }
 
     @GetMapping
@@ -40,8 +46,16 @@ public class GalleryPublicController {
     }
 
     @GetMapping("/{slug}")
-    public GalleryResponse getBySlug(@PathVariable String slug) {
+    public GalleryResponse getBySlug(@PathVariable String slug, @RequestParam(required = false) UUID visitorId) {
         Gallery gallery = galleryService.getPublishedBySlug(slug);
-        return GalleryResponse.from(gallery);
+        long likeCount = contentLikeService.countLikes(ContentType.GALLERY, gallery.getId());
+        boolean likedByVisitor = visitorId != null && contentLikeService.isLikedBy(ContentType.GALLERY, gallery.getId(), visitorId);
+        return GalleryResponse.from(gallery, likeCount, likedByVisitor);
+    }
+
+    @PostMapping("/{slug}/like")
+    public LikeResponse toggleLike(@PathVariable String slug, @RequestParam UUID visitorId) {
+        Gallery gallery = galleryService.getPublishedBySlug(slug);
+        return LikeResponse.from(contentLikeService.toggleLike(ContentType.GALLERY, gallery.getId(), visitorId));
     }
 }

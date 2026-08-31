@@ -17,7 +17,7 @@ import { NotFoundError } from "@/lib/api/client";
 import { articleTypeLabel, formatArticleDate, formatPublishedDate } from "@/lib/content-labels";
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { ArticleCard } from "@/components/article/article-card";
-import { ArticleActionsBar } from "@/components/article/article-actions-bar";
+import { LikeShareBar } from "@/components/content/like-share-bar";
 import { ReadingProgressBar } from "@/components/article/reading-progress-bar";
 import { PlaceCard } from "@/components/place/place-card";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -128,9 +128,18 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
         listPublishedPlaces({ categoryId: category.id, size: RELATED_SIZE }),
       ])
     : [null, null];
-  const relatedArticles = (relatedArticlesResult?.items ?? [])
+  let relatedArticles = (relatedArticlesResult?.items ?? [])
     .filter((a) => a.id !== article.id)
     .slice(0, RELATED_SIZE);
+  let relatedArticlesAreRecentFallback = false;
+  // Categorías con poco contenido todavía (como "Historia" con 1-2 artículos)
+  // no deben dejar la sección vacía — de faltar, se completa con las
+  // publicaciones más recientes del sitio en general, siempre datos reales.
+  if (relatedArticles.length === 0) {
+    const recent = await listPublishedArticles({ size: RELATED_SIZE + 1 }).catch(() => null);
+    relatedArticles = (recent?.items ?? []).filter((a) => a.id !== article.id).slice(0, RELATED_SIZE);
+    relatedArticlesAreRecentFallback = relatedArticles.length > 0;
+  }
   const relatedPlaces = relatedPlacesResult?.items ?? [];
 
   const hasSidebar = relatedPlaces.length > 0 || relatedArticles.length > 0;
@@ -219,8 +228,6 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
             )}
           </div>
 
-          <ArticleActionsBar slug={article.slug} initialLikeCount={article.likeCount} title={article.title} />
-
           {article.featuredImageId && (
             <div className="relative my-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-zinc-950 shadow-lg">
               <SkeletonImage
@@ -266,6 +273,8 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
               ))}
             </ul>
           )}
+
+          <LikeShareBar contentType="articles" slug={article.slug} initialLikeCount={article.likeCount} title={article.title} />
 
           {(neighbors.previous || neighbors.next) && (
             <nav aria-label="Navegación entre publicaciones" className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -316,9 +325,9 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
               )}
 
               {relatedArticles.length > 0 && (
-                <section aria-label="Más artículos">
+                <section aria-label="Más publicaciones">
                   <h2 className="text-lg font-semibold text-foreground">
-                    Más de {category!.name}
+                    {relatedArticlesAreRecentFallback ? "Publicaciones recientes" : `Más de ${category!.name}`}
                   </h2>
                   <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
                     {relatedArticles.map((related) => (

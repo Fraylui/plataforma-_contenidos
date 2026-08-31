@@ -5,9 +5,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import pe.plataformacontenidos.engagement.ContentLikeService;
+import pe.plataformacontenidos.engagement.ContentType;
+import pe.plataformacontenidos.engagement.LikeResponse;
 import pe.plataformacontenidos.reviews.Review;
 import pe.plataformacontenidos.reviews.ReviewService;
 import pe.plataformacontenidos.reviews.api.dto.PageResponse;
@@ -22,9 +26,11 @@ public class ReviewPublicController {
     private static final int MAX_PAGE_SIZE = 50;
 
     private final ReviewService reviewService;
+    private final ContentLikeService contentLikeService;
 
-    public ReviewPublicController(ReviewService reviewService) {
+    public ReviewPublicController(ReviewService reviewService, ContentLikeService contentLikeService) {
         this.reviewService = reviewService;
+        this.contentLikeService = contentLikeService;
     }
 
     @GetMapping
@@ -40,8 +46,16 @@ public class ReviewPublicController {
     }
 
     @GetMapping("/{slug}")
-    public ReviewResponse getBySlug(@PathVariable String slug) {
+    public ReviewResponse getBySlug(@PathVariable String slug, @RequestParam(required = false) UUID visitorId) {
         Review review = reviewService.getPublishedBySlug(slug);
-        return ReviewResponse.from(review);
+        long likeCount = contentLikeService.countLikes(ContentType.REVIEW, review.getId());
+        boolean likedByVisitor = visitorId != null && contentLikeService.isLikedBy(ContentType.REVIEW, review.getId(), visitorId);
+        return ReviewResponse.from(review, likeCount, likedByVisitor);
+    }
+
+    @PostMapping("/{slug}/like")
+    public LikeResponse toggleLike(@PathVariable String slug, @RequestParam UUID visitorId) {
+        Review review = reviewService.getPublishedBySlug(slug);
+        return LikeResponse.from(contentLikeService.toggleLike(ContentType.REVIEW, review.getId(), visitorId));
     }
 }

@@ -30,19 +30,21 @@ public record PlaceResponse(
         Instant publishedAt,
         Instant scheduledAt,
         Instant createdAt,
-        List<ArticleSummaryResponse> relatedArticles) {
+        List<ArticleSummaryResponse> relatedArticles,
+        long likeCount,
+        boolean likedByVisitor) {
 
-    public static PlaceResponse from(Place place, List<ArticleSummaryResponse> relatedArticles) {
+    public static PlaceResponse from(Place place, List<ArticleSummaryResponse> relatedArticles, long likeCount, boolean likedByVisitor) {
         return new PlaceResponse(place.getId(), place.getSlug(), place.getName(), place.getExcerpt(),
                 place.getBody(), place.getStatus(), place.getAuthorId(), place.getCategoryId(),
                 place.getGeographyId(), place.getLatitude(), place.getLongitude(), place.getImageIds(),
                 place.getSeoTitle(), place.getMetaDescription(), place.getCanonicalUrl(), place.getOgImageUrl(),
                 place.getYoutubeVideoId(), place.getRobots(), place.getRejectionReason(), place.getPublishedAt(),
-                place.getScheduledAt(), place.getCreatedAt(), relatedArticles);
+                place.getScheduledAt(), place.getCreatedAt(), relatedArticles, likeCount, likedByVisitor);
     }
 
-    /** Para respuestas admin (creación/edición/transiciones), sin costo de calcular relacionados. */
+    /** Para respuestas admin (creación/edición/transiciones), sin costo de calcular relacionados/likes. */
     public static PlaceResponse fromAdmin(Place place) {
-        return from(place, List.of());
+        return from(place, List.of(), 0, false);
     }
 }

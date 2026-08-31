@@ -38,18 +38,16 @@ public class ArticleService {
     private final TagService tagService;
     private final AuditService auditService;
     private final ImageService imageService;
-    private final ArticleLikeRepository articleLikeRepository;
 
     public ArticleService(ArticleRepository articleRepository, CategoryService categoryService,
             GeographicUnitService geographyService, TagService tagService, AuditService auditService,
-            ImageService imageService, ArticleLikeRepository articleLikeRepository) {
+            ImageService imageService) {
         this.articleRepository = articleRepository;
         this.categoryService = categoryService;
         this.geographyService = geographyService;
         this.tagService = tagService;
         this.auditService = auditService;
         this.imageService = imageService;
-        this.articleLikeRepository = articleLikeRepository;
     }
 
     public Article create(ArticleInput input, UUID authorId) {
@@ -208,28 +206,6 @@ public class ArticleService {
     }
 
     public record ArticleNeighbors(Article previous, Article next) {
-    }
-
-    public long countLikes(UUID articleId) {
-        return articleLikeRepository.countByArticleId(articleId);
-    }
-
-    public boolean isLikedBy(UUID articleId, UUID visitorId) {
-        return articleLikeRepository.findByArticleIdAndVisitorId(articleId, visitorId).isPresent();
-    }
-
-    /** Alterna el "me gusta" de un lector anónimo (identificado por visitorId, ver V28__article_likes.sql). Devuelve el nuevo estado (true = le gusta) y el contador actualizado. */
-    public LikeResult toggleLike(UUID articleId, UUID visitorId) {
-        var existing = articleLikeRepository.findByArticleIdAndVisitorId(articleId, visitorId);
-        if (existing.isPresent()) {
-            articleLikeRepository.delete(existing.get());
-        } else {
-            articleLikeRepository.save(new ArticleLike(articleId, visitorId));
-        }
-        return new LikeResult(existing.isEmpty(), articleLikeRepository.countByArticleId(articleId));
-    }
-
-    public record LikeResult(boolean liked, long likeCount) {
     }
 
     public Page<Article> listPublished(UUID categoryId, UUID geographyId, Pageable pageable) {
