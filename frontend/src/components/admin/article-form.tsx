@@ -158,7 +158,7 @@ export function ArticleForm({
       )}
 
       <div className="space-y-4">
-        <FormField label="Título">
+        <FormField label="Título" name="title">
           <input
             type="text"
             value={title}
@@ -168,7 +168,7 @@ export function ArticleForm({
           />
         </FormField>
 
-        <FormField label="Extracto (resumen corto, opcional)">
+        <FormField label="Extracto (resumen corto, opcional)" name="excerpt">
           <textarea
             value={excerpt}
             disabled={readOnly}
@@ -178,7 +178,7 @@ export function ArticleForm({
           />
         </FormField>
 
-        <FormField label="Contenido">
+        <FormField label="Contenido" name="body">
           <textarea
             value={body}
             disabled={readOnly}
@@ -189,7 +189,7 @@ export function ArticleForm({
         </FormField>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField label="Tipo">
+          <FormField label="Tipo" name="articleType">
             <select
               value={articleType}
               disabled={readOnly}
@@ -204,7 +204,7 @@ export function ArticleForm({
             </select>
           </FormField>
 
-          <FormField label="Categoría">
+          <FormField label="Categoría" name="categoryId">
             <select
               value={categoryId}
               disabled={readOnly}
@@ -220,15 +220,15 @@ export function ArticleForm({
           </FormField>
         </div>
 
-        <FormField label="Ubicación geográfica (opcional)">
+        <FormField label="Ubicación geográfica (opcional)" name="geographyId">
           <GeographyPicker initialChain={initialGeographyChain} onChange={setGeographyId} />
         </FormField>
 
-        <FormField label="Etiquetas">
+        <FormField label="Etiquetas" name="tags">
           <TagInput value={tags} onChange={setTags} />
         </FormField>
 
-        <FormField label="Foto destacada (opcional — se muestra en la tarjeta y la portada)">
+        <FormField label="Foto destacada (opcional — se muestra en la tarjeta y la portada)" name="featuredImageId">
           <ArticleFeaturedImagePicker
             allImages={allImages}
             value={featuredImageId}
@@ -237,7 +237,7 @@ export function ArticleForm({
           />
         </FormField>
 
-        <FormField label="Video de YouTube (URL, opcional)">
+        <FormField label="Video de YouTube (URL, opcional)" name="youtubeUrl">
           <input
             type="text"
             value={youtubeUrl}
@@ -253,6 +253,7 @@ export function ArticleForm({
           <label className="flex items-center gap-2 text-sm text-foreground">
             <input
               type="checkbox"
+              name="removeYoutube"
               checked={removeYoutube}
               disabled={readOnly}
               onChange={(e) => setRemoveYoutube(e.target.checked)}
@@ -264,21 +265,21 @@ export function ArticleForm({
 
       <fieldset className="space-y-4 border-t border-border pt-6">
         <legend className="text-sm font-medium text-foreground">SEO</legend>
-        <FormField label="Título SEO (opcional, si no se define usa el título)">
+        <FormField label="Título SEO (opcional, si no se define usa el título)" name="seoTitle">
           <input type="text" value={seoTitle} disabled={readOnly} onChange={(e) => setSeoTitle(e.target.value)} className={formInputClass} />
         </FormField>
-        <FormField label="Meta descripción (opcional)">
+        <FormField label="Meta descripción (opcional)" name="metaDescription">
           <textarea value={metaDescription} disabled={readOnly} onChange={(e) => setMetaDescription(e.target.value)} rows={2} className={formInputClass} />
         </FormField>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField label="URL canónica (opcional)">
+          <FormField label="URL canónica (opcional)" name="canonicalUrl">
             <input type="text" value={canonicalUrl} disabled={readOnly} onChange={(e) => setCanonicalUrl(e.target.value)} className={formInputClass} />
           </FormField>
-          <FormField label="Imagen para Open Graph (URL, opcional)">
+          <FormField label="Imagen para Open Graph (URL, opcional)" name="ogImageUrl">
             <input type="text" value={ogImageUrl} disabled={readOnly} onChange={(e) => setOgImageUrl(e.target.value)} className={formInputClass} />
           </FormField>
         </div>
-        <FormField label="Robots">
+        <FormField label="Robots" name="robots">
           <select value={robots} disabled={readOnly} onChange={(e) => setRobots(e.target.value)} className={formInputClass}>
             {ROBOTS_OPTIONS.map((option) => (
               <option key={option} value={option}>
@@ -353,7 +354,7 @@ export function ArticleForm({
 
           {permissions.canReject && (
             <div className="flex flex-wrap items-end gap-2">
-              <FormField label="Motivo de rechazo">
+              <FormField label="Motivo de rechazo" name="rejectReason">
                 <input
                   type="text"
                   value={rejectReason}
@@ -374,7 +375,7 @@ export function ArticleForm({
 
           {permissions.canSchedule && (
             <div className="flex flex-wrap items-end gap-2">
-              <FormField label="Programar publicación para">
+              <FormField label="Programar publicación para" name="scheduleAt">
                 <input
                   type="datetime-local"
                   value={scheduleAt}

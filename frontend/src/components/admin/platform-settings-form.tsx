@@ -70,17 +70,19 @@ function toInput(state: FormState): PlatformSettingsInput {
 
 function TextField({
   label,
+  name,
   value,
   onChange,
   type = "text",
 }: {
   label: string;
+  name: string;
   value: string;
   onChange: (value: string) => void;
   type?: string;
 }) {
   return (
-    <FormField label={label}>
+    <FormField label={label} name={name}>
       <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className={formInputClass} />
     </FormField>
   );
@@ -95,10 +97,12 @@ function TextField({
  */
 function ImageUrlField({
   label,
+  name,
   value,
   onChange,
 }: {
   label: string;
+  name: string;
   value: string;
   onChange: (value: string) => void;
 }) {
@@ -107,7 +111,7 @@ function ImageUrlField({
   }
 
   return (
-    <FormField label={label}>
+    <FormField label={label} name={name}>
       <div className="flex flex-wrap items-center gap-2">
         {value && (
           // eslint-disable-next-line @next/next/no-img-element -- vista previa de una URL arbitraria, no un asset local
@@ -161,16 +165,17 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
       <Section title="Identidad">
-        <TextField label="Nombre de la plataforma" value={state.name} onChange={(v) => set("name", v)} />
-        <ImageUrlField label="Logo" value={state.logoUrl} onChange={(v) => set("logoUrl", v)} />
-        <ImageUrlField label="Logo modo oscuro" value={state.logoDarkUrl} onChange={(v) => set("logoDarkUrl", v)} />
-        <ImageUrlField label="Favicon" value={state.faviconUrl} onChange={(v) => set("faviconUrl", v)} />
+        <TextField label="Nombre de la plataforma" name="name" value={state.name} onChange={(v) => set("name", v)} />
+        <ImageUrlField label="Logo" name="logoUrl" value={state.logoUrl} onChange={(v) => set("logoUrl", v)} />
+        <ImageUrlField label="Logo modo oscuro" name="logoDarkUrl" value={state.logoDarkUrl} onChange={(v) => set("logoDarkUrl", v)} />
+        <ImageUrlField label="Favicon" name="faviconUrl" value={state.faviconUrl} onChange={(v) => set("faviconUrl", v)} />
         <ImageUrlField
           label="Imagen para compartir / Open Graph"
+          name="ogImageUrl"
           value={state.ogImageUrl}
           onChange={(v) => set("ogImageUrl", v)}
         />
-        <FormField label="Descripción">
+        <FormField label="Descripción" name="description">
           <textarea
             value={state.description}
             onChange={(e) => set("description", e.target.value)}
@@ -181,7 +186,7 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
       </Section>
 
       <Section title="Apariencia">
-        <FormField label="Tema">
+        <FormField label="Tema" name="theme">
           <select
             value={state.theme}
             onChange={(e) => set("theme", e.target.value as FormState["theme"])}
@@ -195,13 +200,14 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
       </Section>
 
       <Section title="SEO por defecto">
-        <TextField label="Título por defecto" value={state.seoDefaultTitle} onChange={(v) => set("seoDefaultTitle", v)} />
+        <TextField label="Título por defecto" name="seoDefaultTitle" value={state.seoDefaultTitle} onChange={(v) => set("seoDefaultTitle", v)} />
         <TextField
           label="Imagen social por defecto (URL)"
+          name="seoDefaultImageUrl"
           value={state.seoDefaultImageUrl}
           onChange={(v) => set("seoDefaultImageUrl", v)}
         />
-        <FormField label="Meta descripción por defecto">
+        <FormField label="Meta descripción por defecto" name="seoDefaultDescription">
           <textarea
             value={state.seoDefaultDescription}
             onChange={(e) => set("seoDefaultDescription", e.target.value)}
@@ -211,6 +217,7 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
         </FormField>
         <TextField
           label="Google Search Console (verificación)"
+          name="googleSearchConsoleVerification"
           value={state.googleSearchConsoleVerification}
           onChange={(v) => set("googleSearchConsoleVerification", v)}
         />
@@ -219,6 +226,7 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
       <Section title="Contacto">
         <TextField
           label="Correo de contacto"
+          name="contactEmail"
           type="email"
           value={state.contactEmail}
           onChange={(v) => set("contactEmail", v)}
@@ -237,17 +245,20 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
         </label>
         <TextField
           label="AdSense Client ID"
+          name="adsenseClientId"
           value={state.adsenseClientId}
           onChange={(v) => set("adsenseClientId", v)}
         />
-        <TextField label="Analytics ID" value={state.analyticsId} onChange={(v) => set("analyticsId", v)} />
+        <TextField label="Analytics ID" name="analyticsId" value={state.analyticsId} onChange={(v) => set("analyticsId", v)} />
         <TextField
           label="Slot de anuncio — detalle de contenido"
+          name="adsenseSlotArticle"
           value={state.adsenseSlotArticle}
           onChange={(v) => set("adsenseSlotArticle", v)}
         />
         <TextField
           label="Slot de anuncio — listados"
+          name="adsenseSlotListing"
           value={state.adsenseSlotListing}
           onChange={(v) => set("adsenseSlotListing", v)}
         />

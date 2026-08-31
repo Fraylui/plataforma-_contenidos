@@ -45,6 +45,7 @@ export function DataTable<TData>({ columns, data, searchPlaceholder = "Buscar…
         <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
         <input
           type="search"
+          name="tableSearch"
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
           placeholder={searchPlaceholder}

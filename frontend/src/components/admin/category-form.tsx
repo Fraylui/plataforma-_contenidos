@@ -40,15 +40,15 @@ export function CategoryForm({ mode, category, parentOptions }: CategoryFormProp
 
   return (
     <div className="max-w-lg space-y-4">
-      <FormField label="Nombre">
+      <FormField label="Nombre" name="name">
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={formInputClass} />
       </FormField>
 
-      <FormField label="Descripción (opcional)">
+      <FormField label="Descripción (opcional)" name="description">
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className={formInputClass} />
       </FormField>
 
-      <FormField label="Categoría padre (opcional, para subcategorías)">
+      <FormField label="Categoría padre (opcional, para subcategorías)" name="parentId">
         <select value={parentId} onChange={(e) => setParentId(e.target.value)} className={formInputClass}>
           <option value="">Ninguna (categoría raíz)</option>
           {parentOptions.map((option) => (
@@ -61,7 +61,7 @@ export function CategoryForm({ mode, category, parentOptions }: CategoryFormProp
       </FormField>
 
       {mode === "edit" && (
-        <FormField label="Orden">
+        <FormField label="Orden" name="sortOrder">
           <input
             type="number"
             value={sortOrder}

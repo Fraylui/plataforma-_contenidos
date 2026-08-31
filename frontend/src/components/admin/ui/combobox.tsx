@@ -68,6 +68,7 @@ export function Combobox({
             <div className="flex items-center gap-2 border-b border-border px-2.5">
               <Search className="h-3.5 w-3.5 shrink-0 text-muted" aria-hidden="true" />
               <Command.Input
+                name="comboboxSearch"
                 value={query}
                 onValueChange={setQuery}
                 placeholder={searchPlaceholder}

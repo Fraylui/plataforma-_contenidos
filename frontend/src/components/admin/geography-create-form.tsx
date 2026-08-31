@@ -38,7 +38,7 @@ export function GeographyCreateForm({ allUnits }: { allUnits: GeographicUnit[] }
 
   return (
     <div className="max-w-lg space-y-4">
-      <FormField label="Nivel">
+      <FormField label="Nivel" name="level">
         <select
           value={level}
           onChange={(e) => {
@@ -56,7 +56,7 @@ export function GeographyCreateForm({ allUnits }: { allUnits: GeographicUnit[] }
       </FormField>
 
       {needsParent && (
-        <FormField label={`${geographyLevelLabel(LEVELS[LEVELS.indexOf(level) - 1])} (padre)`}>
+        <FormField label={`${geographyLevelLabel(LEVELS[LEVELS.indexOf(level) - 1])} (padre)`} name="parentId">
           <select value={parentId} onChange={(e) => setParentId(e.target.value)} className={formInputClass}>
             <option value="">Selecciona…</option>
             {candidates.map((unit) => (
@@ -73,7 +73,7 @@ export function GeographyCreateForm({ allUnits }: { allUnits: GeographicUnit[] }
         </FormField>
       )}
 
-      <FormField label="Nombre">
+      <FormField label="Nombre" name="name">
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={formInputClass} />
       </FormField>
 
