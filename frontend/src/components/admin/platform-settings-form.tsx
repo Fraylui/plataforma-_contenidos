@@ -118,6 +118,8 @@ function ImageUrlField({
           <img src={value} alt="" className="h-9 w-9 shrink-0 rounded border border-border object-contain" />
         )}
         <input
+          id={name}
+          name={name}
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -237,6 +239,7 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
         <label className="flex items-center gap-2 text-sm font-medium text-foreground">
           <input
             type="checkbox"
+            name="adsenseEnabled"
             checked={state.adsenseEnabled}
             onChange={(e) => set("adsenseEnabled", e.target.checked)}
             className="h-4 w-4 rounded border-border"
