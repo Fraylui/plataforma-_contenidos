@@ -56,6 +56,7 @@ export function ImageCard({ image, canManage }: { image: AdminImage; canManage: 
           <>
             <input
               type="text"
+              name="altText"
               value={altText}
               onChange={(e) => setAltText(e.target.value)}
               placeholder="Texto alternativo"

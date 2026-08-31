@@ -53,6 +53,7 @@ export function InlineImageUpload({
         <input
           ref={inputRef}
           type="file"
+          name="file"
           accept="image/*"
           className="sr-only"
           disabled={disabled || pending}

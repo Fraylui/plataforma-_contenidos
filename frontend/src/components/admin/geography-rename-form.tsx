@@ -26,7 +26,7 @@ export function GeographyRenameForm({ unit }: { unit: GeographicUnit }) {
 
   return (
     <div className="max-w-md space-y-4">
-      <FormField label="Nombre">
+      <FormField label="Nombre" name="name">
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={formInputClass} />
       </FormField>
 

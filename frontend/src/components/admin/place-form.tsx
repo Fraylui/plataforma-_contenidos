@@ -128,19 +128,19 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
       )}
 
       <div className="space-y-4">
-        <FormField label="Nombre">
+        <FormField label="Nombre" name="name">
           <input type="text" value={name} disabled={readOnly} onChange={(e) => setName(e.target.value)} className={formInputClass} />
         </FormField>
 
-        <FormField label="Descripción breve (opcional)">
+        <FormField label="Descripción breve (opcional)" name="excerpt">
           <textarea value={excerpt} disabled={readOnly} onChange={(e) => setExcerpt(e.target.value)} rows={2} className={formInputClass} />
         </FormField>
 
-        <FormField label="Historia / descripción completa">
+        <FormField label="Historia / descripción completa" name="body">
           <textarea value={body} disabled={readOnly} onChange={(e) => setBody(e.target.value)} rows={14} className={formInputClass} />
         </FormField>
 
-        <FormField label="Categoría">
+        <FormField label="Categoría" name="categoryId">
           <select value={categoryId} disabled={readOnly} onChange={(e) => setCategoryId(e.target.value)} className={formInputClass}>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -150,12 +150,12 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
           </select>
         </FormField>
 
-        <FormField label="Ubicación geográfica (opcional)">
+        <FormField label="Ubicación geográfica (opcional)" name="geographyId">
           <GeographyPicker initialChain={initialGeographyChain} onChange={setGeographyId} />
         </FormField>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField label="Latitud (opcional)">
+          <FormField label="Latitud (opcional)" name="latitude">
             <input
               type="number"
               step="any"
@@ -168,7 +168,7 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
               className={formInputClass}
             />
           </FormField>
-          <FormField label="Longitud (opcional)">
+          <FormField label="Longitud (opcional)" name="longitude">
             <input
               type="number"
               step="any"
@@ -183,11 +183,11 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
           </FormField>
         </div>
 
-        <FormField label="Fotografías">
+        <FormField label="Fotografías" name="imageIds">
           <PlaceGalleryPicker allImages={allImages} value={imageIds} onChange={setImageIds} disabled={readOnly} />
         </FormField>
 
-        <FormField label="Video de YouTube (URL, opcional)">
+        <FormField label="Video de YouTube (URL, opcional)" name="youtubeUrl">
           <input
             type="text"
             value={youtubeUrl}
@@ -207,21 +207,21 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
 
       <fieldset className="space-y-4 border-t border-border pt-6">
         <legend className="text-sm font-medium text-foreground">SEO</legend>
-        <FormField label="Título SEO (opcional, si no se define usa el nombre)">
+        <FormField label="Título SEO (opcional, si no se define usa el nombre)" name="seoTitle">
           <input type="text" value={seoTitle} disabled={readOnly} onChange={(e) => setSeoTitle(e.target.value)} className={formInputClass} />
         </FormField>
-        <FormField label="Meta descripción (opcional)">
+        <FormField label="Meta descripción (opcional)" name="metaDescription">
           <textarea value={metaDescription} disabled={readOnly} onChange={(e) => setMetaDescription(e.target.value)} rows={2} className={formInputClass} />
         </FormField>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField label="URL canónica (opcional)">
+          <FormField label="URL canónica (opcional)" name="canonicalUrl">
             <input type="text" value={canonicalUrl} disabled={readOnly} onChange={(e) => setCanonicalUrl(e.target.value)} className={formInputClass} />
           </FormField>
-          <FormField label="Imagen para Open Graph (URL, opcional)">
+          <FormField label="Imagen para Open Graph (URL, opcional)" name="ogImageUrl">
             <input type="text" value={ogImageUrl} disabled={readOnly} onChange={(e) => setOgImageUrl(e.target.value)} className={formInputClass} />
           </FormField>
         </div>
-        <FormField label="Robots">
+        <FormField label="Robots" name="robots">
           <select value={robots} disabled={readOnly} onChange={(e) => setRobots(e.target.value)} className={formInputClass}>
             {ROBOTS_OPTIONS.map((option) => (
               <option key={option} value={option}>
@@ -276,7 +276,7 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
 
           {permissions.canReject && (
             <div className="flex flex-wrap items-end gap-2">
-              <FormField label="Motivo de rechazo">
+              <FormField label="Motivo de rechazo" name="rejectReason">
                 <input type="text" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className={formInputClass} />
               </FormField>
               <AdminButton
@@ -292,7 +292,7 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
 
           {permissions.canSchedule && (
             <div className="flex flex-wrap items-end gap-2">
-              <FormField label="Programar publicación para">
+              <FormField label="Programar publicación para" name="scheduleAt">
                 <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} className={formInputClass} />
               </FormField>
               <AdminButton

@@ -154,19 +154,19 @@ export function BusinessForm({
       )}
 
       <div className="space-y-4">
-        <FormField label="Nombre del negocio">
+        <FormField label="Nombre del negocio" name="name">
           <input type="text" value={name} disabled={readOnly} onChange={(e) => setName(e.target.value)} className={formInputClass} />
         </FormField>
 
-        <FormField label="Descripción breve (opcional)">
+        <FormField label="Descripción breve (opcional)" name="excerpt">
           <textarea value={excerpt} disabled={readOnly} onChange={(e) => setExcerpt(e.target.value)} rows={2} className={formInputClass} />
         </FormField>
 
-        <FormField label="Descripción completa">
+        <FormField label="Descripción completa" name="body">
           <textarea value={body} disabled={readOnly} onChange={(e) => setBody(e.target.value)} rows={10} className={formInputClass} />
         </FormField>
 
-        <FormField label="Tipo de negocio">
+        <FormField label="Tipo de negocio" name="businessType">
           <select
             value={businessType}
             disabled={readOnly}
@@ -181,7 +181,7 @@ export function BusinessForm({
           </select>
         </FormField>
 
-        <FormField label="Categoría">
+        <FormField label="Categoría" name="categoryId">
           <select value={categoryId} disabled={readOnly} onChange={(e) => setCategoryId(e.target.value)} className={formInputClass}>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -191,11 +191,11 @@ export function BusinessForm({
           </select>
         </FormField>
 
-        <FormField label="Ubicación geográfica (opcional)">
+        <FormField label="Ubicación geográfica (opcional)" name="geographyId">
           <GeographyPicker initialChain={initialGeographyChain} onChange={setGeographyId} />
         </FormField>
 
-        <FormField label="Lugar vinculado (opcional, si ya existe en Lugares)">
+        <FormField label="Lugar vinculado (opcional, si ya existe en Lugares)" name="placeId">
           <select value={placeId} disabled={readOnly} onChange={(e) => setPlaceId(e.target.value)} className={formInputClass}>
             <option value="">Sin lugar (especificar dirección abajo)</option>
             {places.map((place) => (
@@ -206,7 +206,7 @@ export function BusinessForm({
           </select>
         </FormField>
 
-        <FormField label="Dirección (opcional, texto libre)">
+        <FormField label="Dirección (opcional, texto libre)" name="address">
           <input
             type="text"
             value={address}
@@ -218,20 +218,20 @@ export function BusinessForm({
         </FormField>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField label="Teléfono (opcional)">
+          <FormField label="Teléfono (opcional)" name="phone">
             <input type="text" value={phone} disabled={readOnly} onChange={(e) => setPhone(e.target.value)} className={formInputClass} />
           </FormField>
-          <FormField label="Correo (opcional)">
+          <FormField label="Correo (opcional)" name="email">
             <input type="email" value={email} disabled={readOnly} onChange={(e) => setEmail(e.target.value)} className={formInputClass} />
           </FormField>
         </div>
 
-        <FormField label="Sitio web (opcional)">
+        <FormField label="Sitio web (opcional)" name="website">
           <input type="text" value={website} disabled={readOnly} onChange={(e) => setWebsite(e.target.value)} className={formInputClass} />
         </FormField>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField label="Latitud (opcional)">
+          <FormField label="Latitud (opcional)" name="latitude">
             <input
               type="number"
               step="any"
@@ -244,7 +244,7 @@ export function BusinessForm({
               className={formInputClass}
             />
           </FormField>
-          <FormField label="Longitud (opcional)">
+          <FormField label="Longitud (opcional)" name="longitude">
             <input
               type="number"
               step="any"
@@ -259,11 +259,11 @@ export function BusinessForm({
           </FormField>
         </div>
 
-        <FormField label="Fotografías (opcional)">
+        <FormField label="Fotografías (opcional)" name="imageIds">
           <PlaceGalleryPicker allImages={allImages} value={imageIds} onChange={setImageIds} disabled={readOnly} />
         </FormField>
 
-        <FormField label="Video de YouTube (URL, opcional)">
+        <FormField label="Video de YouTube (URL, opcional)" name="youtubeUrl">
           <input
             type="text"
             value={youtubeUrl}
@@ -283,21 +283,21 @@ export function BusinessForm({
 
       <fieldset className="space-y-4 border-t border-border pt-6">
         <legend className="text-sm font-medium text-foreground">SEO</legend>
-        <FormField label="Título SEO (opcional, si no se define usa el nombre)">
+        <FormField label="Título SEO (opcional, si no se define usa el nombre)" name="seoTitle">
           <input type="text" value={seoTitle} disabled={readOnly} onChange={(e) => setSeoTitle(e.target.value)} className={formInputClass} />
         </FormField>
-        <FormField label="Meta descripción (opcional)">
+        <FormField label="Meta descripción (opcional)" name="metaDescription">
           <textarea value={metaDescription} disabled={readOnly} onChange={(e) => setMetaDescription(e.target.value)} rows={2} className={formInputClass} />
         </FormField>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField label="URL canónica (opcional)">
+          <FormField label="URL canónica (opcional)" name="canonicalUrl">
             <input type="text" value={canonicalUrl} disabled={readOnly} onChange={(e) => setCanonicalUrl(e.target.value)} className={formInputClass} />
           </FormField>
-          <FormField label="Imagen para Open Graph (URL, opcional)">
+          <FormField label="Imagen para Open Graph (URL, opcional)" name="ogImageUrl">
             <input type="text" value={ogImageUrl} disabled={readOnly} onChange={(e) => setOgImageUrl(e.target.value)} className={formInputClass} />
           </FormField>
         </div>
-        <FormField label="Robots">
+        <FormField label="Robots" name="robots">
           <select value={robots} disabled={readOnly} onChange={(e) => setRobots(e.target.value)} className={formInputClass}>
             {ROBOTS_OPTIONS.map((option) => (
               <option key={option} value={option}>
@@ -352,7 +352,7 @@ export function BusinessForm({
 
           {permissions.canReject && (
             <div className="flex flex-wrap items-end gap-2">
-              <FormField label="Motivo de rechazo">
+              <FormField label="Motivo de rechazo" name="rejectReason">
                 <input type="text" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className={formInputClass} />
               </FormField>
               <AdminButton
@@ -368,7 +368,7 @@ export function BusinessForm({
 
           {permissions.canSchedule && (
             <div className="flex flex-wrap items-end gap-2">
-              <FormField label="Programar publicación para">
+              <FormField label="Programar publicación para" name="scheduleAt">
                 <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} className={formInputClass} />
               </FormField>
               <AdminButton

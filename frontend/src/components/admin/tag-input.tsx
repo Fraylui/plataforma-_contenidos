@@ -51,6 +51,7 @@ export function TagInput({ value, onChange }: { value: string[]; onChange: (tags
       ))}
       <input
         type="text"
+        name="tagDraft"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={handleKeyDown}
