@@ -190,7 +190,7 @@ export function GalleryForm({
 
       {mode === "edit" && gallery && permissions && (
         <div className="space-y-4 border-t border-border pt-6">
-          <h2 className="text-sm font-medium text-foreground">Flujo editorial</h2>
+          <h2 className="text-sm font-medium text-foreground">Flujo de publicación</h2>
           <div className="flex flex-wrap gap-2">
             {permissions.canSubmit && (
               <AdminButton type="button" variant="secondary" disabled={pending} onClick={() => runWorkflow(() => submitGalleryAction(gallery.id), "Enviada a revisión.")}>

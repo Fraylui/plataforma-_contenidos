@@ -62,20 +62,20 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
       <dl className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <EditionFigure label="Publicados" value={stats.articlesByStatus.PUBLISHED} />
         <EditionFigure label="Últimos 30 días" value={stats.articlesPublishedLast30Days} />
-        <EditionFigure label="En redacción" value={inProgress} />
+        <EditionFigure label="En preparación" value={inProgress} />
         <EditionFigure label="Usuarios activos" value={stats.activeUsers} />
       </dl>
 
-      {/* La firma de la página: la línea editorial como barra de producción, no un donut genérico. */}
+      {/* La firma de la página: el flujo de publicación como barra proporcional, no un donut genérico. */}
       <section className="mt-8 rounded-lg border border-border bg-surface p-6 shadow-sm">
-        <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Línea editorial</h2>
+        <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Flujo de publicación</h2>
 
         {pipelineTotal === 0 ? (
-          <p className="mt-3 text-sm text-muted">Todavía no hay artículos en producción.</p>
+          <p className="mt-3 text-sm text-muted">Todavía no hay publicaciones en curso.</p>
         ) : (
           <>
             <div className="mt-3 flex h-8 w-full overflow-hidden rounded-sm border border-border" role="img"
-              aria-label={`Distribución editorial: ${PIPELINE.map((s) => `${articleStatusLabel(s)} ${stats.articlesByStatus[s] ?? 0}`).join(", ")}`}>
+              aria-label={`Distribución del flujo de publicación: ${PIPELINE.map((s) => `${articleStatusLabel(s)} ${stats.articlesByStatus[s] ?? 0}`).join(", ")}`}>
               {PIPELINE.map((status) => {
                 const count = stats.articlesByStatus[status] ?? 0;
                 if (count === 0) return null;
