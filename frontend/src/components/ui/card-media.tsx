@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { imageUrl } from "@/lib/image-url";
+import { serverImageUrl } from "@/lib/server-image-url";
 import { NoImagePlaceholder } from "./no-image-placeholder";
 import { SkeletonImage } from "./skeleton-image";
 
@@ -30,7 +30,7 @@ export function CardMedia({
       {children ??
         (imageId ? (
           <SkeletonImage
-            src={imageUrl(`/api/v1/images/${imageId}/file`)}
+            src={serverImageUrl(`/api/v1/images/${imageId}/file`)}
             alt={alt}
             className="object-cover group-hover:scale-105"
           />

@@ -5,7 +5,7 @@ import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
 import { EventCard } from "@/components/event/event-card";
 import { articleTypeLabel } from "@/lib/content-labels";
-import { imageUrl } from "@/lib/image-url";
+import { serverImageUrl } from "@/lib/server-image-url";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
 import { SkeletonImage } from "@/components/ui/skeleton-image";
 
@@ -71,7 +71,7 @@ export default async function Home() {
           >
             {featuredArticle.featuredImageId ? (
               <SkeletonImage
-                src={imageUrl(`/api/v1/images/${featuredArticle.featuredImageId}/file`)}
+                src={serverImageUrl(`/api/v1/images/${featuredArticle.featuredImageId}/file`)}
                 alt={featuredArticle.title}
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
                 sizes="(min-width: 1024px) 58vw, 100vw"
@@ -107,7 +107,7 @@ export default async function Home() {
                   <div className="relative aspect-square w-24 shrink-0 overflow-hidden rounded-xl sm:w-28">
                     {article.featuredImageId ? (
                       <SkeletonImage
-                        src={imageUrl(`/api/v1/images/${article.featuredImageId}/file`)}
+                        src={serverImageUrl(`/api/v1/images/${article.featuredImageId}/file`)}
                         alt={article.title}
                         className="object-cover"
                         sizes="112px"

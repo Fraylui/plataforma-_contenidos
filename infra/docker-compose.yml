@@ -112,6 +112,13 @@ services:
         # comentario en frontend/Dockerfile.
         NEXT_PUBLIC_BACKEND_ASSET_URL: ${NEXT_PUBLIC_BACKEND_ASSET_URL:-http://localhost:8080}
         BACKEND_API_URL: http://localhost:${SERVER_PORT:-8080}
+        # Valor fijo (no depende de la red "host" del build, a diferencia de
+        # BACKEND_API_URL de arriba) — es el mismo host:puerto que
+        # environment.BACKEND_API_URL de abajo usa en runtime. next.config.ts
+        # lo necesita en build time para el allowlist de next/image
+        # (images.remotePatterns es config estática, no se puede recalcular
+        # en runtime) — ver comentario en next.config.ts.
+        RUNTIME_BACKEND_INTERNAL_URL: http://backend:8080
     restart: unless-stopped
     depends_on:
       backend:
