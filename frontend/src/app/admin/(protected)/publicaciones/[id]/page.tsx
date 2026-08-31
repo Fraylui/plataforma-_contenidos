@@ -31,7 +31,7 @@ async function resolveCategories(activeCategories: Category[], categoryId: strin
   return current ? [current, ...activeCategories] : activeCategories;
 }
 
-export default async function EditArticlePage(props: PageProps<"/admin/articulos/[id]">) {
+export default async function EditArticlePage(props: PageProps<"/admin/publicaciones/[id]">) {
   const { id } = await props.params;
   const { user, accessToken } = await requireAdminUser();
 

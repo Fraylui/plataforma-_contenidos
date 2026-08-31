@@ -196,7 +196,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
           <ul className="mt-4 space-y-3">
             {place.relatedArticles.map((article) => (
               <li key={article.id}>
-                <Link href={`/articulos/${article.slug}`} className="text-sm font-medium text-foreground hover:text-accent">
+                <Link href={`/publicaciones/${article.slug}`} className="text-sm font-medium text-foreground hover:text-accent">
                   {article.title}
                 </Link>
               </li>

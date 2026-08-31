@@ -58,6 +58,15 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  // /articulos -> /publicaciones: renombrado 2026-08-30 (ver feedback_no_articulo_editorial_naming).
+  // Redirect 301 para no perder el SEO de URLs ya indexadas bajo el nombre anterior.
+  async redirects() {
+    return [
+      { source: "/articulos", destination: "/publicaciones", permanent: true },
+      { source: "/articulos/:slug", destination: "/publicaciones/:slug", permanent: true },
+    ];
+  },
+
   async headers() {
     return [
       {

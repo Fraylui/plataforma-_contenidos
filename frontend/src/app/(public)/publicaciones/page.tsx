@@ -7,7 +7,7 @@ import { ListingFilters } from "@/components/filters/listing-filters";
 import { resolveGeographyChain } from "@/lib/geography-chain";
 
 const PAGE_SIZE = 24;
-const BASE_PATH = "/articulos";
+const BASE_PATH = "/publicaciones";
 
 export const metadata: Metadata = {
   title: "Publicaciones",
@@ -22,7 +22,7 @@ function buildHref(categoryId: string | null, geographyId: string | null, page: 
   return query ? `${BASE_PATH}?${query}` : BASE_PATH;
 }
 
-export default async function ArticlesPage(props: PageProps<"/articulos">) {
+export default async function ArticlesPage(props: PageProps<"/publicaciones">) {
   const { page: pageParam, categoryId: categoryIdParam, geographyId: geographyIdParam } = await props.searchParams;
   const page = typeof pageParam === "string" ? Math.max(0, parseInt(pageParam, 10) || 0) : 0;
   const categoryId = typeof categoryIdParam === "string" ? categoryIdParam : null;

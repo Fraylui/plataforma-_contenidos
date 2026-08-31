@@ -29,15 +29,23 @@ public record ArticleResponse(
         String rejectionReason,
         Instant publishedAt,
         Instant scheduledAt,
-        Instant createdAt) {
+        Instant createdAt,
+        Instant updatedAt,
+        long likeCount,
+        boolean likedByVisitor) {
 
-    public static ArticleResponse from(Article article) {
+    public static ArticleResponse from(Article article, long likeCount, boolean likedByVisitor) {
         return new ArticleResponse(article.getId(), article.getSlug(), article.getTitle(), article.getExcerpt(),
                 article.getBody(), article.getArticleType(), article.getStatus(), article.getAuthorId(),
                 article.getCategoryId(), article.getGeographyId(), article.getTagIds(), article.getSeoTitle(),
                 article.getMetaDescription(), article.getCanonicalUrl(), article.getOgImageUrl(),
                 article.getFeaturedImageId(), article.getYoutubeVideoId(), article.getRobots(),
                 article.getRejectionReason(), article.getPublishedAt(), article.getScheduledAt(),
-                article.getCreatedAt());
+                article.getCreatedAt(), article.getUpdatedAt(), likeCount, likedByVisitor);
+    }
+
+    /** Para contextos sin visitorId (admin) — sin señal de "me gusta" propio. */
+    public static ArticleResponse from(Article article) {
+        return from(article, 0, false);
     }
 }

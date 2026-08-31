@@ -20,7 +20,7 @@ import {
   submitArticleAction,
   updateArticleAction,
   type ActionResult,
-} from "@/app/admin/(protected)/articulos/actions";
+} from "@/app/admin/(protected)/publicaciones/actions";
 
 const ARTICLE_TYPES: ArticleType[] = [
   "ARTICULO",
@@ -307,7 +307,7 @@ export function ArticleForm({
 
       {mode === "edit" && article && permissions && (
         <div className="space-y-4 border-t border-border pt-6">
-          <h2 className="text-sm font-medium text-foreground">Flujo editorial</h2>
+          <h2 className="text-sm font-medium text-foreground">Flujo de publicación</h2>
           <div className="flex flex-wrap gap-2">
             {permissions.canSubmit && (
               <AdminButton

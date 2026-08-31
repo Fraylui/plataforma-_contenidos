@@ -17,7 +17,7 @@ const TYPE_LABEL: Record<SearchResult["contentType"], string> = {
  * visual que ArticleCard/PlaceCard, con la URL armada según `contentType`.
  */
 const CONTENT_TYPE_PATH: Record<SearchResult["contentType"], string> = {
-  ARTICLE: "articulos",
+  ARTICLE: "publicaciones",
   PLACE: "lugares",
   EVENT: "eventos",
   GALLERY: "galerias",

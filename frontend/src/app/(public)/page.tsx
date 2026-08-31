@@ -66,7 +66,7 @@ export default async function Home() {
       {featuredArticle && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <Link
-            href={`/articulos/${featuredArticle.slug}`}
+            href={`/publicaciones/${featuredArticle.slug}`}
             className="group relative aspect-[16/10] overflow-hidden rounded-2xl border border-border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl lg:col-span-7"
           >
             {featuredArticle.featuredImageId ? (
@@ -101,7 +101,7 @@ export default async function Home() {
               {secondaryArticles.map((article) => (
                 <Link
                   key={article.id}
-                  href={`/articulos/${article.slug}`}
+                  href={`/publicaciones/${article.slug}`}
                   className="group flex gap-4 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                 >
                   <div className="relative aspect-square w-24 shrink-0 overflow-hidden rounded-xl sm:w-28">
@@ -158,7 +158,7 @@ export default async function Home() {
       )}
 
       <section aria-label="Publicaciones recientes">
-        <SectionHeader title="Publicaciones recientes" href={articlesPage.items.length > 0 ? "/articulos" : undefined} />
+        <SectionHeader title="Publicaciones recientes" href={articlesPage.items.length > 0 ? "/publicaciones" : undefined} />
         {articlesPage.items.length === 0 ? (
           <EmptyState />
         ) : recentArticles.length === 0 ? (
