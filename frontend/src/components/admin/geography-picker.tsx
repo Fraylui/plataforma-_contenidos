@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import type { GeographicUnit, GeographyLevel } from "@/lib/api/types";
 import { createGeographyInlineAction } from "@/app/admin/(protected)/geografia/actions";
-
-const NEW_OPTION_VALUE = "__new__";
+import { Combobox } from "@/components/admin/ui";
 
 const LEVELS: { level: GeographyLevel; label: string }[] = [
   { level: "PAIS", label: "País" },
@@ -44,9 +43,7 @@ export function GeographyPicker({
   });
   const [options, setOptions] = useState<GeographicUnit[][]>(() => LEVELS.map(() => []));
   const [loading, setLoading] = useState(0);
-  const [creatingLevel, setCreatingLevel] = useState<number | null>(null);
-  const [newName, setNewName] = useState("");
-  const [createError, setCreateError] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<{ level: number; message: string } | null>(null);
 
   // Carga las opciones del primer nivel al montar, y las del resto de la
   // cadena inicial (para poder mostrar el valor precargado en edición).
@@ -77,14 +74,9 @@ export function GeographyPicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function handleSelect(levelIndex: number, unitId: string) {
-    if (unitId === NEW_OPTION_VALUE) {
-      setCreatingLevel(levelIndex);
-      setNewName("");
-      setCreateError(null);
-      return;
-    }
-    const unit = options[levelIndex].find((u) => u.id === unitId) ?? null;
+  async function handleSelect(levelIndex: number, unitId: string | null) {
+    setCreateError(null);
+    const unit = unitId ? (options[levelIndex].find((u) => u.id === unitId) ?? null) : null;
 
     const nextSelected = [...selected];
     nextSelected[levelIndex] = unit;
@@ -117,16 +109,14 @@ export function GeographyPicker({
     }
   }
 
-  async function handleCreate(levelIndex: number) {
-    const name = newName.trim();
-    if (!name) return;
+  async function handleCreate(levelIndex: number, name: string) {
     const parentId = levelIndex > 0 ? (selected[levelIndex - 1]?.id ?? null) : null;
     setLoading((n) => n + 1);
     setCreateError(null);
     const result = await createGeographyInlineAction({ name, level: LEVELS[levelIndex].level, parentId });
     setLoading((n) => n - 1);
     if (!result.ok) {
-      setCreateError(result.error);
+      setCreateError({ level: levelIndex, message: result.error });
       return;
     }
     const unit = result.data;
@@ -135,7 +125,6 @@ export function GeographyPicker({
       next[levelIndex] = [...next[levelIndex], unit];
       return next;
     });
-    setCreatingLevel(null);
     const nextSelected = [...selected];
     nextSelected[levelIndex] = unit;
     for (let i = levelIndex + 1; i < LEVELS.length; i++) nextSelected[i] = null;
@@ -155,56 +144,23 @@ export function GeographyPicker({
         {LEVELS.map((levelInfo, i) => {
           const disabled = i > 0 && !selected[i - 1];
           return (
-            <select
+            <Combobox
               key={levelInfo.level}
-              id={`geography-picker-${levelInfo.level.toLowerCase()}`}
-              name={levelInfo.level.toLowerCase()}
-              aria-label={levelInfo.label}
               disabled={disabled || loading > 0}
-              value={selected[i]?.id ?? ""}
-              onChange={(e) => handleSelect(i, e.target.value)}
-              className="rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground outline-none focus-visible:border-accent disabled:opacity-50"
-            >
-              <option value="">{levelInfo.label}…</option>
-              {options[i].map((unit) => (
-                <option key={unit.id} value={unit.id}>
-                  {unit.name}
-                </option>
-              ))}
-              {!disabled && <option value={NEW_OPTION_VALUE}>+ Crear {levelInfo.label.toLowerCase()}…</option>}
-            </select>
+              value={selected[i]?.id ?? null}
+              onSelect={(id) => handleSelect(i, id)}
+              options={options[i].map((unit) => ({ id: unit.id, label: unit.name }))}
+              placeholder={`${levelInfo.label}…`}
+              searchPlaceholder={`Buscar ${levelInfo.label.toLowerCase()}…`}
+              emptyMessage={`Sin ${levelInfo.label.toLowerCase()}s creadas todavía.`}
+              onCreateNew={(name) => handleCreate(i, name)}
+              createNewLabel={(name) => `Crear ${levelInfo.label.toLowerCase()} "${name}"`}
+            />
           );
         })}
       </div>
 
-      {creatingLevel !== null && (
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <input
-            type="text"
-            autoFocus
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder={`Nombre de ${LEVELS[creatingLevel].label.toLowerCase()} nueva`}
-            className="rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground outline-none focus-visible:border-accent"
-          />
-          <button
-            type="button"
-            disabled={!newName.trim() || loading > 0}
-            onClick={() => handleCreate(creatingLevel)}
-            className="rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-accent-foreground disabled:opacity-50"
-          >
-            Crear
-          </button>
-          <button
-            type="button"
-            onClick={() => setCreatingLevel(null)}
-            className="text-xs font-medium text-muted hover:text-foreground"
-          >
-            Cancelar
-          </button>
-          {createError && <p className="w-full text-xs text-red-600 dark:text-red-400">{createError}</p>}
-        </div>
-      )}
+      {createError && <p className="mt-2 text-xs text-danger">{createError.message}</p>}
 
       {selected.some(Boolean) && (
         <button

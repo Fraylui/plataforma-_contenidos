@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+@plugin "tailwindcss-animate";
 
 /*
  * Marca: rojo/negro/blanco, un solo set de tokens para todo el sitio
