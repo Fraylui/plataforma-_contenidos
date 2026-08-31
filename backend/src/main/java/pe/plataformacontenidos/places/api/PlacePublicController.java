@@ -46,11 +46,10 @@ public class PlacePublicController {
     }
 
     @GetMapping("/{slug}")
-    public PlaceResponse getBySlug(@PathVariable String slug, @RequestParam(required = false) UUID visitorId) {
+    public PlaceResponse getBySlug(@PathVariable String slug) {
         Place place = placeService.getPublishedBySlug(slug);
         long likeCount = contentLikeService.countLikes(ContentType.PLACE, place.getId());
-        boolean likedByVisitor = visitorId != null && contentLikeService.isLikedBy(ContentType.PLACE, place.getId(), visitorId);
-        return PlaceResponse.from(place, placeService.relatedArticles(place), likeCount, likedByVisitor);
+        return PlaceResponse.from(place, placeService.relatedArticles(place), likeCount);
     }
 
     /** Usado por Events para resolver el nombre/slug de un lugar vinculado (placeId) — ver EventResponse.placeId. */

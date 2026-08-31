@@ -46,11 +46,10 @@ public class ReviewPublicController {
     }
 
     @GetMapping("/{slug}")
-    public ReviewResponse getBySlug(@PathVariable String slug, @RequestParam(required = false) UUID visitorId) {
+    public ReviewResponse getBySlug(@PathVariable String slug) {
         Review review = reviewService.getPublishedBySlug(slug);
         long likeCount = contentLikeService.countLikes(ContentType.REVIEW, review.getId());
-        boolean likedByVisitor = visitorId != null && contentLikeService.isLikedBy(ContentType.REVIEW, review.getId(), visitorId);
-        return ReviewResponse.from(review, likeCount, likedByVisitor);
+        return ReviewResponse.from(review, likeCount);
     }
 
     @PostMapping("/{slug}/like")

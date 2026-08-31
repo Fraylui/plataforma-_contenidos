@@ -31,20 +31,19 @@ public record EventResponse(
         Instant publishedAt,
         Instant scheduledAt,
         Instant createdAt,
-        long likeCount,
-        boolean likedByVisitor) {
+        long likeCount) {
 
-    public static EventResponse from(Event event, long likeCount, boolean likedByVisitor) {
+    public static EventResponse from(Event event, long likeCount) {
         return new EventResponse(event.getId(), event.getSlug(), event.getTitle(), event.getExcerpt(),
                 event.getBody(), event.getStatus(), event.getAuthorId(), event.getCategoryId(),
                 event.getGeographyId(), event.getPlaceId(), event.getVenueName(), event.getStartsAt(),
                 event.getEndsAt(), event.getImageIds(), event.getSeoTitle(), event.getMetaDescription(),
                 event.getCanonicalUrl(), event.getOgImageUrl(), event.getYoutubeVideoId(), event.getRobots(),
                 event.getRejectionReason(), event.getPublishedAt(), event.getScheduledAt(), event.getCreatedAt(),
-                likeCount, likedByVisitor);
+                likeCount);
     }
 
     public static EventResponse from(Event event) {
-        return from(event, 0, false);
+        return from(event, 0);
     }
 }

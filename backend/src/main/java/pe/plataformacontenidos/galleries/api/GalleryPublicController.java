@@ -46,11 +46,10 @@ public class GalleryPublicController {
     }
 
     @GetMapping("/{slug}")
-    public GalleryResponse getBySlug(@PathVariable String slug, @RequestParam(required = false) UUID visitorId) {
+    public GalleryResponse getBySlug(@PathVariable String slug) {
         Gallery gallery = galleryService.getPublishedBySlug(slug);
         long likeCount = contentLikeService.countLikes(ContentType.GALLERY, gallery.getId());
-        boolean likedByVisitor = visitorId != null && contentLikeService.isLikedBy(ContentType.GALLERY, gallery.getId(), visitorId);
-        return GalleryResponse.from(gallery, likeCount, likedByVisitor);
+        return GalleryResponse.from(gallery, likeCount);
     }
 
     @PostMapping("/{slug}/like")
