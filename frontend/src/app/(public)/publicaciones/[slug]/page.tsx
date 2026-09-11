@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, MapPin } from "lucide-react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   getArticleNeighbors,
   getCategoryById,
@@ -18,6 +17,7 @@ import { articleTypeLabel, formatArticleDate, formatPublishedDate } from "@/lib/
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { ArticleCard } from "@/components/article/article-card";
 import { LikeShareBar } from "@/components/content/like-share-bar";
+import { NeighborNav } from "@/components/article/neighbor-nav";
 import { ReadingProgressBar } from "@/components/article/reading-progress-bar";
 import { PlaceCard } from "@/components/place/place-card";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -253,9 +253,12 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
             </p>
           )}
 
-          <div className="prose prose-slate sm:prose-lg mt-6 max-w-none whitespace-pre-line prose-headings:font-bold prose-a:text-accent">
-            {article.body}
-          </div>
+          {/* article.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
+              de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí. */}
+          <div
+            className="prose prose-slate sm:prose-lg mt-6 max-w-none prose-headings:font-bold prose-a:text-accent"
+            dangerouslySetInnerHTML={{ __html: article.body }}
+          />
 
           <div className="mt-10">
             <AdBlock position="article" />
@@ -276,36 +279,7 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
 
           <LikeShareBar contentType="articles" slug={article.slug} initialLikeCount={article.likeCount} title={article.title} />
 
-          {(neighbors.previous || neighbors.next) && (
-            <nav aria-label="Navegación entre publicaciones" className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {neighbors.previous ? (
-                <Link
-                  href={`/publicaciones/${neighbors.previous.slug}`}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4 text-sm transition-colors hover:border-accent hover:bg-accent-soft"
-                >
-                  <ChevronLeft className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
-                  <span>
-                    <span className="block text-xs text-muted">Anterior</span>
-                    <span className="line-clamp-1 font-semibold text-foreground">{neighbors.previous.title}</span>
-                  </span>
-                </Link>
-              ) : (
-                <span />
-              )}
-              {neighbors.next && (
-                <Link
-                  href={`/publicaciones/${neighbors.next.slug}`}
-                  className="flex items-center justify-end gap-3 rounded-xl border border-border bg-surface p-4 text-right text-sm transition-colors hover:border-accent hover:bg-accent-soft sm:text-right"
-                >
-                  <span>
-                    <span className="block text-xs text-muted">Siguiente</span>
-                    <span className="line-clamp-1 font-semibold text-foreground">{neighbors.next.title}</span>
-                  </span>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
-                </Link>
-              )}
-            </nav>
-          )}
+          <NeighborNav neighbors={neighbors} />
         </article>
 
         {hasSidebar && (

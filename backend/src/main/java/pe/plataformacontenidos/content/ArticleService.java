@@ -18,6 +18,7 @@ import pe.plataformacontenidos.geography.GeographicUnitNotFoundException;
 import pe.plataformacontenidos.geography.GeographicUnitService;
 import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.media.ImageService;
+import pe.plataformacontenidos.shared.HtmlSanitizer;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
@@ -58,10 +59,11 @@ public class ArticleService {
         validateFeaturedImage(input.featuredImageId());
         String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
         Set<UUID> tagIds = resolveTagNames(input.tagNames());
+        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
-        Article article = new Article(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), input.body(),
+        Article article = new Article(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), sanitizedBody,
                 input.articleType(), authorId, input.categoryId());
-        article.updateContent(input.title(), input.excerpt(), input.body(), input.articleType(), input.categoryId(),
+        article.updateContent(input.title(), input.excerpt(), sanitizedBody, input.articleType(), input.categoryId(),
                 input.geographyId(), tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
                 input.ogImageUrl(), input.featuredImageId(), youtubeVideoId, input.robots());
 
@@ -85,8 +87,9 @@ public class ArticleService {
         }
         String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
         Set<UUID> tagIds = resolveTagNames(input.tagNames());
+        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
-        article.updateContent(input.title(), input.excerpt(), input.body(), input.articleType(), input.categoryId(),
+        article.updateContent(input.title(), input.excerpt(), sanitizedBody, input.articleType(), input.categoryId(),
                 input.geographyId(), tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
                 input.ogImageUrl(), input.featuredImageId(), youtubeVideoId, input.robots());
         Article saved = articleRepository.save(article);
