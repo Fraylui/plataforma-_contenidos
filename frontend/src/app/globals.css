@@ -3,24 +3,28 @@
 @plugin "tailwindcss-animate";
 
 /*
- * Marca: rojo/negro/blanco, un solo set de tokens para todo el sitio
- * (público + admin — antes eran dos paletas separadas, terracota/serif en
- * público e índigo en admin; unificadas cuando el usuario definió marca
- * real). El día que exista platformSettings con colores propios, solo se
- * reescriben estos valores.
+ * Marca: verde/negro/blanco con rojo reservado solo para errores/destructivo,
+ * un solo set de tokens para todo el sitio (público + admin). El día que
+ * exista platformSettings con colores propios, solo se reescriben estos
+ * valores.
  *
- * Paleta "Crimson News" (refresco 2026): neutros zinc en vez de gris frío
- * plano — el fondo/borde/texto comparten la misma familia cromática, así
- * que el rojo (accent) es lo único que llama la atención en vez de competir
- * con un gris genérico.
+ * Neutros zinc en vez de gris frío plano — el fondo/borde/texto comparten
+ * la misma familia cromática, así que el verde (accent) es lo único que
+ * llama la atención en vez de competir con un gris genérico. --danger se
+ * mantiene en rojo aparte para no perder la señal de "esto es peligroso".
  */
 :root {
   --background: #fafafa;
   --surface: #ffffff;
   --foreground: #18181b;
-  --muted: #71717a;
+  /* zinc-500 (#71717a) daba 4.28:1 sobre el lienzo verde claro y 3.91:1
+     sobre la franja de categoría — AA exige 4.5:1. Un paso más oscuro. */
+  --muted: #62626b;
   --border: #e4e4e7;
-  --accent: #dc2626;
+  /* green-700, no green-600: el 600 (#16a34a) daba 3.3:1 sobre blanco y falla
+     WCAG AA para texto — y --accent se usa como color de texto (links,
+     etiquetas). Un verde refleja más luz que un rojo del mismo paso. */
+  --accent: #15803d;
   --accent-foreground: #ffffff;
   /* Derivado de --accent, no un valor fijo: así una marca personalizada
      (primaryColor en Configuración de plataforma) también obtiene un tinte
@@ -28,6 +32,12 @@
   --accent-soft: color-mix(in srgb, var(--accent) 15%, var(--surface));
   --danger: #991b1b;
   --danger-foreground: #ffffff;
+  /* Lienzo del sitio público: tinte verde muy claro en vez de blanco plano
+     (a pedido: "que no haya mucho blanco, tampoco oscuro"). El blanco puro
+     queda solo dentro de las tarjetas (--surface), así resaltan. */
+  --canvas: #e9f4ec;
+  --canvas-strong: #dcebe0;
+  --canvas-border: #cfe3d5;
 }
 
 /*
@@ -43,11 +53,14 @@
   --foreground: #f5f5f5;
   --muted: #9ca3af;
   --border: #262626;
-  --accent: #ef4444;
+  --accent: #4ade80;
   --accent-foreground: #111111;
   --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
   --danger: #dc2626;
   --danger-foreground: #111111;
+  --canvas: #0c120e;
+  --canvas-strong: #111a14;
+  --canvas-border: #1f2b23;
 }
 
 /* "Auto": sin elección explícita, sigue el sistema operativo del visitante. */
@@ -58,11 +71,14 @@
     --foreground: #fafafa;
     --muted: #a1a1aa;
     --border: #27272a;
-    --accent: #ef4444;
+    --accent: #4ade80;
     --accent-foreground: #18181b;
     --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
     --danger: #dc2626;
     --danger-foreground: #18181b;
+    --canvas: #0c120e;
+    --canvas-strong: #111a14;
+    --canvas-border: #1f2b23;
   }
 }
 
@@ -77,6 +93,9 @@
   --color-accent-soft: var(--accent-soft);
   --color-danger: var(--danger);
   --color-danger-foreground: var(--danger-foreground);
+  --color-canvas: var(--canvas);
+  --color-canvas-strong: var(--canvas-strong);
+  --color-canvas-border: var(--canvas-border);
 
   --font-sans: var(--font-sans);
 }

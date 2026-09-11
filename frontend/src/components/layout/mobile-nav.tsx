@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 
 const LINKS = [
@@ -26,6 +26,7 @@ const LINKS = [
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (!open) return;
@@ -69,9 +70,9 @@ export function MobileNav() {
             <motion.nav
               id="mobile-nav-sheet"
               aria-label="Principal (mobile)"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
+              initial={reduceMotion ? { opacity: 0 } : { x: "100%" }}
+              animate={reduceMotion ? { opacity: 1 } : { x: 0 }}
+              exit={reduceMotion ? { opacity: 0 } : { x: "100%" }}
               transition={{ duration: 0.25, ease: "easeOut" }}
               className="fixed inset-y-0 right-0 z-50 flex w-72 max-w-[85vw] flex-col overflow-y-auto border-l border-border bg-surface shadow-xl"
             >
