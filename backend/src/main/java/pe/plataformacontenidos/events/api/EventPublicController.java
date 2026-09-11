@@ -48,7 +48,9 @@ public class EventPublicController {
         boolean upcoming = !"past".equalsIgnoreCase(when);
         var pageable = PageRequest.of(page, safeSize);
         var result = eventService.listPublished(categoryId, geographyId, upcoming, pageable);
-        return PageResponse.from(result, EventSummaryResponse::from);
+        var likes = contentLikeService.countLikes(ContentType.EVENT,
+                result.getContent().stream().map(Event::getId).toList());
+        return PageResponse.from(result, item -> EventSummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));
     }
 
     @GetMapping("/{slug}")

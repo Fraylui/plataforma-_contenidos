@@ -1,6 +1,9 @@
 package pe.plataformacontenidos.content.api;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,7 +46,9 @@ public class ArticlePublicController {
         int safeSize = Math.min(size, MAX_PAGE_SIZE);
         var pageable = PageRequest.of(page, safeSize, Sort.by(Sort.Direction.DESC, "publishedAt"));
         var result = articleService.listPublished(categoryId, geographyId, pageable);
-        return PageResponse.from(result, ArticleSummaryResponse::from);
+        var likes = contentLikeService.countLikes(ContentType.ARTICLE,
+                result.getContent().stream().map(Article::getId).toList());
+        return PageResponse.from(result, item -> ArticleSummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));
     }
 
     @GetMapping("/{slug}")
@@ -56,7 +61,9 @@ public class ArticlePublicController {
     @GetMapping("/{slug}/neighbors")
     public ArticleNeighborsResponse getNeighbors(@PathVariable String slug) {
         Article article = articleService.getPublishedBySlug(slug);
-        return ArticleNeighborsResponse.from(articleService.getNeighbors(article));
+        var neighbors = articleService.getNeighbors(article);
+        List<UUID> ids = Stream.of(neighbors.previous(), neighbors.next()).filter(Objects::nonNull).map(Article::getId).toList();
+        return ArticleNeighborsResponse.from(neighbors, contentLikeService.countLikes(ContentType.ARTICLE, ids));
     }
 
     /** visitorId es un UUID generado y persistido en el navegador del lector (no requiere cuenta) — ver ContentLike. */

@@ -17,12 +17,13 @@ public record EventSummaryResponse(
         Instant startsAt,
         Instant endsAt,
         UUID coverImageId,
-        boolean hasVideo) {
+        boolean hasVideo,
+        long likeCount) {
 
-    public static EventSummaryResponse from(Event event) {
+    public static EventSummaryResponse from(Event event, long likeCount) {
         UUID coverImageId = event.getImageIds().isEmpty() ? null : event.getImageIds().get(0);
         return new EventSummaryResponse(event.getId(), event.getSlug(), event.getTitle(), event.getExcerpt(),
                 event.getCategoryId(), event.getGeographyId(), event.getPlaceId(), event.getVenueName(),
-                event.getStartsAt(), event.getEndsAt(), coverImageId, event.getYoutubeVideoId() != null);
+                event.getStartsAt(), event.getEndsAt(), coverImageId, event.getYoutubeVideoId() != null, likeCount);
     }
 }

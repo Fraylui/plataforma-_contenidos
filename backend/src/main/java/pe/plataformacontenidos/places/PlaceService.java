@@ -17,7 +17,10 @@ import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.content.ArticleService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
+import pe.plataformacontenidos.content.Article;
 import pe.plataformacontenidos.content.api.dto.ArticleSummaryResponse;
+import pe.plataformacontenidos.engagement.ContentLikeService;
+import pe.plataformacontenidos.engagement.ContentType;
 import pe.plataformacontenidos.geography.GeographicUnitNotFoundException;
 import pe.plataformacontenidos.geography.GeographicUnitService;
 import pe.plataformacontenidos.identity.Role;
@@ -43,10 +46,12 @@ public class PlaceService {
     private final ImageService imageService;
     private final ArticleService articleService;
     private final AuditService auditService;
+    private final ContentLikeService contentLikeService;
 
     public PlaceService(PlaceRepository placeRepository, CategoryService categoryService,
             GeographicUnitService geographyService, ImageService imageService, ArticleService articleService,
-            AuditService auditService) {
+            AuditService auditService, ContentLikeService contentLikeService) {
+        this.contentLikeService = contentLikeService;
         this.placeRepository = placeRepository;
         this.categoryService = categoryService;
         this.geographyService = geographyService;
@@ -239,8 +244,9 @@ public class PlaceService {
             return List.of();
         }
         var pageable = PageRequest.of(0, RELATED_ARTICLES_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
-        return articleService.listPublished(null, place.getGeographyId(), pageable).stream()
-                .map(ArticleSummaryResponse::from).toList();
+        List<Article> related = articleService.listPublished(null, place.getGeographyId(), pageable).getContent();
+        var likes = contentLikeService.countLikes(ContentType.ARTICLE, related.stream().map(Article::getId).toList());
+        return related.stream().map(a -> ArticleSummaryResponse.from(a, likes.getOrDefault(a.getId(), 0L))).toList();
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */

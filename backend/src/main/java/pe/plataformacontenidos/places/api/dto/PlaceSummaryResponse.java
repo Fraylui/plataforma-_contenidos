@@ -16,12 +16,13 @@ public record PlaceSummaryResponse(
         Double longitude,
         UUID coverImageId,
         boolean hasVideo,
-        Instant publishedAt) {
+        Instant publishedAt,
+        long likeCount) {
 
-    public static PlaceSummaryResponse from(Place place) {
+    public static PlaceSummaryResponse from(Place place, long likeCount) {
         UUID coverImageId = place.getImageIds().isEmpty() ? null : place.getImageIds().get(0);
         return new PlaceSummaryResponse(place.getId(), place.getSlug(), place.getName(), place.getExcerpt(),
                 place.getCategoryId(), place.getGeographyId(), place.getLatitude(), place.getLongitude(),
-                coverImageId, place.getYoutubeVideoId() != null, place.getPublishedAt());
+                coverImageId, place.getYoutubeVideoId() != null, place.getPublishedAt(), likeCount);
     }
 }

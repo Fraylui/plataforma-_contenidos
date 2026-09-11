@@ -14,11 +14,12 @@ public record GallerySummaryResponse(
         UUID categoryId,
         UUID geographyId,
         List<UUID> imageIds,
-        Instant publishedAt) {
+        Instant publishedAt,
+        long likeCount) {
 
-    public static GallerySummaryResponse from(Gallery gallery) {
+    public static GallerySummaryResponse from(Gallery gallery, long likeCount) {
         return new GallerySummaryResponse(gallery.getId(), gallery.getSlug(), gallery.getTitle(),
                 gallery.getExcerpt(), gallery.getCategoryId(), gallery.getGeographyId(), gallery.getImageIds(),
-                gallery.getPublishedAt());
+                gallery.getPublishedAt(), likeCount);
     }
 }

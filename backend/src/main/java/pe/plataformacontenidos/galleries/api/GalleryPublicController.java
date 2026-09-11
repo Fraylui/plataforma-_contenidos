@@ -42,7 +42,9 @@ public class GalleryPublicController {
         int safeSize = Math.min(size, MAX_PAGE_SIZE);
         var pageable = PageRequest.of(page, safeSize, Sort.by(Sort.Direction.DESC, "publishedAt"));
         var result = galleryService.listPublished(categoryId, geographyId, pageable);
-        return PageResponse.from(result, GallerySummaryResponse::from);
+        var likes = contentLikeService.countLikes(ContentType.GALLERY,
+                result.getContent().stream().map(Gallery::getId).toList());
+        return PageResponse.from(result, item -> GallerySummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));
     }
 
     @GetMapping("/{slug}")

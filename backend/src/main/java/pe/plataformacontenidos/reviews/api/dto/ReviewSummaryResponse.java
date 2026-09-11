@@ -16,12 +16,13 @@ public record ReviewSummaryResponse(
         String subjectName,
         int rating,
         UUID coverImageId,
-        Instant publishedAt) {
+        Instant publishedAt,
+        long likeCount) {
 
-    public static ReviewSummaryResponse from(Review review) {
+    public static ReviewSummaryResponse from(Review review, long likeCount) {
         UUID coverImageId = review.getImageIds().isEmpty() ? null : review.getImageIds().get(0);
         return new ReviewSummaryResponse(review.getId(), review.getSlug(), review.getTitle(), review.getExcerpt(),
                 review.getCategoryId(), review.getGeographyId(), review.getPlaceId(), review.getSubjectName(),
-                review.getRating(), coverImageId, review.getPublishedAt());
+                review.getRating(), coverImageId, review.getPublishedAt(), likeCount);
     }
 }

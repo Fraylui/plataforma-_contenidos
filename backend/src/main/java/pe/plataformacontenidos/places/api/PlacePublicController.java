@@ -42,7 +42,9 @@ public class PlacePublicController {
         int safeSize = Math.min(size, MAX_PAGE_SIZE);
         var pageable = PageRequest.of(page, safeSize, Sort.by(Sort.Direction.DESC, "publishedAt"));
         var result = placeService.listPublished(categoryId, geographyId, pageable);
-        return PageResponse.from(result, PlaceSummaryResponse::from);
+        var likes = contentLikeService.countLikes(ContentType.PLACE,
+                result.getContent().stream().map(Place::getId).toList());
+        return PageResponse.from(result, item -> PlaceSummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));
     }
 
     @GetMapping("/{slug}")
@@ -55,7 +57,8 @@ public class PlacePublicController {
     /** Usado por Events para resolver el nombre/slug de un lugar vinculado (placeId) — ver EventResponse.placeId. */
     @GetMapping("/by-id/{id}")
     public PlaceSummaryResponse getById(@PathVariable UUID id) {
-        return PlaceSummaryResponse.from(placeService.getPublishedById(id));
+        Place place = placeService.getPublishedById(id);
+        return PlaceSummaryResponse.from(place, contentLikeService.countLikes(ContentType.PLACE, place.getId()));
     }
 
     @PostMapping("/{slug}/like")
