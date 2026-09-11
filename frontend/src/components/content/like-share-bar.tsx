@@ -51,23 +51,29 @@ function useLocalStorageFlag(getSnapshot: () => boolean): boolean {
 }
 
 /**
- * Barra de acciones al final del contenido: "Me gusta" es real (persistido
- * en el backend, deduplicado por visitorId anónimo — ver
- * engagement.ContentLike, un solo mecanismo para los 6 tipos de
- * contenido); "Guardar" es solo del navegador del lector (localStorage, no
- * hay backend de favoritos todavía); "Compartir" usa Web Share API nativa
- * con fallback de copiar enlace.
+ * Estado y acciones de reacción de un contenido, compartidos entre la barra
+ * de la página de detalle (LikeShareBar) y las acciones compactas de las
+ * tarjetas del home (CardActions): "Me gusta" es real (persistido en el
+ * backend, deduplicado por visitorId anónimo — ver engagement.ContentLike);
+ * "Guardar" es solo del navegador del lector (localStorage, no hay backend
+ * de favoritos todavía); "Compartir" usa Web Share API nativa con fallback
+ * de copiar enlace.
+ *
+ * `path` es la ruta del contenido a compartir; sin él se comparte la URL de
+ * la página actual (caso de la página de detalle).
  */
-export function LikeShareBar({
+export function useContentReactions({
   contentType,
   slug,
   initialLikeCount,
   title,
+  path,
 }: {
   contentType: LikeableContentType;
   slug: string;
   initialLikeCount: number;
   title: string;
+  path?: string;
 }) {
   const liked = useLocalStorageFlag(() => localStorage.getItem(likedKey(contentType, slug)) === "1");
   const saved = useLocalStorageFlag(() => readSaved(contentType).has(slug));
@@ -75,7 +81,7 @@ export function LikeShareBar({
   const [pending, setPending] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  async function handleLike() {
+  async function toggleLike() {
     if (pending) return;
     setPending(true);
     const visitorId = getOrCreateVisitorId();
@@ -93,23 +99,18 @@ export function LikeShareBar({
     }
   }
 
-  function handleSave() {
+  function toggleSave() {
     const current = readSaved(contentType);
     if (current.has(slug)) {
       current.delete(slug);
     } else {
       current.add(slug);
     }
-    try {
-      localStorage.setItem(savedKey(contentType), JSON.stringify([...current]));
-      window.dispatchEvent(new Event(CHANGE_EVENT));
-    } catch {
-      // ver writeLocalStorage
-    }
+    writeLocalStorage(savedKey(contentType), JSON.stringify([...current]));
   }
 
-  async function handleShare() {
-    const url = window.location.href;
+  async function share() {
+    const url = path ? new URL(path, window.location.origin).toString() : window.location.href;
     if (navigator.share) {
       try {
         await navigator.share({ title, url });
@@ -127,14 +128,36 @@ export function LikeShareBar({
     }
   }
 
+  return { liked, saved, likeCount, pending, copied, toggleLike, toggleSave, share };
+}
+
+/** Barra de acciones al final del contenido en la página de detalle. */
+export function LikeShareBar({
+  contentType,
+  slug,
+  initialLikeCount,
+  title,
+}: {
+  contentType: LikeableContentType;
+  slug: string;
+  initialLikeCount: number;
+  title: string;
+}) {
+  const { liked, saved, likeCount, pending, copied, toggleLike, toggleSave, share } = useContentReactions({
+    contentType,
+    slug,
+    initialLikeCount,
+    title,
+  });
+
   return (
     <div className="my-4 flex items-center gap-4 border-y border-border py-3 text-xs font-medium text-muted">
       <button
         type="button"
-        onClick={handleLike}
+        onClick={toggleLike}
         disabled={pending}
         aria-pressed={liked}
-        className={`inline-flex items-center gap-1.5 transition-colors hover:text-accent ${liked ? "text-accent" : ""}`}
+        className={`inline-flex cursor-pointer items-center gap-1.5 transition-colors hover:text-accent ${liked ? "text-accent" : ""}`}
       >
         <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} aria-hidden="true" />
         <span>{likeCount}</span>
@@ -143,15 +166,15 @@ export function LikeShareBar({
 
       <button
         type="button"
-        onClick={handleSave}
+        onClick={toggleSave}
         aria-pressed={saved}
-        className={`inline-flex items-center gap-1.5 transition-colors hover:text-accent ${saved ? "text-accent" : ""}`}
+        className={`inline-flex cursor-pointer items-center gap-1.5 transition-colors hover:text-accent ${saved ? "text-accent" : ""}`}
       >
         <Bookmark className="h-4 w-4" fill={saved ? "currentColor" : "none"} aria-hidden="true" />
         {saved ? "Guardado" : "Guardar"}
       </button>
 
-      <button type="button" onClick={handleShare} className="inline-flex items-center gap-1.5 transition-colors hover:text-accent">
+      <button type="button" onClick={share} className="inline-flex cursor-pointer items-center gap-1.5 transition-colors hover:text-accent">
         {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Share2 className="h-4 w-4" aria-hidden="true" />}
         {copied ? "Enlace copiado" : "Compartir"}
       </button>

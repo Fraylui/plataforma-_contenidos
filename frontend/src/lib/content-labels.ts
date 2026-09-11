@@ -116,6 +116,21 @@ export function formatArticleDate(iso: string | null): string {
 }
 
 /**
+ * Fecha corta absoluta ("sáb 29 ago 2026") para Lugar/Galería/Reseña en el
+ * home: contenido atemporal donde "hace 3 meses" no aporta (ver
+ * formatArticleDate, que sí es relativa a propósito para Publicaciones).
+ */
+export function formatShortDate(iso: string | null): string {
+  if (!iso) return "";
+  return new Intl.DateTimeFormat("es-PE", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(iso));
+}
+
+/**
  * Fecha y hora de un Evento — siempre absoluta ("vie 12 dic, 7:00 p. m."),
  * nunca relativa ("hace 3 días", "en 5 horas"): a diferencia de la fecha de
  * publicación de Artículo/Lugar (un dato secundario de "qué tan viejo es

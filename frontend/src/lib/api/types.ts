@@ -28,6 +28,7 @@ export interface ArticleSummary {
   featuredImageId: string | null;
   hasVideo: boolean;
   publishedAt: string | null;
+  likeCount: number;
 }
 
 export interface ArticleNeighbors {
@@ -128,6 +129,7 @@ export interface PlaceSummary {
   coverImageId: string | null;
   hasVideo: boolean;
   publishedAt: string | null;
+  likeCount: number;
 }
 
 export interface Place {
@@ -173,6 +175,7 @@ export interface EventSummary {
   endsAt: string | null;
   coverImageId: string | null;
   hasVideo: boolean;
+  likeCount: number;
 }
 
 export interface Event {
@@ -215,6 +218,7 @@ export interface GallerySummary {
   geographyId: string | null;
   imageIds: string[];
   publishedAt: string | null;
+  likeCount: number;
 }
 
 export interface Gallery {
@@ -254,6 +258,7 @@ export interface ReviewSummary {
   rating: number;
   coverImageId: string | null;
   publishedAt: string | null;
+  likeCount: number;
 }
 
 export interface Review {
@@ -301,6 +306,7 @@ export interface BusinessSummary {
   address: string | null;
   coverImageId: string | null;
   publishedAt: string | null;
+  likeCount: number;
 }
 
 export interface Business {
