@@ -112,6 +112,7 @@ export function CategorySpotlight({ categories }: { categories: SpotlightCategor
                   <SkeletonImage
                     src={item.imageUrl}
                     alt=""
+                    fade={false}
                     className="object-cover transition-transform duration-500 group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                     sizes="(min-width: 1024px) 22vw, 50vw"
                   />
