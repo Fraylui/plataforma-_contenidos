@@ -48,7 +48,7 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
       onBlurCapture={resume}
     >
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-4 sm:px-6 lg:grid-cols-12 lg:gap-6 lg:px-8">
-        <div className="flex flex-col gap-3 lg:col-span-7 lg:gap-4">
+        <div className="flex flex-col gap-3 lg:col-span-7">
           <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-canvas-border bg-canvas-strong shadow-sm sm:aspect-[16/9]">
             {items.map((item, i) => (
               <Link
@@ -122,7 +122,7 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
         </div>
 
         {others.length > 0 && (
-          <div className="hidden flex-col gap-3 lg:col-span-5 lg:flex">
+          <div className="hidden flex-col gap-3 lg:col-span-5 lg:flex lg:self-stretch">
             {others.map((item) => {
               const i = items.indexOf(item);
               return (
@@ -130,7 +130,7 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
                   key={item.id}
                   type="button"
                   onClick={() => setIndex(i)}
-                  className="flex cursor-pointer items-center gap-4 rounded-2xl border border-canvas-border bg-surface p-3.5 text-left shadow-sm transition-colors hover:border-accent/60"
+                  className="flex min-h-0 flex-1 cursor-pointer items-center gap-4 rounded-2xl border border-canvas-border bg-surface p-3 text-left shadow-sm transition-colors hover:border-accent/60"
                 >
                   <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-canvas-strong">
                     {item.imageUrl ? (
