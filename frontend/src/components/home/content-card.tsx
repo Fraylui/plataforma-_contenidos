@@ -51,7 +51,7 @@ function Cover({ item, sizes, className }: { item: HomeItem; sizes: string; clas
  */
 function Footer({ item }: { item: HomeItem }) {
   return (
-    <div className="mt-auto flex items-center border-t border-canvas-border/70 pt-1 sm:pt-1.5">
+    <div className="mt-auto flex items-center border-t border-canvas-border/70 pt-0.5 sm:pt-1">
       <CardActions contentType={homeLikeType(item.kind)} slug={item.slug} initialLikeCount={item.likeCount} title={item.title} path={item.href} />
     </div>
   );
@@ -67,15 +67,14 @@ function Footer({ item }: { item: HomeItem }) {
 export function ContentCard({ item, categoryName }: { item: HomeItem; categoryName?: string }) {
   return (
     <article className={CHROME}>
-      <Cover item={item} sizes="(min-width: 1280px) 22vw, (min-width: 1024px) 30vw, 50vw" className="aspect-[4/3]" />
-      <div className="flex flex-1 flex-col gap-1 p-2.5 sm:p-3 sm:pb-2">
+      <Cover item={item} sizes="(min-width: 1024px) 24vw, (min-width: 640px) 33vw, 50vw" className="aspect-[16/10]" />
+      <div className="flex flex-1 flex-col gap-1 p-2.5 pb-1.5 sm:px-3 sm:pt-2.5">
         {categoryName && <span className={KICKER}>{categoryName}</span>}
-        <h3 className="text-[13px] font-semibold leading-snug tracking-tight text-foreground sm:text-sm">
+        <h3 className="min-h-[2.5rem] text-[13px] leading-5 font-semibold tracking-tight text-foreground sm:text-sm">
           <Link href={item.href} className={cn(STRETCHED, "line-clamp-2 transition-colors group-hover:text-accent")}>
             {item.title}
           </Link>
         </h3>
-        {item.excerpt && <p className="hidden text-xs leading-relaxed text-muted line-clamp-2 sm:block">{item.excerpt}</p>}
         <Footer item={item} />
       </div>
     </article>
@@ -89,10 +88,10 @@ export function ContentCard({ item, categoryName }: { item: HomeItem; categoryNa
 export function FeaturedContentCard({ item, categoryName, cta }: { item: HomeItem; categoryName?: string; cta: string }) {
   return (
     <article className={cn(CHROME, "lg:col-span-2 lg:grid lg:grid-cols-[1.1fr_1fr]")}>
-      <Cover item={item} sizes="(min-width: 1024px) 34vw, 50vw" className="aspect-[4/3] lg:aspect-auto lg:min-h-full" />
-      <div className="flex flex-1 flex-col gap-1 p-2.5 sm:gap-1.5 sm:p-4">
+      <Cover item={item} sizes="(min-width: 1024px) 30vw, (min-width: 640px) 33vw, 50vw" className="aspect-[16/10] lg:aspect-auto lg:min-h-full" />
+      <div className="flex flex-1 flex-col gap-1 p-2.5 pb-1.5 sm:gap-1.5 sm:p-4 sm:pb-2">
         {categoryName && <span className={KICKER}>{categoryName}</span>}
-        <h3 className="text-[13px] font-semibold leading-snug tracking-tight text-foreground sm:text-lg sm:font-bold">
+        <h3 className="min-h-[2.5rem] text-[13px] leading-5 font-semibold tracking-tight text-foreground sm:min-h-0 sm:text-lg sm:leading-snug sm:font-bold">
           <Link href={item.href} className={cn(STRETCHED, "line-clamp-2 transition-colors group-hover:text-accent sm:line-clamp-3")}>
             {item.title}
           </Link>
