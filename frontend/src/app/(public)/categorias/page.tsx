@@ -110,7 +110,7 @@ export default async function CategoriesPage() {
                   <Link
                     key={category.id}
                     href={`/categorias/${category.slug}`}
-                    className="rounded-full border border-canvas-border bg-surface px-3.5 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-accent/60 hover:text-accent"
+                    className="inline-flex h-9 items-center rounded-full border border-canvas-border bg-surface px-3.5 text-sm font-medium text-foreground transition-colors hover:border-accent/60 hover:text-accent"
                   >
                     {category.name}
                   </Link>
