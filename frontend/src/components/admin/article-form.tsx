@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { useState } from "react";
 import type { Article, ArticleType, Category, GeographicUnit } from "@/lib/api/types";
 import type { AdminImage, ArticleInput } from "@/lib/api/admin-types";
@@ -8,6 +9,7 @@ import type { ArticlePermissions } from "@/lib/admin/article-permissions";
 import { articleTypeLabel, articleStatusLabel } from "@/lib/content-labels";
 import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
 import { ArticleFeaturedImagePicker } from "./article-featured-image-picker";
+import { RichTextEditor } from "./rich-text-editor";
 import { GeographyPicker } from "./geography-picker";
 import { TagInput } from "./tag-input";
 import {
@@ -77,7 +79,6 @@ export function ArticleForm({
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [scheduleAt, setScheduleAt] = useState("");
 
@@ -117,7 +118,6 @@ export function ArticleForm({
   async function handleSubmit() {
     setPending(true);
     setError(null);
-    setNotice(null);
     const result = mode === "create" ? await createArticleAction(buildInput()) : await updateArticleAction(article!.id, buildInput());
     applyResult(result, "Cambios guardados.");
   }
@@ -126,16 +126,16 @@ export function ArticleForm({
     setPending(false);
     if (!result.ok) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
-    setNotice(successMessage);
+    toast.success(successMessage);
     router.refresh();
   }
 
   async function runWorkflow(action: () => Promise<ActionResult>, successMessage: string) {
     setPending(true);
     setError(null);
-    setNotice(null);
     const result = await action();
     applyResult(result, successMessage);
   }
@@ -179,13 +179,7 @@ export function ArticleForm({
         </FormField>
 
         <FormField label="Contenido" name="body">
-          <textarea
-            value={body}
-            disabled={readOnly}
-            onChange={(e) => setBody(e.target.value)}
-            rows={14}
-            className={formInputClass}
-          />
+          <RichTextEditor value={body} onChange={setBody} disabled={readOnly} />
         </FormField>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -295,7 +289,6 @@ export function ArticleForm({
           {error}
         </p>
       )}
-      {notice && <p className="text-sm text-accent">{notice}</p>}
 
       {!readOnly && (
         <AdminButton
