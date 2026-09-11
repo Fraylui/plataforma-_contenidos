@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -23,13 +23,17 @@ const CARD_CHROME =
  * para no duplicar el efecto con dos motores distintos (CSS + spring).
  */
 export function AnimatedCard({ href, className, children }: { href: string; className?: string; children: ReactNode }) {
+  // Framer Motion anima vía su propio motor (no CSS `transition`), así que
+  // la regla global de prefers-reduced-motion en globals.css no la alcanza
+  // — hay que apagarla acá a mano.
+  const reduceMotion = useReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 18 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 18 }}
+      whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.35, ease: "easeOut" }}
-      whileTap={{ scale: 0.98 }}
+      whileTap={reduceMotion ? undefined : { scale: 0.98 }}
       className="h-full"
     >
       <Link href={href} className={cn(CARD_CHROME, className)}>
