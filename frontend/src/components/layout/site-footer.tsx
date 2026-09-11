@@ -94,13 +94,6 @@ export async function SiteFooter() {
                     {category.name}
                   </Link>
                 ))}
-                <Link
-                  href="/categorias"
-                  className="inline-flex items-center gap-1 rounded-full border border-green-400 bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-green-400 transition-colors hover:bg-green-400 hover:text-zinc-950"
-                >
-                  Todas
-                  <ArrowRight className="h-3 w-3" aria-hidden="true" />
-                </Link>
               </nav>
             )}
           </div>

@@ -91,13 +91,6 @@ export function CategorySpotlight({ categories }: { categories: SpotlightCategor
               {category.name}
             </button>
           ))}
-          <Link
-            href="/categorias"
-            className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-dashed border-canvas-border px-3.5 text-[13px] font-medium text-foreground transition-colors hover:border-accent/60 hover:text-accent"
-          >
-            Todas
-            <ArrowRight className="h-3 w-3" aria-hidden="true" />
-          </Link>
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
