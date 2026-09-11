@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { useState } from "react";
 import type { AdminImage } from "@/lib/api/admin-types";
 import type { Category, GeographicUnit, Place } from "@/lib/api/types";
@@ -55,7 +56,6 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [scheduleAt, setScheduleAt] = useState("");
 
@@ -89,7 +89,6 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
   async function handleSubmit() {
     setPending(true);
     setError(null);
-    setNotice(null);
     const result = mode === "create" ? await createPlaceAction(buildInput()) : await updatePlaceAction(place!.id, buildInput());
     applyResult(result, "Cambios guardados.");
   }
@@ -98,16 +97,16 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
     setPending(false);
     if (!result.ok) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
-    setNotice(successMessage);
+    toast.success(successMessage);
     router.refresh();
   }
 
   async function runWorkflow(action: () => Promise<ActionResult>, successMessage: string) {
     setPending(true);
     setError(null);
-    setNotice(null);
     const result = await action();
     applyResult(result, successMessage);
   }
@@ -237,7 +236,6 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
           {error}
         </p>
       )}
-      {notice && <p className="text-sm text-accent">{notice}</p>}
 
       {!readOnly && (
         <AdminButton

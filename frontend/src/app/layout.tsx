@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
+import { Toaster } from "sonner";
 import "./globals.css";
 import { getPlatformSettings } from "@/lib/api/client";
 import { SITE_URL } from "@/lib/site-url";
@@ -38,6 +39,18 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="es" data-theme={dataTheme} className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full bg-background text-foreground">
         {children}
+        <Toaster
+          position="bottom-right"
+          theme="system"
+          richColors
+          toastOptions={{
+            style: {
+              background: "var(--surface)",
+              color: "var(--foreground)",
+              border: "1px solid var(--border)",
+            },
+          }}
+        />
         {settings.analyticsId && (
           <>
             <Script src={`https://www.googletagmanager.com/gtag/js?id=${settings.analyticsId}`} strategy="afterInteractive" />
