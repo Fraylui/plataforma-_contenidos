@@ -16,11 +16,12 @@ public record ArticleSummaryResponse(
         UUID geographyId,
         UUID featuredImageId,
         boolean hasVideo,
-        Instant publishedAt) {
+        Instant publishedAt,
+        long likeCount) {
 
-    public static ArticleSummaryResponse from(Article article) {
+    public static ArticleSummaryResponse from(Article article, long likeCount) {
         return new ArticleSummaryResponse(article.getId(), article.getSlug(), article.getTitle(),
                 article.getExcerpt(), article.getArticleType(), article.getCategoryId(), article.getGeographyId(),
-                article.getFeaturedImageId(), article.getYoutubeVideoId() != null, article.getPublishedAt());
+                article.getFeaturedImageId(), article.getYoutubeVideoId() != null, article.getPublishedAt(), likeCount);
     }
 }

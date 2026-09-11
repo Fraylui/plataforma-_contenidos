@@ -42,7 +42,9 @@ public class ReviewPublicController {
         int safeSize = Math.min(size, MAX_PAGE_SIZE);
         var pageable = PageRequest.of(page, safeSize, Sort.by(Sort.Direction.DESC, "publishedAt"));
         var result = reviewService.listPublished(categoryId, geographyId, pageable);
-        return PageResponse.from(result, ReviewSummaryResponse::from);
+        var likes = contentLikeService.countLikes(ContentType.REVIEW,
+                result.getContent().stream().map(Review::getId).toList());
+        return PageResponse.from(result, item -> ReviewSummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));
     }
 
     @GetMapping("/{slug}")

@@ -17,13 +17,14 @@ public record BusinessSummaryResponse(
         UUID placeId,
         String address,
         UUID coverImageId,
-        Instant publishedAt) {
+        Instant publishedAt,
+        long likeCount) {
 
-    public static BusinessSummaryResponse from(Business business) {
+    public static BusinessSummaryResponse from(Business business, long likeCount) {
         UUID coverImageId = business.getImageIds().isEmpty() ? null : business.getImageIds().get(0);
         return new BusinessSummaryResponse(business.getId(), business.getSlug(), business.getName(),
                 business.getExcerpt(), business.getBusinessType(), business.getCategoryId(),
                 business.getGeographyId(), business.getPlaceId(), business.getAddress(), coverImageId,
-                business.getPublishedAt());
+                business.getPublishedAt(), likeCount);
     }
 }

@@ -44,7 +44,9 @@ public class BusinessPublicController {
         int safeSize = Math.min(size, MAX_PAGE_SIZE);
         var pageable = PageRequest.of(page, safeSize, Sort.by(Sort.Direction.DESC, "publishedAt"));
         var result = businessService.listPublished(categoryId, geographyId, businessType, pageable);
-        return PageResponse.from(result, BusinessSummaryResponse::from);
+        var likes = contentLikeService.countLikes(ContentType.BUSINESS,
+                result.getContent().stream().map(Business::getId).toList());
+        return PageResponse.from(result, item -> BusinessSummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));
     }
 
     @GetMapping("/{slug}")
