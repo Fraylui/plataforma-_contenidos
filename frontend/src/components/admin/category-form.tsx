@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import type { Category } from "@/lib/api/types";
 import { createCategoryAction, updateCategoryAction, type ActionResult } from "@/app/admin/(protected)/categorias/actions";
 import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
@@ -19,12 +20,10 @@ export function CategoryForm({ mode, category, parentOptions }: CategoryFormProp
   const [sortOrder, setSortOrder] = useState(category?.sortOrder ?? 0);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
 
   async function handleSubmit() {
     setPending(true);
     setError(null);
-    setNotice(null);
     const base = { name, description: description || null, parentId: parentId || null };
     const result: ActionResult =
       mode === "create"
@@ -33,9 +32,10 @@ export function CategoryForm({ mode, category, parentOptions }: CategoryFormProp
     setPending(false);
     if (!result.ok) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
-    setNotice("Guardado.");
+    toast.success("Guardado.");
   }
 
   return (
@@ -76,8 +76,6 @@ export function CategoryForm({ mode, category, parentOptions }: CategoryFormProp
           {error}
         </p>
       )}
-      {notice && <p className="text-sm text-accent">{notice}</p>}
-
       <AdminButton disabled={pending || !name.trim()} onClick={handleSubmit}>
         {pending ? "Guardando…" : mode === "create" ? "Crear categoría" : "Guardar cambios"}
       </AdminButton>

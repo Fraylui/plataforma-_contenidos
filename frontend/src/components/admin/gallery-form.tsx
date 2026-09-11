@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { useState } from "react";
 import type { AdminImage, GalleryInput } from "@/lib/api/admin-types";
 import type { Category, Gallery, GeographicUnit } from "@/lib/api/types";
@@ -56,7 +57,6 @@ export function GalleryForm({
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [scheduleAt, setScheduleAt] = useState("");
 
@@ -78,7 +78,6 @@ export function GalleryForm({
   async function handleSubmit() {
     setPending(true);
     setError(null);
-    setNotice(null);
     const result =
       mode === "create" ? await createGalleryAction(buildInput()) : await updateGalleryAction(gallery!.id, buildInput());
     applyResult(result, "Cambios guardados.");
@@ -88,16 +87,16 @@ export function GalleryForm({
     setPending(false);
     if (!result.ok) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
-    setNotice(successMessage);
+    toast.success(successMessage);
     router.refresh();
   }
 
   async function runWorkflow(action: () => Promise<ActionResult>, successMessage: string) {
     setPending(true);
     setError(null);
-    setNotice(null);
     const result = await action();
     applyResult(result, successMessage);
   }
@@ -177,7 +176,6 @@ export function GalleryForm({
           {error}
         </p>
       )}
-      {notice && <p className="text-sm text-accent">{notice}</p>}
 
       {!readOnly && (
         <AdminButton

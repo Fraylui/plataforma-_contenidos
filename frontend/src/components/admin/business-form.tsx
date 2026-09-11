@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { useState } from "react";
 import type { AdminImage, BusinessInput } from "@/lib/api/admin-types";
 import type { Business, BusinessType, Category, GeographicUnit, Place } from "@/lib/api/types";
@@ -70,7 +71,6 @@ export function BusinessForm({
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [scheduleAt, setScheduleAt] = useState("");
 
@@ -110,7 +110,6 @@ export function BusinessForm({
   async function handleSubmit() {
     setPending(true);
     setError(null);
-    setNotice(null);
     const result =
       mode === "create"
         ? await createBusinessAction(buildInput())
@@ -122,16 +121,16 @@ export function BusinessForm({
     setPending(false);
     if (!result.ok) {
       setError(result.error);
+      toast.error(result.error);
       return;
     }
-    setNotice(successMessage);
+    toast.success(successMessage);
     router.refresh();
   }
 
   async function runWorkflow(action: () => Promise<ActionResult>, successMessage: string) {
     setPending(true);
     setError(null);
-    setNotice(null);
     const result = await action();
     applyResult(result, successMessage);
   }
@@ -313,7 +312,6 @@ export function BusinessForm({
           {error}
         </p>
       )}
-      {notice && <p className="text-sm text-accent">{notice}</p>}
 
       {!readOnly && (
         <AdminButton
