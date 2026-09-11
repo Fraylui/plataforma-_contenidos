@@ -63,12 +63,6 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
             </Link>
           </li>
           <li aria-hidden="true">/</li>
-          <li>
-            <Link href="/categorias" className="hover:text-accent hover:underline">
-              Categorías
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
           <li className="text-foreground/80" aria-current="page">
             {category.name}
           </li>
