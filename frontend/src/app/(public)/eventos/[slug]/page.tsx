@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CalendarDays, MapPin } from "lucide-react";
 import {
   getCategoryById,
   getGeographyUnitById,
@@ -18,8 +19,11 @@ import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
 import { EventCard } from "@/components/event/event-card";
 import { LikeShareBar } from "@/components/content/like-share-bar";
-import { imageUrl } from "@/lib/image-url";
+import { AdBlock } from "@/components/legal/ad-block";
+import { serverImageUrl } from "@/lib/server-image-url";
 import { SITE_URL } from "@/lib/site-url";
+import { SkeletonImage } from "@/components/ui/skeleton-image";
+import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
 import type { Category, Event } from "@/lib/api/types";
 
 const RELATED_SIZE = 4;
@@ -114,9 +118,11 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
 
   const venue = place ? { name: place.name, slug: place.slug } : null;
   const finished = isEventFinished(event);
+  const [heroImageId, ...galleryImageIds] = event.imageIds;
+  const hasSidebar = relatedEvents.length > 0 || relatedPlaces.length > 0 || relatedArticles.length > 0;
 
   return (
-    <article className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -124,141 +130,167 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
         }}
       />
 
-      <nav aria-label="Breadcrumb" className="text-xs text-muted">
-        <ol className="flex flex-wrap items-center gap-1.5">
-          <li>
-            <Link href="/" className="hover:text-accent hover:underline">
-              Inicio
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>
-            <Link href="/eventos" className="hover:text-accent hover:underline">
-              Eventos
-            </Link>
-          </li>
-          {category && (
-            <>
-              <li aria-hidden="true">/</li>
+      <div className={hasSidebar ? "lg:grid lg:grid-cols-12 lg:gap-12" : undefined}>
+        <article className={`mx-auto max-w-3xl ${hasSidebar ? "lg:col-span-8 lg:mx-0 lg:max-w-none" : ""}`}>
+          <nav aria-label="Breadcrumb" className="mb-4 flex max-w-[280px] items-center gap-2 truncate text-xs text-muted sm:max-w-none">
+            <ol className="flex flex-wrap items-center gap-1.5 truncate">
               <li>
-                <Link href={`/categorias/${category.slug}`} className="hover:text-accent hover:underline">
-                  {category.name}
+                <Link href="/" className="hover:text-accent hover:underline">
+                  Inicio
                 </Link>
               </li>
-            </>
-          )}
-          <li aria-hidden="true">/</li>
-          <li className="max-w-[24rem] truncate text-foreground/80" aria-current="page">
+              <li aria-hidden="true">/</li>
+              <li>
+                <Link href="/eventos" className="hover:text-accent hover:underline">
+                  Eventos
+                </Link>
+              </li>
+              {category && (
+                <>
+                  <li aria-hidden="true">/</li>
+                  <li>
+                    <Link href={`/categorias/${category.slug}`} className="hover:text-accent hover:underline">
+                      {category.name}
+                    </Link>
+                  </li>
+                </>
+              )}
+              <li aria-hidden="true">/</li>
+              <li className="max-w-[12rem] truncate text-foreground/80 sm:max-w-[24rem]" aria-current="page">
+                {event.title}
+              </li>
+            </ol>
+          </nav>
+
+          <div className="flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide text-accent uppercase">
+            <span>Evento</span>
+            {category && (
+              <>
+                <span aria-hidden="true" className="text-border">
+                  ·
+                </span>
+                <span>{category.name}</span>
+              </>
+            )}
+            {finished && (
+              <>
+                <span aria-hidden="true" className="text-border">
+                  ·
+                </span>
+                <span className="rounded-full bg-canvas-strong px-2 py-0.5 text-muted normal-case">Finalizado</span>
+              </>
+            )}
+          </div>
+
+          <h1 className="mt-4 text-2xl leading-tight font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
             {event.title}
-          </li>
-        </ol>
-      </nav>
+          </h1>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide text-accent uppercase">
-        <span>Evento</span>
-        {category && (
-          <>
-            <span aria-hidden="true" className="text-border">
-              ·
+          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border pb-6 text-xs text-muted sm:text-sm">
+            <span className="inline-flex items-center gap-1.5 font-semibold text-accent">
+              <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
+              {formatEventDateTime(event.startsAt)}
+              {event.endsAt ? ` — ${formatEventDateTime(event.endsAt)}` : ""}
             </span>
-            <span>{category.name}</span>
-          </>
+            {venue ? (
+              <Link href={`/lugares/${venue.slug}`} className="inline-flex items-center gap-1.5 hover:text-accent hover:underline">
+                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                {venue.name}
+              </Link>
+            ) : event.venueName ? (
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                {event.venueName}
+              </span>
+            ) : null}
+            {geography && <span>{geography.name}</span>}
+          </div>
+
+          {heroImageId ? (
+            <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-canvas-strong shadow-lg">
+              <SkeletonImage src={serverImageUrl(`/api/v1/images/${heroImageId}/file`)} alt={event.title} className="object-cover" />
+            </div>
+          ) : (
+            <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-canvas-strong shadow-lg">
+              <NoImagePlaceholder />
+            </div>
+          )}
+
+          {galleryImageIds.length > 0 && (
+            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {galleryImageIds.map((id, index) => (
+                <div key={id} className="relative aspect-square overflow-hidden rounded-lg border border-border bg-canvas-strong">
+                  <SkeletonImage
+                    src={serverImageUrl(`/api/v1/images/${id}/file`)}
+                    alt={`${event.title} — fotografía ${index + 2}`}
+                    className="object-cover"
+                    sizes="180px"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {event.youtubeVideoId && (
+            <div className="mt-8 overflow-hidden rounded-2xl border border-border shadow-lg">
+              <YouTubeEmbed videoId={event.youtubeVideoId} title={event.title} />
+            </div>
+          )}
+
+          {event.excerpt && (
+            <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">{event.excerpt}</p>
+          )}
+
+          <div className="mt-6 max-w-none text-base leading-relaxed whitespace-pre-line text-foreground">
+            {event.body}
+          </div>
+
+          <div className="mt-10">
+            <AdBlock position="article" />
+          </div>
+
+          <LikeShareBar contentType="events" slug={event.slug} initialLikeCount={event.likeCount} title={event.title} />
+        </article>
+
+        {hasSidebar && (
+          <aside className="mt-14 lg:col-span-4 lg:mt-0">
+            <div className="space-y-10 lg:sticky lg:top-24">
+              {relatedEvents.length > 0 && (
+                <section aria-label="Otros eventos">
+                  <h2 className="text-lg font-semibold text-foreground">Otros eventos en {category!.name}</h2>
+                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                    {relatedEvents.map((related) => (
+                      <EventCard key={related.id} event={related} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {relatedPlaces.length > 0 && (
+                <section aria-label="Lugares relacionados">
+                  <h2 className="text-lg font-semibold text-foreground">Lugares en {category!.name}</h2>
+                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                    {relatedPlaces.map((related) => (
+                      <PlaceCard key={related.id} place={related} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {relatedArticles.length > 0 && (
+                <section aria-label="Más publicaciones">
+                  <h2 className="text-lg font-semibold text-foreground">Más de {category!.name}</h2>
+                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                    {relatedArticles.map((related) => (
+                      <ArticleCard key={related.id} article={related} />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+          </aside>
         )}
-        {finished && (
-          <>
-            <span aria-hidden="true" className="text-border">
-              ·
-            </span>
-            <span className="rounded-full bg-surface px-2 py-0.5 text-muted normal-case">Finalizado</span>
-          </>
-        )}
       </div>
-
-      <h1 className="mt-3 text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
-        {event.title}
-      </h1>
-
-      <div className="mt-4 space-y-1 text-sm text-foreground">
-        <p className="font-medium">
-          {formatEventDateTime(event.startsAt)}
-          {event.endsAt ? ` — ${formatEventDateTime(event.endsAt)}` : ""}
-        </p>
-        {venue ? (
-          <p>
-            <Link href={`/lugares/${venue.slug}`} className="text-muted hover:text-accent hover:underline">
-              {venue.name}
-            </Link>
-          </p>
-        ) : event.venueName ? (
-          <p className="text-muted">{event.venueName}</p>
-        ) : null}
-        {geography && <p className="text-muted">{geography.name}</p>}
-      </div>
-
-      {event.imageIds.length > 0 && (
-        // eslint-disable-next-line @next/next/no-img-element -- host propio del backend
-        <img
-          src={imageUrl(`/api/v1/images/${event.imageIds[0]}/file`)}
-          alt={event.title}
-          className="mt-8 aspect-video w-full rounded-lg object-cover"
-        />
-      )}
-
-      {event.youtubeVideoId && (
-        <div className="mt-8">
-          <YouTubeEmbed videoId={event.youtubeVideoId} title={event.title} />
-        </div>
-      )}
-
-      {event.excerpt && (
-        <p className="mt-8 text-lg leading-relaxed text-foreground/90">{event.excerpt}</p>
-      )}
-
-      <div className="mt-6 max-w-[70ch] text-base leading-relaxed whitespace-pre-line text-foreground">
-        {event.body}
-      </div>
-
-      <LikeShareBar contentType="events" slug={event.slug} initialLikeCount={event.likeCount} title={event.title} />
-
-      {(relatedEvents.length > 0 || relatedPlaces.length > 0 || relatedArticles.length > 0) && (
-        <div className="mt-14 max-w-none border-t border-border pt-10">
-          {relatedEvents.length > 0 && (
-            <section aria-label="Otros eventos">
-              <h2 className="text-lg font-semibold text-foreground">Otros eventos en {category!.name}</h2>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {relatedEvents.map((related) => (
-                  <EventCard key={related.id} event={related} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {relatedPlaces.length > 0 && (
-            <section aria-label="Lugares relacionados" className={relatedEvents.length > 0 ? "mt-10" : undefined}>
-              <h2 className="text-lg font-semibold text-foreground">Lugares en {category!.name}</h2>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {relatedPlaces.map((related) => (
-                  <PlaceCard key={related.id} place={related} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {relatedArticles.length > 0 && (
-            <section
-              aria-label="Más artículos"
-              className={relatedEvents.length > 0 || relatedPlaces.length > 0 ? "mt-10" : undefined}
-            >
-              <h2 className="text-lg font-semibold text-foreground">Más de {category!.name}</h2>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {relatedArticles.map((related) => (
-                  <ArticleCard key={related.id} article={related} />
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-      )}
-    </article>
+    </div>
   );
 }
