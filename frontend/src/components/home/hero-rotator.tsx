@@ -18,6 +18,12 @@ export const HERO_ROTATION_MS = 6000;
  * (WCAG 2.2.2) y no rota sola si el visitante pidió menos movimiento.
  * Todos los slides están en el DOM (solo cambia cuál es visible) para que
  * las 4 imágenes carguen una vez y el cambio sea instantáneo.
+ *
+ * Dos formas de interactuar, cada una con un solo trabajo: los puntos de
+ * abajo cambian qué slide se muestra sin salir de la página; la lista
+ * lateral ("others") y sus miniaturas en celular son enlaces reales al
+ * contenido — antes solo cambiaban el slide activo, lo que hacía parecer
+ * que un clic "no abría nada, solo se actualizaba".
  */
 export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categoryNames: Record<string, string> }) {
   const [index, setIndex] = useState(0);
@@ -123,55 +129,49 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
 
         {others.length > 0 && (
           <div className="hidden flex-col gap-3 lg:col-span-5 lg:flex lg:self-stretch">
-            {others.map((item) => {
-              const i = items.indexOf(item);
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setIndex(i)}
-                  className="flex min-h-0 flex-1 cursor-pointer items-center gap-4 rounded-2xl border border-canvas-border bg-surface p-3 text-left shadow-sm transition-colors hover:border-accent/60"
-                >
-                  <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-canvas-strong">
-                    {item.imageUrl ? (
-                      <SkeletonImage src={item.imageUrl} alt="" className="object-cover" sizes="96px" />
-                    ) : (
-                      <NoImagePlaceholder />
-                    )}
-                  </div>
-                  <div className="flex min-w-0 flex-col gap-1">
-                    <span className="text-[11px] font-semibold tracking-wider text-accent uppercase">
-                      {item.kind === "evento" ? `Evento · ${item.dateLabel}` : item.typeLabel}
-                    </span>
-                    <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-foreground">{item.title}</span>
-                    {item.excerpt && <span className="line-clamp-1 text-[13px] text-muted">{item.excerpt}</span>}
-                  </div>
-                </button>
-              );
-            })}
+            {others.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                className="flex min-h-0 flex-1 items-center gap-4 rounded-2xl border border-canvas-border bg-surface p-3 shadow-sm transition-colors hover:border-accent/60"
+              >
+                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-canvas-strong">
+                  {item.imageUrl ? (
+                    <SkeletonImage src={item.imageUrl} alt="" className="object-cover" sizes="96px" />
+                  ) : (
+                    <NoImagePlaceholder />
+                  )}
+                </div>
+                <div className="flex min-w-0 flex-col gap-1">
+                  <span className="text-[11px] font-semibold tracking-wider text-accent uppercase">
+                    {item.kind === "evento" ? `Evento · ${item.dateLabel}` : item.typeLabel}
+                  </span>
+                  <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-foreground">{item.title}</span>
+                  {item.excerpt && <span className="line-clamp-1 text-[13px] text-muted">{item.excerpt}</span>}
+                </div>
+              </Link>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Miniaturas del carrusel en celular: fila deslizable con las otras portadas. */}
+      {/* Miniaturas del carrusel en celular: fila deslizable con las otras portadas — llevan
+          directo al contenido, igual que en escritorio (los puntos de abajo son los que
+          cambian de slide sin salir de la página). */}
       {others.length > 0 && (
         <div className="-mx-0 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden">
-          {others.map((item) => {
-            const i = items.indexOf(item);
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setIndex(i)}
-                className="flex w-56 shrink-0 cursor-pointer snap-start items-center gap-3 rounded-xl border border-canvas-border bg-surface p-2.5 text-left shadow-sm"
-              >
-                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-canvas-strong">
-                  {item.imageUrl ? <SkeletonImage src={item.imageUrl} alt="" className="object-cover" sizes="56px" /> : <NoImagePlaceholder />}
-                </div>
-                <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-foreground">{item.title}</span>
-              </button>
-            );
-          })}
+          {others.map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              className="flex w-56 shrink-0 snap-start items-center gap-3 rounded-xl border border-canvas-border bg-surface p-2.5 shadow-sm"
+            >
+              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-canvas-strong">
+                {item.imageUrl ? <SkeletonImage src={item.imageUrl} alt="" className="object-cover" sizes="56px" /> : <NoImagePlaceholder />}
+              </div>
+              <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-foreground">{item.title}</span>
+            </Link>
+          ))}
         </div>
       )}
     </section>
