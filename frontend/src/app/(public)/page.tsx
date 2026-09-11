@@ -1,222 +1,170 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
-import { getPlatformSettings, listPublishedArticles, listPublishedEvents, listPublishedPlaces } from "@/lib/api/client";
-import { ArticleCard } from "@/components/article/article-card";
-import { PlaceCard } from "@/components/place/place-card";
-import { EventCard } from "@/components/event/event-card";
-import { articleTypeLabel } from "@/lib/content-labels";
-import { serverImageUrl } from "@/lib/server-image-url";
-import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
-import { SkeletonImage } from "@/components/ui/skeleton-image";
+import { ArrowRight } from "lucide-react";
+import {
+  getPlatformSettings,
+  listActiveCategories,
+  listPublishedArticles,
+  listPublishedEvents,
+  listPublishedGalleries,
+  listPublishedPlaces,
+  listPublishedReviews,
+} from "@/lib/api/client";
+import { fromArticle, fromEvent, fromGallery, fromPlace, fromReview, sortNewestFirst, type HomeItem } from "@/lib/home-items";
+import { HeroRotator } from "@/components/home/hero-rotator";
+import { ContentCard, FeaturedContentCard } from "@/components/home/content-card";
+import { CategorySpotlight, type SpotlightCategory } from "@/components/home/category-spotlight";
+import { EventRowCard } from "@/components/home/event-row-card";
 
-const FEATURED_PLACES_SIZE = 4;
-// El primero se usa como destacado grande, el resto en la grilla — evita
-// que el sitio se sienta un muro homogéneo de tarjetas idénticas (mismo
-// criterio que usan los agregadores de contenido: jerarquía por tamaño, no
-// solo por orden).
-const RECENT_ARTICLES_SIZE = 8;
+// Cuántos traer de cada tipo: alcanza para el hero (4), "Lo nuevo" (6) y
+// la categoría en foco (hasta 3 por categoría) sin pedir listados enormes.
+const ARTICLES_SIZE = 12;
+const PLACES_SIZE = 8;
+const GALLERIES_SIZE = 6;
+const REVIEWS_SIZE = 6;
 const UPCOMING_EVENTS_SIZE = 3;
-// El destacado rota entre los más recientes en vez de ser siempre el mismo
-// (a pedido del usuario, "como lo hacen las grandes empresas para no aburrir
-// a la gente") — pero con más peso para el más nuevo, nunca un pick 100%
-// parejo entre todos: newsrooms grandes rotan el hero, no randomizan el
-// listado completo (eso rompe la lectura "más nuevo primero").
-const FEATURED_POOL_SIZE = 5;
 
-/** Pick al azar ponderado: el índice 0 (más reciente) pesa más que el último del pool. */
-function pickWeightedFeatured<T>(pool: T[]): { featured: T; rest: T[] } {
-  const weights = pool.map((_, i) => pool.length - i);
-  const total = weights.reduce((sum, w) => sum + w, 0);
-  let roll = Math.random() * total;
-  let index = 0;
-  for (; index < pool.length; index++) {
-    roll -= weights[index];
-    if (roll <= 0) break;
+const HERO_SIZE = 4;
+// 1 destacada (2 columnas) + 2 en la primera fila, 4 en la segunda: rejilla de 4 columnas en escritorio.
+const NEW_GRID_SIZE = 7;
+const SPOTLIGHT_CATEGORIES_MAX = 6;
+
+/**
+ * Hero: un contenido por tipo (el más nuevo de cada uno, priorizando los
+ * que tienen imagen) para que la rotación muestre la variedad de la
+ * plataforma, no 4 publicaciones seguidas.
+ */
+function pickHero(byKind: HomeItem[][]): HomeItem[] {
+  const withImage = byKind.map((list) => list.find((i) => i.imageUrl)).filter((i): i is HomeItem => Boolean(i));
+  const picked = withImage.slice(0, HERO_SIZE);
+  if (picked.length < HERO_SIZE) {
+    for (const list of byKind) {
+      for (const item of list) {
+        if (picked.length >= HERO_SIZE) break;
+        if (!picked.some((p) => p.id === item.id)) picked.push(item);
+      }
+    }
   }
-  const featured = pool[index];
-  const rest = pool.filter((_, i) => i !== index);
-  return { featured, rest };
+  // Lo más reciente siempre primero: es el slide inicial y el que ve quien
+  // no espera la rotación.
+  return sortNewestFirst(picked);
 }
 
 export default async function Home() {
-  const [articlesPage, placesPage, eventsPage, settings] = await Promise.all([
-    listPublishedArticles({ size: RECENT_ARTICLES_SIZE }),
-    listPublishedPlaces({ size: FEATURED_PLACES_SIZE }),
+  const [articles, places, galleries, reviews, events, categories, settings] = await Promise.all([
+    listPublishedArticles({ size: ARTICLES_SIZE }),
+    listPublishedPlaces({ size: PLACES_SIZE }),
+    listPublishedGalleries({ size: GALLERIES_SIZE }),
+    listPublishedReviews({ size: REVIEWS_SIZE }),
     listPublishedEvents({ when: "upcoming", size: UPCOMING_EVENTS_SIZE }),
+    listActiveCategories(),
     getPlatformSettings(),
   ]);
-  const pool = articlesPage.items.slice(0, FEATURED_POOL_SIZE);
-  const overflow = articlesPage.items.slice(FEATURED_POOL_SIZE);
-  const { featured: featuredArticle, rest: poolRest } = pool.length > 0
-    ? pickWeightedFeatured(pool)
-    : { featured: undefined, rest: [] };
-  // Las 2 siguientes al destacado van de secundarias junto al hero (col-span-5);
-  // el resto sigue abajo en "Publicaciones recientes" — sin duplicar.
-  const secondaryArticles = poolRest.slice(0, 2);
-  const recentArticles = [...poolRest.slice(2), ...overflow];
+
+  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
+
+  const articleItems = articles.items.map(fromArticle);
+  const placeItems = places.items.map(fromPlace);
+  const galleryItems = galleries.items.map(fromGallery);
+  const reviewItems = reviews.items.map(fromReview);
+  const eventItems = events.items.map(fromEvent);
+
+  const hero = pickHero([articleItems, placeItems, galleryItems, eventItems, reviewItems]);
+  const heroIds = new Set(hero.map((i) => i.id));
+
+  // "Lo nuevo": todo lo publicado (sin eventos, que se ordenan por agenda y
+  // tienen su propia sección), más nuevo primero, sin repetir el hero.
+  const newest = sortNewestFirst([...articleItems, ...placeItems, ...galleryItems, ...reviewItems])
+    .filter((i) => !heroIds.has(i.id))
+    .slice(0, NEW_GRID_SIZE);
+  const [newestFeatured, ...newestRest] = newest;
+
+  // Categoría en foco: solo categorías con contenido, ordenadas por sortOrder.
+  const allItems = [...articleItems, ...placeItems, ...galleryItems, ...reviewItems, ...eventItems];
+  const spotlight: SpotlightCategory[] = categories
+    .filter((c) => c.parentId === null)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
+    .map((c) => ({ id: c.id, name: c.name, slug: c.slug, items: sortNewestFirst(allItems.filter((i) => i.categoryId === c.id)) }))
+    .filter((c) => c.items.length > 0)
+    .slice(0, SPOTLIGHT_CATEGORIES_MAX);
+
+  const isEmpty = hero.length === 0;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-12 px-4 py-8 sm:px-6 lg:px-8">
-      {/* h1 fuera de pantalla: el header ya muestra logo/nombre visualmente,
-          duplicarlo acá como bloque oscuro de marca (versión anterior) era
-          la redundancia que se reportó — pero la página igual necesita un
-          único <h1> real para SEO/accesibilidad. */}
+    <div className="flex flex-col">
+      {/* Único <h1> de la página, fuera de pantalla: el header ya muestra la marca. */}
       <h1 className="sr-only">{settings.name}</h1>
 
-      {featuredArticle && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <Link
-            href={`/publicaciones/${featuredArticle.slug}`}
-            className="group relative aspect-[16/10] overflow-hidden rounded-2xl border border-border shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl lg:col-span-7"
-          >
-            {featuredArticle.featuredImageId ? (
-              <SkeletonImage
-                src={serverImageUrl(`/api/v1/images/${featuredArticle.featuredImageId}/file`)}
-                alt={featuredArticle.title}
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                sizes="(min-width: 1024px) 58vw, 100vw"
-              />
-            ) : (
-              <NoImagePlaceholder />
-            )}
-            <div
-              className="pointer-events-none absolute inset-0"
-              style={{ background: "linear-gradient(to top, rgba(9,9,11,0.92) 0%, rgba(9,9,11,0.45) 45%, transparent 75%)" }}
-            />
-            <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-5 sm:p-8">
-              <span className="w-fit rounded-full bg-accent px-3 py-1 text-xs font-semibold tracking-wide text-accent-foreground uppercase">
-                {articleTypeLabel(featuredArticle.articleType)}
-              </span>
-              <h2 className="text-xl font-bold leading-tight tracking-tight text-white sm:text-2xl lg:text-3xl">
-                {featuredArticle.title}
-              </h2>
-              {featuredArticle.excerpt && (
-                <p className="line-clamp-2 text-sm leading-relaxed text-white/80 sm:text-base">{featuredArticle.excerpt}</p>
-              )}
-            </div>
-          </Link>
+      {isEmpty ? (
+        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-dashed border-canvas-border px-6 py-16 text-center">
+            <p className="text-sm text-muted">Todavía no hay contenido publicado. Vuelve pronto.</p>
+          </div>
+        </div>
+      ) : (
+        <HeroRotator items={hero} categoryNames={categoryNames} />
+      )}
 
-          {secondaryArticles.length > 0 && (
-            <div className="flex flex-col gap-4 lg:col-span-5">
-              {secondaryArticles.map((article) => (
-                <Link
-                  key={article.id}
-                  href={`/publicaciones/${article.slug}`}
-                  className="group flex gap-4 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-                >
-                  <div className="relative aspect-square w-24 shrink-0 overflow-hidden rounded-xl sm:w-28">
-                    {article.featuredImageId ? (
-                      <SkeletonImage
-                        src={serverImageUrl(`/api/v1/images/${article.featuredImageId}/file`)}
-                        alt={article.title}
-                        className="object-cover"
-                        sizes="112px"
-                      />
-                    ) : (
-                      <NoImagePlaceholder />
-                    )}
-                  </div>
-                  <div className="flex flex-1 flex-col justify-center gap-1">
-                    <span className="text-xs font-semibold tracking-wide text-accent uppercase">
-                      {articleTypeLabel(article.articleType)}
-                    </span>
-                    <h3 className="line-clamp-2 text-sm font-bold leading-snug text-foreground transition-colors group-hover:text-accent sm:text-base">
-                      {article.title}
-                    </h3>
-                  </div>
-                </Link>
-              ))}
+      {newest.length > 0 && (
+        <section aria-labelledby="lo-nuevo" className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6 sm:pt-12 lg:px-8">
+          <div className="flex items-end justify-between gap-4">
+            <div className="flex flex-col gap-1">
+              <h2 id="lo-nuevo" className="flex items-center gap-2.5 text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+                <span className="h-2 w-2 rounded-full bg-red-600" aria-hidden="true" />
+                Lo nuevo en {settings.shortName || settings.name}
+              </h2>
+              <p className="hidden text-sm text-muted sm:block">
+                Publicaciones, lugares, galerías y reseñas, mezclados y ordenados por fecha.
+              </p>
             </div>
-          )}
+            <Link
+              href="/publicaciones"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-accent bg-surface px-3.5 py-2 text-[13px] font-semibold text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              Ver todo
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-4 lg:grid-cols-4">
+            <FeaturedContentCard
+              item={newestFeatured}
+              categoryName={categoryNames[newestFeatured.categoryId]}
+              cta={newestFeatured.kind === "galeria" ? "Ver galería" : "Leer"}
+            />
+            {newestRest.map((item) => (
+              <ContentCard key={item.id} item={item} categoryName={categoryNames[item.categoryId]} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {spotlight.length > 0 && (
+        <div className="mt-8 sm:mt-12">
+          <CategorySpotlight categories={spotlight} />
         </div>
       )}
 
-      {placesPage.items.length > 0 && (
-        <section aria-label="Lugares destacados">
-          <SectionHeader title="Lugares destacados" href="/lugares" />
-          <HorizontalOnMobile>
-            {placesPage.items.map((place) => (
-              <CarouselItem key={place.id}>
-                <PlaceCard place={place} />
-              </CarouselItem>
+      {events.items.length > 0 && (
+        <section aria-labelledby="proximos-eventos" className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+          <div className="flex items-center justify-between gap-4">
+            <h2 id="proximos-eventos" className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+              Próximos eventos
+            </h2>
+            <Link
+              href="/eventos"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-accent bg-surface px-3.5 py-2 text-[13px] font-semibold text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              Agenda completa
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+            {events.items.map((event) => (
+              <EventRowCard key={event.id} event={event} categoryName={categoryNames[event.categoryId]} />
             ))}
-          </HorizontalOnMobile>
+          </div>
         </section>
       )}
-
-      {eventsPage.items.length > 0 && (
-        <section aria-label="Próximos eventos">
-          <SectionHeader title="Próximos eventos" href="/eventos" />
-          <HorizontalOnMobile>
-            {eventsPage.items.map((event) => (
-              <CarouselItem key={event.id}>
-                <EventCard event={event} />
-              </CarouselItem>
-            ))}
-          </HorizontalOnMobile>
-        </section>
-      )}
-
-      <section aria-label="Publicaciones recientes">
-        <SectionHeader title="Publicaciones recientes" href={articlesPage.items.length > 0 ? "/publicaciones" : undefined} />
-        {articlesPage.items.length === 0 ? (
-          <EmptyState />
-        ) : recentArticles.length === 0 ? (
-          <p className="mt-4 text-sm text-muted">Todavía no hay más artículos publicados.</p>
-        ) : (
-          <HorizontalOnMobile>
-            {recentArticles.map((article) => (
-              <CarouselItem key={article.id}>
-                <ArticleCard article={article} />
-              </CarouselItem>
-            ))}
-          </HorizontalOnMobile>
-        )}
-      </section>
-    </div>
-  );
-}
-
-function SectionHeader({ title, href }: { title: string; href?: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <h2 className="text-xl font-semibold text-foreground">{title}</h2>
-      {href && (
-        <Link
-          href={href}
-          className="rounded-full border border-accent px-3 py-1.5 text-xs font-semibold text-accent transition-colors hover:bg-accent hover:text-accent-foreground"
-        >
-          Ver todos
-        </Link>
-      )}
-    </div>
-  );
-}
-
-/**
- * Fila de destacados: scroll horizontal con snap en mobile (no hay espacio
- * para una grilla de verdad en una pantalla angosta), grid fijo de verdad
- * en sm+ — mismo criterio de columnas 1/2/3/4 que el resto del sitio, así
- * no depende de auto-fit (que estiraba la última tarjeta sola en la fila).
- */
-function HorizontalOnMobile({ children }: { children: ReactNode }) {
-  return (
-    <div className="-mx-4 mt-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:snap-none sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3 xl:grid-cols-4">
-      {children}
-    </div>
-  );
-}
-
-function CarouselItem({ children }: { children: ReactNode }) {
-  return <div className="w-72 shrink-0 snap-start sm:w-auto sm:shrink">{children}</div>;
-}
-
-function EmptyState() {
-  return (
-    <div className="mt-4 rounded-2xl border border-dashed border-border px-6 py-16 text-center">
-      <p className="text-sm text-muted">
-        Todavía no hay artículos publicados. Vuelve pronto.
-      </p>
     </div>
   );
 }
