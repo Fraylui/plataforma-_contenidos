@@ -92,13 +92,13 @@ class CategoryFlowIntegrationTest {
         mockMvc.perform(post("/api/v1/admin/categories")
                         .header("Authorization", "Bearer " + editorToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Gastronomía\"}"))
+                        .content("{\"name\":\"Gastronomía Unicidad Test\"}"))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/v1/admin/categories")
                         .header("Authorization", "Bearer " + editorToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"gastronomía\"}"))
+                        .content("{\"name\":\"gastronomía unicidad test\"}"))
                 .andExpect(status().isConflict());
     }
 

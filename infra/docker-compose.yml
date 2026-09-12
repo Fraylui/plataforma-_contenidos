@@ -12,10 +12,20 @@ name: plataforma-contenidos
 # solo `docker compose up -d --build` NO alcanza para el frontend la
 # primera vez (el backend todavía no está arriba cuando se arma su imagen).
 # Ver README.md para la secuencia de dos pasos.
+# Rotación de logs (ISO 27001 A.8.15 / ITIL gestión de eventos): el driver
+# json-file de Docker no limita tamaño por defecto y el disco del host crece
+# sin tope. 10 MB x 5 archivos por servicio = 50 MB máximo cada uno.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_DB: ${DB_NAME:-plataforma_contenidos}
       POSTGRES_USER: ${DB_USER:-plataforma_contenidos}
@@ -33,6 +43,7 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    logging: *default-logging
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?define REDIS_PASSWORD in .env}"]
     ports:
       - "127.0.0.1:${REDIS_PORT:-6379}:6379"
@@ -47,6 +58,7 @@ services:
   backend:
     build: ../backend
     restart: unless-stopped
+    logging: *default-logging
     depends_on:
       postgres:
         condition: service_healthy
@@ -120,6 +132,7 @@ services:
         # en runtime) — ver comentario en next.config.ts.
         RUNTIME_BACKEND_INTERNAL_URL: http://backend:8080
     restart: unless-stopped
+    logging: *default-logging
     depends_on:
       backend:
         condition: service_healthy
