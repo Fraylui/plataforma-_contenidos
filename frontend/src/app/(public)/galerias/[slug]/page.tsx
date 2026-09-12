@@ -197,7 +197,7 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
 
           {relatedArticles.length > 0 && (
             <section
-              aria-label="Más artículos"
+              aria-label="Más publicaciones"
               className={relatedGalleries.length > 0 || relatedPlaces.length > 0 ? "mt-10" : undefined}
             >
               <h2 className="text-lg font-semibold text-foreground">Más de {category!.name}</h2>

@@ -318,7 +318,7 @@ export function ArticleForm({
                 type="button"
                 variant="secondary"
                 disabled={pending}
-                onClick={() => runWorkflow(() => approveArticleAction(article.id), "Artículo aprobado.")}
+                onClick={() => runWorkflow(() => approveArticleAction(article.id), "Publicación aprobada.")}
               >
                 Aprobar
               </AdminButton>
@@ -328,7 +328,7 @@ export function ArticleForm({
                 type="button"
                 variant="secondary"
                 disabled={pending}
-                onClick={() => runWorkflow(() => publishArticleAction(article.id), "Artículo publicado.")}
+                onClick={() => runWorkflow(() => publishArticleAction(article.id), "Publicación publicada.")}
               >
                 Publicar ahora
               </AdminButton>
@@ -338,7 +338,7 @@ export function ArticleForm({
                 type="button"
                 variant="secondary"
                 disabled={pending}
-                onClick={() => runWorkflow(() => archiveArticleAction(article.id), "Artículo archivado.")}
+                onClick={() => runWorkflow(() => archiveArticleAction(article.id), "Publicación archivada.")}
               >
                 Archivar
               </AdminButton>
@@ -359,7 +359,7 @@ export function ArticleForm({
                 type="button"
                 variant="secondary"
                 disabled={pending || !rejectReason.trim()}
-                onClick={() => runWorkflow(() => rejectArticleAction(article.id, rejectReason), "Artículo rechazado.")}
+                onClick={() => runWorkflow(() => rejectArticleAction(article.id, rejectReason), "Publicación rechazada.")}
               >
                 Rechazar
               </AdminButton>

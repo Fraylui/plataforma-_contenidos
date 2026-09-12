@@ -44,7 +44,7 @@ export default async function EditArticlePage(props: PageProps<"/admin/publicaci
     }
     if (error instanceof AdminApiError && error.status === 403) {
       return (
-        <p className="text-sm text-muted">No tienes acceso para ver este artículo (pertenece a otro autor).</p>
+        <p className="text-sm text-muted">No tienes acceso para ver esta publicación (pertenece a otro autor).</p>
       );
     }
     throw error;

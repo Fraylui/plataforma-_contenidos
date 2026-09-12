@@ -18,7 +18,7 @@ export default async function AdminTagsPage() {
     <div>
       <AdminPageHeader
         title="Etiquetas"
-        description="Se crean automáticamente al escribirlas en un artículo — no hay un formulario de alta acá. Elimina las que ya no quieras que se sigan ofreciendo."
+        description="Se crean automáticamente al escribirlas en una publicación — no hay un formulario de alta acá. Elimina las que ya no quieras que se sigan ofreciendo."
       />
 
       {sorted.length === 0 ? (

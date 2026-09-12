@@ -6,8 +6,6 @@ import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Dialog = RadixDialog.Root;
-export const DialogTrigger = RadixDialog.Trigger;
-export const DialogClose = RadixDialog.Close;
 
 export function DialogContent({ className, children, ...props }: ComponentProps<typeof RadixDialog.Content>) {
   return (
