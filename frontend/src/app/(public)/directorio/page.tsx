@@ -16,6 +16,10 @@ const BUSINESS_TYPES: BusinessType[] = ["RESTAURANT", "HOTEL", "SERVICE", "SHOP"
 export const metadata: Metadata = {
   title: "Directorio",
   description: "Restaurantes, hoteles y servicios locales.",
+  // Sin esto hereda el canonical "/" del layout raíz (bug real hallado con
+  // Lighthouse/lhci: SEO le decía a los buscadores que esta página era
+  // duplicado del home).
+  alternates: { canonical: BASE_PATH },
 };
 
 function buildHref(

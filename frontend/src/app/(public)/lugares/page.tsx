@@ -11,6 +11,10 @@ const BASE_PATH = "/lugares";
 export const metadata: Metadata = {
   title: "Lugares",
   description: "Lugares, historia y ubicación — CONTEXTO.md sección 6.",
+  // Sin esto hereda el canonical "/" del layout raíz (bug real hallado con
+  // Lighthouse/lhci: SEO le decía a los buscadores que esta página era
+  // duplicado del home).
+  alternates: { canonical: BASE_PATH },
 };
 
 function buildHref(categoryId: string | null, geographyId: string | null, page: number): string {

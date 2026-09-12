@@ -32,6 +32,10 @@ export async function generateMetadata(props: PageProps<"/categorias/[slug]">): 
   return {
     title: category.name,
     description: category.description || `Publicaciones, lugares y más de ${category.name}.`,
+    // Sin esto hereda el canonical "/" del layout raíz (bug real hallado con
+    // Lighthouse/lhci: SEO le decía a los buscadores que esta página era
+    // duplicado del home).
+    alternates: { canonical: `/categorias/${slug}` },
   };
 }
 

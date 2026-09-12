@@ -36,8 +36,11 @@ export function CookieConsentBanner({ adsenseEnabled }: { adsenseEnabled: boolea
             {adsenseEnabled
               ? "Usamos cookies técnicas necesarias y, si aceptás, cookies de terceros (Google) para mostrar publicidad."
               : "Usamos cookies técnicas necesarias para el funcionamiento del sitio. Si en el futuro sumamos publicidad o analítica de terceros, te lo vamos a preguntar de nuevo."}{" "}
+            {/* "Más información" es genérico fuera de contexto (lectores de pantalla
+                anuncian los links de una página en lista, sin la frase alrededor) —
+                hallazgo real de Lighthouse (SEO: link-text). */}
             <Link href="/privacidad" className="text-foreground underline underline-offset-2 hover:text-accent">
-              Más información
+              Más información sobre nuestra política de cookies
             </Link>
             .
           </p>
