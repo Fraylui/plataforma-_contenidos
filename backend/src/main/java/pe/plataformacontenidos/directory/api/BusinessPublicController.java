@@ -41,8 +41,13 @@ public class BusinessPublicController {
             @RequestParam(required = false) BusinessType businessType,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        int safeSize = Math.min(size, MAX_PAGE_SIZE);
-        var pageable = PageRequest.of(page, safeSize, Sort.by(Sort.Direction.DESC, "publishedAt"));
+        // Clamp defensivo: page<0/size<1 lanzan IllegalArgumentException, y un page
+        // extremo hace que offset (page*size) desborde Integer.MAX_VALUE en el
+        // driver JDBC (InvalidDataAccessApiUsageException) — ambos son 500 en un
+        // endpoint público sin autenticar. Ver ApiHardeningIntegrationTest.
+        int safePage = Math.min(Math.max(page, 0), 10_000_000);
+        int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
+        var pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "publishedAt"));
         var result = businessService.listPublished(categoryId, geographyId, businessType, pageable);
         var likes = contentLikeService.countLikes(ContentType.BUSINESS,
                 result.getContent().stream().map(Business::getId).toList());

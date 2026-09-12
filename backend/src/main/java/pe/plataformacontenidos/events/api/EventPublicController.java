@@ -44,9 +44,14 @@ public class EventPublicController {
             @RequestParam(defaultValue = "upcoming") String when,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        int safeSize = Math.min(size, MAX_PAGE_SIZE);
+        // Clamp defensivo: page<0/size<1 lanzan IllegalArgumentException, y un page
+        // extremo hace que offset (page*size) desborde Integer.MAX_VALUE en el
+        // driver JDBC (InvalidDataAccessApiUsageException) — ambos son 500 en un
+        // endpoint público sin autenticar. Ver ApiHardeningIntegrationTest.
+        int safePage = Math.min(Math.max(page, 0), 10_000_000);
+        int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         boolean upcoming = !"past".equalsIgnoreCase(when);
-        var pageable = PageRequest.of(page, safeSize);
+        var pageable = PageRequest.of(safePage, safeSize);
         var result = eventService.listPublished(categoryId, geographyId, upcoming, pageable);
         var likes = contentLikeService.countLikes(ContentType.EVENT,
                 result.getContent().stream().map(Event::getId).toList());
