@@ -31,7 +31,7 @@ export async function generateMetadata(props: PageProps<"/categorias/[slug]">): 
   if (!category) return {};
   return {
     title: category.name,
-    description: category.description || `Artículos y lugares de ${category.name}.`,
+    description: category.description || `Publicaciones, lugares y más de ${category.name}.`,
   };
 }
 
@@ -137,7 +137,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
         <h2 className="text-xl font-semibold text-foreground">Publicaciones</h2>
         {articlesResult.items.length === 0 ? (
           <p className="mt-4 rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">
-            Todavía no hay artículos publicados en esta categoría.
+            Todavía no hay publicaciones en esta categoría.
           </p>
         ) : (
           <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

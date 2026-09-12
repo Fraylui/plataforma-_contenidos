@@ -39,10 +39,6 @@ const KIND_LABEL: Record<HomeItemKind, string> = {
   resena: "Reseña",
 };
 
-export function homeKindLabel(kind: HomeItemKind): string {
-  return KIND_LABEL[kind];
-}
-
 const LIKE_TYPE: Record<HomeItemKind, LikeableContentType> = {
   publicacion: "articles",
   lugar: "places",

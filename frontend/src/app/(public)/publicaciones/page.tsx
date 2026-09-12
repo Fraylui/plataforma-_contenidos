@@ -51,8 +51,8 @@ export default async function ArticlesPage(props: PageProps<"/publicaciones">) {
         {result.items.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">
             {categoryId || geographyId
-              ? "Ningún artículo publicado coincide con este filtro."
-              : "Todavía no hay artículos publicados. Vuelve pronto."}
+              ? "Ninguna publicación coincide con este filtro."
+              : "Todavía no hay publicaciones. Vuelve pronto."}
           </p>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

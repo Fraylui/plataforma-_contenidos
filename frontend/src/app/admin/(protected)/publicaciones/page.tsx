@@ -22,7 +22,7 @@ export default async function AdminArticlesPage() {
       <AdminPageHeader title="Publicaciones" action={{ href: "/admin/publicaciones/nuevo", label: "Nueva publicación" }} />
 
       {sorted.length === 0 ? (
-        <EmptyState title="Todavía no hay artículos" description="Crea el primero para empezar." />
+        <EmptyState title="Todavía no hay publicaciones" description="Crea el primero para empezar." />
       ) : (
         <div className="mt-6">
           <PublicationsTable articles={sorted} currentUser={user} />

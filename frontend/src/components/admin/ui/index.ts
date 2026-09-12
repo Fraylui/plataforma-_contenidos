@@ -4,7 +4,7 @@ export { AdminButton, AdminLinkButton } from "./admin-button";
 export { EmptyState } from "./empty-state";
 export { FormField, formInputClass } from "./form-field";
 export { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "./dropdown-menu";
-export { Dialog, DialogTrigger, DialogClose, DialogContent, DialogTitle, DialogDescription } from "./dialog";
+export { Dialog, DialogContent, DialogTitle, DialogDescription } from "./dialog";
 export {
   AlertDialog,
   AlertDialogTrigger,
@@ -17,4 +17,4 @@ export {
 } from "./alert-dialog";
 export { DataTable } from "./data-table";
 export { StatCard } from "./stat-card";
-export { Combobox, type ComboboxOption } from "./combobox";
+export { Combobox } from "./combobox";

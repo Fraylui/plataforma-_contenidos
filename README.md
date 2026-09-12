@@ -14,7 +14,6 @@ importante.
 frontend/   Next.js (TypeScript, App Router, Tailwind) — Dockerfile propio
 backend/    Spring Boot (Java 21, Maven) — Dockerfile propio
 infra/      docker-compose (Postgres + Redis + backend + frontend)
-docs/       documentación adicional
 ```
 
 ## Requisitos
