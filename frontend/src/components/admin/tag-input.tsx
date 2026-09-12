@@ -52,6 +52,7 @@ export function TagInput({ value, onChange }: { value: string[]; onChange: (tags
       <input
         type="text"
         name="tagDraft"
+        aria-label="Nueva etiqueta"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={handleKeyDown}
