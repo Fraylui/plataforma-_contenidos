@@ -11,6 +11,10 @@ const BASE_PATH = "/resenas";
 export const metadata: Metadata = {
   title: "Reseñas",
   description: "Opiniones y calificaciones sobre lugares y experiencias de la región.",
+  // Sin esto hereda el canonical "/" del layout raíz (bug real hallado con
+  // Lighthouse/lhci: SEO le decía a los buscadores que esta página era
+  // duplicado del home).
+  alternates: { canonical: BASE_PATH },
 };
 
 function buildHref(categoryId: string | null, geographyId: string | null, page: number): string {

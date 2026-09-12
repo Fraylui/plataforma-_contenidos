@@ -17,6 +17,10 @@ const WHEN_TABS: { value: "upcoming" | "past"; label: string }[] = [
 export const metadata: Metadata = {
   title: "Eventos",
   description: "Eventos próximos y pasados de la región.",
+  // Sin esto hereda el canonical "/" del layout raíz (bug real hallado con
+  // Lighthouse/lhci: SEO le decía a los buscadores que esta página era
+  // duplicado del home).
+  alternates: { canonical: BASE_PATH },
 };
 
 function buildHref(
