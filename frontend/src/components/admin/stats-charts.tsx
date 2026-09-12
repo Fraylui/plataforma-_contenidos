@@ -17,14 +17,14 @@ import { articleStatusLabel } from "@/lib/content-labels";
 import { roleLabel } from "@/lib/admin/role-labels";
 
 // Rampa secuencial de un solo tono (verde de marca), clara -> oscura, la
-// última parada calza con --accent (#15803d) para que "Publicado" se vea
-// igual acá que en cualquier otro badge/botón del sitio.
+// última parada calza con --accent (#166534, ver globals.css) para que
+// "Publicado" se vea igual acá que en cualquier otro badge/botón del sitio.
 const PIPELINE_RAMP: Record<ArticleStatus, string> = {
   DRAFT: "#bbf7d0",
   IN_REVIEW: "#86efac",
   APPROVED: "#4ade80",
   SCHEDULED: "#22c55e",
-  PUBLISHED: "#15803d",
+  PUBLISHED: "#166534",
   ARCHIVED: "#d4d4d8",
   REJECTED: "#d4d4d8",
 };
