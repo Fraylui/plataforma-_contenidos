@@ -48,6 +48,7 @@ public class SecurityConfig {
                         "/api/v1/events/*/like", "/api/v1/galleries/*/like", "/api/v1/reviews/*/like",
                         "/api/v1/directory/*/like").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/search").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/feed", "/api/v1/feed/related").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/geography", "/api/v1/geography/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/images/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/platform-settings").permitAll()

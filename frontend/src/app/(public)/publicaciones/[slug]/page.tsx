@@ -8,25 +8,22 @@ import {
   getGeographyUnitById,
   getPlatformSettings,
   getPublishedArticleBySlug,
+  getRelatedWithFallback,
   listAllTags,
-  listPublishedArticles,
-  listPublishedPlaces,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { articleTypeLabel, formatArticleDate, formatPublishedDate } from "@/lib/content-labels";
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
-import { ArticleCard } from "@/components/article/article-card";
 import { LikeShareBar } from "@/components/content/like-share-bar";
 import { NeighborNav } from "@/components/article/neighbor-nav";
 import { ReadingProgressBar } from "@/components/article/reading-progress-bar";
-import { PlaceCard } from "@/components/place/place-card";
+import { RelatedFeed } from "@/components/content/related-feed";
+import { ContentImageDisplay } from "@/components/content/content-image-display";
 import { AdBlock } from "@/components/legal/ad-block";
-import { serverImageUrl } from "@/lib/server-image-url";
 import { SITE_URL } from "@/lib/site-url";
-import { SkeletonImage } from "@/components/ui/skeleton-image";
 import type { Article, Category } from "@/lib/api/types";
 
-const RELATED_SIZE = 4;
+const RELATED_SIZE = 6;
 
 async function loadArticle(slug: string) {
   try {
@@ -122,27 +119,17 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
 
   const articleTags = tags.filter((tag) => article.tagIds.includes(tag.id));
 
-  const [relatedArticlesResult, relatedPlacesResult] = category
-    ? await Promise.all([
-        listPublishedArticles({ categoryId: category.id, size: RELATED_SIZE + 1 }),
-        listPublishedPlaces({ categoryId: category.id, size: RELATED_SIZE }),
-      ])
-    : [null, null];
-  let relatedArticles = (relatedArticlesResult?.items ?? [])
-    .filter((a) => a.id !== article.id)
-    .slice(0, RELATED_SIZE);
-  let relatedArticlesAreRecentFallback = false;
-  // Categorías con poco contenido todavía (como "Historia" con 1-2 artículos)
-  // no deben dejar la sección vacía — de faltar, se completa con las
-  // publicaciones más recientes del sitio en general, siempre datos reales.
-  if (relatedArticles.length === 0) {
-    const recent = await listPublishedArticles({ size: RELATED_SIZE + 1 }).catch(() => null);
-    relatedArticles = (recent?.items ?? []).filter((a) => a.id !== article.id).slice(0, RELATED_SIZE);
-    relatedArticlesAreRecentFallback = relatedArticles.length > 0;
-  }
-  const relatedPlaces = relatedPlacesResult?.items ?? [];
+  const { items: related, isFallback: relatedIsFallback } = await getRelatedWithFallback({
+    excludeType: "ARTICLE",
+    excludeId: article.id,
+    categoryId: article.categoryId,
+    geographyId: article.geographyId,
+    size: RELATED_SIZE,
+  });
+  const relatedTitle = relatedIsFallback ? "Quizás te interese" : `Relacionado con ${category?.name ?? "esto"}`;
 
-  const hasSidebar = relatedPlaces.length > 0 || relatedArticles.length > 0;
+  const [heroImage, ...galleryImages] = article.images;
+  const hasSidebar = related.length > 0;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
@@ -228,24 +215,38 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
             )}
           </div>
 
-          {article.featuredImageId && (
+          {heroImage && (
             <div className="relative my-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-zinc-950 shadow-lg">
-              <SkeletonImage
-                src={serverImageUrl(`/api/v1/images/${article.featuredImageId}/file`)}
-                alt={article.title}
-                className="object-cover"
-              />
+              <ContentImageDisplay image={heroImage} alt={article.title} className="object-cover" />
             </div>
           )}
 
-          {article.youtubeVideoId && (
+          {galleryImages.length > 0 && (
+            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {galleryImages.map((img, index) => (
+                <div
+                  key={img.imageId ?? img.externalUrl}
+                  className="relative aspect-square overflow-hidden rounded-lg border border-border bg-zinc-950"
+                >
+                  <ContentImageDisplay
+                    image={img}
+                    alt={`${article.title} — fotografía ${index + 2}`}
+                    className="object-cover"
+                    sizes="180px"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {article.youtubeVideoIds.map((videoId) => (
             // YouTubeEmbed ya trae su propio aspect-video (button/iframe) — este
             // wrapper solo agrega el borde/sombra consistente con la imagen de
             // portada, no un segundo aspect-ratio anidado.
-            <div className="my-8 overflow-hidden rounded-2xl border border-border shadow-lg">
-              <YouTubeEmbed videoId={article.youtubeVideoId} title={article.title} />
+            <div key={videoId} className="my-8 overflow-hidden rounded-2xl border border-border shadow-lg">
+              <YouTubeEmbed videoId={videoId} title={article.title} />
             </div>
-          )}
+          ))}
 
           {article.excerpt && (
             <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">
@@ -284,32 +285,8 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
 
         {hasSidebar && (
           <aside className="mt-14 lg:col-span-4 lg:mt-0">
-            <div className="space-y-10 lg:sticky lg:top-24">
-              {relatedPlaces.length > 0 && (
-                <section aria-label="Lugares relacionados">
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Lugares en {category!.name}
-                  </h2>
-                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                    {relatedPlaces.map((place) => (
-                      <PlaceCard key={place.id} place={place} />
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {relatedArticles.length > 0 && (
-                <section aria-label="Más publicaciones">
-                  <h2 className="text-lg font-semibold text-foreground">
-                    {relatedArticlesAreRecentFallback ? "Publicaciones recientes" : `Más de ${category!.name}`}
-                  </h2>
-                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                    {relatedArticles.map((related) => (
-                      <ArticleCard key={related.id} article={related} />
-                    ))}
-                  </div>
-                </section>
-              )}
+            <div className="lg:sticky lg:top-24">
+              <RelatedFeed items={related} title={relatedTitle} />
             </div>
           </aside>
         )}

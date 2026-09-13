@@ -4,13 +4,14 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
 import type { AdminImage } from "@/lib/api/admin-types";
-import type { Category, GeographicUnit, Place } from "@/lib/api/types";
+import type { Category, ContentImage, GeographicUnit, Place } from "@/lib/api/types";
 import type { PlaceInput } from "@/lib/api/admin-types";
 import type { PlacePermissions } from "@/lib/admin/place-permissions";
 import { articleStatusLabel } from "@/lib/content-labels";
 import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
 import { GeographyPicker } from "./geography-picker";
-import { PlaceGalleryPicker } from "./place-gallery-picker";
+import { ContentImagesPicker } from "./content-images-picker";
+import { VideoLinksEditor } from "./video-links-editor";
 import {
   approvePlaceAction,
   archivePlaceAction,
@@ -45,13 +46,14 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
   const [geographyId, setGeographyId] = useState<string | null>(place?.geographyId ?? null);
   const [latitude, setLatitude] = useState(place?.latitude != null ? String(place.latitude) : "");
   const [longitude, setLongitude] = useState(place?.longitude != null ? String(place.longitude) : "");
-  const [imageIds, setImageIds] = useState<string[]>(place?.imageIds ?? []);
+  const [images, setImages] = useState<ContentImage[]>(place?.images ?? []);
   const [seoTitle, setSeoTitle] = useState(place?.seoTitle ?? "");
   const [metaDescription, setMetaDescription] = useState(place?.metaDescription ?? "");
   const [canonicalUrl, setCanonicalUrl] = useState(place?.canonicalUrl ?? "");
   const [ogImageUrl, setOgImageUrl] = useState(place?.ogImageUrl ?? "");
-  const [youtubeUrl, setYoutubeUrl] = useState("");
-  const [removeYoutube, setRemoveYoutube] = useState(false);
+  const [youtubeUrls, setYoutubeUrls] = useState<string[]>(
+    place?.youtubeVideoIds.map((id) => `https://www.youtube.com/watch?v=${id}`) ?? [],
+  );
   const [robots, setRobots] = useState(place?.robots ?? "index,follow");
 
   const [pending, setPending] = useState(false);
@@ -68,22 +70,14 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
       geographyId,
       latitude: latitude.trim() ? Number(latitude) : null,
       longitude: longitude.trim() ? Number(longitude) : null,
-      imageIds,
       seoTitle: seoTitle || null,
       metaDescription: metaDescription || null,
       canonicalUrl: canonicalUrl || null,
       ogImageUrl: ogImageUrl || null,
-      youtubeUrl: resolveYoutubeUrlForSubmit(),
+      images,
+      youtubeUrls,
       robots,
     };
-  }
-
-  /** Mismo motivo que ArticleForm: el backend reemplaza youtubeVideoId con lo que se mande, vacío incluido. */
-  function resolveYoutubeUrlForSubmit(): string | null {
-    if (youtubeUrl.trim()) return youtubeUrl;
-    if (removeYoutube) return null;
-    if (place?.youtubeVideoId) return `https://www.youtube.com/watch?v=${place.youtubeVideoId}`;
-    return null;
   }
 
   async function handleSubmit() {
@@ -182,26 +176,13 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
           </FormField>
         </div>
 
-        <FormField label="Fotografías" name="imageIds">
-          <PlaceGalleryPicker allImages={allImages} value={imageIds} onChange={setImageIds} disabled={readOnly} />
+        <FormField label="Fotografías (opcional — una o varias; la primera es la portada de tarjeta/feed)" name="images">
+          <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
         </FormField>
 
-        <FormField label="Video de YouTube (URL, opcional)" name="youtubeUrl">
-          <input
-            type="text"
-            value={youtubeUrl}
-            disabled={readOnly || removeYoutube}
-            onChange={(e) => setYoutubeUrl(e.target.value)}
-            placeholder={place?.youtubeVideoId ? "Ya tiene un video — pega otra URL para reemplazarlo" : "https://www.youtube.com/watch?v=…"}
-            className={formInputClass}
-          />
+        <FormField label="Videos de YouTube (opcional — uno o varios)" name="youtubeUrls">
+          <VideoLinksEditor value={youtubeUrls} onChange={setYoutubeUrls} disabled={readOnly} />
         </FormField>
-        {place?.youtubeVideoId && (
-          <label className="flex items-center gap-2 text-sm text-foreground">
-            <input type="checkbox" checked={removeYoutube} disabled={readOnly} onChange={(e) => setRemoveYoutube(e.target.checked)} />
-            Quitar el video actual
-          </label>
-        )}
       </div>
 
       <fieldset className="space-y-4 border-t border-border pt-6">

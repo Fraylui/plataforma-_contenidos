@@ -28,12 +28,16 @@ import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-/** Foto destacada de artículos (sección 43) — mismo patrón de validación que Place.imageIds. */
+/**
+ * Imágenes de publicaciones (sección 43): varias por publicación, cada una
+ * subida (imageId) o por enlace externo (externalUrl) — mismo patrón de
+ * validación que Place/Event.images.
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
-class ArticleFeaturedImageIntegrationTest {
+class ArticleImagesIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -48,28 +52,46 @@ class ArticleFeaturedImageIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void rejectsUnknownFeaturedImageId() throws Exception {
-        String authorToken = createUserAndLogin("featured-author-1@plataforma-contenidos.test", Role.AUTHOR);
-        String editorToken = createUserAndLogin("featured-editor-1@plataforma-contenidos.test", Role.EDITOR);
-        String categoryId = createCategory(editorToken, "Categoría Imagen Destacada Test");
+    void rejectsUnknownUploadedImageId() throws Exception {
+        String authorToken = createUserAndLogin("images-author-1@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("images-editor-1@plataforma-contenidos.test", Role.EDITOR);
+        String categoryId = createCategory(editorToken, "Categoría Imagen Inexistente Test");
 
         mockMvc.perform(post("/api/v1/admin/articles")
                         .header("Authorization", "Bearer " + authorToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\":\"Artículo con imagen destacada inexistente\","
+                        .content("{\"title\":\"Publicación con imagen inexistente\","
                                 + "\"excerpt\":\"Resumen breve\","
                                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
                                 + "\"articleType\":\"ARTICULO\","
                                 + "\"categoryId\":\"" + categoryId + "\","
-                                + "\"featuredImageId\":\"00000000-0000-0000-0000-000000000000\"}"))
+                                + "\"images\":[{\"imageId\":\"00000000-0000-0000-0000-000000000000\"}]}"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void acceptsRealUploadedImageAsFeaturedImageAndReturnsItInResponse() throws Exception {
-        String authorToken = createUserAndLogin("featured-author-2@plataforma-contenidos.test", Role.AUTHOR);
-        String editorToken = createUserAndLogin("featured-editor-2@plataforma-contenidos.test", Role.EDITOR);
-        String categoryId = createCategory(editorToken, "Categoría Imagen Destacada Real Test");
+    void rejectsImageWithBothSourcesOrNeither() throws Exception {
+        String authorToken = createUserAndLogin("images-author-shape@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("images-editor-shape@plataforma-contenidos.test", Role.EDITOR);
+        String categoryId = createCategory(editorToken, "Categoría Imagen Forma Inválida Test");
+
+        mockMvc.perform(post("/api/v1/admin/articles")
+                        .header("Authorization", "Bearer " + authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Publicación con imagen sin fuente\","
+                                + "\"excerpt\":\"Resumen breve\","
+                                + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
+                                + "\"articleType\":\"ARTICULO\","
+                                + "\"categoryId\":\"" + categoryId + "\","
+                                + "\"images\":[{}]}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void acceptsUploadedAndExternalImagesAndReturnsThemInOrder() throws Exception {
+        String authorToken = createUserAndLogin("images-author-2@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("images-editor-2@plataforma-contenidos.test", Role.EDITOR);
+        String categoryId = createCategory(editorToken, "Categoría Imágenes Reales Test");
 
         byte[] png = generatePng(40, 30);
         MvcResult uploadResult = mockMvc.perform(multipart("/api/v1/admin/images")
@@ -82,14 +104,17 @@ class ArticleFeaturedImageIntegrationTest {
         MvcResult createResult = mockMvc.perform(post("/api/v1/admin/articles")
                         .header("Authorization", "Bearer " + authorToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\":\"Artículo con foto destacada real\","
+                        .content("{\"title\":\"Publicación con varias imágenes\","
                                 + "\"excerpt\":\"Resumen breve\","
                                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
                                 + "\"articleType\":\"ARTICULO\","
                                 + "\"categoryId\":\"" + categoryId + "\","
-                                + "\"featuredImageId\":\"" + imageId + "\"}"))
+                                + "\"images\":[{\"imageId\":\"" + imageId + "\"},"
+                                + "{\"externalUrl\":\"https://example.com/foto.jpg\"}]}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.featuredImageId").value(imageId))
+                .andExpect(jsonPath("$.images[0].imageId").value(imageId))
+                .andExpect(jsonPath("$.images[0].externalUrl").doesNotExist())
+                .andExpect(jsonPath("$.images[1].externalUrl").value("https://example.com/foto.jpg"))
                 .andReturn();
         String articleId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asText();
 
@@ -103,10 +128,10 @@ class ArticleFeaturedImageIntegrationTest {
                         .header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isOk());
 
-        // Expuesta también en el listado público resumido, usado por las tarjetas.
+        // La portada del listado público (usado por las tarjetas) es la primera imagen de la lista.
         mockMvc.perform(get("/api/v1/articles").param("categoryId", categoryId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[0].featuredImageId").value(imageId));
+                .andExpect(jsonPath("$.items[0].coverImageId").value(imageId));
     }
 
     private byte[] generatePng(int width, int height) throws Exception {

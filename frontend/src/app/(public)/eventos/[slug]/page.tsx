@@ -8,25 +8,20 @@ import {
   getPlatformSettings,
   getPublishedEventBySlug,
   getPublishedPlaceById,
-  listPublishedArticles,
-  listPublishedEvents,
-  listPublishedPlaces,
+  getRelatedWithFallback,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { formatEventDateTime, isEventFinished } from "@/lib/content-labels";
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
-import { ArticleCard } from "@/components/article/article-card";
-import { PlaceCard } from "@/components/place/place-card";
-import { EventCard } from "@/components/event/event-card";
 import { LikeShareBar } from "@/components/content/like-share-bar";
+import { RelatedFeed } from "@/components/content/related-feed";
+import { ContentImageDisplay } from "@/components/content/content-image-display";
 import { AdBlock } from "@/components/legal/ad-block";
-import { serverImageUrl } from "@/lib/server-image-url";
 import { SITE_URL } from "@/lib/site-url";
-import { SkeletonImage } from "@/components/ui/skeleton-image";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
 import type { Category, Event } from "@/lib/api/types";
 
-const RELATED_SIZE = 4;
+const RELATED_SIZE = 6;
 
 async function loadEvent(slug: string) {
   try {
@@ -105,21 +100,19 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
     event.placeId ? getPublishedPlaceById(event.placeId).catch(() => null) : Promise.resolve(null),
   ]);
 
-  const [relatedPlacesResult, relatedArticlesResult, relatedEventsResult] = category
-    ? await Promise.all([
-        listPublishedPlaces({ categoryId: category.id, size: RELATED_SIZE }),
-        listPublishedArticles({ categoryId: category.id, size: RELATED_SIZE }),
-        listPublishedEvents({ categoryId: category.id, when: "upcoming", size: RELATED_SIZE + 1 }),
-      ])
-    : [null, null, null];
-  const relatedPlaces = relatedPlacesResult?.items ?? [];
-  const relatedArticles = relatedArticlesResult?.items ?? [];
-  const relatedEvents = (relatedEventsResult?.items ?? []).filter((e) => e.id !== event.id).slice(0, RELATED_SIZE);
+  const { items: related, isFallback: relatedIsFallback } = await getRelatedWithFallback({
+    excludeType: "EVENT",
+    excludeId: event.id,
+    categoryId: event.categoryId,
+    geographyId: event.geographyId,
+    size: RELATED_SIZE,
+  });
+  const relatedTitle = relatedIsFallback ? "Quizás te interese" : `Relacionado con ${category?.name ?? "esto"}`;
 
   const venue = place ? { name: place.name, slug: place.slug } : null;
   const finished = isEventFinished(event);
-  const [heroImageId, ...galleryImageIds] = event.imageIds;
-  const hasSidebar = relatedEvents.length > 0 || relatedPlaces.length > 0 || relatedArticles.length > 0;
+  const [heroImage, ...galleryImages] = event.images;
+  const hasSidebar = related.length > 0;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
@@ -206,9 +199,9 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
             {geography && <span>{geography.name}</span>}
           </div>
 
-          {heroImageId ? (
+          {heroImage ? (
             <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-canvas-strong shadow-lg">
-              <SkeletonImage src={serverImageUrl(`/api/v1/images/${heroImageId}/file`)} alt={event.title} className="object-cover" />
+              <ContentImageDisplay image={heroImage} alt={event.title} className="object-cover" />
             </div>
           ) : (
             <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-canvas-strong shadow-lg">
@@ -216,12 +209,15 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
             </div>
           )}
 
-          {galleryImageIds.length > 0 && (
+          {galleryImages.length > 0 && (
             <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
-              {galleryImageIds.map((id, index) => (
-                <div key={id} className="relative aspect-square overflow-hidden rounded-lg border border-border bg-canvas-strong">
-                  <SkeletonImage
-                    src={serverImageUrl(`/api/v1/images/${id}/file`)}
+              {galleryImages.map((img, index) => (
+                <div
+                  key={img.imageId ?? img.externalUrl}
+                  className="relative aspect-square overflow-hidden rounded-lg border border-border bg-canvas-strong"
+                >
+                  <ContentImageDisplay
+                    image={img}
                     alt={`${event.title} — fotografía ${index + 2}`}
                     className="object-cover"
                     sizes="180px"
@@ -231,11 +227,11 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
             </div>
           )}
 
-          {event.youtubeVideoId && (
-            <div className="mt-8 overflow-hidden rounded-2xl border border-border shadow-lg">
-              <YouTubeEmbed videoId={event.youtubeVideoId} title={event.title} />
+          {event.youtubeVideoIds.map((videoId) => (
+            <div key={videoId} className="mt-8 overflow-hidden rounded-2xl border border-border shadow-lg">
+              <YouTubeEmbed videoId={videoId} title={event.title} />
             </div>
-          )}
+          ))}
 
           {event.excerpt && (
             <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">{event.excerpt}</p>
@@ -254,39 +250,8 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
 
         {hasSidebar && (
           <aside className="mt-14 lg:col-span-4 lg:mt-0">
-            <div className="space-y-10 lg:sticky lg:top-24">
-              {relatedEvents.length > 0 && (
-                <section aria-label="Otros eventos">
-                  <h2 className="text-lg font-semibold text-foreground">Otros eventos en {category!.name}</h2>
-                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                    {relatedEvents.map((related) => (
-                      <EventCard key={related.id} event={related} />
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {relatedPlaces.length > 0 && (
-                <section aria-label="Lugares relacionados">
-                  <h2 className="text-lg font-semibold text-foreground">Lugares en {category!.name}</h2>
-                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                    {relatedPlaces.map((related) => (
-                      <PlaceCard key={related.id} place={related} />
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {relatedArticles.length > 0 && (
-                <section aria-label="Más publicaciones">
-                  <h2 className="text-lg font-semibold text-foreground">Más de {category!.name}</h2>
-                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                    {relatedArticles.map((related) => (
-                      <ArticleCard key={related.id} article={related} />
-                    ))}
-                  </div>
-                </section>
-              )}
+            <div className="lg:sticky lg:top-24">
+              <RelatedFeed items={related} title={relatedTitle} />
             </div>
           </aside>
         )}

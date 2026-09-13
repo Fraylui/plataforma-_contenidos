@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
+import pe.plataformacontenidos.shared.ContentImage;
 
 /**
  * Página de Evento: título, descripción, fecha/hora de inicio-fin, lugar
@@ -77,11 +78,14 @@ public class Event {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "event_images", schema = "events", joinColumns = @JoinColumn(name = "event_id"))
     @OrderColumn(name = "sort_order")
-    @Column(name = "image_id")
-    private List<UUID> imageIds = new ArrayList<>();
+    private List<ContentImage> images = new ArrayList<>();
 
-    @Column(name = "youtube_video_id")
-    private String youtubeVideoId;
+    /** Solo la referencia (Video ID de YouTube), nunca el video en sí — sección 8. Varios videos por evento. */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "event_videos", schema = "events", joinColumns = @JoinColumn(name = "event_id"))
+    @OrderColumn(name = "sort_order")
+    @Column(name = "video_id")
+    private List<String> youtubeVideoIds = new ArrayList<>();
 
     @Column(name = "seo_title")
     private String seoTitle;
@@ -180,12 +184,17 @@ public class Event {
         return endsAt;
     }
 
-    public List<UUID> getImageIds() {
-        return imageIds;
+    public List<ContentImage> getImages() {
+        return images;
     }
 
-    public String getYoutubeVideoId() {
-        return youtubeVideoId;
+    /** Portada para tarjetas/feed: la primera imagen, o null si no tiene ninguna. */
+    public ContentImage getCoverImage() {
+        return images.isEmpty() ? null : images.get(0);
+    }
+
+    public List<String> getYoutubeVideoIds() {
+        return youtubeVideoIds;
     }
 
     public String getSeoTitle() {
@@ -234,8 +243,9 @@ public class Event {
     }
 
     public void updateContent(String title, String excerpt, String body, UUID categoryId, UUID geographyId,
-            UUID placeId, String venueName, Instant startsAt, Instant endsAt, List<UUID> imageIds, String seoTitle,
-            String metaDescription, String canonicalUrl, String ogImageUrl, String youtubeVideoId, String robots) {
+            UUID placeId, String venueName, Instant startsAt, Instant endsAt, List<ContentImage> images,
+            String seoTitle, String metaDescription, String canonicalUrl, String ogImageUrl,
+            List<String> youtubeVideoIds, String robots) {
         this.title = title;
         this.excerpt = excerpt;
         this.body = body;
@@ -245,12 +255,12 @@ public class Event {
         this.venueName = venueName;
         this.startsAt = startsAt;
         this.endsAt = endsAt;
-        this.imageIds = new ArrayList<>(imageIds);
+        this.images = new ArrayList<>(images);
         this.seoTitle = seoTitle;
         this.metaDescription = metaDescription;
         this.canonicalUrl = canonicalUrl;
         this.ogImageUrl = ogImageUrl;
-        this.youtubeVideoId = youtubeVideoId;
+        this.youtubeVideoIds = new ArrayList<>(youtubeVideoIds);
         this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
         this.updatedAt = Instant.now();
     }

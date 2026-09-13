@@ -19,6 +19,8 @@ import pe.plataformacontenidos.geography.GeographicUnitService;
 import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.places.PlaceService;
+import pe.plataformacontenidos.shared.ContentImage;
+import pe.plataformacontenidos.shared.ContentImageInput;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
@@ -57,14 +59,14 @@ public class EventService {
         validateGeography(input.geographyId());
         validatePlace(input.placeId());
         validateDateRange(input.startsAt(), input.endsAt());
-        List<UUID> imageIds = validateImages(input.imageIds());
-        String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
+        List<ContentImage> images = validateImages(input.images());
+        List<String> youtubeVideoIds = resolveYoutubeVideoIds(input.youtubeUrls());
 
         Event event = new Event(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), input.body(),
                 authorId, input.categoryId(), input.startsAt());
         event.updateContent(input.title(), input.excerpt(), input.body(), input.categoryId(), input.geographyId(),
-                input.placeId(), input.venueName(), input.startsAt(), input.endsAt(), imageIds, input.seoTitle(),
-                input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), youtubeVideoId, input.robots());
+                input.placeId(), input.venueName(), input.startsAt(), input.endsAt(), images, input.seoTitle(),
+                input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), youtubeVideoIds, input.robots());
 
         Event saved = eventRepository.save(event);
         audit("EVENT_CREATED", saved, authorId);
@@ -85,12 +87,12 @@ public class EventService {
             validatePlace(input.placeId());
         }
         validateDateRange(input.startsAt(), input.endsAt());
-        List<UUID> imageIds = validateImages(input.imageIds());
-        String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
+        List<ContentImage> images = validateImages(input.images());
+        List<String> youtubeVideoIds = resolveYoutubeVideoIds(input.youtubeUrls());
 
         event.updateContent(input.title(), input.excerpt(), input.body(), input.categoryId(), input.geographyId(),
-                input.placeId(), input.venueName(), input.startsAt(), input.endsAt(), imageIds, input.seoTitle(),
-                input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), youtubeVideoId, input.robots());
+                input.placeId(), input.venueName(), input.startsAt(), input.endsAt(), images, input.seoTitle(),
+                input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), youtubeVideoIds, input.robots());
         Event saved = eventRepository.save(event);
         audit("EVENT_UPDATED", saved, actingUserId);
         return saved;
@@ -241,23 +243,39 @@ public class EventService {
         }
     }
 
-    private List<UUID> validateImages(List<UUID> imageIds) {
-        if (imageIds == null) {
+    private List<ContentImage> validateImages(List<ContentImageInput> images) {
+        if (images == null) {
             return new ArrayList<>();
         }
-        for (UUID imageId : imageIds) {
-            imageService.getOrThrow(imageId);
+        List<ContentImage> result = new ArrayList<>(images.size());
+        for (ContentImageInput input : images) {
+            if (!input.isValidShape() || (input.hasExternalUrl() && !input.isValidExternalUrl())) {
+                throw new InvalidEventImageException();
+            }
+            if (input.hasImageId()) {
+                imageService.getOrThrow(input.imageId());
+                result.add(ContentImage.uploaded(input.imageId()));
+            } else {
+                result.add(ContentImage.external(input.externalUrl()));
+            }
         }
-        return imageIds;
+        return result;
     }
 
-    /** Nunca se persiste la URL cruda: solo el Video ID (sección 8). */
-    private String resolveYoutubeVideoId(String youtubeUrl) {
-        if (youtubeUrl == null || youtubeUrl.isBlank()) {
-            return null;
+    /** Nunca se persiste la URL cruda: solo el Video ID (sección 8). Una por cada URL pegada. */
+    private List<String> resolveYoutubeVideoIds(List<String> youtubeUrls) {
+        if (youtubeUrls == null) {
+            return new ArrayList<>();
         }
-        return YouTubeUrlParser.extractVideoId(youtubeUrl)
-                .orElseThrow(() -> new InvalidEventYouTubeUrlException(youtubeUrl));
+        List<String> result = new ArrayList<>(youtubeUrls.size());
+        for (String youtubeUrl : youtubeUrls) {
+            if (youtubeUrl == null || youtubeUrl.isBlank()) {
+                continue;
+            }
+            result.add(YouTubeUrlParser.extractVideoId(youtubeUrl)
+                    .orElseThrow(() -> new InvalidEventYouTubeUrlException(youtubeUrl)));
+        }
+        return result;
     }
 
     private void requireCanEdit(Event event, UUID actingUserId, Role actingRole) {

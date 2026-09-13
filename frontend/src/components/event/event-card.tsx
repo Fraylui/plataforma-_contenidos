@@ -11,7 +11,7 @@ export function EventCard({ event }: { event: EventSummary }) {
   const finished = isEventFinished(event);
   return (
     <AnimatedCard href={`/eventos/${event.slug}`}>
-      <CardMedia imageId={event.coverImageId} alt={event.title} />
+      <CardMedia imageId={event.coverImageId} externalUrl={event.coverImageUrl} alt={event.title} />
 
       <div className="flex flex-1 flex-col gap-2 p-5">
         <div className="flex items-center gap-2">

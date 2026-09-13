@@ -17,6 +17,12 @@ export type ArticleType =
 
 export type ArticleStatus = "DRAFT" | "IN_REVIEW" | "APPROVED" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED" | "REJECTED";
 
+/** Ver ContentImageResponse.java — una imagen subida (imageId) o por enlace externo (externalUrl), nunca ambas. */
+export interface ContentImage {
+  imageId: string | null;
+  externalUrl: string | null;
+}
+
 export interface ArticleSummary {
   id: string;
   slug: string;
@@ -25,7 +31,8 @@ export interface ArticleSummary {
   articleType: ArticleType;
   categoryId: string;
   geographyId: string | null;
-  featuredImageId: string | null;
+  coverImageId: string | null;
+  coverImageUrl: string | null;
   hasVideo: boolean;
   publishedAt: string | null;
   likeCount: number;
@@ -52,8 +59,8 @@ export interface Article {
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
-  featuredImageId: string | null;
-  youtubeVideoId: string | null;
+  images: ContentImage[];
+  youtubeVideoIds: string[];
   robots: string;
   rejectionReason: string | null;
   publishedAt: string | null;
@@ -75,6 +82,7 @@ export interface SearchResult {
   categoryId: string | null;
   geographyId: string | null;
   featuredImageId: string | null;
+  featuredImageUrl: string | null;
   hasVideo: boolean;
   publishedAt: string | null;
 }
@@ -127,6 +135,7 @@ export interface PlaceSummary {
   latitude: number | null;
   longitude: number | null;
   coverImageId: string | null;
+  coverImageUrl: string | null;
   hasVideo: boolean;
   publishedAt: string | null;
   likeCount: number;
@@ -144,12 +153,12 @@ export interface Place {
   geographyId: string | null;
   latitude: number | null;
   longitude: number | null;
-  imageIds: string[];
+  images: ContentImage[];
   seoTitle: string | null;
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
-  youtubeVideoId: string | null;
+  youtubeVideoIds: string[];
   robots: string;
   rejectionReason: string | null;
   publishedAt: string | null;
@@ -174,6 +183,7 @@ export interface EventSummary {
   startsAt: string;
   endsAt: string | null;
   coverImageId: string | null;
+  coverImageUrl: string | null;
   hasVideo: boolean;
   likeCount: number;
 }
@@ -192,12 +202,12 @@ export interface Event {
   venueName: string | null;
   startsAt: string;
   endsAt: string | null;
-  imageIds: string[];
+  images: ContentImage[];
   seoTitle: string | null;
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
-  youtubeVideoId: string | null;
+  youtubeVideoIds: string[];
   robots: string;
   rejectionReason: string | null;
   publishedAt: string | null;
@@ -365,4 +375,29 @@ export interface PlatformSettings {
   analyticsId: string | null;
   adsenseSlotArticle: string | null;
   adsenseSlotListing: string | null;
+}
+
+/** Ver FeedItemResponse.java — feed unificado del home y "relacionados" de la vista de detalle. */
+export type FeedItemType = "ARTICLE" | "PLACE" | "EVENT";
+
+export interface FeedItem {
+  type: FeedItemType;
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  articleType: ArticleType | null;
+  categoryId: string | null;
+  geographyId: string | null;
+  coverImageId: string | null;
+  coverImageUrl: string | null;
+  hasVideo: boolean;
+  publishedAt: string | null;
+  likeCount: number;
+}
+
+/** Ver FeedPageResponse.java. `hasMore` indica si queda contenido sin mostrar dado lo ya excluido. */
+export interface FeedPage {
+  items: FeedItem[];
+  hasMore: boolean;
 }

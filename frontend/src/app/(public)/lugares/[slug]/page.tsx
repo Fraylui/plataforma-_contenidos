@@ -7,23 +7,26 @@ import {
   getGeographyUnitById,
   getPlatformSettings,
   getPublishedPlaceBySlug,
-  listPublishedArticles,
-  listPublishedPlaces,
+  getRelatedWithFallback,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { ArticleCard } from "@/components/article/article-card";
-import { PlaceCard } from "@/components/place/place-card";
 import { LikeShareBar } from "@/components/content/like-share-bar";
+import { RelatedFeed } from "@/components/content/related-feed";
+import { ContentImageDisplay } from "@/components/content/content-image-display";
 import { AdBlock } from "@/components/legal/ad-block";
 import { imageUrl } from "@/lib/image-url";
-import { serverImageUrl } from "@/lib/server-image-url";
 import { SITE_URL } from "@/lib/site-url";
-import { SkeletonImage } from "@/components/ui/skeleton-image";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
-import type { Category, Place } from "@/lib/api/types";
+import type { Category, ContentImage, Place } from "@/lib/api/types";
 
-const RELATED_SIZE = 4;
+const RELATED_SIZE = 6;
+
+/** Para metadatos (OpenGraph/JSON-LD): siempre una URL alcanzable desde la web pública, nunca desde el servidor de Next. */
+function resolveImageUrl(image: ContentImage): string {
+  return image.imageId ? imageUrl(`/api/v1/images/${image.imageId}/file`) : (image.externalUrl ?? "");
+}
 
 async function loadPlace(slug: string) {
   try {
@@ -48,7 +51,7 @@ export async function generateMetadata(props: PageProps<"/lugares/[slug]">): Pro
 
   const title = place.seoTitle || place.name;
   const description = place.metaDescription || place.excerpt || undefined;
-  const coverImage = place.imageIds[0] ? imageUrl(`/api/v1/images/${place.imageIds[0]}/file`) : place.ogImageUrl;
+  const coverImage = place.images[0] ? resolveImageUrl(place.images[0]) : place.ogImageUrl;
 
   return {
     title,
@@ -73,7 +76,7 @@ function placeJsonLd(place: Place, category: Category | null, siteName: string) 
     "@type": "TouristAttraction",
     name: place.name,
     description: place.metaDescription || place.excerpt || undefined,
-    image: place.imageIds.map((id) => imageUrl(`/api/v1/images/${id}/file`)),
+    image: place.images.map(resolveImageUrl),
     geo:
       place.latitude != null && place.longitude != null
         ? { "@type": "GeoCoordinates", latitude: place.latitude, longitude: place.longitude }
@@ -113,19 +116,17 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
     getPlatformSettings(),
   ]);
 
-  const [relatedPlacesResult, relatedArticlesResult] = category
-    ? await Promise.all([
-        listPublishedPlaces({ categoryId: category.id, size: RELATED_SIZE + 1 }),
-        listPublishedArticles({ categoryId: category.id, size: RELATED_SIZE }),
-      ])
-    : [null, null];
-  const morePlaces = (relatedPlacesResult?.items ?? [])
-    .filter((p) => p.id !== place.id)
-    .slice(0, RELATED_SIZE);
-  const moreArticles = relatedArticlesResult?.items ?? [];
+  const { items: related, isFallback: relatedIsFallback } = await getRelatedWithFallback({
+    excludeType: "PLACE",
+    excludeId: place.id,
+    categoryId: place.categoryId,
+    geographyId: place.geographyId,
+    size: RELATED_SIZE,
+  });
+  const relatedTitle = relatedIsFallback ? "Quizás te interese" : `Relacionado con ${category?.name ?? "esto"}`;
 
-  const [heroImageId, ...galleryImageIds] = place.imageIds;
-  const hasSidebar = morePlaces.length > 0 || moreArticles.length > 0;
+  const [heroImage, ...galleryImages] = place.images;
+  const hasSidebar = related.length > 0;
   const mapsUrl =
     place.latitude != null && place.longitude != null
       ? `https://www.google.com/maps?q=${place.latitude},${place.longitude}`
@@ -198,22 +199,21 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
             )}
           </div>
 
-          {heroImageId && (
+          {heroImage && (
             <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-canvas-strong shadow-lg">
-              <SkeletonImage
-                src={serverImageUrl(`/api/v1/images/${heroImageId}/file`)}
-                alt={place.name}
-                className="object-cover"
-              />
+              <ContentImageDisplay image={heroImage} alt={place.name} className="object-cover" />
             </div>
           )}
 
-          {galleryImageIds.length > 0 && (
+          {galleryImages.length > 0 && (
             <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
-              {galleryImageIds.map((id, index) => (
-                <div key={id} className="relative aspect-square overflow-hidden rounded-lg border border-border bg-canvas-strong">
-                  <SkeletonImage
-                    src={serverImageUrl(`/api/v1/images/${id}/file`)}
+              {galleryImages.map((img, index) => (
+                <div
+                  key={img.imageId ?? img.externalUrl}
+                  className="relative aspect-square overflow-hidden rounded-lg border border-border bg-canvas-strong"
+                >
+                  <ContentImageDisplay
+                    image={img}
                     alt={`${place.name} — fotografía ${index + 2}`}
                     className="object-cover"
                     sizes="180px"
@@ -223,17 +223,17 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
             </div>
           )}
 
-          {!heroImageId && (
+          {!heroImage && (
             <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-canvas-strong shadow-lg">
               <NoImagePlaceholder />
             </div>
           )}
 
-          {place.youtubeVideoId && (
-            <div className="mt-8 overflow-hidden rounded-2xl border border-border shadow-lg">
-              <YouTubeEmbed videoId={place.youtubeVideoId} title={place.name} />
+          {place.youtubeVideoIds.map((videoId) => (
+            <div key={videoId} className="mt-8 overflow-hidden rounded-2xl border border-border shadow-lg">
+              <YouTubeEmbed videoId={videoId} title={place.name} />
             </div>
-          )}
+          ))}
 
           {place.excerpt && (
             <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">{place.excerpt}</p>
@@ -265,32 +265,8 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
 
         {hasSidebar && (
           <aside className="mt-14 lg:col-span-4 lg:mt-0">
-            <div className="space-y-10 lg:sticky lg:top-24">
-              {morePlaces.length > 0 && (
-                <section aria-label="Más lugares">
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Más lugares en {category!.name}
-                  </h2>
-                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                    {morePlaces.map((related) => (
-                      <PlaceCard key={related.id} place={related} />
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {moreArticles.length > 0 && (
-                <section aria-label="Publicaciones de esta categoría">
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Publicaciones sobre {category!.name}
-                  </h2>
-                  <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                    {moreArticles.map((article) => (
-                      <ArticleCard key={article.id} article={article} />
-                    ))}
-                  </div>
-                </section>
-              )}
+            <div className="lg:sticky lg:top-24">
+              <RelatedFeed items={related} title={relatedTitle} />
             </div>
           </aside>
         )}

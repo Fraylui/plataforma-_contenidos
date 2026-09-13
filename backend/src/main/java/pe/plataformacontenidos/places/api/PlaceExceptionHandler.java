@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import pe.plataformacontenidos.places.InvalidPlaceImageException;
 import pe.plataformacontenidos.places.InvalidPlaceTransitionException;
 import pe.plataformacontenidos.places.InvalidPlaceYouTubeUrlException;
 import pe.plataformacontenidos.places.InvalidScheduleException;
@@ -36,6 +37,11 @@ public class PlaceExceptionHandler {
 
     @ExceptionHandler(InvalidPlaceYouTubeUrlException.class)
     public ResponseEntity<ApiError> handleInvalidYouTubeUrl(InvalidPlaceYouTubeUrlException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidPlaceImageException.class)
+    public ResponseEntity<ApiError> handleInvalidImage(InvalidPlaceImageException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
     }
 

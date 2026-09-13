@@ -3,6 +3,7 @@ package pe.plataformacontenidos.places.api.dto;
 import java.time.Instant;
 import java.util.UUID;
 import pe.plataformacontenidos.places.Place;
+import pe.plataformacontenidos.shared.ContentImage;
 
 /** Para listados públicos: sin el body completo (rendimiento — CONTEXTO.md 43). */
 public record PlaceSummaryResponse(
@@ -15,14 +16,16 @@ public record PlaceSummaryResponse(
         Double latitude,
         Double longitude,
         UUID coverImageId,
+        String coverImageUrl,
         boolean hasVideo,
         Instant publishedAt,
         long likeCount) {
 
     public static PlaceSummaryResponse from(Place place, long likeCount) {
-        UUID coverImageId = place.getImageIds().isEmpty() ? null : place.getImageIds().get(0);
+        ContentImage cover = place.getCoverImage();
         return new PlaceSummaryResponse(place.getId(), place.getSlug(), place.getName(), place.getExcerpt(),
                 place.getCategoryId(), place.getGeographyId(), place.getLatitude(), place.getLongitude(),
-                coverImageId, place.getYoutubeVideoId() != null, place.getPublishedAt(), likeCount);
+                cover == null ? null : cover.getImageId(), cover == null ? null : cover.getExternalUrl(),
+                !place.getYoutubeVideoIds().isEmpty(), place.getPublishedAt(), likeCount);
     }
 }

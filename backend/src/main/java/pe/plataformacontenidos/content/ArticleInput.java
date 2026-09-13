@@ -1,13 +1,16 @@
 package pe.plataformacontenidos.content;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import pe.plataformacontenidos.shared.ContentImageInput;
 
 /**
  * Entrada de creación/edición de artículo, ya validada en el DTO de API.
- * geographyId y youtubeUrl son opcionales. youtubeUrl es la URL pegada por
- * el redactor (sección 8) — ArticleService la convierte al Video ID antes
- * de guardar; nunca se persiste la URL cruda.
+ * geographyId es opcional. Cada imagen es subida o por enlace externo (ver
+ * ContentImageInput); cada URL de youtubeUrls es la pegada por quien
+ * redacta (sección 8) — ArticleService las convierte a Video ID antes de
+ * guardar, nunca se persiste la URL cruda.
  */
 public record ArticleInput(
         String title,
@@ -21,7 +24,7 @@ public record ArticleInput(
         String metaDescription,
         String canonicalUrl,
         String ogImageUrl,
-        UUID featuredImageId,
-        String youtubeUrl,
+        List<ContentImageInput> images,
+        List<String> youtubeUrls,
         String robots) {
 }

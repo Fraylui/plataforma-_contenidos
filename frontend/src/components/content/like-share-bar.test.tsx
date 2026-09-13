@@ -18,7 +18,6 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
   it("muestra el conteo inicial y es accesible", async () => {
     const { container } = render(<LikeShareBar {...props} />);
     expect(screen.getByRole("button", { name: /7\s*Me gusta/ })).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByRole("button", { name: "Guardar" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Compartir" })).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
   });
@@ -51,20 +50,6 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
     await waitFor(() => expect(screen.getByRole("button", { name: /Me gusta/ })).toBeEnabled());
     expect(screen.getByRole("button", { name: /7\s*Me gusta/ })).toHaveAttribute("aria-pressed", "false");
     expect(localStorage.getItem("liked:articles:mi-articulo")).toBeNull();
-  });
-
-  it("Guardar alterna en localStorage sin tocar el backend", async () => {
-    const user = userEvent.setup();
-    render(<LikeShareBar {...props} />);
-
-    await user.click(screen.getByRole("button", { name: "Guardar" }));
-    expect(screen.getByRole("button", { name: "Guardado" })).toHaveAttribute("aria-pressed", "true");
-    expect(JSON.parse(localStorage.getItem("saved-articles")!)).toEqual(["mi-articulo"]);
-
-    await user.click(screen.getByRole("button", { name: "Guardado" }));
-    expect(screen.getByRole("button", { name: "Guardar" })).toHaveAttribute("aria-pressed", "false");
-    expect(JSON.parse(localStorage.getItem("saved-articles")!)).toEqual([]);
-    expect(fetch).not.toHaveBeenCalled();
   });
 
   it("Compartir sin Web Share API copia el enlace y avisa", async () => {

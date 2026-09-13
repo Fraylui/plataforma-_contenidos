@@ -1,36 +1,22 @@
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { CardMedia } from "@/components/ui/card-media";
+import { searchResultHref, searchResultTypeLabel } from "@/lib/content-labels";
 import type { SearchResult } from "@/lib/api/types";
 
-const TYPE_LABEL: Record<SearchResult["contentType"], string> = {
-  ARTICLE: "Publicación",
-  PLACE: "Lugar",
-  EVENT: "Evento",
-  GALLERY: "Galería",
-  REVIEW: "Reseña",
-  BUSINESS: "Directorio",
-};
-
 /**
- * Resultado de /buscar: puede ser un Artículo o un Lugar (CONTEXTO.md
- * sección 16 — la búsqueda ya no es solo de artículos). Mismo tratamiento
- * visual que ArticleCard/PlaceCard, con la URL armada según `contentType`.
+ * Resultado de /buscar: puede ser cualquiera de los 6 tipos buscables
+ * (CONTEXTO.md sección 16). Mismo tratamiento visual que ArticleCard/
+ * PlaceCard, con la URL armada según `contentType` (ver content-labels.ts).
  */
-const CONTENT_TYPE_PATH: Record<SearchResult["contentType"], string> = {
-  ARTICLE: "publicaciones",
-  PLACE: "lugares",
-  EVENT: "eventos",
-  GALLERY: "galerias",
-  REVIEW: "resenas",
-  BUSINESS: "directorio",
-};
-
 export function SearchResultCard({ result }: { result: SearchResult }) {
-  const href = `/${CONTENT_TYPE_PATH[result.contentType]}/${result.slug}`;
-
   return (
-    <AnimatedCard href={href}>
-      <CardMedia imageId={result.featuredImageId} alt={result.title} badge={TYPE_LABEL[result.contentType]} />
+    <AnimatedCard href={searchResultHref(result.contentType, result.slug)}>
+      <CardMedia
+        imageId={result.featuredImageId}
+        externalUrl={result.featuredImageUrl}
+        alt={result.title}
+        badge={searchResultTypeLabel(result.contentType)}
+      />
 
       <div className="flex flex-1 flex-col gap-2 p-5">
         <h2 className="text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-accent">

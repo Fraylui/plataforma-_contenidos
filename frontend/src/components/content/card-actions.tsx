@@ -1,15 +1,20 @@
 "use client";
 
-import { Bookmark, Check, Heart, Share2 } from "lucide-react";
+import { Check, Heart, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useContentReactions, type LikeableContentType } from "./like-share-bar";
 
 /**
- * Reacciones compactas para tarjetas (Me gusta con contador, Guardar,
- * Compartir): mismos datos y comportamiento que LikeShareBar de la página
- * de detalle, en formato de íconos. Botones de 36 px (mínimo táctil
- * razonable dentro de una tarjeta) y `relative z-10` para quedar encima
- * del enlace estirado de la tarjeta, así tocar el corazón no navega.
+ * Reacciones compactas para tarjetas: Me gusta (con contador, persistido en
+ * el backend por visitorId anónimo) y Compartir (Web Share API nativa o
+ * copiar enlace) — mismos datos y comportamiento que LikeShareBar de la
+ * página de detalle, en formato de íconos. Sin "Guardar": esta plataforma
+ * no tiene cuentas de usuario (nadie necesita loguearse para leer nada), y
+ * sin una cuenta no hay dónde mostrarle a alguien su lista de guardados
+ * después — sería un botón que no lleva a ningún lado. Botones de 36 px
+ * (mínimo táctil razonable dentro de una tarjeta) y `relative z-10` para
+ * quedar encima del enlace estirado de la tarjeta, así tocar el corazón no
+ * navega.
  */
 export function CardActions({
   contentType,
@@ -24,7 +29,7 @@ export function CardActions({
   title: string;
   path: string;
 }) {
-  const { liked, saved, likeCount, pending, copied, toggleLike, toggleSave, share } = useContentReactions({
+  const { liked, likeCount, pending, copied, toggleLike, share } = useContentReactions({
     contentType,
     slug,
     initialLikeCount,
@@ -45,15 +50,6 @@ export function CardActions({
       >
         <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} aria-hidden="true" />
         <span className="text-xs font-semibold tabular-nums">{likeCount}</span>
-      </button>
-      <button
-        type="button"
-        onClick={toggleSave}
-        aria-pressed={saved}
-        aria-label={saved ? "Quitar de guardados" : "Guardar"}
-        className={cn(button, saved && "text-accent")}
-      >
-        <Bookmark className="h-4 w-4" fill={saved ? "currentColor" : "none"} aria-hidden="true" />
       </button>
       <button type="button" onClick={share} aria-label={copied ? "Enlace copiado" : "Compartir"} className={button}>
         {copied ? <Check className="h-4 w-4 text-accent" aria-hidden="true" /> : <Share2 className="h-4 w-4" aria-hidden="true" />}
