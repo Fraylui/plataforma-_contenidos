@@ -1,6 +1,6 @@
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
-import type { ArticleStatus, ArticleType, BusinessType, GeographyLevel } from "./types";
+import type { ArticleStatus, ArticleType, BusinessType, ContentImage, GeographyLevel } from "./types";
 
 export type Role = "SUPER_ADMIN" | "ADMIN" | "EDITOR" | "AUTHOR" | "MODERATOR" | "COLLABORATOR" | "USER";
 
@@ -45,8 +45,8 @@ export interface ArticleInput {
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
-  featuredImageId: string | null;
-  youtubeUrl: string | null;
+  images: ContentImage[];
+  youtubeUrls: string[];
   robots: string;
 }
 
@@ -59,12 +59,12 @@ export interface PlaceInput {
   geographyId: string | null;
   latitude: number | null;
   longitude: number | null;
-  imageIds: string[];
+  images: ContentImage[];
   seoTitle: string | null;
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
-  youtubeUrl: string | null;
+  youtubeUrls: string[];
   robots: string;
 }
 
@@ -79,12 +79,12 @@ export interface EventInput {
   venueName: string | null;
   startsAt: string;
   endsAt: string | null;
-  imageIds: string[];
+  images: ContentImage[];
   seoTitle: string | null;
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
-  youtubeUrl: string | null;
+  youtubeUrls: string[];
   robots: string;
 }
 

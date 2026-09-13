@@ -1,10 +1,10 @@
 import "server-only";
-import type { ArticleSummary, EventSummary, GallerySummary, PlaceSummary, ReviewSummary } from "@/lib/api/types";
+import type { ArticleSummary, EventSummary, FeedItem, GallerySummary, PlaceSummary, ReviewSummary } from "@/lib/api/types";
 import { articleTypeLabel, formatArticleDate, formatEventDateTime, formatShortDate } from "@/lib/content-labels";
 import { serverImageUrl } from "@/lib/server-image-url";
-import type { LikeableContentType } from "@/components/content/like-share-bar";
+import { KIND_LABEL, type HomeItemKind } from "@/lib/content-kind";
 
-export type HomeItemKind = "publicacion" | "lugar" | "evento" | "galeria" | "resena";
+export type { HomeItemKind };
 
 /**
  * Forma común de los 5 tipos de contenido para el home: la portada mezcla
@@ -31,29 +31,13 @@ export interface HomeItem {
   dateLabel: string;
 }
 
-const KIND_LABEL: Record<HomeItemKind, string> = {
-  publicacion: "Publicación",
-  lugar: "Lugar",
-  evento: "Evento",
-  galeria: "Galería",
-  resena: "Reseña",
-};
-
-const LIKE_TYPE: Record<HomeItemKind, LikeableContentType> = {
-  publicacion: "articles",
-  lugar: "places",
-  evento: "events",
-  galeria: "galleries",
-  resena: "reviews",
-};
-
-/** Tipo de contenido para el endpoint de "me gusta" (ver like-share-bar.tsx). */
-export function homeLikeType(kind: HomeItemKind): LikeableContentType {
-  return LIKE_TYPE[kind];
-}
-
 function image(id: string | null | undefined): string | null {
   return id ? serverImageUrl(`/api/v1/images/${id}/file`) : null;
+}
+
+/** Portada de Publicación/Lugar/Evento: subida (coverImageId) o por enlace externo (coverImageUrl), nunca ambas. */
+function coverImage(imageId: string | null, imageUrl: string | null): string | null {
+  return imageId ? image(imageId) : imageUrl;
 }
 
 export function fromArticle(a: ArticleSummary): HomeItem {
@@ -65,7 +49,7 @@ export function fromArticle(a: ArticleSummary): HomeItem {
     href: `/publicaciones/${a.slug}`,
     title: a.title,
     excerpt: a.excerpt,
-    imageUrl: image(a.featuredImageId),
+    imageUrl: coverImage(a.coverImageId, a.coverImageUrl),
     categoryId: a.categoryId,
     typeLabel: articleTypeLabel(a.articleType),
     sortDate: a.publishedAt ?? "",
@@ -82,7 +66,7 @@ export function fromPlace(p: PlaceSummary): HomeItem {
     href: `/lugares/${p.slug}`,
     title: p.name,
     excerpt: p.excerpt,
-    imageUrl: image(p.coverImageId),
+    imageUrl: coverImage(p.coverImageId, p.coverImageUrl),
     categoryId: p.categoryId,
     typeLabel: KIND_LABEL.lugar,
     sortDate: p.publishedAt ?? "",
@@ -99,7 +83,7 @@ export function fromEvent(e: EventSummary): HomeItem {
     href: `/eventos/${e.slug}`,
     title: e.title,
     excerpt: e.excerpt,
-    imageUrl: image(e.coverImageId),
+    imageUrl: coverImage(e.coverImageId, e.coverImageUrl),
     categoryId: e.categoryId,
     typeLabel: KIND_LABEL.evento,
     sortDate: e.startsAt,
@@ -138,6 +122,46 @@ export function fromReview(r: ReviewSummary): HomeItem {
     typeLabel: KIND_LABEL.resena,
     sortDate: r.publishedAt ?? "",
     dateLabel: formatShortDate(r.publishedAt),
+  };
+}
+
+const FEED_KIND: Record<FeedItem["type"], HomeItemKind> = {
+  ARTICLE: "publicacion",
+  PLACE: "lugar",
+  EVENT: "evento",
+};
+
+const FEED_HREF_PREFIX: Record<HomeItemKind, string> = {
+  publicacion: "/publicaciones",
+  lugar: "/lugares",
+  evento: "/eventos",
+  galeria: "/galerias",
+  resena: "/resenas",
+};
+
+/**
+ * Ítem del feed unificado (home con scroll infinito + relacionados de la
+ * vista de detalle, ver FeedController en el backend). Se usa tanto desde
+ * el Server Component del home (primer lote) como desde api/feed/route.ts
+ * (que sí puede importar "server-only": un route handler nunca se manda al
+ * navegador) — el navegador nunca ve un featuredImageId/coverImageId
+ * crudo, solo la URL ya resuelta.
+ */
+export function fromFeedItem(item: FeedItem): HomeItem {
+  const kind = FEED_KIND[item.type];
+  return {
+    id: item.id,
+    kind,
+    slug: item.slug,
+    href: `${FEED_HREF_PREFIX[kind]}/${item.slug}`,
+    likeCount: item.likeCount,
+    title: item.title,
+    excerpt: item.excerpt,
+    imageUrl: coverImage(item.coverImageId, item.coverImageUrl),
+    categoryId: item.categoryId ?? "",
+    typeLabel: item.articleType ? articleTypeLabel(item.articleType) : KIND_LABEL[kind],
+    sortDate: item.publishedAt ?? "",
+    dateLabel: "",
   };
 }
 

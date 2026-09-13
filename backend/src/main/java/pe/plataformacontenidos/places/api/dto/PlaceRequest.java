@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
 import pe.plataformacontenidos.places.PlaceInput;
+import pe.plataformacontenidos.shared.ContentImageInput;
 
 public record PlaceRequest(
         @NotBlank @Size(max = 200) String name,
@@ -17,16 +18,17 @@ public record PlaceRequest(
         UUID geographyId,
         @DecimalMin("-90") @DecimalMax("90") Double latitude,
         @DecimalMin("-180") @DecimalMax("180") Double longitude,
-        List<UUID> imageIds,
+        List<ContentImageInput> images,
         String seoTitle,
         String metaDescription,
         String canonicalUrl,
         String ogImageUrl,
-        String youtubeUrl,
+        List<String> youtubeUrls,
         String robots) {
 
     public PlaceInput toInput() {
-        return new PlaceInput(name, excerpt, body, categoryId, geographyId, latitude, longitude, imageIds, seoTitle,
-                metaDescription, canonicalUrl, ogImageUrl, youtubeUrl, robots);
+        return new PlaceInput(name, excerpt, body, categoryId, geographyId, latitude, longitude,
+                images == null ? List.of() : images, seoTitle, metaDescription, canonicalUrl, ogImageUrl,
+                youtubeUrls == null ? List.of() : youtubeUrls, robots);
     }
 }

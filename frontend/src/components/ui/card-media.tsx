@@ -16,11 +16,14 @@ import { SkeletonImage } from "./skeleton-image";
  */
 export function CardMedia({
   imageId,
+  externalUrl,
   alt,
   badge,
   children,
 }: {
   imageId?: string | null;
+  /** Portada por enlace externo (ver ContentImage) — alternativa a imageId, nunca ambas. */
+  externalUrl?: string | null;
   alt: string;
   badge?: ReactNode;
   children?: ReactNode;
@@ -34,6 +37,9 @@ export function CardMedia({
             alt={alt}
             className="object-cover group-hover:scale-105"
           />
+        ) : externalUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- enlace externo pegado por quien redacta, host arbitrario
+          <img src={externalUrl} alt={alt} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
         ) : (
           <NoImagePlaceholder />
         ))}

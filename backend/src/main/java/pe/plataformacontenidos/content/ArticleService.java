@@ -1,6 +1,7 @@
 package pe.plataformacontenidos.content;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,6 +19,8 @@ import pe.plataformacontenidos.geography.GeographicUnitNotFoundException;
 import pe.plataformacontenidos.geography.GeographicUnitService;
 import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.media.ImageService;
+import pe.plataformacontenidos.shared.ContentImage;
+import pe.plataformacontenidos.shared.ContentImageInput;
 import pe.plataformacontenidos.shared.HtmlSanitizer;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
@@ -56,8 +59,8 @@ public class ArticleService {
             throw new CategoryNotFoundException(input.categoryId());
         }
         validateGeography(input.geographyId());
-        validateFeaturedImage(input.featuredImageId());
-        String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
+        List<ContentImage> images = validateImages(input.images());
+        List<String> youtubeVideoIds = resolveYoutubeVideoIds(input.youtubeUrls());
         Set<UUID> tagIds = resolveTagNames(input.tagNames());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
@@ -65,7 +68,7 @@ public class ArticleService {
                 input.articleType(), authorId, input.categoryId());
         article.updateContent(input.title(), input.excerpt(), sanitizedBody, input.articleType(), input.categoryId(),
                 input.geographyId(), tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
-                input.ogImageUrl(), input.featuredImageId(), youtubeVideoId, input.robots());
+                input.ogImageUrl(), images, youtubeVideoIds, input.robots());
 
         Article saved = articleRepository.save(article);
         audit("ARTICLE_CREATED", saved, authorId);
@@ -82,16 +85,14 @@ public class ArticleService {
         if (!Objects.equals(article.getGeographyId(), input.geographyId())) {
             validateGeography(input.geographyId());
         }
-        if (!Objects.equals(article.getFeaturedImageId(), input.featuredImageId())) {
-            validateFeaturedImage(input.featuredImageId());
-        }
-        String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
+        List<ContentImage> images = validateImages(input.images());
+        List<String> youtubeVideoIds = resolveYoutubeVideoIds(input.youtubeUrls());
         Set<UUID> tagIds = resolveTagNames(input.tagNames());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
         article.updateContent(input.title(), input.excerpt(), sanitizedBody, input.articleType(), input.categoryId(),
                 input.geographyId(), tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
-                input.ogImageUrl(), input.featuredImageId(), youtubeVideoId, input.robots());
+                input.ogImageUrl(), images, youtubeVideoIds, input.robots());
         Article saved = articleRepository.save(article);
         audit("ARTICLE_UPDATED", saved, actingUserId);
         return saved;
@@ -253,19 +254,40 @@ public class ArticleService {
     }
 
     /** Mismo patrón que PlaceService.validateImages, pero para una sola imagen (destacada, no galería). */
-    private void validateFeaturedImage(UUID featuredImageId) {
-        if (featuredImageId != null) {
-            imageService.getOrThrow(featuredImageId);
+    /** Cada imagen es subida (se valida contra Media) o un enlace externo (se valida la forma de URL). */
+    private List<ContentImage> validateImages(List<ContentImageInput> images) {
+        if (images == null) {
+            return new ArrayList<>();
         }
+        List<ContentImage> result = new ArrayList<>(images.size());
+        for (ContentImageInput input : images) {
+            if (!input.isValidShape() || (input.hasExternalUrl() && !input.isValidExternalUrl())) {
+                throw new InvalidArticleImageException();
+            }
+            if (input.hasImageId()) {
+                imageService.getOrThrow(input.imageId());
+                result.add(ContentImage.uploaded(input.imageId()));
+            } else {
+                result.add(ContentImage.external(input.externalUrl()));
+            }
+        }
+        return result;
     }
 
-    /** Nunca se persiste la URL cruda: solo el Video ID (sección 8). */
-    private String resolveYoutubeVideoId(String youtubeUrl) {
-        if (youtubeUrl == null || youtubeUrl.isBlank()) {
-            return null;
+    /** Nunca se persiste la URL cruda: solo el Video ID (sección 8). Una por cada URL pegada. */
+    private List<String> resolveYoutubeVideoIds(List<String> youtubeUrls) {
+        if (youtubeUrls == null) {
+            return new ArrayList<>();
         }
-        return YouTubeUrlParser.extractVideoId(youtubeUrl)
-                .orElseThrow(() -> new InvalidYouTubeUrlException(youtubeUrl));
+        List<String> result = new ArrayList<>(youtubeUrls.size());
+        for (String youtubeUrl : youtubeUrls) {
+            if (youtubeUrl == null || youtubeUrl.isBlank()) {
+                continue;
+            }
+            result.add(YouTubeUrlParser.extractVideoId(youtubeUrl)
+                    .orElseThrow(() -> new InvalidYouTubeUrlException(youtubeUrl)));
+        }
+        return result;
     }
 
     private void requireCanEdit(Article article, UUID actingUserId, Role actingRole) {

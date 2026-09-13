@@ -13,6 +13,9 @@ import type {
   Category,
   Event,
   EventSummary,
+  FeedItem,
+  FeedItemType,
+  FeedPage,
   Gallery,
   GallerySummary,
   GeographicUnit,
@@ -39,6 +42,15 @@ async function apiFetch<T>(path: string, revalidateSeconds: number): Promise<T> 
   if (res.status === 404) {
     throw new NotFoundError(`No encontrado: ${path}`);
   }
+  if (!res.ok) {
+    throw new Error(`Error del backend (${res.status}) en ${path}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+/** Igual que apiFetch pero sin cache de Next.js — para respuestas que dependen de qué ya vio cada visitante (ver getFeed). */
+async function apiFetchNoStore<T>(path: string): Promise<T> {
+  const res = await fetch(`${BACKEND_API_URL}${path}`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Error del backend (${res.status}) en ${path}`);
   }
@@ -272,6 +284,63 @@ export async function listAllPublishedBusinessesForSitemap(): Promise<BusinessSu
     if (page + 1 >= result.totalPages) break;
   }
   return items;
+}
+
+/**
+ * Feed unificado del home (Publicaciones + Lugares + Eventos) — ver
+ * FeedController.getFeed en el backend. Sin cache: cada visitante lleva su
+ * propio `exclude`/`seed`, así que la respuesta no es la misma para todos
+ * (no tiene sentido que Next.js la revalide/comparta).
+ */
+export function getFeed(params: { size?: number; exclude?: string[]; seed?: string }): Promise<FeedPage> {
+  const query = new URLSearchParams();
+  query.set("size", String(params.size ?? 12));
+  if (params.seed) query.set("seed", params.seed);
+  for (const id of params.exclude ?? []) query.append("exclude", id);
+  return apiFetchNoStore(`/api/v1/feed?${query.toString()}`);
+}
+
+/**
+ * Relacionados de la vista de detalle — ver FeedController.getRelated.
+ * `categoryId`/`geographyId` vienen del propio recurso que la página de
+ * detalle ya cargó (no hace falta otra consulta para resolverlos).
+ */
+export function getFeedRelated(params: {
+  excludeType: FeedItemType;
+  excludeId: string;
+  categoryId: string | null;
+  geographyId?: string | null;
+  size?: number;
+}): Promise<FeedItem[]> {
+  if (!params.categoryId) return Promise.resolve([]);
+  const query = new URLSearchParams();
+  query.set("excludeType", params.excludeType);
+  query.set("excludeId", params.excludeId);
+  query.set("categoryId", params.categoryId);
+  if (params.geographyId) query.set("geographyId", params.geographyId);
+  query.set("size", String(params.size ?? 6));
+  // Detalle: revalidación corta, igual que el resto de listados públicos.
+  return apiFetch(`/api/v1/feed/related?${query.toString()}`, 60);
+}
+
+/**
+ * getFeedRelated con reserva: una categoría nueva/con poco contenido no debe
+ * dejar la sección de relacionados vacía — de faltar, se completa con el
+ * feed general del home (siempre contenido real, nunca relleno). Comparten
+ * esta reserva las 3 páginas de detalle (Publicación/Lugar/Evento).
+ */
+export async function getRelatedWithFallback(params: {
+  excludeType: FeedItemType;
+  excludeId: string;
+  categoryId: string | null;
+  geographyId?: string | null;
+  size?: number;
+}): Promise<{ items: FeedItem[]; isFallback: boolean }> {
+  const items = await getFeedRelated(params);
+  if (items.length > 0) return { items, isFallback: false };
+
+  const fallback = await getFeed({ size: params.size ?? 6, exclude: [params.excludeId] });
+  return { items: fallback.items, isFallback: fallback.items.length > 0 };
 }
 
 export function listActiveCategories(): Promise<Category[]> {

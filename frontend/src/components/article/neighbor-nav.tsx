@@ -37,8 +37,11 @@ function NeighborCard({ article, direction }: { article: ArticleSummary; directi
       )}
     >
       <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded-xl bg-canvas-strong sm:h-[4.5rem] sm:w-24">
-        {article.featuredImageId ? (
-          <SkeletonImage src={serverImageUrl(`/api/v1/images/${article.featuredImageId}/file`)} alt="" className="object-cover" sizes="96px" />
+        {article.coverImageId ? (
+          <SkeletonImage src={serverImageUrl(`/api/v1/images/${article.coverImageId}/file`)} alt="" className="object-cover" sizes="96px" />
+        ) : article.coverImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- enlace externo pegado por quien redacta, host arbitrario
+          <img src={article.coverImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
           <NoImagePlaceholder />
         )}

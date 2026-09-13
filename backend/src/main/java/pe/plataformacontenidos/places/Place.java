@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
+import pe.plataformacontenidos.shared.ContentImage;
 
 /**
  * Página de Lugar (CONTEXTO.md sección 6): nombre, historia, ubicación,
@@ -66,11 +67,14 @@ public class Place {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "place_images", schema = "places", joinColumns = @JoinColumn(name = "place_id"))
     @OrderColumn(name = "sort_order")
-    @Column(name = "image_id")
-    private List<UUID> imageIds = new ArrayList<>();
+    private List<ContentImage> images = new ArrayList<>();
 
-    @Column(name = "youtube_video_id")
-    private String youtubeVideoId;
+    /** Solo la referencia (Video ID de YouTube), nunca el video en sí — sección 8. Varios videos por lugar. */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "place_videos", schema = "places", joinColumns = @JoinColumn(name = "place_id"))
+    @OrderColumn(name = "sort_order")
+    @Column(name = "video_id")
+    private List<String> youtubeVideoIds = new ArrayList<>();
 
     @Column(name = "seo_title")
     private String seoTitle;
@@ -159,12 +163,17 @@ public class Place {
         return longitude;
     }
 
-    public List<UUID> getImageIds() {
-        return imageIds;
+    public List<ContentImage> getImages() {
+        return images;
     }
 
-    public String getYoutubeVideoId() {
-        return youtubeVideoId;
+    /** Portada para tarjetas/feed: la primera imagen, o null si no tiene ninguna. */
+    public ContentImage getCoverImage() {
+        return images.isEmpty() ? null : images.get(0);
+    }
+
+    public List<String> getYoutubeVideoIds() {
+        return youtubeVideoIds;
     }
 
     public String getSeoTitle() {
@@ -213,8 +222,8 @@ public class Place {
     }
 
     public void updateContent(String name, String excerpt, String body, UUID categoryId, UUID geographyId,
-            Double latitude, Double longitude, List<UUID> imageIds, String seoTitle, String metaDescription,
-            String canonicalUrl, String ogImageUrl, String youtubeVideoId, String robots) {
+            Double latitude, Double longitude, List<ContentImage> images, String seoTitle, String metaDescription,
+            String canonicalUrl, String ogImageUrl, List<String> youtubeVideoIds, String robots) {
         this.name = name;
         this.excerpt = excerpt;
         this.body = body;
@@ -222,12 +231,12 @@ public class Place {
         this.geographyId = geographyId;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.imageIds = new ArrayList<>(imageIds);
+        this.images = new ArrayList<>(images);
         this.seoTitle = seoTitle;
         this.metaDescription = metaDescription;
         this.canonicalUrl = canonicalUrl;
         this.ogImageUrl = ogImageUrl;
-        this.youtubeVideoId = youtubeVideoId;
+        this.youtubeVideoIds = new ArrayList<>(youtubeVideoIds);
         this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
         this.updatedAt = Instant.now();
     }

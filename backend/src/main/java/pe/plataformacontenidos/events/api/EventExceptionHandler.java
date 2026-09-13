@@ -9,6 +9,7 @@ import pe.plataformacontenidos.events.EventAccessDeniedException;
 import pe.plataformacontenidos.events.EventNotFoundException;
 import pe.plataformacontenidos.events.EventPlaceNotFoundException;
 import pe.plataformacontenidos.events.InvalidEventDateRangeException;
+import pe.plataformacontenidos.events.InvalidEventImageException;
 import pe.plataformacontenidos.events.InvalidEventScheduleException;
 import pe.plataformacontenidos.events.InvalidEventTransitionException;
 import pe.plataformacontenidos.events.InvalidEventYouTubeUrlException;
@@ -48,6 +49,11 @@ public class EventExceptionHandler {
 
     @ExceptionHandler(InvalidEventDateRangeException.class)
     public ResponseEntity<ApiError> handleInvalidDateRange(InvalidEventDateRangeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidEventImageException.class)
+    public ResponseEntity<ApiError> handleInvalidImage(InvalidEventImageException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
     }
 

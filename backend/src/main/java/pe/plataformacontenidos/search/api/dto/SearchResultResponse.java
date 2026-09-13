@@ -9,6 +9,7 @@ import pe.plataformacontenidos.galleries.Gallery;
 import pe.plataformacontenidos.places.Place;
 import pe.plataformacontenidos.reviews.Review;
 import pe.plataformacontenidos.search.SearchResultType;
+import pe.plataformacontenidos.shared.ContentImage;
 
 /**
  * Forma unificada de un resultado de búsqueda, sea cual sea el tipo de
@@ -16,7 +17,10 @@ import pe.plataformacontenidos.search.SearchResultType;
  * Lugares/Eventos/Directorio, esto se separa a un módulo Search propio que
  * agregue resultados de varios módulos" — ya hay dos tipos buscables, este
  * es ese momento). El frontend arma la URL a partir de `contentType` +
- * `slug` (/publicaciones/{slug} o /lugares/{slug}).
+ * `slug` (/publicaciones/{slug} o /lugares/{slug}). featuredImageId/
+ * featuredImageUrl son excluyentes (ver ContentImage) en Article/Place/
+ * Event, que ya soportan imágenes por enlace externo además de subidas;
+ * Gallery/Review/Business todavía son solo imágenes subidas.
  */
 public record SearchResultResponse(
         SearchResultType contentType,
@@ -27,10 +31,12 @@ public record SearchResultResponse(
         UUID categoryId,
         UUID geographyId,
         UUID featuredImageId,
+        String featuredImageUrl,
         boolean hasVideo,
         Instant publishedAt) {
 
     public static SearchResultResponse fromArticle(Article article) {
+        ContentImage cover = article.getCoverImage();
         return new SearchResultResponse(
                 SearchResultType.ARTICLE,
                 article.getId(),
@@ -39,13 +45,14 @@ public record SearchResultResponse(
                 article.getExcerpt(),
                 article.getCategoryId(),
                 article.getGeographyId(),
-                article.getFeaturedImageId(),
-                article.getYoutubeVideoId() != null,
+                cover == null ? null : cover.getImageId(),
+                cover == null ? null : cover.getExternalUrl(),
+                !article.getYoutubeVideoIds().isEmpty(),
                 article.getPublishedAt());
     }
 
     public static SearchResultResponse fromPlace(Place place) {
-        UUID coverImageId = place.getImageIds().isEmpty() ? null : place.getImageIds().get(0);
+        ContentImage cover = place.getCoverImage();
         return new SearchResultResponse(
                 SearchResultType.PLACE,
                 place.getId(),
@@ -54,13 +61,14 @@ public record SearchResultResponse(
                 place.getExcerpt(),
                 place.getCategoryId(),
                 place.getGeographyId(),
-                coverImageId,
-                place.getYoutubeVideoId() != null,
+                cover == null ? null : cover.getImageId(),
+                cover == null ? null : cover.getExternalUrl(),
+                !place.getYoutubeVideoIds().isEmpty(),
                 place.getPublishedAt());
     }
 
     public static SearchResultResponse fromEvent(Event event) {
-        UUID coverImageId = event.getImageIds().isEmpty() ? null : event.getImageIds().get(0);
+        ContentImage cover = event.getCoverImage();
         return new SearchResultResponse(
                 SearchResultType.EVENT,
                 event.getId(),
@@ -69,8 +77,9 @@ public record SearchResultResponse(
                 event.getExcerpt(),
                 event.getCategoryId(),
                 event.getGeographyId(),
-                coverImageId,
-                event.getYoutubeVideoId() != null,
+                cover == null ? null : cover.getImageId(),
+                cover == null ? null : cover.getExternalUrl(),
+                !event.getYoutubeVideoIds().isEmpty(),
                 event.getPublishedAt());
     }
 
@@ -85,6 +94,7 @@ public record SearchResultResponse(
                 gallery.getCategoryId(),
                 gallery.getGeographyId(),
                 coverImageId,
+                null,
                 false,
                 gallery.getPublishedAt());
     }
@@ -100,6 +110,7 @@ public record SearchResultResponse(
                 review.getCategoryId(),
                 review.getGeographyId(),
                 coverImageId,
+                null,
                 review.getYoutubeVideoId() != null,
                 review.getPublishedAt());
     }
@@ -115,6 +126,7 @@ public record SearchResultResponse(
                 business.getCategoryId(),
                 business.getGeographyId(),
                 coverImageId,
+                null,
                 business.getYoutubeVideoId() != null,
                 business.getPublishedAt());
     }

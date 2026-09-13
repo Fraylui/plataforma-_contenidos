@@ -1,11 +1,13 @@
 package pe.plataformacontenidos.content.api.dto;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import pe.plataformacontenidos.content.Article;
 import pe.plataformacontenidos.content.ArticleStatus;
 import pe.plataformacontenidos.content.ArticleType;
+import pe.plataformacontenidos.shared.ContentImageResponse;
 
 public record ArticleResponse(
         UUID id,
@@ -23,8 +25,8 @@ public record ArticleResponse(
         String metaDescription,
         String canonicalUrl,
         String ogImageUrl,
-        UUID featuredImageId,
-        String youtubeVideoId,
+        List<ContentImageResponse> images,
+        List<String> youtubeVideoIds,
         String robots,
         String rejectionReason,
         Instant publishedAt,
@@ -38,8 +40,8 @@ public record ArticleResponse(
                 article.getBody(), article.getArticleType(), article.getStatus(), article.getAuthorId(),
                 article.getCategoryId(), article.getGeographyId(), article.getTagIds(), article.getSeoTitle(),
                 article.getMetaDescription(), article.getCanonicalUrl(), article.getOgImageUrl(),
-                article.getFeaturedImageId(), article.getYoutubeVideoId(), article.getRobots(),
-                article.getRejectionReason(), article.getPublishedAt(), article.getScheduledAt(),
+                article.getImages().stream().map(ContentImageResponse::from).toList(), article.getYoutubeVideoIds(),
+                article.getRobots(), article.getRejectionReason(), article.getPublishedAt(), article.getScheduledAt(),
                 article.getCreatedAt(), article.getUpdatedAt(), likeCount);
     }
 

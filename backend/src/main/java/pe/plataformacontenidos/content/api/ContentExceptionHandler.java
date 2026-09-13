@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import pe.plataformacontenidos.content.ArticleAccessDeniedException;
 import pe.plataformacontenidos.content.ArticleNotFoundException;
+import pe.plataformacontenidos.content.InvalidArticleImageException;
 import pe.plataformacontenidos.content.InvalidArticleTransitionException;
 import pe.plataformacontenidos.content.InvalidScheduleException;
 import pe.plataformacontenidos.content.InvalidYouTubeUrlException;
@@ -36,6 +37,11 @@ public class ContentExceptionHandler {
 
     @ExceptionHandler(InvalidYouTubeUrlException.class)
     public ResponseEntity<ApiError> handleInvalidYouTubeUrl(InvalidYouTubeUrlException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidArticleImageException.class)
+    public ResponseEntity<ApiError> handleInvalidImage(InvalidArticleImageException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
     }
 

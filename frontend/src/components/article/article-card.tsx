@@ -8,7 +8,8 @@ export function ArticleCard({ article }: { article: ArticleSummary }) {
   return (
     <AnimatedCard href={`/publicaciones/${article.slug}`}>
       <CardMedia
-        imageId={article.featuredImageId}
+        imageId={article.coverImageId}
+        externalUrl={article.coverImageUrl}
         alt={article.title}
         badge={articleTypeLabel(article.articleType)}
       />

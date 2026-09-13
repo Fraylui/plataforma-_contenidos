@@ -1,9 +1,23 @@
 import Link from "next/link";
+import { CalendarDays, FileText, Home, Images, MapPin, Star, Store, type LucideIcon } from "lucide-react";
 import { getPlatformSettings, listActiveCategories } from "@/lib/api/client";
 import { CategoryMenu } from "./category-menu";
 import { MobileNav } from "./mobile-nav";
-import { MobileSearch } from "./mobile-search";
+import { SearchBox } from "./search-box";
 import { NavLink } from "./nav-link";
+
+const NAV_LINK = "inline-flex items-center gap-1.5 rounded-md px-2.5 py-2 text-sm transition-colors";
+
+// Mismo orden que MobileNav (LINKS) — es el mismo menú, en dos formatos.
+const PRIMARY_LINKS: { href: string; label: string; icon: LucideIcon; wide?: boolean }[] = [
+  { href: "/", label: "Inicio", icon: Home },
+  { href: "/publicaciones", label: "Publicaciones", icon: FileText },
+  { href: "/lugares", label: "Lugares", icon: MapPin },
+  { href: "/eventos", label: "Eventos", icon: CalendarDays },
+  { href: "/galerias", label: "Galerías", icon: Images, wide: true },
+  { href: "/resenas", label: "Reseñas", icon: Star, wide: true },
+  { href: "/directorio", label: "Directorio", icon: Store, wide: true },
+];
 
 export async function SiteHeader() {
   const [settings, categories] = await Promise.all([getPlatformSettings(), listActiveCategories()]);
@@ -20,29 +34,26 @@ export async function SiteHeader() {
           </span>
         </Link>
         <div className="flex items-center gap-3 sm:gap-6">
-          <nav aria-label="Principal" className="hidden items-center gap-4 sm:flex">
-            <NavLink
-              href="/"
-              className="rounded-md px-2 py-3 text-sm font-medium text-muted transition-colors hover:text-foreground"
-              activeClassName="rounded-md px-2 py-3 text-sm font-semibold text-accent"
-            >
-              Inicio
-            </NavLink>
+          {/* Enlaces de módulo con ícono (antes solo existían en el menú mobile:
+              en escritorio Lugares/Eventos eran inalcanzables sin pasar por
+              Categorías). Los 3 principales siempre; Galerías/Reseñas/Directorio
+              solo desde lg para no saturar el header en tablet. */}
+          <nav aria-label="Principal" className="hidden items-center gap-1 sm:flex">
+            {PRIMARY_LINKS.map(({ href, label, icon: Icon, wide }) => (
+              <NavLink
+                key={href}
+                href={href}
+                className={`${NAV_LINK} text-muted hover:text-foreground ${wide ? "hidden lg:inline-flex" : ""}`}
+                activeClassName={`${NAV_LINK} font-semibold text-accent ${wide ? "hidden lg:inline-flex" : ""}`}
+              >
+                <Icon className="h-4 w-4" aria-hidden="true" />
+                {label}
+              </NavLink>
+            ))}
             <CategoryMenu categories={categories} />
           </nav>
-          <form action="/buscar" role="search" className="hidden items-center sm:flex">
-            <label htmlFor="site-search" className="sr-only">
-              Buscar contenido
-            </label>
-            <input
-              id="site-search"
-              type="search"
-              name="q"
-              placeholder="Buscar…"
-              className="h-11 w-40 rounded-md border border-border bg-background px-3 text-sm text-foreground placeholder-muted outline-none transition-[width] focus-visible:w-56 focus-visible:border-accent"
-            />
-          </form>
-          <MobileSearch />
+          <SearchBox variant="desktop" />
+          <SearchBox variant="mobile" />
           <MobileNav />
         </div>
       </div>

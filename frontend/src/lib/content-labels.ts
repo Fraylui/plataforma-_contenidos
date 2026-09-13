@@ -1,4 +1,4 @@
-import type { ArticleStatus, ArticleType, BusinessType, GeographyLevel } from "@/lib/api/types";
+import type { ArticleStatus, ArticleType, BusinessType, GeographyLevel, SearchResultType } from "@/lib/api/types";
 
 const ARTICLE_TYPE_LABELS: Record<ArticleType, string> = {
   ARTICULO: "Artículo",
@@ -149,6 +149,35 @@ export function formatEventDateTime(iso: string): string {
 }
 
 /** Un evento se considera finalizado cuando pasó endsAt (o startsAt si no tiene hora de fin). */
+// Ver SearchResultResponse.java (CONTEXTO.md sección 16) — un solo lugar para
+// la etiqueta y la ruta de cada tipo buscable, en vez de repetir el mapa en
+// SearchResultCard y en el buscador con sugerencias en vivo del header.
+const SEARCH_RESULT_TYPE_LABEL: Record<SearchResultType, string> = {
+  ARTICLE: "Publicación",
+  PLACE: "Lugar",
+  EVENT: "Evento",
+  GALLERY: "Galería",
+  REVIEW: "Reseña",
+  BUSINESS: "Directorio",
+};
+
+export function searchResultTypeLabel(type: SearchResultType): string {
+  return SEARCH_RESULT_TYPE_LABEL[type];
+}
+
+const SEARCH_RESULT_TYPE_PATH: Record<SearchResultType, string> = {
+  ARTICLE: "publicaciones",
+  PLACE: "lugares",
+  EVENT: "eventos",
+  GALLERY: "galerias",
+  REVIEW: "resenas",
+  BUSINESS: "directorio",
+};
+
+export function searchResultHref(type: SearchResultType, slug: string): string {
+  return `/${SEARCH_RESULT_TYPE_PATH[type]}/${slug}`;
+}
+
 export function isEventFinished(event: { startsAt: string; endsAt: string | null }): boolean {
   const reference = event.endsAt ?? event.startsAt;
   return new Date(reference).getTime() < Date.now();

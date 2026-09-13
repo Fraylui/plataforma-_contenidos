@@ -109,7 +109,7 @@ class PlaceWorkflowIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Lugar con imagen inexistente\",\"body\":\"Historia del lugar.\","
                                 + "\"categoryId\":\"" + categoryId + "\","
-                                + "\"imageIds\":[\"00000000-0000-0000-0000-000000000000\"]}"))
+                                + "\"images\":[{\"imageId\":\"00000000-0000-0000-0000-000000000000\"}]}"))
                 .andExpect(status().isNotFound());
     }
 

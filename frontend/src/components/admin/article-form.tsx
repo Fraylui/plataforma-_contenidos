@@ -3,12 +3,13 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
-import type { Article, ArticleType, Category, GeographicUnit } from "@/lib/api/types";
+import type { Article, ArticleType, Category, ContentImage, GeographicUnit } from "@/lib/api/types";
 import type { AdminImage, ArticleInput } from "@/lib/api/admin-types";
 import type { ArticlePermissions } from "@/lib/admin/article-permissions";
 import { articleTypeLabel, articleStatusLabel } from "@/lib/content-labels";
 import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
-import { ArticleFeaturedImagePicker } from "./article-featured-image-picker";
+import { ContentImagesPicker } from "./content-images-picker";
+import { VideoLinksEditor } from "./video-links-editor";
 import { RichTextEditor } from "./rich-text-editor";
 import { GeographyPicker } from "./geography-picker";
 import { TagInput } from "./tag-input";
@@ -72,9 +73,10 @@ export function ArticleForm({
   const [metaDescription, setMetaDescription] = useState(article?.metaDescription ?? "");
   const [canonicalUrl, setCanonicalUrl] = useState(article?.canonicalUrl ?? "");
   const [ogImageUrl, setOgImageUrl] = useState(article?.ogImageUrl ?? "");
-  const [featuredImageId, setFeaturedImageId] = useState<string | null>(article?.featuredImageId ?? null);
-  const [youtubeUrl, setYoutubeUrl] = useState("");
-  const [removeYoutube, setRemoveYoutube] = useState(false);
+  const [images, setImages] = useState<ContentImage[]>(article?.images ?? []);
+  const [youtubeUrls, setYoutubeUrls] = useState<string[]>(
+    article?.youtubeVideoIds.map((id) => `https://www.youtube.com/watch?v=${id}`) ?? [],
+  );
   const [robots, setRobots] = useState(article?.robots ?? "index,follow");
 
   const [pending, setPending] = useState(false);
@@ -95,24 +97,10 @@ export function ArticleForm({
       metaDescription: metaDescription || null,
       canonicalUrl: canonicalUrl || null,
       ogImageUrl: ogImageUrl || null,
-      featuredImageId,
-      youtubeUrl: resolveYoutubeUrlForSubmit(),
+      images,
+      youtubeUrls,
       robots,
     };
-  }
-
-  /**
-   * El backend (ArticleService.resolveYoutubeVideoId) trata "sin URL" como
-   * "sin video": cada PUT reemplaza youtubeVideoId con lo que se mande acá,
-   * vacío incluido. Si no se toca el campo en una edición, hay que reenviar
-   * la URL reconstruida a partir del video ya guardado — si no, cualquier
-   * guardado (aunque sea solo cambiar el título) borraría el video.
-   */
-  function resolveYoutubeUrlForSubmit(): string | null {
-    if (youtubeUrl.trim()) return youtubeUrl;
-    if (removeYoutube) return null;
-    if (article?.youtubeVideoId) return `https://www.youtube.com/watch?v=${article.youtubeVideoId}`;
-    return null;
   }
 
   async function handleSubmit() {
@@ -222,39 +210,13 @@ export function ArticleForm({
           <TagInput value={tags} onChange={setTags} />
         </FormField>
 
-        <FormField label="Foto destacada (opcional — se muestra en la tarjeta y la portada)" name="featuredImageId">
-          <ArticleFeaturedImagePicker
-            allImages={allImages}
-            value={featuredImageId}
-            onChange={setFeaturedImageId}
-            disabled={readOnly}
-          />
+        <FormField label="Imágenes (opcional — una o varias; la primera es la portada de tarjeta/feed)" name="images">
+          <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
         </FormField>
 
-        <FormField label="Video de YouTube (URL, opcional)" name="youtubeUrl">
-          <input
-            type="text"
-            value={youtubeUrl}
-            disabled={readOnly || removeYoutube}
-            onChange={(e) => setYoutubeUrl(e.target.value)}
-            placeholder={
-              article?.youtubeVideoId ? "Ya tiene un video — pega otra URL para reemplazarlo" : "https://www.youtube.com/watch?v=…"
-            }
-            className={formInputClass}
-          />
+        <FormField label="Videos de YouTube (opcional — uno o varios)" name="youtubeUrls">
+          <VideoLinksEditor value={youtubeUrls} onChange={setYoutubeUrls} disabled={readOnly} />
         </FormField>
-        {article?.youtubeVideoId && (
-          <label className="flex items-center gap-2 text-sm text-foreground">
-            <input
-              type="checkbox"
-              name="removeYoutube"
-              checked={removeYoutube}
-              disabled={readOnly}
-              onChange={(e) => setRemoveYoutube(e.target.checked)}
-            />
-            Quitar el video actual
-          </label>
-        )}
       </div>
 
       <fieldset className="space-y-4 border-t border-border pt-6">

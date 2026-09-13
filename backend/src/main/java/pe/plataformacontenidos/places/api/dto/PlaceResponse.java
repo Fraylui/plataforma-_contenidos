@@ -6,6 +6,7 @@ import java.util.UUID;
 import pe.plataformacontenidos.content.api.dto.ArticleSummaryResponse;
 import pe.plataformacontenidos.places.Place;
 import pe.plataformacontenidos.places.PlaceStatus;
+import pe.plataformacontenidos.shared.ContentImageResponse;
 
 public record PlaceResponse(
         UUID id,
@@ -19,12 +20,12 @@ public record PlaceResponse(
         UUID geographyId,
         Double latitude,
         Double longitude,
-        List<UUID> imageIds,
+        List<ContentImageResponse> images,
         String seoTitle,
         String metaDescription,
         String canonicalUrl,
         String ogImageUrl,
-        String youtubeVideoId,
+        List<String> youtubeVideoIds,
         String robots,
         String rejectionReason,
         Instant publishedAt,
@@ -36,9 +37,10 @@ public record PlaceResponse(
     public static PlaceResponse from(Place place, List<ArticleSummaryResponse> relatedArticles, long likeCount) {
         return new PlaceResponse(place.getId(), place.getSlug(), place.getName(), place.getExcerpt(),
                 place.getBody(), place.getStatus(), place.getAuthorId(), place.getCategoryId(),
-                place.getGeographyId(), place.getLatitude(), place.getLongitude(), place.getImageIds(),
-                place.getSeoTitle(), place.getMetaDescription(), place.getCanonicalUrl(), place.getOgImageUrl(),
-                place.getYoutubeVideoId(), place.getRobots(), place.getRejectionReason(), place.getPublishedAt(),
+                place.getGeographyId(), place.getLatitude(), place.getLongitude(),
+                place.getImages().stream().map(ContentImageResponse::from).toList(), place.getSeoTitle(),
+                place.getMetaDescription(), place.getCanonicalUrl(), place.getOgImageUrl(),
+                place.getYoutubeVideoIds(), place.getRobots(), place.getRejectionReason(), place.getPublishedAt(),
                 place.getScheduledAt(), place.getCreatedAt(), relatedArticles, likeCount);
     }
 

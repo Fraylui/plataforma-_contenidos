@@ -10,12 +10,16 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
+import pe.plataformacontenidos.shared.ContentImage;
 
 /**
  * Un artículo de texto (sección 3: noticia, reportaje, crónica, etc. — todos
@@ -83,16 +87,22 @@ public class Article {
     private String ogImageUrl;
 
     /**
-     * Foto destacada para tarjetas/portada — UUID sin FK, igual criterio que
-     * geography_id/category_id (pertenece al módulo Media, sección 38).
-     * Validada en ArticleService contra ImageService antes de persistir.
+     * Imágenes de la publicación: subidas (Media, sección 38) o por enlace
+     * externo — nunca ambas por ítem (ver ContentImage). La primera de la
+     * lista es la portada para tarjetas/feed, mismo criterio que
+     * Lugares/Eventos.
      */
-    @Column(name = "featured_image_id")
-    private UUID featuredImageId;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "article_images", schema = "content", joinColumns = @JoinColumn(name = "article_id"))
+    @OrderColumn(name = "sort_order")
+    private List<ContentImage> images = new ArrayList<>();
 
-    /** Solo la referencia (Video ID de YouTube), nunca el video en sí — sección 8. */
-    @Column(name = "youtube_video_id")
-    private String youtubeVideoId;
+    /** Solo la referencia (Video ID de YouTube), nunca el video en sí — sección 8. Varios videos por publicación. */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "article_videos", schema = "content", joinColumns = @JoinColumn(name = "article_id"))
+    @OrderColumn(name = "sort_order")
+    @Column(name = "video_id")
+    private List<String> youtubeVideoIds = new ArrayList<>();
 
     @Column(nullable = false)
     private String robots = "index,follow";
@@ -187,12 +197,17 @@ public class Article {
         return ogImageUrl;
     }
 
-    public UUID getFeaturedImageId() {
-        return featuredImageId;
+    public List<ContentImage> getImages() {
+        return images;
     }
 
-    public String getYoutubeVideoId() {
-        return youtubeVideoId;
+    /** Portada para tarjetas/feed: la primera imagen, o null si no tiene ninguna. */
+    public ContentImage getCoverImage() {
+        return images.isEmpty() ? null : images.get(0);
+    }
+
+    public List<String> getYoutubeVideoIds() {
+        return youtubeVideoIds;
     }
 
     public String getRobots() {
@@ -230,7 +245,7 @@ public class Article {
 
     public void updateContent(String title, String excerpt, String body, ArticleType articleType, UUID categoryId,
             UUID geographyId, Set<UUID> tagIds, String seoTitle, String metaDescription, String canonicalUrl,
-            String ogImageUrl, UUID featuredImageId, String youtubeVideoId, String robots) {
+            String ogImageUrl, List<ContentImage> images, List<String> youtubeVideoIds, String robots) {
         this.title = title;
         this.excerpt = excerpt;
         this.body = body;
@@ -242,8 +257,8 @@ public class Article {
         this.metaDescription = metaDescription;
         this.canonicalUrl = canonicalUrl;
         this.ogImageUrl = ogImageUrl;
-        this.featuredImageId = featuredImageId;
-        this.youtubeVideoId = youtubeVideoId;
+        this.images = new ArrayList<>(images);
+        this.youtubeVideoIds = new ArrayList<>(youtubeVideoIds);
         this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
         this.updatedAt = Instant.now();
     }

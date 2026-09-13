@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { homeLikeType, type HomeItem } from "@/lib/home-items";
+import type { HomeItem } from "@/lib/home-items";
+import { homeLikeType } from "@/lib/content-kind";
 import { CardActions } from "@/components/content/card-actions";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
 import { SkeletonImage } from "@/components/ui/skeleton-image";
