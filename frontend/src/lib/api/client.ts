@@ -4,6 +4,7 @@
 // navegador, que hoy no existen: no hay panel admin todavía).
 import "server-only";
 import type {
+  AdPlacement,
   Article,
   ArticleNeighbors,
   ArticleSummary,
@@ -386,4 +387,9 @@ export function listAllTags(): Promise<Tag[]> {
 /** Identidad/marca (CONTEXTO.md sección 14): reemplaza src/lib/platform-placeholder.ts. */
 export function getPlatformSettings(): Promise<PlatformSettings> {
   return apiFetch(`/api/v1/platform-settings`, 300);
+}
+
+/** Posiciones de anuncio activas (sección 43.2) — consumido por AdBlock, ver components/legal/ad-block.tsx. */
+export function listActiveAdPlacements(): Promise<AdPlacement[]> {
+  return apiFetch(`/api/v1/ad-placements`, 300);
 }

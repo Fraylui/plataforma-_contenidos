@@ -1,19 +1,22 @@
-import { getPlatformSettings } from "@/lib/api/client";
+import { getPlatformSettings, listActiveAdPlacements } from "@/lib/api/client";
 import { AdSlot } from "@/components/legal/ad-slot";
 
 /**
  * Punto de inserción de anuncios listo para usar en cualquier página
- * pública: `<AdBlock position="article" />`. No muestra nada hasta que el
- * admin active AdSense y complete el slot correspondiente en Configuración
- * (platformSettings.adsenseSlotArticle/adsenseSlotListing) — así queda
- * preparado sin necesidad de solicitar la revisión de AdSense todavía.
+ * pública: `<AdBlock position="article" />`. `position` es la `key` de una
+ * posición creada en Configuración → Publicidad (módulo `advertising`, ver
+ * AdPlacement.java) — agregar una posición nueva no requiere tocar este
+ * componente, solo crearla en el admin y usar su key acá. No muestra nada
+ * hasta que el admin active AdSense globalmente Y la posición tenga su slot
+ * completo y esté habilitada.
  */
-export async function AdBlock({ position, className }: { position: "article" | "listing"; className?: string }) {
+export async function AdBlock({ position, className }: { position: string; className?: string }) {
   const settings = await getPlatformSettings();
   if (!settings.adsenseEnabled || !settings.adsenseClientId) return null;
 
-  const slot = position === "article" ? settings.adsenseSlotArticle : settings.adsenseSlotListing;
-  if (!slot) return null;
+  const placements = await listActiveAdPlacements();
+  const placement = placements.find((p) => p.key === position);
+  if (!placement?.adsenseSlotId) return null;
 
-  return <AdSlot clientId={settings.adsenseClientId} slot={slot} className={className} />;
+  return <AdSlot clientId={settings.adsenseClientId} slot={placement.adsenseSlotId} className={className} />;
 }

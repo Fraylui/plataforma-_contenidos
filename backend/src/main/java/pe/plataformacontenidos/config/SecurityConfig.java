@@ -52,9 +52,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/geography", "/api/v1/geography/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/images/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/platform-settings").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/ad-placements").permitAll()
 
                 .requestMatchers("/api/v1/admin/users/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
                 .requestMatchers("/api/v1/admin/platform-settings/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
+                // Publicidad/monetización (sección 43.2): mismo nivel que platform-settings, no editorial.
+                .requestMatchers("/api/v1/admin/ad-placements/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
                 // Audit log: incluye IPs y acciones de todos los usuarios (incluidos otros
                 // admins) — sección 37, más sensible que un listado editorial normal.
                 .requestMatchers("/api/v1/admin/audit/**").hasAnyRole("SUPER_ADMIN", "ADMIN")

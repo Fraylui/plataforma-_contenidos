@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { PlatformSettings } from "@/lib/api/types";
 import type { PlatformSettingsInput } from "@/lib/api/admin-types";
 import { updatePlatformSettingsAction } from "@/app/admin/(protected)/configuracion/actions";
@@ -35,8 +36,6 @@ function toFormState(settings: PlatformSettings): FormState {
     adsenseEnabled: settings.adsenseEnabled,
     adsenseClientId: settings.adsenseClientId ?? "",
     analyticsId: settings.analyticsId ?? "",
-    adsenseSlotArticle: settings.adsenseSlotArticle ?? "",
-    adsenseSlotListing: settings.adsenseSlotListing ?? "",
   };
 }
 
@@ -63,8 +62,6 @@ function toInput(state: FormState): PlatformSettingsInput {
     adsenseEnabled: state.adsenseEnabled,
     adsenseClientId: blankToNull(state.adsenseClientId),
     analyticsId: blankToNull(state.analyticsId),
-    adsenseSlotArticle: blankToNull(state.adsenseSlotArticle),
-    adsenseSlotListing: blankToNull(state.adsenseSlotListing),
   };
 }
 
@@ -253,18 +250,13 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
           onChange={(v) => set("adsenseClientId", v)}
         />
         <TextField label="Analytics ID" name="analyticsId" value={state.analyticsId} onChange={(v) => set("analyticsId", v)} />
-        <TextField
-          label="Slot de anuncio — detalle de contenido"
-          name="adsenseSlotArticle"
-          value={state.adsenseSlotArticle}
-          onChange={(v) => set("adsenseSlotArticle", v)}
-        />
-        <TextField
-          label="Slot de anuncio — listados"
-          name="adsenseSlotListing"
-          value={state.adsenseSlotListing}
-          onChange={(v) => set("adsenseSlotListing", v)}
-        />
+        <p className="text-xs text-muted">
+          Las posiciones/slots de anuncio se gestionan en{" "}
+          <Link href="/admin/publicidad" className="underline underline-offset-2 hover:text-accent">
+            Publicidad
+          </Link>
+          .
+        </p>
       </Section>
 
       {error && (

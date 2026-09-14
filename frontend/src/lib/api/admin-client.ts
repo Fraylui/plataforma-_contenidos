@@ -7,6 +7,8 @@ import "server-only";
 import type {
   AdminImage,
   AdminUser,
+  AdPlacementCreateInput,
+  AdPlacementUpdateInput,
   ArticleInput,
   AuditEvent,
   AuditSearchFilters,
@@ -24,6 +26,7 @@ import type {
   TokenResponse,
 } from "./admin-types";
 import type {
+  AdPlacement,
   Article,
   Business,
   Category,
@@ -506,6 +509,52 @@ export function activateCategory(accessToken: string, id: string): Promise<void>
 
 export function deactivateCategory(accessToken: string, id: string): Promise<void> {
   return authedJson(`/api/v1/admin/categories/${encodeURIComponent(id)}`, accessToken, { method: "DELETE" });
+}
+
+// --- Advertising module: posiciones de anuncio (AdPlacementController, rutas /admin/ad-placements) ---
+
+export function listAdminAdPlacements(accessToken: string): Promise<AdPlacement[]> {
+  return authedJson("/api/v1/admin/ad-placements", accessToken);
+}
+
+export function getAdminAdPlacement(accessToken: string, id: string): Promise<AdPlacement> {
+  return authedJson(`/api/v1/admin/ad-placements/${encodeURIComponent(id)}`, accessToken);
+}
+
+export function createAdPlacement(accessToken: string, input: AdPlacementCreateInput): Promise<AdPlacement> {
+  return authedJson("/api/v1/admin/ad-placements", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateAdPlacement(
+  accessToken: string,
+  id: string,
+  input: AdPlacementUpdateInput,
+): Promise<AdPlacement> {
+  return authedJson(`/api/v1/admin/ad-placements/${encodeURIComponent(id)}`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function activateAdPlacement(accessToken: string, id: string): Promise<void> {
+  return authedJson(`/api/v1/admin/ad-placements/${encodeURIComponent(id)}/activate`, accessToken, {
+    method: "POST",
+  });
+}
+
+export function deactivateAdPlacement(accessToken: string, id: string): Promise<void> {
+  return authedJson(`/api/v1/admin/ad-placements/${encodeURIComponent(id)}/deactivate`, accessToken, {
+    method: "POST",
+  });
+}
+
+export function deleteAdPlacement(accessToken: string, id: string): Promise<void> {
+  return authedJson(`/api/v1/admin/ad-placements/${encodeURIComponent(id)}`, accessToken, { method: "DELETE" });
 }
 
 // --- Taxonomy module: etiquetas (TagController) ---

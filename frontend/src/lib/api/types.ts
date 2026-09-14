@@ -384,8 +384,15 @@ export interface PlatformSettings {
   adsenseEnabled: boolean;
   adsenseClientId: string | null;
   analyticsId: string | null;
-  adsenseSlotArticle: string | null;
-  adsenseSlotListing: string | null;
+}
+
+/** Ver AdPlacementResponse.java — posición de anuncio configurable (CONTEXTO.md sección 43.2). */
+export interface AdPlacement {
+  id: string;
+  key: string;
+  label: string;
+  adsenseSlotId: string | null;
+  enabled: boolean;
 }
 
 /** Ver FeedItemResponse.java — feed unificado del home y "relacionados" de la vista de detalle. */

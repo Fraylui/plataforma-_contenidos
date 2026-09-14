@@ -191,8 +191,19 @@ export interface PlatformSettingsInput {
   adsenseEnabled: boolean;
   adsenseClientId: string | null;
   analyticsId: string | null;
-  adsenseSlotArticle: string | null;
-  adsenseSlotListing: string | null;
+}
+
+/** Cuerpo de POST /api/v1/admin/ad-placements — ver CreateAdPlacementRequest.java. */
+export interface AdPlacementCreateInput {
+  key: string;
+  label: string;
+  adsenseSlotId: string | null;
+}
+
+/** Cuerpo de PUT /api/v1/admin/ad-placements/{id} — ver UpdateAdPlacementRequest.java. */
+export interface AdPlacementUpdateInput {
+  label: string;
+  adsenseSlotId: string | null;
 }
 
 /** Ver PlatformStatsResponse.java (CONTEXTO.md sección 34, estadísticas básicas). */

@@ -114,6 +114,13 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     roles: ["SUPER_ADMIN", "ADMIN"],
   },
   {
+    href: "/admin/publicidad",
+    label: "Publicidad",
+    group: "cuenta",
+    // Debe coincidir con SecurityConfig: /api/v1/admin/ad-placements/** -> SUPER_ADMIN, ADMIN.
+    roles: ["SUPER_ADMIN", "ADMIN"],
+  },
+  {
     href: "/admin/auditoria",
     label: "Auditoría",
     group: "cuenta",
