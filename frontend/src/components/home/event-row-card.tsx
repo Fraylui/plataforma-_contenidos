@@ -4,20 +4,26 @@ import { formatEventDateTime } from "@/lib/content-labels";
 import { cn } from "@/lib/utils";
 
 /**
- * Evento en fila para el home: bloque de fecha (día + mes) en acento a la
- * izquierda, título y lugar a la derecha. La fecha ES el dato principal de
- * un evento, así que va como pieza visual, no como texto chico al pie.
- * `compact` (barra lateral): sin resumen y con bloque de fecha más chico,
- * para que la agenda entre en una columna angosta sin comerse la página.
+ * Evento en fila: bloque de fecha (día + mes) en acento a la izquierda,
+ * título y lugar a la derecha. La fecha ES el dato principal de un evento,
+ * así que va como pieza visual, no como texto chico al pie.
+ * `compact` (barra lateral del home): sin resumen y con bloque de fecha más
+ * chico, para que la agenda entre en una columna angosta sin comerse la
+ * página. `bordered=false` la usa dentro de un panel que ya tiene su propio
+ * borde exterior (ver HomeSidebar) — una tarjeta dentro de otra tarjeta
+ * duplica el borde y se ve pesado, así que ahí la fila queda "plana" y la
+ * separación entre eventos la da el divide-y del panel, no cada fila.
  */
 export function EventRowCard({
   event,
   categoryName,
   compact = false,
+  bordered = true,
 }: {
   event: EventSummary;
   categoryName?: string;
   compact?: boolean;
+  bordered?: boolean;
 }) {
   const start = new Date(event.startsAt);
   const day = new Intl.DateTimeFormat("es-PE", { day: "numeric" }).format(start);
@@ -27,7 +33,10 @@ export function EventRowCard({
     <Link
       href={`/eventos/${event.slug}`}
       className={cn(
-        "flex items-center gap-3 rounded-2xl border border-canvas-border bg-surface shadow-sm transition-[border-color,box-shadow] hover:border-accent/60 hover:shadow-md",
+        "flex items-center gap-3 transition-colors",
+        bordered
+          ? "rounded-2xl border border-foreground/[0.06] bg-surface shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_8px_20px_-12px_rgb(0_0_0_/_0.08)] hover:border-accent/50 hover:shadow-md"
+          : "-mx-1 rounded-xl px-1 hover:bg-canvas",
         compact ? "p-2.5" : "p-3 sm:gap-4 sm:p-4",
       )}
     >

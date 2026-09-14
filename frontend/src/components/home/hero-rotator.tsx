@@ -55,7 +55,7 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
     >
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-4 sm:px-6 lg:grid-cols-12 lg:gap-6 lg:px-8">
         <div className="flex flex-col gap-3 lg:col-span-7">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-canvas-border bg-canvas-strong shadow-sm sm:aspect-[16/9]">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-foreground/[0.06] bg-canvas-strong shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_12px_28px_-16px_rgb(0_0_0_/_0.12)] sm:aspect-[16/9]">
             {items.map((item, i) => (
               <Link
                 key={item.id}
@@ -90,7 +90,7 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
                       {item.kind === "evento" ? item.dateLabel : categoryNames[item.categoryId]}
                     </span>
                   </div>
-                  <h2 className="text-xl font-bold leading-tight tracking-tight text-white sm:text-2xl lg:text-3xl">{item.title}</h2>
+                  <h2 className="text-2xl font-bold leading-[1.1] tracking-tight text-white sm:text-3xl lg:text-4xl">{item.title}</h2>
                   {item.excerpt && (
                     <p className="hidden text-sm leading-relaxed text-white/80 line-clamp-2 sm:block sm:text-base">{item.excerpt}</p>
                   )}
@@ -133,7 +133,7 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
               <Link
                 key={item.id}
                 href={item.href}
-                className="flex min-h-0 flex-1 items-center gap-4 rounded-2xl border border-canvas-border bg-surface p-3 shadow-sm transition-colors hover:border-accent/60"
+                className="flex min-h-0 flex-1 items-center gap-4 rounded-2xl border border-foreground/[0.06] bg-surface p-3 shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_8px_20px_-12px_rgb(0_0_0_/_0.08)] transition-colors hover:border-accent/50"
               >
                 <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-canvas-strong">
                   {item.imageUrl ? (
@@ -164,7 +164,7 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
             <Link
               key={item.id}
               href={item.href}
-              className="flex w-56 shrink-0 snap-start items-center gap-3 rounded-xl border border-canvas-border bg-surface p-2.5 shadow-sm"
+              className="flex w-56 shrink-0 snap-start items-center gap-3 rounded-xl border border-foreground/[0.06] bg-surface p-2.5 shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_8px_20px_-12px_rgb(0_0_0_/_0.08)]"
             >
               <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-canvas-strong">
                 {item.imageUrl ? <SkeletonImage src={item.imageUrl} alt="" className="object-cover" sizes="56px" /> : <NoImagePlaceholder />}

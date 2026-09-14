@@ -14,9 +14,16 @@ import { cn } from "@/lib/utils";
  * HTML inválido y rompe el teclado. Los botones van con z-10 para quedar
  * encima del ::after.
  */
+/**
+ * Borde en baja opacidad sobre el color de texto (no un tono fijo tipo
+ * --canvas-border): así se funde con la tarjeta blanca en vez de dibujar un
+ * rectángulo verdoso alrededor de cada una — con decenas de tarjetas en
+ * grilla, un borde de color sólido se nota como una cuadrícula dura. La
+ * sombra es la que da la separación real contra el lienzo verde.
+ */
 const CHROME =
-  "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-canvas-border bg-surface shadow-sm " +
-  "transition-[box-shadow,transform,border-color] duration-200 hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-[0_16px_32px_-16px_rgb(21_128_61_/_0.35),0_2px_6px_rgb(0_0_0_/_0.06)] " +
+  "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-foreground/[0.06] bg-surface shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_8px_20px_-12px_rgb(0_0_0_/_0.08)] " +
+  "transition-[box-shadow,transform,border-color] duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:shadow-[0_16px_32px_-16px_rgb(21_128_61_/_0.3),0_2px_6px_rgb(0_0_0_/_0.06)] " +
   "focus-within:border-accent motion-reduce:transition-none motion-reduce:hover:translate-y-0";
 
 const STRETCHED = "after:absolute after:inset-0 after:content-[''] focus-visible:outline-none";
@@ -52,7 +59,7 @@ function Cover({ item, sizes, className }: { item: HomeItem; sizes: string; clas
  */
 function Footer({ item }: { item: HomeItem }) {
   return (
-    <div className="mt-auto flex items-center border-t border-canvas-border/70 pt-0.5 sm:pt-1">
+    <div className="mt-auto flex items-center border-t border-foreground/[0.06] pt-0.5 sm:pt-1">
       <CardActions contentType={homeLikeType(item.kind)} slug={item.slug} initialLikeCount={item.likeCount} title={item.title} path={item.href} />
     </div>
   );
@@ -71,7 +78,7 @@ export function ContentCard({ item, categoryName }: { item: HomeItem; categoryNa
       <Cover item={item} sizes="(min-width: 1024px) 24vw, (min-width: 640px) 33vw, 50vw" className="aspect-[16/10]" />
       <div className="flex flex-1 flex-col gap-1 p-2.5 pb-1.5 sm:px-3 sm:pt-2.5">
         {categoryName && <span className={KICKER}>{categoryName}</span>}
-        <h3 className="min-h-[2.5rem] text-[13px] leading-5 font-semibold tracking-tight text-foreground sm:text-sm">
+        <h3 className="min-h-[2.5rem] text-[13px] leading-5 font-bold tracking-tight text-foreground sm:text-[15px]">
           <Link href={item.href} className={cn(STRETCHED, "line-clamp-2 transition-colors group-hover:text-accent")}>
             {item.title}
           </Link>
