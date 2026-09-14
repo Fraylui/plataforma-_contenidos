@@ -6,7 +6,12 @@ import { roleLabel } from "@/lib/admin/role-labels";
 import { createUserAction } from "@/app/admin/(protected)/usuarios/actions";
 import { AdminButton } from "@/components/admin/ui";
 
-const ALL_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR", "MODERATOR", "COLLABORATOR", "USER"];
+// MODERATOR/COLLABORATOR/USER existen en el enum del backend pero todavía no
+// tienen ninguna regla de autorización conectada (SecurityConfig no los
+// menciona en ningún endpoint) — ofrecerlos acá crearía una cuenta que no
+// puede entrar a ninguna sección del admin. Se quitan de este selector
+// hasta que ese día llegue; el enum se queda intacto para entonces.
+const ALL_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR"];
 
 export function UserCreateForm({ viewerRole }: { viewerRole: Role }) {
   // CONTEXTO.md sección 36.4: un ADMIN no puede crear cuentas SUPER_ADMIN
