@@ -133,12 +133,18 @@ public class FeedService {
         return pool;
     }
 
+    /**
+     * geografía compartida (+2, señal más fuerte) > interacción reciente, y
+     * dentro de eso, frescura + likes. `log1p` para que las interacciones
+     * pesen pero un solo ítem viral no eclipse todo lo demás.
+     */
     private double relatedScore(FeedItemResponse item, UUID geographyId, Instant now) {
         double score = 0;
         if (geographyId != null && geographyId.equals(item.geographyId())) {
             score += 2;
         }
         score += freshness(item.publishedAt(), now);
+        score += Math.log1p(item.likeCount()) * 0.3;
         return score;
     }
 
@@ -181,7 +187,8 @@ public class FeedService {
     }
 
     private double score(FeedItemResponse item, Instant now, String seed) {
-        return freshness(item.publishedAt(), now) * 0.7 + seededJitter(item.id(), seed) * 0.3;
+        return freshness(item.publishedAt(), now) * 0.55 + popularity(item.likeCount()) * 0.2
+                + seededJitter(item.id(), seed) * 0.25;
     }
 
     private double freshness(Instant publishedAt, Instant now) {
@@ -190,6 +197,17 @@ public class FeedService {
         }
         double ageDays = Duration.between(publishedAt, now).toHours() / 24.0;
         return 1.0 / (1.0 + Math.max(ageDays, 0));
+    }
+
+    /**
+     * Interacción como señal de descubrimiento, no solo frescura — pedido
+     * explícito: que lo más publicado no sea la única forma de aparecer
+     * arriba, que también cuente lo que la gente ya está likeando. Acotada
+     * en [0,1) (satura acercándose a 1) para que un solo ítem viral no
+     * eclipse el resto del feed ni rompa la diversificación por categoría.
+     */
+    private double popularity(long likeCount) {
+        return likeCount / (double) (likeCount + 10);
     }
 
     /** Jitter pseudoaleatorio pero determinístico en [0,1) — mismo seed + mismo id siempre da el mismo valor. */
