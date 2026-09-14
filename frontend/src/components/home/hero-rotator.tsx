@@ -143,9 +143,11 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
                   )}
                 </div>
                 <div className="flex min-w-0 flex-col gap-1">
-                  <span className="text-[11px] font-semibold tracking-wider text-accent uppercase">
-                    {item.kind === "evento" ? `Evento · ${item.dateLabel}` : item.typeLabel}
-                  </span>
+                  {(item.kind === "evento" ? item.dateLabel : categoryNames[item.categoryId]) && (
+                    <span className="text-[11px] font-semibold tracking-wider text-accent uppercase">
+                      {item.kind === "evento" ? item.dateLabel : categoryNames[item.categoryId]}
+                    </span>
+                  )}
                   <span className="line-clamp-2 text-[15px] font-semibold leading-snug text-foreground">{item.title}</span>
                   {item.excerpt && <span className="line-clamp-1 text-[13px] text-muted">{item.excerpt}</span>}
                 </div>

@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { listActiveCategories, listPublishedBusinesses } from "@/lib/api/client";
 import { BusinessCard } from "@/components/directory/business-card";
 import { Pagination } from "@/components/ui/pagination";
 import { AdBlock } from "@/components/legal/ad-block";
-import { CategoryChips } from "@/components/filters/category-chips";
+import { FilterMenu } from "@/components/filters/filter-menu";
 import { businessTypeLabel } from "@/lib/content-labels";
 import type { BusinessType } from "@/lib/api/types";
 
@@ -51,6 +50,7 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
     }),
     listActiveCategories(),
   ]);
+  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -61,33 +61,24 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
         </p>
       </header>
 
-      <nav aria-label="Filtrar por tipo" className="mt-6 flex flex-wrap gap-2">
-        <Link
-          href={buildHref(null, categoryId, 0)}
-          className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-            businessType === null ? "bg-accent text-accent-foreground" : "bg-surface text-muted hover:text-foreground"
-          }`}
-        >
-          Todo
-        </Link>
-        {BUSINESS_TYPES.map((type) => (
-          <Link
-            key={type}
-            href={buildHref(type, categoryId, 0)}
-            className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-              businessType === type ? "bg-accent text-accent-foreground" : "bg-surface text-muted hover:text-foreground"
-            }`}
-          >
-            {businessTypeLabel(type)}
-          </Link>
-        ))}
-      </nav>
-
-      <div className="mt-4">
-        <CategoryChips
-          categories={categories}
-          activeCategoryId={categoryId}
-          buildHref={(catId) => buildHref(businessType, catId, 0)}
+      <div className="mt-6 flex flex-wrap items-center gap-2 border-b border-foreground/[0.06] pb-4">
+        <FilterMenu
+          label="Tipo de negocio"
+          allLabel="Todos los tipos"
+          options={BUSINESS_TYPES.map((t) => ({ value: t, label: businessTypeLabel(t) }))}
+          activeValue={businessType}
+          paramName="businessType"
+          basePath={BASE_PATH}
+          extraParams={categoryId ? { categoryId } : undefined}
+        />
+        <FilterMenu
+          label="Filtrar por tema"
+          allLabel="Todas las categorías"
+          options={categories.map((c) => ({ value: c.id, label: c.name }))}
+          activeValue={categoryId}
+          paramName="categoryId"
+          basePath={BASE_PATH}
+          extraParams={businessType ? { businessType } : undefined}
         />
       </div>
 
@@ -101,8 +92,13 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
         ) : (
           <>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {result.items.map((business) => (
-                <BusinessCard key={business.id} business={business} />
+              {result.items.map((business, index) => (
+                <BusinessCard
+                  key={business.id}
+                  business={business}
+                  categoryName={categoryNames[business.categoryId]}
+                  featured={page === 0 && index === 0}
+                />
               ))}
             </div>
             <Pagination

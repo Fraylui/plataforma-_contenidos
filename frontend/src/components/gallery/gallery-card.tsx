@@ -1,5 +1,7 @@
 import { AnimatedCard } from "@/components/ui/animated-card";
 import { CardMedia } from "@/components/ui/card-media";
+import { CardKicker } from "@/components/ui/card-kicker";
+import { cn } from "@/lib/utils";
 import type { GallerySummary } from "@/lib/api/types";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
@@ -13,15 +15,29 @@ const MOSAIC_SIZE = 4;
  * "esto es una colección" antes de entrar, coherente con que el contenido
  * de una Galería ES el conjunto de fotos, no una sola portada. Por eso pasa
  * el mosaico como children de CardMedia en vez de un imageId único: el
- * degradado/barra/badge de CardMedia siguen aplicando encima.
+ * degradado/barra de CardMedia siguen aplicando encima.
+ *
+ * `featured`: primer ítem del listado, más grande y horizontal — mismo
+ * criterio que las otras 6 tarjetas de listado.
  */
-export function GalleryCard({ gallery }: { gallery: GallerySummary }) {
+export function GalleryCard({
+  gallery,
+  categoryName,
+  featured = false,
+}: {
+  gallery: GallerySummary;
+  categoryName?: string;
+  featured?: boolean;
+}) {
   const thumbnails = gallery.imageIds.slice(0, MOSAIC_SIZE);
-  const badge = `Galería · ${gallery.imageIds.length} foto${gallery.imageIds.length === 1 ? "" : "s"}`;
+  const photoCount = `${gallery.imageIds.length} foto${gallery.imageIds.length === 1 ? "" : "s"}`;
 
   return (
-    <AnimatedCard href={`/galerias/${gallery.slug}`}>
-      <CardMedia alt={gallery.title} badge={badge}>
+    <AnimatedCard
+      href={`/galerias/${gallery.slug}`}
+      className={featured ? "sm:col-span-2 lg:grid lg:grid-cols-[1.1fr_1fr] lg:col-span-2" : undefined}
+    >
+      <CardMedia alt={gallery.title} className={featured ? "lg:aspect-auto lg:min-h-full" : undefined}>
         {thumbnails.length === 0 ? (
           <NoImagePlaceholder />
         ) : thumbnails.length === 1 ? (
@@ -44,11 +60,24 @@ export function GalleryCard({ gallery }: { gallery: GallerySummary }) {
         )}
       </CardMedia>
 
-      <div className="flex flex-1 flex-col gap-2 p-5">
-        <h2 className="text-lg font-semibold leading-snug text-foreground transition-colors group-hover:text-accent">
+      <div className={cn("flex flex-1 flex-col gap-2 p-5", featured && "sm:p-6")}>
+        <div className="flex items-center gap-1.5">
+          <CardKicker categoryName={categoryName} />
+          <span className="text-[11px] font-medium text-muted">{categoryName && "· "}{photoCount}</span>
+        </div>
+        <h2
+          className={cn(
+            "font-semibold leading-snug text-foreground transition-colors group-hover:text-accent",
+            featured ? "text-xl sm:text-2xl" : "text-lg",
+          )}
+        >
           {gallery.title}
         </h2>
-        {gallery.excerpt && <p className="text-sm leading-relaxed text-muted line-clamp-2">{gallery.excerpt}</p>}
+        {gallery.excerpt && (
+          <p className={cn("text-sm leading-relaxed text-muted", featured ? "line-clamp-3" : "line-clamp-2")}>
+            {gallery.excerpt}
+          </p>
+        )}
       </div>
     </AnimatedCard>
   );

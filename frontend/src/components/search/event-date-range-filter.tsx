@@ -11,14 +11,12 @@ import Link from "next/link";
 export function EventDateRangeFilter({
   q,
   categoryId,
-  geographyId,
   from,
   to,
   clearHref,
 }: {
   q: string;
   categoryId: string | null;
-  geographyId: string | null;
   from: string | null;
   to: string | null;
   clearHref: string;
@@ -31,7 +29,6 @@ export function EventDateRangeFilter({
       <input type="hidden" name="q" value={q} />
       <input type="hidden" name="type" value="EVENT" />
       {categoryId && <input type="hidden" name="categoryId" value={categoryId} />}
-      {geographyId && <input type="hidden" name="geographyId" value={geographyId} />}
 
       <div>
         <label htmlFor="search-date-from" className="mb-1 block text-xs font-medium text-muted">

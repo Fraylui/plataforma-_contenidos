@@ -12,7 +12,8 @@ import { cn } from "@/lib/utils";
  * esto, solo agrega modificadores puntuales de una tarjeta específica.
  */
 const CARD_CHROME =
-  "group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm " +
+  "group flex h-full flex-col overflow-hidden rounded-2xl border border-foreground/[0.06] bg-surface " +
+  "shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_8px_20px_-12px_rgb(0_0_0_/_0.08)] " +
   "transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-xl " +
   "focus-visible:-translate-y-1 focus-visible:border-accent focus-visible:shadow-xl focus-visible:outline-none";
 

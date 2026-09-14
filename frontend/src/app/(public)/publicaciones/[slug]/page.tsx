@@ -9,10 +9,11 @@ import {
   getPlatformSettings,
   getPublishedArticleBySlug,
   getRelatedWithFallback,
+  listActiveCategories,
   listAllTags,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { articleTypeLabel, formatArticleDate, formatPublishedDate } from "@/lib/content-labels";
+import { formatArticleDate, formatPublishedDate } from "@/lib/content-labels";
 import { LikeShareBar } from "@/components/content/like-share-bar";
 import { NeighborNav } from "@/components/article/neighbor-nav";
 import { ReadingProgressBar } from "@/components/article/reading-progress-bar";
@@ -109,13 +110,15 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
   const { slug } = await props.params;
   const article = await loadArticle(slug);
 
-  const [category, geography, tags, settings, neighbors] = await Promise.all([
+  const [category, geography, tags, settings, neighbors, categories] = await Promise.all([
     getCategoryById(article.categoryId).catch(() => null),
     article.geographyId ? getGeographyUnitById(article.geographyId).catch(() => null) : Promise.resolve(null),
     article.tagIds.length > 0 ? listAllTags().catch(() => []) : Promise.resolve([]),
     getPlatformSettings(),
     getArticleNeighbors(slug).catch(() => ({ previous: null, next: null })),
+    listActiveCategories(),
   ]);
+  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
 
   const articleTags = tags.filter((tag) => article.tagIds.includes(tag.id));
 
@@ -172,17 +175,11 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
             </ol>
           </nav>
 
-          <div className="flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide text-accent uppercase">
-            <span>{articleTypeLabel(article.articleType)}</span>
-            {category && (
-              <>
-                <span aria-hidden="true" className="text-border">
-                  ·
-                </span>
-                <span>{category.name}</span>
-              </>
-            )}
-          </div>
+          {category && (
+            <div className="text-xs font-medium tracking-wide text-accent uppercase">
+              <span>{category.name}</span>
+            </div>
+          )}
 
           <h1 className="mt-4 text-2xl leading-tight font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
             {article.title}
@@ -256,7 +253,7 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
         {hasSidebar && (
           <aside className="mt-14 lg:col-span-4 lg:mt-0">
             <div className="lg:sticky lg:top-24">
-              <RelatedFeed items={related} title={relatedTitle} />
+              <RelatedFeed items={related} title={relatedTitle} categoryNames={categoryNames} />
             </div>
           </aside>
         )}

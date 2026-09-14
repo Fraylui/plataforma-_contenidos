@@ -3,7 +3,7 @@ import Link from "next/link";
 import { listActiveCategories, listPublishedEvents } from "@/lib/api/client";
 import { EventCard } from "@/components/event/event-card";
 import { Pagination } from "@/components/ui/pagination";
-import { CategoryChips } from "@/components/filters/category-chips";
+import { FilterMenu } from "@/components/filters/filter-menu";
 
 const PAGE_SIZE = 24;
 const BASE_PATH = "/eventos";
@@ -39,6 +39,7 @@ export default async function EventsPage(props: PageProps<"/eventos">) {
     listPublishedEvents({ when, page, size: PAGE_SIZE, categoryId: categoryId ?? undefined }),
     listActiveCategories(),
   ]);
+  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -49,25 +50,35 @@ export default async function EventsPage(props: PageProps<"/eventos">) {
         </p>
       </header>
 
-      <nav aria-label="Filtrar por fecha" className="mt-6 flex gap-2">
-        {WHEN_TABS.map((tab) => {
-          const active = tab.value === when;
-          return (
-            <Link
-              key={tab.value}
-              href={buildHref(tab.value, categoryId, 0)}
-              className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                active ? "bg-accent text-accent-foreground" : "bg-surface text-muted hover:text-foreground"
-              }`}
-            >
-              {tab.label}
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="mt-4">
-        <CategoryChips categories={categories} activeCategoryId={categoryId} buildHref={(catId) => buildHref(when, catId, 0)} />
+      <div className="mt-6 flex flex-wrap items-center gap-2 border-b border-foreground/[0.06] pb-4">
+        <nav aria-label="Filtrar por fecha" className="flex gap-2">
+          {WHEN_TABS.map((tab) => {
+            const active = tab.value === when;
+            return (
+              <Link
+                key={tab.value}
+                href={buildHref(tab.value, categoryId, 0)}
+                className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-accent text-accent-foreground"
+                    : "border border-foreground/[0.08] text-muted hover:border-accent/50 hover:text-foreground"
+                }`}
+              >
+                {tab.label}
+              </Link>
+            );
+          })}
+        </nav>
+        <span className="h-5 w-px bg-foreground/[0.08]" aria-hidden="true" />
+        <FilterMenu
+          label="Filtrar por tema"
+          allLabel="Todas las categorías"
+          options={categories.map((c) => ({ value: c.id, label: c.name }))}
+          activeValue={categoryId}
+          paramName="categoryId"
+          basePath={BASE_PATH}
+          extraParams={{ when }}
+        />
       </div>
 
       <section className="mt-8" aria-label="Eventos">
@@ -82,8 +93,13 @@ export default async function EventsPage(props: PageProps<"/eventos">) {
         ) : (
           <>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {result.items.map((event) => (
-                <EventCard key={event.id} event={event} />
+              {result.items.map((event, index) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  categoryName={categoryNames[event.categoryId]}
+                  featured={page === 0 && index === 0}
+                />
               ))}
             </div>
             <Pagination

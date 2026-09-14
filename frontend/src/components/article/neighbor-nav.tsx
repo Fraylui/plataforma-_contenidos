@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { ArticleNeighbors, ArticleSummary } from "@/lib/api/types";
-import { articleTypeLabel } from "@/lib/content-labels";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
 import { SkeletonImage } from "@/components/ui/skeleton-image";
@@ -32,7 +31,7 @@ function NeighborCard({ article, direction }: { article: ArticleSummary; directi
     <Link
       href={`/publicaciones/${article.slug}`}
       className={cn(
-        "group flex items-center gap-3.5 rounded-2xl border border-border bg-surface p-3 transition-[border-color,box-shadow] hover:border-accent/60 hover:shadow-md",
+        "group flex items-center gap-3.5 rounded-2xl border border-foreground/[0.06] bg-surface p-3 shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_8px_20px_-12px_rgb(0_0_0_/_0.08)] transition-[border-color,box-shadow] hover:border-accent/50 hover:shadow-md",
         isNext && "sm:flex-row-reverse sm:text-right",
       )}
     >
@@ -51,7 +50,6 @@ function NeighborCard({ article, direction }: { article: ArticleSummary; directi
           {!isNext && <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-0.5" aria-hidden="true" />}
           {isNext ? "Siguiente" : "Anterior"}
           {isNext && <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />}
-          <span className="font-medium text-muted normal-case tracking-normal">· {articleTypeLabel(article.articleType)}</span>
         </span>
         <span className="line-clamp-2 text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-accent sm:text-[15px]">
           {article.title}

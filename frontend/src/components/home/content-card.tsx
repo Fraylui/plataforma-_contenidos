@@ -28,9 +28,13 @@ const CHROME =
 
 const STRETCHED = "after:absolute after:inset-0 after:content-[''] focus-visible:outline-none";
 
-const TYPE_TAG =
-  "absolute top-2 left-2 rounded-md bg-accent px-2 py-0.5 text-[10px] font-semibold tracking-wider text-accent-foreground uppercase sm:top-2.5 sm:left-2.5 sm:py-1 sm:text-[11px]";
-
+/**
+ * Solo la categoría bajo la imagen — sin el tipo de contenido al lado
+ * ("Artículo"/"Lugar"/...). El tipo es un dato real que el equipo necesita
+ * para publicar, pero de cara al visitante no ayuda a decidir qué mirar
+ * (a pedido explícito: "para los que trabajan debe estar, pero al mostrar
+ * hace ruido"), ni siquiera acá donde el feed mezcla tipos.
+ */
 const KICKER = "text-[10px] font-semibold tracking-wider text-accent uppercase sm:text-[11px]";
 
 function Cover({ item, sizes, className }: { item: HomeItem; sizes: string; className?: string }) {
@@ -46,9 +50,13 @@ function Cover({ item, sizes, className }: { item: HomeItem; sizes: string; clas
       ) : (
         <NoImagePlaceholder />
       )}
-      <span className={TYPE_TAG}>{item.typeLabel}</span>
     </div>
   );
+}
+
+function Kicker({ categoryName }: { categoryName?: string }) {
+  if (!categoryName) return null;
+  return <span className={KICKER}>{categoryName}</span>;
 }
 
 /**
@@ -77,7 +85,7 @@ export function ContentCard({ item, categoryName }: { item: HomeItem; categoryNa
     <article className={CHROME}>
       <Cover item={item} sizes="(min-width: 1024px) 24vw, (min-width: 640px) 33vw, 50vw" className="aspect-[16/10]" />
       <div className="flex flex-1 flex-col gap-1 p-2.5 pb-1.5 sm:px-3 sm:pt-2.5">
-        {categoryName && <span className={KICKER}>{categoryName}</span>}
+        <Kicker categoryName={categoryName} />
         <h3 className="min-h-[2.5rem] text-[13px] leading-5 font-bold tracking-tight text-foreground sm:text-[15px]">
           <Link href={item.href} className={cn(STRETCHED, "line-clamp-2 transition-colors group-hover:text-accent")}>
             {item.title}
@@ -98,7 +106,7 @@ export function FeaturedContentCard({ item, categoryName, cta }: { item: HomeIte
     <article className={cn(CHROME, "lg:col-span-2 lg:grid lg:grid-cols-[1.1fr_1fr]")}>
       <Cover item={item} sizes="(min-width: 1024px) 30vw, (min-width: 640px) 33vw, 50vw" className="aspect-[16/10] lg:aspect-auto lg:min-h-full" />
       <div className="flex flex-1 flex-col gap-1 p-2.5 pb-1.5 sm:gap-1.5 sm:p-4 sm:pb-2">
-        {categoryName && <span className={KICKER}>{categoryName}</span>}
+        <Kicker categoryName={categoryName} />
         <h3 className="min-h-[2.5rem] text-[13px] leading-5 font-semibold tracking-tight text-foreground sm:min-h-0 sm:text-lg sm:leading-snug sm:font-bold">
           <Link href={item.href} className={cn(STRETCHED, "line-clamp-2 transition-colors group-hover:text-accent sm:line-clamp-3")}>
             {item.title}

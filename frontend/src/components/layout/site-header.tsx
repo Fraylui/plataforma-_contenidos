@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CalendarDays, FileText, Home, Images, MapPin, Star, Store, type LucideIcon } from "lucide-react";
-import { getPlatformSettings, listActiveCategories } from "@/lib/api/client";
+import { getPlatformSettings, getPrimaryNavVisibility, listActiveCategories } from "@/lib/api/client";
 import { CategoryMenu } from "./category-menu";
 import { MobileNav } from "./mobile-nav";
 import { SearchBox } from "./search-box";
@@ -20,7 +20,15 @@ const PRIMARY_LINKS: { href: string; label: string; icon: LucideIcon; wide?: boo
 ];
 
 export async function SiteHeader() {
-  const [settings, categories] = await Promise.all([getPlatformSettings(), listActiveCategories()]);
+  const [settings, categories, visibility] = await Promise.all([
+    getPlatformSettings(),
+    listActiveCategories(),
+    getPrimaryNavVisibility(),
+  ]);
+  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
+  // Un módulo sin contenido publicado todavía no aparece en la navegación —
+  // un enlace a una página vacía confunde más de lo que ayuda.
+  const visibleLinks = PRIMARY_LINKS.filter((link) => link.href === "/" || visibility[link.href]);
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface/80 backdrop-blur-md">
       <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-x-3 px-4 py-3 sm:px-6 lg:px-8">
@@ -51,7 +59,7 @@ export async function SiteHeader() {
             aria-label="Principal"
             className="hidden min-w-0 items-center gap-1 overflow-x-auto sm:flex [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {PRIMARY_LINKS.map(({ href, label, icon: Icon, wide }) => (
+            {visibleLinks.map(({ href, label, icon: Icon, wide }) => (
               <NavLink
                 key={href}
                 href={href}
@@ -62,12 +70,21 @@ export async function SiteHeader() {
                 {label}
               </NavLink>
             ))}
-            <CategoryMenu categories={categories} />
           </nav>
+          {/* Fuera del <nav> con overflow-x-auto a propósito: overflow-x
+              distinto de visible fuerza overflow-y:auto (regla real de CSS,
+              no hay forma de dejarlo "solo x"), así que el panel del
+              desplegable —que se abre hacia abajo, fuera de los límites de
+              esa fila angosta— quedaba recortado e invisible (bug real,
+              encontrado probando el propio desplegable). Categorías vive
+              junto al buscador, en un contenedor que nunca corta overflow. */}
+          <div className="hidden shrink-0 sm:block">
+            <CategoryMenu categories={categories} />
+          </div>
           <div className="flex shrink-0 items-center gap-3 sm:gap-4">
-            <SearchBox variant="desktop" />
-            <SearchBox variant="mobile" />
-            <MobileNav />
+            <SearchBox variant="desktop" categoryNames={categoryNames} />
+            <SearchBox variant="mobile" categoryNames={categoryNames} />
+            <MobileNav links={visibleLinks.map(({ href, label }) => ({ href, label }))} />
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Search } from "lucide-react";
 import type { SearchResult } from "@/lib/api/types";
-import { searchResultHref, searchResultTypeLabel } from "@/lib/content-labels";
+import { searchResultHref } from "@/lib/content-labels";
 import { imageUrl } from "@/lib/image-url";
 import { cn } from "@/lib/utils";
 import { Highlighted } from "@/components/ui/highlighted";
@@ -21,7 +21,13 @@ const DEBOUNCE_MS = 250;
  * panel, llevan a la página de resultados completa (con filtros por tipo,
  * paginación) — esto es un atajo, no un reemplazo de esa página.
  */
-export function SearchBox({ variant }: { variant: "desktop" | "mobile" }) {
+export function SearchBox({
+  variant,
+  categoryNames,
+}: {
+  variant: "desktop" | "mobile";
+  categoryNames: Record<string, string>;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -223,7 +229,9 @@ export function SearchBox({ variant }: { variant: "desktop" | "mobile" }) {
                       <span className="block truncate text-sm font-medium text-foreground">
                         <Highlighted text={item.title} query={query} />
                       </span>
-                      <span className="text-xs text-muted">{searchResultTypeLabel(item.contentType)}</span>
+                      {item.categoryId && categoryNames[item.categoryId] && (
+                        <span className="text-xs text-muted">{categoryNames[item.categoryId]}</span>
+                      )}
                     </span>
                   </button>
                 </li>

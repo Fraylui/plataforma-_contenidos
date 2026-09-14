@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +30,7 @@ export function SkeletonImage({
   fade?: boolean;
 }) {
   const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   if (!fade) {
     return <Image src={src} alt={alt} fill sizes={sizes} className={className} />;
@@ -39,6 +40,16 @@ export function SkeletonImage({
     <>
       {!loaded && <div className="absolute inset-0 animate-pulse bg-zinc-100" aria-hidden="true" />}
       <Image
+        ref={(el) => {
+          imgRef.current = el;
+          // El navegador empieza a cargar la <img> en cuanto parsea el HTML del
+          // servidor, antes de que React hidrate y conecte onLoad — con una
+          // imagen rápida (misma red Docker, archivo chico) puede terminar de
+          // cargar en ese lapso y el evento "load" se pierde para siempre,
+          // dejando el skeleton pulsando de por vida. Si al montar el <img>
+          // ya está completo, no hay que esperar un evento que no va a llegar.
+          if (el?.complete) setLoaded(true);
+        }}
         src={src}
         alt={alt}
         fill

@@ -6,23 +6,17 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 
-const LINKS = [
-  { href: "/", label: "Inicio" },
-  { href: "/publicaciones", label: "Publicaciones" },
-  { href: "/lugares", label: "Lugares" },
-  { href: "/eventos", label: "Eventos" },
-  { href: "/galerias", label: "Galerías" },
-  { href: "/resenas", label: "Reseñas" },
-  { href: "/directorio", label: "Directorio" },
-];
-
 /**
  * Menú hamburguesa mobile/tablet: panel lateral (Sheet) que entra desde la
- * derecha con overlay, no un dropdown flotante — con 8 enlaces necesita el
- * alto completo de la pantalla, no una tarjeta chica. Bloquea el scroll del
- * body mientras está abierto (patrón estándar de Sheet/Drawer).
+ * derecha con overlay, no un dropdown flotante — con varios enlaces necesita
+ * el alto completo de la pantalla, no una tarjeta chica. Bloquea el scroll
+ * del body mientras está abierto (patrón estándar de Sheet/Drawer).
+ *
+ * `links` viene ya filtrado por SiteHeader (Server Component) según qué
+ * módulos tienen contenido publicado — este componente no decide eso, solo
+ * lo dibuja.
  */
-export function MobileNav() {
+export function MobileNav({ links }: { links: { href: string; label: string }[] }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
@@ -87,7 +81,7 @@ export function MobileNav() {
                 </button>
               </div>
               <div className="flex flex-1 flex-col py-2">
-                {LINKS.map((link) => {
+                {links.map((link) => {
                   const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
                   return (
                     <Link

@@ -42,12 +42,16 @@ export function EventRowCard({
     >
       <div
         className={cn(
-          "flex shrink-0 flex-col items-center justify-center rounded-xl bg-accent text-accent-foreground",
-          compact ? "h-12 w-12" : "h-14 w-14 sm:h-16 sm:w-16",
+          "flex shrink-0 flex-col overflow-hidden rounded-lg border border-foreground/[0.08] bg-surface text-center",
+          compact ? "h-12 w-11" : "h-14 w-13 sm:h-16 sm:w-14",
         )}
       >
-        <span className={cn("font-bold leading-none", compact ? "text-lg" : "text-xl sm:text-2xl")}>{day}</span>
-        <span className="mt-1 text-[10px] font-semibold tracking-wider uppercase sm:text-[11px]">{month}</span>
+        <span className="bg-accent py-0.5 text-[9px] font-bold tracking-wider text-accent-foreground uppercase sm:text-[10px]">
+          {month}
+        </span>
+        <span className={cn("flex flex-1 items-center justify-center font-bold leading-none text-foreground", compact ? "text-base" : "text-lg sm:text-xl")}>
+          {day}
+        </span>
       </div>
       <div className="flex min-w-0 flex-col gap-0.5 sm:gap-1">
         <h3 className={cn("line-clamp-2 font-semibold leading-snug text-foreground", compact ? "text-sm" : "text-[15px] sm:text-base")}>

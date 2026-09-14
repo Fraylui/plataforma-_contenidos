@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { listActiveCategories, listPublishedPlaces } from "@/lib/api/client";
 import { PlaceCard } from "@/components/place/place-card";
 import { Pagination } from "@/components/ui/pagination";
-import { CategoryChips } from "@/components/filters/category-chips";
+import { FilterMenu } from "@/components/filters/filter-menu";
 
 const PAGE_SIZE = 24;
 const BASE_PATH = "/lugares";
@@ -33,6 +33,7 @@ export default async function PlacesPage(props: PageProps<"/lugares">) {
     listPublishedPlaces({ page, size: PAGE_SIZE, categoryId: categoryId ?? undefined }),
     listActiveCategories(),
   ]);
+  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -43,8 +44,8 @@ export default async function PlacesPage(props: PageProps<"/lugares">) {
         </p>
       </header>
 
-      <div className="mt-6">
-        <CategoryChips categories={categories} activeCategoryId={categoryId} buildHref={(catId) => buildHref(catId, 0)} />
+      <div className="mt-6 border-b border-foreground/[0.06] pb-4">
+        <FilterMenu label="Filtrar por tema" allLabel="Todas las categorías" options={categories.map((c) => ({ value: c.id, label: c.name }))} activeValue={categoryId} paramName="categoryId" basePath={BASE_PATH} />
       </div>
 
       <section className="mt-8" aria-label="Lugares">
@@ -54,8 +55,13 @@ export default async function PlacesPage(props: PageProps<"/lugares">) {
           </p>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {result.items.map((place) => (
-              <PlaceCard key={place.id} place={place} />
+            {result.items.map((place, index) => (
+              <PlaceCard
+                key={place.id}
+                place={place}
+                categoryName={categoryNames[place.categoryId]}
+                featured={page === 0 && index === 0}
+              />
             ))}
           </div>
         )}

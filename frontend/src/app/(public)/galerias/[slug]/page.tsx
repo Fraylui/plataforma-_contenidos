@@ -171,16 +171,12 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
         </ol>
       </nav>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide text-accent uppercase">
-        <span>Galería · {gallery.imageIds.length} fotos</span>
-        {category && (
-          <>
-            <span aria-hidden="true" className="text-border">
-              ·
-            </span>
-            <span>{category.name}</span>
-          </>
-        )}
+      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide uppercase">
+        {category && <span className="text-accent">{category.name}</span>}
+        <span className={category ? "text-muted normal-case" : "text-accent"}>
+          {category && "· "}
+          {gallery.imageIds.length} foto{gallery.imageIds.length === 1 ? "" : "s"}
+        </span>
       </div>
 
       <h1 className="mt-3 max-w-2xl text-3xl font-semibold leading-tight text-foreground sm:text-4xl">

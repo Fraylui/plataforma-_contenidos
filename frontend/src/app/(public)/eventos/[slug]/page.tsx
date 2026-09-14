@@ -9,6 +9,7 @@ import {
   getPublishedEventBySlug,
   getPublishedPlaceById,
   getRelatedWithFallback,
+  listActiveCategories,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { formatEventDateTime, isEventFinished } from "@/lib/content-labels";
@@ -112,12 +113,14 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
   const { slug } = await props.params;
   const event = await loadEvent(slug);
 
-  const [category, geography, settings, place] = await Promise.all([
+  const [category, geography, settings, place, categories] = await Promise.all([
     getCategoryById(event.categoryId).catch(() => null),
     event.geographyId ? getGeographyUnitById(event.geographyId).catch(() => null) : Promise.resolve(null),
     getPlatformSettings(),
     event.placeId ? getPublishedPlaceById(event.placeId).catch(() => null) : Promise.resolve(null),
+    listActiveCategories(),
   ]);
+  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
 
   const { items: related, isFallback: relatedIsFallback } = await getRelatedWithFallback({
     excludeType: "EVENT",
@@ -179,25 +182,21 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
             </ol>
           </nav>
 
-          <div className="flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide text-accent uppercase">
-            <span>Evento</span>
-            {category && (
-              <>
-                <span aria-hidden="true" className="text-border">
-                  ·
-                </span>
-                <span>{category.name}</span>
-              </>
-            )}
-            {finished && (
-              <>
-                <span aria-hidden="true" className="text-border">
-                  ·
-                </span>
-                <span className="rounded-full bg-canvas-strong px-2 py-0.5 text-muted normal-case">Finalizado</span>
-              </>
-            )}
-          </div>
+          {(category || finished) && (
+            <div className="flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide text-accent uppercase">
+              {category && <span>{category.name}</span>}
+              {finished && (
+                <>
+                  {category && (
+                    <span aria-hidden="true" className="text-border">
+                      ·
+                    </span>
+                  )}
+                  <span className="rounded-full bg-canvas-strong px-2 py-0.5 text-muted normal-case">Finalizado</span>
+                </>
+              )}
+            </div>
+          )}
 
           <h1 className="mt-4 text-2xl leading-tight font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
             {event.title}
@@ -254,7 +253,7 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
         {hasSidebar && (
           <aside className="mt-14 lg:col-span-4 lg:mt-0">
             <div className="lg:sticky lg:top-24">
-              <RelatedFeed items={related} title={relatedTitle} />
+              <RelatedFeed items={related} title={relatedTitle} categoryNames={categoryNames} />
             </div>
           </aside>
         )}

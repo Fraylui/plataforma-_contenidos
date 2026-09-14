@@ -203,17 +203,11 @@ export default async function ReviewPage(props: PageProps<"/resenas/[slug]">) {
             </ol>
           </nav>
 
-          <div className="flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide text-accent uppercase">
-            <span>Reseña</span>
-            {category && (
-              <>
-                <span aria-hidden="true" className="text-border">
-                  ·
-                </span>
-                <span>{category.name}</span>
-              </>
-            )}
-          </div>
+          {category && (
+            <div className="text-xs font-medium tracking-wide text-accent uppercase">
+              <span>{category.name}</span>
+            </div>
+          )}
 
           <h1 className="mt-4 text-2xl leading-tight font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
             {review.title}

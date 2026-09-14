@@ -1,18 +1,15 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { listActiveCategories, searchContent } from "@/lib/api/client";
-import { resolveGeographyChain } from "@/lib/geography-chain";
 import type { SearchResultType } from "@/lib/api/types";
 import { SearchResultCard } from "@/components/search/search-result-card";
-import { CategoryChips } from "@/components/filters/category-chips";
-import { GeographyFilter } from "@/components/search/geography-filter";
+import { FilterMenu } from "@/components/filters/filter-menu";
 import { EventDateRangeFilter } from "@/components/search/event-date-range-filter";
 import { Pagination } from "@/components/ui/pagination";
 
 const PAGE_SIZE = 24;
+const BASE_PATH = "/buscar";
 
-const TYPE_TABS: { value: SearchResultType | null; label: string }[] = [
-  { value: null, label: "Todo" },
+const TYPE_OPTIONS: { value: SearchResultType; label: string }[] = [
   { value: "ARTICLE", label: "Publicaciones" },
   { value: "PLACE", label: "Lugares" },
   { value: "EVENT", label: "Eventos" },
@@ -31,7 +28,6 @@ function buildHref(
   query: string,
   type: SearchResultType | null,
   categoryId: string | null,
-  geographyId: string | null,
   from: string | null,
   to: string | null,
   page: number,
@@ -39,23 +35,15 @@ function buildHref(
   const params = new URLSearchParams({ q: query });
   if (type) params.set("type", type);
   if (categoryId) params.set("categoryId", categoryId);
-  if (geographyId) params.set("geographyId", geographyId);
   if (type === "EVENT" && from) params.set("from", from);
   if (type === "EVENT" && to) params.set("to", to);
   if (page > 0) params.set("page", String(page));
-  return `/buscar?${params.toString()}`;
+  return `${BASE_PATH}?${params.toString()}`;
 }
 
 export default async function SearchPage(props: PageProps<"/buscar">) {
-  const {
-    q,
-    type: typeParam,
-    page: pageParam,
-    categoryId: categoryIdParam,
-    geographyId: geographyIdParam,
-    from: fromParam,
-    to: toParam,
-  } = await props.searchParams;
+  const { q, type: typeParam, page: pageParam, categoryId: categoryIdParam, from: fromParam, to: toParam } =
+    await props.searchParams;
   const query = typeof q === "string" ? q : "";
   const type =
     typeParam === "ARTICLE" ||
@@ -68,7 +56,6 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
       : null;
   const page = typeof pageParam === "string" ? Math.max(0, parseInt(pageParam, 10) || 0) : 0;
   const categoryId = typeof categoryIdParam === "string" ? categoryIdParam : null;
-  const geographyId = typeof geographyIdParam === "string" ? geographyIdParam : null;
   // Los inputs type="date" mandan "YYYY-MM-DD" — se completan a un instante
   // ISO recién acá, al armar la llamada real al backend; la URL se queda con
   // la fecha simple (más limpia para compartir/editar a mano).
@@ -77,81 +64,74 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
   const fromInstant = type === "EVENT" && from ? `${from}T00:00:00Z` : undefined;
   const toInstant = type === "EVENT" && to ? `${to}T23:59:59Z` : undefined;
 
-  const [result, categories, geographyChain] = await Promise.all([
+  const [result, categories] = await Promise.all([
     query
       ? searchContent(query, {
           page,
           size: PAGE_SIZE,
           type: type ?? undefined,
           categoryId: categoryId ?? undefined,
-          geographyId: geographyId ?? undefined,
           from: fromInstant,
           to: toInstant,
         })
       : Promise.resolve(null),
     listActiveCategories(),
-    resolveGeographyChain(geographyId),
   ]);
+  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      {/* Sin campo de búsqueda propio a propósito: el buscador del header ya
+          está siempre visible arriba y manda a esta misma página al
+          escribir y dar Enter — tener otro cuadro igual acá abajo era
+          literalmente el mismo control repetido dos veces en la misma
+          pantalla (encontrado probando el buscador real). Para cambiar de
+          término, se usa el del header. */}
       <header className="max-w-2xl">
         <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          Buscar
+          {query ? <>Resultados para «{query}»</> : "Buscar"}
         </h1>
-        <form action="/buscar" className="mt-6 flex gap-2">
-          <input
-            type="search"
-            name="q"
-            defaultValue={query}
-            placeholder="Buscar contenido…"
-            autoFocus
-            className="w-full rounded-md border border-border bg-background px-4 py-2.5 text-base text-foreground outline-none focus-visible:border-accent"
-          />
-          <button
-            type="submit"
-            className="shrink-0 rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground hover:opacity-90"
-          >
-            Buscar
-          </button>
-        </form>
       </header>
 
       {query && (
         <div className="mt-6 space-y-4">
-          <nav aria-label="Filtrar por tipo" className="flex flex-wrap gap-2">
-            {TYPE_TABS.map((tab) => {
-              const active = tab.value === type;
-              return (
-                <Link
-                  key={tab.label}
-                  href={buildHref(query, tab.value, categoryId, geographyId, from, to, 0)}
-                  className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                    active ? "bg-accent text-accent-foreground" : "bg-surface text-muted hover:text-foreground"
-                  }`}
-                >
-                  {tab.label}
-                </Link>
-              );
-            })}
-          </nav>
-
-          <CategoryChips
-            categories={categories}
-            activeCategoryId={categoryId}
-            buildHref={(catId) => buildHref(query, type, catId, geographyId, from, to, 0)}
-          />
-
-          <GeographyFilter initialChain={geographyChain} />
+          {/* Dos desplegables compactos, no chips fijas: antes esto eran dos
+              filas apiladas (tipo Y categoría, cada una con hasta 7
+              pastillas) más 5 selectores de geografía en cascada debajo —
+              se sentía un formulario, no una búsqueda. Las opciones de
+              "tipo" además repetían palabra por palabra los enlaces de la
+              navegación principal (Publicaciones/Lugares/Eventos/...),
+              puro ruido visual sin aportar nada nuevo al lado de esos
+              mismos enlaces ya visibles arriba. La geografía se sacó por
+              completo: no aportaba lo suficiente para el espacio que ocupaba. */}
+          <div className="flex flex-wrap items-center gap-2 border-b border-foreground/[0.06] pb-4">
+            <FilterMenu
+              label="Todo el contenido"
+              allLabel="Todo el contenido"
+              options={TYPE_OPTIONS}
+              activeValue={type}
+              paramName="type"
+              basePath={BASE_PATH}
+              extraParams={{ q: query, ...(categoryId ? { categoryId } : {}) }}
+            />
+            <FilterMenu
+              label="Filtrar por tema"
+              allLabel="Todas las categorías"
+              options={categories.map((c) => ({ value: c.id, label: c.name }))}
+              activeValue={categoryId}
+              paramName="categoryId"
+              basePath={BASE_PATH}
+              extraParams={{ q: query, ...(type ? { type } : {}) }}
+            />
+          </div>
 
           {type === "EVENT" && (
             <EventDateRangeFilter
               q={query}
               categoryId={categoryId}
-              geographyId={geographyId}
               from={from}
               to={to}
-              clearHref={buildHref(query, type, categoryId, geographyId, null, null, 0)}
+              clearHref={buildHref(query, type, categoryId, null, null, 0)}
             />
           )}
         </div>
@@ -159,21 +139,26 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
 
       <section className="mt-8" aria-label="Resultados de búsqueda">
         {!query ? (
-          <p className="text-sm text-muted">Escribe algo para buscar en todo el contenido publicado.</p>
+          <p className="text-sm text-muted">Escribe algo en el buscador de arriba para buscar en todo el contenido publicado.</p>
         ) : result && result.items.length > 0 ? (
           <>
             <p className="mb-6 text-sm text-muted">
-              {result.totalElements} resultado{result.totalElements === 1 ? "" : "s"} para «{query}»
+              {result.totalElements} resultado{result.totalElements === 1 ? "" : "s"}
             </p>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {result.items.map((item) => (
-                <SearchResultCard key={`${item.contentType}-${item.id}`} result={item} query={query} />
+                <SearchResultCard
+                  key={`${item.contentType}-${item.id}`}
+                  result={item}
+                  query={query}
+                  categoryName={item.categoryId ? categoryNames[item.categoryId] : undefined}
+                />
               ))}
             </div>
             <Pagination
               page={result.page}
               totalPages={result.totalPages}
-              buildHref={(p) => buildHref(query, type, categoryId, geographyId, from, to, p)}
+              buildHref={(p) => buildHref(query, type, categoryId, from, to, p)}
             />
           </>
         ) : (

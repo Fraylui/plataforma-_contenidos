@@ -3,9 +3,10 @@ import type { GeographicUnit } from "@/lib/api/types";
 
 /**
  * Camino PAIS -> ... -> unidad seleccionada, para precargar el selector en
- * cascada de /buscar (GeographyFilter) a partir de un geographyId suelto
- * (el que llega por query string) — único consumidor público desde que la
- * geografía se quitó de los 6 listados (ver components/filters/category-chips.tsx).
+ * cascada de geografía a partir de un geographyId suelto. Hoy solo lo usan
+ * los formularios de edición del admin (Publicaciones/Lugares/Eventos/
+ * Galerías/Reseñas/Directorio) — el selector equivalente en /buscar se quitó
+ * junto con el resto de filtros de geografía en los listados públicos.
  */
 export async function resolveGeographyChain(geographyId: string | null | undefined): Promise<GeographicUnit[]> {
   if (!geographyId) return [];

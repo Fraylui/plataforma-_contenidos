@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, ArrowUp, BookOpen, Building2, CalendarDays, Images, Mail, MapPin, Star } from "lucide-react";
 import {
   getPlatformSettings,
+  getPrimaryNavVisibility,
   listActiveCategories,
   listPublishedArticles,
   listPublishedEvents,
@@ -33,13 +34,15 @@ const headingClass = "text-xs font-semibold tracking-wider text-zinc-200 upperca
  * próximo evento) para que el pie no sea un bloque muerto de enlaces.
  */
 export async function SiteFooter() {
-  const [settings, categories, latestArticles, latestGalleries, nextEvents] = await Promise.all([
+  const [settings, categories, latestArticles, latestGalleries, nextEvents, visibility] = await Promise.all([
     getPlatformSettings(),
     listActiveCategories(),
     listPublishedArticles({ size: 2 }),
     listPublishedGalleries({ size: 1 }),
     listPublishedEvents({ when: "upcoming", size: 1 }),
+    getPrimaryNavVisibility(),
   ]);
+  const exploreLinks = EXPLORE_LINKS.filter((link) => visibility[link.href]);
   const year = new Date().getFullYear();
   const rootCategories = categories
     .filter((category) => category.parentId === null)
@@ -69,7 +72,15 @@ export async function SiteFooter() {
       </span>
 
       <div className="relative mx-auto max-w-7xl px-4 pt-12 pb-6 sm:px-6 sm:pt-14 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div
+          className={`grid grid-cols-1 gap-10 sm:grid-cols-2 ${
+            exploreLinks.length > 0 && thisWeek.length > 0
+              ? "lg:grid-cols-[1.4fr_1fr_1fr_1fr]"
+              : exploreLinks.length > 0 || thisWeek.length > 0
+                ? "lg:grid-cols-[1.4fr_1fr_1fr]"
+                : "lg:grid-cols-[1.4fr_1fr]"
+          }`}
+        >
           <div className="sm:col-span-2 lg:col-span-1">
             <Link href="/" className="inline-flex items-center gap-2.5 transition-opacity hover:opacity-80">
               {logo ? (
@@ -89,7 +100,7 @@ export async function SiteFooter() {
                   <Link
                     key={category.id}
                     href={`/categorias/${category.slug}`}
-                    className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-200 transition-colors hover:border-green-400 hover:text-green-400"
+                    className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-zinc-200 shadow-[0_1px_2px_rgb(0_0_0_/_0.2)] transition-colors hover:border-green-400/60 hover:text-green-400"
                   >
                     {category.name}
                   </Link>
@@ -98,13 +109,14 @@ export async function SiteFooter() {
             )}
           </div>
 
+          {exploreLinks.length > 0 && (
           <nav aria-label="Explorar">
             <h2 className={headingClass}>Explorar</h2>
             <ul className="mt-4 space-y-2">
-              {EXPLORE_LINKS.map(({ href, label, Icon }) => (
+              {exploreLinks.map(({ href, label, Icon }) => (
                 <li key={href}>
                   <Link href={href} className="group inline-flex items-center gap-2.5 py-0.5 text-sm text-zinc-400 transition-colors hover:text-white">
-                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900 text-green-400">
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-green-400 shadow-[0_1px_2px_rgb(0_0_0_/_0.2)] transition-colors group-hover:border-green-400/50 group-hover:bg-green-400/10">
                       <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                     </span>
                     {label}
@@ -113,13 +125,14 @@ export async function SiteFooter() {
               ))}
             </ul>
           </nav>
+          )}
 
           {thisWeek.length > 0 && (
             <div>
               <h2 className={headingClass}>Esta semana</h2>
               <ul className="mt-4 space-y-3.5">
                 {thisWeek.map((entry) => (
-                  <li key={entry.id} className={`border-l-2 pl-3 ${entry.highlight ? "border-green-400" : "border-zinc-800"}`}>
+                  <li key={entry.id} className={`border-l-2 pl-3 ${entry.highlight ? "border-green-400" : "border-white/[0.08]"}`}>
                     <Link href={entry.href} className="group flex flex-col gap-1">
                       <span className={`text-[11px] font-semibold tracking-wider uppercase ${entry.highlight ? "text-green-400" : "text-zinc-400"}`}>
                         {entry.kicker}
@@ -138,10 +151,10 @@ export async function SiteFooter() {
             {settings.contactEmail && (
               <>
                 <h2 className={headingClass}>Contacto</h2>
-                <address className="mt-4 not-italic">
+                <address className="mt-4 block rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 not-italic">
                   <a
                     href={`mailto:${settings.contactEmail}`}
-                    className="inline-flex items-center gap-2 text-sm break-all text-zinc-400 transition-colors hover:text-green-400"
+                    className="inline-flex items-center gap-2 text-sm break-all text-zinc-300 transition-colors hover:text-green-400"
                   >
                     <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
                     {settings.contactEmail}
@@ -177,7 +190,7 @@ export async function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-3 border-t border-zinc-800 pt-5 text-xs text-zinc-400 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-12 flex flex-col gap-3 border-t border-white/[0.08] pt-5 text-xs text-zinc-400 sm:flex-row sm:items-center sm:justify-between">
           <p>
             © {year} {settings.name}. Todos los derechos reservados.
           </p>

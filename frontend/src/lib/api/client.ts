@@ -300,6 +300,42 @@ export async function listAllPublishedBusinessesForSitemap(): Promise<BusinessSu
   return items;
 }
 
+// Un módulo se declara visible si AL MENOS UNA de sus consultas (ej. eventos
+// próximos + pasados) devuelve algo publicado.
+const NAV_PRESENCE_CHECKS: { href: string; checks: () => Promise<PageResponse<unknown>>[] }[] = [
+  { href: "/publicaciones", checks: () => [listPublishedArticles({ size: 1 })] },
+  { href: "/lugares", checks: () => [listPublishedPlaces({ size: 1 })] },
+  {
+    href: "/eventos",
+    checks: () => [listPublishedEvents({ when: "upcoming", size: 1 }), listPublishedEvents({ when: "past", size: 1 })],
+  },
+  { href: "/galerias", checks: () => [listPublishedGalleries({ size: 1 })] },
+  { href: "/resenas", checks: () => [listPublishedReviews({ size: 1 })] },
+  { href: "/directorio", checks: () => [listPublishedBusinesses({ size: 1 })] },
+];
+
+/**
+ * Qué módulos mostrar en la navegación (header/footer/menú mobile): un
+ * enlace a un tipo de contenido sin nada publicado todavía es un enlace a
+ * una página vacía, no navegación — confunde más de lo que ayuda.
+ *
+ * Recorre `NAV_PRESENCE_CHECKS` en vez de tener una variable por tipo: así
+ * agregar un futuro tipo de contenido a la navegación es una entrada nueva
+ * en esa lista, no otro `Promise.all` a mano. Cada `list*` ya usa `fetch`
+ * con revalidación (Next dedupea automáticamente llamadas idénticas dentro
+ * del mismo request), así que llamar esta función otra vez desde el footer
+ * no repite trabajo real.
+ */
+export async function getPrimaryNavVisibility(): Promise<Record<string, boolean>> {
+  const results = await Promise.all(
+    NAV_PRESENCE_CHECKS.map(async ({ href, checks }) => {
+      const pages = await Promise.all(checks());
+      return [href, pages.some((page) => page.totalElements > 0)] as const;
+    }),
+  );
+  return Object.fromEntries(results);
+}
+
 /**
  * Feed unificado del home (Publicaciones + Lugares + Eventos) — ver
  * FeedController.getFeed en el backend. Sin cache: cada visitante lleva su

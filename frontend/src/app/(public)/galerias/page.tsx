@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { listActiveCategories, listPublishedGalleries } from "@/lib/api/client";
 import { GalleryCard } from "@/components/gallery/gallery-card";
 import { Pagination } from "@/components/ui/pagination";
-import { CategoryChips } from "@/components/filters/category-chips";
+import { FilterMenu } from "@/components/filters/filter-menu";
 
 const PAGE_SIZE = 24;
 const BASE_PATH = "/galerias";
@@ -33,6 +33,7 @@ export default async function GalleriesPage(props: PageProps<"/galerias">) {
     listPublishedGalleries({ page, size: PAGE_SIZE, categoryId: categoryId ?? undefined }),
     listActiveCategories(),
   ]);
+  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -43,8 +44,8 @@ export default async function GalleriesPage(props: PageProps<"/galerias">) {
         </p>
       </header>
 
-      <div className="mt-6">
-        <CategoryChips categories={categories} activeCategoryId={categoryId} buildHref={(catId) => buildHref(catId, 0)} />
+      <div className="mt-6 border-b border-foreground/[0.06] pb-4">
+        <FilterMenu label="Filtrar por tema" allLabel="Todas las categorías" options={categories.map((c) => ({ value: c.id, label: c.name }))} activeValue={categoryId} paramName="categoryId" basePath={BASE_PATH} />
       </div>
 
       <section className="mt-8" aria-label="Galerías">
@@ -55,8 +56,13 @@ export default async function GalleriesPage(props: PageProps<"/galerias">) {
         ) : (
           <>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {result.items.map((gallery) => (
-                <GalleryCard key={gallery.id} gallery={gallery} />
+              {result.items.map((gallery, index) => (
+                <GalleryCard
+                  key={gallery.id}
+                  gallery={gallery}
+                  categoryName={categoryNames[gallery.categoryId]}
+                  featured={page === 0 && index === 0}
+                />
               ))}
             </div>
             <Pagination

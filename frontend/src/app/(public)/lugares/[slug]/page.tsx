@@ -8,6 +8,7 @@ import {
   getPlatformSettings,
   getPublishedPlaceBySlug,
   getRelatedWithFallback,
+  listActiveCategories,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { ArticleCard } from "@/components/article/article-card";
@@ -110,11 +111,13 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
   const { slug } = await props.params;
   const place = await loadPlace(slug);
 
-  const [category, geography, settings] = await Promise.all([
+  const [category, geography, settings, categories] = await Promise.all([
     getCategoryById(place.categoryId).catch(() => null),
     place.geographyId ? getGeographyUnitById(place.geographyId).catch(() => null) : Promise.resolve(null),
     getPlatformSettings(),
+    listActiveCategories(),
   ]);
+  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
 
   const { items: related, isFallback: relatedIsFallback } = await getRelatedWithFallback({
     excludeType: "PLACE",
@@ -168,17 +171,11 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
             </ol>
           </nav>
 
-          <div className="flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide text-accent uppercase">
-            <span>Lugar</span>
-            {category && (
-              <>
-                <span aria-hidden="true" className="text-border">
-                  ·
-                </span>
-                <span>{category.name}</span>
-              </>
-            )}
-          </div>
+          {category && (
+            <div className="text-xs font-medium tracking-wide text-accent uppercase">
+              <span>{category.name}</span>
+            </div>
+          )}
 
           <h1 className="mt-4 text-2xl leading-tight font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
             {place.name}
@@ -230,7 +227,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
               <h2 className="text-xl font-semibold text-foreground">Publicaciones relacionadas</h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {place.relatedArticles.map((article) => (
-                  <ArticleCard key={article.id} article={article} />
+                  <ArticleCard key={article.id} article={article} categoryName={categoryNames[article.categoryId]} />
                 ))}
               </div>
             </section>
@@ -240,7 +237,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
         {hasSidebar && (
           <aside className="mt-14 lg:col-span-4 lg:mt-0">
             <div className="lg:sticky lg:top-24">
-              <RelatedFeed items={related} title={relatedTitle} />
+              <RelatedFeed items={related} title={relatedTitle} categoryNames={categoryNames} />
             </div>
           </aside>
         )}

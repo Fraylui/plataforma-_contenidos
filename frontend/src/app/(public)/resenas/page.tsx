@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { listActiveCategories, listPublishedReviews } from "@/lib/api/client";
 import { ReviewCard } from "@/components/review/review-card";
 import { Pagination } from "@/components/ui/pagination";
-import { CategoryChips } from "@/components/filters/category-chips";
+import { FilterMenu } from "@/components/filters/filter-menu";
 
 const PAGE_SIZE = 24;
 const BASE_PATH = "/resenas";
@@ -33,6 +33,7 @@ export default async function ReviewsPage(props: PageProps<"/resenas">) {
     listPublishedReviews({ page, size: PAGE_SIZE, categoryId: categoryId ?? undefined }),
     listActiveCategories(),
   ]);
+  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -43,8 +44,8 @@ export default async function ReviewsPage(props: PageProps<"/resenas">) {
         </p>
       </header>
 
-      <div className="mt-6">
-        <CategoryChips categories={categories} activeCategoryId={categoryId} buildHref={(catId) => buildHref(catId, 0)} />
+      <div className="mt-6 border-b border-foreground/[0.06] pb-4">
+        <FilterMenu label="Filtrar por tema" allLabel="Todas las categorías" options={categories.map((c) => ({ value: c.id, label: c.name }))} activeValue={categoryId} paramName="categoryId" basePath={BASE_PATH} />
       </div>
 
       <section className="mt-8" aria-label="Reseñas">
@@ -55,8 +56,13 @@ export default async function ReviewsPage(props: PageProps<"/resenas">) {
         ) : (
           <>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {result.items.map((review) => (
-                <ReviewCard key={review.id} review={review} />
+              {result.items.map((review, index) => (
+                <ReviewCard
+                  key={review.id}
+                  review={review}
+                  categoryName={categoryNames[review.categoryId]}
+                  featured={page === 0 && index === 0}
+                />
               ))}
             </div>
             <Pagination
