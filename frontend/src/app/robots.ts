@@ -6,8 +6,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // El panel administrativo (sección 11) todavía no existe en el frontend
-      // público, pero cuando se agregue bajo /admin debe quedar excluido.
+      // Panel administrativo (sección 11): nunca indexable.
       disallow: "/admin/",
     },
     sitemap: `${SITE_URL}/sitemap.xml`,

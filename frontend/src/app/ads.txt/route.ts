@@ -1,20 +1,23 @@
 import { getPlatformSettings } from "@/lib/api/client";
 
 /**
- * ads.txt (IAB/Google): declara qué vendedores están autorizados a vender
- * espacio publicitario de este dominio. Google exige que exista para
- * aprobar/mantener una cuenta de AdSense. `adsenseClientId` se guarda como
- * "ca-pub-XXXXXXXXXXXXXXXX" (formato del script de AdSense); ads.txt usa el
- * mismo ID sin el prefijo "ca-".
+ * ads.txt (IAB/Google): declara quién está autorizado a vender inventario
+ * publicitario de este dominio — sin este archivo, AdSense marca el sitio
+ * con "problemas de ads.txt" en Search Console/AdSense y puede limitar el
+ * llenado de anuncios aunque la cuenta ya esté aprobada.
+ *
+ * Se genera desde `platformSettings.adsenseClientId` (formato
+ * "ca-pub-XXXXXXXXXXXXXXXX") en vez de vivir como archivo estático en
+ * `public/`: el ID de AdSense se configura en el admin, no se hardcodea.
+ * Mismo patrón que robots.ts/sitemap.ts (ruta generada, no archivo suelto).
  */
-export async function GET(): Promise<Response> {
+export async function GET() {
   const settings = await getPlatformSettings();
+  const pubId = settings.adsenseClientId?.replace(/^ca-/, "");
 
-  if (!settings.adsenseEnabled || !settings.adsenseClientId) {
-    return new Response("", { headers: { "Content-Type": "text/plain" } });
-  }
+  const body = settings.adsenseEnabled && pubId ? `google.com, ${pubId}, DIRECT, f08c47fec0942fa0\n` : "";
 
-  const publisherId = settings.adsenseClientId.replace(/^ca-/, "");
-  const body = `google.com, ${publisherId}, DIRECT, f08c47fec0942fa0\n`;
-  return new Response(body, { headers: { "Content-Type": "text/plain" } });
+  return new Response(body, {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  });
 }
