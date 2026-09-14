@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 import pe.plataformacontenidos.events.EventInput;
 import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.ContentVideoInput;
 
 public record EventRequest(
         @NotBlank @Size(max = 200) String title,
@@ -24,12 +25,12 @@ public record EventRequest(
         String metaDescription,
         String canonicalUrl,
         String ogImageUrl,
-        List<String> youtubeUrls,
+        List<ContentVideoInput> videos,
         String robots) {
 
     public EventInput toInput() {
         return new EventInput(title, excerpt, body, categoryId, geographyId, placeId, venueName, startsAt, endsAt,
                 images == null ? List.of() : images, seoTitle, metaDescription, canonicalUrl, ogImageUrl,
-                youtubeUrls == null ? List.of() : youtubeUrls, robots);
+                videos == null ? List.of() : videos, robots);
     }
 }

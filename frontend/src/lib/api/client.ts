@@ -80,13 +80,26 @@ export function listPublishedArticles(params?: {
  */
 export function searchContent(
   q: string,
-  params?: { page?: number; size?: number; type?: SearchResultType },
+  params?: {
+    page?: number;
+    size?: number;
+    type?: SearchResultType;
+    categoryId?: string;
+    geographyId?: string;
+    /** Rango de fechas — solo tiene efecto cuando type es "EVENT" (único tipo con fecha propia filtrable). ISO 8601. */
+    from?: string;
+    to?: string;
+  },
 ): Promise<PageResponse<SearchResult>> {
   const query = new URLSearchParams();
   query.set("q", q);
   query.set("page", String(params?.page ?? 0));
   query.set("size", String(params?.size ?? 20));
   if (params?.type) query.set("type", params.type);
+  if (params?.categoryId) query.set("categoryId", params.categoryId);
+  if (params?.geographyId) query.set("geographyId", params.geographyId);
+  if (params?.from) query.set("from", params.from);
+  if (params?.to) query.set("to", params.to);
   return apiFetch(`/api/v1/search?${query.toString()}`, 60);
 }
 

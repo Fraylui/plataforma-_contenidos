@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Place } from "@/lib/api/types";
@@ -9,6 +10,7 @@ import { computePlacePermissions } from "@/lib/admin/place-permissions";
 import { articleStatusLabel, articleStatusTone, formatPublishedDate } from "@/lib/content-labels";
 import { StatusPill, DataTable } from "@/components/admin/ui";
 import { EditorialRowActions } from "@/components/admin/editorial-row-actions";
+import { EditorialBulkActions } from "@/components/admin/editorial-bulk-actions";
 import {
   approvePlaceAction,
   archivePlaceAction,
@@ -18,6 +20,9 @@ import {
 } from "@/app/admin/(protected)/lugares/actions";
 
 export function PlacesTable({ places, currentUser }: { places: Place[]; currentUser: AdminUser }) {
+  const router = useRouter();
+  const [selected, setSelected] = useState<Place[]>([]);
+
   const columns = useMemo<ColumnDef<Place, unknown>[]>(
     () => [
       {
@@ -63,5 +68,25 @@ export function PlacesTable({ places, currentUser }: { places: Place[]; currentU
     [currentUser],
   );
 
-  return <DataTable columns={columns} data={places} searchPlaceholder="Buscar lugares…" emptyMessage="Ningún lugar coincide con la búsqueda." />;
+  return (
+    <div>
+      <EditorialBulkActions
+        selected={selected}
+        permissions={{
+          canPublish: (item) => computePlacePermissions(item, currentUser).canPublish,
+          canArchive: (item) => computePlacePermissions(item, currentUser).canArchive,
+        }}
+        actions={{ publish: publishPlaceAction, archive: archivePlaceAction }}
+        onDone={() => router.refresh()}
+      />
+      <DataTable
+        columns={columns}
+        data={places}
+        searchPlaceholder="Buscar lugares…"
+        emptyMessage="Ningún lugar coincide con la búsqueda."
+        getRowId={(row) => row.id}
+        onSelectionChange={setSelected}
+      />
+    </div>
+  );
 }

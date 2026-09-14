@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Star } from "lucide-react";
@@ -10,6 +11,7 @@ import { computeReviewPermissions } from "@/lib/admin/review-permissions";
 import { articleStatusLabel, articleStatusTone, formatPublishedDate } from "@/lib/content-labels";
 import { StatusPill, DataTable } from "@/components/admin/ui";
 import { EditorialRowActions } from "@/components/admin/editorial-row-actions";
+import { EditorialBulkActions } from "@/components/admin/editorial-bulk-actions";
 import {
   approveReviewAction,
   archiveReviewAction,
@@ -19,6 +21,9 @@ import {
 } from "@/app/admin/(protected)/resenas/actions";
 
 export function ReviewsTable({ reviews, currentUser }: { reviews: Review[]; currentUser: AdminUser }) {
+  const router = useRouter();
+  const [selected, setSelected] = useState<Review[]>([]);
+
   const columns = useMemo<ColumnDef<Review, unknown>[]>(
     () => [
       {
@@ -74,5 +79,25 @@ export function ReviewsTable({ reviews, currentUser }: { reviews: Review[]; curr
     [currentUser],
   );
 
-  return <DataTable columns={columns} data={reviews} searchPlaceholder="Buscar reseñas…" emptyMessage="Ninguna reseña coincide con la búsqueda." />;
+  return (
+    <div>
+      <EditorialBulkActions
+        selected={selected}
+        permissions={{
+          canPublish: (item) => computeReviewPermissions(item, currentUser).canPublish,
+          canArchive: (item) => computeReviewPermissions(item, currentUser).canArchive,
+        }}
+        actions={{ publish: publishReviewAction, archive: archiveReviewAction }}
+        onDone={() => router.refresh()}
+      />
+      <DataTable
+        columns={columns}
+        data={reviews}
+        searchPlaceholder="Buscar reseñas…"
+        emptyMessage="Ninguna reseña coincide con la búsqueda."
+        getRowId={(row) => row.id}
+        onSelectionChange={setSelected}
+      />
+    </div>
+  );
 }

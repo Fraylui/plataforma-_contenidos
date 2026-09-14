@@ -26,6 +26,6 @@ public record PlaceSummaryResponse(
         return new PlaceSummaryResponse(place.getId(), place.getSlug(), place.getName(), place.getExcerpt(),
                 place.getCategoryId(), place.getGeographyId(), place.getLatitude(), place.getLongitude(),
                 cover == null ? null : cover.getImageId(), cover == null ? null : cover.getExternalUrl(),
-                !place.getYoutubeVideoIds().isEmpty(), place.getPublishedAt(), likeCount);
+                !place.getVideos().isEmpty(), place.getPublishedAt(), likeCount);
     }
 }

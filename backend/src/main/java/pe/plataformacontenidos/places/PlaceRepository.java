@@ -33,17 +33,25 @@ public interface PlaceRepository extends JpaRepository<Place, UUID> {
 
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre lugares
-     * publicados — mismo patrón que ArticleRepository.search (V15__place_search.sql).
+     * publicados — mismo patrón que ArticleRepository.search
+     * (V15__place_search.sql, unaccent en V36__search_unaccent.sql).
      */
     @Query(value = """
             SELECT p.* FROM places.places p
-            WHERE p.status = 'PUBLISHED' AND p.search_vector @@ websearch_to_tsquery('spanish', :query)
-            ORDER BY ts_rank(p.search_vector, websearch_to_tsquery('spanish', :query)) DESC
+            WHERE p.status = 'PUBLISHED'
+            AND p.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
+            AND (:categoryId IS NULL OR p.category_id = :categoryId)
+            AND (:geographyId IS NULL OR p.geography_id = :geographyId)
+            ORDER BY ts_rank(p.search_vector, websearch_to_tsquery('spanish', public.immutable_unaccent(:query))) DESC
             """,
             countQuery = """
             SELECT count(*) FROM places.places p
-            WHERE p.status = 'PUBLISHED' AND p.search_vector @@ websearch_to_tsquery('spanish', :query)
+            WHERE p.status = 'PUBLISHED'
+            AND p.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
+            AND (:categoryId IS NULL OR p.category_id = :categoryId)
+            AND (:geographyId IS NULL OR p.geography_id = :geographyId)
             """,
             nativeQuery = true)
-    Page<Place> search(@Param("query") String query, Pageable pageable);
+    Page<Place> search(@Param("query") String query, @Param("categoryId") UUID categoryId,
+            @Param("geographyId") UUID geographyId, Pageable pageable);
 }

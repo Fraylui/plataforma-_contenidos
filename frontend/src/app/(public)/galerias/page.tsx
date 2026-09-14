@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { listActiveCategories, listPublishedGalleries } from "@/lib/api/client";
 import { GalleryCard } from "@/components/gallery/gallery-card";
 import { Pagination } from "@/components/ui/pagination";
-import { ListingFilters } from "@/components/filters/listing-filters";
-import { resolveGeographyChain } from "@/lib/geography-chain";
+import { CategoryChips } from "@/components/filters/category-chips";
 
 const PAGE_SIZE = 24;
 const BASE_PATH = "/galerias";
@@ -17,25 +16,22 @@ export const metadata: Metadata = {
   alternates: { canonical: BASE_PATH },
 };
 
-function buildHref(categoryId: string | null, geographyId: string | null, page: number): string {
+function buildHref(categoryId: string | null, page: number): string {
   const params = new URLSearchParams();
   if (categoryId) params.set("categoryId", categoryId);
-  if (geographyId) params.set("geographyId", geographyId);
   if (page > 0) params.set("page", String(page));
   const query = params.toString();
   return query ? `${BASE_PATH}?${query}` : BASE_PATH;
 }
 
 export default async function GalleriesPage(props: PageProps<"/galerias">) {
-  const { page: pageParam, categoryId: categoryIdParam, geographyId: geographyIdParam } = await props.searchParams;
+  const { page: pageParam, categoryId: categoryIdParam } = await props.searchParams;
   const page = typeof pageParam === "string" ? Math.max(0, parseInt(pageParam, 10) || 0) : 0;
   const categoryId = typeof categoryIdParam === "string" ? categoryIdParam : null;
-  const geographyId = typeof geographyIdParam === "string" ? geographyIdParam : null;
 
-  const [result, categories, geographyChain] = await Promise.all([
-    listPublishedGalleries({ page, size: PAGE_SIZE, categoryId: categoryId ?? undefined, geographyId: geographyId ?? undefined }),
+  const [result, categories] = await Promise.all([
+    listPublishedGalleries({ page, size: PAGE_SIZE, categoryId: categoryId ?? undefined }),
     listActiveCategories(),
-    resolveGeographyChain(geographyId),
   ]);
 
   return (
@@ -48,13 +44,13 @@ export default async function GalleriesPage(props: PageProps<"/galerias">) {
       </header>
 
       <div className="mt-6">
-        <ListingFilters basePath={BASE_PATH} categories={categories} initialGeographyChain={geographyChain} />
+        <CategoryChips categories={categories} activeCategoryId={categoryId} buildHref={(catId) => buildHref(catId, 0)} />
       </div>
 
       <section className="mt-8" aria-label="Galerías">
         {result.items.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">
-            {categoryId || geographyId ? "Ninguna galería publicada coincide con este filtro." : "Todavía no hay galerías publicadas."}
+            {categoryId ? "Ninguna galería publicada coincide con este filtro." : "Todavía no hay galerías publicadas."}
           </p>
         ) : (
           <>
@@ -66,7 +62,7 @@ export default async function GalleriesPage(props: PageProps<"/galerias">) {
             <Pagination
               page={result.page}
               totalPages={result.totalPages}
-              buildHref={(p) => buildHref(categoryId, geographyId, p)}
+              buildHref={(p) => buildHref(categoryId, p)}
             />
           </>
         )}

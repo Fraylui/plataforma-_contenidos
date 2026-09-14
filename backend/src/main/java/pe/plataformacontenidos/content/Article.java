@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
 import pe.plataformacontenidos.shared.ContentImage;
+import pe.plataformacontenidos.shared.ContentVideo;
 
 /**
  * Un artículo de texto (sección 3: noticia, reportaje, crónica, etc. — todos
@@ -101,8 +102,7 @@ public class Article {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "article_videos", schema = "content", joinColumns = @JoinColumn(name = "article_id"))
     @OrderColumn(name = "sort_order")
-    @Column(name = "video_id")
-    private List<String> youtubeVideoIds = new ArrayList<>();
+    private List<ContentVideo> videos = new ArrayList<>();
 
     @Column(nullable = false)
     private String robots = "index,follow";
@@ -206,8 +206,8 @@ public class Article {
         return images.isEmpty() ? null : images.get(0);
     }
 
-    public List<String> getYoutubeVideoIds() {
-        return youtubeVideoIds;
+    public List<ContentVideo> getVideos() {
+        return videos;
     }
 
     public String getRobots() {
@@ -245,7 +245,7 @@ public class Article {
 
     public void updateContent(String title, String excerpt, String body, ArticleType articleType, UUID categoryId,
             UUID geographyId, Set<UUID> tagIds, String seoTitle, String metaDescription, String canonicalUrl,
-            String ogImageUrl, List<ContentImage> images, List<String> youtubeVideoIds, String robots) {
+            String ogImageUrl, List<ContentImage> images, List<ContentVideo> videos, String robots) {
         this.title = title;
         this.excerpt = excerpt;
         this.body = body;
@@ -258,7 +258,7 @@ public class Article {
         this.canonicalUrl = canonicalUrl;
         this.ogImageUrl = ogImageUrl;
         this.images = new ArrayList<>(images);
-        this.youtubeVideoIds = new ArrayList<>(youtubeVideoIds);
+        this.videos = new ArrayList<>(videos);
         this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
         this.updatedAt = Instant.now();
     }

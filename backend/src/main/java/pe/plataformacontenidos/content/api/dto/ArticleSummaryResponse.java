@@ -30,6 +30,6 @@ public record ArticleSummaryResponse(
         return new ArticleSummaryResponse(article.getId(), article.getSlug(), article.getTitle(),
                 article.getExcerpt(), article.getArticleType(), article.getCategoryId(), article.getGeographyId(),
                 cover == null ? null : cover.getImageId(), cover == null ? null : cover.getExternalUrl(),
-                !article.getYoutubeVideoIds().isEmpty(), article.getPublishedAt(), likeCount);
+                !article.getVideos().isEmpty(), article.getPublishedAt(), likeCount);
     }
 }

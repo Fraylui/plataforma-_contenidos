@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.identity.UserAdminService;
 import pe.plataformacontenidos.identity.api.dto.CreateUserRequest;
 import pe.plataformacontenidos.identity.api.dto.UserResponse;
-import pe.plataformacontenidos.identity.mfa.MfaService;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
 
 /**
@@ -34,17 +33,15 @@ import pe.plataformacontenidos.identity.security.UserPrincipal;
 public class UserAdminController {
 
     private final UserAdminService userAdminService;
-    private final MfaService mfaService;
 
-    public UserAdminController(UserAdminService userAdminService, MfaService mfaService) {
+    public UserAdminController(UserAdminService userAdminService) {
         this.userAdminService = userAdminService;
-        this.mfaService = mfaService;
     }
 
     @GetMapping
     public List<UserResponse> list() {
         return userAdminService.listUsers().stream()
-                .map(user -> UserResponse.from(user, mfaService.isEnabled(user.getId())))
+                .map(UserResponse::from)
                 .toList();
     }
 
@@ -55,8 +52,7 @@ public class UserAdminController {
         var created = userAdminService.createUser(request.email(), request.password(), request.firstName(),
                 request.lastName(), request.role(), actingAdmin.userId(), actingAdmin.role(),
                 httpRequest.getRemoteAddr());
-        // Usuario recién creado: MFA nunca puede estar habilitado todavía.
-        return UserResponse.from(created, false);
+        return UserResponse.from(created);
     }
 
     @PostMapping("/{id}/activate")
@@ -64,7 +60,7 @@ public class UserAdminController {
             HttpServletRequest httpRequest) {
         var user = userAdminService.setActive(id, true, actingAdmin.userId(), actingAdmin.role(),
                 httpRequest.getRemoteAddr());
-        return UserResponse.from(user, mfaService.isEnabled(user.getId()));
+        return UserResponse.from(user);
     }
 
     @DeleteMapping("/{id}")
@@ -72,6 +68,6 @@ public class UserAdminController {
             HttpServletRequest httpRequest) {
         var user = userAdminService.setActive(id, false, actingAdmin.userId(), actingAdmin.role(),
                 httpRequest.getRemoteAddr());
-        return UserResponse.from(user, mfaService.isEnabled(user.getId()));
+        return UserResponse.from(user);
     }
 }

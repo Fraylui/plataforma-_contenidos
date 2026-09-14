@@ -103,8 +103,6 @@ export default async function AdminDashboardPage() {
         <CreateNewMenu items={quickCreate} />
       </div>
 
-      {user.role === "SUPER_ADMIN" && !user.mfaEnabled && <MfaStatusNotice />}
-
       {pendingReview.length > 0 && (
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3">
           <p className="flex items-center gap-2 text-sm font-medium text-accent">
@@ -274,17 +272,4 @@ async function loadContentItems(accessToken: string, allowedHrefs: Set<string>):
 
   const results = await Promise.all(loaders);
   return results.flat();
-}
-
-function MfaStatusNotice() {
-  return (
-    <div className="mt-4 rounded-md border border-accent/40 bg-accent-soft px-4 py-3 text-sm text-accent">
-      Como super administrador, la autenticación en dos pasos es obligatoria (CONTEXTO.md §36.5) y todavía no la
-      configuraste.{" "}
-      <Link href="/admin/mfa-setup" className="font-medium underline underline-offset-2">
-        Actívala ahora
-      </Link>
-      .
-    </div>
-  );
 }

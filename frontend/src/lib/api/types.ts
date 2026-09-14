@@ -21,6 +21,15 @@ export type ArticleStatus = "DRAFT" | "IN_REVIEW" | "APPROVED" | "SCHEDULED" | "
 export interface ContentImage {
   imageId: string | null;
   externalUrl: string | null;
+  title: string | null;
+  caption: string | null;
+}
+
+/** Ver ContentVideoResponse.java — solo la referencia (Video ID de YouTube), nunca el video en sí. */
+export interface ContentVideo {
+  videoId: string;
+  title: string | null;
+  caption: string | null;
 }
 
 export interface ArticleSummary {
@@ -60,7 +69,7 @@ export interface Article {
   canonicalUrl: string | null;
   ogImageUrl: string | null;
   images: ContentImage[];
-  youtubeVideoIds: string[];
+  videos: ContentVideo[];
   robots: string;
   rejectionReason: string | null;
   publishedAt: string | null;
@@ -85,6 +94,8 @@ export interface SearchResult {
   featuredImageUrl: string | null;
   hasVideo: boolean;
   publishedAt: string | null;
+  /** Solo Evento la trae (rango de fechas del buscador) — null en los demás tipos. */
+  eventStartsAt: string | null;
 }
 
 export interface PageResponse<T> {
@@ -158,7 +169,7 @@ export interface Place {
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
-  youtubeVideoIds: string[];
+  videos: ContentVideo[];
   robots: string;
   rejectionReason: string | null;
   publishedAt: string | null;
@@ -207,7 +218,7 @@ export interface Event {
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
-  youtubeVideoIds: string[];
+  videos: ContentVideo[];
   robots: string;
   rejectionReason: string | null;
   publishedAt: string | null;

@@ -11,17 +11,16 @@ import {
   listPublishedBusinesses,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { BusinessCard } from "@/components/directory/business-card";
 import { businessTypeLabel } from "@/lib/content-labels";
 import { imageUrl } from "@/lib/image-url";
-import { serverImageUrl } from "@/lib/server-image-url";
 import { SITE_URL } from "@/lib/site-url";
 import { AdBlock } from "@/components/legal/ad-block";
 import { LikeShareBar } from "@/components/content/like-share-bar";
-import { SkeletonImage } from "@/components/ui/skeleton-image";
+import { ContentImageGallery } from "@/components/content/content-image-gallery";
+import { ContentVideoGallery } from "@/components/content/content-video-gallery";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
-import type { Business, Category } from "@/lib/api/types";
+import type { Business, Category, ContentImage, ContentVideo } from "@/lib/api/types";
 
 const RELATED_SIZE = 4;
 
@@ -85,6 +84,25 @@ function businessJsonLd(business: Business, category: Category | null) {
   };
 }
 
+function breadcrumbJsonLd(business: Business, category: Category | null) {
+  const items = [
+    { name: "Inicio", url: SITE_URL },
+    { name: "Directorio", url: `${SITE_URL}/directorio` },
+    ...(category ? [{ name: category.name, url: `${SITE_URL}/categorias/${category.slug}` }] : []),
+    { name: business.name, url: `${SITE_URL}/directorio/${business.slug}` },
+  ];
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}
+
 export default async function BusinessPage(props: PageProps<"/directorio/[slug]">) {
   const { slug } = await props.params;
   const business = await loadBusiness(slug);
@@ -101,10 +119,22 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
   });
   const related = relatedResult.items.filter((b) => b.id !== business.id).slice(0, RELATED_SIZE);
 
-  const [heroImageId, ...galleryImageIds] = business.imageIds;
   const hasSidebar = related.length > 0;
   const hasContact = Boolean(place || business.address || business.phone || business.email || business.website);
   const websiteLabel = business.website ? business.website.replace(/^https?:\/\//, "").replace(/\/$/, "") : null;
+  // Business solo guarda IDs de imágenes subidas y un único video (sin
+  // título/caption/enlace externo como Article/Place/Event) — se adapta acá
+  // mismo para reusar ContentImageGallery/ContentVideoGallery en vez de un
+  // grid armado a mano.
+  const businessImages: ContentImage[] = business.imageIds.map((id) => ({
+    imageId: id,
+    externalUrl: null,
+    title: null,
+    caption: null,
+  }));
+  const businessVideos: ContentVideo[] = business.youtubeVideoId
+    ? [{ videoId: business.youtubeVideoId, title: null, caption: null }]
+    : [];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
@@ -112,6 +142,12 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(businessJsonLd(business, category)).replace(/</g, "\\u003c"),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd(business, category)).replace(/</g, "\\u003c"),
         }}
       />
 
@@ -153,32 +189,22 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
             {business.name}
           </h1>
 
-          {geography && <p className="mt-2 text-sm text-muted">{geography.name}</p>}
-
-          {heroImageId ? (
-            <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-canvas-strong shadow-lg">
-              <SkeletonImage src={serverImageUrl(`/api/v1/images/${heroImageId}/file`)} alt={business.name} className="object-cover" />
-            </div>
-          ) : (
-            <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-canvas-strong shadow-lg">
-              <NoImagePlaceholder />
+          {geography && (
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted sm:text-sm">
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                {geography.name}
+              </span>
             </div>
           )}
 
-          {galleryImageIds.length > 0 && (
-            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
-              {galleryImageIds.map((id, index) => (
-                <div key={id} className="relative aspect-square overflow-hidden rounded-lg border border-border bg-canvas-strong">
-                  <SkeletonImage
-                    src={serverImageUrl(`/api/v1/images/${id}/file`)}
-                    alt={`${business.name} — fotografía ${index + 2}`}
-                    className="object-cover"
-                    sizes="180px"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+          <ContentImageGallery
+            images={businessImages}
+            alt={business.name}
+            spacing="mt-8"
+            background="bg-canvas-strong"
+            fallback={<NoImagePlaceholder />}
+          />
 
           {hasContact && (
             <div className="mt-6 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-surface p-5 shadow-sm sm:grid-cols-2">
@@ -238,11 +264,7 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
             </div>
           )}
 
-          {business.youtubeVideoId && (
-            <div className="mt-8 overflow-hidden rounded-2xl border border-border shadow-lg">
-              <YouTubeEmbed videoId={business.youtubeVideoId} title={business.name} />
-            </div>
-          )}
+          <ContentVideoGallery videos={businessVideos} title={business.name} />
 
           {business.excerpt && (
             <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">{business.excerpt}</p>

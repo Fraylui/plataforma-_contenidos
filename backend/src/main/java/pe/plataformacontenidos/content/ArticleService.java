@@ -21,6 +21,8 @@ import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.ContentVideo;
+import pe.plataformacontenidos.shared.ContentVideoInput;
 import pe.plataformacontenidos.shared.HtmlSanitizer;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
@@ -60,7 +62,7 @@ public class ArticleService {
         }
         validateGeography(input.geographyId());
         List<ContentImage> images = validateImages(input.images());
-        List<String> youtubeVideoIds = resolveYoutubeVideoIds(input.youtubeUrls());
+        List<ContentVideo> videos = resolveVideos(input.videos());
         Set<UUID> tagIds = resolveTagNames(input.tagNames());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
@@ -68,7 +70,7 @@ public class ArticleService {
                 input.articleType(), authorId, input.categoryId());
         article.updateContent(input.title(), input.excerpt(), sanitizedBody, input.articleType(), input.categoryId(),
                 input.geographyId(), tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
-                input.ogImageUrl(), images, youtubeVideoIds, input.robots());
+                input.ogImageUrl(), images, videos, input.robots());
 
         Article saved = articleRepository.save(article);
         audit("ARTICLE_CREATED", saved, authorId);
@@ -86,13 +88,13 @@ public class ArticleService {
             validateGeography(input.geographyId());
         }
         List<ContentImage> images = validateImages(input.images());
-        List<String> youtubeVideoIds = resolveYoutubeVideoIds(input.youtubeUrls());
+        List<ContentVideo> videos = resolveVideos(input.videos());
         Set<UUID> tagIds = resolveTagNames(input.tagNames());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
         article.updateContent(input.title(), input.excerpt(), sanitizedBody, input.articleType(), input.categoryId(),
                 input.geographyId(), tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
-                input.ogImageUrl(), images, youtubeVideoIds, input.robots());
+                input.ogImageUrl(), images, videos, input.robots());
         Article saved = articleRepository.save(article);
         audit("ARTICLE_UPDATED", saved, actingUserId);
         return saved;
@@ -227,11 +229,11 @@ public class ArticleService {
     }
 
     /** CONTEXTO.md sección 16. Query en blanco: página vacía, no error — evita un 400 por un input trivial. */
-    public Page<Article> search(String query, Pageable pageable) {
+    public Page<Article> search(String query, UUID categoryId, UUID geographyId, Pageable pageable) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);
         }
-        return articleRepository.search(query.trim(), pageable);
+        return articleRepository.search(query.trim(), categoryId, geographyId, pageable);
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
@@ -266,26 +268,27 @@ public class ArticleService {
             }
             if (input.hasImageId()) {
                 imageService.getOrThrow(input.imageId());
-                result.add(ContentImage.uploaded(input.imageId()));
+                result.add(ContentImage.uploaded(input.imageId(), input.title(), input.caption()));
             } else {
-                result.add(ContentImage.external(input.externalUrl()));
+                result.add(ContentImage.external(input.externalUrl(), input.title(), input.caption()));
             }
         }
         return result;
     }
 
-    /** Nunca se persiste la URL cruda: solo el Video ID (sección 8). Una por cada URL pegada. */
-    private List<String> resolveYoutubeVideoIds(List<String> youtubeUrls) {
-        if (youtubeUrls == null) {
+    /** Nunca se persiste la URL cruda: solo el Video ID (sección 8). Uno por cada video pegado. */
+    private List<ContentVideo> resolveVideos(List<ContentVideoInput> videos) {
+        if (videos == null) {
             return new ArrayList<>();
         }
-        List<String> result = new ArrayList<>(youtubeUrls.size());
-        for (String youtubeUrl : youtubeUrls) {
-            if (youtubeUrl == null || youtubeUrl.isBlank()) {
+        List<ContentVideo> result = new ArrayList<>(videos.size());
+        for (ContentVideoInput input : videos) {
+            if (input.url() == null || input.url().isBlank()) {
                 continue;
             }
-            result.add(YouTubeUrlParser.extractVideoId(youtubeUrl)
-                    .orElseThrow(() -> new InvalidYouTubeUrlException(youtubeUrl)));
+            String videoId = YouTubeUrlParser.extractVideoId(input.url())
+                    .orElseThrow(() -> new InvalidYouTubeUrlException(input.url()));
+            result.add(new ContentVideo(videoId, input.title(), input.caption()));
         }
         return result;
     }

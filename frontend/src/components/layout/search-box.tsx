@@ -7,23 +7,9 @@ import type { SearchResult } from "@/lib/api/types";
 import { searchResultHref, searchResultTypeLabel } from "@/lib/content-labels";
 import { imageUrl } from "@/lib/image-url";
 import { cn } from "@/lib/utils";
+import { Highlighted } from "@/components/ui/highlighted";
 
 const DEBOUNCE_MS = 250;
-
-/** Resalta la primera coincidencia del término buscado dentro del título (mismo criterio visual en toda la sugerencia). */
-function Highlighted({ text, query }: { text: string; query: string }) {
-  const trimmed = query.trim();
-  if (!trimmed) return <>{text}</>;
-  const index = text.toLowerCase().indexOf(trimmed.toLowerCase());
-  if (index === -1) return <>{text}</>;
-  return (
-    <>
-      {text.slice(0, index)}
-      <mark className="rounded-sm bg-accent-soft text-accent">{text.slice(index, index + trimmed.length)}</mark>
-      {text.slice(index + trimmed.length)}
-    </>
-  );
-}
 
 /**
  * Buscador del header con sugerencias en vivo (mismo input para desktop y

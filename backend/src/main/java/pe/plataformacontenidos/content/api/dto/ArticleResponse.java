@@ -8,6 +8,7 @@ import pe.plataformacontenidos.content.Article;
 import pe.plataformacontenidos.content.ArticleStatus;
 import pe.plataformacontenidos.content.ArticleType;
 import pe.plataformacontenidos.shared.ContentImageResponse;
+import pe.plataformacontenidos.shared.ContentVideoResponse;
 
 public record ArticleResponse(
         UUID id,
@@ -26,7 +27,7 @@ public record ArticleResponse(
         String canonicalUrl,
         String ogImageUrl,
         List<ContentImageResponse> images,
-        List<String> youtubeVideoIds,
+        List<ContentVideoResponse> videos,
         String robots,
         String rejectionReason,
         Instant publishedAt,
@@ -40,8 +41,9 @@ public record ArticleResponse(
                 article.getBody(), article.getArticleType(), article.getStatus(), article.getAuthorId(),
                 article.getCategoryId(), article.getGeographyId(), article.getTagIds(), article.getSeoTitle(),
                 article.getMetaDescription(), article.getCanonicalUrl(), article.getOgImageUrl(),
-                article.getImages().stream().map(ContentImageResponse::from).toList(), article.getYoutubeVideoIds(),
-                article.getRobots(), article.getRejectionReason(), article.getPublishedAt(), article.getScheduledAt(),
+                article.getImages().stream().map(ContentImageResponse::from).toList(),
+                article.getVideos().stream().map(ContentVideoResponse::from).toList(), article.getRobots(),
+                article.getRejectionReason(), article.getPublishedAt(), article.getScheduledAt(),
                 article.getCreatedAt(), article.getUpdatedAt(), likeCount);
     }
 

@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
 import pe.plataformacontenidos.shared.ContentImage;
+import pe.plataformacontenidos.shared.ContentVideo;
 
 /**
  * Página de Lugar (CONTEXTO.md sección 6): nombre, historia, ubicación,
@@ -73,8 +74,7 @@ public class Place {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "place_videos", schema = "places", joinColumns = @JoinColumn(name = "place_id"))
     @OrderColumn(name = "sort_order")
-    @Column(name = "video_id")
-    private List<String> youtubeVideoIds = new ArrayList<>();
+    private List<ContentVideo> videos = new ArrayList<>();
 
     @Column(name = "seo_title")
     private String seoTitle;
@@ -172,8 +172,8 @@ public class Place {
         return images.isEmpty() ? null : images.get(0);
     }
 
-    public List<String> getYoutubeVideoIds() {
-        return youtubeVideoIds;
+    public List<ContentVideo> getVideos() {
+        return videos;
     }
 
     public String getSeoTitle() {
@@ -223,7 +223,7 @@ public class Place {
 
     public void updateContent(String name, String excerpt, String body, UUID categoryId, UUID geographyId,
             Double latitude, Double longitude, List<ContentImage> images, String seoTitle, String metaDescription,
-            String canonicalUrl, String ogImageUrl, List<String> youtubeVideoIds, String robots) {
+            String canonicalUrl, String ogImageUrl, List<ContentVideo> videos, String robots) {
         this.name = name;
         this.excerpt = excerpt;
         this.body = body;
@@ -236,7 +236,7 @@ public class Place {
         this.metaDescription = metaDescription;
         this.canonicalUrl = canonicalUrl;
         this.ogImageUrl = ogImageUrl;
-        this.youtubeVideoIds = new ArrayList<>(youtubeVideoIds);
+        this.videos = new ArrayList<>(videos);
         this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
         this.updatedAt = Instant.now();
     }

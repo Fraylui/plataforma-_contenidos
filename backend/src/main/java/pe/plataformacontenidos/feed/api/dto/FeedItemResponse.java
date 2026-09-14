@@ -41,7 +41,7 @@ public record FeedItemResponse(
         return new FeedItemResponse(ContentType.ARTICLE, article.getId(), article.getSlug(), article.getTitle(),
                 article.getExcerpt(), article.getArticleType(), article.getCategoryId(), article.getGeographyId(),
                 cover == null ? null : cover.getImageId(), cover == null ? null : cover.getExternalUrl(),
-                !article.getYoutubeVideoIds().isEmpty(), article.getPublishedAt(), likeCount);
+                !article.getVideos().isEmpty(), article.getPublishedAt(), likeCount);
     }
 
     public static FeedItemResponse fromPlace(Place place, long likeCount) {
@@ -49,7 +49,7 @@ public record FeedItemResponse(
         return new FeedItemResponse(ContentType.PLACE, place.getId(), place.getSlug(), place.getName(),
                 place.getExcerpt(), null, place.getCategoryId(), place.getGeographyId(),
                 cover == null ? null : cover.getImageId(), cover == null ? null : cover.getExternalUrl(),
-                !place.getYoutubeVideoIds().isEmpty(), place.getPublishedAt(), likeCount);
+                !place.getVideos().isEmpty(), place.getPublishedAt(), likeCount);
     }
 
     public static FeedItemResponse fromEvent(Event event, long likeCount) {
@@ -57,6 +57,6 @@ public record FeedItemResponse(
         return new FeedItemResponse(ContentType.EVENT, event.getId(), event.getSlug(), event.getTitle(),
                 event.getExcerpt(), null, event.getCategoryId(), event.getGeographyId(),
                 cover == null ? null : cover.getImageId(), cover == null ? null : cover.getExternalUrl(),
-                !event.getYoutubeVideoIds().isEmpty(), event.getPublishedAt(), likeCount);
+                !event.getVideos().isEmpty(), event.getPublishedAt(), likeCount);
     }
 }

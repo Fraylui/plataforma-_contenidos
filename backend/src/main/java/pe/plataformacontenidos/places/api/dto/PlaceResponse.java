@@ -7,6 +7,7 @@ import pe.plataformacontenidos.content.api.dto.ArticleSummaryResponse;
 import pe.plataformacontenidos.places.Place;
 import pe.plataformacontenidos.places.PlaceStatus;
 import pe.plataformacontenidos.shared.ContentImageResponse;
+import pe.plataformacontenidos.shared.ContentVideoResponse;
 
 public record PlaceResponse(
         UUID id,
@@ -25,7 +26,7 @@ public record PlaceResponse(
         String metaDescription,
         String canonicalUrl,
         String ogImageUrl,
-        List<String> youtubeVideoIds,
+        List<ContentVideoResponse> videos,
         String robots,
         String rejectionReason,
         Instant publishedAt,
@@ -40,8 +41,9 @@ public record PlaceResponse(
                 place.getGeographyId(), place.getLatitude(), place.getLongitude(),
                 place.getImages().stream().map(ContentImageResponse::from).toList(), place.getSeoTitle(),
                 place.getMetaDescription(), place.getCanonicalUrl(), place.getOgImageUrl(),
-                place.getYoutubeVideoIds(), place.getRobots(), place.getRejectionReason(), place.getPublishedAt(),
-                place.getScheduledAt(), place.getCreatedAt(), relatedArticles, likeCount);
+                place.getVideos().stream().map(ContentVideoResponse::from).toList(), place.getRobots(),
+                place.getRejectionReason(), place.getPublishedAt(), place.getScheduledAt(), place.getCreatedAt(),
+                relatedArticles, likeCount);
     }
 
     /** Para respuestas admin (creación/edición/transiciones), sin costo de calcular relacionados/likes. */

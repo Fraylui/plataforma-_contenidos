@@ -21,21 +21,29 @@ public class ContentImage {
     @Column(name = "external_url")
     private String externalUrl;
 
+    @Column(name = "title")
+    private String title;
+
+    @Column(name = "caption")
+    private String caption;
+
     protected ContentImage() {
         // JPA
     }
 
-    private ContentImage(UUID imageId, String externalUrl) {
+    private ContentImage(UUID imageId, String externalUrl, String title, String caption) {
         this.imageId = imageId;
         this.externalUrl = externalUrl;
+        this.title = title;
+        this.caption = caption;
     }
 
-    public static ContentImage uploaded(UUID imageId) {
-        return new ContentImage(imageId, null);
+    public static ContentImage uploaded(UUID imageId, String title, String caption) {
+        return new ContentImage(imageId, null, title, caption);
     }
 
-    public static ContentImage external(String url) {
-        return new ContentImage(null, url);
+    public static ContentImage external(String url, String title, String caption) {
+        return new ContentImage(null, url, title, caption);
     }
 
     public UUID getImageId() {
@@ -44,6 +52,14 @@ public class ContentImage {
 
     public String getExternalUrl() {
         return externalUrl;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getCaption() {
+        return caption;
     }
 
     public boolean isUploaded() {

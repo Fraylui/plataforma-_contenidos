@@ -8,24 +8,10 @@ import { test, expect, type Page } from "@playwright/test";
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL ?? "admin@dev.local";
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "";
 
-/**
- * Si la cuenta bootstrap ya tiene MFA activado (se configura desde el panel
- * — mfa-setup/), no hay forma segura de generar el código TOTP en un test
- * sin exponer el secreto en el repo. En ese caso, retorna true para que el
- * test se salte con test.skip() (forma sin argumentos, la única que aborta
- * de inmediato la ejecución de en medio de un test) en vez de fallar por un
- * motivo ajeno al guard que cubre. El flujo con MFA real lo prueba
- * identity/mfa/MfaFlowIntegrationTest.java en el backend.
- */
-async function fillLoginForm(page: Page): Promise<boolean> {
+async function fillLoginForm(page: Page): Promise<void> {
   await page.getByLabel("Correo electrónico").fill(ADMIN_EMAIL);
   await page.getByLabel("Contraseña").fill(ADMIN_PASSWORD);
   await page.getByRole("button", { name: "Iniciar sesión" }).click();
-  return page
-    .getByLabel(/Código de autenticación/)
-    .waitFor({ state: "visible", timeout: 15000 })
-    .then(() => true)
-    .catch(() => false);
 }
 
 test.describe("Autenticación admin", () => {
@@ -47,10 +33,7 @@ test.describe("Autenticación admin", () => {
 
   test("login válido entra al panel y la sesión persiste entre páginas", async ({ page }) => {
     await page.goto("/admin/login");
-    const needsMfa = await fillLoginForm(page);
-    if (needsMfa) {
-      test.skip();
-    }
+    await fillLoginForm(page);
 
     await expect(page).toHaveURL(/\/admin(?!\/login)/, { timeout: 10_000 });
     await page.goto("/admin/publicaciones");
@@ -60,10 +43,7 @@ test.describe("Autenticación admin", () => {
   test("tras iniciar sesión, /admin/login redirige al destino solicitado originalmente", async ({ page }) => {
     await page.goto("/admin/eventos");
     await expect(page).toHaveURL(/from=%2Fadmin%2Feventos/);
-    const needsMfa = await fillLoginForm(page);
-    if (needsMfa) {
-      test.skip();
-    }
+    await fillLoginForm(page);
     await expect(page).toHaveURL(/\/admin\/eventos/, { timeout: 10_000 });
   });
 });

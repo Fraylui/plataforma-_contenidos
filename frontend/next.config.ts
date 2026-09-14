@@ -21,7 +21,12 @@ const backendAssetOrigin = process.env.NEXT_PUBLIC_BACKEND_ASSET_URL ?? "http://
 // activarlos.
 const CSP = [
   "default-src 'self'",
-  `img-src 'self' data: ${backendAssetOrigin}`,
+  // https: (no solo backendAssetOrigin): imágenes/logos por enlace externo
+  // son un campo deliberado en Publicaciones/Lugares/Eventos y en Marca
+  // (platformSettings.logoUrl/ogImageUrl) — quien redacta pega cualquier
+  // host, así que no se puede allowlist-ear uno fijo. http: (sin "s") queda
+  // afuera a propósito: mixed content en una página servida por https.
+  `img-src 'self' data: ${backendAssetOrigin} https:`,
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
   // 'unsafe-eval' solo en dev: Turbopack/React lo usan para reconstruir

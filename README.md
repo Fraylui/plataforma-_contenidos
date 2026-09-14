@@ -146,16 +146,11 @@ en sí (sección 25).
   gestión de usuarios por admin (`/api/v1/admin/users`), rate limiting de
   login, audit log real, bootstrap del primer `SUPER_ADMIN` vía variables
   de entorno.
-- **MFA para SUPER_ADMIN** (2026-08-25): TOTP (RFC 6238, implementación
-  propia sin dependencias externas) + códigos de respaldo de un solo uso.
-  Secreto cifrado en reposo (AES-256-GCM). Enforcement: login de
-  `SUPER_ADMIN` exige código MFA una vez habilitado; el primer login tras
-  el bootstrap lo deja pasar pero marca `mfaSetupRequired: true` y lo
-  audita (`SUPER_ADMIN_LOGIN_WITHOUT_MFA`) — necesario para poder
-  bootstrapear sin quedar bloqueado. **Pendiente explícito:** el
-  `mfaSetupRequired` es una señal, no un bloqueo duro — todavía no hay
-  límite de "N logins sin MFA y luego se bloquea". Auto-registro público y
-  CORS siguen pendientes (mismos motivos que antes).
+- **MFA para SUPER_ADMIN** (2026-08-25, **retirado 2026-09-14**): hubo TOTP
+  (RFC 6238) + códigos de respaldo; se quitó por decisión de producto, queda
+  para una versión futura. Login hoy es solo email + password (mismo rate
+  limiting de siempre). Auto-registro público y CORS siguen pendientes
+  (mismos motivos que antes).
 - **Taxonomy (Categorías/Etiquetas)** (2026-08-25): categorías jerárquicas
   (`/api/v1/categories` lectura pública, `/api/v1/admin/categories`
   escritura `EDITOR+`), validación de ciclos en la jerarquía, slug único
@@ -232,7 +227,7 @@ en sí (sección 25).
   se hacen pasar por periodismo real (sección 44.10, credibilidad).
 - **SEO técnico** (2026-08-26): sitemap.xml y robots.txt dinámicos, canonical
   por artículo, JSON-LD (`Article`, `BreadcrumbList`).
-- **Panel administrativo** (2026-08-26): login con MFA, gestión de
+- **Panel administrativo** (2026-08-26): login, gestión de
   artículos (flujo editorial completo), categorías, etiquetas, geografía,
   medios y usuarios desde el navegador — `frontend/src/app/admin/(protected)`.
   Server Actions, sin mutaciones directas desde el cliente (sigue sin hacer

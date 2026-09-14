@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
-import type { AdminImage, EventInput } from "@/lib/api/admin-types";
+import type { AdminImage, ContentVideoInput, EventInput } from "@/lib/api/admin-types";
 import type { Category, ContentImage, Event, GeographicUnit, Place } from "@/lib/api/types";
 import type { EventPermissions } from "@/lib/admin/event-permissions";
 import { articleStatusLabel } from "@/lib/content-labels";
@@ -11,6 +11,7 @@ import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
 import { GeographyPicker } from "./geography-picker";
 import { ContentImagesPicker } from "./content-images-picker";
 import { VideoLinksEditor } from "./video-links-editor";
+import { RichTextEditor } from "./rich-text-editor";
 import {
   approveEventAction,
   archiveEventAction,
@@ -68,8 +69,12 @@ export function EventForm({
   const [metaDescription, setMetaDescription] = useState(event?.metaDescription ?? "");
   const [canonicalUrl, setCanonicalUrl] = useState(event?.canonicalUrl ?? "");
   const [ogImageUrl, setOgImageUrl] = useState(event?.ogImageUrl ?? "");
-  const [youtubeUrls, setYoutubeUrls] = useState<string[]>(
-    event?.youtubeVideoIds.map((id) => `https://www.youtube.com/watch?v=${id}`) ?? [],
+  const [videos, setVideos] = useState<ContentVideoInput[]>(
+    event?.videos.map((v) => ({
+      url: `https://www.youtube.com/watch?v=${v.videoId}`,
+      title: v.title,
+      caption: v.caption,
+    })) ?? [],
   );
   const [robots, setRobots] = useState(event?.robots ?? "index,follow");
 
@@ -94,7 +99,7 @@ export function EventForm({
       metaDescription: metaDescription || null,
       canonicalUrl: canonicalUrl || null,
       ogImageUrl: ogImageUrl || null,
-      youtubeUrls,
+      videos,
       robots,
     };
   }
@@ -150,7 +155,7 @@ export function EventForm({
         </FormField>
 
         <FormField label="Descripción completa" name="body">
-          <textarea value={body} disabled={readOnly} onChange={(e) => setBody(e.target.value)} rows={14} className={formInputClass} />
+          <RichTextEditor value={body} onChange={setBody} disabled={readOnly} />
         </FormField>
 
         <FormField label="Categoría" name="categoryId">
@@ -221,8 +226,8 @@ export function EventForm({
           <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
         </FormField>
 
-        <FormField label="Videos de YouTube (opcional — uno o varios)" name="youtubeUrls">
-          <VideoLinksEditor value={youtubeUrls} onChange={setYoutubeUrls} disabled={readOnly} />
+        <FormField label="Videos de YouTube (opcional — uno o varios)" name="videos">
+          <VideoLinksEditor value={videos} onChange={setVideos} disabled={readOnly} />
         </FormField>
       </div>
 

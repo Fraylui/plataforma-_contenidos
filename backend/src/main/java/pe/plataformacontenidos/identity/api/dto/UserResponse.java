@@ -14,17 +14,10 @@ public record UserResponse(
         Role role,
         UserStatus status,
         Instant createdAt,
-        Instant lastLoginAt,
-        boolean mfaEnabled) {
+        Instant lastLoginAt) {
 
-    /**
-     * mfaEnabled se pide explícito (no un default silencioso) para que cada
-     * caller decida conscientemente su valor: un usuario recién creado es
-     * false sin necesidad de consultar MfaService; /users/me y el listado de
-     * admin sí lo consultan (CONTEXTO.md sección 36.5).
-     */
-    public static UserResponse from(User user, boolean mfaEnabled) {
+    public static UserResponse from(User user) {
         return new UserResponse(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(),
-                user.getRole(), user.getStatus(), user.getCreatedAt(), user.getLastLoginAt(), mfaEnabled);
+                user.getRole(), user.getStatus(), user.getCreatedAt(), user.getLastLoginAt());
     }
 }

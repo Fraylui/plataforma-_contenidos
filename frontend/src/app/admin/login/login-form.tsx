@@ -7,8 +7,6 @@ import { AdminButton, formInputClass } from "@/components/admin/ui";
 export function LoginForm({ redirectTo }: { redirectTo: string | null }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mfaCode, setMfaCode] = useState("");
-  const [needsMfa, setNeedsMfa] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -17,15 +15,11 @@ export function LoginForm({ redirectTo }: { redirectTo: string | null }) {
     setPending(true);
     setError(null);
     try {
-      const result = await loginAction(email, password, mfaCode, redirectTo);
+      const result = await loginAction(email, password, redirectTo);
       // Si loginAction tuvo éxito, ya redirigió (lanzando internamente) y
       // este código no se alcanza. Solo llegamos aquí en caso de error.
       if (!result.ok) {
-        if ("needsMfa" in result) {
-          setNeedsMfa(true);
-        } else {
-          setError(result.error);
-        }
+        setError(result.error);
       }
     } finally {
       setPending(false);
@@ -44,7 +38,6 @@ export function LoginForm({ redirectTo }: { redirectTo: string | null }) {
           type="email"
           autoComplete="username"
           required
-          disabled={needsMfa}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className={formInputClass}
@@ -61,32 +54,11 @@ export function LoginForm({ redirectTo }: { redirectTo: string | null }) {
           type="password"
           autoComplete="current-password"
           required
-          disabled={needsMfa}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className={formInputClass}
         />
       </div>
-
-      {needsMfa && (
-        <div>
-          <label htmlFor="mfaCode" className="block text-sm font-medium text-foreground">
-            Código de autenticación (app MFA o código de respaldo)
-          </label>
-          <input
-            id="mfaCode"
-            name="mfaCode"
-            type="text"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            autoFocus
-            required
-            value={mfaCode}
-            onChange={(e) => setMfaCode(e.target.value)}
-            className={formInputClass}
-          />
-        </div>
-      )}
 
       {error && (
         <p role="alert" className="text-sm text-red-600 dark:text-red-400">
@@ -95,7 +67,7 @@ export function LoginForm({ redirectTo }: { redirectTo: string | null }) {
       )}
 
       <AdminButton type="submit" disabled={pending} className="w-full">
-        {pending ? "Verificando…" : needsMfa ? "Verificar código" : "Iniciar sesión"}
+        {pending ? "Verificando…" : "Iniciar sesión"}
       </AdminButton>
     </form>
   );

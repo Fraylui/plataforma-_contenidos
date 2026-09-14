@@ -13,12 +13,12 @@ import {
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { articleTypeLabel, formatArticleDate, formatPublishedDate } from "@/lib/content-labels";
-import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { LikeShareBar } from "@/components/content/like-share-bar";
 import { NeighborNav } from "@/components/article/neighbor-nav";
 import { ReadingProgressBar } from "@/components/article/reading-progress-bar";
 import { RelatedFeed } from "@/components/content/related-feed";
-import { ContentImageDisplay } from "@/components/content/content-image-display";
+import { ContentImageGallery } from "@/components/content/content-image-gallery";
+import { ContentVideoGallery } from "@/components/content/content-video-gallery";
 import { AdBlock } from "@/components/legal/ad-block";
 import { SITE_URL } from "@/lib/site-url";
 import type { Article, Category } from "@/lib/api/types";
@@ -128,7 +128,6 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
   });
   const relatedTitle = relatedIsFallback ? "Quizás te interese" : `Relacionado con ${category?.name ?? "esto"}`;
 
-  const [heroImage, ...galleryImages] = article.images;
   const hasSidebar = related.length > 0;
 
   return (
@@ -215,38 +214,9 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
             )}
           </div>
 
-          {heroImage && (
-            <div className="relative my-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-zinc-950 shadow-lg">
-              <ContentImageDisplay image={heroImage} alt={article.title} className="object-cover" />
-            </div>
-          )}
+          <ContentImageGallery images={article.images} alt={article.title} />
 
-          {galleryImages.length > 0 && (
-            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
-              {galleryImages.map((img, index) => (
-                <div
-                  key={img.imageId ?? img.externalUrl}
-                  className="relative aspect-square overflow-hidden rounded-lg border border-border bg-zinc-950"
-                >
-                  <ContentImageDisplay
-                    image={img}
-                    alt={`${article.title} — fotografía ${index + 2}`}
-                    className="object-cover"
-                    sizes="180px"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {article.youtubeVideoIds.map((videoId) => (
-            // YouTubeEmbed ya trae su propio aspect-video (button/iframe) — este
-            // wrapper solo agrega el borde/sombra consistente con la imagen de
-            // portada, no un segundo aspect-ratio anidado.
-            <div key={videoId} className="my-8 overflow-hidden rounded-2xl border border-border shadow-lg">
-              <YouTubeEmbed videoId={videoId} title={article.title} />
-            </div>
-          ))}
+          <ContentVideoGallery videos={article.videos} title={article.title} />
 
           {article.excerpt && (
             <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">

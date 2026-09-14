@@ -262,14 +262,14 @@ class ArticleWorkflowIntegrationTest {
                         .content(articleJsonWithYoutube(categoryId,
                                 "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10s", "Artículo con video de YouTube")))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.youtubeVideoIds[0]").value("dQw4w9WgXcQ"))
+                .andExpect(jsonPath("$.videos[0].videoId").value("dQw4w9WgXcQ"))
                 .andReturn();
 
         String articleId = textField(result, "id");
         mockMvc.perform(get("/api/v1/admin/articles/" + articleId)
                         .header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.youtubeVideoIds[0]").value("dQw4w9WgXcQ"));
+                .andExpect(jsonPath("$.videos[0].videoId").value("dQw4w9WgXcQ"));
     }
 
     private String articleJsonWithYoutube(String categoryId, String youtubeUrl, String title) {
@@ -279,7 +279,7 @@ class ArticleWorkflowIntegrationTest {
                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
                 + "\"articleType\":\"ARTICULO\","
                 + "\"categoryId\":\"" + categoryId + "\","
-                + "\"youtubeUrls\":[\"" + youtubeUrl + "\"]"
+                + "\"videos\":[{\"url\":\"" + youtubeUrl + "\"}]"
                 + "}";
     }
 

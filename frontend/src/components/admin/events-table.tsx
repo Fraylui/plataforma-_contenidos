@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Event } from "@/lib/api/types";
@@ -9,6 +10,7 @@ import { computeEventPermissions } from "@/lib/admin/event-permissions";
 import { articleStatusLabel, articleStatusTone, formatEventDateTime } from "@/lib/content-labels";
 import { StatusPill, DataTable } from "@/components/admin/ui";
 import { EditorialRowActions } from "@/components/admin/editorial-row-actions";
+import { EditorialBulkActions } from "@/components/admin/editorial-bulk-actions";
 import {
   approveEventAction,
   archiveEventAction,
@@ -18,6 +20,9 @@ import {
 } from "@/app/admin/(protected)/eventos/actions";
 
 export function EventsTable({ events, currentUser }: { events: Event[]; currentUser: AdminUser }) {
+  const router = useRouter();
+  const [selected, setSelected] = useState<Event[]>([]);
+
   const columns = useMemo<ColumnDef<Event, unknown>[]>(
     () => [
       {
@@ -63,5 +68,25 @@ export function EventsTable({ events, currentUser }: { events: Event[]; currentU
     [currentUser],
   );
 
-  return <DataTable columns={columns} data={events} searchPlaceholder="Buscar eventos…" emptyMessage="Ningún evento coincide con la búsqueda." />;
+  return (
+    <div>
+      <EditorialBulkActions
+        selected={selected}
+        permissions={{
+          canPublish: (item) => computeEventPermissions(item, currentUser).canPublish,
+          canArchive: (item) => computeEventPermissions(item, currentUser).canArchive,
+        }}
+        actions={{ publish: publishEventAction, archive: archiveEventAction }}
+        onDone={() => router.refresh()}
+      />
+      <DataTable
+        columns={columns}
+        data={events}
+        searchPlaceholder="Buscar eventos…"
+        emptyMessage="Ningún evento coincide con la búsqueda."
+        getRowId={(row) => row.id}
+        onSelectionChange={setSelected}
+      />
+    </div>
+  );
 }

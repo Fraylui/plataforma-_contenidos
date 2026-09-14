@@ -10,12 +10,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import pe.plataformacontenidos.identity.CannotModifyOwnAccountException;
 import pe.plataformacontenidos.identity.EmailAlreadyExistsException;
 import pe.plataformacontenidos.identity.InvalidCredentialsException;
-import pe.plataformacontenidos.identity.MfaRequiredException;
 import pe.plataformacontenidos.identity.SuperAdminManagementDeniedException;
 import pe.plataformacontenidos.identity.TooManyAttemptsException;
 import pe.plataformacontenidos.identity.UserNotFoundException;
-import pe.plataformacontenidos.identity.mfa.MfaChallengeException;
-import pe.plataformacontenidos.identity.mfa.MfaDisableForbiddenException;
 
 @RestControllerAdvice
 public class IdentityExceptionHandler {
@@ -23,21 +20,6 @@ public class IdentityExceptionHandler {
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ApiError> handleInvalidCredentials(InvalidCredentialsException ex) {
         return error(HttpStatus.UNAUTHORIZED, ex.getMessage());
-    }
-
-    @ExceptionHandler(MfaRequiredException.class)
-    public ResponseEntity<ApiError> handleMfaRequired(MfaRequiredException ex) {
-        return error(HttpStatus.UNAUTHORIZED, ex.getMessage());
-    }
-
-    @ExceptionHandler(MfaChallengeException.class)
-    public ResponseEntity<ApiError> handleMfaChallenge(MfaChallengeException ex) {
-        return error(HttpStatus.BAD_REQUEST, ex.getMessage());
-    }
-
-    @ExceptionHandler(MfaDisableForbiddenException.class)
-    public ResponseEntity<ApiError> handleMfaDisableForbidden(MfaDisableForbiddenException ex) {
-        return error(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
     @ExceptionHandler(TooManyAttemptsException.class)

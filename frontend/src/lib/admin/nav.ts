@@ -106,7 +106,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     // Debe coincidir con SecurityConfig: /api/v1/admin/users/** -> SUPER_ADMIN, ADMIN.
     roles: ["SUPER_ADMIN", "ADMIN"],
   },
-  { href: "/admin/mfa-setup", label: "Seguridad (MFA)", group: "cuenta" },
   {
     href: "/admin/configuracion",
     label: "Configuración",

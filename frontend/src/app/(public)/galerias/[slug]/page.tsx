@@ -14,9 +14,10 @@ import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
 import { GalleryCard } from "@/components/gallery/gallery-card";
 import { LikeShareBar } from "@/components/content/like-share-bar";
+import { ContentImageGallery } from "@/components/content/content-image-gallery";
 import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
-import type { Category, Gallery } from "@/lib/api/types";
+import type { Category, ContentImage, Gallery } from "@/lib/api/types";
 
 const RELATED_SIZE = 4;
 
@@ -74,6 +75,25 @@ function galleryJsonLd(gallery: Gallery, category: Category | null, siteName: st
   };
 }
 
+function breadcrumbJsonLd(gallery: Gallery, category: Category | null) {
+  const items = [
+    { name: "Inicio", url: SITE_URL },
+    { name: "Galerías", url: `${SITE_URL}/galerias` },
+    ...(category ? [{ name: category.name, url: `${SITE_URL}/categorias/${category.slug}` }] : []),
+    { name: gallery.title, url: `${SITE_URL}/galerias/${gallery.slug}` },
+  ];
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}
+
 export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) {
   const { slug } = await props.params;
   const gallery = await loadGallery(slug);
@@ -95,6 +115,16 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
     .slice(0, RELATED_SIZE);
   const relatedPlaces = relatedPlacesResult?.items ?? [];
   const relatedArticles = relatedArticlesResult?.items ?? [];
+  // Gallery solo guarda IDs de imágenes subidas (sin título/caption/enlace
+  // externo como Article/Place/Event) — se adapta a ContentImage[] acá
+  // mismo para poder reusar ContentImageGallery (carrusel) en vez de
+  // reinventar el grid a mano.
+  const galleryImages: ContentImage[] = gallery.imageIds.map((id) => ({
+    imageId: id,
+    externalUrl: null,
+    title: null,
+    caption: null,
+  }));
 
   return (
     <article className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -102,6 +132,12 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(galleryJsonLd(gallery, category, settings.name)).replace(/</g, "\\u003c"),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd(gallery, category)).replace(/</g, "\\u003c"),
         }}
       />
 
@@ -157,17 +193,7 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
         </p>
       )}
 
-      <div className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {gallery.imageIds.map((id, index) => (
-          // eslint-disable-next-line @next/next/no-img-element -- host propio del backend
-          <img
-            key={id}
-            src={imageUrl(`/api/v1/images/${id}/file`)}
-            alt={`${gallery.title} — fotografía ${index + 1}`}
-            className="aspect-square w-full rounded-md object-cover"
-          />
-        ))}
-      </div>
+      <ContentImageGallery images={galleryImages} alt={gallery.title} spacing="mt-8" />
 
       <LikeShareBar contentType="galleries" slug={gallery.slug} initialLikeCount={gallery.likeCount} title={gallery.title} />
 

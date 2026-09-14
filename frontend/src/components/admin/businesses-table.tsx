@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Business } from "@/lib/api/types";
@@ -9,6 +10,7 @@ import { computeBusinessPermissions } from "@/lib/admin/business-permissions";
 import { articleStatusLabel, articleStatusTone, businessTypeLabel, formatPublishedDate } from "@/lib/content-labels";
 import { StatusPill, DataTable } from "@/components/admin/ui";
 import { EditorialRowActions } from "@/components/admin/editorial-row-actions";
+import { EditorialBulkActions } from "@/components/admin/editorial-bulk-actions";
 import {
   approveBusinessAction,
   archiveBusinessAction,
@@ -18,6 +20,9 @@ import {
 } from "@/app/admin/(protected)/directorio/actions";
 
 export function BusinessesTable({ businesses, currentUser }: { businesses: Business[]; currentUser: AdminUser }) {
+  const router = useRouter();
+  const [selected, setSelected] = useState<Business[]>([]);
+
   const columns = useMemo<ColumnDef<Business, unknown>[]>(
     () => [
       {
@@ -69,6 +74,24 @@ export function BusinessesTable({ businesses, currentUser }: { businesses: Busin
   );
 
   return (
-    <DataTable columns={columns} data={businesses} searchPlaceholder="Buscar en el directorio…" emptyMessage="Ninguna ficha coincide con la búsqueda." />
+    <div>
+      <EditorialBulkActions
+        selected={selected}
+        permissions={{
+          canPublish: (item) => computeBusinessPermissions(item, currentUser).canPublish,
+          canArchive: (item) => computeBusinessPermissions(item, currentUser).canArchive,
+        }}
+        actions={{ publish: publishBusinessAction, archive: archiveBusinessAction }}
+        onDone={() => router.refresh()}
+      />
+      <DataTable
+        columns={columns}
+        data={businesses}
+        searchPlaceholder="Buscar en el directorio…"
+        emptyMessage="Ninguna ficha coincide con la búsqueda."
+        getRowId={(row) => row.id}
+        onSelectionChange={setSelected}
+      />
+    </div>
   );
 }

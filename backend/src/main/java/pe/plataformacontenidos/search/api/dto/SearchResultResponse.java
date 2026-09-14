@@ -33,7 +33,9 @@ public record SearchResultResponse(
         UUID featuredImageId,
         String featuredImageUrl,
         boolean hasVideo,
-        Instant publishedAt) {
+        Instant publishedAt,
+        /** Solo Evento la trae (rango de fechas del buscador) — null en los demás tipos. */
+        Instant eventStartsAt) {
 
     public static SearchResultResponse fromArticle(Article article) {
         ContentImage cover = article.getCoverImage();
@@ -47,8 +49,9 @@ public record SearchResultResponse(
                 article.getGeographyId(),
                 cover == null ? null : cover.getImageId(),
                 cover == null ? null : cover.getExternalUrl(),
-                !article.getYoutubeVideoIds().isEmpty(),
-                article.getPublishedAt());
+                !article.getVideos().isEmpty(),
+                article.getPublishedAt(),
+                null);
     }
 
     public static SearchResultResponse fromPlace(Place place) {
@@ -63,8 +66,9 @@ public record SearchResultResponse(
                 place.getGeographyId(),
                 cover == null ? null : cover.getImageId(),
                 cover == null ? null : cover.getExternalUrl(),
-                !place.getYoutubeVideoIds().isEmpty(),
-                place.getPublishedAt());
+                !place.getVideos().isEmpty(),
+                place.getPublishedAt(),
+                null);
     }
 
     public static SearchResultResponse fromEvent(Event event) {
@@ -79,8 +83,9 @@ public record SearchResultResponse(
                 event.getGeographyId(),
                 cover == null ? null : cover.getImageId(),
                 cover == null ? null : cover.getExternalUrl(),
-                !event.getYoutubeVideoIds().isEmpty(),
-                event.getPublishedAt());
+                !event.getVideos().isEmpty(),
+                event.getPublishedAt(),
+                event.getStartsAt());
     }
 
     public static SearchResultResponse fromGallery(Gallery gallery) {
@@ -96,7 +101,8 @@ public record SearchResultResponse(
                 coverImageId,
                 null,
                 false,
-                gallery.getPublishedAt());
+                gallery.getPublishedAt(),
+                null);
     }
 
     public static SearchResultResponse fromReview(Review review) {
@@ -112,7 +118,8 @@ public record SearchResultResponse(
                 coverImageId,
                 null,
                 review.getYoutubeVideoId() != null,
-                review.getPublishedAt());
+                review.getPublishedAt(),
+                null);
     }
 
     public static SearchResultResponse fromBusiness(Business business) {
@@ -128,6 +135,7 @@ public record SearchResultResponse(
                 coverImageId,
                 null,
                 business.getYoutubeVideoId() != null,
-                business.getPublishedAt());
+                business.getPublishedAt(),
+                null);
     }
 }

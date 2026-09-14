@@ -3,10 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { axe } from "vitest-axe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LikeShareBar } from "./like-share-bar";
+import { CardActions } from "./card-actions";
 
 const props = { contentType: "articles" as const, slug: "mi-articulo", initialLikeCount: 7, title: "Mi publicación" };
 
-describe("LikeShareBar (integración de componente: fetch, localStorage, Web Share/clipboard)", () => {
+describe("LikeShareBar (integración de componente: fetch, localStorage, redes específicas/clipboard)", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
   });
@@ -18,7 +19,10 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
   it("muestra el conteo inicial y es accesible", async () => {
     const { container } = render(<LikeShareBar {...props} />);
     expect(screen.getByRole("button", { name: /7\s*Me gusta/ })).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByRole("button", { name: "Compartir" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Compartir en WhatsApp" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Compartir en Facebook" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Compartir en X" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Copiar enlace" })).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
   });
 
@@ -52,28 +56,53 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
     expect(localStorage.getItem("liked:articles:mi-articulo")).toBeNull();
   });
 
-  it("Compartir sin Web Share API copia el enlace y avisa", async () => {
+  it("Copiar enlace copia la URL al portapapeles y avisa, sin pasar por el diálogo nativo", async () => {
     const user = userEvent.setup();
     const writeText = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, "share", { value: undefined, configurable: true });
+    const share = vi.fn();
+    Object.defineProperty(navigator, "share", { value: share, configurable: true });
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
     render(<LikeShareBar {...props} />);
 
-    await user.click(screen.getByRole("button", { name: "Compartir" }));
+    await user.click(screen.getByRole("button", { name: "Copiar enlace" }));
 
     expect(writeText).toHaveBeenCalledWith(window.location.href);
-    expect(await screen.findByRole("button", { name: "Enlace copiado" })).toBeInTheDocument();
+    expect(share).not.toHaveBeenCalled();
+    expect(await screen.findByText("Enlace copiado")).toBeInTheDocument();
   });
 
-  it("Compartir con Web Share API usa el diálogo nativo", async () => {
+  it("cada botón de red abre la URL de share correspondiente en una pestaña nueva", async () => {
+    const user = userEvent.setup();
+    const open = vi.fn();
+    vi.stubGlobal("open", open);
+    render(<LikeShareBar {...props} />);
+
+    await user.click(screen.getByRole("button", { name: "Compartir en WhatsApp" }));
+    expect(open.mock.calls[0][0]).toContain("api.whatsapp.com/send");
+
+    await user.click(screen.getByRole("button", { name: "Compartir en Facebook" }));
+    expect(open.mock.calls[1][0]).toContain("facebook.com/sharer");
+
+    await user.click(screen.getByRole("button", { name: "Compartir en X" }));
+    expect(open.mock.calls[2][0]).toContain("twitter.com/intent/tweet");
+  });
+});
+
+describe("CardActions (versión compacta: sí usa Web Share API cuando existe)", () => {
+  const cardProps = { ...props, path: "/publicaciones/mi-articulo" };
+
+  it("con Web Share API usa el diálogo nativo", async () => {
     const user = userEvent.setup();
     const share = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "share", { value: share, configurable: true });
-    render(<LikeShareBar {...props} />);
+    render(<CardActions {...cardProps} />);
 
     await user.click(screen.getByRole("button", { name: "Compartir" }));
 
-    expect(share).toHaveBeenCalledWith({ title: "Mi publicación", url: window.location.href });
+    expect(share).toHaveBeenCalledWith({
+      title: "Mi publicación",
+      url: new URL("/publicaciones/mi-articulo", window.location.origin).toString(),
+    });
     Object.defineProperty(navigator, "share", { value: undefined, configurable: true });
   });
 });

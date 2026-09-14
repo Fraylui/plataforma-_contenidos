@@ -5,13 +5,14 @@ import { toast } from "sonner";
 import { useState } from "react";
 import type { AdminImage } from "@/lib/api/admin-types";
 import type { Category, ContentImage, GeographicUnit, Place } from "@/lib/api/types";
-import type { PlaceInput } from "@/lib/api/admin-types";
+import type { ContentVideoInput, PlaceInput } from "@/lib/api/admin-types";
 import type { PlacePermissions } from "@/lib/admin/place-permissions";
 import { articleStatusLabel } from "@/lib/content-labels";
 import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
 import { GeographyPicker } from "./geography-picker";
 import { ContentImagesPicker } from "./content-images-picker";
 import { VideoLinksEditor } from "./video-links-editor";
+import { RichTextEditor } from "./rich-text-editor";
 import {
   approvePlaceAction,
   archivePlaceAction,
@@ -51,8 +52,12 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
   const [metaDescription, setMetaDescription] = useState(place?.metaDescription ?? "");
   const [canonicalUrl, setCanonicalUrl] = useState(place?.canonicalUrl ?? "");
   const [ogImageUrl, setOgImageUrl] = useState(place?.ogImageUrl ?? "");
-  const [youtubeUrls, setYoutubeUrls] = useState<string[]>(
-    place?.youtubeVideoIds.map((id) => `https://www.youtube.com/watch?v=${id}`) ?? [],
+  const [videos, setVideos] = useState<ContentVideoInput[]>(
+    place?.videos.map((v) => ({
+      url: `https://www.youtube.com/watch?v=${v.videoId}`,
+      title: v.title,
+      caption: v.caption,
+    })) ?? [],
   );
   const [robots, setRobots] = useState(place?.robots ?? "index,follow");
 
@@ -75,7 +80,7 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
       canonicalUrl: canonicalUrl || null,
       ogImageUrl: ogImageUrl || null,
       images,
-      youtubeUrls,
+      videos,
       robots,
     };
   }
@@ -130,7 +135,7 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
         </FormField>
 
         <FormField label="Historia / descripción completa" name="body">
-          <textarea value={body} disabled={readOnly} onChange={(e) => setBody(e.target.value)} rows={14} className={formInputClass} />
+          <RichTextEditor value={body} onChange={setBody} disabled={readOnly} />
         </FormField>
 
         <FormField label="Categoría" name="categoryId">
@@ -180,8 +185,8 @@ export function PlaceForm({ categories, allImages, initialGeographyChain, mode, 
           <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
         </FormField>
 
-        <FormField label="Videos de YouTube (opcional — uno o varios)" name="youtubeUrls">
-          <VideoLinksEditor value={youtubeUrls} onChange={setYoutubeUrls} disabled={readOnly} />
+        <FormField label="Videos de YouTube (opcional — uno o varios)" name="videos">
+          <VideoLinksEditor value={videos} onChange={setVideos} disabled={readOnly} />
         </FormField>
       </div>
 

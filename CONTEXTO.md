@@ -1277,7 +1277,7 @@ Soporte al usuario
 ```text
 SUPER_ADMIN     → control total, incluida gestión de otros admins y config
                   crítica (marca, seguridad, integraciones). Debe ser
-                  mínimo posible (1-2 personas), con MFA obligatorio.
+                  mínimo posible (1-2 personas) — ver 36.5 sobre MFA.
 ADMIN           → gestión operativa completa, sin acceso a configuración
                   crítica de infraestructura ni a la gestión de SUPER_ADMIN.
 ADMIN_CONTENIDO → gestiona todo lo editorial (categorías, taxonomía,
@@ -1298,9 +1298,14 @@ en la práctica.
 
 ### 36.5 El superusuario: reglas especiales
 
+**MFA retirado (2026-09-14):** hubo TOTP obligatorio para SUPER_ADMIN; se
+quitó por decisión de producto (queda para una versión futura, no era una
+prioridad todavía con el proyecto sin tráfico real). El resto de esta
+sección sigue vigente.
+
 ```text
 1. Nunca se usa para trabajo diario (se usa una cuenta ADMIN normal).
-2. MFA obligatorio, sin excepción.
+2. (Retirado — ver nota arriba.)
 3. Cada acción de SUPER_ADMIN queda auditada con mayor detalle (before/after).
 4. Idealmente, acciones críticas (borrar usuario, cambiar rol de otro admin,
    modificar configuración de seguridad) requieren doble confirmación o

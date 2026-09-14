@@ -52,17 +52,33 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre eventos
      * publicados — mismo patrón que PlaceRepository.search
-     * (V17__event_search.sql).
+     * (V17__event_search.sql, unaccent en V36__search_unaccent.sql). from/to
+     * filtran por starts_at (rango de fechas del buscador) — únicos entre
+     * los 6 search() porque solo Evento tiene una fecha propia con sentido
+     * de filtro (los demás usan publishedAt, que ya ordena el listado, no
+     * es algo que quien busca elija).
      */
     @Query(value = """
             SELECT e.* FROM events.events e
-            WHERE e.status = 'PUBLISHED' AND e.search_vector @@ websearch_to_tsquery('spanish', :query)
-            ORDER BY ts_rank(e.search_vector, websearch_to_tsquery('spanish', :query)) DESC
+            WHERE e.status = 'PUBLISHED'
+            AND e.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
+            AND (:categoryId IS NULL OR e.category_id = :categoryId)
+            AND (:geographyId IS NULL OR e.geography_id = :geographyId)
+            AND (CAST(:from AS timestamptz) IS NULL OR e.starts_at >= :from)
+            AND (CAST(:to AS timestamptz) IS NULL OR e.starts_at <= :to)
+            ORDER BY ts_rank(e.search_vector, websearch_to_tsquery('spanish', public.immutable_unaccent(:query))) DESC
             """,
             countQuery = """
             SELECT count(*) FROM events.events e
-            WHERE e.status = 'PUBLISHED' AND e.search_vector @@ websearch_to_tsquery('spanish', :query)
+            WHERE e.status = 'PUBLISHED'
+            AND e.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
+            AND (:categoryId IS NULL OR e.category_id = :categoryId)
+            AND (:geographyId IS NULL OR e.geography_id = :geographyId)
+            AND (CAST(:from AS timestamptz) IS NULL OR e.starts_at >= :from)
+            AND (CAST(:to AS timestamptz) IS NULL OR e.starts_at <= :to)
             """,
             nativeQuery = true)
-    Page<Event> search(@Param("query") String query, Pageable pageable);
+    Page<Event> search(@Param("query") String query, @Param("categoryId") UUID categoryId,
+            @Param("geographyId") UUID geographyId, @Param("from") Instant from, @Param("to") Instant to,
+            Pageable pageable);
 }
