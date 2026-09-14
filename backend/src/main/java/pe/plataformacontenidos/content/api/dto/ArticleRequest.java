@@ -9,6 +9,7 @@ import java.util.UUID;
 import pe.plataformacontenidos.content.ArticleInput;
 import pe.plataformacontenidos.content.ArticleType;
 import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.ContentVideoInput;
 
 public record ArticleRequest(
         @NotBlank @Size(max = 200) String title,
@@ -23,12 +24,12 @@ public record ArticleRequest(
         String canonicalUrl,
         String ogImageUrl,
         List<ContentImageInput> images,
-        List<String> youtubeUrls,
+        List<ContentVideoInput> videos,
         String robots) {
 
     public ArticleInput toInput() {
         return new ArticleInput(title, excerpt, body, articleType, categoryId, geographyId, tagNames, seoTitle,
                 metaDescription, canonicalUrl, ogImageUrl, images == null ? List.of() : images,
-                youtubeUrls == null ? List.of() : youtubeUrls, robots);
+                videos == null ? List.of() : videos, robots);
     }
 }

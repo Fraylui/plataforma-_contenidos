@@ -193,11 +193,11 @@ public class GalleryService {
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que el resto de módulos.search (query en blanco: página vacía, no error). */
-    public Page<Gallery> search(String query, Pageable pageable) {
+    public Page<Gallery> search(String query, UUID categoryId, UUID geographyId, Pageable pageable) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);
         }
-        return galleryRepository.search(query.trim(), pageable);
+        return galleryRepository.search(query.trim(), categoryId, geographyId, pageable);
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */

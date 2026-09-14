@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Article } from "@/lib/api/types";
@@ -9,6 +10,7 @@ import { computeArticlePermissions } from "@/lib/admin/article-permissions";
 import { articleStatusLabel, articleStatusTone, articleTypeLabel, formatPublishedDate } from "@/lib/content-labels";
 import { StatusPill, DataTable } from "@/components/admin/ui";
 import { EditorialRowActions } from "@/components/admin/editorial-row-actions";
+import { EditorialBulkActions } from "@/components/admin/editorial-bulk-actions";
 import {
   approveArticleAction,
   archiveArticleAction,
@@ -18,6 +20,9 @@ import {
 } from "@/app/admin/(protected)/publicaciones/actions";
 
 export function PublicationsTable({ articles, currentUser }: { articles: Article[]; currentUser: AdminUser }) {
+  const router = useRouter();
+  const [selected, setSelected] = useState<Article[]>([]);
+
   const columns = useMemo<ColumnDef<Article, unknown>[]>(
     () => [
       {
@@ -69,11 +74,24 @@ export function PublicationsTable({ articles, currentUser }: { articles: Article
   );
 
   return (
-    <DataTable
-      columns={columns}
-      data={articles}
-      searchPlaceholder="Buscar publicaciones…"
-      emptyMessage="Ninguna publicación coincide con la búsqueda."
-    />
+    <div>
+      <EditorialBulkActions
+        selected={selected}
+        permissions={{
+          canPublish: (item) => computeArticlePermissions(item, currentUser).canPublish,
+          canArchive: (item) => computeArticlePermissions(item, currentUser).canArchive,
+        }}
+        actions={{ publish: publishArticleAction, archive: archiveArticleAction }}
+        onDone={() => router.refresh()}
+      />
+      <DataTable
+        columns={columns}
+        data={articles}
+        searchPlaceholder="Buscar publicaciones…"
+        emptyMessage="Ninguna publicación coincide con la búsqueda."
+        getRowId={(row) => row.id}
+        onSelectionChange={setSelected}
+      />
+    </div>
   );
 }

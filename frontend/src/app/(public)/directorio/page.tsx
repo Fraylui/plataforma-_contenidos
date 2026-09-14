@@ -4,8 +4,7 @@ import { listActiveCategories, listPublishedBusinesses } from "@/lib/api/client"
 import { BusinessCard } from "@/components/directory/business-card";
 import { Pagination } from "@/components/ui/pagination";
 import { AdBlock } from "@/components/legal/ad-block";
-import { ListingFilters } from "@/components/filters/listing-filters";
-import { resolveGeographyChain } from "@/lib/geography-chain";
+import { CategoryChips } from "@/components/filters/category-chips";
 import { businessTypeLabel } from "@/lib/content-labels";
 import type { BusinessType } from "@/lib/api/types";
 
@@ -22,16 +21,10 @@ export const metadata: Metadata = {
   alternates: { canonical: BASE_PATH },
 };
 
-function buildHref(
-  businessType: BusinessType | null,
-  categoryId: string | null,
-  geographyId: string | null,
-  page: number,
-): string {
+function buildHref(businessType: BusinessType | null, categoryId: string | null, page: number): string {
   const params = new URLSearchParams();
   if (businessType) params.set("businessType", businessType);
   if (categoryId) params.set("categoryId", categoryId);
-  if (geographyId) params.set("geographyId", geographyId);
   if (page > 0) params.set("page", String(page));
   const query = params.toString();
   return query ? `${BASE_PATH}?${query}` : BASE_PATH;
@@ -42,25 +35,21 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
     page: pageParam,
     businessType: businessTypeParam,
     categoryId: categoryIdParam,
-    geographyId: geographyIdParam,
   } = await props.searchParams;
   const page = typeof pageParam === "string" ? Math.max(0, parseInt(pageParam, 10) || 0) : 0;
   const businessType = BUSINESS_TYPES.includes(businessTypeParam as BusinessType)
     ? (businessTypeParam as BusinessType)
     : null;
   const categoryId = typeof categoryIdParam === "string" ? categoryIdParam : null;
-  const geographyId = typeof geographyIdParam === "string" ? geographyIdParam : null;
 
-  const [result, categories, geographyChain] = await Promise.all([
+  const [result, categories] = await Promise.all([
     listPublishedBusinesses({
       page,
       size: PAGE_SIZE,
       businessType: businessType ?? undefined,
       categoryId: categoryId ?? undefined,
-      geographyId: geographyId ?? undefined,
     }),
     listActiveCategories(),
-    resolveGeographyChain(geographyId),
   ]);
 
   return (
@@ -74,7 +63,7 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
 
       <nav aria-label="Filtrar por tipo" className="mt-6 flex flex-wrap gap-2">
         <Link
-          href={buildHref(null, categoryId, geographyId, 0)}
+          href={buildHref(null, categoryId, 0)}
           className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
             businessType === null ? "bg-accent text-accent-foreground" : "bg-surface text-muted hover:text-foreground"
           }`}
@@ -84,7 +73,7 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
         {BUSINESS_TYPES.map((type) => (
           <Link
             key={type}
-            href={buildHref(type, categoryId, geographyId, 0)}
+            href={buildHref(type, categoryId, 0)}
             className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
               businessType === type ? "bg-accent text-accent-foreground" : "bg-surface text-muted hover:text-foreground"
             }`}
@@ -95,13 +84,17 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
       </nav>
 
       <div className="mt-4">
-        <ListingFilters basePath={BASE_PATH} categories={categories} initialGeographyChain={geographyChain} />
+        <CategoryChips
+          categories={categories}
+          activeCategoryId={categoryId}
+          buildHref={(catId) => buildHref(businessType, catId, 0)}
+        />
       </div>
 
       <section className="mt-8" aria-label="Directorio">
         {result.items.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">
-            {businessType || categoryId || geographyId
+            {businessType || categoryId
               ? "Ninguna ficha de directorio coincide con este filtro."
               : "Todavía no hay fichas de directorio publicadas."}
           </p>
@@ -115,7 +108,7 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
             <Pagination
               page={result.page}
               totalPages={result.totalPages}
-              buildHref={(p) => buildHref(businessType, categoryId, geographyId, p)}
+              buildHref={(p) => buildHref(businessType, categoryId, p)}
             />
           </>
         )}

@@ -34,17 +34,25 @@ public interface GalleryRepository extends JpaRepository<Gallery, UUID> {
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre galerías
      * publicadas — mismo patrón que PlaceRepository/EventRepository.search
-     * (V19__gallery_search.sql). Solo title+excerpt: no hay body que indexar.
+     * (V19__gallery_search.sql, unaccent en V36__search_unaccent.sql). Solo
+     * title+excerpt: no hay body que indexar.
      */
     @Query(value = """
             SELECT g.* FROM galleries.galleries g
-            WHERE g.status = 'PUBLISHED' AND g.search_vector @@ websearch_to_tsquery('spanish', :query)
-            ORDER BY ts_rank(g.search_vector, websearch_to_tsquery('spanish', :query)) DESC
+            WHERE g.status = 'PUBLISHED'
+            AND g.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
+            AND (:categoryId IS NULL OR g.category_id = :categoryId)
+            AND (:geographyId IS NULL OR g.geography_id = :geographyId)
+            ORDER BY ts_rank(g.search_vector, websearch_to_tsquery('spanish', public.immutable_unaccent(:query))) DESC
             """,
             countQuery = """
             SELECT count(*) FROM galleries.galleries g
-            WHERE g.status = 'PUBLISHED' AND g.search_vector @@ websearch_to_tsquery('spanish', :query)
+            WHERE g.status = 'PUBLISHED'
+            AND g.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
+            AND (:categoryId IS NULL OR g.category_id = :categoryId)
+            AND (:geographyId IS NULL OR g.geography_id = :geographyId)
             """,
             nativeQuery = true)
-    Page<Gallery> search(@Param("query") String query, Pageable pageable);
+    Page<Gallery> search(@Param("query") String query, @Param("categoryId") UUID categoryId,
+            @Param("geographyId") UUID geographyId, Pageable pageable);
 }

@@ -27,6 +27,6 @@ public record EventSummaryResponse(
         return new EventSummaryResponse(event.getId(), event.getSlug(), event.getTitle(), event.getExcerpt(),
                 event.getCategoryId(), event.getGeographyId(), event.getPlaceId(), event.getVenueName(),
                 event.getStartsAt(), event.getEndsAt(), cover == null ? null : cover.getImageId(),
-                cover == null ? null : cover.getExternalUrl(), !event.getYoutubeVideoIds().isEmpty(), likeCount);
+                cover == null ? null : cover.getExternalUrl(), !event.getVideos().isEmpty(), likeCount);
     }
 }

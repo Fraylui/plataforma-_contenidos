@@ -88,7 +88,6 @@ jobs:
       # Solo para que el backend arranque en este job y next build pueda
       # leerlo — no son credenciales reales, no se despliegan a ningún lado.
       JWT_SECRET: ci-only-secret-never-used-outside-this-pipeline-32bytes
-      MFA_ENCRYPTION_KEY: "ThTrxueov77AMqUM1Fc/4FMJhFUwrUv7d93NHdHOo/0="
       BACKEND_API_URL: http://localhost:8080
       SITE_URL: http://localhost:3000
       NEXT_PUBLIC_BACKEND_ASSET_URL: http://localhost:8080

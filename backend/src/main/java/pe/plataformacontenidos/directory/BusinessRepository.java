@@ -36,17 +36,24 @@ public interface BusinessRepository extends JpaRepository<Business, UUID> {
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre fichas de
      * directorio publicadas — mismo patrón que ReviewRepository.search
-     * (V24__directory_search.sql).
+     * (V24__directory_search.sql, unaccent en V36__search_unaccent.sql).
      */
     @Query(value = """
             SELECT b.* FROM directory.businesses b
-            WHERE b.status = 'PUBLISHED' AND b.search_vector @@ websearch_to_tsquery('spanish', :query)
-            ORDER BY ts_rank(b.search_vector, websearch_to_tsquery('spanish', :query)) DESC
+            WHERE b.status = 'PUBLISHED'
+            AND b.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
+            AND (:categoryId IS NULL OR b.category_id = :categoryId)
+            AND (:geographyId IS NULL OR b.geography_id = :geographyId)
+            ORDER BY ts_rank(b.search_vector, websearch_to_tsquery('spanish', public.immutable_unaccent(:query))) DESC
             """,
             countQuery = """
             SELECT count(*) FROM directory.businesses b
-            WHERE b.status = 'PUBLISHED' AND b.search_vector @@ websearch_to_tsquery('spanish', :query)
+            WHERE b.status = 'PUBLISHED'
+            AND b.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
+            AND (:categoryId IS NULL OR b.category_id = :categoryId)
+            AND (:geographyId IS NULL OR b.geography_id = :geographyId)
             """,
             nativeQuery = true)
-    Page<Business> search(@Param("query") String query, Pageable pageable);
+    Page<Business> search(@Param("query") String query, @Param("categoryId") UUID categoryId,
+            @Param("geographyId") UUID geographyId, Pageable pageable);
 }

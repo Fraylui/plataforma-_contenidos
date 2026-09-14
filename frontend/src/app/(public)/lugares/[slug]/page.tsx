@@ -10,11 +10,11 @@ import {
   getRelatedWithFallback,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { ArticleCard } from "@/components/article/article-card";
 import { LikeShareBar } from "@/components/content/like-share-bar";
 import { RelatedFeed } from "@/components/content/related-feed";
-import { ContentImageDisplay } from "@/components/content/content-image-display";
+import { ContentImageGallery } from "@/components/content/content-image-gallery";
+import { ContentVideoGallery } from "@/components/content/content-video-gallery";
 import { AdBlock } from "@/components/legal/ad-block";
 import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
@@ -125,7 +125,6 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
   });
   const relatedTitle = relatedIsFallback ? "Quizás te interese" : `Relacionado con ${category?.name ?? "esto"}`;
 
-  const [heroImage, ...galleryImages] = place.images;
   const hasSidebar = related.length > 0;
   const mapsUrl =
     place.latitude != null && place.longitude != null
@@ -199,51 +198,26 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
             )}
           </div>
 
-          {heroImage && (
-            <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-canvas-strong shadow-lg">
-              <ContentImageDisplay image={heroImage} alt={place.name} className="object-cover" />
-            </div>
-          )}
+          <ContentImageGallery
+            images={place.images}
+            alt={place.name}
+            spacing="mt-8"
+            background="bg-canvas-strong"
+            fallback={<NoImagePlaceholder />}
+          />
 
-          {galleryImages.length > 0 && (
-            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
-              {galleryImages.map((img, index) => (
-                <div
-                  key={img.imageId ?? img.externalUrl}
-                  className="relative aspect-square overflow-hidden rounded-lg border border-border bg-canvas-strong"
-                >
-                  <ContentImageDisplay
-                    image={img}
-                    alt={`${place.name} — fotografía ${index + 2}`}
-                    className="object-cover"
-                    sizes="180px"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {!heroImage && (
-            <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-canvas-strong shadow-lg">
-              <NoImagePlaceholder />
-            </div>
-          )}
-
-          {place.youtubeVideoIds.map((videoId) => (
-            <div key={videoId} className="mt-8 overflow-hidden rounded-2xl border border-border shadow-lg">
-              <YouTubeEmbed videoId={videoId} title={place.name} />
-            </div>
-          ))}
+          <ContentVideoGallery videos={place.videos} title={place.name} />
 
           {place.excerpt && (
             <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">{place.excerpt}</p>
           )}
 
-          {/* place.body es texto plano (a diferencia de Article, sin editor Tiptap todavía),
-              así que se preserva el salto de línea en vez de renderizar HTML. */}
-          <div className="mt-6 max-w-none text-base leading-relaxed whitespace-pre-line text-foreground">
-            {place.body}
-          </div>
+          {/* place.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
+              de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí. */}
+          <div
+            className="prose prose-slate sm:prose-lg mt-6 max-w-none prose-headings:font-bold prose-a:text-accent"
+            dangerouslySetInnerHTML={{ __html: place.body }}
+          />
 
           <div className="mt-10">
             <AdBlock position="article" />

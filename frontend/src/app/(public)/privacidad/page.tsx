@@ -47,8 +47,8 @@ export default async function PrivacyPolicyPage() {
           </p>
           <ul className="list-disc space-y-1.5 pl-6">
             <li>
-              <strong>Necesarias:</strong> sesión del panel administrativo (equipo editorial). No se activan para
-              quien solo lee el sitio.
+              <strong>Necesarias:</strong> sesión del panel administrativo (equipo que gestiona el contenido). No se
+              activan para quien solo lee el sitio.
             </li>
             <li>
               <strong>YouTube:</strong> los videos se cargan solo si hacés clic para reproducirlos, nunca antes; ahí

@@ -24,7 +24,7 @@ describe("LoginForm (integración de componente con la server action mockeada)",
 
     await fillAndSubmit(user);
 
-    expect(loginAction).toHaveBeenCalledWith("admin@example.test", "Secreta123!", "", "/admin/publicaciones");
+    expect(loginAction).toHaveBeenCalledWith("admin@example.test", "Secreta123!", "/admin/publicaciones");
   });
 
   it("muestra el error como alerta accesible", async () => {
@@ -37,23 +37,6 @@ describe("LoginForm (integración de componente con la server action mockeada)",
     expect(await screen.findByRole("alert")).toHaveTextContent("Credenciales inválidas");
     expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeEnabled();
     expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("cuando el backend pide MFA, bloquea email/contraseña y pide el código", async () => {
-    const user = userEvent.setup();
-    vi.mocked(loginAction).mockResolvedValue({ ok: false, needsMfa: true });
-    render(<LoginForm redirectTo={null} />);
-
-    await fillAndSubmit(user);
-
-    const code = await screen.findByLabelText(/Código de autenticación/);
-    expect(code).toHaveFocus();
-    expect(screen.getByLabelText("Correo electrónico")).toBeDisabled();
-    expect(screen.getByLabelText("Contraseña")).toBeDisabled();
-
-    await user.type(code, "123456");
-    await user.click(screen.getByRole("button", { name: "Verificar código" }));
-    expect(loginAction).toHaveBeenLastCalledWith("admin@example.test", "Secreta123!", "123456", null);
   });
 
   it("deshabilita el botón mientras la acción está en curso", async () => {

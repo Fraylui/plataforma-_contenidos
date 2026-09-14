@@ -17,8 +17,6 @@ import type {
   EventInput,
   GalleryInput,
   GeographyCreateInput,
-  MfaBackupCodes,
-  MfaEnrollment,
   PlaceInput,
   PlatformSettingsInput,
   PlatformStats,
@@ -71,11 +69,11 @@ async function publicJson<T>(path: string, init: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export function login(email: string, password: string, mfaCode?: string): Promise<TokenResponse> {
+export function login(email: string, password: string): Promise<TokenResponse> {
   return publicJson("/api/v1/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, mfaCode: mfaCode || undefined }),
+    body: JSON.stringify({ email, password }),
   });
 }
 
@@ -114,27 +112,6 @@ async function authedJson<T>(path: string, accessToken: string, init?: RequestIn
 
 export function getCurrentUser(accessToken: string): Promise<AdminUser> {
   return authedJson("/api/v1/users/me", accessToken);
-}
-
-export function enrollMfa(accessToken: string): Promise<MfaEnrollment> {
-  return authedJson("/api/v1/users/me/mfa/enroll", accessToken, { method: "POST" });
-}
-
-export function confirmMfa(accessToken: string, code: string): Promise<MfaBackupCodes> {
-  return authedJson("/api/v1/users/me/mfa/confirm", accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code }),
-  });
-}
-
-/** El backend rechaza esto con 403 si la cuenta es SUPER_ADMIN (CONTEXTO.md sección 36.5, obligatorio sin excepción). */
-export function disableMfa(accessToken: string, code: string): Promise<void> {
-  return authedJson("/api/v1/users/me/mfa/disable", accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code }),
-  });
 }
 
 // --- Content module: artículos (ArticleAdminController) ---

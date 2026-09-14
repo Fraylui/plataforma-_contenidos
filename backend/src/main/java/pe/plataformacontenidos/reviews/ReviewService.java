@@ -206,11 +206,11 @@ public class ReviewService {
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que el resto de módulos.search (query en blanco: página vacía, no error). */
-    public Page<Review> search(String query, Pageable pageable) {
+    public Page<Review> search(String query, UUID categoryId, UUID geographyId, Pageable pageable) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);
         }
-        return reviewRepository.search(query.trim(), pageable);
+        return reviewRepository.search(query.trim(), categoryId, geographyId, pageable);
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */

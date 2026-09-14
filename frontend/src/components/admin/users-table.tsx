@@ -41,11 +41,6 @@ export function UsersTable({ users, viewer }: { users: AdminUser[]; viewer: Admi
         ),
       },
       {
-        accessorKey: "mfaEnabled",
-        header: "MFA",
-        cell: ({ row }) => <span className="text-muted">{row.original.mfaEnabled ? "Sí" : "No"}</span>,
-      },
-      {
         accessorKey: "lastLoginAt",
         header: "Último acceso",
         cell: ({ row }) => <span className="text-muted">{row.original.lastLoginAt ? formatPublishedDate(row.original.lastLoginAt) : "Nunca"}</span>,

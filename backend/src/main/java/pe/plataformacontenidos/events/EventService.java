@@ -21,6 +21,9 @@ import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.ContentVideo;
+import pe.plataformacontenidos.shared.ContentVideoInput;
+import pe.plataformacontenidos.shared.HtmlSanitizer;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
@@ -60,13 +63,14 @@ public class EventService {
         validatePlace(input.placeId());
         validateDateRange(input.startsAt(), input.endsAt());
         List<ContentImage> images = validateImages(input.images());
-        List<String> youtubeVideoIds = resolveYoutubeVideoIds(input.youtubeUrls());
+        List<ContentVideo> videos = resolveVideos(input.videos());
+        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
-        Event event = new Event(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), input.body(),
+        Event event = new Event(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), sanitizedBody,
                 authorId, input.categoryId(), input.startsAt());
-        event.updateContent(input.title(), input.excerpt(), input.body(), input.categoryId(), input.geographyId(),
+        event.updateContent(input.title(), input.excerpt(), sanitizedBody, input.categoryId(), input.geographyId(),
                 input.placeId(), input.venueName(), input.startsAt(), input.endsAt(), images, input.seoTitle(),
-                input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), youtubeVideoIds, input.robots());
+                input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
 
         Event saved = eventRepository.save(event);
         audit("EVENT_CREATED", saved, authorId);
@@ -88,11 +92,12 @@ public class EventService {
         }
         validateDateRange(input.startsAt(), input.endsAt());
         List<ContentImage> images = validateImages(input.images());
-        List<String> youtubeVideoIds = resolveYoutubeVideoIds(input.youtubeUrls());
+        List<ContentVideo> videos = resolveVideos(input.videos());
+        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
-        event.updateContent(input.title(), input.excerpt(), input.body(), input.categoryId(), input.geographyId(),
+        event.updateContent(input.title(), input.excerpt(), sanitizedBody, input.categoryId(), input.geographyId(),
                 input.placeId(), input.venueName(), input.startsAt(), input.endsAt(), images, input.seoTitle(),
-                input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), youtubeVideoIds, input.robots());
+                input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
         Event saved = eventRepository.save(event);
         audit("EVENT_UPDATED", saved, actingUserId);
         return saved;
@@ -209,11 +214,12 @@ public class EventService {
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que ArticleService/PlaceService.search (query en blanco: página vacía, no error). */
-    public Page<Event> search(String query, Pageable pageable) {
+    public Page<Event> search(String query, UUID categoryId, UUID geographyId, Instant from, Instant to,
+            Pageable pageable) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);
         }
-        return eventRepository.search(query.trim(), pageable);
+        return eventRepository.search(query.trim(), categoryId, geographyId, from, to, pageable);
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
@@ -254,26 +260,27 @@ public class EventService {
             }
             if (input.hasImageId()) {
                 imageService.getOrThrow(input.imageId());
-                result.add(ContentImage.uploaded(input.imageId()));
+                result.add(ContentImage.uploaded(input.imageId(), input.title(), input.caption()));
             } else {
-                result.add(ContentImage.external(input.externalUrl()));
+                result.add(ContentImage.external(input.externalUrl(), input.title(), input.caption()));
             }
         }
         return result;
     }
 
-    /** Nunca se persiste la URL cruda: solo el Video ID (sección 8). Una por cada URL pegada. */
-    private List<String> resolveYoutubeVideoIds(List<String> youtubeUrls) {
-        if (youtubeUrls == null) {
+    /** Nunca se persiste la URL cruda: solo el Video ID (sección 8). Uno por cada video pegado. */
+    private List<ContentVideo> resolveVideos(List<ContentVideoInput> videos) {
+        if (videos == null) {
             return new ArrayList<>();
         }
-        List<String> result = new ArrayList<>(youtubeUrls.size());
-        for (String youtubeUrl : youtubeUrls) {
-            if (youtubeUrl == null || youtubeUrl.isBlank()) {
+        List<ContentVideo> result = new ArrayList<>(videos.size());
+        for (ContentVideoInput input : videos) {
+            if (input.url() == null || input.url().isBlank()) {
                 continue;
             }
-            result.add(YouTubeUrlParser.extractVideoId(youtubeUrl)
-                    .orElseThrow(() -> new InvalidEventYouTubeUrlException(youtubeUrl)));
+            String videoId = YouTubeUrlParser.extractVideoId(input.url())
+                    .orElseThrow(() -> new InvalidEventYouTubeUrlException(input.url()));
+            result.add(new ContentVideo(videoId, input.title(), input.caption()));
         }
         return result;
     }

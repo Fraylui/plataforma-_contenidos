@@ -6,6 +6,7 @@ import java.util.UUID;
 import pe.plataformacontenidos.events.Event;
 import pe.plataformacontenidos.events.EventStatus;
 import pe.plataformacontenidos.shared.ContentImageResponse;
+import pe.plataformacontenidos.shared.ContentVideoResponse;
 
 public record EventResponse(
         UUID id,
@@ -26,7 +27,7 @@ public record EventResponse(
         String metaDescription,
         String canonicalUrl,
         String ogImageUrl,
-        List<String> youtubeVideoIds,
+        List<ContentVideoResponse> videos,
         String robots,
         String rejectionReason,
         Instant publishedAt,
@@ -40,8 +41,9 @@ public record EventResponse(
                 event.getGeographyId(), event.getPlaceId(), event.getVenueName(), event.getStartsAt(),
                 event.getEndsAt(), event.getImages().stream().map(ContentImageResponse::from).toList(),
                 event.getSeoTitle(), event.getMetaDescription(), event.getCanonicalUrl(), event.getOgImageUrl(),
-                event.getYoutubeVideoIds(), event.getRobots(), event.getRejectionReason(), event.getPublishedAt(),
-                event.getScheduledAt(), event.getCreatedAt(), likeCount);
+                event.getVideos().stream().map(ContentVideoResponse::from).toList(), event.getRobots(),
+                event.getRejectionReason(), event.getPublishedAt(), event.getScheduledAt(), event.getCreatedAt(),
+                likeCount);
     }
 
     public static EventResponse from(Event event) {

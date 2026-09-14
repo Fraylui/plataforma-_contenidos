@@ -13,18 +13,17 @@ import {
   listPublishedReviews,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { ArticleCard } from "@/components/article/article-card";
 import { PlaceCard } from "@/components/place/place-card";
 import { ReviewCard } from "@/components/review/review-card";
 import { StarRating } from "@/components/review/star-rating";
 import { LikeShareBar } from "@/components/content/like-share-bar";
+import { ContentImageGallery } from "@/components/content/content-image-gallery";
+import { ContentVideoGallery } from "@/components/content/content-video-gallery";
 import { AdBlock } from "@/components/legal/ad-block";
-import { serverImageUrl } from "@/lib/server-image-url";
 import { SITE_URL } from "@/lib/site-url";
-import { SkeletonImage } from "@/components/ui/skeleton-image";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
-import type { Category, Review } from "@/lib/api/types";
+import type { Category, ContentImage, ContentVideo, Review } from "@/lib/api/types";
 
 const RELATED_SIZE = 4;
 
@@ -98,6 +97,25 @@ function reviewJsonLd(
   };
 }
 
+function breadcrumbJsonLd(review: Review, category: Category | null) {
+  const items = [
+    { name: "Inicio", url: SITE_URL },
+    { name: "Reseñas", url: `${SITE_URL}/resenas` },
+    ...(category ? [{ name: category.name, url: `${SITE_URL}/categorias/${category.slug}` }] : []),
+    { name: review.title, url: `${SITE_URL}/resenas/${review.slug}` },
+  ];
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}
+
 export default async function ReviewPage(props: PageProps<"/resenas/[slug]">) {
   const { slug } = await props.params;
   const review = await loadReview(slug);
@@ -123,8 +141,20 @@ export default async function ReviewPage(props: PageProps<"/resenas/[slug]">) {
   const relatedArticles = relatedArticlesResult?.items ?? [];
 
   const subject = place ? { name: place.name, slug: place.slug } : review.subjectName ? { name: review.subjectName } : null;
-  const [heroImageId, ...galleryImageIds] = review.imageIds;
   const hasSidebar = relatedReviews.length > 0 || relatedPlaces.length > 0 || relatedArticles.length > 0;
+  // Review solo guarda IDs de imágenes subidas y un único video (sin
+  // título/caption/enlace externo como Article/Place/Event) — se adapta acá
+  // mismo para reusar ContentImageGallery/ContentVideoGallery en vez de un
+  // grid armado a mano.
+  const reviewImages: ContentImage[] = review.imageIds.map((id) => ({
+    imageId: id,
+    externalUrl: null,
+    title: null,
+    caption: null,
+  }));
+  const reviewVideos: ContentVideo[] = review.youtubeVideoId
+    ? [{ videoId: review.youtubeVideoId, title: null, caption: null }]
+    : [];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
@@ -132,6 +162,12 @@ export default async function ReviewPage(props: PageProps<"/resenas/[slug]">) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(reviewJsonLd(review, category, settings.name, subject)).replace(/</g, "\\u003c"),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd(review, category)).replace(/</g, "\\u003c"),
         }}
       />
 
@@ -200,36 +236,15 @@ export default async function ReviewPage(props: PageProps<"/resenas/[slug]">) {
             {geography && <span>{geography.name}</span>}
           </div>
 
-          {heroImageId ? (
-            <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-canvas-strong shadow-lg">
-              <SkeletonImage src={serverImageUrl(`/api/v1/images/${heroImageId}/file`)} alt={review.title} className="object-cover" />
-            </div>
-          ) : (
-            <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-canvas-strong shadow-lg">
-              <NoImagePlaceholder />
-            </div>
-          )}
+          <ContentImageGallery
+            images={reviewImages}
+            alt={review.title}
+            spacing="mt-8"
+            background="bg-canvas-strong"
+            fallback={<NoImagePlaceholder />}
+          />
 
-          {galleryImageIds.length > 0 && (
-            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
-              {galleryImageIds.map((id, index) => (
-                <div key={id} className="relative aspect-square overflow-hidden rounded-lg border border-border bg-canvas-strong">
-                  <SkeletonImage
-                    src={serverImageUrl(`/api/v1/images/${id}/file`)}
-                    alt={`${review.title} — fotografía ${index + 2}`}
-                    className="object-cover"
-                    sizes="180px"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {review.youtubeVideoId && (
-            <div className="mt-8 overflow-hidden rounded-2xl border border-border shadow-lg">
-              <YouTubeEmbed videoId={review.youtubeVideoId} title={review.title} />
-            </div>
-          )}
+          <ContentVideoGallery videos={reviewVideos} title={review.title} />
 
           {review.excerpt && (
             <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">{review.excerpt}</p>

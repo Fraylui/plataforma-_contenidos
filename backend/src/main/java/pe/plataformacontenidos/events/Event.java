@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
 import pe.plataformacontenidos.shared.ContentImage;
+import pe.plataformacontenidos.shared.ContentVideo;
 
 /**
  * Página de Evento: título, descripción, fecha/hora de inicio-fin, lugar
@@ -84,8 +85,7 @@ public class Event {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "event_videos", schema = "events", joinColumns = @JoinColumn(name = "event_id"))
     @OrderColumn(name = "sort_order")
-    @Column(name = "video_id")
-    private List<String> youtubeVideoIds = new ArrayList<>();
+    private List<ContentVideo> videos = new ArrayList<>();
 
     @Column(name = "seo_title")
     private String seoTitle;
@@ -193,8 +193,8 @@ public class Event {
         return images.isEmpty() ? null : images.get(0);
     }
 
-    public List<String> getYoutubeVideoIds() {
-        return youtubeVideoIds;
+    public List<ContentVideo> getVideos() {
+        return videos;
     }
 
     public String getSeoTitle() {
@@ -245,7 +245,7 @@ public class Event {
     public void updateContent(String title, String excerpt, String body, UUID categoryId, UUID geographyId,
             UUID placeId, String venueName, Instant startsAt, Instant endsAt, List<ContentImage> images,
             String seoTitle, String metaDescription, String canonicalUrl, String ogImageUrl,
-            List<String> youtubeVideoIds, String robots) {
+            List<ContentVideo> videos, String robots) {
         this.title = title;
         this.excerpt = excerpt;
         this.body = body;
@@ -260,7 +260,7 @@ public class Event {
         this.metaDescription = metaDescription;
         this.canonicalUrl = canonicalUrl;
         this.ogImageUrl = ogImageUrl;
-        this.youtubeVideoIds = new ArrayList<>(youtubeVideoIds);
+        this.videos = new ArrayList<>(videos);
         this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
         this.updatedAt = Instant.now();
     }

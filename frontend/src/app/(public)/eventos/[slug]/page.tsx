@@ -12,10 +12,10 @@ import {
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { formatEventDateTime, isEventFinished } from "@/lib/content-labels";
-import { YouTubeEmbed } from "@/components/article/youtube-embed";
 import { LikeShareBar } from "@/components/content/like-share-bar";
 import { RelatedFeed } from "@/components/content/related-feed";
-import { ContentImageDisplay } from "@/components/content/content-image-display";
+import { ContentImageGallery } from "@/components/content/content-image-gallery";
+import { ContentVideoGallery } from "@/components/content/content-video-gallery";
 import { AdBlock } from "@/components/legal/ad-block";
 import { SITE_URL } from "@/lib/site-url";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
@@ -89,6 +89,25 @@ function eventJsonLd(
   };
 }
 
+function breadcrumbJsonLd(event: Event, category: Category | null) {
+  const items = [
+    { name: "Inicio", url: SITE_URL },
+    { name: "Eventos", url: `${SITE_URL}/eventos` },
+    ...(category ? [{ name: category.name, url: `${SITE_URL}/categorias/${category.slug}` }] : []),
+    { name: event.title, url: `${SITE_URL}/eventos/${event.slug}` },
+  ];
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}
+
 export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
   const { slug } = await props.params;
   const event = await loadEvent(slug);
@@ -111,7 +130,6 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
 
   const venue = place ? { name: place.name, slug: place.slug } : null;
   const finished = isEventFinished(event);
-  const [heroImage, ...galleryImages] = event.images;
   const hasSidebar = related.length > 0;
 
   return (
@@ -120,6 +138,12 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(eventJsonLd(event, category, settings.name, venue)).replace(/</g, "\\u003c"),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbJsonLd(event, category)).replace(/</g, "\\u003c"),
         }}
       />
 
@@ -199,47 +223,26 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
             {geography && <span>{geography.name}</span>}
           </div>
 
-          {heroImage ? (
-            <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-canvas-strong shadow-lg">
-              <ContentImageDisplay image={heroImage} alt={event.title} className="object-cover" />
-            </div>
-          ) : (
-            <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-2xl border border-border bg-canvas-strong shadow-lg">
-              <NoImagePlaceholder />
-            </div>
-          )}
+          <ContentImageGallery
+            images={event.images}
+            alt={event.title}
+            spacing="mt-8"
+            background="bg-canvas-strong"
+            fallback={<NoImagePlaceholder />}
+          />
 
-          {galleryImages.length > 0 && (
-            <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
-              {galleryImages.map((img, index) => (
-                <div
-                  key={img.imageId ?? img.externalUrl}
-                  className="relative aspect-square overflow-hidden rounded-lg border border-border bg-canvas-strong"
-                >
-                  <ContentImageDisplay
-                    image={img}
-                    alt={`${event.title} — fotografía ${index + 2}`}
-                    className="object-cover"
-                    sizes="180px"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {event.youtubeVideoIds.map((videoId) => (
-            <div key={videoId} className="mt-8 overflow-hidden rounded-2xl border border-border shadow-lg">
-              <YouTubeEmbed videoId={videoId} title={event.title} />
-            </div>
-          ))}
+          <ContentVideoGallery videos={event.videos} title={event.title} />
 
           {event.excerpt && (
             <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">{event.excerpt}</p>
           )}
 
-          <div className="mt-6 max-w-none text-base leading-relaxed whitespace-pre-line text-foreground">
-            {event.body}
-          </div>
+          {/* event.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
+              de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí. */}
+          <div
+            className="prose prose-slate sm:prose-lg mt-6 max-w-none prose-headings:font-bold prose-a:text-accent"
+            dangerouslySetInnerHTML={{ __html: event.body }}
+          />
 
           <div className="mt-10">
             <AdBlock position="article" />

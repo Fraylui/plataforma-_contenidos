@@ -23,15 +23,14 @@ public class AuthController {
 
     @PostMapping("/login")
     public TokenResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
-        var tokens = authService.login(
-                request.email(), request.password(), request.mfaCode(), httpRequest.getRemoteAddr());
-        return TokenResponse.of(tokens.accessToken(), tokens.refreshToken(), tokens.mfaSetupRequired());
+        var tokens = authService.login(request.email(), request.password(), httpRequest.getRemoteAddr());
+        return TokenResponse.of(tokens.accessToken(), tokens.refreshToken());
     }
 
     @PostMapping("/refresh")
     public TokenResponse refresh(@Valid @RequestBody RefreshRequest request, HttpServletRequest httpRequest) {
         var tokens = authService.refresh(request.refreshToken(), httpRequest.getRemoteAddr());
-        return TokenResponse.of(tokens.accessToken(), tokens.refreshToken(), tokens.mfaSetupRequired());
+        return TokenResponse.of(tokens.accessToken(), tokens.refreshToken());
     }
 
     @PostMapping("/logout")

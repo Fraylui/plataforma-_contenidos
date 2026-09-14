@@ -2,13 +2,19 @@
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
 import type { ArticleStatus, ArticleType, BusinessType, ContentImage, GeographyLevel } from "./types";
 
+/** Cuerpo de un video en ArticleInput/PlaceInput/EventInput — ver ContentVideoInput.java. */
+export interface ContentVideoInput {
+  url: string;
+  title: string | null;
+  caption: string | null;
+}
+
 export type Role = "SUPER_ADMIN" | "ADMIN" | "EDITOR" | "AUTHOR" | "MODERATOR" | "COLLABORATOR" | "USER";
 
 export interface TokenResponse {
   accessToken: string;
   refreshToken: string;
   tokenType: string;
-  mfaSetupRequired: boolean;
 }
 
 export interface AdminUser {
@@ -20,16 +26,6 @@ export interface AdminUser {
   status: string;
   createdAt: string;
   lastLoginAt: string | null;
-  mfaEnabled: boolean;
-}
-
-export interface MfaEnrollment {
-  provisioningUri: string;
-  secretBase32: string;
-}
-
-export interface MfaBackupCodes {
-  backupCodes: string[];
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/articles — ver ArticleRequest.java. */
@@ -46,7 +42,7 @@ export interface ArticleInput {
   canonicalUrl: string | null;
   ogImageUrl: string | null;
   images: ContentImage[];
-  youtubeUrls: string[];
+  videos: ContentVideoInput[];
   robots: string;
 }
 
@@ -64,7 +60,7 @@ export interface PlaceInput {
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
-  youtubeUrls: string[];
+  videos: ContentVideoInput[];
   robots: string;
 }
 
@@ -84,7 +80,7 @@ export interface EventInput {
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
-  youtubeUrls: string[];
+  videos: ContentVideoInput[];
   robots: string;
 }
 

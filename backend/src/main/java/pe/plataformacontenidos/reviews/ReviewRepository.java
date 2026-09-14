@@ -34,17 +34,24 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre reseñas
      * publicadas — mismo patrón que PlaceRepository/EventRepository.search
-     * (V21__review_search.sql).
+     * (V21__review_search.sql, unaccent en V36__search_unaccent.sql).
      */
     @Query(value = """
             SELECT r.* FROM reviews.reviews r
-            WHERE r.status = 'PUBLISHED' AND r.search_vector @@ websearch_to_tsquery('spanish', :query)
-            ORDER BY ts_rank(r.search_vector, websearch_to_tsquery('spanish', :query)) DESC
+            WHERE r.status = 'PUBLISHED'
+            AND r.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
+            AND (:categoryId IS NULL OR r.category_id = :categoryId)
+            AND (:geographyId IS NULL OR r.geography_id = :geographyId)
+            ORDER BY ts_rank(r.search_vector, websearch_to_tsquery('spanish', public.immutable_unaccent(:query))) DESC
             """,
             countQuery = """
             SELECT count(*) FROM reviews.reviews r
-            WHERE r.status = 'PUBLISHED' AND r.search_vector @@ websearch_to_tsquery('spanish', :query)
+            WHERE r.status = 'PUBLISHED'
+            AND r.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
+            AND (:categoryId IS NULL OR r.category_id = :categoryId)
+            AND (:geographyId IS NULL OR r.geography_id = :geographyId)
             """,
             nativeQuery = true)
-    Page<Review> search(@Param("query") String query, Pageable pageable);
+    Page<Review> search(@Param("query") String query, @Param("categoryId") UUID categoryId,
+            @Param("geographyId") UUID geographyId, Pageable pageable);
 }

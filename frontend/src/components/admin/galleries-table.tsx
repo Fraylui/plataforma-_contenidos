@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Gallery } from "@/lib/api/types";
@@ -9,6 +10,7 @@ import { computeGalleryPermissions } from "@/lib/admin/gallery-permissions";
 import { articleStatusLabel, articleStatusTone, formatPublishedDate } from "@/lib/content-labels";
 import { StatusPill, DataTable } from "@/components/admin/ui";
 import { EditorialRowActions } from "@/components/admin/editorial-row-actions";
+import { EditorialBulkActions } from "@/components/admin/editorial-bulk-actions";
 import {
   approveGalleryAction,
   archiveGalleryAction,
@@ -18,6 +20,9 @@ import {
 } from "@/app/admin/(protected)/galerias/actions";
 
 export function GalleriesTable({ galleries, currentUser }: { galleries: Gallery[]; currentUser: AdminUser }) {
+  const router = useRouter();
+  const [selected, setSelected] = useState<Gallery[]>([]);
+
   const columns = useMemo<ColumnDef<Gallery, unknown>[]>(
     () => [
       {
@@ -69,5 +74,25 @@ export function GalleriesTable({ galleries, currentUser }: { galleries: Gallery[
     [currentUser],
   );
 
-  return <DataTable columns={columns} data={galleries} searchPlaceholder="Buscar galerías…" emptyMessage="Ninguna galería coincide con la búsqueda." />;
+  return (
+    <div>
+      <EditorialBulkActions
+        selected={selected}
+        permissions={{
+          canPublish: (item) => computeGalleryPermissions(item, currentUser).canPublish,
+          canArchive: (item) => computeGalleryPermissions(item, currentUser).canArchive,
+        }}
+        actions={{ publish: publishGalleryAction, archive: archiveGalleryAction }}
+        onDone={() => router.refresh()}
+      />
+      <DataTable
+        columns={columns}
+        data={galleries}
+        searchPlaceholder="Buscar galerías…"
+        emptyMessage="Ninguna galería coincide con la búsqueda."
+        getRowId={(row) => row.id}
+        onSelectionChange={setSelected}
+      />
+    </div>
+  );
 }

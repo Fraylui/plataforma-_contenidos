@@ -21,7 +21,7 @@ function makeArticle(overrides: Partial<Article> = {}): Article {
     canonicalUrl: null,
     ogImageUrl: null,
     images: [],
-    youtubeVideoIds: [],
+    videos: [],
     robots: "index,follow",
     rejectionReason: null,
     publishedAt: null,
@@ -43,7 +43,6 @@ function makeUser(overrides: Partial<AdminUser> = {}): AdminUser {
     status: "ACTIVE",
     createdAt: "2026-01-01T00:00:00Z",
     lastLoginAt: null,
-    mfaEnabled: false,
     ...overrides,
   };
 }

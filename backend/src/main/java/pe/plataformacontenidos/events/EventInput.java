@@ -4,13 +4,14 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.ContentVideoInput;
 
 /**
  * Entrada de creación/edición de evento, ya validada en el DTO de API.
  * geographyId, placeId, venueName y endsAt son opcionales. Cada imagen es
- * subida o por enlace externo (ver ContentImageInput); cada URL de
- * youtubeUrls es la pegada por quien redacta (sección 8) — EventService las
- * convierte a Video ID antes de guardar, igual que Article/Place.
+ * subida o por enlace externo (ver ContentImageInput); cada video trae la
+ * URL pegada por quien redacta (sección 8) — EventService la convierte a
+ * Video ID antes de guardar, igual que Article/Place.
  */
 public record EventInput(
         String title,
@@ -27,6 +28,6 @@ public record EventInput(
         String metaDescription,
         String canonicalUrl,
         String ogImageUrl,
-        List<String> youtubeUrls,
+        List<ContentVideoInput> videos,
         String robots) {
 }

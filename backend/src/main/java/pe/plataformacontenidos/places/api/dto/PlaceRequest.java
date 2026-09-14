@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 import pe.plataformacontenidos.places.PlaceInput;
 import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.ContentVideoInput;
 
 public record PlaceRequest(
         @NotBlank @Size(max = 200) String name,
@@ -23,12 +24,12 @@ public record PlaceRequest(
         String metaDescription,
         String canonicalUrl,
         String ogImageUrl,
-        List<String> youtubeUrls,
+        List<ContentVideoInput> videos,
         String robots) {
 
     public PlaceInput toInput() {
         return new PlaceInput(name, excerpt, body, categoryId, geographyId, latitude, longitude,
                 images == null ? List.of() : images, seoTitle, metaDescription, canonicalUrl, ogImageUrl,
-                youtubeUrls == null ? List.of() : youtubeUrls, robots);
+                videos == null ? List.of() : videos, robots);
     }
 }

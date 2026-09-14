@@ -27,6 +27,9 @@ import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.ContentVideo;
+import pe.plataformacontenidos.shared.ContentVideoInput;
+import pe.plataformacontenidos.shared.HtmlSanitizer;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
@@ -68,13 +71,14 @@ public class PlaceService {
         }
         validateGeography(input.geographyId());
         List<ContentImage> images = validateImages(input.images());
-        List<String> youtubeVideoIds = resolveYoutubeVideoIds(input.youtubeUrls());
+        List<ContentVideo> videos = resolveVideos(input.videos());
+        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
-        Place place = new Place(uniqueSlugFrom(input.name()), input.name(), input.excerpt(), input.body(), authorId,
+        Place place = new Place(uniqueSlugFrom(input.name()), input.name(), input.excerpt(), sanitizedBody, authorId,
                 input.categoryId());
-        place.updateContent(input.name(), input.excerpt(), input.body(), input.categoryId(), input.geographyId(),
+        place.updateContent(input.name(), input.excerpt(), sanitizedBody, input.categoryId(), input.geographyId(),
                 input.latitude(), input.longitude(), images, input.seoTitle(), input.metaDescription(),
-                input.canonicalUrl(), input.ogImageUrl(), youtubeVideoIds, input.robots());
+                input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
 
         Place saved = placeRepository.save(place);
         audit("PLACE_CREATED", saved, authorId);
@@ -92,11 +96,12 @@ public class PlaceService {
             validateGeography(input.geographyId());
         }
         List<ContentImage> images = validateImages(input.images());
-        List<String> youtubeVideoIds = resolveYoutubeVideoIds(input.youtubeUrls());
+        List<ContentVideo> videos = resolveVideos(input.videos());
+        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
-        place.updateContent(input.name(), input.excerpt(), input.body(), input.categoryId(), input.geographyId(),
+        place.updateContent(input.name(), input.excerpt(), sanitizedBody, input.categoryId(), input.geographyId(),
                 input.latitude(), input.longitude(), images, input.seoTitle(), input.metaDescription(),
-                input.canonicalUrl(), input.ogImageUrl(), youtubeVideoIds, input.robots());
+                input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
         Place saved = placeRepository.save(place);
         audit("PLACE_UPDATED", saved, actingUserId);
         return saved;
@@ -228,11 +233,11 @@ public class PlaceService {
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que ArticleService.search (query en blanco: página vacía, no error). */
-    public Page<Place> search(String query, Pageable pageable) {
+    public Page<Place> search(String query, UUID categoryId, UUID geographyId, Pageable pageable) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);
         }
-        return placeRepository.search(query.trim(), pageable);
+        return placeRepository.search(query.trim(), categoryId, geographyId, pageable);
     }
 
     /**
@@ -277,26 +282,27 @@ public class PlaceService {
             }
             if (input.hasImageId()) {
                 imageService.getOrThrow(input.imageId());
-                result.add(ContentImage.uploaded(input.imageId()));
+                result.add(ContentImage.uploaded(input.imageId(), input.title(), input.caption()));
             } else {
-                result.add(ContentImage.external(input.externalUrl()));
+                result.add(ContentImage.external(input.externalUrl(), input.title(), input.caption()));
             }
         }
         return result;
     }
 
-    /** Nunca se persiste la URL cruda: solo el Video ID (sección 8). Una por cada URL pegada. */
-    private List<String> resolveYoutubeVideoIds(List<String> youtubeUrls) {
-        if (youtubeUrls == null) {
+    /** Nunca se persiste la URL cruda: solo el Video ID (sección 8). Uno por cada video pegado. */
+    private List<ContentVideo> resolveVideos(List<ContentVideoInput> videos) {
+        if (videos == null) {
             return new ArrayList<>();
         }
-        List<String> result = new ArrayList<>(youtubeUrls.size());
-        for (String youtubeUrl : youtubeUrls) {
-            if (youtubeUrl == null || youtubeUrl.isBlank()) {
+        List<ContentVideo> result = new ArrayList<>(videos.size());
+        for (ContentVideoInput input : videos) {
+            if (input.url() == null || input.url().isBlank()) {
                 continue;
             }
-            result.add(YouTubeUrlParser.extractVideoId(youtubeUrl)
-                    .orElseThrow(() -> new InvalidPlaceYouTubeUrlException(youtubeUrl)));
+            String videoId = YouTubeUrlParser.extractVideoId(input.url())
+                    .orElseThrow(() -> new InvalidPlaceYouTubeUrlException(input.url()));
+            result.add(new ContentVideo(videoId, input.title(), input.caption()));
         }
         return result;
     }

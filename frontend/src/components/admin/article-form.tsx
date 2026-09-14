@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
 import type { Article, ArticleType, Category, ContentImage, GeographicUnit } from "@/lib/api/types";
-import type { AdminImage, ArticleInput } from "@/lib/api/admin-types";
+import type { AdminImage, ArticleInput, ContentVideoInput } from "@/lib/api/admin-types";
 import type { ArticlePermissions } from "@/lib/admin/article-permissions";
 import { articleTypeLabel, articleStatusLabel } from "@/lib/content-labels";
 import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
@@ -74,8 +74,12 @@ export function ArticleForm({
   const [canonicalUrl, setCanonicalUrl] = useState(article?.canonicalUrl ?? "");
   const [ogImageUrl, setOgImageUrl] = useState(article?.ogImageUrl ?? "");
   const [images, setImages] = useState<ContentImage[]>(article?.images ?? []);
-  const [youtubeUrls, setYoutubeUrls] = useState<string[]>(
-    article?.youtubeVideoIds.map((id) => `https://www.youtube.com/watch?v=${id}`) ?? [],
+  const [videos, setVideos] = useState<ContentVideoInput[]>(
+    article?.videos.map((v) => ({
+      url: `https://www.youtube.com/watch?v=${v.videoId}`,
+      title: v.title,
+      caption: v.caption,
+    })) ?? [],
   );
   const [robots, setRobots] = useState(article?.robots ?? "index,follow");
 
@@ -98,7 +102,7 @@ export function ArticleForm({
       canonicalUrl: canonicalUrl || null,
       ogImageUrl: ogImageUrl || null,
       images,
-      youtubeUrls,
+      videos,
       robots,
     };
   }
@@ -141,7 +145,7 @@ export function ArticleForm({
 
       {readOnly && (
         <p className="rounded-md border border-border bg-accent-soft px-4 py-3 text-sm text-accent">
-          Este artículo no se puede editar en su estado/rol actual. Puedes seguir viendo el contenido.
+          Esta publicación no se puede editar en su estado/rol actual. Puedes seguir viendo el contenido.
         </p>
       )}
 
@@ -214,8 +218,8 @@ export function ArticleForm({
           <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
         </FormField>
 
-        <FormField label="Videos de YouTube (opcional — uno o varios)" name="youtubeUrls">
-          <VideoLinksEditor value={youtubeUrls} onChange={setYoutubeUrls} disabled={readOnly} />
+        <FormField label="Videos de YouTube (opcional — uno o varios)" name="videos">
+          <VideoLinksEditor value={videos} onChange={setVideos} disabled={readOnly} />
         </FormField>
       </div>
 

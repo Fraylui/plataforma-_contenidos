@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
  * *Service (Article/Place/Event) valida la forma y, si es una imagen
  * subida, que exista en Media, antes de convertirla en ContentImage.
  */
-public record ContentImageInput(UUID imageId, String externalUrl) {
+public record ContentImageInput(UUID imageId, String externalUrl, String title, String caption) {
 
     private static final Pattern HTTP_URL = Pattern.compile("^https?://.+", Pattern.CASE_INSENSITIVE);
 

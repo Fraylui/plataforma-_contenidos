@@ -19,9 +19,9 @@ export default async function TermsOfUsePage() {
       title: "Qué es este sitio",
       content: (
         <p>
-          {settings.name} es una plataforma de contenidos: artículos, lugares y otros formatos que se van sumando,
-          todos con revisión editorial antes de publicarse. Al navegar el sitio aceptás estos términos — hoy no hace
-          falta registrarte ni pagar para leer nada.
+          {settings.name} es una plataforma de contenidos: publicaciones, lugares y otros formatos que se van
+          sumando, todos con un proceso de revisión antes de publicarse. Al navegar el sitio aceptás estos términos —
+          hoy no hace falta registrarte ni pagar para leer nada.
         </p>
       ),
     },
@@ -41,8 +41,8 @@ export default async function TermsOfUsePage() {
       title: "Contenido y publicidad",
       content: (
         <p>
-          El contenido editorial y la publicidad se muestran diferenciados; lo patrocinado se marca como tal, nunca
-          se presenta como nota independiente.{" "}
+          El contenido y la publicidad se muestran diferenciados; lo patrocinado se marca como tal, nunca se
+          presenta como contenido independiente.{" "}
           {settings.adsenseEnabled
             ? "Este sitio muestra publicidad vía Google AdSense — ver la Política de Privacidad."
             : "Hoy el sitio no muestra publicidad de terceros."}

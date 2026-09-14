@@ -98,12 +98,6 @@ export function UserCreateForm({ viewerRole }: { viewerRole: Role }) {
         </select>
       </label>
 
-      {role === "SUPER_ADMIN" && (
-        <p className="text-xs text-muted">
-          MFA será obligatorio para esta cuenta desde su primer login (CONTEXTO.md §36.5).
-        </p>
-      )}
-
       {error && (
         <p role="alert" className="text-sm text-red-600 dark:text-red-400">
           {error}

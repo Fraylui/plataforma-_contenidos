@@ -40,21 +40,32 @@ public interface ArticleRepository extends JpaRepository<Article, UUID> {
 
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre artículos
-     * publicados, vía la columna generada search_vector (V12__article_search.sql).
-     * websearch_to_tsquery interpreta la sintaxis "estilo Google" (frases con
-     * comillas, "-" para excluir) y sanea el input — no hay riesgo de
-     * inyección, va como bind param. Sin Pageable.getSort(): el orden lo
+     * publicados, vía la columna generada search_vector (V12__article_search.sql,
+     * normalizada sin acentos en V36__search_unaccent.sql). websearch_to_tsquery
+     * interpreta la sintaxis "estilo Google" (frases con comillas, "-" para
+     * excluir) y sanea el input — no hay riesgo de inyección, va como bind
+     * param. immutable_unaccent envuelve tanto la columna indexada como la
+     * consulta, para que "peru" encuentre "Perú" en cualquier dirección.
+     * categoryId/geographyId opcionales vía "param IS NULL OR" (mismo patrón
+     * que EventRepository.findUpcoming). Sin Pageable.getSort(): el orden lo
      * gobierna ts_rank, no un ORDER BY genérico de Spring Data.
      */
     @Query(value = """
             SELECT a.* FROM content.articles a
-            WHERE a.status = 'PUBLISHED' AND a.search_vector @@ websearch_to_tsquery('spanish', :query)
-            ORDER BY ts_rank(a.search_vector, websearch_to_tsquery('spanish', :query)) DESC
+            WHERE a.status = 'PUBLISHED'
+            AND a.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
+            AND (:categoryId IS NULL OR a.category_id = :categoryId)
+            AND (:geographyId IS NULL OR a.geography_id = :geographyId)
+            ORDER BY ts_rank(a.search_vector, websearch_to_tsquery('spanish', public.immutable_unaccent(:query))) DESC
             """,
             countQuery = """
             SELECT count(*) FROM content.articles a
-            WHERE a.status = 'PUBLISHED' AND a.search_vector @@ websearch_to_tsquery('spanish', :query)
+            WHERE a.status = 'PUBLISHED'
+            AND a.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
+            AND (:categoryId IS NULL OR a.category_id = :categoryId)
+            AND (:geographyId IS NULL OR a.geography_id = :geographyId)
             """,
             nativeQuery = true)
-    Page<Article> search(@Param("query") String query, Pageable pageable);
+    Page<Article> search(@Param("query") String query, @Param("categoryId") UUID categoryId,
+            @Param("geographyId") UUID geographyId, Pageable pageable);
 }

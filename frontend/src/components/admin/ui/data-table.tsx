@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   type ColumnDef,
+  type RowSelectionState,
   type SortingState,
   flexRender,
   getCoreRowModel,
@@ -19,25 +20,61 @@ interface DataTableProps<TData> {
   data: TData[];
   searchPlaceholder?: string;
   emptyMessage?: string;
+  /**
+   * Selección de filas (casilla en cada una + "seleccionar todo" en el
+   * encabezado) — opcional, solo se activa si se pasan ambas props. Usado
+   * por las 6 tablas de contenido para las acciones en lote (publicar/
+   * archivar varios a la vez, ver editorial-bulk-actions.tsx).
+   */
+  getRowId?: (row: TData) => string;
+  onSelectionChange?: (selected: TData[]) => void;
 }
 
-/** Tabla interactiva genérica: orden por columna, búsqueda en vivo (todas las columnas), paginación. Reutilizable en cualquier listado admin. */
-export function DataTable<TData>({ columns, data, searchPlaceholder = "Buscar…", emptyMessage = "Sin resultados." }: DataTableProps<TData>) {
+/** Tabla interactiva genérica: orden por columna, búsqueda en vivo (todas las columnas), paginación, selección opcional. Reutilizable en cualquier listado admin. */
+export function DataTable<TData>({
+  columns,
+  data,
+  searchPlaceholder = "Buscar…",
+  emptyMessage = "Sin resultados.",
+  getRowId,
+  onSelectionChange,
+}: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const selectable = Boolean(getRowId && onSelectionChange);
+
+  const effectiveColumns = useMemo<ColumnDef<TData, unknown>[]>(
+    () => (selectable ? [selectionColumn<TData>(), ...columns] : columns),
+    [columns, selectable],
+  );
 
   const table = useReactTable({
     data,
-    columns,
-    state: { sorting, globalFilter },
+    columns: effectiveColumns,
+    state: { sorting, globalFilter, rowSelection },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
+    onRowSelectionChange: setRowSelection,
+    getRowId: getRowId ? (row) => getRowId(row) : undefined,
+    enableRowSelection: selectable,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     initialState: { pagination: { pageSize: 20 } },
   });
+
+  // Notifica al padre con los objetos completos (no solo los IDs) cada vez
+  // que cambia la selección — el padre calcula permisos/arma las Server
+  // Actions con eso, DataTable no sabe nada de contenido editorial.
+  useEffect(() => {
+    if (!onSelectionChange) return;
+    onSelectionChange(table.getSelectedRowModel().rows.map((row) => row.original));
+    // table es estable entre renders (mismo objeto de useReactTable); solo
+    // rowSelection dispara un cambio real de selección.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rowSelection, onSelectionChange]);
 
   return (
     <div>
@@ -90,7 +127,7 @@ export function DataTable<TData>({ columns, data, searchPlaceholder = "Buscar…
           <tbody>
             {table.getRowModel().rows.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-10 text-center text-muted">
+                <td colSpan={effectiveColumns.length} className="px-4 py-10 text-center text-muted">
                   {emptyMessage}
                 </td>
               </tr>
@@ -144,4 +181,34 @@ export function DataTable<TData>({ columns, data, searchPlaceholder = "Buscar…
       )}
     </div>
   );
+}
+
+/** Columna de casilla de selección, prependeada a `columns` solo cuando la tabla es seleccionable (ver DataTableProps). */
+function selectionColumn<TData>(): ColumnDef<TData, unknown> {
+  return {
+    id: "select",
+    header: ({ table }) => (
+      <input
+        type="checkbox"
+        aria-label="Seleccionar todas las filas visibles"
+        checked={table.getIsAllPageRowsSelected()}
+        ref={(el) => {
+          if (el) el.indeterminate = table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected();
+        }}
+        onChange={table.getToggleAllPageRowsSelectedHandler()}
+        className="h-4 w-4 cursor-pointer rounded border-border accent-accent"
+      />
+    ),
+    cell: ({ row }) => (
+      <input
+        type="checkbox"
+        aria-label="Seleccionar fila"
+        checked={row.getIsSelected()}
+        disabled={!row.getCanSelect()}
+        onChange={row.getToggleSelectedHandler()}
+        className="h-4 w-4 cursor-pointer rounded border-border accent-accent"
+      />
+    ),
+    enableSorting: false,
+  };
 }
