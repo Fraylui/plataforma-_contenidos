@@ -14,9 +14,7 @@ import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
 import pe.plataformacontenidos.shared.ContentImage;
@@ -63,11 +61,6 @@ public class Article {
 
     @Column(name = "category_id", nullable = false)
     private UUID categoryId;
-
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "article_tags", schema = "content", joinColumns = @JoinColumn(name = "article_id"))
-    @Column(name = "tag_id")
-    private Set<UUID> tagIds = new HashSet<>();
 
     @Column(name = "seo_title")
     private String seoTitle;
@@ -167,10 +160,6 @@ public class Article {
         return categoryId;
     }
 
-    public Set<UUID> getTagIds() {
-        return tagIds;
-    }
-
     public String getSeoTitle() {
         return seoTitle;
     }
@@ -234,14 +223,13 @@ public class Article {
     }
 
     public void updateContent(String title, String excerpt, String body, ArticleType articleType, UUID categoryId,
-            Set<UUID> tagIds, String seoTitle, String metaDescription, String canonicalUrl,
+            String seoTitle, String metaDescription, String canonicalUrl,
             String ogImageUrl, List<ContentImage> images, List<ContentVideo> videos, String robots) {
         this.title = title;
         this.excerpt = excerpt;
         this.body = body;
         this.articleType = articleType;
         this.categoryId = categoryId;
-        this.tagIds = new HashSet<>(tagIds);
         this.seoTitle = seoTitle;
         this.metaDescription = metaDescription;
         this.canonicalUrl = canonicalUrl;

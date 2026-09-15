@@ -1,5 +1,5 @@
 import "server-only";
-import type { ArticleSummary, EventSummary, FeedItem, GallerySummary, PlaceSummary, ReviewSummary } from "@/lib/api/types";
+import type { ArticleSummary, EventSummary, FeedItem, GallerySummary, PlaceSummary } from "@/lib/api/types";
 import { articleTypeLabel, formatArticleDate, formatEventDateTime, formatShortDate } from "@/lib/content-labels";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { KIND_LABEL, type HomeItemKind } from "@/lib/content-kind";
@@ -7,9 +7,9 @@ import { KIND_LABEL, type HomeItemKind } from "@/lib/content-kind";
 export type { HomeItemKind };
 
 /**
- * Forma común de los 5 tipos de contenido para el home: la portada mezcla
- * Publicaciones, Lugares, Eventos, Galerías y Reseñas en las mismas
- * tarjetas, así que el home no debería conocer 5 DTOs distintos. Todo lo
+ * Forma común de los tipos de contenido para el home: la portada mezcla
+ * Publicaciones, Lugares, Eventos y Galerías en las mismas
+ * tarjetas, así que el home no debería conocer varios DTOs distintos. Todo lo
  * que necesita un Client Component (hero, categoría en foco) viene ya
  * resuelto acá en el servidor: URL de imagen, etiquetas, fechas formateadas.
  */
@@ -108,23 +108,6 @@ export function fromGallery(g: GallerySummary): HomeItem {
   };
 }
 
-export function fromReview(r: ReviewSummary): HomeItem {
-  return {
-    id: r.id,
-    kind: "resena",
-    slug: r.slug,
-    likeCount: r.likeCount,
-    href: `/resenas/${r.slug}`,
-    title: r.title,
-    excerpt: r.excerpt,
-    imageUrl: image(r.coverImageId),
-    categoryId: r.categoryId,
-    typeLabel: KIND_LABEL.resena,
-    sortDate: r.publishedAt ?? "",
-    dateLabel: formatShortDate(r.publishedAt),
-  };
-}
-
 const FEED_KIND: Record<FeedItem["type"], HomeItemKind> = {
   ARTICLE: "publicacion",
   PLACE: "lugar",
@@ -136,7 +119,6 @@ const FEED_HREF_PREFIX: Record<HomeItemKind, string> = {
   lugar: "/lugares",
   evento: "/eventos",
   galeria: "/galerias",
-  resena: "/resenas",
 };
 
 /**

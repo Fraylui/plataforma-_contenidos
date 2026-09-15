@@ -59,7 +59,7 @@ class StatsIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Artículo para estadísticas\",\"excerpt\":\"Resumen\","
                                 + "\"body\":\"Cuerpo suficientemente largo.\",\"articleType\":\"ARTICULO\","
-                                + "\"categoryId\":\"" + categoryId + "\",\"tagNames\":[]}"))
+                                + "\"categoryId\":\"" + categoryId + "\"}"))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(get("/api/v1/admin/stats").header("Authorization", "Bearer " + editorToken))

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUp, BookOpen, Building2, CalendarDays, Images, Mail, MapPin, Star } from "lucide-react";
+import { ArrowRight, ArrowUp, BookOpen, Building2, CalendarDays, Images, Mail, MapPin } from "lucide-react";
 import {
   getPlatformSettings,
   getPrimaryNavVisibility,
@@ -15,7 +15,6 @@ const EXPLORE_LINKS = [
   { href: "/lugares", label: "Lugares", Icon: MapPin },
   { href: "/eventos", label: "Eventos", Icon: CalendarDays },
   { href: "/galerias", label: "Galerías", Icon: Images },
-  { href: "/resenas", label: "Reseñas", Icon: Star },
   { href: "/directorio", label: "Directorio", Icon: Building2 },
 ];
 

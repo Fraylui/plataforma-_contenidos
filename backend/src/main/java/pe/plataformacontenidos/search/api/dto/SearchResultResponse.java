@@ -7,7 +7,6 @@ import pe.plataformacontenidos.directory.Business;
 import pe.plataformacontenidos.events.Event;
 import pe.plataformacontenidos.galleries.Gallery;
 import pe.plataformacontenidos.places.Place;
-import pe.plataformacontenidos.reviews.Review;
 import pe.plataformacontenidos.search.SearchResultType;
 import pe.plataformacontenidos.shared.ContentImage;
 
@@ -20,7 +19,7 @@ import pe.plataformacontenidos.shared.ContentImage;
  * `slug` (/publicaciones/{slug} o /lugares/{slug}). featuredImageId/
  * featuredImageUrl son excluyentes (ver ContentImage) en Article/Place/
  * Event, que ya soportan imágenes por enlace externo además de subidas;
- * Gallery/Review/Business todavía son solo imágenes subidas.
+ * Gallery/Business todavía son solo imágenes subidas.
  */
 public record SearchResultResponse(
         SearchResultType contentType,
@@ -97,22 +96,6 @@ public record SearchResultResponse(
                 null,
                 false,
                 gallery.getPublishedAt(),
-                null);
-    }
-
-    public static SearchResultResponse fromReview(Review review) {
-        UUID coverImageId = review.getImageIds().isEmpty() ? null : review.getImageIds().get(0);
-        return new SearchResultResponse(
-                SearchResultType.REVIEW,
-                review.getId(),
-                review.getSlug(),
-                review.getTitle(),
-                review.getExcerpt(),
-                review.getCategoryId(),
-                coverImageId,
-                null,
-                review.getYoutubeVideoId() != null,
-                review.getPublishedAt(),
                 null);
     }
 

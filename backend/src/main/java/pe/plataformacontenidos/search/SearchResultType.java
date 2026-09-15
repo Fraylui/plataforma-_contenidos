@@ -6,6 +6,5 @@ public enum SearchResultType {
     PLACE,
     EVENT,
     GALLERY,
-    REVIEW,
     BUSINESS
 }

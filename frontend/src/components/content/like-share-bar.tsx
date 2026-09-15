@@ -4,7 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 import { Check, Heart, Share2 } from "lucide-react";
 import { getOrCreateVisitorId } from "@/lib/visitor-id";
 
-export type LikeableContentType = "articles" | "places" | "events" | "galleries" | "reviews" | "directory";
+export type LikeableContentType = "articles" | "places" | "events" | "galleries" | "directory";
 
 const CHANGE_EVENT = "like-share-bar-change";
 

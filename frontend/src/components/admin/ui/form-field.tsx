@@ -16,8 +16,8 @@ const FORM_CONTROL_TAGS = new Set(["input", "select", "textarea"]);
  * "string" como tipo de React, y clonarle id/name ahí ponía el label a
  * apuntar a un <div>, no un control de formulario real ("Incorrect use of
  * <label for>", encontrado en la consola real del sitio). Un componente
- * propio (Combobox, TagInput, etc.) tampoco entra acá, por la misma razón
- * de siempre: no declara esas props.
+ * propio (Combobox, etc.) tampoco entra acá, por la misma razón de siempre:
+ * no declara esas props.
  */
 export function FormField({ label, name, children }: { label: string; name: string; children: ReactNode }) {
   const child = Children.only(children);

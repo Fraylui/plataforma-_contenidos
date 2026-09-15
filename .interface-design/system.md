@@ -1,81 +1,107 @@
 # Sistema de diseño — panel administrativo
 
+Regenerado 2026-09-15 desde el código real tras el pase de modernización
+(paleta Slate + acento verde, formularios de dos columnas). La versión
+anterior de este documento describía un sistema (acento terracota/adobe,
+tipografía serif Newsreader) que ya no existe en el código — no usarla como
+referencia.
+
 ## Dirección y sensación
 
-Panel de gestión de una **plataforma de contenidos** (Perú/Ayacucho para
-empezar, CONTEXTO.md sección 1) — un ecosistema de contenidos conectados
-(artículos, lugares, y a futuro eventos/directorio/cultura, sección 1.1),
-no una redacción de diario. "Editorial" acá significa **curado y
-confiable** (hay revisión antes de publicar, sección 12) — no "sección de
-periódico". Ningún tipo de contenido debe sentirse como un apéndice
-forzado dentro de un formato pensado solo para artículos de actualidad.
+Panel de gestión de una plataforma de contenidos operada por una sola
+persona (fundador solo, sin redacción con múltiples periodistas) — moderno,
+funcional, sin ornamento editorial de "sala de redacción". Los 5 tipos de
+contenido (Publicaciones, Eventos, Lugares, Directorio, Galerías) comparten
+exactamente el mismo lenguaje de formulario; ningún tipo debe sentirse como
+un apéndice.
 
-Para pantallas de **datos/visualización específicamente** (no formularios
-ni tablas CRUD) — hoy solo Estadísticas — sigue teniendo sentido tomar
-prestado el lenguaje de "línea de producción editorial, índice de
-sección, colofón/staff" descrito más abajo, porque ahí sí se está
-mostrando el proceso editorial (workflow de aprobación, quién publica) —
-no porque el producto entero sea un diario. Si se agrega Eventos/
-Directorio, sus pantallas de datos pueden necesitar su propio lenguaje
-(ej. agenda/calendario para Eventos, no "cierre de edición").
-
-Las tablas CRUD (Categorías, Geografía, Usuarios) y los formularios
-(Configuración, crear artículo) siguen el patrón simple ya establecido:
-Tailwind directo sobre tokens, tabla con `border-border`/`bg-surface`,
-formularios con `input`/`select` estándar. Esta sección es solo para
-pantallas nuevas de **datos agregados/visualización** (ej. futuras
-pantallas de auditoría, analítica).
-
-## Tokens (ya existentes en globals.css — no se agregan nuevos)
+## Tokens (`frontend/src/app/globals.css`)
 
 ```
 --background --surface --foreground --muted --border
 --accent --accent-foreground --accent-soft
 ```
 
-Un solo acento (hoy terracota/adobe, placeholder de marca — sección 14).
-Nunca introducir un segundo hue: variar solo **intensidad** vía opacidad
-(`bg-accent/20` … `bg-accent`) para comunicar progresión/orden, no colores
-distintos por categoría.
+Un solo acento: verde (`#166534` en modo claro, `#4ade80` en modo oscuro).
+Nunca introducir un segundo hue — variar solo intensidad vía opacidad
+(`accent/15`…`accent`, o el derivado `--accent-soft`) para jerarquía, no
+color por categoría.
 
 ## Tipografía
 
-- `font-serif` (Newsreader) para headings Y para cifras destacadas
-  (`tabular-nums`) — las cifras de "cierre de edición" se leen como un
-  titular, no como una etiqueta de UI.
-- `font-sans` (Inter, default) para labels, texto de apoyo, navegación.
-- Labels de sección en mayúsculas trackeadas: `text-xs font-medium
-  tracking-wide text-muted uppercase`.
+Sans (Inter) en todo el panel — labels, headings, cifras, texto de cuerpo.
+No hay uso de `font-serif` en el admin (a diferencia de una iteración
+anterior de este sistema). Labels de sección en mayúsculas trackeadas:
+`text-xs font-medium tracking-wide text-muted uppercase`.
 
 ## Depth / bordes
 
-Solo bordes (`border-border`), sin sombras. Consistente con el resto del
-panel admin (tablas, cards de geografía/categorías).
+Regla base: **solo bordes** (`border-border`, 71 usos) en superficies en
+reposo — cards, tablas, inputs, formularios. Sin sombra en estos casos.
 
-## Patrones de componente (reutilizables cuando se repita el caso)
+**Excepción documentada** (no es una regla rota): elementos flotantes/overlay
+que se posicionan *sobre* el contenido sí usan sombra para leerse como capa
+elevada — `combobox.tsx` (`shadow-lg`), `dropdown-menu.tsx` (`shadow-lg`),
+`dialog.tsx`/`alert-dialog.tsx` (`shadow-xl`), tarjeta de login
+(`shadow-sm`). Aplica solo a overlays/popovers/modales, nunca a una card o
+tabla en el flujo normal de la página.
 
-**Barra de proceso/pipeline** (ver `stats-dashboard.tsx`, sección "Línea
-editorial"): segmentos horizontales proporcionales a conteos, orden real
-del proceso de negocio (no alfabético), intensidad de acento creciente
-hacia el estado "final deseado". Usar para cualquier flujo con estados
-secuenciales (editorial, moderación, etc.), nunca un donut/pie genérico.
+## Radios
 
-**Fila de índice** (`IndexRow` en `stats-dashboard.tsx`): `label —
-guía de puntos (border-dotted) — valor en font-serif tabular-nums`. Para
-listas cortas de "conteo total / activos" tipo sumario.
+- `rounded-md` — el más usado (52), para inputs, botones, filas de tabla.
+- `rounded-xl` — cards contenedoras (`SectionCard`, diálogos, tarjeta de
+  login) — 16 usos.
+- `rounded-lg` — overlays flotantes (combobox, dropdown-menu) — 13 usos.
+- `rounded-full` — pills de estado (`StatusPill`), avatares, badges — 9 usos.
 
-**Roster/staff con barras** (`RoleRoster`): label fijo + barra
-proporcional (`bg-border` de fondo, `bg-accent` relleno) + valor numérico
-a la derecha. Para desgloses por categoría (roles, tipos) cuando hay
-pocas filas (<10) y el orden importa más que la exactitud de un chart.
+## Espaciado
 
-**Cifras de cierre de edición**: grid con `divide-x divide-border`,
-número grande `font-serif text-3xl tabular-nums`, label debajo en
-mayúsculas pequeñas. Para 3–4 KPIs destacados al tope de una pantalla de
-datos.
+- Cards: `p-5` (patrón dominante, 8 usos) para el padding interior de una
+  `SectionCard`; `p-6`/`p-8` solo para diálogos modales y la tarjeta de
+  login (contenedores centrados, no parte del flujo de formulario).
+- Ritmo vertical entre secciones de un formulario: `space-y-6` (17 usos).
+- Ritmo vertical dentro de una card/sección: `space-y-4` (patrón de
+  `SectionCard`) o `space-y-2`/`space-y-3` para grupos más apretados
+  (label + input, filas de lista).
+- Gaps horizontales: `gap-2` (más común, botones/badges en fila), `gap-4`
+  (grids de formulario), `gap-6` (columnas del layout de dos columnas).
+
+## Patrones de componente reutilizables
+
+**Card de sección** (`SectionCard`, `frontend/src/components/admin/ui/section-card.tsx`
+— extraído del duplicado que existía en 5 formularios de contenido):
+`rounded-xl border border-border/60 bg-surface p-5 space-y-4`, título
+`text-sm font-semibold text-foreground`. Es el bloque base de cualquier
+agrupación de campos.
+
+**Sección colapsable** (`CollapsibleSection`, mismo archivo): igual
+contenedor que `SectionCard` pero cerrado por defecto con toggle
+(`ChevronDown` rotable) — para lo avanzado/opcional (SEO) que no debe
+competir visualmente con el contenido principal.
+
+**Formulario de contenido de dos columnas** (referencia:
+`frontend/src/components/admin/article-form.tsx`, mismo patrón en
+event-form/place-form/business-form/gallery-form): `grid grid-cols-1 gap-6
+lg:grid-cols-[1fr_340px] lg:items-start` — columna principal (Contenido +
+SEO colapsable) a la izquierda, columna angosta (Publicar + Organización +
+Medios) a la derecha, visible sin scrollear todo el formulario.
+
+**Combobox en vez de `<select>` nativo** (`components/admin/ui/combobox.tsx`):
+usado en todos los formularios de contenido para selects con estilo
+consistente. Excepción legítima: formularios GET server-rendered sin estado
+de cliente (ej. filtro de `/admin/auditoria`) siguen usando `<select>`
+nativo por necesidad técnica, no por inconsistencia — si se retoma ese caso,
+al menos alinear el estilo visual (chevron custom) aunque siga siendo nativo.
+
+**Barra de proceso/pipeline, fila de índice, roster con barras** (ver
+`stats-dashboard.tsx`): patrones específicos de pantallas de datos/analítica
+(hoy solo Estadísticas) — no aplican a formularios ni tablas CRUD. Ver el
+propio archivo como referencia si se agrega una nueva pantalla de datos
+agregados.
 
 ## Referencia de implementación
 
-`frontend/src/components/admin/stats-dashboard.tsx` — primera pantalla
-que aplica este sistema. Punto de partida para la próxima pantalla de
-datos/visualización del panel.
+`frontend/src/components/admin/article-form.tsx` +
+`frontend/src/components/admin/ui/section-card.tsx` — el par formulario +
+primitivas compartidas más reciente y más reutilizado (5 formularios de
+contenido lo siguen). Punto de partida para cualquier formulario nuevo.

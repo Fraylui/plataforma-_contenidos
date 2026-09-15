@@ -1,7 +1,6 @@
 package pe.plataformacontenidos.content;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import pe.plataformacontenidos.shared.ContentImageInput;
 import pe.plataformacontenidos.shared.ContentVideoInput;
@@ -18,7 +17,6 @@ public record ArticleInput(
         String body,
         ArticleType articleType,
         UUID categoryId,
-        Set<String> tagNames,
         String seoTitle,
         String metaDescription,
         String canonicalUrl,

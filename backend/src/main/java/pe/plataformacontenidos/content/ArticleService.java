@@ -3,10 +3,8 @@ package pe.plataformacontenidos.content;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +22,6 @@ import pe.plataformacontenidos.shared.HtmlSanitizer;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
-import pe.plataformacontenidos.taxonomy.TagService;
 
 /**
  * Orquesta el ciclo editorial (CONTEXTO.md sección 12). La autorización a
@@ -37,15 +34,13 @@ public class ArticleService {
 
     private final ArticleRepository articleRepository;
     private final CategoryService categoryService;
-    private final TagService tagService;
     private final AuditService auditService;
     private final ImageService imageService;
 
     public ArticleService(ArticleRepository articleRepository, CategoryService categoryService,
-            TagService tagService, AuditService auditService, ImageService imageService) {
+            AuditService auditService, ImageService imageService) {
         this.articleRepository = articleRepository;
         this.categoryService = categoryService;
-        this.tagService = tagService;
         this.auditService = auditService;
         this.imageService = imageService;
     }
@@ -56,13 +51,12 @@ public class ArticleService {
         }
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
-        Set<UUID> tagIds = resolveTagNames(input.tagNames());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
         Article article = new Article(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), sanitizedBody,
                 input.articleType(), authorId, input.categoryId());
         article.updateContent(input.title(), input.excerpt(), sanitizedBody, input.articleType(), input.categoryId(),
-                tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
+                input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
                 input.ogImageUrl(), images, videos, input.robots());
 
         Article saved = articleRepository.save(article);
@@ -79,11 +73,10 @@ public class ArticleService {
         }
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
-        Set<UUID> tagIds = resolveTagNames(input.tagNames());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
         article.updateContent(input.title(), input.excerpt(), sanitizedBody, input.articleType(), input.categoryId(),
-                tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
+                input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
                 input.ogImageUrl(), images, videos, input.robots());
         Article saved = articleRepository.save(article);
         audit("ARTICLE_UPDATED", saved, actingUserId);
@@ -297,17 +290,6 @@ public class ArticleService {
 
     private Article getOrThrow(UUID id) {
         return articleRepository.findById(id).orElseThrow(() -> new ArticleNotFoundException(id));
-    }
-
-    private Set<UUID> resolveTagNames(Set<String> tagNames) {
-        if (tagNames == null) {
-            return new HashSet<>();
-        }
-        Set<UUID> ids = new HashSet<>();
-        for (String name : tagNames) {
-            ids.add(tagService.getOrCreate(name).getId());
-        }
-        return ids;
     }
 
     private String uniqueSlugFrom(String title) {

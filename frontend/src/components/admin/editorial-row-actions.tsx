@@ -43,7 +43,7 @@ export interface EditorialActions {
 
 /**
  * Acciones rápidas de flujo editorial desde un listado — genérico para
- * Publicaciones/Lugares/Eventos/Galerías/Reseñas/Directorio, que comparten
+ * Publicaciones/Lugares/Eventos/Galerías/Directorio, que comparten
  * el mismo ciclo (ver ArticleStatus/PlaceStatus/etc. en el backend, todos
  * idénticos). Un solo componente en vez de 6 copias casi iguales.
  */

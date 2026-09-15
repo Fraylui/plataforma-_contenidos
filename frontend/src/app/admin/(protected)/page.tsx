@@ -27,7 +27,6 @@ import {
   listAdminEvents,
   listAdminGalleries,
   listAdminPlaces,
-  listAdminReviews,
 } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { roleLabel } from "@/lib/admin/role-labels";
@@ -48,7 +47,6 @@ const QUICK_CREATE: { label: string; href: string; navHref: string }[] = [
   { label: "Lugar", href: "/admin/lugares/nuevo", navHref: "/admin/lugares" },
   { label: "Evento", href: "/admin/eventos/nuevo", navHref: "/admin/eventos" },
   { label: "Galería", href: "/admin/galerias/nuevo", navHref: "/admin/galerias" },
-  { label: "Reseña", href: "/admin/resenas/nuevo", navHref: "/admin/resenas" },
   { label: "Ficha de directorio", href: "/admin/directorio/nuevo", navHref: "/admin/directorio" },
 ];
 
@@ -71,7 +69,6 @@ function summarize(stats: PlatformStats) {
     stats.placesByStatus,
     stats.eventsByStatus,
     stats.galleriesByStatus,
-    stats.reviewsByStatus,
     stats.businessesByStatus,
   ];
   const published = allByStatus.reduce((total, byStatus) => total + sumStatus(byStatus, ["PUBLISHED"]), 0);
@@ -339,13 +336,6 @@ async function loadContentItems(accessToken: string, allowedHrefs: Set<string>):
     loaders.push(
       listAdminGalleries(accessToken).then((items) =>
         items.map((g) => ({ id: g.id, title: g.title, typeLabel: "Galería", status: g.status, createdAt: g.createdAt, editHref: `/admin/galerias/${g.id}` })),
-      ).catch(() => []),
-    );
-  }
-  if (allowedHrefs.has("/admin/resenas")) {
-    loaders.push(
-      listAdminReviews(accessToken).then((items) =>
-        items.map((r) => ({ id: r.id, title: r.title, typeLabel: "Reseña", status: r.status, createdAt: r.createdAt, editHref: `/admin/resenas/${r.id}` })),
       ).catch(() => []),
     );
   }

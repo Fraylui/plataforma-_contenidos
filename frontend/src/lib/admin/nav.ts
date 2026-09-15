@@ -10,9 +10,7 @@ import {
   Megaphone,
   Settings,
   ShieldCheck,
-  Star,
   Store,
-  Tags,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -33,12 +31,12 @@ export const ADMIN_NAV_GROUP_LABELS: Record<AdminNavGroup, string | null> = {
   principal: null,
   contenido: "Contenido",
   organizacion: "Organización",
-  cuenta: "Cuenta",
+  cuenta: "Administración",
 };
 
 // Se agregan ítems aquí a medida que se implementa cada sección del CMS
-// (CONTEXTO.md sección 11): artículos, categorías, etiquetas, medios,
-// usuarios. De momento solo existen las páginas del "cimiento".
+// (CONTEXTO.md sección 11): artículos, categorías, medios, usuarios. De
+// momento solo existen las páginas del "cimiento".
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { href: "/admin", label: "Inicio", group: "principal", icon: Home },
   {
@@ -82,14 +80,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR"],
   },
   {
-    href: "/admin/resenas",
-    label: "Reseñas",
-    group: "contenido",
-    icon: Star,
-    // Debe coincidir con SecurityConfig: /api/v1/admin/reviews/** -> SUPER_ADMIN, ADMIN, EDITOR, AUTHOR.
-    roles: ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR"],
-  },
-  {
     href: "/admin/directorio",
     label: "Directorio",
     group: "contenido",
@@ -103,14 +93,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     group: "organizacion",
     icon: FolderTree,
     // Debe coincidir con SecurityConfig: /api/v1/admin/categories/** -> SUPER_ADMIN, ADMIN, EDITOR.
-    roles: ["SUPER_ADMIN", "ADMIN", "EDITOR"],
-  },
-  {
-    href: "/admin/etiquetas",
-    label: "Etiquetas",
-    group: "organizacion",
-    icon: Tags,
-    // Debe coincidir con SecurityConfig: /api/v1/admin/tags/** -> SUPER_ADMIN, ADMIN, EDITOR.
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR"],
   },
   {

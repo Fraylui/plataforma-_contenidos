@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, FileText, Home, Images, MapPin, Star, Store, type LucideIcon } from "lucide-react";
+import { CalendarDays, FileText, Home, Images, MapPin, Store, type LucideIcon } from "lucide-react";
 import { getPlatformSettings, getPrimaryNavVisibility, listActiveCategories } from "@/lib/api/client";
 import { CategoryMenu } from "./category-menu";
 import { MobileNav } from "./mobile-nav";
@@ -15,7 +15,6 @@ const PRIMARY_LINKS: { href: string; label: string; icon: LucideIcon; wide?: boo
   { href: "/lugares", label: "Lugares", icon: MapPin },
   { href: "/eventos", label: "Eventos", icon: CalendarDays },
   { href: "/galerias", label: "Galerías", icon: Images, wide: true },
-  { href: "/resenas", label: "Reseñas", icon: Star, wide: true },
   { href: "/directorio", label: "Directorio", icon: Store, wide: true },
 ];
 
@@ -44,7 +43,7 @@ export async function SiteHeader() {
         <div className="flex min-w-0 items-center gap-3 sm:gap-4">
           {/* Enlaces de módulo con ícono (antes solo existían en el menú mobile:
               en escritorio Lugares/Eventos eran inalcanzables sin pasar por
-              Categorías). Los 3 principales siempre; Galerías/Reseñas/Directorio
+              Categorías). Los 3 principales siempre; Galerías/Directorio
               solo desde lg para no saturar el header en tablet.
               overflow-x-auto + min-w-0: red de seguridad si algún día el
               conjunto no entra (nombre de marca largo, un enlace nuevo) —

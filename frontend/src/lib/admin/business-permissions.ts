@@ -3,7 +3,7 @@ import type { AdminUser } from "@/lib/api/admin-types";
 
 /**
  * Espeja las reglas de autorización de BusinessService (backend) — mismo
- * patrón que review-permissions.ts/event-permissions.ts, mismas reglas
+ * patrón que place-permissions.ts/event-permissions.ts, mismas reglas
  * (sección 12). Ver backend/src/main/java/.../directory/BusinessService.java.
  */
 export interface BusinessPermissions {

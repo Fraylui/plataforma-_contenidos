@@ -23,11 +23,8 @@ import type {
   Place,
   PlaceSummary,
   PlatformSettings,
-  Review,
-  ReviewSummary,
   SearchResult,
   SearchResultType,
-  Tag,
 } from "./types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
@@ -227,34 +224,6 @@ export async function listAllPublishedGalleriesForSitemap(): Promise<GallerySumm
   return items;
 }
 
-export function listPublishedReviews(params?: {
-  categoryId?: string;
-  page?: number;
-  size?: number;
-}): Promise<PageResponse<ReviewSummary>> {
-  const query = new URLSearchParams();
-  if (params?.categoryId) query.set("categoryId", params.categoryId);
-  query.set("page", String(params?.page ?? 0));
-  query.set("size", String(params?.size ?? 20));
-  return apiFetch(`/api/v1/reviews?${query.toString()}`, 60);
-}
-
-export function getPublishedReviewBySlug(slug: string): Promise<Review> {
-  return apiFetch(`/api/v1/reviews/${encodeURIComponent(slug)}`, 300);
-}
-
-const REVIEWS_SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en ReviewPublicController
-
-export async function listAllPublishedReviewsForSitemap(): Promise<ReviewSummary[]> {
-  const items: ReviewSummary[] = [];
-  for (let page = 0; ; page++) {
-    const result = await listPublishedReviews({ page, size: REVIEWS_SITEMAP_PAGE_SIZE });
-    items.push(...result.items);
-    if (page + 1 >= result.totalPages) break;
-  }
-  return items;
-}
-
 export function listPublishedBusinesses(params?: {
   categoryId?: string;
   businessType?: BusinessType;
@@ -295,7 +264,6 @@ const NAV_PRESENCE_CHECKS: { href: string; checks: () => Promise<PageResponse<un
     checks: () => [listPublishedEvents({ when: "upcoming", size: 1 }), listPublishedEvents({ when: "past", size: 1 })],
   },
   { href: "/galerias", checks: () => [listPublishedGalleries({ size: 1 })] },
-  { href: "/resenas", checks: () => [listPublishedReviews({ size: 1 })] },
   { href: "/directorio", checks: () => [listPublishedBusinesses({ size: 1 })] },
 ];
 
@@ -392,10 +360,6 @@ export function getCategoryById(id: string): Promise<Category> {
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
   const categories = await listActiveCategories();
   return categories.find((c) => c.slug === slug) ?? null;
-}
-
-export function listAllTags(): Promise<Tag[]> {
-  return apiFetch(`/api/v1/tags`, 300);
 }
 
 /** Identidad/marca (CONTEXTO.md sección 14): reemplaza src/lib/platform-placeholder.ts. */

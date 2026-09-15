@@ -81,11 +81,10 @@ export function PipelineChart({ stats }: { stats: PlatformStats }) {
 }
 
 const CONTENT_TYPE_ROWS: { label: string; key: keyof Pick<PlatformStats,
-  "placesByStatus" | "eventsByStatus" | "galleriesByStatus" | "reviewsByStatus" | "businessesByStatus"> }[] = [
+  "placesByStatus" | "eventsByStatus" | "galleriesByStatus" | "businessesByStatus"> }[] = [
   { label: "Lugares", key: "placesByStatus" },
   { label: "Eventos", key: "eventsByStatus" },
   { label: "Galerías", key: "galleriesByStatus" },
-  { label: "Reseñas", key: "reviewsByStatus" },
   { label: "Directorio", key: "businessesByStatus" },
 ];
 

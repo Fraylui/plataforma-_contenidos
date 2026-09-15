@@ -21,7 +21,6 @@ import type {
   PlaceInput,
   PlatformSettingsInput,
   PlatformStats,
-  ReviewInput,
   TokenResponse,
 } from "./admin-types";
 import type {
@@ -34,8 +33,6 @@ import type {
   PageResponse,
   Place,
   PlatformSettings,
-  Review,
-  Tag,
 } from "./types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
@@ -102,8 +99,8 @@ async function authedJson<T>(path: string, accessToken: string, init?: RequestIn
     throw new AdminApiError(res.status, await parseErrorMessage(res));
   }
   // Varios endpoints admin devuelven `void` sin @ResponseStatus explícito
-  // (ej. activate/deactivate/delete de categorías, geografía, tags): Spring
-  // los sirve como 200 con cuerpo vacío, no 204 — probar 204 solo no alcanza.
+  // (ej. activate/deactivate/delete de categorías): Spring los sirve como
+  // 200 con cuerpo vacío, no 204 — probar 204 solo no alcanza.
   const text = await res.text();
   if (text.length === 0) {
     return undefined as T;
@@ -347,64 +344,6 @@ export function archiveGallery(accessToken: string, id: string): Promise<Gallery
   return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
 }
 
-// --- Reviews module: reseñas (ReviewAdminController, rutas /admin/reviews) ---
-
-export function listAdminReviews(accessToken: string): Promise<Review[]> {
-  return authedJson("/api/v1/admin/reviews", accessToken);
-}
-
-export function getAdminReview(accessToken: string, id: string): Promise<Review> {
-  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}`, accessToken);
-}
-
-export function createReview(accessToken: string, input: ReviewInput): Promise<Review> {
-  return authedJson("/api/v1/admin/reviews", accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-}
-
-export function updateReview(accessToken: string, id: string, input: ReviewInput): Promise<Review> {
-  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}`, accessToken, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-}
-
-export function submitReview(accessToken: string, id: string): Promise<Review> {
-  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
-}
-
-export function approveReview(accessToken: string, id: string): Promise<Review> {
-  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
-}
-
-export function rejectReview(accessToken: string, id: string, reason: string): Promise<Review> {
-  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}/reject`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason }),
-  });
-}
-
-export function publishReview(accessToken: string, id: string): Promise<Review> {
-  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
-}
-
-export function scheduleReview(accessToken: string, id: string, scheduledAt: string): Promise<Review> {
-  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}/schedule`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ scheduledAt }),
-  });
-}
-
-export function archiveReview(accessToken: string, id: string): Promise<Review> {
-  return authedJson(`/api/v1/admin/reviews/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
-}
-
 // --- Directory module: fichas de directorio (BusinessAdminController, rutas /admin/directory) ---
 
 export function listAdminBusinesses(accessToken: string): Promise<Business[]> {
@@ -553,29 +492,6 @@ export function deactivateAdPlacement(accessToken: string, id: string): Promise<
 
 export function deleteAdPlacement(accessToken: string, id: string): Promise<void> {
   return authedJson(`/api/v1/admin/ad-placements/${encodeURIComponent(id)}`, accessToken, { method: "DELETE" });
-}
-
-// --- Taxonomy module: etiquetas (TagController) ---
-// No hay creación admin: TagService.getOrCreate las crea implícitamente al
-// guardar un artículo con tagNames nuevos (ver ArticleService).
-
-/**
- * GET /tags es público (no requiere token), pero para el panel admin se
- * pide siempre sin caché: a diferencia de src/lib/api/client.ts (sitio
- * público, cacheado 300s), acá un delete debe reflejarse de inmediato — y
- * revalidatePath() no alcanza a invalidar la entrada de caché de fetch()
- * que ya tenga esa función pública.
- */
-export async function listAdminTags(): Promise<Tag[]> {
-  const res = await fetch(`${BACKEND_API_URL}/api/v1/tags`, { cache: "no-store" });
-  if (!res.ok) {
-    throw new AdminApiError(res.status, await parseErrorMessage(res));
-  }
-  return res.json() as Promise<Tag[]>;
-}
-
-export function deleteTag(accessToken: string, id: string): Promise<void> {
-  return authedJson(`/api/v1/admin/tags/${encodeURIComponent(id)}`, accessToken, { method: "DELETE" });
 }
 
 // --- Media module: imágenes (ImageAdminController) ---

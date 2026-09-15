@@ -49,4 +49,20 @@ class HtmlSanitizerTest {
         String sanitized = HtmlSanitizer.sanitize(input);
         assertThat(sanitized).doesNotContain("javascript:");
     }
+
+    @Test
+    void keepsInlineImages() {
+        String input = "<p>Antes</p><img src=\"https://example.com/foto.jpg\" alt=\"Descripción\"><p>Después</p>";
+        String sanitized = HtmlSanitizer.sanitize(input);
+        assertThat(sanitized).contains("<img");
+        assertThat(sanitized).contains("src=\"https://example.com/foto.jpg\"");
+        assertThat(sanitized).contains("alt=\"Descripción\"");
+    }
+
+    @Test
+    void rejectsJavascriptProtocolImageSrc() {
+        String input = "<img src=\"javascript:alert(1)\" alt=\"x\">";
+        String sanitized = HtmlSanitizer.sanitize(input);
+        assertThat(sanitized).doesNotContain("javascript:");
+    }
 }

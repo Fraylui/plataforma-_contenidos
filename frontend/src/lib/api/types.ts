@@ -61,7 +61,6 @@ export interface Article {
   status: ArticleStatus;
   authorId: string;
   categoryId: string;
-  tagIds: string[];
   seoTitle: string | null;
   metaDescription: string | null;
   canonicalUrl: string | null;
@@ -77,8 +76,8 @@ export interface Article {
   likeCount: number;
 }
 
-/** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de Artículos, Lugares, Eventos, Galerías y Reseñas. */
-export type SearchResultType = "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "REVIEW" | "BUSINESS";
+/** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de Artículos, Lugares, Eventos, Galerías y Directorio. */
+export type SearchResultType = "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS";
 
 export interface SearchResult {
   contentType: SearchResultType;
@@ -111,12 +110,6 @@ export interface Category {
   parentId: string | null;
   active: boolean;
   sortOrder: number;
-}
-
-export interface Tag {
-  id: string;
-  name: string;
-  slug: string;
 }
 
 /** Mismos valores que ArticleStatus (CONTEXTO.md sección 12) — PlaceStatus es un enum propio en el backend (sección 38), pero el frontend no tiene esa restricción de bounded context. */
@@ -243,50 +236,7 @@ export interface Gallery {
   likeCount: number;
 }
 
-/** Mismos valores que ArticleStatus/PlaceStatus/EventStatus/GalleryStatus (CONTEXTO.md sección 12) — ReviewStatus es un enum propio en el backend (sección 38). */
-export type ReviewStatus = ArticleStatus;
-
-export interface ReviewSummary {
-  id: string;
-  slug: string;
-  title: string;
-  excerpt: string | null;
-  categoryId: string;
-  placeId: string | null;
-  subjectName: string | null;
-  rating: number;
-  coverImageId: string | null;
-  publishedAt: string | null;
-  likeCount: number;
-}
-
-export interface Review {
-  id: string;
-  slug: string;
-  title: string;
-  excerpt: string | null;
-  body: string;
-  status: ReviewStatus;
-  authorId: string;
-  categoryId: string;
-  placeId: string | null;
-  subjectName: string | null;
-  rating: number;
-  imageIds: string[];
-  seoTitle: string | null;
-  metaDescription: string | null;
-  canonicalUrl: string | null;
-  ogImageUrl: string | null;
-  youtubeVideoId: string | null;
-  robots: string;
-  rejectionReason: string | null;
-  publishedAt: string | null;
-  scheduledAt: string | null;
-  createdAt: string;
-  likeCount: number;
-}
-
-/** Mismos valores que ReviewStatus (CONTEXTO.md sección 12) — BusinessStatus es un enum propio en el backend (sección 38). */
+/** Mismos valores que ArticleStatus/PlaceStatus/EventStatus/GalleryStatus (CONTEXTO.md sección 12) — BusinessStatus es un enum propio en el backend (sección 38). */
 export type BusinessStatus = ArticleStatus;
 
 /** Ver BusinessType.java (CONTEXTO.md sección 6) — eje de filtrado del Directorio, distinto de la categoría editorial. */

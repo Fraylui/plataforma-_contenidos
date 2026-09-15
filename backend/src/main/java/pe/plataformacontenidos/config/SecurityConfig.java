@@ -35,17 +35,16 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/categories/**", "/api/v1/tags")
+                .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/categories/**")
                     .permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/articles", "/api/v1/articles/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/places", "/api/v1/places/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/events", "/api/v1/events/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/galleries", "/api/v1/galleries/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/reviews", "/api/v1/reviews/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/directory", "/api/v1/directory/**").permitAll()
-                // "Me gusta" anónimo de lector (visitorId generado en el navegador, no requiere cuenta) — ver ContentLike, un solo mecanismo para los 6 tipos.
+                // "Me gusta" anónimo de lector (visitorId generado en el navegador, no requiere cuenta) — ver ContentLike, un solo mecanismo para los tipos de contenido.
                 .requestMatchers(HttpMethod.POST, "/api/v1/articles/*/like", "/api/v1/places/*/like",
-                        "/api/v1/events/*/like", "/api/v1/galleries/*/like", "/api/v1/reviews/*/like",
+                        "/api/v1/events/*/like", "/api/v1/galleries/*/like",
                         "/api/v1/directory/*/like").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/search").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/feed", "/api/v1/feed/related").permitAll()
@@ -60,10 +59,10 @@ public class SecurityConfig {
                 // Audit log: incluye IPs y acciones de todos los usuarios (incluidos otros
                 // admins) — sección 37, más sensible que un listado editorial normal.
                 .requestMatchers("/api/v1/admin/audit/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
-                .requestMatchers("/api/v1/admin/categories/**", "/api/v1/admin/tags/**", "/api/v1/admin/stats/**")
+                .requestMatchers("/api/v1/admin/categories/**", "/api/v1/admin/stats/**")
                     .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR")
                 .requestMatchers("/api/v1/admin/articles/**", "/api/v1/admin/images/**", "/api/v1/admin/places/**",
-                        "/api/v1/admin/events/**", "/api/v1/admin/galleries/**", "/api/v1/admin/reviews/**",
+                        "/api/v1/admin/events/**", "/api/v1/admin/galleries/**",
                         "/api/v1/admin/directory/**")
                     .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR")
 

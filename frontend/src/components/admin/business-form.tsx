@@ -2,13 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useState, type ReactNode } from "react";
-import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 import type { AdminImage, BusinessInput } from "@/lib/api/admin-types";
 import type { Business, BusinessType, Category, Place } from "@/lib/api/types";
 import type { BusinessPermissions } from "@/lib/admin/business-permissions";
 import { articleStatusLabel, businessTypeLabel } from "@/lib/content-labels";
-import { AdminButton, Combobox, FormField, formInputClass } from "@/components/admin/ui";
+import { AdminButton, CollapsibleSection, Combobox, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
 import { PlaceGalleryPicker } from "./place-gallery-picker";
 import {
   approveBusinessAction,
@@ -24,38 +23,6 @@ import {
 
 const ROBOTS_OPTIONS = ["index,follow", "noindex,follow", "index,nofollow", "noindex,nofollow"];
 const BUSINESS_TYPES: BusinessType[] = ["RESTAURANT", "HOTEL", "SERVICE", "SHOP", "OTHER"];
-
-const CARD_CLASS = "rounded-xl border border-border/60 bg-surface p-5";
-const SECTION_TITLE_CLASS = "text-sm font-semibold text-foreground";
-
-/** Grupo con título — misma superficie que el resto del panel (border-border/60, sin shadow). */
-function SectionCard({ title, children, className = "" }: { title: string; children: ReactNode; className?: string }) {
-  return (
-    <div className={`${CARD_CLASS} space-y-4 ${className}`}>
-      <h2 className={SECTION_TITLE_CLASS}>{title}</h2>
-      {children}
-    </div>
-  );
-}
-
-/** Colapsable, cerrado por defecto — para lo avanzado/opcional (SEO) que no debería competir con el contenido principal. */
-function CollapsibleSection({ title, children, defaultOpen = false }: { title: string; children: ReactNode; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div className={CARD_CLASS}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full cursor-pointer items-center justify-between"
-      >
-        <h2 className={SECTION_TITLE_CLASS}>{title}</h2>
-        <ChevronDown className={`h-4 w-4 text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`} aria-hidden="true" />
-      </button>
-      {open && <div className="mt-4 space-y-4">{children}</div>}
-    </div>
-  );
-}
 
 interface BusinessFormProps {
   categories: Category[];
@@ -127,7 +94,7 @@ export function BusinessForm({
     };
   }
 
-  /** Mismo motivo que ReviewForm/PlaceForm: el backend reemplaza youtubeVideoId con lo que se mande, vacío incluido. */
+  /** Mismo motivo que PlaceForm: el backend reemplaza youtubeVideoId con lo que se mande, vacío incluido. */
   function resolveYoutubeUrlForSubmit(): string | null {
     if (youtubeUrl.trim()) return youtubeUrl;
     if (removeYoutube) return null;

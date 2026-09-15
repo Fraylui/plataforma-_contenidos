@@ -232,8 +232,7 @@ class ArticleWorkflowIntegrationTest {
                 + "\"excerpt\":\"Resumen breve\","
                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
                 + "\"articleType\":\"ARTICULO\","
-                + "\"categoryId\":\"" + categoryId + "\","
-                + "\"tagNames\":[\"ayacucho\",\"cultura\"]"
+                + "\"categoryId\":\"" + categoryId + "\""
                 + "}";
     }
 

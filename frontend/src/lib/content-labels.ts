@@ -104,7 +104,7 @@ export function formatArticleDate(iso: string | null): string {
 }
 
 /**
- * Fecha corta absoluta ("sáb 29 ago 2026") para Lugar/Galería/Reseña en el
+ * Fecha corta absoluta ("sáb 29 ago 2026") para Lugar/Galería en el
  * home: contenido atemporal donde "hace 3 meses" no aporta (ver
  * formatArticleDate, que sí es relativa a propósito para Publicaciones).
  */
@@ -145,7 +145,6 @@ const SEARCH_RESULT_TYPE_LABEL: Record<SearchResultType, string> = {
   PLACE: "Lugar",
   EVENT: "Evento",
   GALLERY: "Galería",
-  REVIEW: "Reseña",
   BUSINESS: "Directorio",
 };
 
@@ -158,7 +157,6 @@ const SEARCH_RESULT_TYPE_PATH: Record<SearchResultType, string> = {
   PLACE: "lugares",
   EVENT: "eventos",
   GALLERY: "galerias",
-  REVIEW: "resenas",
   BUSINESS: "directorio",
 };
 

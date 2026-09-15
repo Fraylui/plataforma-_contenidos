@@ -22,7 +22,7 @@ import pe.plataformacontenidos.identity.security.UserPrincipal;
 
 /**
  * CRUD editorial + transiciones de workflow para el Directorio — mismo
- * patrón que ReviewAdminController. La autorización fina vive en
+ * patrón que GalleryAdminController. La autorización fina vive en
  * BusinessService.
  */
 @RestController

@@ -2,7 +2,6 @@ package pe.plataformacontenidos.content.api.dto;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import pe.plataformacontenidos.content.Article;
 import pe.plataformacontenidos.content.ArticleStatus;
@@ -20,7 +19,6 @@ public record ArticleResponse(
         ArticleStatus status,
         UUID authorId,
         UUID categoryId,
-        Set<UUID> tagIds,
         String seoTitle,
         String metaDescription,
         String canonicalUrl,
@@ -38,7 +36,7 @@ public record ArticleResponse(
     public static ArticleResponse from(Article article, long likeCount) {
         return new ArticleResponse(article.getId(), article.getSlug(), article.getTitle(), article.getExcerpt(),
                 article.getBody(), article.getArticleType(), article.getStatus(), article.getAuthorId(),
-                article.getCategoryId(), article.getTagIds(), article.getSeoTitle(),
+                article.getCategoryId(), article.getSeoTitle(),
                 article.getMetaDescription(), article.getCanonicalUrl(), article.getOgImageUrl(),
                 article.getImages().stream().map(ContentImageResponse::from).toList(),
                 article.getVideos().stream().map(ContentVideoResponse::from).toList(), article.getRobots(),

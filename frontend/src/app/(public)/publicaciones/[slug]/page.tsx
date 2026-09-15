@@ -9,7 +9,6 @@ import {
   getPublishedArticleBySlug,
   getRelatedWithFallback,
   listActiveCategories,
-  listAllTags,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { formatArticleDate, formatPublishedDate } from "@/lib/content-labels";
@@ -109,16 +108,13 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
   const { slug } = await props.params;
   const article = await loadArticle(slug);
 
-  const [category, tags, settings, neighbors, categories] = await Promise.all([
+  const [category, settings, neighbors, categories] = await Promise.all([
     getCategoryById(article.categoryId).catch(() => null),
-    article.tagIds.length > 0 ? listAllTags().catch(() => []) : Promise.resolve([]),
     getPlatformSettings(),
     getArticleNeighbors(slug).catch(() => ({ previous: null, next: null })),
     listActiveCategories(),
   ]);
   const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
-
-  const articleTags = tags.filter((tag) => article.tagIds.includes(tag.id));
 
   const { items: related, isFallback: relatedIsFallback } = await getRelatedWithFallback({
     excludeType: "ARTICLE",
@@ -222,19 +218,6 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
           <div className="mt-10">
             <AdBlock position="article" />
           </div>
-
-          {articleTags.length > 0 && (
-            <ul className="mt-10 flex flex-wrap gap-2" aria-label="Etiquetas">
-              {articleTags.map((tag) => (
-                <li
-                  key={tag.id}
-                  className="rounded-full bg-border/50 px-3 py-1.5 text-xs font-semibold text-muted transition-colors hover:bg-accent-soft hover:text-accent"
-                >
-                  {tag.name}
-                </li>
-              ))}
-            </ul>
-          )}
 
           <LikeShareBar contentType="articles" slug={article.slug} initialLikeCount={article.likeCount} title={article.title} />
 

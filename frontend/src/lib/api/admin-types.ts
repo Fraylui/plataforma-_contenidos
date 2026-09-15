@@ -35,7 +35,6 @@ export interface ArticleInput {
   body: string;
   articleType: ArticleType;
   categoryId: string;
-  tagNames: string[];
   seoTitle: string | null;
   metaDescription: string | null;
   canonicalUrl: string | null;
@@ -91,24 +90,6 @@ export interface GalleryInput {
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
-  robots: string;
-}
-
-/** Cuerpo de POST/PUT /api/v1/admin/reviews — ver ReviewRequest.java. */
-export interface ReviewInput {
-  title: string;
-  excerpt: string | null;
-  body: string;
-  categoryId: string;
-  placeId: string | null;
-  subjectName: string | null;
-  rating: number;
-  imageIds: string[];
-  seoTitle: string | null;
-  metaDescription: string | null;
-  canonicalUrl: string | null;
-  ogImageUrl: string | null;
-  youtubeUrl: string | null;
   robots: string;
 }
 
@@ -200,11 +181,9 @@ export interface PlatformStats {
   placesByStatus: Record<ArticleStatus, number>;
   eventsByStatus: Record<ArticleStatus, number>;
   galleriesByStatus: Record<ArticleStatus, number>;
-  reviewsByStatus: Record<ArticleStatus, number>;
   businessesByStatus: Record<ArticleStatus, number>;
   totalCategories: number;
   activeCategories: number;
-  totalTags: number;
   usersByRole: Record<Role, number>;
   activeUsers: number;
 }

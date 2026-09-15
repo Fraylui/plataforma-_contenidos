@@ -14,7 +14,6 @@ const TYPE_OPTIONS: { value: SearchResultType; label: string }[] = [
   { value: "PLACE", label: "Lugares" },
   { value: "EVENT", label: "Eventos" },
   { value: "GALLERY", label: "Galerías" },
-  { value: "REVIEW", label: "Reseñas" },
   { value: "BUSINESS", label: "Directorio" },
 ];
 
@@ -50,7 +49,6 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
     typeParam === "PLACE" ||
     typeParam === "EVENT" ||
     typeParam === "GALLERY" ||
-    typeParam === "REVIEW" ||
     typeParam === "BUSINESS"
       ? typeParam
       : null;

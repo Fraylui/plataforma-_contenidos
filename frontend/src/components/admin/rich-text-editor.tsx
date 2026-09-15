@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
+import TiptapImage from "@tiptap/extension-image";
 import {
   Bold,
   Italic,
@@ -13,29 +15,35 @@ import {
   Quote,
   Link as LinkIcon,
   Unlink,
+  Image as ImageIcon,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { AdminImage } from "@/lib/api/admin-types";
+import { ImageInsertDialog } from "./image-insert-dialog";
 
 /**
  * Toolbar deliberadamente mínima — negrita, cursiva, títulos, listas, cita,
- * link — coincide 1:1 con lo que `HtmlSanitizer` (backend) permite guardar.
- * Agregar un botón acá sin extender esa policy hace que el formato se
- * pierda silenciosamente al guardar.
+ * link, imagen — coincide 1:1 con lo que `HtmlSanitizer` (backend) permite
+ * guardar. Agregar un botón acá sin extender esa policy hace que el formato
+ * se pierda silenciosamente al guardar.
  */
 export function RichTextEditor({
   value,
   onChange,
   disabled,
+  allImages,
 }: {
   value: string;
   onChange: (html: string) => void;
   disabled?: boolean;
+  allImages: AdminImage[];
 }) {
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
       StarterKit.configure({ heading: { levels: [2, 3] } }),
       Link.configure({ openOnClick: false, autolink: true }),
+      TiptapImage.configure({ HTMLAttributes: { class: "rounded-md" } }),
     ],
     content: value,
     editable: !disabled,
@@ -52,13 +60,14 @@ export function RichTextEditor({
 
   return (
     <div className="mt-1 overflow-hidden rounded-md border border-border bg-background">
-      {!disabled && <Toolbar editor={editor} />}
+      {!disabled && <Toolbar editor={editor} allImages={allImages} />}
       <EditorContent editor={editor} />
     </div>
   );
 }
 
-function Toolbar({ editor }: { editor: Editor }) {
+function Toolbar({ editor, allImages }: { editor: Editor; allImages: AdminImage[] }) {
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
   return (
     <div className="flex flex-wrap items-center gap-1 border-b border-border bg-surface px-2 py-1.5">
       <ToolbarButton
@@ -118,6 +127,19 @@ function Toolbar({ editor }: { editor: Editor }) {
         active={false}
         disabled={!editor.isActive("link")}
         onClick={() => editor.chain().focus().unsetLink().run()}
+      />
+      <ToolbarDivider />
+      <ToolbarButton
+        icon={ImageIcon}
+        label="Insertar imagen"
+        active={false}
+        onClick={() => setImageDialogOpen(true)}
+      />
+      <ImageInsertDialog
+        open={imageDialogOpen}
+        onOpenChange={setImageDialogOpen}
+        allImages={allImages}
+        onInsert={(src, alt) => editor.chain().focus().setImage({ src, alt: alt || undefined }).run()}
       />
     </div>
   );

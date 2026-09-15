@@ -2,13 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useState, type ReactNode } from "react";
-import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 import type { AdminImage, ContentVideoInput, EventInput } from "@/lib/api/admin-types";
 import type { Category, ContentImage, Event, Place } from "@/lib/api/types";
 import type { EventPermissions } from "@/lib/admin/event-permissions";
 import { articleStatusLabel } from "@/lib/content-labels";
-import { AdminButton, Combobox, FormField, formInputClass } from "@/components/admin/ui";
+import { AdminButton, CollapsibleSection, Combobox, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import { VideoLinksEditor } from "./video-links-editor";
 import { RichTextEditor } from "./rich-text-editor";
@@ -25,38 +24,6 @@ import {
 } from "@/app/admin/(protected)/eventos/actions";
 
 const ROBOTS_OPTIONS = ["index,follow", "noindex,follow", "index,nofollow", "noindex,nofollow"];
-
-const CARD_CLASS = "rounded-xl border border-border/60 bg-surface p-5";
-const SECTION_TITLE_CLASS = "text-sm font-semibold text-foreground";
-
-/** Grupo con título — misma superficie que el resto del panel (border-border/60, sin shadow). */
-function SectionCard({ title, children, className = "" }: { title: string; children: ReactNode; className?: string }) {
-  return (
-    <div className={`${CARD_CLASS} space-y-4 ${className}`}>
-      <h2 className={SECTION_TITLE_CLASS}>{title}</h2>
-      {children}
-    </div>
-  );
-}
-
-/** Colapsable, cerrado por defecto — para lo avanzado/opcional (SEO) que no debería competir con el contenido principal. */
-function CollapsibleSection({ title, children, defaultOpen = false }: { title: string; children: ReactNode; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div className={CARD_CLASS}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full cursor-pointer items-center justify-between"
-      >
-        <h2 className={SECTION_TITLE_CLASS}>{title}</h2>
-        <ChevronDown className={`h-4 w-4 text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`} aria-hidden="true" />
-      </button>
-      {open && <div className="mt-4 space-y-4">{children}</div>}
-    </div>
-  );
-}
 
 interface EventFormProps {
   categories: Category[];
@@ -186,7 +153,7 @@ export function EventForm({
             </FormField>
 
             <FormField label="Descripción completa" name="body">
-              <RichTextEditor value={body} onChange={setBody} disabled={readOnly} />
+              <RichTextEditor value={body} onChange={setBody} disabled={readOnly} allImages={allImages} />
             </FormField>
           </SectionCard>
 

@@ -2,17 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useState, type ReactNode } from "react";
-import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 import type { Article, ArticleType, Category, ContentImage } from "@/lib/api/types";
 import type { AdminImage, ArticleInput, ContentVideoInput } from "@/lib/api/admin-types";
 import type { ArticlePermissions } from "@/lib/admin/article-permissions";
 import { articleTypeLabel, articleStatusLabel } from "@/lib/content-labels";
-import { AdminButton, Combobox, FormField, formInputClass } from "@/components/admin/ui";
+import { AdminButton, CollapsibleSection, Combobox, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import { VideoLinksEditor } from "./video-links-editor";
 import { RichTextEditor } from "./rich-text-editor";
-import { TagInput } from "./tag-input";
 import {
   approveArticleAction,
   archiveArticleAction,
@@ -40,42 +38,9 @@ const ARTICLE_TYPES: ArticleType[] = [
 
 const ROBOTS_OPTIONS = ["index,follow", "noindex,follow", "index,nofollow", "noindex,nofollow"];
 
-const CARD_CLASS = "rounded-xl border border-border/60 bg-surface p-5";
-const SECTION_TITLE_CLASS = "text-sm font-semibold text-foreground";
-
-/** Grupo con título — misma superficie que el resto del panel (border-border/60, sin shadow). */
-function SectionCard({ title, children, className = "" }: { title: string; children: ReactNode; className?: string }) {
-  return (
-    <div className={`${CARD_CLASS} space-y-4 ${className}`}>
-      <h2 className={SECTION_TITLE_CLASS}>{title}</h2>
-      {children}
-    </div>
-  );
-}
-
-/** Colapsable, cerrado por defecto — para lo avanzado/opcional (SEO) que no debería competir con el contenido principal. */
-function CollapsibleSection({ title, children, defaultOpen = false }: { title: string; children: ReactNode; defaultOpen?: boolean }) {
-  const [open, setOpen] = useState(defaultOpen);
-  return (
-    <div className={CARD_CLASS}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full cursor-pointer items-center justify-between"
-      >
-        <h2 className={SECTION_TITLE_CLASS}>{title}</h2>
-        <ChevronDown className={`h-4 w-4 text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`} aria-hidden="true" />
-      </button>
-      {open && <div className="mt-4 space-y-4">{children}</div>}
-    </div>
-  );
-}
-
 interface ArticleFormProps {
   categories: Category[];
   allImages: AdminImage[];
-  initialTagNames: string[];
   mode: "create" | "edit";
   article?: Article;
   permissions?: ArticlePermissions;
@@ -84,7 +49,6 @@ interface ArticleFormProps {
 export function ArticleForm({
   categories,
   allImages,
-  initialTagNames,
   mode,
   article,
   permissions,
@@ -97,7 +61,6 @@ export function ArticleForm({
   const [body, setBody] = useState(article?.body ?? "");
   const [articleType, setArticleType] = useState<ArticleType>(article?.articleType ?? "ARTICULO");
   const [categoryId, setCategoryId] = useState(article?.categoryId ?? categories[0]?.id ?? "");
-  const [tags, setTags] = useState<string[]>(initialTagNames);
   const [seoTitle, setSeoTitle] = useState(article?.seoTitle ?? "");
   const [metaDescription, setMetaDescription] = useState(article?.metaDescription ?? "");
   const [canonicalUrl, setCanonicalUrl] = useState(article?.canonicalUrl ?? "");
@@ -124,7 +87,6 @@ export function ArticleForm({
       body,
       articleType,
       categoryId,
-      tagNames: tags,
       seoTitle: seoTitle || null,
       metaDescription: metaDescription || null,
       canonicalUrl: canonicalUrl || null,
@@ -202,7 +164,7 @@ export function ArticleForm({
             </FormField>
 
             <FormField label="Cuerpo" name="body">
-              <RichTextEditor value={body} onChange={setBody} disabled={readOnly} />
+              <RichTextEditor value={body} onChange={setBody} disabled={readOnly} allImages={allImages} />
             </FormField>
           </SectionCard>
 
@@ -366,10 +328,6 @@ export function ArticleForm({
                 disabled={readOnly}
                 onSelect={(id) => id && setCategoryId(id)}
               />
-            </FormField>
-
-            <FormField label="Etiquetas" name="tags">
-              <TagInput value={tags} onChange={setTags} />
             </FormField>
           </SectionCard>
 

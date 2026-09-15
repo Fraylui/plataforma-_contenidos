@@ -14,7 +14,6 @@ function makeArticle(overrides: Partial<Article> = {}): Article {
     status: "DRAFT",
     authorId: "author-1",
     categoryId: "cat-1",
-    tagIds: [],
     seoTitle: null,
     metaDescription: null,
     canonicalUrl: null,

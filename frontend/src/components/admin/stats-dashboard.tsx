@@ -88,10 +88,6 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
           </h2>
           <ul className="mt-4 space-y-4">
             <RatioRow label="Categorías activas" active={stats.activeCategories} total={stats.totalCategories} />
-            <li className="flex items-center justify-between text-sm">
-              <span className="text-foreground">Etiquetas</span>
-              <span className="tabular-nums font-semibold text-foreground">{stats.totalTags}</span>
-            </li>
           </ul>
         </section>
 

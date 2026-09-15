@@ -222,8 +222,7 @@ class FeedIntegrationTest {
                 + "\"excerpt\":\"Resumen breve\","
                 + "\"body\":\"Cuerpo de prueba con suficiente contenido para publicar.\","
                 + "\"articleType\":\"ARTICULO\","
-                + "\"categoryId\":\"" + categoryId + "\","
-                + "\"tagNames\":[]"
+                + "\"categoryId\":\"" + categoryId + "\""
                 + "}";
     }
 

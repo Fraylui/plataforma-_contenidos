@@ -6,9 +6,8 @@ import {
   listPublishedEvents,
   listPublishedGalleries,
   listPublishedPlaces,
-  listPublishedReviews,
 } from "@/lib/api/client";
-import { fromArticle, fromEvent, fromFeedItem, fromGallery, fromPlace, fromReview, sortNewestFirst, type HomeItem } from "@/lib/home-items";
+import { fromArticle, fromEvent, fromFeedItem, fromGallery, fromPlace, sortNewestFirst, type HomeItem } from "@/lib/home-items";
 import { HeroRotator } from "@/components/home/hero-rotator";
 import { InfiniteFeed } from "@/components/home/infinite-feed";
 import { HomeSidebar } from "@/components/home/home-sidebar";
@@ -18,7 +17,6 @@ import { HomeSidebar } from "@/components/home/home-sidebar";
 const ARTICLES_SIZE = 12;
 const PLACES_SIZE = 8;
 const GALLERIES_SIZE = 6;
-const REVIEWS_SIZE = 6;
 const UPCOMING_EVENTS_SIZE = 5;
 
 const HERO_SIZE = 4;
@@ -53,11 +51,10 @@ function pickHero(byKind: HomeItem[][]): HomeItem[] {
  * sucesión de secciones apiladas hasta el fondo (CONTEXTO.md sección 43).
  */
 export default async function Home() {
-  const [articles, places, galleries, reviews, events, categories, settings] = await Promise.all([
+  const [articles, places, galleries, events, categories, settings] = await Promise.all([
     listPublishedArticles({ size: ARTICLES_SIZE }),
     listPublishedPlaces({ size: PLACES_SIZE }),
     listPublishedGalleries({ size: GALLERIES_SIZE }),
-    listPublishedReviews({ size: REVIEWS_SIZE }),
     listPublishedEvents({ when: "upcoming", size: UPCOMING_EVENTS_SIZE }),
     listActiveCategories(),
     getPlatformSettings(),
@@ -70,7 +67,6 @@ export default async function Home() {
     places.items.map(fromPlace),
     galleries.items.map(fromGallery),
     events.items.map(fromEvent),
-    reviews.items.map(fromReview),
   ]);
   const heroIds = new Set(hero.map((i) => i.id));
 

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Chrome base compartido por las 7 tarjetas de contenido (Artículo, Lugar,
- * Evento, Galería, Reseña, Directorio, resultado de búsqueda) — antes
+ * Evento, Galería, Directorio, resultado de búsqueda) — antes
  * repetido letra por letra en cada *-card.tsx. `className` ya no reemplaza
  * esto, solo agrega modificadores puntuales de una tarjeta específica.
  */

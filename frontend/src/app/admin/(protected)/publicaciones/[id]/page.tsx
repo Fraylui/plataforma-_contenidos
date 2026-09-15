@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { AdminApiError, getAdminArticle, listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
-import { getCategoryById, listAllTags } from "@/lib/api/client";
+import { getCategoryById } from "@/lib/api/client";
 import { computeArticlePermissions } from "@/lib/admin/article-permissions";
 import { ArticleForm } from "@/components/admin/article-form";
 import type { Category } from "@/lib/api/types";
@@ -38,13 +38,11 @@ export default async function EditArticlePage(props: PageProps<"/admin/publicaci
     throw error;
   }
 
-  const [activeCategories, allTags, allImages] = await Promise.all([
+  const [activeCategories, allImages] = await Promise.all([
     listActiveCategoriesFresh(),
-    listAllTags(),
     listAdminImages(accessToken),
   ]);
   const categories = await resolveCategories(activeCategories, article.categoryId);
-  const tagNames = allTags.filter((tag) => article.tagIds.includes(tag.id)).map((tag) => tag.name);
   const permissions = computeArticlePermissions(article, user);
 
   return (
@@ -56,7 +54,6 @@ export default async function EditArticlePage(props: PageProps<"/admin/publicaci
           article={article}
           categories={categories}
           allImages={allImages}
-          initialTagNames={tagNames}
           permissions={permissions}
         />
       </div>
