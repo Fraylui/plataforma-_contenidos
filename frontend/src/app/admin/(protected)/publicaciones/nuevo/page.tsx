@@ -16,13 +16,7 @@ export default async function NewArticlePage() {
     <div>
       <h1 className="text-2xl font-semibold text-foreground">Nueva publicación</h1>
       <div className="mt-6">
-        <ArticleForm
-          mode="create"
-          categories={categories}
-          allImages={allImages}
-          initialGeographyChain={[]}
-          initialTagNames={[]}
-        />
+        <ArticleForm mode="create" categories={categories} allImages={allImages} initialTagNames={[]} />
       </div>
     </div>
   );

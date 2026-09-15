@@ -23,8 +23,8 @@ import org.hibernate.annotations.UuidGenerator;
  * breve — a diferencia de Artículo/Lugar/Evento, no tiene cuerpo de texto
  * largo: el contenido ES la colección de fotos (ver GalleryService, que
  * exige al menos una imagen). Mismo flujo editorial que el resto (sección
- * 12). category_id/geography_id son UUID sin FK (Taxonomy/Geography,
- * sección 38); imageIds tampoco (Media).
+ * 12). category_id es UUID sin FK (Taxonomy, sección 38); imageIds tampoco
+ * (Media).
  */
 @Entity
 @Table(name = "galleries", schema = "galleries")
@@ -52,9 +52,6 @@ public class Gallery {
 
     @Column(name = "category_id", nullable = false)
     private UUID categoryId;
-
-    @Column(name = "geography_id")
-    private UUID geographyId;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "gallery_images", schema = "galleries", joinColumns = @JoinColumn(name = "gallery_id"))
@@ -132,10 +129,6 @@ public class Gallery {
         return categoryId;
     }
 
-    public UUID getGeographyId() {
-        return geographyId;
-    }
-
     public List<UUID> getImageIds() {
         return imageIds;
     }
@@ -185,12 +178,11 @@ public class Gallery {
                 || status == GalleryStatus.APPROVED || status == GalleryStatus.REJECTED;
     }
 
-    public void updateContent(String title, String excerpt, UUID categoryId, UUID geographyId, List<UUID> imageIds,
+    public void updateContent(String title, String excerpt, UUID categoryId, List<UUID> imageIds,
             String seoTitle, String metaDescription, String canonicalUrl, String ogImageUrl, String robots) {
         this.title = title;
         this.excerpt = excerpt;
         this.categoryId = categoryId;
-        this.geographyId = geographyId;
         this.imageIds = new ArrayList<>(imageIds);
         this.seoTitle = seoTitle;
         this.metaDescription = metaDescription;

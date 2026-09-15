@@ -7,7 +7,7 @@ import { uploadImageInlineAction } from "@/app/admin/(protected)/medios/actions"
 /**
  * Botón de subida embebido en los selectores de imagen (Foto destacada,
  * Fotografías) — evita el viaje a Medios antes de poder ilustrar una
- * publicación (mismo criterio que "+ Crear" en GeographyPicker).
+ * publicación.
  */
 export function InlineImageUpload({
   onUploaded,

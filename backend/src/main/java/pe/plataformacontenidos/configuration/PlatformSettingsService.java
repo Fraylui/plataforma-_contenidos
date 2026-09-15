@@ -13,8 +13,8 @@ import pe.plataformacontenidos.identity.UserRepository;
  * Fila única de configuración de marca (CONTEXTO.md sección 14). No hay
  * create/delete: solo lectura (público, vía PlatformSettingsController) y
  * actualización (admin, vía PlatformSettingsAdminController). Sin caché por
- * ahora — sigue el mismo patrón que taxonomy/geography (ver exploración
- * previa: no hay convención @Cacheable en el proyecto todavía); el frontend
+ * ahora — sigue el mismo patrón que taxonomy (ver exploración previa: no
+ * hay convención @Cacheable en el proyecto todavía); el frontend
  * ya cachea la lectura pública con ISR (revalidate).
  */
 @Service

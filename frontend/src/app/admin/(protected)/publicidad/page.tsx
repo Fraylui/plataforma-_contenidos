@@ -37,24 +37,24 @@ export default async function AdminAdPlacementsPage() {
       {placements.length === 0 ? (
         <EmptyState title="Todavía no hay posiciones de anuncio" />
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-lg border border-border">
+        <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface">
           <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="border-b border-border bg-surface text-xs uppercase tracking-wide text-muted">
+            <thead className="border-b border-border">
               <tr>
-                <th className="px-4 py-3 font-medium">Posición</th>
-                <th className="px-4 py-3 font-medium">Clave</th>
-                <th className="px-4 py-3 font-medium">Slot de AdSense</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
-                <th className="px-4 py-3 font-medium" />
+                <th className="px-4 py-3 font-medium text-muted">Posición</th>
+                <th className="px-4 py-3 font-medium text-muted">Clave</th>
+                <th className="px-4 py-3 font-medium text-muted">Slot de AdSense</th>
+                <th className="px-4 py-3 font-medium text-muted">Estado</th>
+                <th className="px-4 py-3 font-medium text-muted" />
               </tr>
             </thead>
             <tbody>
               {placements.map((placement) => (
-                <tr key={placement.id} className="border-b border-border last:border-0 hover:bg-surface">
+                <tr key={placement.id} className="border-b border-border last:border-0 hover:bg-accent-soft/40">
                   <td className="px-4 py-3">
                     <Link
                       href={`/admin/publicidad/${placement.id}`}
-                      className="font-medium text-foreground hover:text-accent"
+                      className="font-medium text-foreground hover:text-accent hover:underline"
                     >
                       {placement.label}
                     </Link>

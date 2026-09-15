@@ -26,21 +26,21 @@ export default async function AdminCategoriesPage() {
       {rows.length === 0 ? (
         <EmptyState title="Todavía no hay categorías" />
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-lg border border-border">
+        <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface">
           <table className="w-full min-w-[560px] text-left text-sm">
-            <thead className="border-b border-border bg-surface text-xs uppercase tracking-wide text-muted">
+            <thead className="border-b border-border">
               <tr>
-                <th className="px-4 py-3 font-medium">Nombre</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
-                <th className="px-4 py-3 font-medium" />
+                <th className="px-4 py-3 font-medium text-muted">Nombre</th>
+                <th className="px-4 py-3 font-medium text-muted">Estado</th>
+                <th className="px-4 py-3 font-medium text-muted" />
               </tr>
             </thead>
             <tbody>
               {rows.map(({ category, depth }) => (
-                <tr key={category.id} className="border-b border-border last:border-0 hover:bg-surface">
+                <tr key={category.id} className="border-b border-border last:border-0 hover:bg-accent-soft/40">
                   <td className="px-4 py-3">
                     <span style={{ paddingLeft: `${depth * 1.25}rem` }} className="inline-block">
-                      <Link href={`/admin/categorias/${category.id}`} className="font-medium text-foreground hover:text-accent">
+                      <Link href={`/admin/categorias/${category.id}`} className="font-medium text-foreground hover:text-accent hover:underline">
                         {category.name}
                       </Link>
                     </span>

@@ -2,27 +2,15 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { AdminApiError, getAdminArticle, listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
-import { getCategoryById, getGeographyUnitById, listAllTags } from "@/lib/api/client";
+import { getCategoryById, listAllTags } from "@/lib/api/client";
 import { computeArticlePermissions } from "@/lib/admin/article-permissions";
 import { ArticleForm } from "@/components/admin/article-form";
-import type { Category, GeographicUnit } from "@/lib/api/types";
+import type { Category } from "@/lib/api/types";
 
 export const metadata: Metadata = {
   title: "Editar publicación",
   robots: "noindex,nofollow",
 };
-
-/** Camino PAIS -> ... -> unidad seleccionada, para precargar el selector en cascada. */
-async function resolveGeographyChain(geographyId: string | null): Promise<GeographicUnit[]> {
-  if (!geographyId) return [];
-  const chain: GeographicUnit[] = [];
-  let current: GeographicUnit | null = await getGeographyUnitById(geographyId).catch(() => null);
-  while (current) {
-    chain.unshift(current);
-    current = current.parentId ? await getGeographyUnitById(current.parentId).catch(() => null) : null;
-  }
-  return chain;
-}
 
 /** La categoría del artículo puede haberse desactivado desde que se asignó; igual debe verse en el selector. */
 async function resolveCategories(activeCategories: Category[], categoryId: string): Promise<Category[]> {
@@ -50,11 +38,10 @@ export default async function EditArticlePage(props: PageProps<"/admin/publicaci
     throw error;
   }
 
-  const [activeCategories, allTags, allImages, geographyChain] = await Promise.all([
+  const [activeCategories, allTags, allImages] = await Promise.all([
     listActiveCategoriesFresh(),
     listAllTags(),
     listAdminImages(accessToken),
-    resolveGeographyChain(article.geographyId),
   ]);
   const categories = await resolveCategories(activeCategories, article.categoryId);
   const tagNames = allTags.filter((tag) => article.tagIds.includes(tag.id)).map((tag) => tag.name);
@@ -69,7 +56,6 @@ export default async function EditArticlePage(props: PageProps<"/admin/publicaci
           article={article}
           categories={categories}
           allImages={allImages}
-          initialGeographyChain={geographyChain}
           initialTagNames={tagNames}
           permissions={permissions}
         />

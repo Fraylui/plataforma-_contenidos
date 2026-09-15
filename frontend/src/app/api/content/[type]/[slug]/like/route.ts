@@ -15,7 +15,7 @@ const BACKEND_PATH: Record<string, string> = {
 
 /**
  * Proxy de POST /api/v1/{tipo}/{slug}/like (público, sin autenticación en
- * el backend) — mismo principio que api/geography/route.ts: el navegador
+ * el backend) — mismo principio que api/feed/route.ts: el navegador
  * nunca llama directo al backend. Un solo route handler para los 6 tipos
  * de contenido en vez de repetirlo (ver engagement.ContentLikeService en
  * el backend, que ya unificó esto del lado del servidor).

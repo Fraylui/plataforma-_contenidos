@@ -24,14 +24,11 @@ import pe.plataformacontenidos.shared.ContentVideo;
 
 /**
  * Un artículo de texto (sección 3: noticia, reportaje, crónica, etc. — todos
- * comparten la misma forma, solo cambia articleType). author_id,
- * category_id y geography_id son UUID sin FK: pertenecen a los módulos
- * Identity, Taxonomy y Geography respectivamente, y este módulo no hace
- * joins cruzados de esquema (CONTEXTO.md sección 38). Se validan en
- * ArticleService llamando a los repositorios/servicios de esos módulos.
- * geography_id es opcional: no todo contenido tiene una ubicación asociada
- * (ej. Tecnología/IA) — ver sección 4, ejemplo "Turismo → Ayacucho →
- * Huamanga".
+ * comparten la misma forma, solo cambia articleType). author_id y
+ * category_id son UUID sin FK: pertenecen a los módulos Identity y Taxonomy
+ * respectivamente, y este módulo no hace joins cruzados de esquema
+ * (CONTEXTO.md sección 38). Se validan en ArticleService llamando a los
+ * repositorios/servicios de esos módulos.
  */
 @Entity
 @Table(name = "articles", schema = "content")
@@ -66,9 +63,6 @@ public class Article {
 
     @Column(name = "category_id", nullable = false)
     private UUID categoryId;
-
-    @Column(name = "geography_id")
-    private UUID geographyId;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "article_tags", schema = "content", joinColumns = @JoinColumn(name = "article_id"))
@@ -173,10 +167,6 @@ public class Article {
         return categoryId;
     }
 
-    public UUID getGeographyId() {
-        return geographyId;
-    }
-
     public Set<UUID> getTagIds() {
         return tagIds;
     }
@@ -244,14 +234,13 @@ public class Article {
     }
 
     public void updateContent(String title, String excerpt, String body, ArticleType articleType, UUID categoryId,
-            UUID geographyId, Set<UUID> tagIds, String seoTitle, String metaDescription, String canonicalUrl,
+            Set<UUID> tagIds, String seoTitle, String metaDescription, String canonicalUrl,
             String ogImageUrl, List<ContentImage> images, List<ContentVideo> videos, String robots) {
         this.title = title;
         this.excerpt = excerpt;
         this.body = body;
         this.articleType = articleType;
         this.categoryId = categoryId;
-        this.geographyId = geographyId;
         this.tagIds = new HashSet<>(tagIds);
         this.seoTitle = seoTitle;
         this.metaDescription = metaDescription;

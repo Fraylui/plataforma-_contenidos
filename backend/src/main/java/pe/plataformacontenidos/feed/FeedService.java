@@ -70,12 +70,12 @@ public class FeedService {
         Set<UUID> excluded = boundedExcludeSet(excludeIds);
         Pageable pageable = PageRequest.of(0, CANDIDATE_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
 
-        List<Article> articles = articleService.listPublished(null, null, pageable).getContent().stream()
+        List<Article> articles = articleService.listPublished(null, pageable).getContent().stream()
                 .filter(a -> !excluded.contains(a.getId())).toList();
-        List<Place> places = placeService.listPublished(null, null, pageable).getContent().stream()
+        List<Place> places = placeService.listPublished(null, pageable).getContent().stream()
                 .filter(p -> !excluded.contains(p.getId())).toList();
         // Solo próximos: un feed de descubrimiento no debe recomendar eventos que ya pasaron.
-        List<Event> events = eventService.listPublished(null, null, true, pageable).getContent().stream()
+        List<Event> events = eventService.listPublished(null, true, pageable).getContent().stream()
                 .filter(e -> !excluded.contains(e.getId())).toList();
 
         List<FeedItemResponse> pool = buildPool(articles, places, events);
@@ -87,24 +87,21 @@ public class FeedService {
     }
 
     /**
-     * Relacionados para la vista de detalle: misma categoría (filtrado por
-     * DB, igual que PlaceService.relatedArticles ya hacía solo con
-     * geografía) y, dentro de eso, se prioriza compartir también la
-     * geografía. Deliberadamente mezcla los 3 tipos de contenido en vez de
+     * Relacionados para la vista de detalle: misma categoría, filtrado por
+     * DB. Deliberadamente mezcla los 3 tipos de contenido en vez de
      * devolver solo el mismo tipo — el objetivo es que quien lee una
      * Publicación descubra también Lugares/Eventos relacionados, no quedarse
      * encerrado en un solo módulo.
      */
-    public List<FeedItemResponse> getRelated(ContentType excludeType, UUID excludeId, UUID categoryId,
-            UUID geographyId, int size) {
+    public List<FeedItemResponse> getRelated(ContentType excludeType, UUID excludeId, UUID categoryId, int size) {
         if (categoryId == null) {
             return List.of();
         }
         Pageable pageable = PageRequest.of(0, RELATED_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
 
-        List<Article> articles = articleService.listPublished(categoryId, null, pageable).getContent();
-        List<Place> places = placeService.listPublished(categoryId, null, pageable).getContent();
-        List<Event> events = eventService.listPublished(categoryId, null, true, pageable).getContent();
+        List<Article> articles = articleService.listPublished(categoryId, pageable).getContent();
+        List<Place> places = placeService.listPublished(categoryId, pageable).getContent();
+        List<Event> events = eventService.listPublished(categoryId, true, pageable).getContent();
 
         List<FeedItemResponse> pool = buildPool(articles, places, events).stream()
                 .filter(item -> !(item.type() == excludeType && item.id().equals(excludeId)))
@@ -112,8 +109,7 @@ public class FeedService {
 
         Instant now = Instant.now();
         return pool.stream()
-                .sorted(Comparator.comparingDouble((FeedItemResponse item) -> relatedScore(item, geographyId, now))
-                        .reversed())
+                .sorted(Comparator.comparingDouble((FeedItemResponse item) -> relatedScore(item, now)).reversed())
                 .limit(Math.max(size, 1))
                 .toList();
     }
@@ -133,17 +129,9 @@ public class FeedService {
         return pool;
     }
 
-    /**
-     * geografía compartida (+2, señal más fuerte) > interacción reciente, y
-     * dentro de eso, frescura + likes. `log1p` para que las interacciones
-     * pesen pero un solo ítem viral no eclipse todo lo demás.
-     */
-    private double relatedScore(FeedItemResponse item, UUID geographyId, Instant now) {
-        double score = 0;
-        if (geographyId != null && geographyId.equals(item.geographyId())) {
-            score += 2;
-        }
-        score += freshness(item.publishedAt(), now);
+    /** Frescura + likes. `log1p` para que las interacciones pesen pero un solo ítem viral no eclipse todo lo demás. */
+    private double relatedScore(FeedItemResponse item, Instant now) {
+        double score = freshness(item.publishedAt(), now);
         score += Math.log1p(item.likeCount()) * 0.3;
         return score;
     }

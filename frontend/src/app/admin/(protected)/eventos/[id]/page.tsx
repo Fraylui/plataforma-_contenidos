@@ -8,27 +8,15 @@ import {
   listAdminImages,
   listAdminPlaces,
 } from "@/lib/api/admin-client";
-import { getCategoryById, getGeographyUnitById } from "@/lib/api/client";
+import { getCategoryById } from "@/lib/api/client";
 import { computeEventPermissions } from "@/lib/admin/event-permissions";
 import { EventForm } from "@/components/admin/event-form";
-import type { Category, GeographicUnit } from "@/lib/api/types";
+import type { Category } from "@/lib/api/types";
 
 export const metadata: Metadata = {
   title: "Editar evento",
   robots: "noindex,nofollow",
 };
-
-/** Camino PAIS -> ... -> unidad seleccionada, para precargar el selector en cascada. */
-async function resolveGeographyChain(geographyId: string | null): Promise<GeographicUnit[]> {
-  if (!geographyId) return [];
-  const chain: GeographicUnit[] = [];
-  let current: GeographicUnit | null = await getGeographyUnitById(geographyId).catch(() => null);
-  while (current) {
-    chain.unshift(current);
-    current = current.parentId ? await getGeographyUnitById(current.parentId).catch(() => null) : null;
-  }
-  return chain;
-}
 
 /** La categoría del evento puede haberse desactivado desde que se asignó; igual debe verse en el selector. */
 async function resolveCategories(activeCategories: Category[], categoryId: string): Promise<Category[]> {
@@ -54,11 +42,10 @@ export default async function EditEventPage(props: PageProps<"/admin/eventos/[id
     throw error;
   }
 
-  const [activeCategories, allImages, places, geographyChain] = await Promise.all([
+  const [activeCategories, allImages, places] = await Promise.all([
     listActiveCategoriesFresh(),
     listAdminImages(accessToken),
     listAdminPlaces(accessToken),
-    resolveGeographyChain(event.geographyId),
   ]);
   const categories = await resolveCategories(activeCategories, event.categoryId);
   const permissions = computeEventPermissions(event, user);
@@ -73,7 +60,6 @@ export default async function EditEventPage(props: PageProps<"/admin/eventos/[id
           categories={categories}
           places={places}
           allImages={allImages}
-          initialGeographyChain={geographyChain}
           permissions={permissions}
         />
       </div>

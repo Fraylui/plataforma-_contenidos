@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import type { Category } from "@/lib/api/types";
 import { createCategoryAction, updateCategoryAction, type ActionResult } from "@/app/admin/(protected)/categorias/actions";
-import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
+import { AdminButton, Combobox, FormField, formInputClass } from "@/components/admin/ui";
 
 interface CategoryFormProps {
   mode: "create" | "edit";
@@ -39,7 +39,7 @@ export function CategoryForm({ mode, category, parentOptions }: CategoryFormProp
   }
 
   return (
-    <div className="max-w-lg space-y-4">
+    <div className="max-w-lg space-y-4 rounded-xl border border-border/60 bg-surface p-5">
       <FormField label="Nombre" name="name">
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={formInputClass} />
       </FormField>
@@ -49,15 +49,12 @@ export function CategoryForm({ mode, category, parentOptions }: CategoryFormProp
       </FormField>
 
       <FormField label="Categoría padre (opcional, para subcategorías)" name="parentId">
-        <select value={parentId} onChange={(e) => setParentId(e.target.value)} className={formInputClass}>
-          <option value="">Ninguna (categoría raíz)</option>
-          {parentOptions.map((option) => (
-            <option key={option.id} value={option.id}>
-              {"— ".repeat(option.depth)}
-              {option.name}
-            </option>
-          ))}
-        </select>
+        <Combobox
+          options={parentOptions.map((option) => ({ id: option.id, label: `${"— ".repeat(option.depth)}${option.name}` }))}
+          value={parentId || null}
+          placeholder="Ninguna (categoría raíz)"
+          onSelect={(id) => setParentId(id ?? "")}
+        />
       </FormField>
 
       {mode === "edit" && (

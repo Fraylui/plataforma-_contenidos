@@ -36,7 +36,6 @@ public class GalleryPublicController {
     @GetMapping
     public PageResponse<GallerySummaryResponse> list(
             @RequestParam(required = false) UUID categoryId,
-            @RequestParam(required = false) UUID geographyId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         // Clamp defensivo: page<0/size<1 lanzan IllegalArgumentException, y un page
@@ -46,7 +45,7 @@ public class GalleryPublicController {
         int safePage = Math.min(Math.max(page, 0), 10_000_000);
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         var pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "publishedAt"));
-        var result = galleryService.listPublished(categoryId, geographyId, pageable);
+        var result = galleryService.listPublished(categoryId, pageable);
         var likes = contentLikeService.countLikes(ContentType.GALLERY,
                 result.getContent().stream().map(Gallery::getId).toList());
         return PageResponse.from(result, item -> GallerySummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));

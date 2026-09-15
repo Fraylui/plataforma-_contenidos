@@ -25,9 +25,9 @@ import pe.plataformacontenidos.shared.ContentVideo;
  * (opcional, vinculado a un Lugar existente o solo un nombre libre),
  * fotografías, video, categoría. Un tipo de contenido más (sección 3), con
  * el mismo flujo editorial que Article/Place (sección 12) — ver
- * EventService. category_id/geography_id/place_id son UUID sin FK
- * (pertenecen a Taxonomy/Geography/Places, sección 38); imageIds tampoco
- * (pertenece a Media). A diferencia de Article/Place, el listado público no
+ * EventService. category_id/place_id son UUID sin FK (pertenecen a
+ * Taxonomy/Places, sección 38); imageIds tampoco (pertenece a Media). A
+ * diferencia de Article/Place, el listado público no
  * ordena por published_at sino por starts_at, separando explícitamente
  * "próximos" de "pasados" (ver EventService.listPublished).
  */
@@ -60,9 +60,6 @@ public class Event {
 
     @Column(name = "category_id", nullable = false)
     private UUID categoryId;
-
-    @Column(name = "geography_id")
-    private UUID geographyId;
 
     @Column(name = "place_id")
     private UUID placeId;
@@ -164,10 +161,6 @@ public class Event {
         return categoryId;
     }
 
-    public UUID getGeographyId() {
-        return geographyId;
-    }
-
     public UUID getPlaceId() {
         return placeId;
     }
@@ -242,7 +235,7 @@ public class Event {
                 || status == EventStatus.APPROVED || status == EventStatus.REJECTED;
     }
 
-    public void updateContent(String title, String excerpt, String body, UUID categoryId, UUID geographyId,
+    public void updateContent(String title, String excerpt, String body, UUID categoryId,
             UUID placeId, String venueName, Instant startsAt, Instant endsAt, List<ContentImage> images,
             String seoTitle, String metaDescription, String canonicalUrl, String ogImageUrl,
             List<ContentVideo> videos, String robots) {
@@ -250,7 +243,6 @@ public class Event {
         this.excerpt = excerpt;
         this.body = body;
         this.categoryId = categoryId;
-        this.geographyId = geographyId;
         this.placeId = placeId;
         this.venueName = venueName;
         this.startsAt = startsAt;

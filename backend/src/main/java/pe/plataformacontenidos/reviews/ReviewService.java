@@ -14,8 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
-import pe.plataformacontenidos.geography.GeographicUnitNotFoundException;
-import pe.plataformacontenidos.geography.GeographicUnitService;
 import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.places.PlaceService;
@@ -34,17 +32,14 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final CategoryService categoryService;
-    private final GeographicUnitService geographyService;
     private final PlaceService placeService;
     private final ImageService imageService;
     private final AuditService auditService;
 
     public ReviewService(ReviewRepository reviewRepository, CategoryService categoryService,
-            GeographicUnitService geographyService, PlaceService placeService, ImageService imageService,
-            AuditService auditService) {
+            PlaceService placeService, ImageService imageService, AuditService auditService) {
         this.reviewRepository = reviewRepository;
         this.categoryService = categoryService;
-        this.geographyService = geographyService;
         this.placeService = placeService;
         this.imageService = imageService;
         this.auditService = auditService;
@@ -54,14 +49,13 @@ public class ReviewService {
         if (!categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
-        validateGeography(input.geographyId());
         validatePlace(input.placeId());
         List<UUID> imageIds = validateImages(input.imageIds());
         String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
 
         Review review = new Review(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), input.body(),
                 authorId, input.categoryId(), input.rating());
-        review.updateContent(input.title(), input.excerpt(), input.body(), input.categoryId(), input.geographyId(),
+        review.updateContent(input.title(), input.excerpt(), input.body(), input.categoryId(),
                 input.placeId(), input.subjectName(), input.rating(), imageIds, input.seoTitle(),
                 input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), youtubeVideoId, input.robots());
 
@@ -77,16 +71,13 @@ public class ReviewService {
         if (!review.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
-        if (!Objects.equals(review.getGeographyId(), input.geographyId())) {
-            validateGeography(input.geographyId());
-        }
         if (!Objects.equals(review.getPlaceId(), input.placeId())) {
             validatePlace(input.placeId());
         }
         List<UUID> imageIds = validateImages(input.imageIds());
         String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
 
-        review.updateContent(input.title(), input.excerpt(), input.body(), input.categoryId(), input.geographyId(),
+        review.updateContent(input.title(), input.excerpt(), input.body(), input.categoryId(),
                 input.placeId(), input.subjectName(), input.rating(), imageIds, input.seoTitle(),
                 input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), youtubeVideoId, input.robots());
         Review saved = reviewRepository.save(review);
@@ -191,26 +182,19 @@ public class ReviewService {
                 .orElseThrow(() -> new ReviewNotFoundException(slug));
     }
 
-    public Page<Review> listPublished(UUID categoryId, UUID geographyId, Pageable pageable) {
-        if (categoryId != null && geographyId != null) {
-            return reviewRepository.findByStatusAndCategoryIdAndGeographyId(
-                    ReviewStatus.PUBLISHED, categoryId, geographyId, pageable);
-        }
+    public Page<Review> listPublished(UUID categoryId, Pageable pageable) {
         if (categoryId != null) {
             return reviewRepository.findByStatusAndCategoryId(ReviewStatus.PUBLISHED, categoryId, pageable);
-        }
-        if (geographyId != null) {
-            return reviewRepository.findByStatusAndGeographyId(ReviewStatus.PUBLISHED, geographyId, pageable);
         }
         return reviewRepository.findByStatus(ReviewStatus.PUBLISHED, pageable);
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que el resto de módulos.search (query en blanco: página vacía, no error). */
-    public Page<Review> search(String query, UUID categoryId, UUID geographyId, Pageable pageable) {
+    public Page<Review> search(String query, UUID categoryId, Pageable pageable) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);
         }
-        return reviewRepository.search(query.trim(), categoryId, geographyId, pageable);
+        return reviewRepository.search(query.trim(), categoryId, pageable);
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
@@ -220,12 +204,6 @@ public class ReviewService {
             counts.put(status, reviewRepository.countByStatus(status));
         }
         return counts;
-    }
-
-    private void validateGeography(UUID geographyId) {
-        if (geographyId != null && !geographyService.existsActive(geographyId)) {
-            throw new GeographicUnitNotFoundException(geographyId);
-        }
     }
 
     private void validatePlace(UUID placeId) {

@@ -46,18 +46,17 @@ public class FeedController {
     }
 
     /**
-     * `categoryId`/`geographyId` vienen del propio recurso que el frontend
-     * ya está mostrando (no hace falta otra consulta al servidor para
-     * resolverlos) — ver ArticleResponse/PlaceResponse/EventResponse.
+     * `categoryId` viene del propio recurso que el frontend ya está
+     * mostrando (no hace falta otra consulta al servidor para resolverlo) —
+     * ver ArticleResponse/PlaceResponse/EventResponse.
      */
     @GetMapping("/related")
     public List<FeedItemResponse> getRelated(
             @RequestParam ContentType excludeType,
             @RequestParam UUID excludeId,
             @RequestParam UUID categoryId,
-            @RequestParam(required = false) UUID geographyId,
             @RequestParam(defaultValue = "6") int size) {
         int safeSize = Math.min(Math.max(size, 1), MAX_RELATED_SIZE);
-        return feedService.getRelated(excludeType, excludeId, categoryId, geographyId, safeSize);
+        return feedService.getRelated(excludeType, excludeId, categoryId, safeSize);
     }
 }

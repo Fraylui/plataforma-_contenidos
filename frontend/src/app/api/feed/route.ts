@@ -8,8 +8,8 @@ const MAX_SIZE = 30; // = MAX_PAGE_SIZE en FeedController
 
 /**
  * Proxy de GET /api/v1/feed (público, sin autenticación) para el scroll
- * infinito del home — mismo principio que api/geography/route.ts: el
- * navegador nunca llama directo al backend. Sin caché a propósito: cada
+ * infinito del home — mismo principio que api/content/[type]/[slug]/like/route.ts:
+ * el navegador nunca llama directo al backend. Sin caché a propósito: cada
  * visitante lleva su propio `exclude`/`seed`, así que la respuesta no es la
  * misma para todos.
  *

@@ -18,7 +18,6 @@ public record ArticleSummaryResponse(
         String excerpt,
         ArticleType articleType,
         UUID categoryId,
-        UUID geographyId,
         UUID coverImageId,
         String coverImageUrl,
         boolean hasVideo,
@@ -28,7 +27,7 @@ public record ArticleSummaryResponse(
     public static ArticleSummaryResponse from(Article article, long likeCount) {
         ContentImage cover = article.getCoverImage();
         return new ArticleSummaryResponse(article.getId(), article.getSlug(), article.getTitle(),
-                article.getExcerpt(), article.getArticleType(), article.getCategoryId(), article.getGeographyId(),
+                article.getExcerpt(), article.getArticleType(), article.getCategoryId(),
                 cover == null ? null : cover.getImageId(), cover == null ? null : cover.getExternalUrl(),
                 !article.getVideos().isEmpty(), article.getPublishedAt(), likeCount);
     }

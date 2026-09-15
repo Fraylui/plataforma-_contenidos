@@ -24,10 +24,8 @@ import pe.plataformacontenidos.shared.ContentVideo;
  * Página de Lugar (CONTEXTO.md sección 6): nombre, historia, ubicación,
  * coordenadas, fotografías, video, categoría. Un tipo de contenido más
  * (sección 3), con el mismo flujo editorial que Article (sección 12) — ver
- * PlaceService. category_id/geography_id son UUID sin FK (pertenecen a
- * Taxonomy/Geography, sección 38); imageIds tampoco (pertenecen a Media).
- * Los "artículos relacionados" no se persisten: se derivan en
- * PlaceService a partir de geography_id compartido con content.articles.
+ * PlaceService. category_id es UUID sin FK (pertenece a Taxonomy, sección
+ * 38); imageIds tampoco (pertenece a Media).
  */
 @Entity
 @Table(name = "places", schema = "places")
@@ -58,9 +56,6 @@ public class Place {
 
     @Column(name = "category_id", nullable = false)
     private UUID categoryId;
-
-    @Column(name = "geography_id")
-    private UUID geographyId;
 
     private Double latitude;
     private Double longitude;
@@ -151,10 +146,6 @@ public class Place {
         return categoryId;
     }
 
-    public UUID getGeographyId() {
-        return geographyId;
-    }
-
     public Double getLatitude() {
         return latitude;
     }
@@ -221,14 +212,13 @@ public class Place {
                 || status == PlaceStatus.APPROVED || status == PlaceStatus.REJECTED;
     }
 
-    public void updateContent(String name, String excerpt, String body, UUID categoryId, UUID geographyId,
+    public void updateContent(String name, String excerpt, String body, UUID categoryId,
             Double latitude, Double longitude, List<ContentImage> images, String seoTitle, String metaDescription,
             String canonicalUrl, String ogImageUrl, List<ContentVideo> videos, String robots) {
         this.name = name;
         this.excerpt = excerpt;
         this.body = body;
         this.categoryId = categoryId;
-        this.geographyId = geographyId;
         this.latitude = latitude;
         this.longitude = longitude;
         this.images = new ArrayList<>(images);

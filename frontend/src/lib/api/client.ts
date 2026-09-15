@@ -19,7 +19,6 @@ import type {
   FeedPage,
   Gallery,
   GallerySummary,
-  GeographicUnit,
   PageResponse,
   Place,
   PlaceSummary,
@@ -60,13 +59,11 @@ async function apiFetchNoStore<T>(path: string): Promise<T> {
 
 export function listPublishedArticles(params?: {
   categoryId?: string;
-  geographyId?: string;
   page?: number;
   size?: number;
 }): Promise<PageResponse<ArticleSummary>> {
   const query = new URLSearchParams();
   if (params?.categoryId) query.set("categoryId", params.categoryId);
-  if (params?.geographyId) query.set("geographyId", params.geographyId);
   query.set("page", String(params?.page ?? 0));
   query.set("size", String(params?.size ?? 20));
 
@@ -86,7 +83,6 @@ export function searchContent(
     size?: number;
     type?: SearchResultType;
     categoryId?: string;
-    geographyId?: string;
     /** Rango de fechas — solo tiene efecto cuando type es "EVENT" (único tipo con fecha propia filtrable). ISO 8601. */
     from?: string;
     to?: string;
@@ -98,7 +94,6 @@ export function searchContent(
   query.set("size", String(params?.size ?? 20));
   if (params?.type) query.set("type", params.type);
   if (params?.categoryId) query.set("categoryId", params.categoryId);
-  if (params?.geographyId) query.set("geographyId", params.geographyId);
   if (params?.from) query.set("from", params.from);
   if (params?.to) query.set("to", params.to);
   return apiFetch(`/api/v1/search?${query.toString()}`, 60);
@@ -130,13 +125,11 @@ export async function listAllPublishedArticlesForSitemap(): Promise<ArticleSumma
 
 export function listPublishedPlaces(params?: {
   categoryId?: string;
-  geographyId?: string;
   page?: number;
   size?: number;
 }): Promise<PageResponse<PlaceSummary>> {
   const query = new URLSearchParams();
   if (params?.categoryId) query.set("categoryId", params.categoryId);
-  if (params?.geographyId) query.set("geographyId", params.geographyId);
   query.set("page", String(params?.page ?? 0));
   query.set("size", String(params?.size ?? 20));
   return apiFetch(`/api/v1/places?${query.toString()}`, 60);
@@ -172,14 +165,12 @@ export async function listAllPublishedPlacesForSitemap(): Promise<PlaceSummary[]
  */
 export function listPublishedEvents(params?: {
   categoryId?: string;
-  geographyId?: string;
   when?: "upcoming" | "past";
   page?: number;
   size?: number;
 }): Promise<PageResponse<EventSummary>> {
   const query = new URLSearchParams();
   if (params?.categoryId) query.set("categoryId", params.categoryId);
-  if (params?.geographyId) query.set("geographyId", params.geographyId);
   query.set("when", params?.when ?? "upcoming");
   query.set("page", String(params?.page ?? 0));
   query.set("size", String(params?.size ?? 20));
@@ -210,13 +201,11 @@ export async function listAllPublishedEventsForSitemap(): Promise<EventSummary[]
 
 export function listPublishedGalleries(params?: {
   categoryId?: string;
-  geographyId?: string;
   page?: number;
   size?: number;
 }): Promise<PageResponse<GallerySummary>> {
   const query = new URLSearchParams();
   if (params?.categoryId) query.set("categoryId", params.categoryId);
-  if (params?.geographyId) query.set("geographyId", params.geographyId);
   query.set("page", String(params?.page ?? 0));
   query.set("size", String(params?.size ?? 20));
   return apiFetch(`/api/v1/galleries?${query.toString()}`, 60);
@@ -240,13 +229,11 @@ export async function listAllPublishedGalleriesForSitemap(): Promise<GallerySumm
 
 export function listPublishedReviews(params?: {
   categoryId?: string;
-  geographyId?: string;
   page?: number;
   size?: number;
 }): Promise<PageResponse<ReviewSummary>> {
   const query = new URLSearchParams();
   if (params?.categoryId) query.set("categoryId", params.categoryId);
-  if (params?.geographyId) query.set("geographyId", params.geographyId);
   query.set("page", String(params?.page ?? 0));
   query.set("size", String(params?.size ?? 20));
   return apiFetch(`/api/v1/reviews?${query.toString()}`, 60);
@@ -270,14 +257,12 @@ export async function listAllPublishedReviewsForSitemap(): Promise<ReviewSummary
 
 export function listPublishedBusinesses(params?: {
   categoryId?: string;
-  geographyId?: string;
   businessType?: BusinessType;
   page?: number;
   size?: number;
 }): Promise<PageResponse<BusinessSummary>> {
   const query = new URLSearchParams();
   if (params?.categoryId) query.set("categoryId", params.categoryId);
-  if (params?.geographyId) query.set("geographyId", params.geographyId);
   if (params?.businessType) query.set("businessType", params.businessType);
   query.set("page", String(params?.page ?? 0));
   query.set("size", String(params?.size ?? 20));
@@ -352,14 +337,13 @@ export function getFeed(params: { size?: number; exclude?: string[]; seed?: stri
 
 /**
  * Relacionados de la vista de detalle — ver FeedController.getRelated.
- * `categoryId`/`geographyId` vienen del propio recurso que la página de
- * detalle ya cargó (no hace falta otra consulta para resolverlos).
+ * `categoryId` viene del propio recurso que la página de detalle ya cargó
+ * (no hace falta otra consulta para resolverlo).
  */
 export function getFeedRelated(params: {
   excludeType: FeedItemType;
   excludeId: string;
   categoryId: string | null;
-  geographyId?: string | null;
   size?: number;
 }): Promise<FeedItem[]> {
   if (!params.categoryId) return Promise.resolve([]);
@@ -367,7 +351,6 @@ export function getFeedRelated(params: {
   query.set("excludeType", params.excludeType);
   query.set("excludeId", params.excludeId);
   query.set("categoryId", params.categoryId);
-  if (params.geographyId) query.set("geographyId", params.geographyId);
   query.set("size", String(params.size ?? 6));
   // Detalle: revalidación corta, igual que el resto de listados públicos.
   return apiFetch(`/api/v1/feed/related?${query.toString()}`, 60);
@@ -383,7 +366,6 @@ export async function getRelatedWithFallback(params: {
   excludeType: FeedItemType;
   excludeId: string;
   categoryId: string | null;
-  geographyId?: string | null;
   size?: number;
 }): Promise<{ items: FeedItem[]; isFallback: boolean }> {
   const items = await getFeedRelated(params);
@@ -410,10 +392,6 @@ export function getCategoryById(id: string): Promise<Category> {
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
   const categories = await listActiveCategories();
   return categories.find((c) => c.slug === slug) ?? null;
-}
-
-export function getGeographyUnitById(id: string): Promise<GeographicUnit> {
-  return apiFetch(`/api/v1/geography/${encodeURIComponent(id)}`, 300);
 }
 
 export function listAllTags(): Promise<Tag[]> {

@@ -40,7 +40,6 @@ public class ArticlePublicController {
     @GetMapping
     public PageResponse<ArticleSummaryResponse> list(
             @RequestParam(required = false) UUID categoryId,
-            @RequestParam(required = false) UUID geographyId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         // Clamp defensivo: page<0/size<1 lanzan IllegalArgumentException, y un page
@@ -50,7 +49,7 @@ public class ArticlePublicController {
         int safePage = Math.min(Math.max(page, 0), 10_000_000);
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         var pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "publishedAt"));
-        var result = articleService.listPublished(categoryId, geographyId, pageable);
+        var result = articleService.listPublished(categoryId, pageable);
         var likes = contentLikeService.countLikes(ContentType.ARTICLE,
                 result.getContent().stream().map(Article::getId).toList());
         return PageResponse.from(result, item -> ArticleSummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));

@@ -16,7 +16,6 @@ public record BusinessRequest(
         @Size(max = 500) String excerpt,
         @NotBlank String body,
         @NotNull UUID categoryId,
-        UUID geographyId,
         @NotNull BusinessType businessType,
         UUID placeId,
         @Size(max = 300) String address,
@@ -34,7 +33,7 @@ public record BusinessRequest(
         String robots) {
 
     public BusinessInput toInput() {
-        return new BusinessInput(name, excerpt, body, categoryId, geographyId, businessType, placeId, address,
+        return new BusinessInput(name, excerpt, body, categoryId, businessType, placeId, address,
                 phone, email, website, latitude, longitude, imageIds, seoTitle, metaDescription, canonicalUrl,
                 ogImageUrl, youtubeUrl, robots);
     }

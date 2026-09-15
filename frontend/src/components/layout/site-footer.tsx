@@ -22,13 +22,15 @@ const EXPLORE_LINKS = [
 const FOOTER_CATEGORIES_MAX = 6;
 const THIS_WEEK_MAX = 3;
 
-const headingClass = "text-xs font-semibold tracking-wider text-zinc-200 uppercase";
+const headingClass = "text-xs font-semibold tracking-wider text-muted uppercase";
 
 /**
- * Siempre oscuro, en ambos temas (el negro es el color secundario de marca),
- * por eso usa zinc/green-400 directos y no los tokens: --accent en tema claro
- * es el verde-700 y sobre negro queda apagado; green-400 es exactamente el
- * mismo valor que --accent en tema oscuro (#4ade80).
+ * Respeta el tema claro/oscuro como el resto del sitio (--background/
+ * --surface/--accent) — antes era siempre oscuro a propósito, pero en tema
+ * claro quedaba desentonado con el resto de la página. El wordmark gigante
+ * de fondo escala su tamaño según la longitud del nombre configurado (antes
+ * un tamaño fijo lo recortaba en los bordes con nombres largos, quedando
+ * "cortado" en vez de legible como textura decorativa).
  *
  * Además de navegación, muestra "Esta semana" (lo último publicado + el
  * próximo evento) para que el pie no sea un bloque muerto de enlaces.
@@ -48,7 +50,18 @@ export async function SiteFooter() {
     .filter((category) => category.parentId === null)
     .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
     .slice(0, FOOTER_CATEGORIES_MAX);
-  const logo = settings.logoDarkUrl || settings.logoUrl;
+  // El footer respeta el tema (ya no es siempre oscuro), así que el logo
+  // también debe cambiar de variante con .logo-light/.logo-dark (mismo
+  // patrón que globals.css ya define) — antes se fijaba logoDarkUrl siempre,
+  // que sobre un footer claro queda invisible si es un logo claro sobre
+  // fondo transparente.
+  const lightLogo = settings.logoUrl;
+  const darkLogo = settings.logoDarkUrl || settings.logoUrl;
+  const hasLogoVariants = Boolean(lightLogo && darkLogo && lightLogo !== darkLogo);
+  const watermark = (settings.shortName || settings.name).toUpperCase();
+  // Entre más largo el nombre, más chico el tamaño para que siga entrando
+  // en una sola línea sin recortarse contra los bordes del viewport.
+  const watermarkVw = Math.min(15, Math.max(5, 155 / watermark.length));
 
   const thisWeek = [
     ...nextEvents.items.map((e) => ({
@@ -63,12 +76,13 @@ export async function SiteFooter() {
   ].slice(0, THIS_WEEK_MAX);
 
   return (
-    <footer className="relative overflow-hidden border-t-2 border-green-400 bg-zinc-950">
+    <footer className="relative overflow-hidden border-t-2 border-accent bg-canvas-strong">
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-[-0.15em] left-1/2 -translate-x-1/2 text-[clamp(72px,15vw,220px)] leading-none font-bold tracking-tighter whitespace-nowrap text-zinc-900 select-none"
+        style={{ fontSize: `clamp(40px, ${watermarkVw}vw, 220px)` }}
+        className="pointer-events-none absolute bottom-[-0.08em] left-1/2 -translate-x-1/2 leading-none font-bold tracking-tighter whitespace-nowrap text-accent/[0.09] select-none"
       >
-        {(settings.shortName || settings.name).toUpperCase()}
+        {watermark}
       </span>
 
       <div className="relative mx-auto max-w-7xl px-4 pt-12 pb-6 sm:px-6 sm:pt-14 lg:px-8">
@@ -83,16 +97,23 @@ export async function SiteFooter() {
         >
           <div className="sm:col-span-2 lg:col-span-1">
             <Link href="/" className="inline-flex items-center gap-2.5 transition-opacity hover:opacity-80">
-              {logo ? (
+              {hasLogoVariants ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- URL de logo definida por el usuario en Configuración, host arbitrario */}
+                  <img src={lightLogo!} alt="" className="logo-light h-8 w-auto" />
+                  {/* eslint-disable-next-line @next/next/no-img-element -- URL de logo definida por el usuario en Configuración, host arbitrario */}
+                  <img src={darkLogo!} alt="" className="logo-dark h-8 w-auto" />
+                </>
+              ) : lightLogo || darkLogo ? (
                 // eslint-disable-next-line @next/next/no-img-element -- URL de logo definida por el usuario en Configuración, host arbitrario
-                <img src={logo} alt="" className="h-8 w-auto" />
+                <img src={lightLogo || darkLogo!} alt="" className="h-8 w-auto" />
               ) : (
-                <span className="h-2.5 w-2.5 rounded-full bg-green-400 ring-4 ring-green-400/20" aria-hidden="true" />
+                <span className="h-2.5 w-2.5 rounded-full bg-accent ring-4 ring-accent/20" aria-hidden="true" />
               )}
-              <span className="text-xl font-bold tracking-tight text-white">{settings.name}</span>
+              <span className="text-xl font-bold tracking-tight text-foreground">{settings.name}</span>
             </Link>
             {settings.description && (
-              <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-zinc-400">{settings.description}</p>
+              <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-muted">{settings.description}</p>
             )}
             {rootCategories.length > 0 && (
               <nav aria-label="Categorías" className="mt-5 flex flex-wrap gap-2">
@@ -100,7 +121,7 @@ export async function SiteFooter() {
                   <Link
                     key={category.id}
                     href={`/categorias/${category.slug}`}
-                    className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-zinc-200 shadow-[0_1px_2px_rgb(0_0_0_/_0.2)] transition-colors hover:border-green-400/60 hover:text-green-400"
+                    className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground shadow-[0_1px_2px_rgb(0_0_0_/_0.08)] transition-colors hover:border-accent/60 hover:text-accent"
                   >
                     {category.name}
                   </Link>
@@ -115,8 +136,8 @@ export async function SiteFooter() {
             <ul className="mt-4 space-y-2">
               {exploreLinks.map(({ href, label, Icon }) => (
                 <li key={href}>
-                  <Link href={href} className="group inline-flex items-center gap-2.5 py-0.5 text-sm text-zinc-400 transition-colors hover:text-white">
-                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-green-400 shadow-[0_1px_2px_rgb(0_0_0_/_0.2)] transition-colors group-hover:border-green-400/50 group-hover:bg-green-400/10">
+                  <Link href={href} className="group inline-flex items-center gap-2.5 py-0.5 text-sm text-muted transition-colors hover:text-foreground">
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-border bg-background text-accent shadow-[0_1px_2px_rgb(0_0_0_/_0.08)] transition-colors group-hover:border-accent/50 group-hover:bg-accent-soft">
                       <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                     </span>
                     {label}
@@ -132,12 +153,12 @@ export async function SiteFooter() {
               <h2 className={headingClass}>Esta semana</h2>
               <ul className="mt-4 space-y-3.5">
                 {thisWeek.map((entry) => (
-                  <li key={entry.id} className={`border-l-2 pl-3 ${entry.highlight ? "border-green-400" : "border-white/[0.08]"}`}>
+                  <li key={entry.id} className={`border-l-2 pl-3 ${entry.highlight ? "border-accent" : "border-border"}`}>
                     <Link href={entry.href} className="group flex flex-col gap-1">
-                      <span className={`text-[11px] font-semibold tracking-wider uppercase ${entry.highlight ? "text-green-400" : "text-zinc-400"}`}>
+                      <span className={`text-[11px] font-semibold tracking-wider uppercase ${entry.highlight ? "text-accent" : "text-muted"}`}>
                         {entry.kicker}
                       </span>
-                      <span className="line-clamp-2 text-sm font-medium leading-snug text-zinc-200 transition-colors group-hover:text-white">
+                      <span className="line-clamp-2 text-sm font-medium leading-snug text-foreground transition-colors group-hover:text-accent">
                         {entry.title}
                       </span>
                     </Link>
@@ -151,20 +172,20 @@ export async function SiteFooter() {
             {settings.contactEmail && (
               <>
                 <h2 className={headingClass}>Contacto</h2>
-                <address className="mt-4 block rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 not-italic">
+                <address className="mt-4 block rounded-2xl border border-border bg-background p-4 not-italic">
                   <a
                     href={`mailto:${settings.contactEmail}`}
-                    className="inline-flex items-center gap-2 text-sm break-all text-zinc-300 transition-colors hover:text-green-400"
+                    className="inline-flex items-center gap-2 text-sm break-all text-foreground transition-colors hover:text-accent"
                   >
                     <Mail className="h-4 w-4 shrink-0" aria-hidden="true" />
                     {settings.contactEmail}
                   </a>
-                  <p className="mt-2 text-[13px] leading-relaxed text-zinc-400">
+                  <p className="mt-2 text-[13px] leading-relaxed text-muted">
                     ¿Tienes un lugar, evento o historia que deberíamos cubrir? Escríbenos.
                   </p>
                   <a
                     href={`mailto:${settings.contactEmail}?subject=${encodeURIComponent("Propuesta de contenido")}`}
-                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-green-400 px-4 py-2.5 text-[13px] font-semibold text-zinc-950 transition-colors hover:bg-green-300"
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-[13px] font-semibold text-accent-foreground transition-colors hover:opacity-90"
                   >
                     Proponer contenido
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -176,12 +197,12 @@ export async function SiteFooter() {
               <h2 className={headingClass}>Legal</h2>
               <ul className="mt-4 space-y-0.5">
                 <li>
-                  <Link href="/privacidad" className="inline-block py-1.5 text-sm text-zinc-400 transition-colors hover:text-green-400">
+                  <Link href="/privacidad" className="inline-block py-1.5 text-sm text-muted transition-colors hover:text-accent">
                     Política de privacidad
                   </Link>
                 </li>
                 <li>
-                  <Link href="/terminos" className="inline-block py-1.5 text-sm text-zinc-400 transition-colors hover:text-green-400">
+                  <Link href="/terminos" className="inline-block py-1.5 text-sm text-muted transition-colors hover:text-accent">
                     Términos y condiciones
                   </Link>
                 </li>
@@ -190,11 +211,11 @@ export async function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-3 border-t border-white/[0.08] pt-5 text-xs text-zinc-400 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-12 flex flex-col gap-3 border-t border-border pt-5 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>
             © {year} {settings.name}. Todos los derechos reservados.
           </p>
-          <a href="#top" className="inline-flex w-fit items-center gap-1.5 py-1 text-zinc-400 transition-colors hover:text-white">
+          <a href="#top" className="inline-flex w-fit items-center gap-1.5 py-1 text-muted transition-colors hover:text-foreground">
             Volver arriba
             <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
           </a>

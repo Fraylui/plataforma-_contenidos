@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, MapPin } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import {
   getArticleNeighbors,
   getCategoryById,
-  getGeographyUnitById,
   getPlatformSettings,
   getPublishedArticleBySlug,
   getRelatedWithFallback,
@@ -110,9 +109,8 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
   const { slug } = await props.params;
   const article = await loadArticle(slug);
 
-  const [category, geography, tags, settings, neighbors, categories] = await Promise.all([
+  const [category, tags, settings, neighbors, categories] = await Promise.all([
     getCategoryById(article.categoryId).catch(() => null),
-    article.geographyId ? getGeographyUnitById(article.geographyId).catch(() => null) : Promise.resolve(null),
     article.tagIds.length > 0 ? listAllTags().catch(() => []) : Promise.resolve([]),
     getPlatformSettings(),
     getArticleNeighbors(slug).catch(() => ({ previous: null, next: null })),
@@ -126,7 +124,6 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
     excludeType: "ARTICLE",
     excludeId: article.id,
     categoryId: article.categoryId,
-    geographyId: article.geographyId,
     size: RELATED_SIZE,
   });
   const relatedTitle = relatedIsFallback ? "Quizás te interese" : `Relacionado con ${category?.name ?? "esto"}`;
@@ -201,12 +198,6 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
                 <time dateTime={article.updatedAt} title={formatPublishedDate(article.updatedAt)}>
                   {formatPublishedDate(article.updatedAt)}
                 </time>
-              </span>
-            )}
-            {geography && (
-              <span className="inline-flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                {geography.name}
               </span>
             )}
           </div>

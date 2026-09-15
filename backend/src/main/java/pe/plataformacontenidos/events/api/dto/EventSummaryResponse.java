@@ -12,7 +12,6 @@ public record EventSummaryResponse(
         String title,
         String excerpt,
         UUID categoryId,
-        UUID geographyId,
         UUID placeId,
         String venueName,
         Instant startsAt,
@@ -25,7 +24,7 @@ public record EventSummaryResponse(
     public static EventSummaryResponse from(Event event, long likeCount) {
         ContentImage cover = event.getCoverImage();
         return new EventSummaryResponse(event.getId(), event.getSlug(), event.getTitle(), event.getExcerpt(),
-                event.getCategoryId(), event.getGeographyId(), event.getPlaceId(), event.getVenueName(),
+                event.getCategoryId(), event.getPlaceId(), event.getVenueName(),
                 event.getStartsAt(), event.getEndsAt(), cover == null ? null : cover.getImageId(),
                 cover == null ? null : cover.getExternalUrl(), !event.getVideos().isEmpty(), likeCount);
     }

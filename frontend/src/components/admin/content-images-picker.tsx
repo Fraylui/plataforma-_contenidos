@@ -67,7 +67,7 @@ export function ContentImagesPicker({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="mt-1 space-y-3">
       <div className="flex items-end gap-2">
         <div className="flex-1">
           <label className="mb-1 block text-xs font-medium text-muted" htmlFor="content-image-external-url">

@@ -5,6 +5,7 @@ import { categoryParentOptions } from "@/lib/admin/category-tree";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { CategoryForm } from "@/components/admin/category-form";
+import { AdminPageHeader } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
   title: "Nueva categoría",
@@ -18,7 +19,7 @@ export default async function NewCategoryPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-foreground">Nueva categoría</h1>
+      <AdminPageHeader title="Nueva categoría" />
       <div className="mt-6">
         <CategoryForm mode="create" parentOptions={categoryParentOptions(result.data)} />
       </div>

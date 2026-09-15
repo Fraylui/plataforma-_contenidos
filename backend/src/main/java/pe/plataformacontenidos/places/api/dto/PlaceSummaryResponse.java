@@ -12,7 +12,6 @@ public record PlaceSummaryResponse(
         String name,
         String excerpt,
         UUID categoryId,
-        UUID geographyId,
         Double latitude,
         Double longitude,
         UUID coverImageId,
@@ -24,7 +23,7 @@ public record PlaceSummaryResponse(
     public static PlaceSummaryResponse from(Place place, long likeCount) {
         ContentImage cover = place.getCoverImage();
         return new PlaceSummaryResponse(place.getId(), place.getSlug(), place.getName(), place.getExcerpt(),
-                place.getCategoryId(), place.getGeographyId(), place.getLatitude(), place.getLongitude(),
+                place.getCategoryId(), place.getLatitude(), place.getLongitude(),
                 cover == null ? null : cover.getImageId(), cover == null ? null : cover.getExternalUrl(),
                 !place.getVideos().isEmpty(), place.getPublishedAt(), likeCount);
     }

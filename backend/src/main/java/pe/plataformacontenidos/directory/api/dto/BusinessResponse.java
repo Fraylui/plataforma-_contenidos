@@ -17,7 +17,6 @@ public record BusinessResponse(
         BusinessType businessType,
         UUID authorId,
         UUID categoryId,
-        UUID geographyId,
         UUID placeId,
         String address,
         String phone,
@@ -41,7 +40,7 @@ public record BusinessResponse(
     public static BusinessResponse from(Business business, long likeCount) {
         return new BusinessResponse(business.getId(), business.getSlug(), business.getName(), business.getExcerpt(),
                 business.getBody(), business.getStatus(), business.getBusinessType(), business.getAuthorId(),
-                business.getCategoryId(), business.getGeographyId(), business.getPlaceId(), business.getAddress(),
+                business.getCategoryId(), business.getPlaceId(), business.getAddress(),
                 business.getPhone(), business.getEmail(), business.getWebsite(), business.getLatitude(),
                 business.getLongitude(), business.getImageIds(), business.getSeoTitle(),
                 business.getMetaDescription(), business.getCanonicalUrl(), business.getOgImageUrl(),

@@ -8,6 +8,7 @@ import { categoryParentOptions } from "@/lib/admin/category-tree";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { CategoryForm } from "@/components/admin/category-form";
+import { AdminPageHeader } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
   title: "Editar categoría",
@@ -30,7 +31,7 @@ export default async function EditCategoryPage(props: PageProps<"/admin/categori
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-foreground">{category.name}</h1>
+      <AdminPageHeader title={category.name} />
       <div className="mt-6">
         <CategoryForm mode="edit" category={category} parentOptions={categoryParentOptions(result.data, category.id)} />
       </div>

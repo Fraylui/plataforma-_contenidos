@@ -13,7 +13,6 @@ public record BusinessSummaryResponse(
         String excerpt,
         BusinessType businessType,
         UUID categoryId,
-        UUID geographyId,
         UUID placeId,
         String address,
         UUID coverImageId,
@@ -24,7 +23,7 @@ public record BusinessSummaryResponse(
         UUID coverImageId = business.getImageIds().isEmpty() ? null : business.getImageIds().get(0);
         return new BusinessSummaryResponse(business.getId(), business.getSlug(), business.getName(),
                 business.getExcerpt(), business.getBusinessType(), business.getCategoryId(),
-                business.getGeographyId(), business.getPlaceId(), business.getAddress(), coverImageId,
+                business.getPlaceId(), business.getAddress(), coverImageId,
                 business.getPublishedAt(), likeCount);
     }
 }

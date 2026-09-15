@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { PlatformSettings } from "@/lib/api/types";
 import type { PlatformSettingsInput } from "@/lib/api/admin-types";
 import { updatePlatformSettingsAction } from "@/app/admin/(protected)/configuracion/actions";
-import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
+import { AdminButton, Combobox, FormField, formInputClass } from "@/components/admin/ui";
 import { InlineImageUpload } from "@/components/admin/inline-image-upload";
 import { imageUrl } from "@/lib/image-url";
 import type { AdminImage } from "@/lib/api/admin-types";
@@ -129,12 +129,13 @@ function ImageUrlField({
   );
 }
 
+/** Misma tarjeta que el resto del panel (article-form.tsx, place-form.tsx, ...): border-border/60 bg-surface, sin shadow. */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <fieldset className="rounded-lg border border-border p-4">
-      <legend className="px-1 text-sm font-medium text-foreground">{title}</legend>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
-    </fieldset>
+    <div className="rounded-xl border border-border/60 bg-surface p-5">
+      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
+    </div>
   );
 }
 
@@ -186,15 +187,15 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
 
       <Section title="Apariencia">
         <FormField label="Tema" name="theme">
-          <select
+          <Combobox
+            options={[
+              { id: "AUTO", label: "Auto (según el sistema)" },
+              { id: "LIGHT", label: "Claro" },
+              { id: "DARK", label: "Oscuro" },
+            ]}
             value={state.theme}
-            onChange={(e) => set("theme", e.target.value as FormState["theme"])}
-            className={formInputClass}
-          >
-            <option value="AUTO">Auto (según el sistema)</option>
-            <option value="LIGHT">Claro</option>
-            <option value="DARK">Oscuro</option>
-          </select>
+            onSelect={(id) => id && set("theme", id as FormState["theme"])}
+          />
         </FormField>
       </Section>
 

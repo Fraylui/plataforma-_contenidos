@@ -1,3 +1,21 @@
+import {
+  BarChart3,
+  CalendarDays,
+  FileText,
+  FolderTree,
+  Home,
+  Image as ImageIcon,
+  Images,
+  MapPin,
+  Megaphone,
+  Settings,
+  ShieldCheck,
+  Star,
+  Store,
+  Tags,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import type { Role } from "@/lib/api/admin-types";
 
 export type AdminNavGroup = "principal" | "contenido" | "organizacion" | "cuenta";
@@ -6,6 +24,7 @@ export interface AdminNavItem {
   href: string;
   label: string;
   group: AdminNavGroup;
+  icon: LucideIcon;
   /** Sin restricción -> visible para cualquier usuario autenticado. */
   roles?: Role[];
 }
@@ -18,14 +37,15 @@ export const ADMIN_NAV_GROUP_LABELS: Record<AdminNavGroup, string | null> = {
 };
 
 // Se agregan ítems aquí a medida que se implementa cada sección del CMS
-// (CONTEXTO.md sección 11): artículos, categorías, etiquetas, geografía,
-// medios, usuarios. De momento solo existen las páginas del "cimiento".
+// (CONTEXTO.md sección 11): artículos, categorías, etiquetas, medios,
+// usuarios. De momento solo existen las páginas del "cimiento".
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
-  { href: "/admin", label: "Inicio", group: "principal" },
+  { href: "/admin", label: "Inicio", group: "principal", icon: Home },
   {
     href: "/admin/estadisticas",
     label: "Estadísticas",
     group: "principal",
+    icon: BarChart3,
     // Debe coincidir con SecurityConfig: /api/v1/admin/stats/** -> SUPER_ADMIN, ADMIN, EDITOR.
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR"],
   },
@@ -33,6 +53,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/publicaciones",
     label: "Publicaciones",
     group: "contenido",
+    icon: FileText,
     // Debe coincidir con SecurityConfig: /api/v1/admin/articles/** -> SUPER_ADMIN, ADMIN, EDITOR, AUTHOR.
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR"],
   },
@@ -40,6 +61,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/lugares",
     label: "Lugares",
     group: "contenido",
+    icon: MapPin,
     // Debe coincidir con SecurityConfig: /api/v1/admin/places/** -> SUPER_ADMIN, ADMIN, EDITOR, AUTHOR.
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR"],
   },
@@ -47,6 +69,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/eventos",
     label: "Eventos",
     group: "contenido",
+    icon: CalendarDays,
     // Debe coincidir con SecurityConfig: /api/v1/admin/events/** -> SUPER_ADMIN, ADMIN, EDITOR, AUTHOR.
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR"],
   },
@@ -54,6 +77,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/galerias",
     label: "Galerías",
     group: "contenido",
+    icon: Images,
     // Debe coincidir con SecurityConfig: /api/v1/admin/galleries/** -> SUPER_ADMIN, ADMIN, EDITOR, AUTHOR.
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR"],
   },
@@ -61,6 +85,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/resenas",
     label: "Reseñas",
     group: "contenido",
+    icon: Star,
     // Debe coincidir con SecurityConfig: /api/v1/admin/reviews/** -> SUPER_ADMIN, ADMIN, EDITOR, AUTHOR.
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR"],
   },
@@ -68,6 +93,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/directorio",
     label: "Directorio",
     group: "contenido",
+    icon: Store,
     // Debe coincidir con SecurityConfig: /api/v1/admin/directory/** -> SUPER_ADMIN, ADMIN, EDITOR, AUTHOR.
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR"],
   },
@@ -75,6 +101,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/categorias",
     label: "Categorías",
     group: "organizacion",
+    icon: FolderTree,
     // Debe coincidir con SecurityConfig: /api/v1/admin/categories/** -> SUPER_ADMIN, ADMIN, EDITOR.
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR"],
   },
@@ -82,20 +109,15 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/etiquetas",
     label: "Etiquetas",
     group: "organizacion",
+    icon: Tags,
     // Debe coincidir con SecurityConfig: /api/v1/admin/tags/** -> SUPER_ADMIN, ADMIN, EDITOR.
-    roles: ["SUPER_ADMIN", "ADMIN", "EDITOR"],
-  },
-  {
-    href: "/admin/geografia",
-    label: "Geografía",
-    group: "organizacion",
-    // Debe coincidir con SecurityConfig: /api/v1/admin/geography/** -> SUPER_ADMIN, ADMIN, EDITOR.
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR"],
   },
   {
     href: "/admin/medios",
     label: "Medios",
     group: "organizacion",
+    icon: ImageIcon,
     // Debe coincidir con SecurityConfig: /api/v1/admin/images/** -> SUPER_ADMIN, ADMIN, EDITOR, AUTHOR.
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR"],
   },
@@ -103,6 +125,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/usuarios",
     label: "Usuarios",
     group: "cuenta",
+    icon: Users,
     // Debe coincidir con SecurityConfig: /api/v1/admin/users/** -> SUPER_ADMIN, ADMIN.
     roles: ["SUPER_ADMIN", "ADMIN"],
   },
@@ -110,6 +133,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/configuracion",
     label: "Configuración",
     group: "cuenta",
+    icon: Settings,
     // Debe coincidir con SecurityConfig: /api/v1/admin/platform-settings/** -> SUPER_ADMIN, ADMIN.
     roles: ["SUPER_ADMIN", "ADMIN"],
   },
@@ -117,6 +141,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/publicidad",
     label: "Publicidad",
     group: "cuenta",
+    icon: Megaphone,
     // Debe coincidir con SecurityConfig: /api/v1/admin/ad-placements/** -> SUPER_ADMIN, ADMIN.
     roles: ["SUPER_ADMIN", "ADMIN"],
   },
@@ -124,6 +149,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/auditoria",
     label: "Auditoría",
     group: "cuenta",
+    icon: ShieldCheck,
     // Debe coincidir con SecurityConfig: /api/v1/admin/audit/** -> SUPER_ADMIN, ADMIN.
     roles: ["SUPER_ADMIN", "ADMIN"],
   },

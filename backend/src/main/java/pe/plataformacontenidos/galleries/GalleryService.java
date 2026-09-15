@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,8 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
-import pe.plataformacontenidos.geography.GeographicUnitNotFoundException;
-import pe.plataformacontenidos.geography.GeographicUnitService;
 import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.Slugify;
@@ -32,15 +29,13 @@ public class GalleryService {
 
     private final GalleryRepository galleryRepository;
     private final CategoryService categoryService;
-    private final GeographicUnitService geographyService;
     private final ImageService imageService;
     private final AuditService auditService;
 
     public GalleryService(GalleryRepository galleryRepository, CategoryService categoryService,
-            GeographicUnitService geographyService, ImageService imageService, AuditService auditService) {
+            ImageService imageService, AuditService auditService) {
         this.galleryRepository = galleryRepository;
         this.categoryService = categoryService;
-        this.geographyService = geographyService;
         this.imageService = imageService;
         this.auditService = auditService;
     }
@@ -49,12 +44,11 @@ public class GalleryService {
         if (!categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
-        validateGeography(input.geographyId());
         List<UUID> imageIds = validateImages(input.imageIds());
 
         Gallery gallery = new Gallery(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), authorId,
                 input.categoryId());
-        gallery.updateContent(input.title(), input.excerpt(), input.categoryId(), input.geographyId(), imageIds,
+        gallery.updateContent(input.title(), input.excerpt(), input.categoryId(), imageIds,
                 input.seoTitle(), input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), input.robots());
 
         Gallery saved = galleryRepository.save(gallery);
@@ -69,12 +63,9 @@ public class GalleryService {
         if (!gallery.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
-        if (!Objects.equals(gallery.getGeographyId(), input.geographyId())) {
-            validateGeography(input.geographyId());
-        }
         List<UUID> imageIds = validateImages(input.imageIds());
 
-        gallery.updateContent(input.title(), input.excerpt(), input.categoryId(), input.geographyId(), imageIds,
+        gallery.updateContent(input.title(), input.excerpt(), input.categoryId(), imageIds,
                 input.seoTitle(), input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), input.robots());
         Gallery saved = galleryRepository.save(gallery);
         audit("GALLERY_UPDATED", saved, actingUserId);
@@ -178,26 +169,19 @@ public class GalleryService {
                 .orElseThrow(() -> new GalleryNotFoundException(slug));
     }
 
-    public Page<Gallery> listPublished(UUID categoryId, UUID geographyId, Pageable pageable) {
-        if (categoryId != null && geographyId != null) {
-            return galleryRepository.findByStatusAndCategoryIdAndGeographyId(
-                    GalleryStatus.PUBLISHED, categoryId, geographyId, pageable);
-        }
+    public Page<Gallery> listPublished(UUID categoryId, Pageable pageable) {
         if (categoryId != null) {
             return galleryRepository.findByStatusAndCategoryId(GalleryStatus.PUBLISHED, categoryId, pageable);
-        }
-        if (geographyId != null) {
-            return galleryRepository.findByStatusAndGeographyId(GalleryStatus.PUBLISHED, geographyId, pageable);
         }
         return galleryRepository.findByStatus(GalleryStatus.PUBLISHED, pageable);
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que el resto de módulos.search (query en blanco: página vacía, no error). */
-    public Page<Gallery> search(String query, UUID categoryId, UUID geographyId, Pageable pageable) {
+    public Page<Gallery> search(String query, UUID categoryId, Pageable pageable) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);
         }
-        return galleryRepository.search(query.trim(), categoryId, geographyId, pageable);
+        return galleryRepository.search(query.trim(), categoryId, pageable);
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
@@ -207,12 +191,6 @@ public class GalleryService {
             counts.put(status, galleryRepository.countByStatus(status));
         }
         return counts;
-    }
-
-    private void validateGeography(UUID geographyId) {
-        if (geographyId != null && !geographyService.existsActive(geographyId)) {
-            throw new GeographicUnitNotFoundException(geographyId);
-        }
     }
 
     /** A diferencia de Place/Event (fotos opcionales), acá el contenido ES la colección: al menos una imagen. */

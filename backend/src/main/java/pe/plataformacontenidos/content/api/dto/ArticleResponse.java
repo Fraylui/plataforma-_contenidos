@@ -20,7 +20,6 @@ public record ArticleResponse(
         ArticleStatus status,
         UUID authorId,
         UUID categoryId,
-        UUID geographyId,
         Set<UUID> tagIds,
         String seoTitle,
         String metaDescription,
@@ -39,7 +38,7 @@ public record ArticleResponse(
     public static ArticleResponse from(Article article, long likeCount) {
         return new ArticleResponse(article.getId(), article.getSlug(), article.getTitle(), article.getExcerpt(),
                 article.getBody(), article.getArticleType(), article.getStatus(), article.getAuthorId(),
-                article.getCategoryId(), article.getGeographyId(), article.getTagIds(), article.getSeoTitle(),
+                article.getCategoryId(), article.getTagIds(), article.getSeoTitle(),
                 article.getMetaDescription(), article.getCanonicalUrl(), article.getOgImageUrl(),
                 article.getImages().stream().map(ContentImageResponse::from).toList(),
                 article.getVideos().stream().map(ContentVideoResponse::from).toList(), article.getRobots(),

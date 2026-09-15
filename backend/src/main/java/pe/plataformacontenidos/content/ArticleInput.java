@@ -8,10 +8,9 @@ import pe.plataformacontenidos.shared.ContentVideoInput;
 
 /**
  * Entrada de creación/edición de artículo, ya validada en el DTO de API.
- * geographyId es opcional. Cada imagen es subida o por enlace externo (ver
- * ContentImageInput); cada video trae la URL pegada por quien redacta
- * (sección 8) — ArticleService la convierte a Video ID antes de guardar,
- * nunca se persiste la URL cruda.
+ * Cada imagen es subida o por enlace externo (ver ContentImageInput); cada
+ * video trae la URL pegada por quien redacta (sección 8) — ArticleService la
+ * convierte a Video ID antes de guardar, nunca se persiste la URL cruda.
  */
 public record ArticleInput(
         String title,
@@ -19,7 +18,6 @@ public record ArticleInput(
         String body,
         ArticleType articleType,
         UUID categoryId,
-        UUID geographyId,
         Set<String> tagNames,
         String seoTitle,
         String metaDescription,

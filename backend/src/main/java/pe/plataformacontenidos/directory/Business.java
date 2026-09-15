@@ -24,8 +24,8 @@ import org.hibernate.annotations.UuidGenerator;
  * (sección 12); a diferencia de Reseña (que opina sobre un lugar), esta
  * ficha ES el negocio. Puede vincularse a un Lugar ya existente (placeId)
  * o llevar su propia dirección libre (address) — mismo patrón que
- * events.placeId/venueName. category_id/geography_id/place_id son UUID
- * sin FK (Taxonomy/Geography/Places, sección 38); imageIds tampoco (Media).
+ * events.placeId/venueName. category_id/place_id son UUID sin FK
+ * (Taxonomy/Places, sección 38); imageIds tampoco (Media).
  */
 @Entity
 @Table(name = "businesses", schema = "directory")
@@ -60,9 +60,6 @@ public class Business {
 
     @Column(name = "category_id", nullable = false)
     private UUID categoryId;
-
-    @Column(name = "geography_id")
-    private UUID geographyId;
 
     @Column(name = "place_id")
     private UUID placeId;
@@ -165,10 +162,6 @@ public class Business {
         return categoryId;
     }
 
-    public UUID getGeographyId() {
-        return geographyId;
-    }
-
     public UUID getPlaceId() {
         return placeId;
     }
@@ -250,7 +243,7 @@ public class Business {
                 || status == BusinessStatus.APPROVED || status == BusinessStatus.REJECTED;
     }
 
-    public void updateContent(String name, String excerpt, String body, UUID categoryId, UUID geographyId,
+    public void updateContent(String name, String excerpt, String body, UUID categoryId,
             BusinessType businessType, UUID placeId, String address, String phone, String email, String website,
             Double latitude, Double longitude, List<UUID> imageIds, String seoTitle, String metaDescription,
             String canonicalUrl, String ogImageUrl, String youtubeVideoId, String robots) {
@@ -258,7 +251,6 @@ public class Business {
         this.excerpt = excerpt;
         this.body = body;
         this.categoryId = categoryId;
-        this.geographyId = geographyId;
         this.businessType = businessType;
         this.placeId = placeId;
         this.address = address;

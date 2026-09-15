@@ -1,6 +1,6 @@
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
-import type { ArticleStatus, ArticleType, BusinessType, ContentImage, GeographyLevel } from "./types";
+import type { ArticleStatus, ArticleType, BusinessType, ContentImage } from "./types";
 
 /** Cuerpo de un video en ArticleInput/PlaceInput/EventInput — ver ContentVideoInput.java. */
 export interface ContentVideoInput {
@@ -35,7 +35,6 @@ export interface ArticleInput {
   body: string;
   articleType: ArticleType;
   categoryId: string;
-  geographyId: string | null;
   tagNames: string[];
   seoTitle: string | null;
   metaDescription: string | null;
@@ -52,7 +51,6 @@ export interface PlaceInput {
   excerpt: string | null;
   body: string;
   categoryId: string;
-  geographyId: string | null;
   latitude: number | null;
   longitude: number | null;
   images: ContentImage[];
@@ -70,7 +68,6 @@ export interface EventInput {
   excerpt: string | null;
   body: string;
   categoryId: string;
-  geographyId: string | null;
   placeId: string | null;
   venueName: string | null;
   startsAt: string;
@@ -89,7 +86,6 @@ export interface GalleryInput {
   title: string;
   excerpt: string | null;
   categoryId: string;
-  geographyId: string | null;
   imageIds: string[];
   seoTitle: string | null;
   metaDescription: string | null;
@@ -104,7 +100,6 @@ export interface ReviewInput {
   excerpt: string | null;
   body: string;
   categoryId: string;
-  geographyId: string | null;
   placeId: string | null;
   subjectName: string | null;
   rating: number;
@@ -123,7 +118,6 @@ export interface BusinessInput {
   excerpt: string | null;
   body: string;
   categoryId: string;
-  geographyId: string | null;
   businessType: BusinessType;
   placeId: string | null;
   address: string | null;
@@ -151,13 +145,6 @@ export interface CategoryCreateInput {
 /** Cuerpo de PUT /api/v1/admin/categories/{id} — ver UpdateCategoryRequest.java. */
 export interface CategoryUpdateInput extends CategoryCreateInput {
   sortOrder: number;
-}
-
-/** Cuerpo de POST /api/v1/admin/geography — ver CreateGeographicUnitRequest.java. */
-export interface GeographyCreateInput {
-  name: string;
-  level: GeographyLevel;
-  parentId: string | null;
 }
 
 /** Cuerpo de POST /api/v1/admin/users — ver CreateUserRequest.java. */
@@ -218,8 +205,6 @@ export interface PlatformStats {
   totalCategories: number;
   activeCategories: number;
   totalTags: number;
-  totalGeographyUnits: number;
-  activeGeographyUnits: number;
   usersByRole: Record<Role, number>;
   activeUsers: number;
 }

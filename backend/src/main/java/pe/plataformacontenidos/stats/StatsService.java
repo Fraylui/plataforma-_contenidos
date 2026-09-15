@@ -7,7 +7,6 @@ import pe.plataformacontenidos.content.ArticleService;
 import pe.plataformacontenidos.directory.BusinessService;
 import pe.plataformacontenidos.events.EventService;
 import pe.plataformacontenidos.galleries.GalleryService;
-import pe.plataformacontenidos.geography.GeographicUnitService;
 import pe.plataformacontenidos.identity.UserAdminService;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.reviews.ReviewService;
@@ -35,13 +34,11 @@ public class StatsService {
     private final BusinessService businessService;
     private final CategoryService categoryService;
     private final TagService tagService;
-    private final GeographicUnitService geographyService;
     private final UserAdminService userAdminService;
 
     public StatsService(ArticleService articleService, PlaceService placeService, EventService eventService,
             GalleryService galleryService, ReviewService reviewService, BusinessService businessService,
-            CategoryService categoryService, TagService tagService, GeographicUnitService geographyService,
-            UserAdminService userAdminService) {
+            CategoryService categoryService, TagService tagService, UserAdminService userAdminService) {
         this.articleService = articleService;
         this.placeService = placeService;
         this.eventService = eventService;
@@ -50,7 +47,6 @@ public class StatsService {
         this.businessService = businessService;
         this.categoryService = categoryService;
         this.tagService = tagService;
-        this.geographyService = geographyService;
         this.userAdminService = userAdminService;
     }
 
@@ -67,8 +63,6 @@ public class StatsService {
                 categoryService.countAll(),
                 categoryService.countActive(),
                 tagService.countAll(),
-                geographyService.countAll(),
-                geographyService.countActive(),
                 userAdminService.countByRole(),
                 userAdminService.countActive());
     }

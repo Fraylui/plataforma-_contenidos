@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { MapPin } from "lucide-react";
 import {
   getCategoryById,
-  getGeographyUnitById,
   getPlatformSettings,
   getPublishedPlaceById,
   getPublishedReviewBySlug,
@@ -120,9 +119,8 @@ export default async function ReviewPage(props: PageProps<"/resenas/[slug]">) {
   const { slug } = await props.params;
   const review = await loadReview(slug);
 
-  const [category, geography, settings, place] = await Promise.all([
+  const [category, settings, place] = await Promise.all([
     getCategoryById(review.categoryId).catch(() => null),
-    review.geographyId ? getGeographyUnitById(review.geographyId).catch(() => null) : Promise.resolve(null),
     getPlatformSettings(),
     review.placeId ? getPublishedPlaceById(review.placeId).catch(() => null) : Promise.resolve(null),
   ]);
@@ -227,7 +225,6 @@ export default async function ReviewPage(props: PageProps<"/resenas/[slug]">) {
                   {subject.name}
                 </span>
               ))}
-            {geography && <span>{geography.name}</span>}
           </div>
 
           <ContentImageGallery

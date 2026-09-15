@@ -23,8 +23,8 @@ import org.hibernate.annotations.UuidGenerator;
  * existente o algo que todavía no tiene página propia (subjectName libre
  * — mismo patrón que Event.placeId/venueName). Mismo flujo editorial que
  * el resto (sección 12); a diferencia de Galería, sí tiene cuerpo de
- * texto largo. category_id/geography_id/place_id son UUID sin FK
- * (Taxonomy/Geography/Places, sección 38); imageIds tampoco (Media).
+ * texto largo. category_id/place_id son UUID sin FK (Taxonomy/Places,
+ * sección 38); imageIds tampoco (Media).
  */
 @Entity
 @Table(name = "reviews", schema = "reviews")
@@ -55,9 +55,6 @@ public class Review {
 
     @Column(name = "category_id", nullable = false)
     private UUID categoryId;
-
-    @Column(name = "geography_id")
-    private UUID geographyId;
 
     @Column(name = "place_id")
     private UUID placeId;
@@ -154,10 +151,6 @@ public class Review {
         return categoryId;
     }
 
-    public UUID getGeographyId() {
-        return geographyId;
-    }
-
     public UUID getPlaceId() {
         return placeId;
     }
@@ -223,14 +216,13 @@ public class Review {
                 || status == ReviewStatus.APPROVED || status == ReviewStatus.REJECTED;
     }
 
-    public void updateContent(String title, String excerpt, String body, UUID categoryId, UUID geographyId,
+    public void updateContent(String title, String excerpt, String body, UUID categoryId,
             UUID placeId, String subjectName, int rating, List<UUID> imageIds, String seoTitle,
             String metaDescription, String canonicalUrl, String ogImageUrl, String youtubeVideoId, String robots) {
         this.title = title;
         this.excerpt = excerpt;
         this.body = body;
         this.categoryId = categoryId;
-        this.geographyId = geographyId;
         this.placeId = placeId;
         this.subjectName = subjectName;
         this.rating = rating;

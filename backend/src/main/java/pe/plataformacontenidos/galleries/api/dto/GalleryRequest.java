@@ -11,7 +11,6 @@ public record GalleryRequest(
         @NotBlank @Size(max = 200) String title,
         @Size(max = 500) String excerpt,
         @NotNull UUID categoryId,
-        UUID geographyId,
         List<UUID> imageIds,
         String seoTitle,
         String metaDescription,
@@ -20,7 +19,7 @@ public record GalleryRequest(
         String robots) {
 
     public GalleryInput toInput() {
-        return new GalleryInput(title, excerpt, categoryId, geographyId, imageIds, seoTitle, metaDescription,
+        return new GalleryInput(title, excerpt, categoryId, imageIds, seoTitle, metaDescription,
                 canonicalUrl, ogImageUrl, robots);
     }
 }

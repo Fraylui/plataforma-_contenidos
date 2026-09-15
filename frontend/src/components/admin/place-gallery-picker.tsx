@@ -39,7 +39,7 @@ export function PlaceGalleryPicker({
   }
 
   return (
-    <div>
+    <div className="mt-1">
       <InlineImageUpload disabled={disabled} onUploaded={handleUploaded} compact />
       {value.length > 0 && (
         <p className="mt-1 text-xs text-muted">

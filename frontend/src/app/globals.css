@@ -8,19 +8,27 @@
  * exista platformSettings con colores propios, solo se reescriben estos
  * valores.
  *
- * Neutros zinc en vez de gris frío plano — el fondo/borde/texto comparten
- * la misma familia cromática, así que el verde (accent) es lo único que
- * llama la atención en vez de competir con un gris genérico. --danger se
- * mantiene en rojo aparte para no perder la señal de "esto es peligroso".
+ * Neutros = escala Slate (no zinc, no verde mezclado en cada token): tras
+ * varias rondas mezclando --accent directamente en fondo/superficie/texto
+ * muted, el resultado leía "casero" en vez de profesional y el contraste
+ * quedaba al límite en cada ajuste. Los productos SaaS de referencia
+ * (Linear, Vercel, Stripe) mantienen los neutros neutros y dejan que el
+ * acento de marca haga su trabajo solo en botones/enlaces/hover — mismo
+ * criterio aplicado aquí. --danger se mantiene en rojo aparte para no
+ * perder la señal de "esto es peligroso".
  */
 :root {
-  --background: #fafafa;
+  /* slate-50/blanco puro: distinción sutil (no cero, no exagerada) entre
+     el lienzo y las tarjetas, sin recurrir a tintar el neutro con verde. */
+  --background: #f8fafc;
   --surface: #ffffff;
-  --foreground: #18181b;
-  /* zinc-500 (#71717a) daba 4.28:1 sobre el lienzo verde claro y 3.91:1
-     sobre la franja de categoría — AA exige 4.5:1. Un paso más oscuro. */
-  --muted: #62626b;
-  --border: #e4e4e7;
+  --foreground: #0f172a;
+  /* slate-600 — el mínimo que recomienda la propia guía de diseño para
+     texto secundario en modo claro. 7.36:1 contra --background, 7.58:1
+     contra --surface (fórmula de luminancia relativa WCAG, muy por encima
+     del 4.5:1 exigido — antes el ajuste anterior apenas rozaba el mínimo). */
+  --muted: #475569;
+  --border: #e2e8f0;
   /* green-800, no green-700: el 700 (#15803d) pasaba AA (4.5:1+) contra
      --surface/--background (audit original) pero solo 4.44:1 contra
      --canvas (#e9f4ec, sumado después en el rediseño de home de 2026-09) —
@@ -39,7 +47,9 @@
   --danger-foreground: #ffffff;
   /* Lienzo del sitio público: tinte verde muy claro en vez de blanco plano
      (a pedido: "que no haya mucho blanco, tampoco oscuro"). El blanco puro
-     queda solo dentro de las tarjetas (--surface), así resaltan. */
+     queda solo dentro de las tarjetas (--surface), así resaltan. Esto es
+     intencional y distinto de --background: el lienzo público sí lleva
+     personalidad de marca, los neutros base del panel no. */
   --canvas: #e9f4ec;
   --canvas-strong: #dcebe0;
   --canvas-border: #cfe3d5;
@@ -53,37 +63,52 @@
  * nada si el sistema operativo estaba en modo claro).
  */
 :root[data-theme="dark"] {
-  --background: #0a0a0a;
-  --surface: #171717;
-  --foreground: #f5f5f5;
-  --muted: #9ca3af;
-  --border: #262626;
+  /* Negro puro (#0a0a0a) resultaba plano; mezclar verde directo en cada
+     neutro (intentado en iteraciones previas) daba un charcoal turbio y
+     contraste al límite. Slate-900/800 en su lugar: azulado, no negro
+     plano, con la garantía de contraste de una escala ya probada — el
+     verde de marca queda reservado para --accent. */
+  --background: #0f172a;
+  --surface: #1e293b;
+  --foreground: #f1f5f9;
+  /* slate-400: 6.97:1 contra --background, 5.70:1 contra --surface —
+     verificado con la fórmula de luminancia relativa WCAG. La iteración
+     anterior (verde mezclado a mano) apenas llegaba a 4.66:1; esta escala
+     da margen real en vez de rozar el mínimo cada vez que --surface cambia. */
+  --muted: #94a3b8;
+  --border: #334155;
   --accent: #4ade80;
-  --accent-foreground: #111111;
+  --accent-foreground: #0f172a;
   --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
   --danger: #dc2626;
-  --danger-foreground: #111111;
-  --canvas: #0c120e;
-  --canvas-strong: #111a14;
-  --canvas-border: #1f2b23;
+  --danger-foreground: #0f172a;
+  /* Antes un verde-negro aparte (#0c120e) de otra familia y ~40% más
+     oscuro que --background — al lado de las tarjetas (--surface, Slate)
+     se veía como un hueco negro que no combinaba. Ahora se construye desde
+     el mismo Slate que el resto del tema, con el mismo tinte de marca
+     sutil que ya usa --canvas claro, en vez de una paleta oscura paralela
+     que queda desactualizada cada vez que se ajusta --background. */
+  --canvas: color-mix(in srgb, #4ade80 6%, #0f172a);
+  --canvas-strong: color-mix(in srgb, #4ade80 8%, #1e293b);
+  --canvas-border: color-mix(in srgb, #4ade80 10%, #334155);
 }
 
 /* "Auto": sin elección explícita, sigue el sistema operativo del visitante. */
 :root:not([data-theme="light"]):not([data-theme="dark"]) {
   @media (prefers-color-scheme: dark) {
-    --background: #09090b;
-    --surface: #18181b;
-    --foreground: #fafafa;
-    --muted: #a1a1aa;
-    --border: #27272a;
+    --background: #0f172a;
+    --surface: #1e293b;
+    --foreground: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #334155;
     --accent: #4ade80;
-    --accent-foreground: #18181b;
+    --accent-foreground: #0f172a;
     --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
     --danger: #dc2626;
-    --danger-foreground: #18181b;
-    --canvas: #0c120e;
-    --canvas-strong: #111a14;
-    --canvas-border: #1f2b23;
+    --danger-foreground: #0f172a;
+    --canvas: color-mix(in srgb, #4ade80 6%, #0f172a);
+    --canvas-strong: color-mix(in srgb, #4ade80 8%, #1e293b);
+    --canvas-border: color-mix(in srgb, #4ade80 10%, #334155);
   }
 }
 
@@ -108,6 +133,36 @@
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/*
+ * Barra de scroll del sistema operativo: gris, cuadrada, rompe con el resto
+ * del diseño (a pedido: "se ve con antiguo"). Firefox usa las dos
+ * propiedades estándar; Chrome/Edge/Safari (WebKit) solo respetan los
+ * pseudo-elementos ::-webkit-scrollbar-*, así que van ambas. Delgada,
+ * redondeada, del mismo color que --border en reposo y --muted al pasar el
+ * mouse — nunca choca con el tema porque usa los tokens, no un gris fijo.
+ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted);
 }
 
 /* Foco visible siempre, también con mouse (accesibilidad — no solo :focus-visible por si algún navegador viejo no lo soporta bien) */

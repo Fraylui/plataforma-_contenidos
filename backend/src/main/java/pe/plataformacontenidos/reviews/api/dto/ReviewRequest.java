@@ -14,7 +14,6 @@ public record ReviewRequest(
         @Size(max = 500) String excerpt,
         @NotBlank String body,
         @NotNull UUID categoryId,
-        UUID geographyId,
         UUID placeId,
         @Size(max = 200) String subjectName,
         @Min(1) @Max(5) int rating,
@@ -27,7 +26,7 @@ public record ReviewRequest(
         String robots) {
 
     public ReviewInput toInput() {
-        return new ReviewInput(title, excerpt, body, categoryId, geographyId, placeId, subjectName, rating,
+        return new ReviewInput(title, excerpt, body, categoryId, placeId, subjectName, rating,
                 imageIds, seoTitle, metaDescription, canonicalUrl, ogImageUrl, youtubeUrl, robots);
     }
 }

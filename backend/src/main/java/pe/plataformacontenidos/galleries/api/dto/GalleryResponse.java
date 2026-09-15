@@ -14,7 +14,6 @@ public record GalleryResponse(
         GalleryStatus status,
         UUID authorId,
         UUID categoryId,
-        UUID geographyId,
         List<UUID> imageIds,
         String seoTitle,
         String metaDescription,
@@ -29,7 +28,7 @@ public record GalleryResponse(
 
     public static GalleryResponse from(Gallery gallery, long likeCount) {
         return new GalleryResponse(gallery.getId(), gallery.getSlug(), gallery.getTitle(), gallery.getExcerpt(),
-                gallery.getStatus(), gallery.getAuthorId(), gallery.getCategoryId(), gallery.getGeographyId(),
+                gallery.getStatus(), gallery.getAuthorId(), gallery.getCategoryId(),
                 gallery.getImageIds(), gallery.getSeoTitle(), gallery.getMetaDescription(), gallery.getCanonicalUrl(),
                 gallery.getOgImageUrl(), gallery.getRobots(), gallery.getRejectionReason(), gallery.getPublishedAt(),
                 gallery.getScheduledAt(), gallery.getCreatedAt(), likeCount);

@@ -53,7 +53,7 @@ export function VideoLinksEditor({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="mt-1 space-y-2">
       {value.length > 0 && (
         <ul className="space-y-2">
           {value.map((video, index) => (

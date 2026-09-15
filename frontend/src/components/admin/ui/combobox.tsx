@@ -3,7 +3,7 @@
 import { useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import { Command } from "cmdk";
-import { Check, ChevronDown, Plus, Search } from "lucide-react";
+import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface ComboboxOption {
@@ -14,9 +14,7 @@ export interface ComboboxOption {
 /**
  * Select con búsqueda en vivo (cmdk) — reemplaza un `<select>` nativo
  * cuando la lista puede crecer lo suficiente como para que escribir sea más
- * rápido que desplazarse. No decide de dónde vienen las opciones (create-
- * on-demand, sin seeder) — eso lo sigue resolviendo quien lo use, ver
- * GeographyPicker.
+ * rápido que desplazarse.
  */
 export function Combobox({
   options,
@@ -25,9 +23,8 @@ export function Combobox({
   placeholder = "Seleccionar…",
   searchPlaceholder = "Buscar…",
   emptyMessage = "Sin resultados.",
-  onCreateNew,
-  createNewLabel,
   disabled,
+  className,
 }: {
   options: ComboboxOption[];
   value: string | null;
@@ -35,9 +32,9 @@ export function Combobox({
   placeholder?: string;
   searchPlaceholder?: string;
   emptyMessage?: string;
-  onCreateNew?: (query: string) => void;
-  createNewLabel?: (query: string) => string;
   disabled?: boolean;
+  /** Por defecto ocupa el ancho completo, igual que formInputClass — pasar solo para achicarlo a propósito (p. ej. junto a otro control en una misma fila). */
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -50,8 +47,9 @@ export function Combobox({
           type="button"
           disabled={disabled}
           className={cn(
-            "flex h-9 min-w-[10rem] items-center justify-between gap-2 rounded-md border border-border bg-background px-2.5 text-sm text-foreground outline-none transition-colors",
-            "focus-visible:border-accent disabled:opacity-50",
+            "mt-1 flex h-9 w-full min-w-[10rem] items-center justify-between gap-2 rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none transition-colors",
+            "focus-visible:border-accent disabled:opacity-60",
+            className,
           )}
         >
           <span className={cn("truncate", !selected && "text-muted")}>{selected?.label ?? placeholder}</span>
@@ -92,19 +90,6 @@ export function Combobox({
                   <span className="truncate">{option.label}</span>
                 </Command.Item>
               ))}
-              {onCreateNew && query.trim() && (
-                <Command.Item
-                  value={`__create__${query}`}
-                  onSelect={() => {
-                    onCreateNew(query.trim());
-                    setQuery("");
-                  }}
-                  className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-sm text-accent outline-none data-[selected=true]:bg-accent-soft"
-                >
-                  <Plus className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  {createNewLabel ? createNewLabel(query.trim()) : `Crear "${query.trim()}"`}
-                </Command.Item>
-              )}
             </Command.List>
           </Command>
         </Popover.Content>

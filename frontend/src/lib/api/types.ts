@@ -39,7 +39,6 @@ export interface ArticleSummary {
   excerpt: string | null;
   articleType: ArticleType;
   categoryId: string;
-  geographyId: string | null;
   coverImageId: string | null;
   coverImageUrl: string | null;
   hasVideo: boolean;
@@ -62,7 +61,6 @@ export interface Article {
   status: ArticleStatus;
   authorId: string;
   categoryId: string;
-  geographyId: string | null;
   tagIds: string[];
   seoTitle: string | null;
   metaDescription: string | null;
@@ -89,7 +87,6 @@ export interface SearchResult {
   title: string;
   excerpt: string | null;
   categoryId: string | null;
-  geographyId: string | null;
   featuredImageId: string | null;
   featuredImageUrl: string | null;
   hasVideo: boolean;
@@ -116,17 +113,6 @@ export interface Category {
   sortOrder: number;
 }
 
-export type GeographyLevel = "PAIS" | "REGION" | "PROVINCIA" | "DISTRITO" | "LOCALIDAD";
-
-export interface GeographicUnit {
-  id: string;
-  name: string;
-  slug: string;
-  level: GeographyLevel;
-  parentId: string | null;
-  active: boolean;
-}
-
 export interface Tag {
   id: string;
   name: string;
@@ -142,7 +128,6 @@ export interface PlaceSummary {
   name: string;
   excerpt: string | null;
   categoryId: string;
-  geographyId: string | null;
   latitude: number | null;
   longitude: number | null;
   coverImageId: string | null;
@@ -161,7 +146,6 @@ export interface Place {
   status: PlaceStatus;
   authorId: string;
   categoryId: string;
-  geographyId: string | null;
   latitude: number | null;
   longitude: number | null;
   images: ContentImage[];
@@ -175,7 +159,6 @@ export interface Place {
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;
-  relatedArticles: ArticleSummary[];
   likeCount: number;
 }
 
@@ -188,7 +171,6 @@ export interface EventSummary {
   title: string;
   excerpt: string | null;
   categoryId: string;
-  geographyId: string | null;
   placeId: string | null;
   venueName: string | null;
   startsAt: string;
@@ -208,7 +190,6 @@ export interface Event {
   status: EventStatus;
   authorId: string;
   categoryId: string;
-  geographyId: string | null;
   placeId: string | null;
   venueName: string | null;
   startsAt: string;
@@ -236,7 +217,6 @@ export interface GallerySummary {
   title: string;
   excerpt: string | null;
   categoryId: string;
-  geographyId: string | null;
   imageIds: string[];
   publishedAt: string | null;
   likeCount: number;
@@ -250,7 +230,6 @@ export interface Gallery {
   status: GalleryStatus;
   authorId: string;
   categoryId: string;
-  geographyId: string | null;
   imageIds: string[];
   seoTitle: string | null;
   metaDescription: string | null;
@@ -273,7 +252,6 @@ export interface ReviewSummary {
   title: string;
   excerpt: string | null;
   categoryId: string;
-  geographyId: string | null;
   placeId: string | null;
   subjectName: string | null;
   rating: number;
@@ -291,7 +269,6 @@ export interface Review {
   status: ReviewStatus;
   authorId: string;
   categoryId: string;
-  geographyId: string | null;
   placeId: string | null;
   subjectName: string | null;
   rating: number;
@@ -322,7 +299,6 @@ export interface BusinessSummary {
   excerpt: string | null;
   businessType: BusinessType;
   categoryId: string;
-  geographyId: string | null;
   placeId: string | null;
   address: string | null;
   coverImageId: string | null;
@@ -340,7 +316,6 @@ export interface Business {
   businessType: BusinessType;
   authorId: string;
   categoryId: string;
-  geographyId: string | null;
   placeId: string | null;
   address: string | null;
   phone: string | null;
@@ -406,7 +381,6 @@ export interface FeedItem {
   excerpt: string | null;
   articleType: ArticleType | null;
   categoryId: string | null;
-  geographyId: string | null;
   coverImageId: string | null;
   coverImageUrl: string | null;
   hasVideo: boolean;

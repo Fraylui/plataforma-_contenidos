@@ -13,7 +13,6 @@ function makePlace(overrides: Partial<Place> = {}): Place {
     status: "DRAFT",
     authorId: "author-1",
     categoryId: "cat-1",
-    geographyId: null,
     latitude: null,
     longitude: null,
     images: [],
@@ -27,7 +26,6 @@ function makePlace(overrides: Partial<Place> = {}): Place {
     publishedAt: null,
     scheduledAt: null,
     createdAt: "2026-01-01T00:00:00Z",
-    relatedArticles: [],
     likeCount: 0,
     ...overrides,
   };

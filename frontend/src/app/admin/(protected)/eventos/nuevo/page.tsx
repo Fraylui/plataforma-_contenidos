@@ -20,7 +20,7 @@ export default async function NewEventPage() {
     <div>
       <h1 className="text-2xl font-semibold text-foreground">Nuevo evento</h1>
       <div className="mt-6">
-        <EventForm mode="create" categories={categories} places={places} allImages={allImages} initialGeographyChain={[]} />
+        <EventForm mode="create" categories={categories} places={places} allImages={allImages} />
       </div>
     </div>
   );

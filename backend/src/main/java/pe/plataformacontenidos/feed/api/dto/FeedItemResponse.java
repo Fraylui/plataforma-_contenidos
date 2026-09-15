@@ -29,7 +29,6 @@ public record FeedItemResponse(
         String excerpt,
         ArticleType articleType,
         UUID categoryId,
-        UUID geographyId,
         UUID coverImageId,
         String coverImageUrl,
         boolean hasVideo,
@@ -39,7 +38,7 @@ public record FeedItemResponse(
     public static FeedItemResponse fromArticle(Article article, long likeCount) {
         ContentImage cover = article.getCoverImage();
         return new FeedItemResponse(ContentType.ARTICLE, article.getId(), article.getSlug(), article.getTitle(),
-                article.getExcerpt(), article.getArticleType(), article.getCategoryId(), article.getGeographyId(),
+                article.getExcerpt(), article.getArticleType(), article.getCategoryId(),
                 cover == null ? null : cover.getImageId(), cover == null ? null : cover.getExternalUrl(),
                 !article.getVideos().isEmpty(), article.getPublishedAt(), likeCount);
     }
@@ -47,7 +46,7 @@ public record FeedItemResponse(
     public static FeedItemResponse fromPlace(Place place, long likeCount) {
         ContentImage cover = place.getCoverImage();
         return new FeedItemResponse(ContentType.PLACE, place.getId(), place.getSlug(), place.getName(),
-                place.getExcerpt(), null, place.getCategoryId(), place.getGeographyId(),
+                place.getExcerpt(), null, place.getCategoryId(),
                 cover == null ? null : cover.getImageId(), cover == null ? null : cover.getExternalUrl(),
                 !place.getVideos().isEmpty(), place.getPublishedAt(), likeCount);
     }
@@ -55,7 +54,7 @@ public record FeedItemResponse(
     public static FeedItemResponse fromEvent(Event event, long likeCount) {
         ContentImage cover = event.getCoverImage();
         return new FeedItemResponse(ContentType.EVENT, event.getId(), event.getSlug(), event.getTitle(),
-                event.getExcerpt(), null, event.getCategoryId(), event.getGeographyId(),
+                event.getExcerpt(), null, event.getCategoryId(),
                 cover == null ? null : cover.getImageId(), cover == null ? null : cover.getExternalUrl(),
                 !event.getVideos().isEmpty(), event.getPublishedAt(), likeCount);
     }

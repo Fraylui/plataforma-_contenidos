@@ -5,24 +5,14 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
-import pe.plataformacontenidos.content.ArticleService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
-import pe.plataformacontenidos.content.Article;
-import pe.plataformacontenidos.content.api.dto.ArticleSummaryResponse;
-import pe.plataformacontenidos.engagement.ContentLikeService;
-import pe.plataformacontenidos.engagement.ContentType;
-import pe.plataformacontenidos.geography.GeographicUnitNotFoundException;
-import pe.plataformacontenidos.geography.GeographicUnitService;
 import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
@@ -43,25 +33,16 @@ import pe.plataformacontenidos.taxonomy.CategoryService;
 @Transactional
 public class PlaceService {
 
-    private static final int RELATED_ARTICLES_LIMIT = 6;
-
     private final PlaceRepository placeRepository;
     private final CategoryService categoryService;
-    private final GeographicUnitService geographyService;
     private final ImageService imageService;
-    private final ArticleService articleService;
     private final AuditService auditService;
-    private final ContentLikeService contentLikeService;
 
     public PlaceService(PlaceRepository placeRepository, CategoryService categoryService,
-            GeographicUnitService geographyService, ImageService imageService, ArticleService articleService,
-            AuditService auditService, ContentLikeService contentLikeService) {
-        this.contentLikeService = contentLikeService;
+            ImageService imageService, AuditService auditService) {
         this.placeRepository = placeRepository;
         this.categoryService = categoryService;
-        this.geographyService = geographyService;
         this.imageService = imageService;
-        this.articleService = articleService;
         this.auditService = auditService;
     }
 
@@ -69,14 +50,13 @@ public class PlaceService {
         if (!categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
-        validateGeography(input.geographyId());
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
         Place place = new Place(uniqueSlugFrom(input.name()), input.name(), input.excerpt(), sanitizedBody, authorId,
                 input.categoryId());
-        place.updateContent(input.name(), input.excerpt(), sanitizedBody, input.categoryId(), input.geographyId(),
+        place.updateContent(input.name(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.latitude(), input.longitude(), images, input.seoTitle(), input.metaDescription(),
                 input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
 
@@ -92,14 +72,11 @@ public class PlaceService {
         if (!place.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
-        if (!Objects.equals(place.getGeographyId(), input.geographyId())) {
-            validateGeography(input.geographyId());
-        }
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
-        place.updateContent(input.name(), input.excerpt(), sanitizedBody, input.categoryId(), input.geographyId(),
+        place.updateContent(input.name(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.latitude(), input.longitude(), images, input.seoTitle(), input.metaDescription(),
                 input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
         Place saved = placeRepository.save(place);
@@ -218,42 +195,19 @@ public class PlaceService {
         return place;
     }
 
-    public Page<Place> listPublished(UUID categoryId, UUID geographyId, Pageable pageable) {
-        if (categoryId != null && geographyId != null) {
-            return placeRepository.findByStatusAndCategoryIdAndGeographyId(
-                    PlaceStatus.PUBLISHED, categoryId, geographyId, pageable);
-        }
+    public Page<Place> listPublished(UUID categoryId, Pageable pageable) {
         if (categoryId != null) {
             return placeRepository.findByStatusAndCategoryId(PlaceStatus.PUBLISHED, categoryId, pageable);
-        }
-        if (geographyId != null) {
-            return placeRepository.findByStatusAndGeographyId(PlaceStatus.PUBLISHED, geographyId, pageable);
         }
         return placeRepository.findByStatus(PlaceStatus.PUBLISHED, pageable);
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que ArticleService.search (query en blanco: página vacía, no error). */
-    public Page<Place> search(String query, UUID categoryId, UUID geographyId, Pageable pageable) {
+    public Page<Place> search(String query, UUID categoryId, Pageable pageable) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);
         }
-        return placeRepository.search(query.trim(), categoryId, geographyId, pageable);
-    }
-
-    /**
-     * Artículos relacionados (sección 6): artículos publicados que comparten la
-     * misma ubicación geográfica que el lugar (sección 4, "Turismo → Ayacucho →
-     * Huamanga"). Sin geographyId, no hay forma de relacionar por ubicación —
-     * lista vacía, no un error.
-     */
-    public List<ArticleSummaryResponse> relatedArticles(Place place) {
-        if (place.getGeographyId() == null) {
-            return List.of();
-        }
-        var pageable = PageRequest.of(0, RELATED_ARTICLES_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
-        List<Article> related = articleService.listPublished(null, place.getGeographyId(), pageable).getContent();
-        var likes = contentLikeService.countLikes(ContentType.ARTICLE, related.stream().map(Article::getId).toList());
-        return related.stream().map(a -> ArticleSummaryResponse.from(a, likes.getOrDefault(a.getId(), 0L))).toList();
+        return placeRepository.search(query.trim(), categoryId, pageable);
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
@@ -263,12 +217,6 @@ public class PlaceService {
             counts.put(status, placeRepository.countByStatus(status));
         }
         return counts;
-    }
-
-    private void validateGeography(UUID geographyId) {
-        if (geographyId != null && !geographyService.existsActive(geographyId)) {
-            throw new GeographicUnitNotFoundException(geographyId);
-        }
     }
 
     private List<ContentImage> validateImages(List<ContentImageInput> images) {

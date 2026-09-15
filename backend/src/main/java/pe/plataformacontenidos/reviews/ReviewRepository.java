@@ -20,11 +20,6 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
     Page<Review> findByStatusAndCategoryId(ReviewStatus status, UUID categoryId, Pageable pageable);
 
-    Page<Review> findByStatusAndGeographyId(ReviewStatus status, UUID geographyId, Pageable pageable);
-
-    Page<Review> findByStatusAndCategoryIdAndGeographyId(
-            ReviewStatus status, UUID categoryId, UUID geographyId, Pageable pageable);
-
     List<Review> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 
     List<Review> findByStatusAndScheduledAtBefore(ReviewStatus status, Instant threshold);
@@ -41,7 +36,6 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
             WHERE r.status = 'PUBLISHED'
             AND r.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
             AND (:categoryId IS NULL OR r.category_id = :categoryId)
-            AND (:geographyId IS NULL OR r.geography_id = :geographyId)
             ORDER BY ts_rank(r.search_vector, websearch_to_tsquery('spanish', public.immutable_unaccent(:query))) DESC
             """,
             countQuery = """
@@ -49,9 +43,7 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
             WHERE r.status = 'PUBLISHED'
             AND r.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
             AND (:categoryId IS NULL OR r.category_id = :categoryId)
-            AND (:geographyId IS NULL OR r.geography_id = :geographyId)
             """,
             nativeQuery = true)
-    Page<Review> search(@Param("query") String query, @Param("categoryId") UUID categoryId,
-            @Param("geographyId") UUID geographyId, Pageable pageable);
+    Page<Review> search(@Param("query") String query, @Param("categoryId") UUID categoryId, Pageable pageable);
 }

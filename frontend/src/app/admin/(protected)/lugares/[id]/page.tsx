@@ -2,27 +2,15 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { AdminApiError, getAdminPlace, listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
-import { getCategoryById, getGeographyUnitById } from "@/lib/api/client";
+import { getCategoryById } from "@/lib/api/client";
 import { computePlacePermissions } from "@/lib/admin/place-permissions";
 import { PlaceForm } from "@/components/admin/place-form";
-import type { Category, GeographicUnit } from "@/lib/api/types";
+import type { Category } from "@/lib/api/types";
 
 export const metadata: Metadata = {
   title: "Editar lugar",
   robots: "noindex,nofollow",
 };
-
-/** Camino PAIS -> ... -> unidad seleccionada, para precargar el selector en cascada. */
-async function resolveGeographyChain(geographyId: string | null): Promise<GeographicUnit[]> {
-  if (!geographyId) return [];
-  const chain: GeographicUnit[] = [];
-  let current: GeographicUnit | null = await getGeographyUnitById(geographyId).catch(() => null);
-  while (current) {
-    chain.unshift(current);
-    current = current.parentId ? await getGeographyUnitById(current.parentId).catch(() => null) : null;
-  }
-  return chain;
-}
 
 /** La categoría del lugar puede haberse desactivado desde que se asignó; igual debe verse en el selector. */
 async function resolveCategories(activeCategories: Category[], categoryId: string): Promise<Category[]> {
@@ -48,11 +36,7 @@ export default async function EditPlacePage(props: PageProps<"/admin/lugares/[id
     throw error;
   }
 
-  const [activeCategories, allImages, geographyChain] = await Promise.all([
-    listActiveCategoriesFresh(),
-    listAdminImages(accessToken),
-    resolveGeographyChain(place.geographyId),
-  ]);
+  const [activeCategories, allImages] = await Promise.all([listActiveCategoriesFresh(), listAdminImages(accessToken)]);
   const categories = await resolveCategories(activeCategories, place.categoryId);
   const permissions = computePlacePermissions(place, user);
 
@@ -60,14 +44,7 @@ export default async function EditPlacePage(props: PageProps<"/admin/lugares/[id
     <div>
       <h1 className="text-2xl font-semibold text-foreground">{place.name}</h1>
       <div className="mt-6">
-        <PlaceForm
-          mode="edit"
-          place={place}
-          categories={categories}
-          allImages={allImages}
-          initialGeographyChain={geographyChain}
-          permissions={permissions}
-        />
+        <PlaceForm mode="edit" place={place} categories={categories} allImages={allImages} permissions={permissions} />
       </div>
     </div>
   );

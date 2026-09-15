@@ -20,11 +20,6 @@ public interface GalleryRepository extends JpaRepository<Gallery, UUID> {
 
     Page<Gallery> findByStatusAndCategoryId(GalleryStatus status, UUID categoryId, Pageable pageable);
 
-    Page<Gallery> findByStatusAndGeographyId(GalleryStatus status, UUID geographyId, Pageable pageable);
-
-    Page<Gallery> findByStatusAndCategoryIdAndGeographyId(
-            GalleryStatus status, UUID categoryId, UUID geographyId, Pageable pageable);
-
     List<Gallery> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 
     List<Gallery> findByStatusAndScheduledAtBefore(GalleryStatus status, Instant threshold);
@@ -42,7 +37,6 @@ public interface GalleryRepository extends JpaRepository<Gallery, UUID> {
             WHERE g.status = 'PUBLISHED'
             AND g.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
             AND (:categoryId IS NULL OR g.category_id = :categoryId)
-            AND (:geographyId IS NULL OR g.geography_id = :geographyId)
             ORDER BY ts_rank(g.search_vector, websearch_to_tsquery('spanish', public.immutable_unaccent(:query))) DESC
             """,
             countQuery = """
@@ -50,9 +44,7 @@ public interface GalleryRepository extends JpaRepository<Gallery, UUID> {
             WHERE g.status = 'PUBLISHED'
             AND g.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
             AND (:categoryId IS NULL OR g.category_id = :categoryId)
-            AND (:geographyId IS NULL OR g.geography_id = :geographyId)
             """,
             nativeQuery = true)
-    Page<Gallery> search(@Param("query") String query, @Param("categoryId") UUID categoryId,
-            @Param("geographyId") UUID geographyId, Pageable pageable);
+    Page<Gallery> search(@Param("query") String query, @Param("categoryId") UUID categoryId, Pageable pageable);
 }

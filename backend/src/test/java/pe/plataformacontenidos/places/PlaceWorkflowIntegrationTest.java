@@ -43,18 +43,12 @@ class PlaceWorkflowIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void fullEditorialLifecycleFromDraftToPublishedWithRelatedArticles() throws Exception {
+    void fullEditorialLifecycleFromDraftToPublished() throws Exception {
         String editorToken = createUserAndLogin("places-editor@plataforma-contenidos.test", Role.EDITOR);
         String authorToken = createUserAndLogin("places-author@plataforma-contenidos.test", Role.AUTHOR);
         String categoryId = createCategory(editorToken, "Lugares Turísticos Test");
-        String peruId = createGeographyUnit(editorToken, "Perú Places Test", "PAIS", null);
-        String ayacuchoId = createGeographyUnit(editorToken, "Ayacucho Places Test", "REGION", peruId);
 
-        // Artículo publicado en la misma ubicación, para verificar "artículos relacionados"
-        String articleId = createAndPublishArticle(editorToken, authorToken, categoryId, ayacuchoId,
-                "Crónica de la región andina");
-
-        String placeId = createDraftPlace(authorToken, categoryId, ayacuchoId, "Pampa de la Quinua");
+        String placeId = createDraftPlace(authorToken, categoryId, "Pampa de la Quinua");
 
         // No visible públicamente en DRAFT
         mockMvc.perform(get("/api/v1/places/pampa-de-la-quinua")).andExpect(status().isNotFound());
@@ -82,10 +76,9 @@ class PlaceWorkflowIntegrationTest {
         mockMvc.perform(get("/api/v1/places/pampa-de-la-quinua"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Pampa de la Quinua"))
-                .andExpect(jsonPath("$.latitude").value(-13.04))
-                .andExpect(jsonPath("$.relatedArticles[?(@.id == '" + articleId + "')]").exists());
+                .andExpect(jsonPath("$.latitude").value(-13.04));
 
-        mockMvc.perform(get("/api/v1/places").param("geographyId", ayacuchoId))
+        mockMvc.perform(get("/api/v1/places").param("categoryId", categoryId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[?(@.slug == 'pampa-de-la-quinua')]").exists());
 
@@ -120,7 +113,7 @@ class PlaceWorkflowIntegrationTest {
         String otherAuthorToken = createUserAndLogin("places-author-4@plataforma-contenidos.test", Role.AUTHOR);
         String categoryId = createCategory(editorToken, "Categoría Ajena Test");
 
-        String placeId = createDraftPlace(authorToken, categoryId, null, "Mirador secreto");
+        String placeId = createDraftPlace(authorToken, categoryId, "Mirador secreto");
 
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
                         .header("Authorization", "Bearer " + otherAuthorToken))
@@ -141,54 +134,15 @@ class PlaceWorkflowIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    private String createAndPublishArticle(String editorToken, String authorToken, String categoryId,
-            String geographyId, String title) throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/v1/admin/articles")
-                        .header("Authorization", "Bearer " + authorToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\":\"" + title + "\",\"excerpt\":\"Resumen\","
-                                + "\"body\":\"Cuerpo suficientemente largo del artículo.\",\"articleType\":\"ARTICULO\","
-                                + "\"categoryId\":\"" + categoryId + "\",\"geographyId\":\"" + geographyId + "\","
-                                + "\"tagNames\":[]}"))
-                .andExpect(status().isCreated())
-                .andReturn();
-        String articleId = textField(result, "id");
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/submit")
-                        .header("Authorization", "Bearer " + authorToken))
-                .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
-                .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
-                        .header("Authorization", "Bearer " + editorToken))
-                .andExpect(status().isOk());
-        return articleId;
-    }
-
-    private String createDraftPlace(String authorToken, String categoryId, String geographyId, String name)
-            throws Exception {
-        String geographyField = geographyId == null ? "" : ",\"geographyId\":\"" + geographyId + "\"";
+    private String createDraftPlace(String authorToken, String categoryId, String name) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v1/admin/places")
                         .header("Authorization", "Bearer " + authorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"" + name + "\",\"excerpt\":\"Resumen breve\","
                                 + "\"body\":\"Historia completa del lugar, con suficiente contenido.\","
-                                + "\"categoryId\":\"" + categoryId + "\",\"latitude\":-13.04,\"longitude\":-74.15"
-                                + geographyField + "}"))
+                                + "\"categoryId\":\"" + categoryId + "\",\"latitude\":-13.04,\"longitude\":-74.15}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("DRAFT"))
-                .andReturn();
-        return textField(result, "id");
-    }
-
-    private String createGeographyUnit(String editorToken, String name, String level, String parentId)
-            throws Exception {
-        String parentField = parentId == null ? "" : ",\"parentId\":\"" + parentId + "\"";
-        MvcResult result = mockMvc.perform(post("/api/v1/admin/geography")
-                        .header("Authorization", "Bearer " + editorToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"" + name + "\",\"level\":\"" + level + "\"" + parentField + "}"))
-                .andExpect(status().isCreated())
                 .andReturn();
         return textField(result, "id");
     }

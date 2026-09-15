@@ -24,9 +24,9 @@ import pe.plataformacontenidos.search.api.dto.SearchResultResponse;
  * contenido distintos ese puntaje no es directamente comparable (viene de
  * columnas tsvector separadas), así que la fusión ordena por fecha de
  * publicación — más simple y honesto que fingir una relevancia cruzada que
- * no existe. categoryId/geographyId son los únicos filtros finos que
- * aplican a los 6 tipos; from/to (rango de fechas) solo tiene efecto en
- * Evento, que es el único con una fecha propia con sentido de filtro.
+ * no existe. categoryId es el único filtro fino que aplica a los 6 tipos;
+ * from/to (rango de fechas) solo tiene efecto en Evento, que es el único con
+ * una fecha propia con sentido de filtro.
  */
 @Service
 public class SearchService {
@@ -56,34 +56,34 @@ public class SearchService {
 
     /** `type` es opcional: cuando viene, solo se consulta ese módulo (no se pide trabajo de más al otro). */
     public SearchPageResponse search(String query, int page, int size, SearchResultType type, UUID categoryId,
-            UUID geographyId, Instant from, Instant to) {
+            Instant from, Instant to) {
         if (query == null || query.isBlank()) {
             return new SearchPageResponse(List.of(), page, size, 0, 0);
         }
 
         List<SearchResultResponse> combined = new ArrayList<>();
         if (type == null || type == SearchResultType.ARTICLE) {
-            articleService.search(query, categoryId, geographyId, PageRequest.of(0, MERGE_FETCH_LIMIT))
+            articleService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
                     .forEach(a -> combined.add(SearchResultResponse.fromArticle(a)));
         }
         if (type == null || type == SearchResultType.PLACE) {
-            placeService.search(query, categoryId, geographyId, PageRequest.of(0, MERGE_FETCH_LIMIT))
+            placeService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
                     .forEach(p -> combined.add(SearchResultResponse.fromPlace(p)));
         }
         if (type == null || type == SearchResultType.EVENT) {
-            eventService.search(query, categoryId, geographyId, from, to, PageRequest.of(0, MERGE_FETCH_LIMIT))
+            eventService.search(query, categoryId, from, to, PageRequest.of(0, MERGE_FETCH_LIMIT))
                     .forEach(e -> combined.add(SearchResultResponse.fromEvent(e)));
         }
         if (type == null || type == SearchResultType.GALLERY) {
-            galleryService.search(query, categoryId, geographyId, PageRequest.of(0, MERGE_FETCH_LIMIT))
+            galleryService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
                     .forEach(g -> combined.add(SearchResultResponse.fromGallery(g)));
         }
         if (type == null || type == SearchResultType.REVIEW) {
-            reviewService.search(query, categoryId, geographyId, PageRequest.of(0, MERGE_FETCH_LIMIT))
+            reviewService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
                     .forEach(r -> combined.add(SearchResultResponse.fromReview(r)));
         }
         if (type == null || type == SearchResultType.BUSINESS) {
-            businessService.search(query, categoryId, geographyId, PageRequest.of(0, MERGE_FETCH_LIMIT))
+            businessService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
                     .forEach(b -> combined.add(SearchResultResponse.fromBusiness(b)));
         }
         combined.sort(Comparator.comparing(SearchResultResponse::publishedAt).reversed());

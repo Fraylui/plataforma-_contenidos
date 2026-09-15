@@ -68,8 +68,7 @@ class AuthorizationMatrixIntegrationTest {
 
     /** Endpoints de gestión que requieren al menos EDITOR (no AUTHOR). */
     static Stream<String> editorEndpoints() {
-        return Stream.of("/api/v1/admin/categories", "/api/v1/admin/tags", "/api/v1/admin/geography",
-                "/api/v1/admin/stats");
+        return Stream.of("/api/v1/admin/categories", "/api/v1/admin/tags", "/api/v1/admin/stats");
     }
 
     /** Endpoints de contenido a los que llega cualquier miembro del equipo (AUTHOR incluido). */
@@ -88,7 +87,7 @@ class AuthorizationMatrixIntegrationTest {
 
     static Stream<String> publicReadOnlyCollections() {
         return Stream.of("/api/v1/articles", "/api/v1/places", "/api/v1/events", "/api/v1/galleries",
-                "/api/v1/reviews", "/api/v1/directory", "/api/v1/categories", "/api/v1/geography");
+                "/api/v1/reviews", "/api/v1/directory", "/api/v1/categories");
     }
 
     // Contrato vigente: sin entry point de autenticación configurado, Spring

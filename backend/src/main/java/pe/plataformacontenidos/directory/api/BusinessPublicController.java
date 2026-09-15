@@ -37,7 +37,6 @@ public class BusinessPublicController {
     @GetMapping
     public PageResponse<BusinessSummaryResponse> list(
             @RequestParam(required = false) UUID categoryId,
-            @RequestParam(required = false) UUID geographyId,
             @RequestParam(required = false) BusinessType businessType,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -48,7 +47,7 @@ public class BusinessPublicController {
         int safePage = Math.min(Math.max(page, 0), 10_000_000);
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         var pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "publishedAt"));
-        var result = businessService.listPublished(categoryId, geographyId, businessType, pageable);
+        var result = businessService.listPublished(categoryId, businessType, pageable);
         var likes = contentLikeService.countLikes(ContentType.BUSINESS,
                 result.getContent().stream().map(Business::getId).toList());
         return PageResponse.from(result, item -> BusinessSummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));

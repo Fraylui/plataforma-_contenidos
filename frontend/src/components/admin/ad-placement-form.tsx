@@ -40,7 +40,7 @@ export function AdPlacementForm({ mode, placement }: AdPlacementFormProps) {
   }
 
   return (
-    <div className="max-w-lg space-y-4">
+    <div className="max-w-lg space-y-4 rounded-xl border border-border/60 bg-surface p-5">
       {mode === "create" && (
         <FormField
           label="Clave (se usa en el código: <AdBlock position=&quot;...&quot; />)"

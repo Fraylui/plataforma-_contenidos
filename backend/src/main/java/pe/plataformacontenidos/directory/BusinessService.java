@@ -14,8 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
-import pe.plataformacontenidos.geography.GeographicUnitNotFoundException;
-import pe.plataformacontenidos.geography.GeographicUnitService;
 import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.places.PlaceService;
@@ -34,17 +32,14 @@ public class BusinessService {
 
     private final BusinessRepository businessRepository;
     private final CategoryService categoryService;
-    private final GeographicUnitService geographyService;
     private final PlaceService placeService;
     private final ImageService imageService;
     private final AuditService auditService;
 
     public BusinessService(BusinessRepository businessRepository, CategoryService categoryService,
-            GeographicUnitService geographyService, PlaceService placeService, ImageService imageService,
-            AuditService auditService) {
+            PlaceService placeService, ImageService imageService, AuditService auditService) {
         this.businessRepository = businessRepository;
         this.categoryService = categoryService;
-        this.geographyService = geographyService;
         this.placeService = placeService;
         this.imageService = imageService;
         this.auditService = auditService;
@@ -54,7 +49,6 @@ public class BusinessService {
         if (!categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
-        validateGeography(input.geographyId());
         validatePlace(input.placeId());
         List<UUID> imageIds = validateImages(input.imageIds());
         String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
@@ -62,7 +56,7 @@ public class BusinessService {
         Business business = new Business(uniqueSlugFrom(input.name()), input.name(), input.excerpt(), input.body(),
                 authorId, input.categoryId(), input.businessType());
         business.updateContent(input.name(), input.excerpt(), input.body(), input.categoryId(),
-                input.geographyId(), input.businessType(), input.placeId(), input.address(), input.phone(),
+                input.businessType(), input.placeId(), input.address(), input.phone(),
                 input.email(), input.website(), input.latitude(), input.longitude(), imageIds, input.seoTitle(),
                 input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), youtubeVideoId, input.robots());
 
@@ -79,9 +73,6 @@ public class BusinessService {
                 && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
-        if (!Objects.equals(business.getGeographyId(), input.geographyId())) {
-            validateGeography(input.geographyId());
-        }
         if (!Objects.equals(business.getPlaceId(), input.placeId())) {
             validatePlace(input.placeId());
         }
@@ -89,7 +80,7 @@ public class BusinessService {
         String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
 
         business.updateContent(input.name(), input.excerpt(), input.body(), input.categoryId(),
-                input.geographyId(), input.businessType(), input.placeId(), input.address(), input.phone(),
+                input.businessType(), input.placeId(), input.address(), input.phone(),
                 input.email(), input.website(), input.latitude(), input.longitude(), imageIds, input.seoTitle(),
                 input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), youtubeVideoId, input.robots());
         Business saved = businessRepository.save(business);
@@ -194,30 +185,22 @@ public class BusinessService {
                 .orElseThrow(() -> new BusinessNotFoundException(slug));
     }
 
-    public Page<Business> listPublished(UUID categoryId, UUID geographyId, BusinessType businessType,
-            Pageable pageable) {
+    public Page<Business> listPublished(UUID categoryId, BusinessType businessType, Pageable pageable) {
         if (businessType != null) {
             return businessRepository.findByStatusAndBusinessType(BusinessStatus.PUBLISHED, businessType, pageable);
         }
-        if (categoryId != null && geographyId != null) {
-            return businessRepository.findByStatusAndCategoryIdAndGeographyId(
-                    BusinessStatus.PUBLISHED, categoryId, geographyId, pageable);
-        }
         if (categoryId != null) {
             return businessRepository.findByStatusAndCategoryId(BusinessStatus.PUBLISHED, categoryId, pageable);
-        }
-        if (geographyId != null) {
-            return businessRepository.findByStatusAndGeographyId(BusinessStatus.PUBLISHED, geographyId, pageable);
         }
         return businessRepository.findByStatus(BusinessStatus.PUBLISHED, pageable);
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que el resto de módulos.search (query en blanco: página vacía, no error). */
-    public Page<Business> search(String query, UUID categoryId, UUID geographyId, Pageable pageable) {
+    public Page<Business> search(String query, UUID categoryId, Pageable pageable) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);
         }
-        return businessRepository.search(query.trim(), categoryId, geographyId, pageable);
+        return businessRepository.search(query.trim(), categoryId, pageable);
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
@@ -227,12 +210,6 @@ public class BusinessService {
             counts.put(status, businessRepository.countByStatus(status));
         }
         return counts;
-    }
-
-    private void validateGeography(UUID geographyId) {
-        if (geographyId != null && !geographyService.existsActive(geographyId)) {
-            throw new GeographicUnitNotFoundException(geographyId);
-        }
     }
 
     private void validatePlace(UUID placeId) {

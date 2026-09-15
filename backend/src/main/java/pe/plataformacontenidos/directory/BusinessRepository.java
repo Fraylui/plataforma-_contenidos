@@ -20,11 +20,6 @@ public interface BusinessRepository extends JpaRepository<Business, UUID> {
 
     Page<Business> findByStatusAndCategoryId(BusinessStatus status, UUID categoryId, Pageable pageable);
 
-    Page<Business> findByStatusAndGeographyId(BusinessStatus status, UUID geographyId, Pageable pageable);
-
-    Page<Business> findByStatusAndCategoryIdAndGeographyId(
-            BusinessStatus status, UUID categoryId, UUID geographyId, Pageable pageable);
-
     Page<Business> findByStatusAndBusinessType(BusinessStatus status, BusinessType businessType, Pageable pageable);
 
     List<Business> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
@@ -43,7 +38,6 @@ public interface BusinessRepository extends JpaRepository<Business, UUID> {
             WHERE b.status = 'PUBLISHED'
             AND b.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
             AND (:categoryId IS NULL OR b.category_id = :categoryId)
-            AND (:geographyId IS NULL OR b.geography_id = :geographyId)
             ORDER BY ts_rank(b.search_vector, websearch_to_tsquery('spanish', public.immutable_unaccent(:query))) DESC
             """,
             countQuery = """
@@ -51,9 +45,7 @@ public interface BusinessRepository extends JpaRepository<Business, UUID> {
             WHERE b.status = 'PUBLISHED'
             AND b.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
             AND (:categoryId IS NULL OR b.category_id = :categoryId)
-            AND (:geographyId IS NULL OR b.geography_id = :geographyId)
             """,
             nativeQuery = true)
-    Page<Business> search(@Param("query") String query, @Param("categoryId") UUID categoryId,
-            @Param("geographyId") UUID geographyId, Pageable pageable);
+    Page<Business> search(@Param("query") String query, @Param("categoryId") UUID categoryId, Pageable pageable);
 }

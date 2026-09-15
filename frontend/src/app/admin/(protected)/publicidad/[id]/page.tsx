@@ -4,6 +4,7 @@ import { getAdminAdPlacement } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdPlacementForm } from "@/components/admin/ad-placement-form";
+import { AdminPageHeader } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
   title: "Editar posición de anuncio",
@@ -20,7 +21,7 @@ export default async function EditAdPlacementPage(props: PageProps<"/admin/publi
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-foreground">{placement.label}</h1>
+      <AdminPageHeader title={placement.label} />
       <div className="mt-6">
         <AdPlacementForm mode="edit" placement={placement} />
       </div>

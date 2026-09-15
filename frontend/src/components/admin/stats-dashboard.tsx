@@ -1,8 +1,12 @@
+import { Compass, GitBranch, LayoutGrid, Users2 } from "lucide-react";
 import type { PlatformStats } from "@/lib/api/admin-types";
 import type { ArticleStatus } from "@/lib/api/types";
 import { articleStatusLabel } from "@/lib/content-labels";
 import { AdminPageHeader } from "@/components/admin/ui";
 import { ContentTypesChart, PipelineChart, RoleChart } from "@/components/admin/stats-charts";
+
+const CARD_CLASS = "rounded-xl border border-border/60 bg-surface p-5 transition-colors hover:border-accent/40";
+const SECTION_TITLE_CLASS = "flex items-center gap-2 text-xs font-semibold tracking-wide text-muted uppercase";
 
 // Orden real del flujo editorial (CONTEXTO.md sección 12) — la "línea de
 // producción". ARCHIVED/REJECTED son estados terminales fuera de la línea
@@ -38,8 +42,11 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
       </dl>
 
       {/* La firma de la página: el flujo de publicación como gráfico de barras, clara -> oscura hacia "Publicado". */}
-      <section className="mt-8 rounded-lg border border-border bg-surface p-6 shadow-sm">
-        <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Flujo de publicación</h2>
+      <section className={`mt-8 ${CARD_CLASS}`}>
+        <h2 className={SECTION_TITLE_CLASS}>
+          <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
+          Flujo de publicación
+        </h2>
 
         {pipelineTotal === 0 ? (
           <p className="mt-3 text-sm text-muted">Todavía no hay publicaciones en curso.</p>
@@ -65,26 +72,34 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
       </section>
 
       {/* Los otros 5 tipos de contenido — sin esto, Estadísticas parecía la de un blog de solo artículos. */}
-      <section className="mt-6 rounded-lg border border-border bg-surface p-6 shadow-sm">
-        <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Otros formatos</h2>
+      <section className={`mt-6 ${CARD_CLASS}`}>
+        <h2 className={SECTION_TITLE_CLASS}>
+          <LayoutGrid className="h-3.5 w-3.5" aria-hidden="true" />
+          Otros formatos
+        </h2>
         <ContentTypesChart stats={stats} />
       </section>
 
       <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <section className="rounded-lg border border-border bg-surface p-6 shadow-sm">
-          <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Alcance</h2>
-          <ul className="mt-3 space-y-2 text-sm">
-            <IndexRow label="Categorías activas" value={`${stats.activeCategories} / ${stats.totalCategories}`} />
-            <IndexRow label="Etiquetas" value={stats.totalTags} />
-            <IndexRow
-              label="Unidades geográficas activas"
-              value={`${stats.activeGeographyUnits} / ${stats.totalGeographyUnits}`}
-            />
+        <section className={CARD_CLASS}>
+          <h2 className={SECTION_TITLE_CLASS}>
+            <Compass className="h-3.5 w-3.5" aria-hidden="true" />
+            Alcance
+          </h2>
+          <ul className="mt-4 space-y-4">
+            <RatioRow label="Categorías activas" active={stats.activeCategories} total={stats.totalCategories} />
+            <li className="flex items-center justify-between text-sm">
+              <span className="text-foreground">Etiquetas</span>
+              <span className="tabular-nums font-semibold text-foreground">{stats.totalTags}</span>
+            </li>
           </ul>
         </section>
 
-        <section className="rounded-lg border border-border bg-surface p-6 shadow-sm">
-          <h2 className="text-xs font-medium tracking-wide text-muted uppercase">Equipo</h2>
+        <section className={CARD_CLASS}>
+          <h2 className={SECTION_TITLE_CLASS}>
+            <Users2 className="h-3.5 w-3.5" aria-hidden="true" />
+            Equipo
+          </h2>
           <RoleChart usersByRole={stats.usersByRole} />
         </section>
       </div>
@@ -94,19 +109,27 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
 
 function EditionFigure({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-border bg-surface px-4 py-4 shadow-sm">
-      <dd className="text-3xl font-semibold tabular-nums text-foreground">{value}</dd>
-      <dt className="mt-1 text-xs tracking-wide text-muted uppercase">{label}</dt>
+    <div className={CARD_CLASS}>
+      <dd className="text-3xl font-bold tracking-tight tabular-nums text-foreground">{value}</dd>
+      <dt className="mt-1.5 text-xs font-semibold tracking-wide text-muted uppercase">{label}</dt>
     </div>
   );
 }
 
-function IndexRow({ label, value }: { label: string; value: string | number }) {
+/** Fila con barra de progreso real (activo/total) — reemplaza la línea punteada de índice impreso. */
+function RatioRow({ label, active, total }: { label: string; active: number; total: number }) {
+  const pct = total > 0 ? Math.round((active / total) * 100) : 0;
   return (
-    <li className="flex items-baseline gap-2">
-      <span className="text-foreground">{label}</span>
-      <span className="h-px flex-1 border-b border-dotted border-border" aria-hidden="true" />
-      <span className="tabular-nums font-medium text-foreground">{value}</span>
+    <li>
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-foreground">{label}</span>
+        <span className="tabular-nums font-semibold text-foreground">
+          {active} <span className="font-normal text-muted">/ {total}</span>
+        </span>
+      </div>
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-background">
+        <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${pct}%` }} />
+      </div>
     </li>
   );
 }

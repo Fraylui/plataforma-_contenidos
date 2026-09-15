@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { Globe, Mail, MapPin, Phone } from "lucide-react";
 import {
   getCategoryById,
-  getGeographyUnitById,
   getPlatformSettings,
   getPublishedBusinessBySlug,
   getPublishedPlaceById,
@@ -107,9 +106,8 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
   const { slug } = await props.params;
   const business = await loadBusiness(slug);
 
-  const [category, geography, place] = await Promise.all([
+  const [category, place] = await Promise.all([
     getCategoryById(business.categoryId).catch(() => null),
-    business.geographyId ? getGeographyUnitById(business.geographyId).catch(() => null) : Promise.resolve(null),
     business.placeId ? getPublishedPlaceById(business.placeId).catch(() => null) : Promise.resolve(null),
   ]);
 
@@ -182,15 +180,6 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
           <h1 className="mt-4 text-2xl leading-tight font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
             {business.name}
           </h1>
-
-          {geography && (
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted sm:text-sm">
-              <span className="inline-flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                {geography.name}
-              </span>
-            </div>
-          )}
 
           <ContentImageGallery
             images={businessImages}

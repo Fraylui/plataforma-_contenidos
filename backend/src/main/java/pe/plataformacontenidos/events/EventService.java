@@ -14,8 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
-import pe.plataformacontenidos.geography.GeographicUnitNotFoundException;
-import pe.plataformacontenidos.geography.GeographicUnitService;
 import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.places.PlaceService;
@@ -39,17 +37,14 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final CategoryService categoryService;
-    private final GeographicUnitService geographyService;
     private final PlaceService placeService;
     private final ImageService imageService;
     private final AuditService auditService;
 
     public EventService(EventRepository eventRepository, CategoryService categoryService,
-            GeographicUnitService geographyService, PlaceService placeService, ImageService imageService,
-            AuditService auditService) {
+            PlaceService placeService, ImageService imageService, AuditService auditService) {
         this.eventRepository = eventRepository;
         this.categoryService = categoryService;
-        this.geographyService = geographyService;
         this.placeService = placeService;
         this.imageService = imageService;
         this.auditService = auditService;
@@ -59,7 +54,6 @@ public class EventService {
         if (!categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
-        validateGeography(input.geographyId());
         validatePlace(input.placeId());
         validateDateRange(input.startsAt(), input.endsAt());
         List<ContentImage> images = validateImages(input.images());
@@ -68,7 +62,7 @@ public class EventService {
 
         Event event = new Event(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), sanitizedBody,
                 authorId, input.categoryId(), input.startsAt());
-        event.updateContent(input.title(), input.excerpt(), sanitizedBody, input.categoryId(), input.geographyId(),
+        event.updateContent(input.title(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.placeId(), input.venueName(), input.startsAt(), input.endsAt(), images, input.seoTitle(),
                 input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
 
@@ -84,9 +78,6 @@ public class EventService {
         if (!event.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
-        if (!Objects.equals(event.getGeographyId(), input.geographyId())) {
-            validateGeography(input.geographyId());
-        }
         if (!Objects.equals(event.getPlaceId(), input.placeId())) {
             validatePlace(input.placeId());
         }
@@ -95,7 +86,7 @@ public class EventService {
         List<ContentVideo> videos = resolveVideos(input.videos());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
-        event.updateContent(input.title(), input.excerpt(), sanitizedBody, input.categoryId(), input.geographyId(),
+        event.updateContent(input.title(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.placeId(), input.venueName(), input.startsAt(), input.endsAt(), images, input.seoTitle(),
                 input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
         Event saved = eventRepository.save(event);
@@ -205,21 +196,20 @@ public class EventService {
      * módulo — ver EventRepository). `upcoming=true` por defecto en el
      * controller.
      */
-    public Page<Event> listPublished(UUID categoryId, UUID geographyId, boolean upcoming, Pageable pageable) {
+    public Page<Event> listPublished(UUID categoryId, boolean upcoming, Pageable pageable) {
         Instant now = Instant.now();
         if (upcoming) {
-            return eventRepository.findUpcoming(EventStatus.PUBLISHED, now, categoryId, geographyId, pageable);
+            return eventRepository.findUpcoming(EventStatus.PUBLISHED, now, categoryId, pageable);
         }
-        return eventRepository.findPast(EventStatus.PUBLISHED, now, categoryId, geographyId, pageable);
+        return eventRepository.findPast(EventStatus.PUBLISHED, now, categoryId, pageable);
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que ArticleService/PlaceService.search (query en blanco: página vacía, no error). */
-    public Page<Event> search(String query, UUID categoryId, UUID geographyId, Instant from, Instant to,
-            Pageable pageable) {
+    public Page<Event> search(String query, UUID categoryId, Instant from, Instant to, Pageable pageable) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);
         }
-        return eventRepository.search(query.trim(), categoryId, geographyId, from, to, pageable);
+        return eventRepository.search(query.trim(), categoryId, from, to, pageable);
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
@@ -229,12 +219,6 @@ public class EventService {
             counts.put(status, eventRepository.countByStatus(status));
         }
         return counts;
-    }
-
-    private void validateGeography(UUID geographyId) {
-        if (geographyId != null && !geographyService.existsActive(geographyId)) {
-            throw new GeographicUnitNotFoundException(geographyId);
-        }
     }
 
     private void validatePlace(UUID placeId) {

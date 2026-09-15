@@ -17,7 +17,6 @@ public record EventResponse(
         EventStatus status,
         UUID authorId,
         UUID categoryId,
-        UUID geographyId,
         UUID placeId,
         String venueName,
         Instant startsAt,
@@ -38,7 +37,7 @@ public record EventResponse(
     public static EventResponse from(Event event, long likeCount) {
         return new EventResponse(event.getId(), event.getSlug(), event.getTitle(), event.getExcerpt(),
                 event.getBody(), event.getStatus(), event.getAuthorId(), event.getCategoryId(),
-                event.getGeographyId(), event.getPlaceId(), event.getVenueName(), event.getStartsAt(),
+                event.getPlaceId(), event.getVenueName(), event.getStartsAt(),
                 event.getEndsAt(), event.getImages().stream().map(ContentImageResponse::from).toList(),
                 event.getSeoTitle(), event.getMetaDescription(), event.getCanonicalUrl(), event.getOgImageUrl(),
                 event.getVideos().stream().map(ContentVideoResponse::from).toList(), event.getRobots(),

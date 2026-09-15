@@ -16,7 +16,7 @@ export default async function NewGalleryPage() {
     <div>
       <h1 className="text-2xl font-semibold text-foreground">Nueva galería</h1>
       <div className="mt-6">
-        <GalleryForm mode="create" categories={categories} allImages={allImages} initialGeographyChain={[]} />
+        <GalleryForm mode="create" categories={categories} allImages={allImages} />
       </div>
     </div>
   );

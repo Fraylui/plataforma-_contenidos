@@ -1,17 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin } from "lucide-react";
 import {
   getCategoryById,
-  getGeographyUnitById,
   getPlatformSettings,
   getPublishedPlaceBySlug,
   getRelatedWithFallback,
   listActiveCategories,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { ArticleCard } from "@/components/article/article-card";
 import { LikeShareBar } from "@/components/content/like-share-bar";
 import { RelatedFeed } from "@/components/content/related-feed";
 import { ContentImageGallery } from "@/components/content/content-image-gallery";
@@ -111,9 +108,8 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
   const { slug } = await props.params;
   const place = await loadPlace(slug);
 
-  const [category, geography, settings, categories] = await Promise.all([
+  const [category, settings, categories] = await Promise.all([
     getCategoryById(place.categoryId).catch(() => null),
-    place.geographyId ? getGeographyUnitById(place.geographyId).catch(() => null) : Promise.resolve(null),
     getPlatformSettings(),
     listActiveCategories(),
   ]);
@@ -123,7 +119,6 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
     excludeType: "PLACE",
     excludeId: place.id,
     categoryId: place.categoryId,
-    geographyId: place.geographyId,
     size: RELATED_SIZE,
   });
   const relatedTitle = relatedIsFallback ? "Quizás te interese" : `Relacionado con ${category?.name ?? "esto"}`;
@@ -182,12 +177,6 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
           </h1>
 
           <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border pb-6 text-xs text-muted sm:text-sm">
-            {geography && (
-              <span className="inline-flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                {geography.name}
-              </span>
-            )}
             {mapsUrl && (
               <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-accent hover:underline">
                 {place.latitude!.toFixed(4)}, {place.longitude!.toFixed(4)} · Ver en el mapa
@@ -221,17 +210,6 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
           </div>
 
           <LikeShareBar contentType="places" slug={place.slug} initialLikeCount={place.likeCount} title={place.name} />
-
-          {place.relatedArticles.length > 0 && (
-            <section className="mt-10">
-              <h2 className="text-xl font-semibold text-foreground">Publicaciones relacionadas</h2>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {place.relatedArticles.map((article) => (
-                  <ArticleCard key={article.id} article={article} categoryName={categoryNames[article.categoryId]} />
-                ))}
-              </div>
-            </section>
-          )}
         </article>
 
         {hasSidebar && (

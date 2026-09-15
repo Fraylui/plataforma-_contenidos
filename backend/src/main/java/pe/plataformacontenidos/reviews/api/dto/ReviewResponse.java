@@ -15,7 +15,6 @@ public record ReviewResponse(
         ReviewStatus status,
         UUID authorId,
         UUID categoryId,
-        UUID geographyId,
         UUID placeId,
         String subjectName,
         int rating,
@@ -35,7 +34,7 @@ public record ReviewResponse(
     public static ReviewResponse from(Review review, long likeCount) {
         return new ReviewResponse(review.getId(), review.getSlug(), review.getTitle(), review.getExcerpt(),
                 review.getBody(), review.getStatus(), review.getAuthorId(), review.getCategoryId(),
-                review.getGeographyId(), review.getPlaceId(), review.getSubjectName(), review.getRating(),
+                review.getPlaceId(), review.getSubjectName(), review.getRating(),
                 review.getImageIds(), review.getSeoTitle(), review.getMetaDescription(), review.getCanonicalUrl(),
                 review.getOgImageUrl(), review.getYoutubeVideoId(), review.getRobots(),
                 review.getRejectionReason(), review.getPublishedAt(), review.getScheduledAt(),

@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Role } from "@/lib/api/admin-types";
 import { roleLabel } from "@/lib/admin/role-labels";
 import { createUserAction } from "@/app/admin/(protected)/usuarios/actions";
-import { AdminButton } from "@/components/admin/ui";
+import { AdminButton, Combobox, FormField, formInputClass } from "@/components/admin/ui";
 
 // MODERATOR/COLLABORATOR/USER existen en el enum del backend pero todavía no
 // tienen ninguna regla de autorización conectada (SecurityConfig no los
@@ -38,70 +38,38 @@ export function UserCreateForm({ viewerRole }: { viewerRole: Role }) {
   }
 
   return (
-    <div className="max-w-md space-y-4">
+    <div className="max-w-md space-y-4 rounded-xl border border-border/60 bg-surface p-5">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-medium text-foreground">
-          Nombres
-          <input
-            type="text"
-            name="firstName"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-          />
-        </label>
+        <FormField label="Nombres" name="firstName">
+          <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className={formInputClass} />
+        </FormField>
 
-        <label className="block text-sm font-medium text-foreground">
-          Apellidos
-          <input
-            type="text"
-            name="lastName"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-          />
-        </label>
+        <FormField label="Apellidos" name="lastName">
+          <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className={formInputClass} />
+        </FormField>
       </div>
 
-      <label className="block text-sm font-medium text-foreground">
-        Correo electrónico
-        <input
-          type="email"
-          name="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-        />
-      </label>
+      <FormField label="Correo electrónico" name="email">
+        <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={formInputClass} />
+      </FormField>
 
-      <label className="block text-sm font-medium text-foreground">
-        Contraseña (mínimo 12 caracteres)
+      <FormField label="Contraseña (mínimo 12 caracteres)" name="password">
         <input
           type="password"
-          name="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
+          className={formInputClass}
         />
-      </label>
+      </FormField>
 
-      <label className="block text-sm font-medium text-foreground">
-        Rol
-        <select
-          name="role"
+      <FormField label="Rol" name="role">
+        <Combobox
+          options={availableRoles.map((r) => ({ id: r, label: roleLabel(r) }))}
           value={role}
-          onChange={(e) => setRole(e.target.value as Role)}
-          className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-        >
-          {availableRoles.map((r) => (
-            <option key={r} value={r}>
-              {roleLabel(r)}
-            </option>
-          ))}
-        </select>
-      </label>
+          onSelect={(id) => id && setRole(id as Role)}
+        />
+      </FormField>
 
       {error && (
         <p role="alert" className="text-sm text-red-600 dark:text-red-400">

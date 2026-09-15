@@ -1,12 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  articleStatusLabel,
-  articleStatusTone,
-  articleTypeLabel,
-  formatPublishedDate,
-  geographyLevelLabel,
-} from "./content-labels";
-import type { ArticleStatus, ArticleType, GeographyLevel } from "@/lib/api/types";
+import { articleStatusLabel, articleStatusTone, articleTypeLabel, formatPublishedDate } from "./content-labels";
+import type { ArticleStatus, ArticleType } from "@/lib/api/types";
 
 const ALL_ARTICLE_TYPES: ArticleType[] = [
   "ARTICULO",
@@ -31,8 +25,6 @@ const ALL_ARTICLE_STATUSES: ArticleStatus[] = [
   "REJECTED",
 ];
 
-const ALL_GEOGRAPHY_LEVELS: GeographyLevel[] = ["PAIS", "REGION", "PROVINCIA", "DISTRITO", "LOCALIDAD"];
-
 // Sobre todo para que un nuevo valor del enum (backend) que se olvide
 // agregar acá explote en un test en vez de mostrar `undefined` en la UI.
 describe("mapas de etiquetas", () => {
@@ -43,10 +35,6 @@ describe("mapas de etiquetas", () => {
   it.each(ALL_ARTICLE_STATUSES)("articleStatusLabel(%s) y articleStatusTone(%s) están definidos", (status) => {
     expect(articleStatusLabel(status)).toBeTruthy();
     expect(["neutral", "warning", "success", "danger"]).toContain(articleStatusTone(status));
-  });
-
-  it.each(ALL_GEOGRAPHY_LEVELS)("geographyLevelLabel(%s) devuelve una etiqueta no vacía", (level) => {
-    expect(geographyLevelLabel(level)).toBeTruthy();
   });
 
   it("PUBLISHED es el único estado con tono success", () => {

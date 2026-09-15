@@ -18,7 +18,6 @@ import type {
   CreateUserInput,
   EventInput,
   GalleryInput,
-  GeographyCreateInput,
   PlaceInput,
   PlatformSettingsInput,
   PlatformStats,
@@ -32,7 +31,6 @@ import type {
   Category,
   Event,
   Gallery,
-  GeographicUnit,
   PageResponse,
   Place,
   PlatformSettings,
@@ -578,40 +576,6 @@ export async function listAdminTags(): Promise<Tag[]> {
 
 export function deleteTag(accessToken: string, id: string): Promise<void> {
   return authedJson(`/api/v1/admin/tags/${encodeURIComponent(id)}`, accessToken, { method: "DELETE" });
-}
-
-// --- Geography module (GeographyController, rutas /admin/geography) ---
-// Jerarquía fija PAIS→REGION→PROVINCIA→DISTRITO→LOCALIDAD (CONTEXTO.md
-// sección 5): a diferencia de categorías, una unidad no se puede
-// "reparentar" ni cambiar de nivel una vez creada — GeographicUnitService
-// solo expone rename() para el nombre.
-
-export function listAdminGeography(accessToken: string): Promise<GeographicUnit[]> {
-  return authedJson("/api/v1/admin/geography", accessToken);
-}
-
-export function createGeography(accessToken: string, input: GeographyCreateInput): Promise<GeographicUnit> {
-  return authedJson("/api/v1/admin/geography", accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-}
-
-export function renameGeography(accessToken: string, id: string, name: string): Promise<GeographicUnit> {
-  return authedJson(`/api/v1/admin/geography/${encodeURIComponent(id)}`, accessToken, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
-  });
-}
-
-export function activateGeography(accessToken: string, id: string): Promise<void> {
-  return authedJson(`/api/v1/admin/geography/${encodeURIComponent(id)}/activate`, accessToken, { method: "POST" });
-}
-
-export function deactivateGeography(accessToken: string, id: string): Promise<void> {
-  return authedJson(`/api/v1/admin/geography/${encodeURIComponent(id)}`, accessToken, { method: "DELETE" });
 }
 
 // --- Media module: imágenes (ImageAdminController) ---

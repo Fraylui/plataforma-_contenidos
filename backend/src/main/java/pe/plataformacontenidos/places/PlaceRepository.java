@@ -20,11 +20,6 @@ public interface PlaceRepository extends JpaRepository<Place, UUID> {
 
     Page<Place> findByStatusAndCategoryId(PlaceStatus status, UUID categoryId, Pageable pageable);
 
-    Page<Place> findByStatusAndGeographyId(PlaceStatus status, UUID geographyId, Pageable pageable);
-
-    Page<Place> findByStatusAndCategoryIdAndGeographyId(
-            PlaceStatus status, UUID categoryId, UUID geographyId, Pageable pageable);
-
     List<Place> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 
     List<Place> findByStatusAndScheduledAtBefore(PlaceStatus status, Instant threshold);
@@ -41,7 +36,6 @@ public interface PlaceRepository extends JpaRepository<Place, UUID> {
             WHERE p.status = 'PUBLISHED'
             AND p.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
             AND (:categoryId IS NULL OR p.category_id = :categoryId)
-            AND (:geographyId IS NULL OR p.geography_id = :geographyId)
             ORDER BY ts_rank(p.search_vector, websearch_to_tsquery('spanish', public.immutable_unaccent(:query))) DESC
             """,
             countQuery = """
@@ -49,9 +43,7 @@ public interface PlaceRepository extends JpaRepository<Place, UUID> {
             WHERE p.status = 'PUBLISHED'
             AND p.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
             AND (:categoryId IS NULL OR p.category_id = :categoryId)
-            AND (:geographyId IS NULL OR p.geography_id = :geographyId)
             """,
             nativeQuery = true)
-    Page<Place> search(@Param("query") String query, @Param("categoryId") UUID categoryId,
-            @Param("geographyId") UUID geographyId, Pageable pageable);
+    Page<Place> search(@Param("query") String query, @Param("categoryId") UUID categoryId, Pageable pageable);
 }

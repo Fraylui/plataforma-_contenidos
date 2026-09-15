@@ -16,7 +16,6 @@ public record PlaceRequest(
         @Size(max = 500) String excerpt,
         @NotBlank String body,
         @NotNull UUID categoryId,
-        UUID geographyId,
         @DecimalMin("-90") @DecimalMax("90") Double latitude,
         @DecimalMin("-180") @DecimalMax("180") Double longitude,
         List<ContentImageInput> images,
@@ -28,7 +27,7 @@ public record PlaceRequest(
         String robots) {
 
     public PlaceInput toInput() {
-        return new PlaceInput(name, excerpt, body, categoryId, geographyId, latitude, longitude,
+        return new PlaceInput(name, excerpt, body, categoryId, latitude, longitude,
                 images == null ? List.of() : images, seoTitle, metaDescription, canonicalUrl, ogImageUrl,
                 videos == null ? List.of() : videos, robots);
     }

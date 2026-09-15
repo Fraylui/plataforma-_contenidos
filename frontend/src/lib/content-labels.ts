@@ -1,4 +1,4 @@
-import type { ArticleStatus, ArticleType, BusinessType, GeographyLevel, SearchResultType } from "@/lib/api/types";
+import type { ArticleStatus, ArticleType, BusinessType, SearchResultType } from "@/lib/api/types";
 
 const ARTICLE_TYPE_LABELS: Record<ArticleType, string> = {
   ARTICULO: "Artículo",
@@ -45,18 +45,6 @@ const ARTICLE_STATUS_TONE: Record<ArticleStatus, "neutral" | "warning" | "succes
 
 export function articleStatusTone(status: ArticleStatus): "neutral" | "warning" | "success" | "danger" {
   return ARTICLE_STATUS_TONE[status];
-}
-
-const GEOGRAPHY_LEVEL_LABELS: Record<GeographyLevel, string> = {
-  PAIS: "País",
-  REGION: "Región",
-  PROVINCIA: "Provincia",
-  DISTRITO: "Distrito",
-  LOCALIDAD: "Localidad",
-};
-
-export function geographyLevelLabel(level: GeographyLevel): string {
-  return GEOGRAPHY_LEVEL_LABELS[level];
 }
 
 const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {

@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { CalendarDays, MapPin } from "lucide-react";
 import {
   getCategoryById,
-  getGeographyUnitById,
   getPlatformSettings,
   getPublishedEventBySlug,
   getPublishedPlaceById,
@@ -113,9 +112,8 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
   const { slug } = await props.params;
   const event = await loadEvent(slug);
 
-  const [category, geography, settings, place, categories] = await Promise.all([
+  const [category, settings, place, categories] = await Promise.all([
     getCategoryById(event.categoryId).catch(() => null),
-    event.geographyId ? getGeographyUnitById(event.geographyId).catch(() => null) : Promise.resolve(null),
     getPlatformSettings(),
     event.placeId ? getPublishedPlaceById(event.placeId).catch(() => null) : Promise.resolve(null),
     listActiveCategories(),
@@ -126,7 +124,6 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
     excludeType: "EVENT",
     excludeId: event.id,
     categoryId: event.categoryId,
-    geographyId: event.geographyId,
     size: RELATED_SIZE,
   });
   const relatedTitle = relatedIsFallback ? "Quizás te interese" : `Relacionado con ${category?.name ?? "esto"}`;
@@ -219,7 +216,6 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
                 {event.venueName}
               </span>
             ) : null}
-            {geography && <span>{geography.name}</span>}
           </div>
 
           <ContentImageGallery

@@ -5,7 +5,7 @@ import { listAdminAuditLog } from "@/lib/api/admin-client";
 import type { AuditResult } from "@/lib/api/admin-types";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
-import { AdminButton, AdminPageHeader, StatusPill, type StatusTone } from "@/components/admin/ui";
+import { AdminButton, AdminLinkButton, AdminPageHeader, StatusPill, type StatusTone } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
   title: "Auditoría",
@@ -92,7 +92,7 @@ export default async function AdminAuditPage(props: PageProps<"/admin/auditoria"
 
       <form
         method="get"
-        className="mt-6 grid grid-cols-2 gap-3 rounded-lg border border-border bg-surface p-4 sm:grid-cols-3 lg:grid-cols-6"
+        className="mt-6 grid grid-cols-2 gap-3 rounded-xl border border-border/60 bg-surface p-5 sm:grid-cols-3 lg:grid-cols-6"
       >
         <div className="col-span-2 flex flex-col gap-1 sm:col-span-1">
           <label htmlFor="actorEmail" className="text-xs font-medium text-muted">
@@ -104,7 +104,7 @@ export default async function AdminAuditPage(props: PageProps<"/admin/auditoria"
             type="text"
             defaultValue={actorEmail ?? ""}
             placeholder="correo@ejemplo.com"
-            className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus-visible:border-accent"
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
           />
         </div>
         <div className="col-span-2 flex flex-col gap-1 sm:col-span-1">
@@ -117,7 +117,7 @@ export default async function AdminAuditPage(props: PageProps<"/admin/auditoria"
             type="text"
             defaultValue={action ?? ""}
             placeholder="LOGIN_FAILURE…"
-            className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus-visible:border-accent"
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -128,7 +128,7 @@ export default async function AdminAuditPage(props: PageProps<"/admin/auditoria"
             id="resourceType"
             name="resourceType"
             defaultValue={resourceType ?? ""}
-            className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus-visible:border-accent"
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
           >
             <option value="">Todos</option>
             {RESOURCE_TYPES.map((type) => (
@@ -146,7 +146,7 @@ export default async function AdminAuditPage(props: PageProps<"/admin/auditoria"
             id="result"
             name="result"
             defaultValue={result ?? ""}
-            className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus-visible:border-accent"
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
           >
             <option value="">Todos</option>
             <option value="SUCCESS">Éxito</option>
@@ -162,7 +162,7 @@ export default async function AdminAuditPage(props: PageProps<"/admin/auditoria"
             name="from"
             type="date"
             defaultValue={from ?? ""}
-            className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus-visible:border-accent"
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -174,7 +174,7 @@ export default async function AdminAuditPage(props: PageProps<"/admin/auditoria"
             name="to"
             type="date"
             defaultValue={to ?? ""}
-            className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus-visible:border-accent"
+            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
           />
         </div>
         <div className="col-span-2 flex items-end gap-2 sm:col-span-3 lg:col-span-6">
@@ -190,21 +190,21 @@ export default async function AdminAuditPage(props: PageProps<"/admin/auditoria"
       {auditPage.items.length === 0 ? (
         <p className="mt-4 text-sm text-muted">No hay eventos que coincidan con los filtros.</p>
       ) : (
-        <div className="mt-4 overflow-x-auto rounded-lg border border-border">
+        <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-surface">
           <table className="w-full min-w-[900px] text-left text-sm">
-            <thead className="border-b border-border bg-surface text-xs uppercase tracking-wide text-muted">
+            <thead className="border-b border-border">
               <tr>
-                <th className="px-4 py-3 font-medium">Fecha</th>
-                <th className="px-4 py-3 font-medium">Usuario</th>
-                <th className="px-4 py-3 font-medium">Acción</th>
-                <th className="px-4 py-3 font-medium">Recurso</th>
-                <th className="px-4 py-3 font-medium">IP</th>
-                <th className="px-4 py-3 font-medium">Resultado</th>
+                <th className="px-4 py-3 font-medium text-muted">Fecha</th>
+                <th className="px-4 py-3 font-medium text-muted">Usuario</th>
+                <th className="px-4 py-3 font-medium text-muted">Acción</th>
+                <th className="px-4 py-3 font-medium text-muted">Recurso</th>
+                <th className="px-4 py-3 font-medium text-muted">IP</th>
+                <th className="px-4 py-3 font-medium text-muted">Resultado</th>
               </tr>
             </thead>
             <tbody>
               {auditPage.items.map((event) => (
-                <tr key={event.id} className="border-b border-border last:border-0 hover:bg-surface">
+                <tr key={event.id} className="border-b border-border last:border-0 hover:bg-accent-soft/40">
                   <td className="px-4 py-3 whitespace-nowrap text-muted">{formatDateTime(event.occurredAt)}</td>
                   <td className="px-4 py-3 text-foreground">{event.actorEmail ?? "—"}</td>
                   <td className="px-4 py-3 font-mono text-xs text-foreground">{event.action}</td>
@@ -229,20 +229,14 @@ export default async function AdminAuditPage(props: PageProps<"/admin/auditoria"
           </span>
           <div className="flex gap-2">
             {auditPage.page > 0 && (
-              <Link
-                href={buildPageHref(filterParams, auditPage.page - 1)}
-                className="rounded-md border border-border px-3 py-1.5 hover:bg-surface"
-              >
+              <AdminLinkButton href={buildPageHref(filterParams, auditPage.page - 1)} variant="secondary">
                 Anterior
-              </Link>
+              </AdminLinkButton>
             )}
             {auditPage.page + 1 < auditPage.totalPages && (
-              <Link
-                href={buildPageHref(filterParams, auditPage.page + 1)}
-                className="rounded-md border border-border px-3 py-1.5 hover:bg-surface"
-              >
+              <AdminLinkButton href={buildPageHref(filterParams, auditPage.page + 1)} variant="secondary">
                 Siguiente
-              </Link>
+              </AdminLinkButton>
             )}
           </div>
         </div>

@@ -6,7 +6,6 @@ import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -15,8 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
-import pe.plataformacontenidos.geography.GeographicUnitNotFoundException;
-import pe.plataformacontenidos.geography.GeographicUnitService;
 import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
@@ -40,17 +37,14 @@ public class ArticleService {
 
     private final ArticleRepository articleRepository;
     private final CategoryService categoryService;
-    private final GeographicUnitService geographyService;
     private final TagService tagService;
     private final AuditService auditService;
     private final ImageService imageService;
 
     public ArticleService(ArticleRepository articleRepository, CategoryService categoryService,
-            GeographicUnitService geographyService, TagService tagService, AuditService auditService,
-            ImageService imageService) {
+            TagService tagService, AuditService auditService, ImageService imageService) {
         this.articleRepository = articleRepository;
         this.categoryService = categoryService;
-        this.geographyService = geographyService;
         this.tagService = tagService;
         this.auditService = auditService;
         this.imageService = imageService;
@@ -60,7 +54,6 @@ public class ArticleService {
         if (!categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
-        validateGeography(input.geographyId());
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
         Set<UUID> tagIds = resolveTagNames(input.tagNames());
@@ -69,7 +62,7 @@ public class ArticleService {
         Article article = new Article(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), sanitizedBody,
                 input.articleType(), authorId, input.categoryId());
         article.updateContent(input.title(), input.excerpt(), sanitizedBody, input.articleType(), input.categoryId(),
-                input.geographyId(), tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
+                tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
                 input.ogImageUrl(), images, videos, input.robots());
 
         Article saved = articleRepository.save(article);
@@ -84,16 +77,13 @@ public class ArticleService {
         if (!article.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
-        if (!Objects.equals(article.getGeographyId(), input.geographyId())) {
-            validateGeography(input.geographyId());
-        }
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
         Set<UUID> tagIds = resolveTagNames(input.tagNames());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
         article.updateContent(input.title(), input.excerpt(), sanitizedBody, input.articleType(), input.categoryId(),
-                input.geographyId(), tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
+                tagIds, input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
                 input.ogImageUrl(), images, videos, input.robots());
         Article saved = articleRepository.save(article);
         audit("ARTICLE_UPDATED", saved, actingUserId);
@@ -214,26 +204,19 @@ public class ArticleService {
     public record ArticleNeighbors(Article previous, Article next) {
     }
 
-    public Page<Article> listPublished(UUID categoryId, UUID geographyId, Pageable pageable) {
-        if (categoryId != null && geographyId != null) {
-            return articleRepository.findByStatusAndCategoryIdAndGeographyId(
-                    ArticleStatus.PUBLISHED, categoryId, geographyId, pageable);
-        }
+    public Page<Article> listPublished(UUID categoryId, Pageable pageable) {
         if (categoryId != null) {
             return articleRepository.findByStatusAndCategoryId(ArticleStatus.PUBLISHED, categoryId, pageable);
-        }
-        if (geographyId != null) {
-            return articleRepository.findByStatusAndGeographyId(ArticleStatus.PUBLISHED, geographyId, pageable);
         }
         return articleRepository.findByStatus(ArticleStatus.PUBLISHED, pageable);
     }
 
     /** CONTEXTO.md sección 16. Query en blanco: página vacía, no error — evita un 400 por un input trivial. */
-    public Page<Article> search(String query, UUID categoryId, UUID geographyId, Pageable pageable) {
+    public Page<Article> search(String query, UUID categoryId, Pageable pageable) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);
         }
-        return articleRepository.search(query.trim(), categoryId, geographyId, pageable);
+        return articleRepository.search(query.trim(), categoryId, pageable);
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
@@ -247,12 +230,6 @@ public class ArticleService {
 
     public long countPublishedSince(Instant threshold) {
         return articleRepository.countByStatusAndPublishedAtAfter(ArticleStatus.PUBLISHED, threshold);
-    }
-
-    private void validateGeography(UUID geographyId) {
-        if (geographyId != null && !geographyService.existsActive(geographyId)) {
-            throw new GeographicUnitNotFoundException(geographyId);
-        }
     }
 
     /** Mismo patrón que PlaceService.validateImages, pero para una sola imagen (destacada, no galería). */

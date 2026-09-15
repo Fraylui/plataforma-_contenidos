@@ -17,7 +17,6 @@ public record ArticleRequest(
         @NotBlank String body,
         @NotNull ArticleType articleType,
         @NotNull UUID categoryId,
-        UUID geographyId,
         Set<String> tagNames,
         String seoTitle,
         String metaDescription,
@@ -28,7 +27,7 @@ public record ArticleRequest(
         String robots) {
 
     public ArticleInput toInput() {
-        return new ArticleInput(title, excerpt, body, articleType, categoryId, geographyId, tagNames, seoTitle,
+        return new ArticleInput(title, excerpt, body, articleType, categoryId, tagNames, seoTitle,
                 metaDescription, canonicalUrl, ogImageUrl, images == null ? List.of() : images,
                 videos == null ? List.of() : videos, robots);
     }

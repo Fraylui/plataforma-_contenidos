@@ -40,7 +40,6 @@ public class EventPublicController {
     @GetMapping
     public PageResponse<EventSummaryResponse> list(
             @RequestParam(required = false) UUID categoryId,
-            @RequestParam(required = false) UUID geographyId,
             @RequestParam(defaultValue = "upcoming") String when,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -52,7 +51,7 @@ public class EventPublicController {
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         boolean upcoming = !"past".equalsIgnoreCase(when);
         var pageable = PageRequest.of(safePage, safeSize);
-        var result = eventService.listPublished(categoryId, geographyId, upcoming, pageable);
+        var result = eventService.listPublished(categoryId, upcoming, pageable);
         var likes = contentLikeService.countLikes(ContentType.EVENT,
                 result.getContent().stream().map(Event::getId).toList());
         return PageResponse.from(result, item -> EventSummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));

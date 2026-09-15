@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { AdPlacementForm } from "@/components/admin/ad-placement-form";
+import { AdminPageHeader } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
   title: "Nueva posición de anuncio",
@@ -12,7 +13,7 @@ export default async function NewAdPlacementPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-foreground">Nueva posición de anuncio</h1>
+      <AdminPageHeader title="Nueva posición de anuncio" />
       <div className="mt-6">
         <AdPlacementForm mode="create" />
       </div>

@@ -15,7 +15,6 @@ public record EventRequest(
         @Size(max = 500) String excerpt,
         @NotBlank String body,
         @NotNull UUID categoryId,
-        UUID geographyId,
         UUID placeId,
         @Size(max = 200) String venueName,
         @NotNull Instant startsAt,
@@ -29,7 +28,7 @@ public record EventRequest(
         String robots) {
 
     public EventInput toInput() {
-        return new EventInput(title, excerpt, body, categoryId, geographyId, placeId, venueName, startsAt, endsAt,
+        return new EventInput(title, excerpt, body, categoryId, placeId, venueName, startsAt, endsAt,
                 images == null ? List.of() : images, seoTitle, metaDescription, canonicalUrl, ogImageUrl,
                 videos == null ? List.of() : videos, robots);
     }

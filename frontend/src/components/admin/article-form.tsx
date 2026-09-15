@@ -2,16 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useState } from "react";
-import type { Article, ArticleType, Category, ContentImage, GeographicUnit } from "@/lib/api/types";
+import { useState, type ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
+import type { Article, ArticleType, Category, ContentImage } from "@/lib/api/types";
 import type { AdminImage, ArticleInput, ContentVideoInput } from "@/lib/api/admin-types";
 import type { ArticlePermissions } from "@/lib/admin/article-permissions";
 import { articleTypeLabel, articleStatusLabel } from "@/lib/content-labels";
-import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
+import { AdminButton, Combobox, FormField, formInputClass } from "@/components/admin/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import { VideoLinksEditor } from "./video-links-editor";
 import { RichTextEditor } from "./rich-text-editor";
-import { GeographyPicker } from "./geography-picker";
 import { TagInput } from "./tag-input";
 import {
   approveArticleAction,
@@ -40,10 +40,41 @@ const ARTICLE_TYPES: ArticleType[] = [
 
 const ROBOTS_OPTIONS = ["index,follow", "noindex,follow", "index,nofollow", "noindex,nofollow"];
 
+const CARD_CLASS = "rounded-xl border border-border/60 bg-surface p-5";
+const SECTION_TITLE_CLASS = "text-sm font-semibold text-foreground";
+
+/** Grupo con título — misma superficie que el resto del panel (border-border/60, sin shadow). */
+function SectionCard({ title, children, className = "" }: { title: string; children: ReactNode; className?: string }) {
+  return (
+    <div className={`${CARD_CLASS} space-y-4 ${className}`}>
+      <h2 className={SECTION_TITLE_CLASS}>{title}</h2>
+      {children}
+    </div>
+  );
+}
+
+/** Colapsable, cerrado por defecto — para lo avanzado/opcional (SEO) que no debería competir con el contenido principal. */
+function CollapsibleSection({ title, children, defaultOpen = false }: { title: string; children: ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className={CARD_CLASS}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full cursor-pointer items-center justify-between"
+      >
+        <h2 className={SECTION_TITLE_CLASS}>{title}</h2>
+        <ChevronDown className={`h-4 w-4 text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`} aria-hidden="true" />
+      </button>
+      {open && <div className="mt-4 space-y-4">{children}</div>}
+    </div>
+  );
+}
+
 interface ArticleFormProps {
   categories: Category[];
   allImages: AdminImage[];
-  initialGeographyChain: GeographicUnit[];
   initialTagNames: string[];
   mode: "create" | "edit";
   article?: Article;
@@ -53,7 +84,6 @@ interface ArticleFormProps {
 export function ArticleForm({
   categories,
   allImages,
-  initialGeographyChain,
   initialTagNames,
   mode,
   article,
@@ -67,7 +97,6 @@ export function ArticleForm({
   const [body, setBody] = useState(article?.body ?? "");
   const [articleType, setArticleType] = useState<ArticleType>(article?.articleType ?? "ARTICULO");
   const [categoryId, setCategoryId] = useState(article?.categoryId ?? categories[0]?.id ?? "");
-  const [geographyId, setGeographyId] = useState<string | null>(article?.geographyId ?? null);
   const [tags, setTags] = useState<string[]>(initialTagNames);
   const [seoTitle, setSeoTitle] = useState(article?.seoTitle ?? "");
   const [metaDescription, setMetaDescription] = useState(article?.metaDescription ?? "");
@@ -95,7 +124,6 @@ export function ArticleForm({
       body,
       articleType,
       categoryId,
-      geographyId,
       tagNames: tags,
       seoTitle: seoTitle || null,
       metaDescription: metaDescription || null,
@@ -133,7 +161,7 @@ export function ArticleForm({
   }
 
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="max-w-6xl space-y-6">
       {article && (
         <div className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-surface px-4 py-3 text-sm">
           <span className="font-medium text-foreground">Estado: {articleStatusLabel(article.status)}</span>
@@ -149,217 +177,213 @@ export function ArticleForm({
         </p>
       )}
 
-      <div className="space-y-4">
-        <FormField label="Título" name="title">
-          <input
-            type="text"
-            value={title}
-            disabled={readOnly}
-            onChange={(e) => setTitle(e.target.value)}
-            className={formInputClass}
-          />
-        </FormField>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
+        {/* Columna principal: lo que se escribe */}
+        <div className="space-y-6">
+          <SectionCard title="Contenido">
+            <FormField label="Título" name="title">
+              <input
+                type="text"
+                value={title}
+                disabled={readOnly}
+                onChange={(e) => setTitle(e.target.value)}
+                className={formInputClass}
+              />
+            </FormField>
 
-        <FormField label="Extracto (resumen corto, opcional)" name="excerpt">
-          <textarea
-            value={excerpt}
-            disabled={readOnly}
-            onChange={(e) => setExcerpt(e.target.value)}
-            rows={2}
-            className={formInputClass}
-          />
-        </FormField>
+            <FormField label="Extracto (resumen corto, opcional)" name="excerpt">
+              <textarea
+                value={excerpt}
+                disabled={readOnly}
+                onChange={(e) => setExcerpt(e.target.value)}
+                rows={2}
+                className={formInputClass}
+              />
+            </FormField>
 
-        <FormField label="Contenido" name="body">
-          <RichTextEditor value={body} onChange={setBody} disabled={readOnly} />
-        </FormField>
+            <FormField label="Cuerpo" name="body">
+              <RichTextEditor value={body} onChange={setBody} disabled={readOnly} />
+            </FormField>
+          </SectionCard>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField label="Tipo" name="articleType">
-            <select
-              value={articleType}
-              disabled={readOnly}
-              onChange={(e) => setArticleType(e.target.value as ArticleType)}
-              className={formInputClass}
-            >
-              {ARTICLE_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {articleTypeLabel(type)}
-                </option>
-              ))}
-            </select>
-          </FormField>
-
-          <FormField label="Categoría" name="categoryId">
-            <select
-              value={categoryId}
-              disabled={readOnly}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className={formInputClass}
-            >
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </FormField>
+          <CollapsibleSection title="SEO">
+            <FormField label="Título SEO (opcional, si no se define usa el título)" name="seoTitle">
+              <input type="text" value={seoTitle} disabled={readOnly} onChange={(e) => setSeoTitle(e.target.value)} className={formInputClass} />
+            </FormField>
+            <FormField label="Meta descripción (opcional)" name="metaDescription">
+              <textarea value={metaDescription} disabled={readOnly} onChange={(e) => setMetaDescription(e.target.value)} rows={2} className={formInputClass} />
+            </FormField>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField label="URL canónica (opcional)" name="canonicalUrl">
+                <input type="text" value={canonicalUrl} disabled={readOnly} onChange={(e) => setCanonicalUrl(e.target.value)} className={formInputClass} />
+              </FormField>
+              <FormField label="Imagen para Open Graph (URL, opcional)" name="ogImageUrl">
+                <input type="text" value={ogImageUrl} disabled={readOnly} onChange={(e) => setOgImageUrl(e.target.value)} className={formInputClass} />
+              </FormField>
+            </div>
+            <FormField label="Robots" name="robots">
+              <Combobox
+                options={ROBOTS_OPTIONS.map((option) => ({ id: option, label: option }))}
+                value={robots}
+                disabled={readOnly}
+                onSelect={(id) => id && setRobots(id)}
+              />
+            </FormField>
+          </CollapsibleSection>
         </div>
 
-        <FormField label="Ubicación geográfica (opcional)" name="geographyId">
-          <GeographyPicker initialChain={initialGeographyChain} onChange={setGeographyId} />
-        </FormField>
+        {/* Barra lateral: publicar + metadata — visible sin scrollear todo el formulario */}
+        <div className="space-y-6">
+          <SectionCard title="Publicar">
+            {error && (
+              <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+                {error}
+              </p>
+            )}
+            {!readOnly && (
+              <AdminButton
+                disabled={pending || !title || !body || !categoryId}
+                onClick={handleSubmit}
+                className="w-full"
+              >
+                {pending ? "Guardando…" : mode === "create" ? "Crear borrador" : "Guardar cambios"}
+              </AdminButton>
+            )}
 
-        <FormField label="Etiquetas" name="tags">
-          <TagInput value={tags} onChange={setTags} />
-        </FormField>
+            {mode === "edit" && article && permissions && (
+              <div className="space-y-3 border-t border-border pt-4">
+                <div className="flex flex-wrap gap-2">
+                  {permissions.canSubmit && (
+                    <AdminButton
+                      type="button"
+                      variant="secondary"
+                      disabled={pending}
+                      onClick={() => runWorkflow(() => submitArticleAction(article.id), "Enviado a revisión.")}
+                    >
+                      Enviar a revisión
+                    </AdminButton>
+                  )}
+                  {permissions.canApprove && (
+                    <AdminButton
+                      type="button"
+                      variant="secondary"
+                      disabled={pending}
+                      onClick={() => runWorkflow(() => approveArticleAction(article.id), "Publicación aprobada.")}
+                    >
+                      Aprobar
+                    </AdminButton>
+                  )}
+                  {permissions.canPublish && (
+                    <AdminButton
+                      type="button"
+                      variant="secondary"
+                      disabled={pending}
+                      onClick={() => runWorkflow(() => publishArticleAction(article.id), "Publicación publicada.")}
+                    >
+                      Publicar ahora
+                    </AdminButton>
+                  )}
+                  {permissions.canArchive && (
+                    <AdminButton
+                      type="button"
+                      variant="secondary"
+                      disabled={pending}
+                      onClick={() => runWorkflow(() => archiveArticleAction(article.id), "Publicación archivada.")}
+                    >
+                      Archivar
+                    </AdminButton>
+                  )}
+                </div>
 
-        <FormField label="Imágenes (opcional — una o varias; la primera es la portada de tarjeta/feed)" name="images">
-          <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
-        </FormField>
+                {permissions.canReject && (
+                  <div className="space-y-2">
+                    <FormField label="Motivo de rechazo" name="rejectReason">
+                      <input
+                        type="text"
+                        value={rejectReason}
+                        onChange={(e) => setRejectReason(e.target.value)}
+                        className={formInputClass}
+                      />
+                    </FormField>
+                    <AdminButton
+                      type="button"
+                      variant="secondary"
+                      disabled={pending || !rejectReason.trim()}
+                      onClick={() => runWorkflow(() => rejectArticleAction(article.id, rejectReason), "Publicación rechazada.")}
+                      className="w-full"
+                    >
+                      Rechazar
+                    </AdminButton>
+                  </div>
+                )}
 
-        <FormField label="Videos de YouTube (opcional — uno o varios)" name="videos">
-          <VideoLinksEditor value={videos} onChange={setVideos} disabled={readOnly} />
-        </FormField>
+                {permissions.canSchedule && (
+                  <div className="space-y-2">
+                    <FormField label="Programar publicación para" name="scheduleAt">
+                      <input
+                        type="datetime-local"
+                        value={scheduleAt}
+                        onChange={(e) => setScheduleAt(e.target.value)}
+                        className={formInputClass}
+                      />
+                    </FormField>
+                    <AdminButton
+                      type="button"
+                      variant="secondary"
+                      disabled={pending || !scheduleAt}
+                      onClick={() =>
+                        runWorkflow(
+                          () => scheduleArticleAction(article.id, new Date(scheduleAt).toISOString()),
+                          "Publicación programada.",
+                        )
+                      }
+                      className="w-full"
+                    >
+                      Programar
+                    </AdminButton>
+                  </div>
+                )}
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard title="Organización">
+            <FormField label="Tipo" name="articleType">
+              <Combobox
+                options={ARTICLE_TYPES.map((type) => ({ id: type, label: articleTypeLabel(type) }))}
+                value={articleType}
+                disabled={readOnly}
+                // Campo obligatorio: ignoramos el toggle-a-null del Combobox — siempre
+                // debe quedar un tipo seleccionado.
+                onSelect={(id) => id && setArticleType(id as ArticleType)}
+              />
+            </FormField>
+
+            <FormField label="Categoría" name="categoryId">
+              <Combobox
+                options={categories.map((category) => ({ id: category.id, label: category.name }))}
+                value={categoryId}
+                disabled={readOnly}
+                onSelect={(id) => id && setCategoryId(id)}
+              />
+            </FormField>
+
+            <FormField label="Etiquetas" name="tags">
+              <TagInput value={tags} onChange={setTags} />
+            </FormField>
+          </SectionCard>
+
+          <SectionCard title="Medios">
+            <FormField label="Imágenes (opcional — la primera es la portada de tarjeta/feed)" name="images">
+              <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
+            </FormField>
+
+            <FormField label="Videos de YouTube (opcional)" name="videos">
+              <VideoLinksEditor value={videos} onChange={setVideos} disabled={readOnly} />
+            </FormField>
+          </SectionCard>
+        </div>
       </div>
-
-      <fieldset className="space-y-4 border-t border-border pt-6">
-        <legend className="text-sm font-medium text-foreground">SEO</legend>
-        <FormField label="Título SEO (opcional, si no se define usa el título)" name="seoTitle">
-          <input type="text" value={seoTitle} disabled={readOnly} onChange={(e) => setSeoTitle(e.target.value)} className={formInputClass} />
-        </FormField>
-        <FormField label="Meta descripción (opcional)" name="metaDescription">
-          <textarea value={metaDescription} disabled={readOnly} onChange={(e) => setMetaDescription(e.target.value)} rows={2} className={formInputClass} />
-        </FormField>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField label="URL canónica (opcional)" name="canonicalUrl">
-            <input type="text" value={canonicalUrl} disabled={readOnly} onChange={(e) => setCanonicalUrl(e.target.value)} className={formInputClass} />
-          </FormField>
-          <FormField label="Imagen para Open Graph (URL, opcional)" name="ogImageUrl">
-            <input type="text" value={ogImageUrl} disabled={readOnly} onChange={(e) => setOgImageUrl(e.target.value)} className={formInputClass} />
-          </FormField>
-        </div>
-        <FormField label="Robots" name="robots">
-          <select value={robots} disabled={readOnly} onChange={(e) => setRobots(e.target.value)} className={formInputClass}>
-            {ROBOTS_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </FormField>
-      </fieldset>
-
-      {error && (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-          {error}
-        </p>
-      )}
-
-      {!readOnly && (
-        <AdminButton
-          disabled={pending || !title || !body || !categoryId}
-          onClick={handleSubmit}
-        >
-          {pending ? "Guardando…" : mode === "create" ? "Crear borrador" : "Guardar cambios"}
-        </AdminButton>
-      )}
-
-      {mode === "edit" && article && permissions && (
-        <div className="space-y-4 border-t border-border pt-6">
-          <h2 className="text-sm font-medium text-foreground">Flujo de publicación</h2>
-          <div className="flex flex-wrap gap-2">
-            {permissions.canSubmit && (
-              <AdminButton
-                type="button"
-                variant="secondary"
-                disabled={pending}
-                onClick={() => runWorkflow(() => submitArticleAction(article.id), "Enviado a revisión.")}
-              >
-                Enviar a revisión
-              </AdminButton>
-            )}
-            {permissions.canApprove && (
-              <AdminButton
-                type="button"
-                variant="secondary"
-                disabled={pending}
-                onClick={() => runWorkflow(() => approveArticleAction(article.id), "Publicación aprobada.")}
-              >
-                Aprobar
-              </AdminButton>
-            )}
-            {permissions.canPublish && (
-              <AdminButton
-                type="button"
-                variant="secondary"
-                disabled={pending}
-                onClick={() => runWorkflow(() => publishArticleAction(article.id), "Publicación publicada.")}
-              >
-                Publicar ahora
-              </AdminButton>
-            )}
-            {permissions.canArchive && (
-              <AdminButton
-                type="button"
-                variant="secondary"
-                disabled={pending}
-                onClick={() => runWorkflow(() => archiveArticleAction(article.id), "Publicación archivada.")}
-              >
-                Archivar
-              </AdminButton>
-            )}
-          </div>
-
-          {permissions.canReject && (
-            <div className="flex flex-wrap items-end gap-2">
-              <FormField label="Motivo de rechazo" name="rejectReason">
-                <input
-                  type="text"
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                  className={formInputClass}
-                />
-              </FormField>
-              <AdminButton
-                type="button"
-                variant="secondary"
-                disabled={pending || !rejectReason.trim()}
-                onClick={() => runWorkflow(() => rejectArticleAction(article.id, rejectReason), "Publicación rechazada.")}
-              >
-                Rechazar
-              </AdminButton>
-            </div>
-          )}
-
-          {permissions.canSchedule && (
-            <div className="flex flex-wrap items-end gap-2">
-              <FormField label="Programar publicación para" name="scheduleAt">
-                <input
-                  type="datetime-local"
-                  value={scheduleAt}
-                  onChange={(e) => setScheduleAt(e.target.value)}
-                  className={formInputClass}
-                />
-              </FormField>
-              <AdminButton
-                type="button"
-                variant="secondary"
-                disabled={pending || !scheduleAt}
-                onClick={() =>
-                  runWorkflow(
-                    () => scheduleArticleAction(article.id, new Date(scheduleAt).toISOString()),
-                    "Publicación programada.",
-                  )
-                }
-              >
-                Programar
-              </AdminButton>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
-

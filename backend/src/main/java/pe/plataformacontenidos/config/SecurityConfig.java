@@ -49,7 +49,6 @@ public class SecurityConfig {
                         "/api/v1/directory/*/like").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/search").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/feed", "/api/v1/feed/related").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/geography", "/api/v1/geography/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/images/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/platform-settings").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/ad-placements").permitAll()
@@ -61,8 +60,7 @@ public class SecurityConfig {
                 // Audit log: incluye IPs y acciones de todos los usuarios (incluidos otros
                 // admins) — sección 37, más sensible que un listado editorial normal.
                 .requestMatchers("/api/v1/admin/audit/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
-                .requestMatchers("/api/v1/admin/categories/**", "/api/v1/admin/tags/**", "/api/v1/admin/geography/**",
-                        "/api/v1/admin/stats/**")
+                .requestMatchers("/api/v1/admin/categories/**", "/api/v1/admin/tags/**", "/api/v1/admin/stats/**")
                     .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR")
                 .requestMatchers("/api/v1/admin/articles/**", "/api/v1/admin/images/**", "/api/v1/admin/places/**",
                         "/api/v1/admin/events/**", "/api/v1/admin/galleries/**", "/api/v1/admin/reviews/**",

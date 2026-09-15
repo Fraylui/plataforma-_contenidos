@@ -21,8 +21,6 @@ public record PlatformStatsResponse(
         long totalCategories,
         long activeCategories,
         long totalTags,
-        long totalGeographyUnits,
-        long activeGeographyUnits,
         Map<Role, Long> usersByRole,
         long activeUsers) {
 }

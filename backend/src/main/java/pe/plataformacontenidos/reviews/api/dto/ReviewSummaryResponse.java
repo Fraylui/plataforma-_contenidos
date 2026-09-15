@@ -11,7 +11,6 @@ public record ReviewSummaryResponse(
         String title,
         String excerpt,
         UUID categoryId,
-        UUID geographyId,
         UUID placeId,
         String subjectName,
         int rating,
@@ -22,7 +21,7 @@ public record ReviewSummaryResponse(
     public static ReviewSummaryResponse from(Review review, long likeCount) {
         UUID coverImageId = review.getImageIds().isEmpty() ? null : review.getImageIds().get(0);
         return new ReviewSummaryResponse(review.getId(), review.getSlug(), review.getTitle(), review.getExcerpt(),
-                review.getCategoryId(), review.getGeographyId(), review.getPlaceId(), review.getSubjectName(),
+                review.getCategoryId(), review.getPlaceId(), review.getSubjectName(),
                 review.getRating(), coverImageId, review.getPublishedAt(), likeCount);
     }
 }

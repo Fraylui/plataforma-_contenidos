@@ -4,14 +4,9 @@ interface TreeNode {
 }
 
 /**
- * Aplana cualquier jerarquía padre→hijos (categorías, geografía) en una
- * lista ordenada con profundidad, para mostrarla indentada en una tabla
- * plana. category-tree.ts y geography-tree.ts implementaban esto cada uno
- * por su cuenta con la misma lógica — unificado acá tras encontrarlo
- * duplicado en la revisión de código de esta fase. `depthOf` es opcional:
- * geografía tiene niveles fijos (el nivel YA determina la profundidad, sin
- * necesidad de recorrer el árbol); categorías no, así que usan la
- * profundidad de recorrido por defecto.
+ * Aplana cualquier jerarquía padre→hijos (categorías) en una lista
+ * ordenada con profundidad, para mostrarla indentada en una tabla plana.
+ * `depthOf` es opcional: por defecto usa la profundidad de recorrido.
  */
 export function flattenTree<T extends TreeNode>(
   items: T[],

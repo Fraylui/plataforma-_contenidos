@@ -12,14 +12,13 @@ public record GallerySummaryResponse(
         String title,
         String excerpt,
         UUID categoryId,
-        UUID geographyId,
         List<UUID> imageIds,
         Instant publishedAt,
         long likeCount) {
 
     public static GallerySummaryResponse from(Gallery gallery, long likeCount) {
         return new GallerySummaryResponse(gallery.getId(), gallery.getSlug(), gallery.getTitle(),
-                gallery.getExcerpt(), gallery.getCategoryId(), gallery.getGeographyId(), gallery.getImageIds(),
+                gallery.getExcerpt(), gallery.getCategoryId(), gallery.getImageIds(),
                 gallery.getPublishedAt(), likeCount);
     }
 }
