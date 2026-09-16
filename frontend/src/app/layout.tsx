@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s · ${settings.name}`,
     },
     description: settings.seoDefaultDescription || settings.description || undefined,
-    alternates: { canonical: "/" },
+    alternates: { canonical: "/", types: { "application/rss+xml": "/rss.xml" } },
     openGraph: ogImage ? { images: [ogImage] } : undefined,
     verification: settings.googleSearchConsoleVerification
       ? { google: settings.googleSearchConsoleVerification }
