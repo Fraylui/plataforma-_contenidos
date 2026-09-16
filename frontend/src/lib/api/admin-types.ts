@@ -203,6 +203,8 @@ export interface Campaign {
   active: boolean;
   impressionCount: number;
   clickCount: number;
+  amount: number | null;
+  currency: string | null;
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/campaigns — ver CampaignRequest.java. */
@@ -215,6 +217,8 @@ export interface CampaignInput {
   linkUrl: string;
   startsAt: string | null;
   endsAt: string | null;
+  amount: number | null;
+  currency: string | null;
 }
 
 /** Ver PlatformStatsResponse.java (CONTEXTO.md sección 34, estadísticas básicas). */

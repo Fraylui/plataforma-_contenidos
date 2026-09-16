@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.advertising;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -35,21 +36,24 @@ public class CampaignService {
     }
 
     public Campaign create(UUID advertiserId, String placementKey, ContentImageInput creativeInput, String linkUrl,
-            Instant startsAt, Instant endsAt) {
+            Instant startsAt, Instant endsAt, BigDecimal amount, String currency) {
         requireAdvertiserExists(advertiserId);
         requirePlacementExists(placementKey);
         requireValidSchedule(startsAt, endsAt);
+        requireValidAmount(amount);
         ContentImage creative = validateCreative(creativeInput);
-        return campaignRepository.save(new Campaign(advertiserId, placementKey, creative, linkUrl, startsAt, endsAt));
+        return campaignRepository.save(
+                new Campaign(advertiserId, placementKey, creative, linkUrl, startsAt, endsAt, amount, currency));
     }
 
     public Campaign update(UUID id, String placementKey, ContentImageInput creativeInput, String linkUrl,
-            Instant startsAt, Instant endsAt) {
+            Instant startsAt, Instant endsAt, BigDecimal amount, String currency) {
         Campaign campaign = getOrThrow(id);
         requirePlacementExists(placementKey);
         requireValidSchedule(startsAt, endsAt);
+        requireValidAmount(amount);
         ContentImage creative = validateCreative(creativeInput);
-        campaign.update(placementKey, creative, linkUrl, startsAt, endsAt);
+        campaign.update(placementKey, creative, linkUrl, startsAt, endsAt, amount, currency);
         return campaignRepository.save(campaign);
     }
 
@@ -112,6 +116,12 @@ public class CampaignService {
     private void requireValidSchedule(Instant startsAt, Instant endsAt) {
         if (startsAt != null && endsAt != null && !endsAt.isAfter(startsAt)) {
             throw new InvalidCampaignScheduleException("La fecha de fin debe ser posterior a la de inicio.");
+        }
+    }
+
+    private void requireValidAmount(BigDecimal amount) {
+        if (amount != null && amount.signum() < 0) {
+            throw new InvalidCampaignAmountException("El monto no puede ser negativo.");
         }
     }
 

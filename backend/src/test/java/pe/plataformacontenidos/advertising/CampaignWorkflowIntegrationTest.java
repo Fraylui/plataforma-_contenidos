@@ -100,6 +100,45 @@ class CampaignWorkflowIntegrationTest {
     }
 
     @Test
+    void campaignStoresAmountAndRejectsNegativeAmount() throws Exception {
+        String adminToken = createUserAndLogin("ads-admin-5@plataforma-contenidos.test");
+        String placementKey = createAdPlacement(adminToken);
+        String advertiserId = createAdvertiser(adminToken, "Hostal Wari");
+
+        String body = "{"
+                + "\"advertiserId\":\"" + advertiserId + "\","
+                + "\"placementKey\":\"" + placementKey + "\","
+                + "\"externalImageUrl\":\"https://example.com/banner.jpg\","
+                + "\"linkUrl\":\"https://example.com\","
+                + "\"amount\":150.50,"
+                + "\"currency\":\"PEN\""
+                + "}";
+
+        mockMvc.perform(post("/api/v1/admin/campaigns")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.amount").value(150.50))
+                .andExpect(jsonPath("$.currency").value("PEN"));
+
+        String negativeBody = "{"
+                + "\"advertiserId\":\"" + advertiserId + "\","
+                + "\"placementKey\":\"" + placementKey + "\","
+                + "\"externalImageUrl\":\"https://example.com/banner.jpg\","
+                + "\"linkUrl\":\"https://example.com\","
+                + "\"amount\":-10,"
+                + "\"currency\":\"PEN\""
+                + "}";
+
+        mockMvc.perform(post("/api/v1/admin/campaigns")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(negativeBody))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void campaignCreativeMustHaveExactlyOneImageSource() throws Exception {
         String adminToken = createUserAndLogin("ads-admin-2@plataforma-contenidos.test");
         String placementKey = createAdPlacement(adminToken);

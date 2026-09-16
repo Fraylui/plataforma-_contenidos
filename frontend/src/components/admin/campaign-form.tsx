@@ -36,6 +36,8 @@ export function CampaignForm({ mode, advertiserId, placementOptions, allImages, 
   const [linkUrl, setLinkUrl] = useState(campaign?.linkUrl ?? "");
   const [startsAt, setStartsAt] = useState(campaign?.startsAt ? toDatetimeLocalValue(campaign.startsAt) : "");
   const [endsAt, setEndsAt] = useState(campaign?.endsAt ? toDatetimeLocalValue(campaign.endsAt) : "");
+  const [amount, setAmount] = useState(campaign?.amount != null ? String(campaign.amount) : "");
+  const [currency, setCurrency] = useState(campaign?.currency ?? "PEN");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +56,8 @@ export function CampaignForm({ mode, advertiserId, placementOptions, allImages, 
       linkUrl: linkUrl.trim(),
       startsAt: startsAt ? new Date(startsAt).toISOString() : null,
       endsAt: endsAt ? new Date(endsAt).toISOString() : null,
+      amount: amount.trim() ? Number(amount) : null,
+      currency: amount.trim() ? currency.trim().toUpperCase() || null : null,
     };
     const result: ActionResult =
       mode === "create"
@@ -99,6 +103,30 @@ export function CampaignForm({ mode, advertiserId, placementOptions, allImages, 
         </FormField>
         <FormField label="Termina (opcional, indefinida si se deja vacío)" name="endsAt">
           <input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} className={formInputClass} />
+        </FormField>
+      </div>
+
+      <div className="grid grid-cols-[1fr_100px] gap-4">
+        <FormField label="Monto cobrado (opcional — solo registro, sin facturación)" name="amount">
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="0.00"
+            className={formInputClass}
+          />
+        </FormField>
+        <FormField label="Moneda" name="currency">
+          <input
+            type="text"
+            value={currency}
+            disabled={!amount.trim()}
+            onChange={(e) => setCurrency(e.target.value)}
+            maxLength={3}
+            className={`${formInputClass} uppercase`}
+          />
         </FormField>
       </div>
 

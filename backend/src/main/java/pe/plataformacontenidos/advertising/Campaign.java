@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
@@ -47,6 +48,13 @@ public class Campaign {
     @Column(name = "ends_at")
     private Instant endsAt;
 
+    /** Solo registro contable de lo cobrado — sin facturación/pagos, ver plan de Publicidad directa. */
+    @Column(precision = 12, scale = 2)
+    private BigDecimal amount;
+
+    @Column(length = 3)
+    private String currency;
+
     @Column(nullable = false)
     private boolean active = true;
 
@@ -67,13 +75,15 @@ public class Campaign {
     }
 
     public Campaign(UUID advertiserId, String placementKey, ContentImage creative, String linkUrl, Instant startsAt,
-            Instant endsAt) {
+            Instant endsAt, BigDecimal amount, String currency) {
         this.advertiserId = advertiserId;
         this.placementKey = placementKey;
         this.creative = creative;
         this.linkUrl = linkUrl;
         this.startsAt = startsAt;
         this.endsAt = endsAt;
+        this.amount = amount;
+        this.currency = currency;
     }
 
     public UUID getId() {
@@ -104,6 +114,14 @@ public class Campaign {
         return endsAt;
     }
 
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
     public boolean isActive() {
         return active;
     }
@@ -121,12 +139,14 @@ public class Campaign {
     }
 
     public void update(String placementKey, ContentImage creative, String linkUrl, Instant startsAt,
-            Instant endsAt) {
+            Instant endsAt, BigDecimal amount, String currency) {
         this.placementKey = placementKey;
         this.creative = creative;
         this.linkUrl = linkUrl;
         this.startsAt = startsAt;
         this.endsAt = endsAt;
+        this.amount = amount;
+        this.currency = currency;
         this.updatedAt = Instant.now();
     }
 

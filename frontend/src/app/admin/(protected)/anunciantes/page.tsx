@@ -39,6 +39,7 @@ export default async function AdminAdvertisersPage() {
                 <th className="px-4 py-3 font-medium text-muted">Anunciante</th>
                 <th className="px-4 py-3 font-medium text-muted">Contacto</th>
                 <th className="px-4 py-3 font-medium text-muted">Campañas</th>
+                <th className="px-4 py-3 font-medium text-muted">Facturado</th>
                 <th className="px-4 py-3 font-medium text-muted">Impresiones</th>
                 <th className="px-4 py-3 font-medium text-muted">Clics</th>
               </tr>
@@ -48,6 +49,8 @@ export default async function AdminAdvertisersPage() {
                 const own = campaigns.filter((c) => c.advertiserId === advertiser.id);
                 const impressions = own.reduce((sum, c) => sum + c.impressionCount, 0);
                 const clicks = own.reduce((sum, c) => sum + c.clickCount, 0);
+                const billed = own.reduce((sum, c) => sum + (c.amount ?? 0), 0);
+                const billedCurrency = own.find((c) => c.amount != null)?.currency ?? "";
                 return (
                   <tr key={advertiser.id} className="border-b border-border last:border-0 hover:bg-accent-soft/40">
                     <td className="px-4 py-3">
@@ -62,6 +65,7 @@ export default async function AdminAdvertisersPage() {
                       {advertiser.contactEmail || advertiser.contactPhone || "— sin datos —"}
                     </td>
                     <td className="px-4 py-3 text-muted">{own.length}</td>
+                    <td className="px-4 py-3 text-muted">{billed > 0 ? `${billedCurrency} ${billed.toFixed(2)}` : "—"}</td>
                     <td className="px-4 py-3 text-muted">{impressions}</td>
                     <td className="px-4 py-3 text-muted">{clicks}</td>
                   </tr>

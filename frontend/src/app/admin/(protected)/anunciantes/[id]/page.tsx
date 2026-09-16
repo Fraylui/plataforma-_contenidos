@@ -43,6 +43,7 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
                   <th className="px-4 py-3 font-medium text-muted">Posición</th>
                   <th className="px-4 py-3 font-medium text-muted">Vigencia</th>
                   <th className="px-4 py-3 font-medium text-muted">Estado</th>
+                  <th className="px-4 py-3 font-medium text-muted">Cobrado</th>
                   <th className="px-4 py-3 font-medium text-muted">Impresiones</th>
                   <th className="px-4 py-3 font-medium text-muted">Clics</th>
                   <th className="px-4 py-3 font-medium text-muted" />
@@ -66,6 +67,9 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
                     </td>
                     <td className="px-4 py-3">
                       <StatusPill tone={campaign.active ? "success" : "neutral"} label={campaign.active ? "Activa" : "Inactiva"} />
+                    </td>
+                    <td className="px-4 py-3 text-muted">
+                      {campaign.amount != null ? `${campaign.currency ?? ""} ${campaign.amount.toFixed(2)}` : "—"}
                     </td>
                     <td className="px-4 py-3 text-muted">{campaign.impressionCount}</td>
                     <td className="px-4 py-3 text-muted">{campaign.clickCount}</td>
