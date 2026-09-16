@@ -8,6 +8,10 @@ const SECTION_TITLE = "flex items-center justify-between gap-3 text-sm font-bold
 const SECTION_LINK =
   "inline-flex shrink-0 items-center gap-1 text-[12px] font-semibold text-accent transition-colors hover:underline";
 const SECTION = "p-5 sm:p-6";
+// Mismo límite/criterio que FOOTER_CATEGORIES_MAX en site-footer.tsx — sin
+// tope, un catálogo grande (hoy 23 categorías planas) alarga el panel muy
+// por encima del resto del sidebar (agenda de eventos, anuncio).
+const SIDEBAR_CATEGORIES_MAX = 10;
 
 /**
  * Barra lateral del home (fija en escritorio, arriba del feed en celular
@@ -33,7 +37,8 @@ export function HomeSidebar({
 }) {
   const topCategories = categories
     .filter((c) => c.parentId === null)
-    .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
+    .slice(0, SIDEBAR_CATEGORIES_MAX);
 
   return (
     <div className="divide-y divide-foreground/[0.06] overflow-hidden rounded-2xl border border-foreground/[0.06] bg-surface shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_8px_20px_-12px_rgb(0_0_0_/_0.08)]">
