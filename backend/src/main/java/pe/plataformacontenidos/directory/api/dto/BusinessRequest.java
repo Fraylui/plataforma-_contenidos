@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.UUID;
 import pe.plataformacontenidos.directory.BusinessInput;
 import pe.plataformacontenidos.directory.BusinessType;
+import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.ContentVideoInput;
 
 public record BusinessRequest(
         @NotBlank @Size(max = 200) String name,
@@ -24,17 +26,17 @@ public record BusinessRequest(
         String website,
         @DecimalMin("-90") @DecimalMax("90") Double latitude,
         @DecimalMin("-180") @DecimalMax("180") Double longitude,
-        List<UUID> imageIds,
+        List<ContentImageInput> images,
         String seoTitle,
         String metaDescription,
         String canonicalUrl,
         String ogImageUrl,
-        String youtubeUrl,
+        List<ContentVideoInput> videos,
         String robots) {
 
     public BusinessInput toInput() {
         return new BusinessInput(name, excerpt, body, categoryId, businessType, placeId, address,
-                phone, email, website, latitude, longitude, imageIds, seoTitle, metaDescription, canonicalUrl,
-                ogImageUrl, youtubeUrl, robots);
+                phone, email, website, latitude, longitude, images == null ? List.of() : images, seoTitle,
+                metaDescription, canonicalUrl, ogImageUrl, videos == null ? List.of() : videos, robots);
     }
 }

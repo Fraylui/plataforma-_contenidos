@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
+import pe.plataformacontenidos.shared.ContentImage;
+import pe.plataformacontenidos.shared.ContentVideo;
 
 /**
  * Ficha de Directorio (CONTEXTO.md sección 6: empresas, restaurantes,
@@ -25,7 +27,8 @@ import org.hibernate.annotations.UuidGenerator;
  * ficha ES el negocio. Puede vincularse a un Lugar ya existente (placeId)
  * o llevar su propia dirección libre (address) — mismo patrón que
  * events.placeId/venueName. category_id/place_id son UUID sin FK
- * (Taxonomy/Places, sección 38); imageIds tampoco (Media).
+ * (Taxonomy/Places, sección 38); images/videos tampoco (Media) — mismo
+ * patrón ContentImage/ContentVideo que Article/Place/Event.
  */
 @Entity
 @Table(name = "businesses", schema = "directory")
@@ -75,11 +78,13 @@ public class Business {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "business_images", schema = "directory", joinColumns = @JoinColumn(name = "business_id"))
     @OrderColumn(name = "sort_order")
-    @Column(name = "image_id")
-    private List<UUID> imageIds = new ArrayList<>();
+    private List<ContentImage> images = new ArrayList<>();
 
-    @Column(name = "youtube_video_id")
-    private String youtubeVideoId;
+    /** Solo la referencia (Video ID de YouTube), nunca el video en sí — sección 8. Varios videos por ficha. */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "business_videos", schema = "directory", joinColumns = @JoinColumn(name = "business_id"))
+    @OrderColumn(name = "sort_order")
+    private List<ContentVideo> videos = new ArrayList<>();
 
     @Column(name = "seo_title")
     private String seoTitle;
@@ -190,12 +195,17 @@ public class Business {
         return longitude;
     }
 
-    public List<UUID> getImageIds() {
-        return imageIds;
+    public List<ContentImage> getImages() {
+        return images;
     }
 
-    public String getYoutubeVideoId() {
-        return youtubeVideoId;
+    /** Portada para tarjetas/feed: la primera imagen, o null si no tiene ninguna. */
+    public ContentImage getCoverImage() {
+        return images.isEmpty() ? null : images.get(0);
+    }
+
+    public List<ContentVideo> getVideos() {
+        return videos;
     }
 
     public String getSeoTitle() {
@@ -245,8 +255,8 @@ public class Business {
 
     public void updateContent(String name, String excerpt, String body, UUID categoryId,
             BusinessType businessType, UUID placeId, String address, String phone, String email, String website,
-            Double latitude, Double longitude, List<UUID> imageIds, String seoTitle, String metaDescription,
-            String canonicalUrl, String ogImageUrl, String youtubeVideoId, String robots) {
+            Double latitude, Double longitude, List<ContentImage> images, String seoTitle, String metaDescription,
+            String canonicalUrl, String ogImageUrl, List<ContentVideo> videos, String robots) {
         this.name = name;
         this.excerpt = excerpt;
         this.body = body;
@@ -259,12 +269,12 @@ public class Business {
         this.website = website;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.imageIds = new ArrayList<>(imageIds);
+        this.images = new ArrayList<>(images);
         this.seoTitle = seoTitle;
         this.metaDescription = metaDescription;
         this.canonicalUrl = canonicalUrl;
         this.ogImageUrl = ogImageUrl;
-        this.youtubeVideoId = youtubeVideoId;
+        this.videos = new ArrayList<>(videos);
         this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
         this.updatedAt = Instant.now();
     }

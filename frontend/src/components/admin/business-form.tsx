@@ -3,12 +3,14 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
-import type { AdminImage, BusinessInput } from "@/lib/api/admin-types";
-import type { Business, BusinessType, Category, Place } from "@/lib/api/types";
+import type { AdminImage, BusinessInput, ContentVideoInput } from "@/lib/api/admin-types";
+import type { Business, BusinessType, Category, ContentImage, Place } from "@/lib/api/types";
 import type { BusinessPermissions } from "@/lib/admin/business-permissions";
 import { articleStatusLabel, businessTypeLabel } from "@/lib/content-labels";
 import { AdminButton, CollapsibleSection, Combobox, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
-import { PlaceGalleryPicker } from "./place-gallery-picker";
+import { ContentImagesPicker } from "./content-images-picker";
+import { VideoLinksEditor } from "./video-links-editor";
+import { RichTextEditor } from "./rich-text-editor";
 import {
   approveBusinessAction,
   archiveBusinessAction,
@@ -56,13 +58,18 @@ export function BusinessForm({
   const [website, setWebsite] = useState(business?.website ?? "");
   const [latitude, setLatitude] = useState(business?.latitude != null ? String(business.latitude) : "");
   const [longitude, setLongitude] = useState(business?.longitude != null ? String(business.longitude) : "");
-  const [imageIds, setImageIds] = useState<string[]>(business?.imageIds ?? []);
+  const [images, setImages] = useState<ContentImage[]>(business?.images ?? []);
   const [seoTitle, setSeoTitle] = useState(business?.seoTitle ?? "");
   const [metaDescription, setMetaDescription] = useState(business?.metaDescription ?? "");
   const [canonicalUrl, setCanonicalUrl] = useState(business?.canonicalUrl ?? "");
   const [ogImageUrl, setOgImageUrl] = useState(business?.ogImageUrl ?? "");
-  const [youtubeUrl, setYoutubeUrl] = useState("");
-  const [removeYoutube, setRemoveYoutube] = useState(false);
+  const [videos, setVideos] = useState<ContentVideoInput[]>(
+    business?.videos.map((v) => ({
+      url: `https://www.youtube.com/watch?v=${v.videoId}`,
+      title: v.title,
+      caption: v.caption,
+    })) ?? [],
+  );
   const [robots, setRobots] = useState(business?.robots ?? "index,follow");
 
   const [pending, setPending] = useState(false);
@@ -84,22 +91,14 @@ export function BusinessForm({
       website: website || null,
       latitude: latitude.trim() ? Number(latitude) : null,
       longitude: longitude.trim() ? Number(longitude) : null,
-      imageIds,
+      images,
       seoTitle: seoTitle || null,
       metaDescription: metaDescription || null,
       canonicalUrl: canonicalUrl || null,
       ogImageUrl: ogImageUrl || null,
-      youtubeUrl: resolveYoutubeUrlForSubmit(),
+      videos,
       robots,
     };
-  }
-
-  /** Mismo motivo que PlaceForm: el backend reemplaza youtubeVideoId con lo que se mande, vacío incluido. */
-  function resolveYoutubeUrlForSubmit(): string | null {
-    if (youtubeUrl.trim()) return youtubeUrl;
-    if (removeYoutube) return null;
-    if (business?.youtubeVideoId) return `https://www.youtube.com/watch?v=${business.youtubeVideoId}`;
-    return null;
   }
 
   async function handleSubmit() {
@@ -160,7 +159,7 @@ export function BusinessForm({
             </FormField>
 
             <FormField label="Descripción completa" name="body">
-              <textarea value={body} disabled={readOnly} onChange={(e) => setBody(e.target.value)} rows={10} className={formInputClass} />
+              <RichTextEditor value={body} onChange={setBody} disabled={readOnly} allImages={allImages} />
             </FormField>
           </SectionCard>
 
@@ -374,26 +373,13 @@ export function BusinessForm({
           </SectionCard>
 
           <SectionCard title="Medios">
-            <FormField label="Fotografías (opcional)" name="imageIds">
-              <PlaceGalleryPicker allImages={allImages} value={imageIds} onChange={setImageIds} disabled={readOnly} />
+            <FormField label="Fotografías (opcional)" name="images">
+              <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
             </FormField>
 
-            <FormField label="Video de YouTube (URL, opcional)" name="youtubeUrl">
-              <input
-                type="text"
-                value={youtubeUrl}
-                disabled={readOnly || removeYoutube}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
-                placeholder={business?.youtubeVideoId ? "Ya tiene un video — pega otra URL para reemplazarlo" : "https://www.youtube.com/watch?v=…"}
-                className={formInputClass}
-              />
+            <FormField label="Videos de YouTube (opcional)" name="videos">
+              <VideoLinksEditor value={videos} onChange={setVideos} disabled={readOnly} />
             </FormField>
-            {business?.youtubeVideoId && (
-              <label className="flex items-center gap-2 text-sm text-foreground">
-                <input type="checkbox" checked={removeYoutube} disabled={readOnly} onChange={(e) => setRemoveYoutube(e.target.checked)} />
-                Quitar el video actual
-              </label>
-            )}
           </SectionCard>
         </div>
       </div>

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import pe.plataformacontenidos.galleries.GalleryAccessDeniedException;
 import pe.plataformacontenidos.galleries.GalleryNotFoundException;
 import pe.plataformacontenidos.galleries.InvalidGalleryImageCountException;
+import pe.plataformacontenidos.galleries.InvalidGalleryImageException;
 import pe.plataformacontenidos.galleries.InvalidGalleryScheduleException;
 import pe.plataformacontenidos.galleries.InvalidGalleryTransitionException;
 
@@ -36,6 +37,11 @@ public class GalleryExceptionHandler {
 
     @ExceptionHandler(InvalidGalleryImageCountException.class)
     public ResponseEntity<ApiError> handleInvalidImageCount(InvalidGalleryImageCountException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidGalleryImageException.class)
+    public ResponseEntity<ApiError> handleInvalidImage(InvalidGalleryImageException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
     }
 

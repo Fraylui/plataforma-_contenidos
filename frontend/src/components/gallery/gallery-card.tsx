@@ -3,9 +3,8 @@ import { CardMedia } from "@/components/ui/card-media";
 import { CardKicker } from "@/components/ui/card-kicker";
 import { cn } from "@/lib/utils";
 import type { GallerySummary } from "@/lib/api/types";
-import { serverImageUrl } from "@/lib/server-image-url";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
-import { SkeletonImage } from "@/components/ui/skeleton-image";
+import { ContentImageDisplay } from "@/components/content/content-image-display";
 
 const MOSAIC_SIZE = 4;
 
@@ -29,8 +28,8 @@ export function GalleryCard({
   categoryName?: string;
   featured?: boolean;
 }) {
-  const thumbnails = gallery.imageIds.slice(0, MOSAIC_SIZE);
-  const photoCount = `${gallery.imageIds.length} foto${gallery.imageIds.length === 1 ? "" : "s"}`;
+  const thumbnails = gallery.images.slice(0, MOSAIC_SIZE);
+  const photoCount = `${gallery.images.length} foto${gallery.images.length === 1 ? "" : "s"}`;
 
   return (
     <AnimatedCard
@@ -41,19 +40,15 @@ export function GalleryCard({
         {thumbnails.length === 0 ? (
           <NoImagePlaceholder />
         ) : thumbnails.length === 1 ? (
-          <SkeletonImage
-            src={serverImageUrl(`/api/v1/images/${thumbnails[0]}/file`)}
-            alt={gallery.title}
-            className="object-cover"
-          />
+          <ContentImageDisplay image={thumbnails[0]} alt={gallery.title} className="object-cover" />
         ) : (
           <div className="grid h-full w-full grid-cols-2 gap-0.5">
-            {thumbnails.map((imageId, index) => (
+            {thumbnails.map((image, index) => (
               <div
-                key={imageId}
+                key={image.imageId ?? image.externalUrl ?? index}
                 className={`relative overflow-hidden ${thumbnails.length === 3 && index === 0 ? "row-span-2" : ""}`}
               >
-                <SkeletonImage src={serverImageUrl(`/api/v1/images/${imageId}/file`)} alt="" className="object-cover" />
+                <ContentImageDisplay image={image} alt="" className="object-cover" />
               </div>
             ))}
           </div>

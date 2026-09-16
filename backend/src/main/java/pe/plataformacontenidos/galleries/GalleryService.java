@@ -14,6 +14,8 @@ import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.media.ImageService;
+import pe.plataformacontenidos.shared.ContentImage;
+import pe.plataformacontenidos.shared.ContentImageInput;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
@@ -44,11 +46,11 @@ public class GalleryService {
         if (!categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
-        List<UUID> imageIds = validateImages(input.imageIds());
+        List<ContentImage> images = validateImages(input.images());
 
         Gallery gallery = new Gallery(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), authorId,
                 input.categoryId());
-        gallery.updateContent(input.title(), input.excerpt(), input.categoryId(), imageIds,
+        gallery.updateContent(input.title(), input.excerpt(), input.categoryId(), images,
                 input.seoTitle(), input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), input.robots());
 
         Gallery saved = galleryRepository.save(gallery);
@@ -63,9 +65,9 @@ public class GalleryService {
         if (!gallery.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
-        List<UUID> imageIds = validateImages(input.imageIds());
+        List<ContentImage> images = validateImages(input.images());
 
-        gallery.updateContent(input.title(), input.excerpt(), input.categoryId(), imageIds,
+        gallery.updateContent(input.title(), input.excerpt(), input.categoryId(), images,
                 input.seoTitle(), input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), input.robots());
         Gallery saved = galleryRepository.save(gallery);
         audit("GALLERY_UPDATED", saved, actingUserId);
@@ -194,14 +196,23 @@ public class GalleryService {
     }
 
     /** A diferencia de Place/Event (fotos opcionales), acá el contenido ES la colección: al menos una imagen. */
-    private List<UUID> validateImages(List<UUID> imageIds) {
-        if (imageIds == null || imageIds.isEmpty()) {
+    private List<ContentImage> validateImages(List<ContentImageInput> images) {
+        if (images == null || images.isEmpty()) {
             throw new InvalidGalleryImageCountException();
         }
-        for (UUID imageId : imageIds) {
-            imageService.getOrThrow(imageId);
+        List<ContentImage> result = new ArrayList<>(images.size());
+        for (ContentImageInput input : images) {
+            if (!input.isValidShape() || (input.hasExternalUrl() && !input.isValidExternalUrl())) {
+                throw new InvalidGalleryImageException();
+            }
+            if (input.hasImageId()) {
+                imageService.getOrThrow(input.imageId());
+                result.add(ContentImage.uploaded(input.imageId(), input.title(), input.caption()));
+            } else {
+                result.add(ContentImage.external(input.externalUrl(), input.title(), input.caption()));
+            }
         }
-        return new ArrayList<>(imageIds);
+        return result;
     }
 
     private void requireCanEdit(Gallery gallery, UUID actingUserId, Role actingRole) {

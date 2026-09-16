@@ -37,8 +37,8 @@ export function GalleriesTable({ galleries, currentUser }: { galleries: Gallery[
       {
         id: "photos",
         header: "Fotos",
-        accessorFn: (row) => row.imageIds.length,
-        cell: ({ row }) => <span className="text-muted">{row.original.imageIds.length}</span>,
+        accessorFn: (row) => row.images.length,
+        cell: ({ row }) => <span className="text-muted">{row.original.images.length}</span>,
       },
       {
         accessorKey: "status",

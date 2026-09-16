@@ -24,6 +24,7 @@ export function BusinessCard({
     >
       <CardMedia
         imageId={business.coverImageId}
+        externalUrl={business.coverImageUrl}
         alt={business.name}
         className={featured ? "lg:aspect-auto lg:min-h-full" : undefined}
       />

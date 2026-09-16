@@ -85,7 +85,7 @@ export interface GalleryInput {
   title: string;
   excerpt: string | null;
   categoryId: string;
-  imageIds: string[];
+  images: ContentImage[];
   seoTitle: string | null;
   metaDescription: string | null;
   canonicalUrl: string | null;
@@ -107,12 +107,12 @@ export interface BusinessInput {
   website: string | null;
   latitude: number | null;
   longitude: number | null;
-  imageIds: string[];
+  images: ContentImage[];
   seoTitle: string | null;
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
-  youtubeUrl: string | null;
+  videos: ContentVideoInput[];
   robots: string;
 }
 

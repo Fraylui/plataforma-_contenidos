@@ -84,7 +84,7 @@ public record SearchResultResponse(
     }
 
     public static SearchResultResponse fromGallery(Gallery gallery) {
-        UUID coverImageId = gallery.getImageIds().isEmpty() ? null : gallery.getImageIds().get(0);
+        ContentImage cover = gallery.getCoverImage();
         return new SearchResultResponse(
                 SearchResultType.GALLERY,
                 gallery.getId(),
@@ -92,15 +92,15 @@ public record SearchResultResponse(
                 gallery.getTitle(),
                 gallery.getExcerpt(),
                 gallery.getCategoryId(),
-                coverImageId,
-                null,
+                cover == null ? null : cover.getImageId(),
+                cover == null ? null : cover.getExternalUrl(),
                 false,
                 gallery.getPublishedAt(),
                 null);
     }
 
     public static SearchResultResponse fromBusiness(Business business) {
-        UUID coverImageId = business.getImageIds().isEmpty() ? null : business.getImageIds().get(0);
+        ContentImage cover = business.getCoverImage();
         return new SearchResultResponse(
                 SearchResultType.BUSINESS,
                 business.getId(),
@@ -108,9 +108,9 @@ public record SearchResultResponse(
                 business.getName(),
                 business.getExcerpt(),
                 business.getCategoryId(),
-                coverImageId,
-                null,
-                business.getYoutubeVideoId() != null,
+                cover == null ? null : cover.getImageId(),
+                cover == null ? null : cover.getExternalUrl(),
+                !business.getVideos().isEmpty(),
                 business.getPublishedAt(),
                 null);
     }

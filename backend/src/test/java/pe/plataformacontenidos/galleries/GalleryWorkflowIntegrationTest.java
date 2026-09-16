@@ -82,7 +82,7 @@ class GalleryWorkflowIntegrationTest {
         mockMvc.perform(get("/api/v1/galleries/fiesta-patronal-de-quinua"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Fiesta Patronal de Quinua"))
-                .andExpect(jsonPath("$.imageIds[0]").value(imageId));
+                .andExpect(jsonPath("$.images[0].imageId").value(imageId));
 
         mockMvc.perform(get("/api/v1/galleries").param("categoryId", categoryId))
                 .andExpect(status().isOk())
@@ -106,7 +106,7 @@ class GalleryWorkflowIntegrationTest {
         mockMvc.perform(post("/api/v1/admin/galleries")
                         .header("Authorization", "Bearer " + authorToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"title\":\"Galeria vacia\",\"categoryId\":\"" + categoryId + "\",\"imageIds\":[]}"))
+                        .content("{\"title\":\"Galeria vacia\",\"categoryId\":\"" + categoryId + "\",\"images\":[]}"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -120,7 +120,7 @@ class GalleryWorkflowIntegrationTest {
                         .header("Authorization", "Bearer " + authorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Galeria con imagen inexistente\",\"categoryId\":\"" + categoryId + "\","
-                                + "\"imageIds\":[\"00000000-0000-0000-0000-000000000000\"]}"))
+                                + "\"images\":[{\"imageId\":\"00000000-0000-0000-0000-000000000000\"}]}"))
                 .andExpect(status().isNotFound());
     }
 
@@ -161,7 +161,7 @@ class GalleryWorkflowIntegrationTest {
                         .header("Authorization", "Bearer " + authorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"" + title + "\",\"excerpt\":\"Resumen breve\","
-                                + "\"categoryId\":\"" + categoryId + "\",\"imageIds\":[\"" + imageId + "\"]}"))
+                                + "\"categoryId\":\"" + categoryId + "\",\"images\":[{\"imageId\":\"" + imageId + "\"}]}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("DRAFT"))
                 .andReturn();

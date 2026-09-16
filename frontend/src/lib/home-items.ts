@@ -100,7 +100,7 @@ export function fromGallery(g: GallerySummary): HomeItem {
     href: `/galerias/${g.slug}`,
     title: g.title,
     excerpt: g.excerpt,
-    imageUrl: image(g.imageIds[0]),
+    imageUrl: coverImage(g.images[0]?.imageId ?? null, g.images[0]?.externalUrl ?? null),
     categoryId: g.categoryId,
     typeLabel: KIND_LABEL.galeria,
     sortDate: g.publishedAt ?? "",

@@ -4,11 +4,11 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
 import type { AdminImage, GalleryInput } from "@/lib/api/admin-types";
-import type { Category, Gallery } from "@/lib/api/types";
+import type { Category, ContentImage, Gallery } from "@/lib/api/types";
 import type { GalleryPermissions } from "@/lib/admin/gallery-permissions";
 import { articleStatusLabel } from "@/lib/content-labels";
 import { AdminButton, CollapsibleSection, Combobox, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
-import { PlaceGalleryPicker } from "./place-gallery-picker";
+import { ContentImagesPicker } from "./content-images-picker";
 import {
   approveGalleryAction,
   archiveGalleryAction,
@@ -44,7 +44,7 @@ export function GalleryForm({
   const [title, setTitle] = useState(gallery?.title ?? "");
   const [excerpt, setExcerpt] = useState(gallery?.excerpt ?? "");
   const [categoryId, setCategoryId] = useState(gallery?.categoryId ?? categories[0]?.id ?? "");
-  const [imageIds, setImageIds] = useState<string[]>(gallery?.imageIds ?? []);
+  const [images, setImages] = useState<ContentImage[]>(gallery?.images ?? []);
   const [seoTitle, setSeoTitle] = useState(gallery?.seoTitle ?? "");
   const [metaDescription, setMetaDescription] = useState(gallery?.metaDescription ?? "");
   const [canonicalUrl, setCanonicalUrl] = useState(gallery?.canonicalUrl ?? "");
@@ -61,7 +61,7 @@ export function GalleryForm({
       title,
       excerpt: excerpt || null,
       categoryId,
-      imageIds,
+      images,
       seoTitle: seoTitle || null,
       metaDescription: metaDescription || null,
       canonicalUrl: canonicalUrl || null,
@@ -123,8 +123,8 @@ export function GalleryForm({
               <textarea value={excerpt} disabled={readOnly} onChange={(e) => setExcerpt(e.target.value)} rows={2} className={formInputClass} />
             </FormField>
 
-            <FormField label="Fotografías (al menos una)" name="imageIds">
-              <PlaceGalleryPicker allImages={allImages} value={imageIds} onChange={setImageIds} disabled={readOnly} />
+            <FormField label="Fotografías (al menos una)" name="images">
+              <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
             </FormField>
           </SectionCard>
 
@@ -163,7 +163,7 @@ export function GalleryForm({
               </p>
             )}
             {!readOnly && (
-              <AdminButton disabled={pending || !title || !categoryId || imageIds.length === 0} onClick={handleSubmit} className="w-full">
+              <AdminButton disabled={pending || !title || !categoryId || images.length === 0} onClick={handleSubmit} className="w-full">
                 {pending ? "Guardando…" : mode === "create" ? "Crear borrador" : "Guardar cambios"}
               </AdminButton>
             )}

@@ -17,6 +17,11 @@ import pe.plataformacontenidos.content.YouTubeUrlParser;
 import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.places.PlaceService;
+import pe.plataformacontenidos.shared.ContentImage;
+import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.ContentVideo;
+import pe.plataformacontenidos.shared.ContentVideoInput;
+import pe.plataformacontenidos.shared.HtmlSanitizer;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
@@ -50,15 +55,16 @@ public class BusinessService {
             throw new CategoryNotFoundException(input.categoryId());
         }
         validatePlace(input.placeId());
-        List<UUID> imageIds = validateImages(input.imageIds());
-        String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
+        List<ContentImage> images = validateImages(input.images());
+        List<ContentVideo> videos = resolveVideos(input.videos());
+        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
-        Business business = new Business(uniqueSlugFrom(input.name()), input.name(), input.excerpt(), input.body(),
+        Business business = new Business(uniqueSlugFrom(input.name()), input.name(), input.excerpt(), sanitizedBody,
                 authorId, input.categoryId(), input.businessType());
-        business.updateContent(input.name(), input.excerpt(), input.body(), input.categoryId(),
+        business.updateContent(input.name(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.businessType(), input.placeId(), input.address(), input.phone(),
-                input.email(), input.website(), input.latitude(), input.longitude(), imageIds, input.seoTitle(),
-                input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), youtubeVideoId, input.robots());
+                input.email(), input.website(), input.latitude(), input.longitude(), images, input.seoTitle(),
+                input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
 
         Business saved = businessRepository.save(business);
         audit("BUSINESS_CREATED", saved, authorId);
@@ -76,13 +82,14 @@ public class BusinessService {
         if (!Objects.equals(business.getPlaceId(), input.placeId())) {
             validatePlace(input.placeId());
         }
-        List<UUID> imageIds = validateImages(input.imageIds());
-        String youtubeVideoId = resolveYoutubeVideoId(input.youtubeUrl());
+        List<ContentImage> images = validateImages(input.images());
+        List<ContentVideo> videos = resolveVideos(input.videos());
+        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
-        business.updateContent(input.name(), input.excerpt(), input.body(), input.categoryId(),
+        business.updateContent(input.name(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.businessType(), input.placeId(), input.address(), input.phone(),
-                input.email(), input.website(), input.latitude(), input.longitude(), imageIds, input.seoTitle(),
-                input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), youtubeVideoId, input.robots());
+                input.email(), input.website(), input.latitude(), input.longitude(), images, input.seoTitle(),
+                input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
         Business saved = businessRepository.save(business);
         audit("BUSINESS_UPDATED", saved, actingUserId);
         return saved;
@@ -218,23 +225,40 @@ public class BusinessService {
         }
     }
 
-    private List<UUID> validateImages(List<UUID> imageIds) {
-        if (imageIds == null) {
+    private List<ContentImage> validateImages(List<ContentImageInput> images) {
+        if (images == null) {
             return new ArrayList<>();
         }
-        for (UUID imageId : imageIds) {
-            imageService.getOrThrow(imageId);
+        List<ContentImage> result = new ArrayList<>(images.size());
+        for (ContentImageInput input : images) {
+            if (!input.isValidShape() || (input.hasExternalUrl() && !input.isValidExternalUrl())) {
+                throw new InvalidBusinessImageException();
+            }
+            if (input.hasImageId()) {
+                imageService.getOrThrow(input.imageId());
+                result.add(ContentImage.uploaded(input.imageId(), input.title(), input.caption()));
+            } else {
+                result.add(ContentImage.external(input.externalUrl(), input.title(), input.caption()));
+            }
         }
-        return imageIds;
+        return result;
     }
 
-    /** Nunca se persiste la URL cruda: solo el Video ID (sección 8). */
-    private String resolveYoutubeVideoId(String youtubeUrl) {
-        if (youtubeUrl == null || youtubeUrl.isBlank()) {
-            return null;
+    /** Nunca se persiste la URL cruda: solo el Video ID (sección 8). Uno por cada video pegado. */
+    private List<ContentVideo> resolveVideos(List<ContentVideoInput> videos) {
+        if (videos == null) {
+            return new ArrayList<>();
         }
-        return YouTubeUrlParser.extractVideoId(youtubeUrl)
-                .orElseThrow(() -> new InvalidBusinessYouTubeUrlException(youtubeUrl));
+        List<ContentVideo> result = new ArrayList<>(videos.size());
+        for (ContentVideoInput input : videos) {
+            if (input.url() == null || input.url().isBlank()) {
+                continue;
+            }
+            String videoId = YouTubeUrlParser.extractVideoId(input.url())
+                    .orElseThrow(() -> new InvalidBusinessYouTubeUrlException(input.url()));
+            result.add(new ContentVideo(videoId, input.title(), input.caption()));
+        }
+        return result;
     }
 
     private void requireCanEdit(Business business, UUID actingUserId, Role actingRole) {

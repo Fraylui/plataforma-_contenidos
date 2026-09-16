@@ -19,7 +19,7 @@ import { LikeShareBar } from "@/components/content/like-share-bar";
 import { ContentImageGallery } from "@/components/content/content-image-gallery";
 import { ContentVideoGallery } from "@/components/content/content-video-gallery";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
-import type { Business, Category, ContentImage, ContentVideo } from "@/lib/api/types";
+import type { Business, Category } from "@/lib/api/types";
 
 const RELATED_SIZE = 4;
 
@@ -69,7 +69,11 @@ function businessJsonLd(business: Business, category: Category | null) {
     "@type": "LocalBusiness",
     name: business.name,
     description: business.excerpt || undefined,
-    image: business.imageIds.length > 0 ? imageUrl(`/api/v1/images/${business.imageIds[0]}/file`) : undefined,
+    image: business.images[0]
+      ? (business.images[0].imageId
+          ? imageUrl(`/api/v1/images/${business.images[0].imageId}/file`)
+          : (business.images[0].externalUrl ?? undefined))
+      : undefined,
     address: business.address || undefined,
     telephone: business.phone || undefined,
     email: business.email || undefined,
@@ -120,19 +124,6 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
   const hasSidebar = related.length > 0;
   const hasContact = Boolean(place || business.address || business.phone || business.email || business.website);
   const websiteLabel = business.website ? business.website.replace(/^https?:\/\//, "").replace(/\/$/, "") : null;
-  // Business solo guarda IDs de imágenes subidas y un único video (sin
-  // título/caption/enlace externo como Article/Place/Event) — se adapta acá
-  // mismo para reusar ContentImageGallery/ContentVideoGallery en vez de un
-  // grid armado a mano.
-  const businessImages: ContentImage[] = business.imageIds.map((id) => ({
-    imageId: id,
-    externalUrl: null,
-    title: null,
-    caption: null,
-  }));
-  const businessVideos: ContentVideo[] = business.youtubeVideoId
-    ? [{ videoId: business.youtubeVideoId, title: null, caption: null }]
-    : [];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
@@ -182,7 +173,7 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
           </h1>
 
           <ContentImageGallery
-            images={businessImages}
+            images={business.images}
             alt={business.name}
             spacing="mt-8"
             background="bg-canvas-strong"
@@ -247,15 +238,18 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
             </div>
           )}
 
-          <ContentVideoGallery videos={businessVideos} title={business.name} />
+          <ContentVideoGallery videos={business.videos} title={business.name} />
 
           {business.excerpt && (
             <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">{business.excerpt}</p>
           )}
 
-          <div className="mt-6 max-w-none text-base leading-relaxed whitespace-pre-line text-foreground">
-            {business.body}
-          </div>
+          {/* business.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
+              de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí. */}
+          <div
+            className="prose prose-slate sm:prose-lg mt-6 max-w-none prose-headings:font-bold prose-a:text-accent"
+            dangerouslySetInnerHTML={{ __html: business.body }}
+          />
 
           <div className="mt-10">
             <AdBlock position="article" />

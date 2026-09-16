@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import pe.plataformacontenidos.galleries.Gallery;
 import pe.plataformacontenidos.galleries.GalleryStatus;
+import pe.plataformacontenidos.shared.ContentImageResponse;
 
 public record GalleryResponse(
         UUID id,
@@ -14,7 +15,7 @@ public record GalleryResponse(
         GalleryStatus status,
         UUID authorId,
         UUID categoryId,
-        List<UUID> imageIds,
+        List<ContentImageResponse> images,
         String seoTitle,
         String metaDescription,
         String canonicalUrl,
@@ -29,8 +30,9 @@ public record GalleryResponse(
     public static GalleryResponse from(Gallery gallery, long likeCount) {
         return new GalleryResponse(gallery.getId(), gallery.getSlug(), gallery.getTitle(), gallery.getExcerpt(),
                 gallery.getStatus(), gallery.getAuthorId(), gallery.getCategoryId(),
-                gallery.getImageIds(), gallery.getSeoTitle(), gallery.getMetaDescription(), gallery.getCanonicalUrl(),
-                gallery.getOgImageUrl(), gallery.getRobots(), gallery.getRejectionReason(), gallery.getPublishedAt(),
+                gallery.getImages().stream().map(ContentImageResponse::from).toList(), gallery.getSeoTitle(),
+                gallery.getMetaDescription(), gallery.getCanonicalUrl(), gallery.getOgImageUrl(),
+                gallery.getRobots(), gallery.getRejectionReason(), gallery.getPublishedAt(),
                 gallery.getScheduledAt(), gallery.getCreatedAt(), likeCount);
     }
 

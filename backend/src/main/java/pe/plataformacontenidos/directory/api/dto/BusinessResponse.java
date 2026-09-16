@@ -6,6 +6,8 @@ import java.util.UUID;
 import pe.plataformacontenidos.directory.Business;
 import pe.plataformacontenidos.directory.BusinessStatus;
 import pe.plataformacontenidos.directory.BusinessType;
+import pe.plataformacontenidos.shared.ContentImageResponse;
+import pe.plataformacontenidos.shared.ContentVideoResponse;
 
 public record BusinessResponse(
         UUID id,
@@ -24,12 +26,12 @@ public record BusinessResponse(
         String website,
         Double latitude,
         Double longitude,
-        List<UUID> imageIds,
+        List<ContentImageResponse> images,
         String seoTitle,
         String metaDescription,
         String canonicalUrl,
         String ogImageUrl,
-        String youtubeVideoId,
+        List<ContentVideoResponse> videos,
         String robots,
         String rejectionReason,
         Instant publishedAt,
@@ -42,10 +44,11 @@ public record BusinessResponse(
                 business.getBody(), business.getStatus(), business.getBusinessType(), business.getAuthorId(),
                 business.getCategoryId(), business.getPlaceId(), business.getAddress(),
                 business.getPhone(), business.getEmail(), business.getWebsite(), business.getLatitude(),
-                business.getLongitude(), business.getImageIds(), business.getSeoTitle(),
-                business.getMetaDescription(), business.getCanonicalUrl(), business.getOgImageUrl(),
-                business.getYoutubeVideoId(), business.getRobots(), business.getRejectionReason(),
-                business.getPublishedAt(), business.getScheduledAt(), business.getCreatedAt(), likeCount);
+                business.getLongitude(), business.getImages().stream().map(ContentImageResponse::from).toList(),
+                business.getSeoTitle(), business.getMetaDescription(), business.getCanonicalUrl(),
+                business.getOgImageUrl(), business.getVideos().stream().map(ContentVideoResponse::from).toList(),
+                business.getRobots(), business.getRejectionReason(), business.getPublishedAt(),
+                business.getScheduledAt(), business.getCreatedAt(), likeCount);
     }
 
     public static BusinessResponse from(Business business) {

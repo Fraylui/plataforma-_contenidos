@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import pe.plataformacontenidos.directory.BusinessAccessDeniedException;
 import pe.plataformacontenidos.directory.BusinessNotFoundException;
 import pe.plataformacontenidos.directory.BusinessPlaceNotFoundException;
+import pe.plataformacontenidos.directory.InvalidBusinessImageException;
 import pe.plataformacontenidos.directory.InvalidBusinessScheduleException;
 import pe.plataformacontenidos.directory.InvalidBusinessTransitionException;
 import pe.plataformacontenidos.directory.InvalidBusinessYouTubeUrlException;
@@ -42,6 +43,11 @@ public class BusinessExceptionHandler {
 
     @ExceptionHandler(InvalidBusinessYouTubeUrlException.class)
     public ResponseEntity<ApiError> handleInvalidYouTubeUrl(InvalidBusinessYouTubeUrlException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidBusinessImageException.class)
+    public ResponseEntity<ApiError> handleInvalidImage(InvalidBusinessImageException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
     }
 

@@ -210,7 +210,7 @@ export interface GallerySummary {
   title: string;
   excerpt: string | null;
   categoryId: string;
-  imageIds: string[];
+  images: ContentImage[];
   publishedAt: string | null;
   likeCount: number;
 }
@@ -223,7 +223,7 @@ export interface Gallery {
   status: GalleryStatus;
   authorId: string;
   categoryId: string;
-  imageIds: string[];
+  images: ContentImage[];
   seoTitle: string | null;
   metaDescription: string | null;
   canonicalUrl: string | null;
@@ -252,6 +252,7 @@ export interface BusinessSummary {
   placeId: string | null;
   address: string | null;
   coverImageId: string | null;
+  coverImageUrl: string | null;
   publishedAt: string | null;
   likeCount: number;
 }
@@ -273,12 +274,12 @@ export interface Business {
   website: string | null;
   latitude: number | null;
   longitude: number | null;
-  imageIds: string[];
+  images: ContentImage[];
   seoTitle: string | null;
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
-  youtubeVideoId: string | null;
+  videos: ContentVideo[];
   robots: string;
   rejectionReason: string | null;
   publishedAt: string | null;

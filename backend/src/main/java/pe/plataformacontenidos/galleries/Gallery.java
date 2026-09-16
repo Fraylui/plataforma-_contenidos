@@ -17,14 +17,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
+import pe.plataformacontenidos.shared.ContentImage;
 
 /**
  * Página de Galería: colección de fotografías con título y descripción
  * breve — a diferencia de Artículo/Lugar/Evento, no tiene cuerpo de texto
  * largo: el contenido ES la colección de fotos (ver GalleryService, que
  * exige al menos una imagen). Mismo flujo editorial que el resto (sección
- * 12). category_id es UUID sin FK (Taxonomy, sección 38); imageIds tampoco
- * (Media).
+ * 12). category_id es UUID sin FK (Taxonomy, sección 38); images tampoco
+ * (Media) — cada imagen es subida o por enlace externo, con título/pie de
+ * foto opcionales, mismo patrón que Article/Place/Event.
  */
 @Entity
 @Table(name = "galleries", schema = "galleries")
@@ -56,8 +58,7 @@ public class Gallery {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "gallery_images", schema = "galleries", joinColumns = @JoinColumn(name = "gallery_id"))
     @OrderColumn(name = "sort_order")
-    @Column(name = "image_id")
-    private List<UUID> imageIds = new ArrayList<>();
+    private List<ContentImage> images = new ArrayList<>();
 
     @Column(name = "seo_title")
     private String seoTitle;
@@ -129,8 +130,13 @@ public class Gallery {
         return categoryId;
     }
 
-    public List<UUID> getImageIds() {
-        return imageIds;
+    public List<ContentImage> getImages() {
+        return images;
+    }
+
+    /** Portada para tarjetas/feed: la primera imagen, o null si no tiene ninguna. */
+    public ContentImage getCoverImage() {
+        return images.isEmpty() ? null : images.get(0);
     }
 
     public String getSeoTitle() {
@@ -178,12 +184,12 @@ public class Gallery {
                 || status == GalleryStatus.APPROVED || status == GalleryStatus.REJECTED;
     }
 
-    public void updateContent(String title, String excerpt, UUID categoryId, List<UUID> imageIds,
+    public void updateContent(String title, String excerpt, UUID categoryId, List<ContentImage> images,
             String seoTitle, String metaDescription, String canonicalUrl, String ogImageUrl, String robots) {
         this.title = title;
         this.excerpt = excerpt;
         this.categoryId = categoryId;
-        this.imageIds = new ArrayList<>(imageIds);
+        this.images = new ArrayList<>(images);
         this.seoTitle = seoTitle;
         this.metaDescription = metaDescription;
         this.canonicalUrl = canonicalUrl;

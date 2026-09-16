@@ -21,6 +21,11 @@ import type { Category, ContentImage, Gallery } from "@/lib/api/types";
 
 const RELATED_SIZE = 4;
 
+/** Subida (imageUrl propia) o por enlace externo — nunca ambas, ver ContentImage. */
+function resolveImageUrl(image: ContentImage): string {
+  return image.imageId ? imageUrl(`/api/v1/images/${image.imageId}/file`) : (image.externalUrl ?? "");
+}
+
 async function loadGallery(slug: string) {
   try {
     return await getPublishedGalleryBySlug(slug);
@@ -44,7 +49,7 @@ export async function generateMetadata(props: PageProps<"/galerias/[slug]">): Pr
 
   const title = gallery.seoTitle || gallery.title;
   const description = gallery.metaDescription || gallery.excerpt || undefined;
-  const coverImage = gallery.imageIds[0] ? imageUrl(`/api/v1/images/${gallery.imageIds[0]}/file`) : gallery.ogImageUrl;
+  const coverImage = gallery.images[0] ? resolveImageUrl(gallery.images[0]) : gallery.ogImageUrl;
 
   return {
     title,
@@ -68,7 +73,7 @@ function galleryJsonLd(gallery: Gallery, category: Category | null, siteName: st
     "@type": "ImageGallery",
     name: gallery.title,
     description: gallery.metaDescription || gallery.excerpt || undefined,
-    image: gallery.imageIds.map((id) => imageUrl(`/api/v1/images/${id}/file`)),
+    image: gallery.images.map(resolveImageUrl),
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     ...(category ? { keywords: category.name } : {}),
     publisher: { "@type": "Organization", name: siteName },
@@ -115,16 +120,6 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
     .slice(0, RELATED_SIZE);
   const relatedPlaces = relatedPlacesResult?.items ?? [];
   const relatedArticles = relatedArticlesResult?.items ?? [];
-  // Gallery solo guarda IDs de imágenes subidas (sin título/caption/enlace
-  // externo como Article/Place/Event) — se adapta a ContentImage[] acá
-  // mismo para poder reusar ContentImageGallery (carrusel) en vez de
-  // reinventar el grid a mano.
-  const galleryImages: ContentImage[] = gallery.imageIds.map((id) => ({
-    imageId: id,
-    externalUrl: null,
-    title: null,
-    caption: null,
-  }));
 
   return (
     <article className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -175,7 +170,7 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
         {category && <span className="text-accent">{category.name}</span>}
         <span className={category ? "text-muted normal-case" : "text-accent"}>
           {category && "· "}
-          {gallery.imageIds.length} foto{gallery.imageIds.length === 1 ? "" : "s"}
+          {gallery.images.length} foto{gallery.images.length === 1 ? "" : "s"}
         </span>
       </div>
 
@@ -189,7 +184,7 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
         </p>
       )}
 
-      <ContentImageGallery images={galleryImages} alt={gallery.title} spacing="mt-8" />
+      <ContentImageGallery images={gallery.images} alt={gallery.title} spacing="mt-8" />
 
       <LikeShareBar contentType="galleries" slug={gallery.slug} initialLikeCount={gallery.likeCount} title={gallery.title} />
 

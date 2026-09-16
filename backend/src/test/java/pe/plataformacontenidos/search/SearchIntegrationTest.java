@@ -265,7 +265,7 @@ class SearchIntegrationTest {
                         .header("Authorization", "Bearer " + authorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"" + title + "\",\"excerpt\":\"Resumen breve\","
-                                + "\"categoryId\":\"" + categoryId + "\",\"imageIds\":[\"" + imageId + "\"]}"))
+                                + "\"categoryId\":\"" + categoryId + "\",\"images\":[{\"imageId\":\"" + imageId + "\"}]}"))
                 .andExpect(status().isCreated())
                 .andReturn();
         return textField(result, "id");
