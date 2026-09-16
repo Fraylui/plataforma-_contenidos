@@ -94,7 +94,11 @@ export default async function Home() {
         <HeroRotator items={hero} categoryNames={categoryNames} />
       )}
 
-      {(feedItems.length > 0 || events.items.length > 0) && (
+      {/* El sidebar (agenda + anuncio + categorías) no depende de que el feed haya
+          devuelto algo: si el feed viene vacío (sitio con poco contenido todavía)
+          pero hay categorías activas, "Explorar por tema" debe seguir visible — es
+          la navegación principal, no un acompañante del feed. */}
+      {(feedItems.length > 0 || events.items.length > 0 || categories.length > 0) && (
         <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:grid lg:grid-cols-12 lg:gap-10 lg:px-8">
           {/* En celular la barra lateral va ANTES del feed (order-first): después
               de un scroll infinito nunca se llegaría a verla. */}

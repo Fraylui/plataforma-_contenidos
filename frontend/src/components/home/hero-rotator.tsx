@@ -86,7 +86,7 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
                     <span className="rounded-full bg-accent px-3 py-1 text-[11px] font-semibold tracking-wider text-accent-foreground uppercase sm:text-xs">
                       {item.typeLabel}
                     </span>
-                    <span className="text-xs font-semibold tracking-wide text-green-200">
+                    <span className="text-xs font-semibold tracking-wide text-[color-mix(in_srgb,var(--accent)_35%,white)]">
                       {item.kind === "evento" ? item.dateLabel : categoryNames[item.categoryId]}
                     </span>
                   </div>
