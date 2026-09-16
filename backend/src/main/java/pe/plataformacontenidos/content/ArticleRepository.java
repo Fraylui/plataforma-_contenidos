@@ -38,8 +38,9 @@ public interface ArticleRepository extends JpaRepository<Article, UUID> {
             """, nativeQuery = true)
     List<DailyCountRow> countPublishedByDaySince(@Param("threshold") Instant threshold);
 
+    /** El driver devuelve Instant para timestamptz, no java.sql.Timestamp — con ese tipo la proyección fallaba con "Cannot project java.time.Instant to java.sql.Timestamp" en cada request. */
     interface DailyCountRow {
-        java.sql.Timestamp getDay();
+        Instant getDay();
         Long getCnt();
     }
 

@@ -232,7 +232,7 @@ public class ArticleService {
     public Map<LocalDate, Long> publishedCountsByDaySince(Instant threshold) {
         Map<LocalDate, Long> counts = new LinkedHashMap<>();
         for (ArticleRepository.DailyCountRow row : articleRepository.countPublishedByDaySince(threshold)) {
-            LocalDate day = row.getDay().toInstant().atZone(ZoneOffset.UTC).toLocalDate();
+            LocalDate day = row.getDay().atZone(ZoneOffset.UTC).toLocalDate();
             counts.put(day, row.getCnt());
         }
         return counts;
