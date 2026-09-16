@@ -81,10 +81,15 @@ competir visualmente con el contenido principal.
 
 **Formulario de contenido de dos columnas** (referencia:
 `frontend/src/components/admin/article-form.tsx`, mismo patrón en
-event-form/place-form/business-form/gallery-form): `grid grid-cols-1 gap-6
-lg:grid-cols-[1fr_340px] lg:items-start` — columna principal (Contenido +
-SEO colapsable) a la izquierda, columna angosta (Publicar + Organización +
-Medios) a la derecha, visible sin scrollear todo el formulario.
+event-form/place-form/business-form/gallery-form): `mx-auto grid max-w-6xl
+grid-cols-1 gap-6 lg:grid-cols-[1fr_340px] lg:items-start` — columna
+principal (Contenido + SEO colapsable) a la izquierda, columna angosta
+(Publicar + Organización + Medios) a la derecha, visible sin scrollear todo
+el formulario. El `max-w-6xl` es necesario: `<main>` (admin layout.tsx) no
+tiene techo de ancho, así que sin este límite la columna `1fr` se estira sin
+control en monitores grandes y un input de una línea (ej. "Título") queda
+con muchísimo espacio en blanco a los costados del texto — encontrado en
+revisión de código 2026-09-15.
 
 **Combobox en vez de `<select>` nativo** (`components/admin/ui/combobox.tsx`):
 usado en todos los formularios de contenido para selects con estilo

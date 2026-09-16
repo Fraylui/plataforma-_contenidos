@@ -121,7 +121,7 @@ export function PlaceForm({ categories, allImages, mode, place, permissions }: P
         </p>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
         {/* Columna principal: lo que se escribe */}
         <div className="space-y-6">
           <SectionCard title="Contenido">
