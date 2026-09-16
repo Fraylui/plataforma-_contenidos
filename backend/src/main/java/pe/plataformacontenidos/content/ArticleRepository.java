@@ -28,6 +28,21 @@ public interface ArticleRepository extends JpaRepository<Article, UUID> {
 
     long countByStatusAndPublishedAtAfter(ArticleStatus status, Instant threshold);
 
+    /** Ver StatsService — un punto por día con publicaciones, para el gráfico de tendencia de Estadísticas. Los días sin publicaciones no aparecen; StatsService completa los huecos con 0. */
+    @Query(value = """
+            SELECT date_trunc('day', published_at) AS day, count(*) AS cnt
+            FROM content.articles
+            WHERE status = 'PUBLISHED' AND published_at >= :threshold
+            GROUP BY day
+            ORDER BY day
+            """, nativeQuery = true)
+    List<DailyCountRow> countPublishedByDaySince(@Param("threshold") Instant threshold);
+
+    interface DailyCountRow {
+        java.sql.Timestamp getDay();
+        Long getCnt();
+    }
+
     /** Navegación anterior/siguiente en la vista de detalle — orden de lectura por publishedAt, igual que el listado público. */
     Optional<Article> findFirstByStatusAndPublishedAtLessThanOrderByPublishedAtDesc(ArticleStatus status, Instant publishedAt);
 

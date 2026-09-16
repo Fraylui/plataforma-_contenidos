@@ -222,9 +222,16 @@ export interface CampaignInput {
 }
 
 /** Ver PlatformStatsResponse.java (CONTEXTO.md sección 34, estadísticas básicas). */
+/** Un punto del gráfico de tendencia de Estadísticas — ver DailyCountResponse.java. */
+export interface DailyCount {
+  date: string;
+  count: number;
+}
+
 export interface PlatformStats {
   articlesByStatus: Record<ArticleStatus, number>;
   articlesPublishedLast30Days: number;
+  publishedTrendLast30Days: DailyCount[];
   placesByStatus: Record<ArticleStatus, number>;
   eventsByStatus: Record<ArticleStatus, number>;
   galleriesByStatus: Record<ArticleStatus, number>;

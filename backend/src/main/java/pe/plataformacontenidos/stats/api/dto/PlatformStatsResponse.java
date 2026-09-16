@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.stats.api.dto;
 
+import java.util.List;
 import java.util.Map;
 import pe.plataformacontenidos.content.ArticleStatus;
 import pe.plataformacontenidos.directory.BusinessStatus;
@@ -12,6 +13,7 @@ import pe.plataformacontenidos.places.PlaceStatus;
 public record PlatformStatsResponse(
         Map<ArticleStatus, Long> articlesByStatus,
         long articlesPublishedLast30Days,
+        List<DailyCountResponse> publishedTrendLast30Days,
         Map<PlaceStatus, Long> placesByStatus,
         Map<EventStatus, Long> eventsByStatus,
         Map<GalleryStatus, Long> galleriesByStatus,

@@ -1,9 +1,9 @@
-import { Compass, GitBranch, LayoutGrid, Users2 } from "lucide-react";
+import { Compass, GitBranch, LayoutGrid, TrendingUp, Users2 } from "lucide-react";
 import type { PlatformStats } from "@/lib/api/admin-types";
 import type { ArticleStatus } from "@/lib/api/types";
 import { articleStatusLabel } from "@/lib/content-labels";
 import { AdminPageHeader } from "@/components/admin/ui";
-import { ContentTypesChart, PipelineChart, RoleChart } from "@/components/admin/stats-charts";
+import { ContentTypesChart, PipelineChart, PublishTrendChart, RoleChart, TotalDistributionDonut } from "@/components/admin/stats-charts";
 
 const CARD_CLASS = "rounded-xl border border-border/60 bg-surface p-5 transition-colors hover:border-accent/40";
 const SECTION_TITLE_CLASS = "flex items-center gap-2 text-xs font-semibold tracking-wide text-muted uppercase";
@@ -30,7 +30,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
   const dateline = todayDateline();
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-6xl">
       <AdminPageHeader title="Estadísticas" description={dateline.replace(/^./, (c) => c.toUpperCase())} />
 
       {/* Cifras destacadas, tabulares — sin íconos: el número es el protagonista. */}
@@ -41,35 +41,56 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
         <EditionFigure label="Usuarios activos" value={stats.activeUsers} />
       </dl>
 
-      {/* La firma de la página: el flujo de publicación como gráfico de barras, clara -> oscura hacia "Publicado". */}
+      {/* Único gráfico con eje temporal real del panel — el resto es "estado actual". */}
       <section className={`mt-8 ${CARD_CLASS}`}>
         <h2 className={SECTION_TITLE_CLASS}>
-          <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
-          Flujo de publicación
+          <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
+          Publicaciones día a día · últimos 30 días
         </h2>
-
-        {pipelineTotal === 0 ? (
-          <p className="mt-3 text-sm text-muted">Todavía no hay publicaciones en curso.</p>
-        ) : (
-          <div className="mt-3">
-            <PipelineChart stats={stats} />
-          </div>
-        )}
-
-        {/* Fuera de línea: estados terminales, aparte de la proporción activa. */}
-        <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted">
-          {OFF_LINE.map((status) => (
-            <span key={status}>
-              {articleStatusLabel(status)}{" "}
-              <span
-                className={`tabular-nums font-medium ${status === "REJECTED" ? "text-danger" : "text-foreground"}`}
-              >
-                {stats.articlesByStatus[status] ?? 0}
-              </span>
-            </span>
-          ))}
+        <div className="mt-2">
+          <PublishTrendChart data={stats.publishedTrendLast30Days} />
         </div>
       </section>
+
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-5">
+        {/* La firma de la página: el flujo de publicación como gráfico de barras, clara -> oscura hacia "Publicado". */}
+        <section className={`${CARD_CLASS} lg:col-span-3`}>
+          <h2 className={SECTION_TITLE_CLASS}>
+            <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
+            Flujo de publicación
+          </h2>
+
+          {pipelineTotal === 0 ? (
+            <p className="mt-3 text-sm text-muted">Todavía no hay publicaciones en curso.</p>
+          ) : (
+            <div className="mt-3">
+              <PipelineChart stats={stats} />
+            </div>
+          )}
+
+          {/* Fuera de línea: estados terminales, aparte de la proporción activa. */}
+          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted">
+            {OFF_LINE.map((status) => (
+              <span key={status}>
+                {articleStatusLabel(status)}{" "}
+                <span
+                  className={`tabular-nums font-medium ${status === "REJECTED" ? "text-danger" : "text-foreground"}`}
+                >
+                  {stats.articlesByStatus[status] ?? 0}
+                </span>
+              </span>
+            ))}
+          </div>
+        </section>
+
+        <section className={`${CARD_CLASS} lg:col-span-2`}>
+          <h2 className={SECTION_TITLE_CLASS}>
+            <LayoutGrid className="h-3.5 w-3.5" aria-hidden="true" />
+            Distribución total
+          </h2>
+          <TotalDistributionDonut stats={stats} />
+        </section>
+      </div>
 
       {/* Los otros 5 tipos de contenido — sin esto, Estadísticas parecía la de un blog de solo artículos. */}
       <section className={`mt-6 ${CARD_CLASS}`}>

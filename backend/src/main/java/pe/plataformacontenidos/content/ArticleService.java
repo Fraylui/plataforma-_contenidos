@@ -1,8 +1,11 @@
 package pe.plataformacontenidos.content;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -223,6 +226,16 @@ public class ArticleService {
 
     public long countPublishedSince(Instant threshold) {
         return articleRepository.countByStatusAndPublishedAtAfter(ArticleStatus.PUBLISHED, threshold);
+    }
+
+    /** Ver StatsService.trend — un conteo por día (UTC), solo los días con al menos una publicación. */
+    public Map<LocalDate, Long> publishedCountsByDaySince(Instant threshold) {
+        Map<LocalDate, Long> counts = new LinkedHashMap<>();
+        for (ArticleRepository.DailyCountRow row : articleRepository.countPublishedByDaySince(threshold)) {
+            LocalDate day = row.getDay().toInstant().atZone(ZoneOffset.UTC).toLocalDate();
+            counts.put(day, row.getCnt());
+        }
+        return counts;
     }
 
     /** Mismo patrón que PlaceService.validateImages, pero para una sola imagen (destacada, no galería). */
