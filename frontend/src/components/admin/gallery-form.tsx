@@ -7,7 +7,7 @@ import type { AdminImage, GalleryInput } from "@/lib/api/admin-types";
 import type { Category, ContentImage, Gallery } from "@/lib/api/types";
 import type { GalleryPermissions } from "@/lib/admin/gallery-permissions";
 import { articleStatusLabel } from "@/lib/content-labels";
-import { AdminButton, CollapsibleSection, Combobox, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
+import { AdminButton, ArchiveButton, CollapsibleSection, Combobox, FormError, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import {
   approveGalleryAction,
@@ -157,11 +157,7 @@ export function GalleryForm({
         {/* Barra lateral: publicar + metadata — visible sin scrollear todo el formulario */}
         <div className="space-y-6">
           <SectionCard title="Publicar">
-            {error && (
-              <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-                {error}
-              </p>
-            )}
+            {error && <FormError message={error} />}
             {!readOnly && (
               <AdminButton disabled={pending || !title || !categoryId || images.length === 0} onClick={handleSubmit} className="w-full">
                 {pending ? "Guardando…" : mode === "create" ? "Crear borrador" : "Guardar cambios"}
@@ -202,14 +198,11 @@ export function GalleryForm({
                     </AdminButton>
                   )}
                   {permissions.canArchive && (
-                    <AdminButton
-                      type="button"
-                      variant="secondary"
+                    <ArchiveButton
+                      itemLabel="esta galería"
                       disabled={pending}
-                      onClick={() => runWorkflow(() => archiveGalleryAction(gallery.id), "Galería archivada.")}
-                    >
-                      Archivar
-                    </AdminButton>
+                      onConfirm={() => runWorkflow(() => archiveGalleryAction(gallery.id), "Galería archivada.")}
+                    />
                   )}
                 </div>
 

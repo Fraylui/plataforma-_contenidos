@@ -7,7 +7,7 @@ import type { Article, ArticleType, Category, ContentImage } from "@/lib/api/typ
 import type { AdminImage, ArticleInput, ContentVideoInput } from "@/lib/api/admin-types";
 import type { ArticlePermissions } from "@/lib/admin/article-permissions";
 import { articleTypeLabel, articleStatusLabel } from "@/lib/content-labels";
-import { AdminButton, CollapsibleSection, Combobox, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
+import { AdminButton, ArchiveButton, CollapsibleSection, Combobox, FormError, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import { VideoLinksEditor } from "./video-links-editor";
 import { RichTextEditor } from "./rich-text-editor";
@@ -197,11 +197,7 @@ export function ArticleForm({
         {/* Barra lateral: publicar + metadata — visible sin scrollear todo el formulario */}
         <div className="space-y-6">
           <SectionCard title="Publicar">
-            {error && (
-              <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-                {error}
-              </p>
-            )}
+            {error && <FormError message={error} />}
             {!readOnly && (
               <AdminButton
                 disabled={pending || !title || !body || !categoryId}
@@ -246,14 +242,11 @@ export function ArticleForm({
                     </AdminButton>
                   )}
                   {permissions.canArchive && (
-                    <AdminButton
-                      type="button"
-                      variant="secondary"
+                    <ArchiveButton
+                      itemLabel="esta publicación"
                       disabled={pending}
-                      onClick={() => runWorkflow(() => archiveArticleAction(article.id), "Publicación archivada.")}
-                    >
-                      Archivar
-                    </AdminButton>
+                      onConfirm={() => runWorkflow(() => archiveArticleAction(article.id), "Publicación archivada.")}
+                    />
                   )}
                 </div>
 

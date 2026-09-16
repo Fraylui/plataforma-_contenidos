@@ -60,7 +60,7 @@ export function InlineImageUpload({
           onChange={handleChange}
         />
       </label>
-      {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p role="alert" className="mt-1 text-xs text-danger">{error}</p>}
     </div>
   );
 }

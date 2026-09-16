@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import type { Category } from "@/lib/api/types";
 import { createCategoryAction, updateCategoryAction, type ActionResult } from "@/app/admin/(protected)/categorias/actions";
-import { AdminButton, Combobox, FormField, formInputClass } from "@/components/admin/ui";
+import { AdminButton, Combobox, FormError, FormField, formInputClass } from "@/components/admin/ui";
 
 interface CategoryFormProps {
   mode: "create" | "edit";
@@ -68,11 +68,7 @@ export function CategoryForm({ mode, category, parentOptions }: CategoryFormProp
         </FormField>
       )}
 
-      {error && (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-          {error}
-        </p>
-      )}
+      {error && <FormError message={error} />}
       <AdminButton disabled={pending || !name.trim()} onClick={handleSubmit}>
         {pending ? "Guardando…" : mode === "create" ? "Crear categoría" : "Guardar cambios"}
       </AdminButton>

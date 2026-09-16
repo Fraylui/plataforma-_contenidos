@@ -3,6 +3,8 @@ export { StatusPill, type StatusTone } from "./status-pill";
 export { AdminButton, AdminLinkButton } from "./admin-button";
 export { EmptyState } from "./empty-state";
 export { FormField, formInputClass } from "./form-field";
+export { FormError } from "./form-error";
+export { ArchiveButton } from "./archive-button";
 export { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "./dropdown-menu";
 export { Dialog, DialogContent, DialogTitle, DialogDescription } from "./dialog";
 export {

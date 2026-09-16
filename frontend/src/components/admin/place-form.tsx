@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import { useState } from "react";
 import type { AdminImage } from "@/lib/api/admin-types";
@@ -8,10 +9,12 @@ import type { Category, ContentImage, Place } from "@/lib/api/types";
 import type { ContentVideoInput, PlaceInput } from "@/lib/api/admin-types";
 import type { PlacePermissions } from "@/lib/admin/place-permissions";
 import { articleStatusLabel } from "@/lib/content-labels";
-import { AdminButton, CollapsibleSection, Combobox, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
+import { AdminButton, ArchiveButton, CollapsibleSection, Combobox, FormError, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import { VideoLinksEditor } from "./video-links-editor";
 import { RichTextEditor } from "./rich-text-editor";
+
+const LocationPicker = dynamic(() => import("./location-picker").then((m) => m.LocationPicker), { ssr: false });
 import {
   approvePlaceAction,
   archivePlaceAction,
@@ -167,11 +170,7 @@ export function PlaceForm({ categories, allImages, mode, place, permissions }: P
         {/* Barra lateral: publicar + metadata — visible sin scrollear todo el formulario */}
         <div className="space-y-6">
           <SectionCard title="Publicar">
-            {error && (
-              <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-                {error}
-              </p>
-            )}
+            {error && <FormError message={error} />}
             {!readOnly && (
               <AdminButton disabled={pending || !name || !body || !categoryId} onClick={handleSubmit} className="w-full">
                 {pending ? "Guardando…" : mode === "create" ? "Crear borrador" : "Guardar cambios"}
@@ -212,14 +211,11 @@ export function PlaceForm({ categories, allImages, mode, place, permissions }: P
                     </AdminButton>
                   )}
                   {permissions.canArchive && (
-                    <AdminButton
-                      type="button"
-                      variant="secondary"
+                    <ArchiveButton
+                      itemLabel="este lugar"
                       disabled={pending}
-                      onClick={() => runWorkflow(() => archivePlaceAction(place.id), "Lugar archivado.")}
-                    >
-                      Archivar
-                    </AdminButton>
+                      onConfirm={() => runWorkflow(() => archivePlaceAction(place.id), "Lugar archivado.")}
+                    />
                   )}
                 </div>
 
@@ -271,6 +267,14 @@ export function PlaceForm({ categories, allImages, mode, place, permissions }: P
                 onSelect={(id) => id && setCategoryId(id)}
               />
             </FormField>
+
+            <div>
+              <span className="block text-sm font-medium text-foreground">Ubicación (opcional)</span>
+              <p className="mt-0.5 text-xs text-muted">Hacé clic en el mapa para ubicar el pin, o escribí las coordenadas a mano.</p>
+              <div className="mt-1.5">
+                <LocationPicker latitude={latitude} longitude={longitude} disabled={readOnly} onChange={(lat, lng) => { setLatitude(lat); setLongitude(lng); }} />
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField label="Latitud (opcional)" name="latitude">

@@ -8,7 +8,7 @@ import { ContentTypesChart, PipelineChart, RoleChart } from "@/components/admin/
 const CARD_CLASS = "rounded-xl border border-border/60 bg-surface p-5 transition-colors hover:border-accent/40";
 const SECTION_TITLE_CLASS = "flex items-center gap-2 text-xs font-semibold tracking-wide text-muted uppercase";
 
-// Orden real del flujo editorial (CONTEXTO.md sección 12) — la "línea de
+// Orden real del flujo de publicación (CONTEXTO.md sección 12) — la "línea de
 // producción". ARCHIVED/REJECTED son estados terminales fuera de la línea
 // activa, no un paso más: se muestran aparte para no romper la proporción
 // de la barra con contenido que ya salió de circulación.
@@ -62,7 +62,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
             <span key={status}>
               {articleStatusLabel(status)}{" "}
               <span
-                className={`tabular-nums font-medium ${status === "REJECTED" ? "text-red-600 dark:text-red-400" : "text-foreground"}`}
+                className={`tabular-nums font-medium ${status === "REJECTED" ? "text-danger" : "text-foreground"}`}
               >
                 {stats.articlesByStatus[status] ?? 0}
               </span>

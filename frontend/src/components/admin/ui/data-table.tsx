@@ -24,7 +24,7 @@ interface DataTableProps<TData> {
    * Selección de filas (casilla en cada una + "seleccionar todo" en el
    * encabezado) — opcional, solo se activa si se pasan ambas props. Usado
    * por las 6 tablas de contenido para las acciones en lote (publicar/
-   * archivar varios a la vez, ver editorial-bulk-actions.tsx).
+   * archivar varios a la vez, ver content-bulk-actions.tsx).
    */
   getRowId?: (row: TData) => string;
   onSelectionChange?: (selected: TData[]) => void;
@@ -67,7 +67,7 @@ export function DataTable<TData>({
 
   // Notifica al padre con los objetos completos (no solo los IDs) cada vez
   // que cambia la selección — el padre calcula permisos/arma las Server
-  // Actions con eso, DataTable no sabe nada de contenido editorial.
+  // Actions con eso, DataTable no sabe nada de tipos de contenido.
   useEffect(() => {
     if (!onSelectionChange) return;
     onSelectionChange(table.getSelectedRowModel().rows.map((row) => row.original));
@@ -183,31 +183,41 @@ export function DataTable<TData>({
   );
 }
 
+// Casilla visual de 16px, pero el área de click real es 44x44 (mínimo WCAG
+// touch target) vía el <label> que la envuelve con margen negativo — antes
+// era clickeable solo dentro del cuadradito de 16px, difícil de tocar con
+// precisión en tablet (mismo criterio que los puntos del carrusel del home).
+const CHECKBOX_HIT_AREA = "-m-3.5 flex h-11 w-11 cursor-pointer items-center justify-center";
+
 /** Columna de casilla de selección, prependeada a `columns` solo cuando la tabla es seleccionable (ver DataTableProps). */
 function selectionColumn<TData>(): ColumnDef<TData, unknown> {
   return {
     id: "select",
     header: ({ table }) => (
-      <input
-        type="checkbox"
-        aria-label="Seleccionar todas las filas visibles"
-        checked={table.getIsAllPageRowsSelected()}
-        ref={(el) => {
-          if (el) el.indeterminate = table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected();
-        }}
-        onChange={table.getToggleAllPageRowsSelectedHandler()}
-        className="h-4 w-4 cursor-pointer rounded border-border accent-accent"
-      />
+      <label className={CHECKBOX_HIT_AREA}>
+        <input
+          type="checkbox"
+          aria-label="Seleccionar todas las filas visibles"
+          checked={table.getIsAllPageRowsSelected()}
+          ref={(el) => {
+            if (el) el.indeterminate = table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected();
+          }}
+          onChange={table.getToggleAllPageRowsSelectedHandler()}
+          className="h-4 w-4 cursor-pointer rounded border-border accent-accent"
+        />
+      </label>
     ),
     cell: ({ row }) => (
-      <input
-        type="checkbox"
-        aria-label="Seleccionar fila"
-        checked={row.getIsSelected()}
-        disabled={!row.getCanSelect()}
-        onChange={row.getToggleSelectedHandler()}
-        className="h-4 w-4 cursor-pointer rounded border-border accent-accent"
-      />
+      <label className={CHECKBOX_HIT_AREA}>
+        <input
+          type="checkbox"
+          aria-label="Seleccionar fila"
+          checked={row.getIsSelected()}
+          disabled={!row.getCanSelect()}
+          onChange={row.getToggleSelectedHandler()}
+          className="h-4 w-4 cursor-pointer rounded border-border accent-accent disabled:cursor-not-allowed"
+        />
+      </label>
     ),
     enableSorting: false,
   };

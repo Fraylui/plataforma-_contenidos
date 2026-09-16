@@ -1,16 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import { useState } from "react";
 import type { AdminImage, BusinessInput, ContentVideoInput } from "@/lib/api/admin-types";
 import type { Business, BusinessType, Category, ContentImage, Place } from "@/lib/api/types";
 import type { BusinessPermissions } from "@/lib/admin/business-permissions";
 import { articleStatusLabel, businessTypeLabel } from "@/lib/content-labels";
-import { AdminButton, CollapsibleSection, Combobox, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
+import { AdminButton, ArchiveButton, CollapsibleSection, Combobox, FormError, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import { VideoLinksEditor } from "./video-links-editor";
 import { RichTextEditor } from "./rich-text-editor";
+
+// Leaflet toca `window` al montarse — sin SSR, como el resto de los widgets
+// solo-cliente de este formulario.
+const LocationPicker = dynamic(() => import("./location-picker").then((m) => m.LocationPicker), { ssr: false });
 import {
   approveBusinessAction,
   archiveBusinessAction,
@@ -187,7 +192,7 @@ export function BusinessForm({
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField label="Teléfono (opcional)" name="phone">
-                <input type="text" value={phone} disabled={readOnly} onChange={(e) => setPhone(e.target.value)} className={formInputClass} />
+                <input type="tel" value={phone} disabled={readOnly} onChange={(e) => setPhone(e.target.value)} className={formInputClass} />
               </FormField>
               <FormField label="Correo (opcional)" name="email">
                 <input type="email" value={email} disabled={readOnly} onChange={(e) => setEmail(e.target.value)} className={formInputClass} />
@@ -197,6 +202,14 @@ export function BusinessForm({
             <FormField label="Sitio web (opcional)" name="website">
               <input type="text" value={website} disabled={readOnly} onChange={(e) => setWebsite(e.target.value)} className={formInputClass} />
             </FormField>
+
+            <div>
+              <span className="block text-sm font-medium text-foreground">Ubicación (opcional)</span>
+              <p className="mt-0.5 text-xs text-muted">Hacé clic en el mapa para ubicar el pin, o escribí las coordenadas a mano.</p>
+              <div className="mt-1.5">
+                <LocationPicker latitude={latitude} longitude={longitude} disabled={readOnly} onChange={(lat, lng) => { setLatitude(lat); setLongitude(lng); }} />
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField label="Latitud (opcional)" name="latitude">
@@ -257,11 +270,7 @@ export function BusinessForm({
         {/* Barra lateral: publicar + metadata — visible sin scrollear todo el formulario */}
         <div className="space-y-6">
           <SectionCard title="Publicar">
-            {error && (
-              <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-                {error}
-              </p>
-            )}
+            {error && <FormError message={error} />}
             {!readOnly && (
               <AdminButton disabled={pending || !name || !body || !categoryId} onClick={handleSubmit} className="w-full">
                 {pending ? "Guardando…" : mode === "create" ? "Crear borrador" : "Guardar cambios"}
@@ -302,14 +311,11 @@ export function BusinessForm({
                     </AdminButton>
                   )}
                   {permissions.canArchive && (
-                    <AdminButton
-                      type="button"
-                      variant="secondary"
+                    <ArchiveButton
+                      itemLabel="esta ficha"
                       disabled={pending}
-                      onClick={() => runWorkflow(() => archiveBusinessAction(business.id), "Ficha archivada.")}
-                    >
-                      Archivar
-                    </AdminButton>
+                      onConfirm={() => runWorkflow(() => archiveBusinessAction(business.id), "Ficha archivada.")}
+                    />
                   )}
                 </div>
 

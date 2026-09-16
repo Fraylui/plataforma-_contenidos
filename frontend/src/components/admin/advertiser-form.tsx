@@ -8,7 +8,7 @@ import {
   updateAdvertiserAction,
   type ActionResult,
 } from "@/app/admin/(protected)/anunciantes/actions";
-import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
+import { AdminButton, FormError, FormField, formInputClass } from "@/components/admin/ui";
 
 interface AdvertiserFormProps {
   mode: "create" | "edit";
@@ -65,11 +65,7 @@ export function AdvertiserForm({ mode, advertiser }: AdvertiserFormProps) {
         />
       </FormField>
 
-      {error && (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-          {error}
-        </p>
-      )}
+      {error && <FormError message={error} />}
       <AdminButton disabled={pending || !name.trim()} onClick={handleSubmit}>
         {pending ? "Guardando…" : mode === "create" ? "Crear anunciante" : "Guardar cambios"}
       </AdminButton>

@@ -8,7 +8,7 @@ import {
   updateCampaignAction,
   type ActionResult,
 } from "@/app/admin/(protected)/anunciantes/actions";
-import { AdminButton, Combobox, FormField, formInputClass, type ComboboxOption } from "@/components/admin/ui";
+import { AdminButton, Combobox, FormError, FormField, formInputClass, type ComboboxOption } from "@/components/admin/ui";
 import { CampaignCreativePicker } from "@/components/admin/campaign-creative-picker";
 
 /** ISO (UTC) -> valor local para <input type="datetime-local"> — mismo helper que EventForm. */
@@ -130,11 +130,7 @@ export function CampaignForm({ mode, advertiserId, placementOptions, allImages, 
         </FormField>
       </div>
 
-      {error && (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-          {error}
-        </p>
-      )}
+      {error && <FormError message={error} />}
       <AdminButton disabled={pending || !canSubmit} onClick={handleSubmit}>
         {pending ? "Guardando…" : mode === "create" ? "Crear campaña" : "Guardar cambios"}
       </AdminButton>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { PlatformSettings } from "@/lib/api/types";
 import type { PlatformSettingsInput } from "@/lib/api/admin-types";
 import { updatePlatformSettingsAction } from "@/app/admin/(protected)/configuracion/actions";
-import { AdminButton, Combobox, FormField, formInputClass } from "@/components/admin/ui";
+import { AdminButton, Combobox, FormError, FormField, formInputClass } from "@/components/admin/ui";
 import { InlineImageUpload } from "@/components/admin/inline-image-upload";
 import { imageUrl } from "@/lib/image-url";
 import type { AdminImage } from "@/lib/api/admin-types";
@@ -260,11 +260,7 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
         </p>
       </Section>
 
-      {error && (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-          {error}
-        </p>
-      )}
+      {error && <FormError message={error} />}
       {savedAt && !error && (
         <p role="status" className="text-sm text-accent">
           Guardado.

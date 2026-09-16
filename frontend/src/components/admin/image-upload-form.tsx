@@ -3,7 +3,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { uploadImageAction } from "@/app/admin/(protected)/medios/actions";
-import { AdminButton } from "@/components/admin/ui";
+import { AdminButton, FormError } from "@/components/admin/ui";
 
 export function ImageUploadForm() {
   const router = useRouter();
@@ -53,11 +53,7 @@ export function ImageUploadForm() {
       <AdminButton type="submit" disabled={pending}>
         {pending ? "Subiendo…" : "Subir imagen"}
       </AdminButton>
-      {error && (
-        <p role="alert" className="w-full text-sm text-red-600 dark:text-red-400">
-          {error}
-        </p>
-      )}
+      {error && <FormError message={error} className="w-full" />}
     </form>
   );
 }

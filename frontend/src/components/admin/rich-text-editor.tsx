@@ -20,6 +20,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import type { AdminImage } from "@/lib/api/admin-types";
 import { ImageInsertDialog } from "./image-insert-dialog";
+import { LinkInsertDialog } from "./link-insert-dialog";
 
 /**
  * Toolbar deliberadamente mínima — negrita, cursiva, títulos, listas, cita,
@@ -68,6 +69,7 @@ export function RichTextEditor({
 
 function Toolbar({ editor, allImages }: { editor: Editor; allImages: AdminImage[] }) {
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   return (
     <div className="flex flex-wrap items-center gap-1 border-b border-border bg-surface px-2 py-1.5">
       <ToolbarButton
@@ -119,7 +121,7 @@ function Toolbar({ editor, allImages }: { editor: Editor; allImages: AdminImage[
         icon={LinkIcon}
         label="Enlace"
         active={editor.isActive("link")}
-        onClick={() => setLink(editor)}
+        onClick={() => setLinkDialogOpen(true)}
       />
       <ToolbarButton
         icon={Unlink}
@@ -127,6 +129,13 @@ function Toolbar({ editor, allImages }: { editor: Editor; allImages: AdminImage[
         active={false}
         disabled={!editor.isActive("link")}
         onClick={() => editor.chain().focus().unsetLink().run()}
+      />
+      <LinkInsertDialog
+        open={linkDialogOpen}
+        onOpenChange={setLinkDialogOpen}
+        currentUrl={editor.getAttributes("link").href as string | undefined}
+        onConfirm={(url) => editor.chain().focus().setLink({ href: url }).run()}
+        onRemove={() => editor.chain().focus().unsetLink().run()}
       />
       <ToolbarDivider />
       <ToolbarButton
@@ -143,17 +152,6 @@ function Toolbar({ editor, allImages }: { editor: Editor; allImages: AdminImage[
       />
     </div>
   );
-}
-
-function setLink(editor: Editor) {
-  const previous = editor.getAttributes("link").href as string | undefined;
-  const url = window.prompt("URL del enlace", previous ?? "https://");
-  if (url === null) return;
-  if (url.trim() === "") {
-    editor.chain().focus().unsetLink().run();
-    return;
-  }
-  editor.chain().focus().setLink({ href: url.trim() }).run();
 }
 
 function ToolbarButton({

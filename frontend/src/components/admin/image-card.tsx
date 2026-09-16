@@ -75,7 +75,7 @@ export function ImageCard({ image, canManage }: { image: AdminImage; canManage: 
                 type="button"
                 disabled={pending}
                 onClick={handleDelete}
-                className="rounded-md border border-border px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                className="rounded-md border border-border px-2 py-1 text-xs font-medium text-danger hover:bg-danger/10 disabled:opacity-50"
               >
                 Eliminar
               </button>
@@ -85,7 +85,7 @@ export function ImageCard({ image, canManage }: { image: AdminImage; canManage: 
           image.altText && <p className="text-xs text-muted">Alt: {image.altText}</p>
         )}
 
-        {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
+        {error && <p role="alert" className="text-xs text-danger">{error}</p>}
       </div>
     </div>
   );

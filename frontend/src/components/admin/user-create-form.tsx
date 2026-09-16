@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Role } from "@/lib/api/admin-types";
 import { roleLabel } from "@/lib/admin/role-labels";
 import { createUserAction } from "@/app/admin/(protected)/usuarios/actions";
-import { AdminButton, Combobox, FormField, formInputClass } from "@/components/admin/ui";
+import { AdminButton, Combobox, FormError, FormField, formInputClass } from "@/components/admin/ui";
 
 // MODERATOR/COLLABORATOR/USER existen en el enum del backend pero todavía no
 // tienen ninguna regla de autorización conectada (SecurityConfig no los
@@ -71,11 +71,7 @@ export function UserCreateForm({ viewerRole }: { viewerRole: Role }) {
         />
       </FormField>
 
-      {error && (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-          {error}
-        </p>
-      )}
+      {error && <FormError message={error} />}
 
       <AdminButton
         type="button"

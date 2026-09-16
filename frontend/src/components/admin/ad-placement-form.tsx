@@ -8,7 +8,7 @@ import {
   updateAdPlacementAction,
   type ActionResult,
 } from "@/app/admin/(protected)/publicidad/actions";
-import { AdminButton, FormField, formInputClass } from "@/components/admin/ui";
+import { AdminButton, FormError, FormField, formInputClass } from "@/components/admin/ui";
 
 interface AdPlacementFormProps {
   mode: "create" | "edit";
@@ -69,11 +69,7 @@ export function AdPlacementForm({ mode, placement }: AdPlacementFormProps) {
         />
       </FormField>
 
-      {error && (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-          {error}
-        </p>
-      )}
+      {error && <FormError message={error} />}
       <AdminButton
         disabled={pending || !label.trim() || (mode === "create" && !key.trim())}
         onClick={handleSubmit}
