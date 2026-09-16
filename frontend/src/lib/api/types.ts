@@ -320,6 +320,14 @@ export interface AdPlacement {
   enabled: boolean;
 }
 
+/** Ver ActiveCampaignResponse.java — nunca trae el link real, solo `id` para armar el link de clic. */
+export interface ActiveCampaign {
+  id: string;
+  imageId: string | null;
+  externalImageUrl: string | null;
+  imageAlt: string | null;
+}
+
 /** Ver FeedItemResponse.java — feed unificado del home y "relacionados" de la vista de detalle. */
 export type FeedItemType = "ARTICLE" | "PLACE" | "EVENT";
 

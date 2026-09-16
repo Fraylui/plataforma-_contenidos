@@ -9,10 +9,14 @@ import type {
   AdminUser,
   AdPlacementCreateInput,
   AdPlacementUpdateInput,
+  Advertiser,
+  AdvertiserInput,
   ArticleInput,
   AuditEvent,
   AuditSearchFilters,
   BusinessInput,
+  Campaign,
+  CampaignInput,
   CategoryCreateInput,
   CategoryUpdateInput,
   CreateUserInput,
@@ -492,6 +496,75 @@ export function deactivateAdPlacement(accessToken: string, id: string): Promise<
 
 export function deleteAdPlacement(accessToken: string, id: string): Promise<void> {
   return authedJson(`/api/v1/admin/ad-placements/${encodeURIComponent(id)}`, accessToken, { method: "DELETE" });
+}
+
+// --- Advertising module: anunciantes (AdvertiserAdminController, rutas /admin/advertisers) ---
+
+export function listAdvertisers(accessToken: string): Promise<Advertiser[]> {
+  return authedJson("/api/v1/admin/advertisers", accessToken);
+}
+
+export function getAdvertiser(accessToken: string, id: string): Promise<Advertiser> {
+  return authedJson(`/api/v1/admin/advertisers/${encodeURIComponent(id)}`, accessToken);
+}
+
+export function createAdvertiser(accessToken: string, input: AdvertiserInput): Promise<Advertiser> {
+  return authedJson("/api/v1/admin/advertisers", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateAdvertiser(accessToken: string, id: string, input: AdvertiserInput): Promise<Advertiser> {
+  return authedJson(`/api/v1/admin/advertisers/${encodeURIComponent(id)}`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function deleteAdvertiser(accessToken: string, id: string): Promise<void> {
+  return authedJson(`/api/v1/admin/advertisers/${encodeURIComponent(id)}`, accessToken, { method: "DELETE" });
+}
+
+// --- Advertising module: campañas (CampaignAdminController, rutas /admin/campaigns) ---
+
+export function listCampaigns(accessToken: string, advertiserId?: string): Promise<Campaign[]> {
+  const query = advertiserId ? `?advertiserId=${encodeURIComponent(advertiserId)}` : "";
+  return authedJson(`/api/v1/admin/campaigns${query}`, accessToken);
+}
+
+export function getCampaign(accessToken: string, id: string): Promise<Campaign> {
+  return authedJson(`/api/v1/admin/campaigns/${encodeURIComponent(id)}`, accessToken);
+}
+
+export function createCampaign(accessToken: string, input: CampaignInput): Promise<Campaign> {
+  return authedJson("/api/v1/admin/campaigns", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateCampaign(accessToken: string, id: string, input: CampaignInput): Promise<Campaign> {
+  return authedJson(`/api/v1/admin/campaigns/${encodeURIComponent(id)}`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function activateCampaign(accessToken: string, id: string): Promise<void> {
+  return authedJson(`/api/v1/admin/campaigns/${encodeURIComponent(id)}/activate`, accessToken, { method: "POST" });
+}
+
+export function deactivateCampaign(accessToken: string, id: string): Promise<void> {
+  return authedJson(`/api/v1/admin/campaigns/${encodeURIComponent(id)}/deactivate`, accessToken, { method: "POST" });
+}
+
+export function deleteCampaign(accessToken: string, id: string): Promise<void> {
+  return authedJson(`/api/v1/admin/campaigns/${encodeURIComponent(id)}`, accessToken, { method: "DELETE" });
 }
 
 // --- Media module: imágenes (ImageAdminController) ---

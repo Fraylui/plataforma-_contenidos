@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  Building2,
   CalendarDays,
   FileText,
   FolderTree,
@@ -16,7 +17,7 @@ import {
 } from "lucide-react";
 import type { Role } from "@/lib/api/admin-types";
 
-export type AdminNavGroup = "principal" | "contenido" | "organizacion" | "cuenta";
+export type AdminNavGroup = "principal" | "contenido" | "organizacion" | "monetizacion" | "cuenta";
 
 export interface AdminNavItem {
   href: string;
@@ -31,6 +32,7 @@ export const ADMIN_NAV_GROUP_LABELS: Record<AdminNavGroup, string | null> = {
   principal: null,
   contenido: "Contenido",
   organizacion: "Organización",
+  monetizacion: "Monetización",
   cuenta: "Administración",
 };
 
@@ -122,9 +124,17 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   {
     href: "/admin/publicidad",
     label: "Publicidad",
-    group: "cuenta",
+    group: "monetizacion",
     icon: Megaphone,
     // Debe coincidir con SecurityConfig: /api/v1/admin/ad-placements/** -> SUPER_ADMIN, ADMIN.
+    roles: ["SUPER_ADMIN", "ADMIN"],
+  },
+  {
+    href: "/admin/anunciantes",
+    label: "Anunciantes",
+    group: "monetizacion",
+    icon: Building2,
+    // Debe coincidir con SecurityConfig: /api/v1/admin/advertisers/**, /api/v1/admin/campaigns/** -> SUPER_ADMIN, ADMIN.
     roles: ["SUPER_ADMIN", "ADMIN"],
   },
   {
@@ -143,7 +153,7 @@ export function visibleNavItems(role: Role): AdminNavItem[] {
 
 export function groupedNavItems(role: Role): Array<{ group: AdminNavGroup; items: AdminNavItem[] }> {
   const items = visibleNavItems(role);
-  const groups: AdminNavGroup[] = ["principal", "contenido", "organizacion", "cuenta"];
+  const groups: AdminNavGroup[] = ["principal", "contenido", "organizacion", "monetizacion", "cuenta"];
   return groups
     .map((group) => ({ group, items: items.filter((item) => item.group === group) }))
     .filter((entry) => entry.items.length > 0);

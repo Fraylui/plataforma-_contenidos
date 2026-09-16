@@ -4,6 +4,7 @@
 // navegador, que hoy no existen: no hay panel admin todavía).
 import "server-only";
 import type {
+  ActiveCampaign,
   AdPlacement,
   Article,
   ArticleNeighbors,
@@ -370,4 +371,19 @@ export function getPlatformSettings(): Promise<PlatformSettings> {
 /** Posiciones de anuncio activas (sección 43.2) — consumido por AdBlock, ver components/legal/ad-block.tsx. */
 export function listActiveAdPlacements(): Promise<AdPlacement[]> {
   return apiFetch(`/api/v1/ad-placements`, 300);
+}
+
+/**
+ * Campaña de publicidad directa vigente para una posición, si hay una (ver
+ * CampaignPublicController). Sin cache: cada llamada real cuenta como una
+ * impresión en el backend, cachearla falsearía esa métrica.
+ */
+export async function getActiveCampaign(placementKey: string): Promise<ActiveCampaign | null> {
+  const res = await fetch(`${BACKEND_API_URL}/api/v1/ads/campaigns/active?placementKey=${encodeURIComponent(placementKey)}`,
+    { cache: "no-store" });
+  if (res.status === 204) return null;
+  if (!res.ok) {
+    throw new Error(`Error del backend (${res.status}) en /api/v1/ads/campaigns/active`);
+  }
+  return res.json() as Promise<ActiveCampaign>;
 }

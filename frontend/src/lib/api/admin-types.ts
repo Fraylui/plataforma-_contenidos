@@ -174,6 +174,49 @@ export interface AdPlacementUpdateInput {
   adsenseSlotId: string | null;
 }
 
+/** Ver Advertiser.java. */
+export interface Advertiser {
+  id: string;
+  name: string;
+  contactEmail: string | null;
+  contactPhone: string | null;
+}
+
+/** Cuerpo de POST/PUT /api/v1/admin/advertisers — ver AdvertiserRequest.java. */
+export interface AdvertiserInput {
+  name: string;
+  contactEmail: string | null;
+  contactPhone: string | null;
+}
+
+/** Ver CampaignResponse.java. La creatividad es XOR: imageId o externalImageUrl, nunca ambas. */
+export interface Campaign {
+  id: string;
+  advertiserId: string;
+  placementKey: string;
+  imageId: string | null;
+  externalImageUrl: string | null;
+  imageAlt: string | null;
+  linkUrl: string;
+  startsAt: string | null;
+  endsAt: string | null;
+  active: boolean;
+  impressionCount: number;
+  clickCount: number;
+}
+
+/** Cuerpo de POST/PUT /api/v1/admin/campaigns — ver CampaignRequest.java. */
+export interface CampaignInput {
+  advertiserId: string;
+  placementKey: string;
+  imageId: string | null;
+  externalImageUrl: string | null;
+  imageAlt: string | null;
+  linkUrl: string;
+  startsAt: string | null;
+  endsAt: string | null;
+}
+
 /** Ver PlatformStatsResponse.java (CONTEXTO.md sección 34, estadísticas básicas). */
 export interface PlatformStats {
   articlesByStatus: Record<ArticleStatus, number>;

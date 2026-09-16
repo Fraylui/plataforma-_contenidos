@@ -1,0 +1,128 @@
+package pe.plataformacontenidos.advertising;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import pe.plataformacontenidos.media.ImageService;
+import pe.plataformacontenidos.shared.ContentImage;
+import pe.plataformacontenidos.shared.ContentImageInput;
+
+/**
+ * Orquesta campañas de publicidad directa. La resolución pública
+ * (`resolveActive`) es lo que AdBlock consulta antes de caer a AdSense —
+ * incrementa el contador de impresión en el mismo golpe: cada vez que el
+ * frontend pide "hay campaña para esta posición" y hay una, se cuenta como
+ * una vista real (mismo criterio que un ad server simple).
+ */
+@Service
+@Transactional
+public class CampaignService {
+
+    private final CampaignRepository campaignRepository;
+    private final AdvertiserRepository advertiserRepository;
+    private final AdPlacementRepository adPlacementRepository;
+    private final ImageService imageService;
+
+    public CampaignService(CampaignRepository campaignRepository, AdvertiserRepository advertiserRepository,
+            AdPlacementRepository adPlacementRepository, ImageService imageService) {
+        this.campaignRepository = campaignRepository;
+        this.advertiserRepository = advertiserRepository;
+        this.adPlacementRepository = adPlacementRepository;
+        this.imageService = imageService;
+    }
+
+    public Campaign create(UUID advertiserId, String placementKey, ContentImageInput creativeInput, String linkUrl,
+            Instant startsAt, Instant endsAt) {
+        requireAdvertiserExists(advertiserId);
+        requirePlacementExists(placementKey);
+        requireValidSchedule(startsAt, endsAt);
+        ContentImage creative = validateCreative(creativeInput);
+        return campaignRepository.save(new Campaign(advertiserId, placementKey, creative, linkUrl, startsAt, endsAt));
+    }
+
+    public Campaign update(UUID id, String placementKey, ContentImageInput creativeInput, String linkUrl,
+            Instant startsAt, Instant endsAt) {
+        Campaign campaign = getOrThrow(id);
+        requirePlacementExists(placementKey);
+        requireValidSchedule(startsAt, endsAt);
+        ContentImage creative = validateCreative(creativeInput);
+        campaign.update(placementKey, creative, linkUrl, startsAt, endsAt);
+        return campaignRepository.save(campaign);
+    }
+
+    public void setActive(UUID id, boolean active) {
+        Campaign campaign = getOrThrow(id);
+        campaign.setActive(active);
+        campaignRepository.save(campaign);
+    }
+
+    public void delete(UUID id) {
+        campaignRepository.deleteById(id);
+    }
+
+    public List<Campaign> listAll() {
+        return campaignRepository.findAll();
+    }
+
+    public List<Campaign> listByAdvertiser(UUID advertiserId) {
+        return campaignRepository.findByAdvertiserId(advertiserId);
+    }
+
+    public Campaign getOrThrow(UUID id) {
+        return campaignRepository.findById(id).orElseThrow(() -> new CampaignNotFoundException(id));
+    }
+
+    /** La primera campaña vigente para la posición (orden de creación) — cuenta como una impresión. */
+    public Optional<Campaign> resolveActive(String placementKey) {
+        Instant now = Instant.now();
+        Optional<Campaign> match = campaignRepository.findByPlacementKeyAndActiveTrueOrderByCreatedAtAsc(placementKey)
+                .stream()
+                .filter(campaign -> campaign.isCurrentlyServable(now))
+                .findFirst();
+        match.ifPresent(campaign -> {
+            campaign.recordImpression();
+            campaignRepository.save(campaign);
+        });
+        return match;
+    }
+
+    /** Registra el clic y devuelve a dónde redirigir — el link real nunca queda expuesto directo en el HTML. */
+    public String recordClickAndGetLinkUrl(UUID id) {
+        Campaign campaign = getOrThrow(id);
+        campaign.recordClick();
+        campaignRepository.save(campaign);
+        return campaign.getLinkUrl();
+    }
+
+    private void requireAdvertiserExists(UUID advertiserId) {
+        if (!advertiserRepository.existsById(advertiserId)) {
+            throw new AdvertiserNotFoundException(advertiserId);
+        }
+    }
+
+    private void requirePlacementExists(String placementKey) {
+        if (!adPlacementRepository.existsByKey(placementKey)) {
+            throw new AdPlacementKeyNotFoundException(placementKey);
+        }
+    }
+
+    private void requireValidSchedule(Instant startsAt, Instant endsAt) {
+        if (startsAt != null && endsAt != null && !endsAt.isAfter(startsAt)) {
+            throw new InvalidCampaignScheduleException("La fecha de fin debe ser posterior a la de inicio.");
+        }
+    }
+
+    private ContentImage validateCreative(ContentImageInput input) {
+        if (input == null || !input.isValidShape() || (input.hasExternalUrl() && !input.isValidExternalUrl())) {
+            throw new InvalidCampaignImageException();
+        }
+        if (input.hasImageId()) {
+            imageService.getOrThrow(input.imageId());
+            return ContentImage.uploaded(input.imageId(), input.title(), input.caption());
+        }
+        return ContentImage.external(input.externalUrl(), input.title(), input.caption());
+    }
+}
