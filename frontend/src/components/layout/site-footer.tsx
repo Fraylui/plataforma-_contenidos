@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ArrowUp, BookOpen, Building2, CalendarDays, Images, Mail, MapPin } from "lucide-react";
+import { ArrowRight, ArrowUp, BookOpen, Building2, CalendarDays, Images, Mail, MapPin, Rss } from "lucide-react";
 import {
   getPlatformSettings,
   getPrimaryNavVisibility,
@@ -214,10 +214,16 @@ export async function SiteFooter() {
           <p>
             © {year} {settings.name}. Todos los derechos reservados.
           </p>
-          <a href="#top" className="inline-flex w-fit items-center gap-1.5 py-1 text-muted transition-colors hover:text-foreground">
-            Volver arriba
-            <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
-          </a>
+          <div className="flex items-center gap-4">
+            <Link href="/rss.xml" className="inline-flex w-fit items-center gap-1.5 py-1 text-muted transition-colors hover:text-foreground">
+              <Rss className="h-3.5 w-3.5" aria-hidden="true" />
+              RSS
+            </Link>
+            <a href="#top" className="inline-flex w-fit items-center gap-1.5 py-1 text-muted transition-colors hover:text-foreground">
+              Volver arriba
+              <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+          </div>
         </div>
       </div>
     </footer>
