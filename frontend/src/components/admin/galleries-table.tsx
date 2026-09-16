@@ -9,8 +9,8 @@ import type { AdminUser } from "@/lib/api/admin-types";
 import { computeGalleryPermissions } from "@/lib/admin/gallery-permissions";
 import { articleStatusLabel, articleStatusTone, formatPublishedDate } from "@/lib/content-labels";
 import { StatusPill, DataTable } from "@/components/admin/ui";
-import { EditorialRowActions } from "@/components/admin/editorial-row-actions";
-import { EditorialBulkActions } from "@/components/admin/editorial-bulk-actions";
+import { ContentRowActions } from "@/components/admin/content-row-actions";
+import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
 import {
   approveGalleryAction,
   archiveGalleryAction,
@@ -55,7 +55,7 @@ export function GalleriesTable({ galleries, currentUser }: { galleries: Gallery[
         header: "",
         enableSorting: false,
         cell: ({ row }) => (
-          <EditorialRowActions
+          <ContentRowActions
             id={row.original.id}
             editHref={`/admin/galerias/${row.original.id}`}
             permissions={computeGalleryPermissions(row.original, currentUser)}
@@ -76,7 +76,7 @@ export function GalleriesTable({ galleries, currentUser }: { galleries: Gallery[
 
   return (
     <div>
-      <EditorialBulkActions
+      <ContentBulkActions
         selected={selected}
         permissions={{
           canPublish: (item) => computeGalleryPermissions(item, currentUser).canPublish,

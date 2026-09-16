@@ -21,7 +21,7 @@ import pe.plataformacontenidos.directory.api.dto.ScheduleBusinessRequest;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
 
 /**
- * CRUD editorial + transiciones de workflow para el Directorio — mismo
+ * CRUD de contenido + transiciones de workflow para el Directorio — mismo
  * patrón que GalleryAdminController. La autorización fina vive en
  * BusinessService.
  */

@@ -21,7 +21,7 @@ import pe.plataformacontenidos.galleries.api.dto.ScheduleGalleryRequest;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
 
 /**
- * CRUD editorial + transiciones de workflow para Galerías — mismo patrón que
+ * CRUD de contenido + transiciones de workflow para Galerías — mismo patrón que
  * EventAdminController. La autorización fina vive en GalleryService.
  */
 @RestController

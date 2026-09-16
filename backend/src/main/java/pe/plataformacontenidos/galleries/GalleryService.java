@@ -21,7 +21,7 @@ import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
 
 /**
- * Orquesta el ciclo editorial de Galerías (CONTEXTO.md sección 12), mismo
+ * Orquesta el ciclo de publicación de Galerías (CONTEXTO.md sección 12), mismo
  * patrón que EventService/PlaceService. La autorización a nivel de objeto
  * vive acá (SecurityConfig solo decide quién llega al endpoint).
  */

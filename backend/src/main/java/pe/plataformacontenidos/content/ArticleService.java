@@ -24,7 +24,7 @@ import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
 
 /**
- * Orquesta el ciclo editorial (CONTEXTO.md sección 12). La autorización a
+ * Orquesta el ciclo de publicación (CONTEXTO.md sección 12). La autorización a
  * nivel de objeto vive aquí (SecurityConfig solo decide quién llega al
  * endpoint, no quién puede tocar QUÉ artículo — ver esa clase).
  */

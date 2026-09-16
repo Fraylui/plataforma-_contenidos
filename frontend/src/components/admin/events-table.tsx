@@ -9,8 +9,8 @@ import type { AdminUser } from "@/lib/api/admin-types";
 import { computeEventPermissions } from "@/lib/admin/event-permissions";
 import { articleStatusLabel, articleStatusTone, formatEventDateTime } from "@/lib/content-labels";
 import { StatusPill, DataTable } from "@/components/admin/ui";
-import { EditorialRowActions } from "@/components/admin/editorial-row-actions";
-import { EditorialBulkActions } from "@/components/admin/editorial-bulk-actions";
+import { ContentRowActions } from "@/components/admin/content-row-actions";
+import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
 import {
   approveEventAction,
   archiveEventAction,
@@ -49,7 +49,7 @@ export function EventsTable({ events, currentUser }: { events: Event[]; currentU
         header: "",
         enableSorting: false,
         cell: ({ row }) => (
-          <EditorialRowActions
+          <ContentRowActions
             id={row.original.id}
             editHref={`/admin/eventos/${row.original.id}`}
             permissions={computeEventPermissions(row.original, currentUser)}
@@ -70,7 +70,7 @@ export function EventsTable({ events, currentUser }: { events: Event[]; currentU
 
   return (
     <div>
-      <EditorialBulkActions
+      <ContentBulkActions
         selected={selected}
         permissions={{
           canPublish: (item) => computeEventPermissions(item, currentUser).canPublish,

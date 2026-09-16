@@ -25,7 +25,7 @@ import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
 
 /**
- * Orquesta el ciclo editorial de Lugares (CONTEXTO.md sección 12), mismo
+ * Orquesta el ciclo de publicación de Lugares (CONTEXTO.md sección 12), mismo
  * patrón que ArticleService. La autorización a nivel de objeto vive acá
  * (SecurityConfig solo decide quién llega al endpoint).
  */

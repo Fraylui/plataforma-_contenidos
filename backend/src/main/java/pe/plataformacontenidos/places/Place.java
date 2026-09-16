@@ -23,7 +23,7 @@ import pe.plataformacontenidos.shared.ContentVideo;
 /**
  * Página de Lugar (CONTEXTO.md sección 6): nombre, historia, ubicación,
  * coordenadas, fotografías, video, categoría. Un tipo de contenido más
- * (sección 3), con el mismo flujo editorial que Article (sección 12) — ver
+ * (sección 3), con el mismo flujo de publicación que Article (sección 12) — ver
  * PlaceService. category_id es UUID sin FK (pertenece a Taxonomy, sección
  * 38); imageIds tampoco (pertenece a Media).
  */

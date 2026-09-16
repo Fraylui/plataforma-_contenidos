@@ -22,7 +22,7 @@ import pe.plataformacontenidos.advertising.api.dto.UpdateAdPlacementRequest;
  * Lectura pública (el frontend resuelve `<AdBlock position="key" />` contra
  * esto en cada página, ver ad-block.tsx), escritura restringida a
  * SUPER_ADMIN/ADMIN (SecurityConfig) — es configuración de monetización, no
- * taxonomía editorial, mismo nivel que PlatformSettingsAdminController.
+ * taxonomía de contenido, mismo nivel que PlatformSettingsAdminController.
  */
 @RestController
 @RequestMapping("/api/v1")

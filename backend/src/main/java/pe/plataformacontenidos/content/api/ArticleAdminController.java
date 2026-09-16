@@ -21,7 +21,7 @@ import pe.plataformacontenidos.content.api.dto.ScheduleArticleRequest;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
 
 /**
- * CRUD editorial + transiciones de workflow. La autorización fina (dueño vs.
+ * CRUD de contenido + transiciones de workflow. La autorización fina (dueño vs.
  * EDITOR+, qué transición es legal desde qué estado) vive en ArticleService,
  * no aquí — este controller solo traduce HTTP ↔ dominio.
  */

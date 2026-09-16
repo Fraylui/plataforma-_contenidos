@@ -25,7 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/admin/ui";
 
-export interface EditorialPermissions {
+export interface ContentPermissions {
   canSubmit: boolean;
   canApprove: boolean;
   canReject: boolean;
@@ -33,7 +33,7 @@ export interface EditorialPermissions {
   canArchive: boolean;
 }
 
-export interface EditorialActions {
+export interface ContentActions {
   submit: (id: string) => Promise<ActionResult>;
   approve: (id: string) => Promise<ActionResult>;
   reject: (id: string, reason: string) => Promise<ActionResult>;
@@ -42,12 +42,12 @@ export interface EditorialActions {
 }
 
 /**
- * Acciones rápidas de flujo editorial desde un listado — genérico para
+ * Acciones rápidas de flujo de publicación desde un listado — genérico para
  * Publicaciones/Lugares/Eventos/Galerías/Directorio, que comparten
  * el mismo ciclo (ver ArticleStatus/PlaceStatus/etc. en el backend, todos
  * idénticos). Un solo componente en vez de 6 copias casi iguales.
  */
-export function EditorialRowActions({
+export function ContentRowActions({
   id,
   editHref,
   permissions,
@@ -56,8 +56,8 @@ export function EditorialRowActions({
 }: {
   id: string;
   editHref: string;
-  permissions: EditorialPermissions;
-  actions: EditorialActions;
+  permissions: ContentPermissions;
+  actions: ContentActions;
   itemLabel: string;
 }) {
   const [pending, setPending] = useState(false);

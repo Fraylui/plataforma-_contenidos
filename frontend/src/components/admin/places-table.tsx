@@ -9,8 +9,8 @@ import type { AdminUser } from "@/lib/api/admin-types";
 import { computePlacePermissions } from "@/lib/admin/place-permissions";
 import { articleStatusLabel, articleStatusTone, formatPublishedDate } from "@/lib/content-labels";
 import { StatusPill, DataTable } from "@/components/admin/ui";
-import { EditorialRowActions } from "@/components/admin/editorial-row-actions";
-import { EditorialBulkActions } from "@/components/admin/editorial-bulk-actions";
+import { ContentRowActions } from "@/components/admin/content-row-actions";
+import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
 import {
   approvePlaceAction,
   archivePlaceAction,
@@ -49,7 +49,7 @@ export function PlacesTable({ places, currentUser }: { places: Place[]; currentU
         header: "",
         enableSorting: false,
         cell: ({ row }) => (
-          <EditorialRowActions
+          <ContentRowActions
             id={row.original.id}
             editHref={`/admin/lugares/${row.original.id}`}
             permissions={computePlacePermissions(row.original, currentUser)}
@@ -70,7 +70,7 @@ export function PlacesTable({ places, currentUser }: { places: Place[]; currentU
 
   return (
     <div>
-      <EditorialBulkActions
+      <ContentBulkActions
         selected={selected}
         permissions={{
           canPublish: (item) => computePlacePermissions(item, currentUser).canPublish,

@@ -21,7 +21,7 @@ import pe.plataformacontenidos.events.api.dto.ScheduleEventRequest;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
 
 /**
- * CRUD editorial + transiciones de workflow para Eventos — mismo patrón que
+ * CRUD de contenido + transiciones de workflow para Eventos — mismo patrón que
  * PlaceAdminController. La autorización fina vive en EventService.
  */
 @RestController

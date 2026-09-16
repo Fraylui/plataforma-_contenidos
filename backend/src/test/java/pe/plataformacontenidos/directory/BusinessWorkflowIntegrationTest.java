@@ -23,7 +23,7 @@ import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-/** Directorio (empresas/negocios), con el mismo flujo editorial que Article/Places/Reviews (sección 12). */
+/** Directorio (empresas/negocios), con el mismo flujo de publicación que Article/Places/Reviews (sección 12). */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -43,7 +43,7 @@ class BusinessWorkflowIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void fullEditorialLifecycleFromDraftToPublishedWithLinkedPlace() throws Exception {
+    void fullContentLifecycleFromDraftToPublishedWithLinkedPlace() throws Exception {
         String editorToken = createUserAndLogin("directory-editor@plataforma-contenidos.test", Role.EDITOR);
         String authorToken = createUserAndLogin("directory-author@plataforma-contenidos.test", Role.AUTHOR);
         String categoryId = createCategory(editorToken, "Directorio Gastronómico Test");

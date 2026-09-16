@@ -24,7 +24,7 @@ import pe.plataformacontenidos.shared.ContentVideo;
  * Página de Evento: título, descripción, fecha/hora de inicio-fin, lugar
  * (opcional, vinculado a un Lugar existente o solo un nombre libre),
  * fotografías, video, categoría. Un tipo de contenido más (sección 3), con
- * el mismo flujo editorial que Article/Place (sección 12) — ver
+ * el mismo flujo de publicación que Article/Place (sección 12) — ver
  * EventService. category_id/place_id son UUID sin FK (pertenecen a
  * Taxonomy/Places, sección 38); imageIds tampoco (pertenece a Media). A
  * diferencia de Article/Place, el listado público no

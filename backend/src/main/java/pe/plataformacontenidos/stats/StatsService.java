@@ -17,7 +17,7 @@ import pe.plataformacontenidos.taxonomy.CategoryService;
  * módulos exclusivamente a través de sus servicios públicos — nunca toca un
  * repositorio ajeno directamente (sección 38). No hay tracking de vistas
  * todavía (eso es un pipeline de eventos aparte, fuera del alcance de
- * "básicas"): esto es una fotografía del estado editorial/operativo actual.
+ * "básicas"): esto es una fotografía del estado del contenido/operativo actual.
  */
 @Service
 public class StatsService {

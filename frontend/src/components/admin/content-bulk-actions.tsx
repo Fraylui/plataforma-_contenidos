@@ -17,7 +17,7 @@ export interface BulkActions {
 
 /**
  * Barra de acciones en lote, genérica para las 6 tablas de contenido —
- * mismo criterio que EditorialRowActions (un componente compartido en vez
+ * mismo criterio que ContentRowActions (un componente compartido en vez
  * de 6 copias casi iguales). Publicar/archivar son las dos únicas acciones
  * en lote (enviar a revisión/aprobar/rechazar quedan por fila: rechazar
  * necesita un motivo por ítem, y las otras dos son pasos intermedios menos
@@ -30,7 +30,7 @@ export interface BulkActions {
  * actual (~30 ítems por tipo) esto no es un problema de escala; si crece
  * mucho, ahí sí se justifica un endpoint bulk real.
  */
-export function EditorialBulkActions<T extends { id: string }>({
+export function ContentBulkActions<T extends { id: string }>({
   selected,
   permissions,
   actions,

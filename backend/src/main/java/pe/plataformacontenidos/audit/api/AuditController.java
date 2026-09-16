@@ -17,7 +17,7 @@ import pe.plataformacontenidos.audit.api.dto.PageResponse;
  * Consulta del audit log (CONTEXTO.md secciones 18, 35.3 fase 1 y 37).
  * Restringido a SUPER_ADMIN/ADMIN en SecurityConfig: los eventos incluyen
  * IPs y acciones de todos los usuarios (incluidos otros administradores),
- * información más sensible que un listado editorial normal. Solo lectura —
+ * información más sensible que un listado de contenido normal. Solo lectura —
  * no existe endpoint de edición/borrado, el log es append-only.
  */
 @RestController

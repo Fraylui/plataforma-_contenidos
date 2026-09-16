@@ -28,7 +28,7 @@ import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-/** Galerías, con el mismo flujo editorial que Article/Places/Events (sección 12), sin cuerpo de texto largo. */
+/** Galerías, con el mismo flujo de publicación que Article/Places/Events (sección 12), sin cuerpo de texto largo. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -48,7 +48,7 @@ class GalleryWorkflowIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void fullEditorialLifecycleFromDraftToPublished() throws Exception {
+    void fullContentLifecycleFromDraftToPublished() throws Exception {
         String editorToken = createUserAndLogin("galleries-editor@plataforma-contenidos.test", Role.EDITOR);
         String authorToken = createUserAndLogin("galleries-author@plataforma-contenidos.test", Role.AUTHOR);
         String categoryId = createCategory(editorToken, "Galerías Culturales Test");

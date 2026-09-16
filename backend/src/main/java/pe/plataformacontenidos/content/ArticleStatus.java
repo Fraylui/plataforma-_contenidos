@@ -1,6 +1,6 @@
 package pe.plataformacontenidos.content;
 
-/** Estados editoriales (CONTEXTO.md sección 12). */
+/** Estados del flujo de publicación (CONTEXTO.md sección 12). */
 public enum ArticleStatus {
     DRAFT,
     IN_REVIEW,

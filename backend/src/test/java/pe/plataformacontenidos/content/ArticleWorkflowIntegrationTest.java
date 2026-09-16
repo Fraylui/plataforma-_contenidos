@@ -47,7 +47,7 @@ class ArticleWorkflowIntegrationTest {
     private ScheduledPublishJob scheduledPublishJob;
 
     @Test
-    void fullEditorialLifecycleFromDraftToPublishedToArchived() throws Exception {
+    void fullContentLifecycleFromDraftToPublishedToArchived() throws Exception {
         String editorToken = createUserAndLogin("wf-editor@plataforma-contenidos.test", Role.EDITOR);
         String authorToken = createUserAndLogin("wf-author@plataforma-contenidos.test", Role.AUTHOR);
         String categoryId = createCategory(editorToken, "Actualidad");
@@ -138,7 +138,7 @@ class ArticleWorkflowIntegrationTest {
         mockMvc.perform(put("/api/v1/admin/articles/" + articleId)
                         .header("Authorization", "Bearer " + otherAuthorToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(articleJson(categoryId, "Intento de secuestro editorial")))
+                        .content(articleJson(categoryId, "Intento de secuestro de contenido")))
                 .andExpect(status().isForbidden());
     }
 

@@ -41,7 +41,7 @@ const AXIS_TICK = { fill: "var(--muted)", fontSize: 12 };
 
 const PIPELINE: ArticleStatus[] = ["DRAFT", "IN_REVIEW", "APPROVED", "SCHEDULED", "PUBLISHED"];
 
-/** Barra horizontal del flujo editorial, un tramo por estado, clara -> oscura hacia "Publicado". */
+/** Barra horizontal del flujo de publicación, un tramo por estado, clara -> oscura hacia "Publicado". */
 export function PipelineChart({ stats }: { stats: PlatformStats }) {
   const data = PIPELINE.map((status) => ({
     name: articleStatusLabel(status),

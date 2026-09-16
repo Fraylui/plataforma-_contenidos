@@ -23,7 +23,7 @@ import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-/** CONTEXTO.md sección 6: Lugares, con el mismo flujo editorial que Content (sección 12). */
+/** CONTEXTO.md sección 6: Lugares, con el mismo flujo de publicación que Content (sección 12). */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -43,7 +43,7 @@ class PlaceWorkflowIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void fullEditorialLifecycleFromDraftToPublished() throws Exception {
+    void fullContentLifecycleFromDraftToPublished() throws Exception {
         String editorToken = createUserAndLogin("places-editor@plataforma-contenidos.test", Role.EDITOR);
         String authorToken = createUserAndLogin("places-author@plataforma-contenidos.test", Role.AUTHOR);
         String categoryId = createCategory(editorToken, "Lugares Turísticos Test");

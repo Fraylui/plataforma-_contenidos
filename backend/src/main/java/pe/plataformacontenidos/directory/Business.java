@@ -22,7 +22,7 @@ import pe.plataformacontenidos.shared.ContentVideo;
 
 /**
  * Ficha de Directorio (CONTEXTO.md sección 6: empresas, restaurantes,
- * hoteles, servicios/negocios locales). Mismo flujo editorial que el resto
+ * hoteles, servicios/negocios locales). Mismo flujo de publicación que el resto
  * (sección 12); a diferencia de Reseña (que opina sobre un lugar), esta
  * ficha ES el negocio. Puede vincularse a un Lugar ya existente (placeId)
  * o llevar su propia dirección libre (address) — mismo patrón que

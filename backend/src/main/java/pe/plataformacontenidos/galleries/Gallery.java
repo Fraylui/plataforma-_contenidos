@@ -23,7 +23,7 @@ import pe.plataformacontenidos.shared.ContentImage;
  * Página de Galería: colección de fotografías con título y descripción
  * breve — a diferencia de Artículo/Lugar/Evento, no tiene cuerpo de texto
  * largo: el contenido ES la colección de fotos (ver GalleryService, que
- * exige al menos una imagen). Mismo flujo editorial que el resto (sección
+ * exige al menos una imagen). Mismo flujo de publicación que el resto (sección
  * 12). category_id es UUID sin FK (Taxonomy, sección 38); images tampoco
  * (Media) — cada imagen es subida o por enlace externo, con título/pie de
  * foto opcionales, mismo patrón que Article/Place/Event.

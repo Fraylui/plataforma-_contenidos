@@ -21,7 +21,7 @@ import pe.plataformacontenidos.places.api.dto.RejectPlaceRequest;
 import pe.plataformacontenidos.places.api.dto.SchedulePlaceRequest;
 
 /**
- * CRUD editorial + transiciones de workflow para Lugares — mismo patrón que
+ * CRUD de contenido + transiciones de workflow para Lugares — mismo patrón que
  * ArticleAdminController. La autorización fina vive en PlaceService.
  */
 @RestController

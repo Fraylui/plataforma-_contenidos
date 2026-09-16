@@ -22,7 +22,7 @@ import pe.plataformacontenidos.identity.security.UserPrincipal;
 /**
  * Gestión de usuarios por administradores. No hay auto-registro público
  * todavía (CONTEXTO.md sección 34: ninguna feature de audiencia lo
- * requiere aún) — las cuentas editoriales y de otros admins las crea un
+ * requiere aún) — las cuentas de contenido y de otros admins las crea un
  * SUPER_ADMIN/ADMIN. La autorización por rol se aplica en SecurityConfig;
  * la excepción de que un ADMIN no pueda tocar cuentas SUPER_ADMIN vive en
  * UserAdminService (autorización a nivel de objeto, mismo patrón que

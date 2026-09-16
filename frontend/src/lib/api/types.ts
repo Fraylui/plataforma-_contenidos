@@ -239,7 +239,7 @@ export interface Gallery {
 /** Mismos valores que ArticleStatus/PlaceStatus/EventStatus/GalleryStatus (CONTEXTO.md sección 12) — BusinessStatus es un enum propio en el backend (sección 38). */
 export type BusinessStatus = ArticleStatus;
 
-/** Ver BusinessType.java (CONTEXTO.md sección 6) — eje de filtrado del Directorio, distinto de la categoría editorial. */
+/** Ver BusinessType.java (CONTEXTO.md sección 6) — eje de filtrado del Directorio, distinto de la categoría de contenido. */
 export type BusinessType = "RESTAURANT" | "HOTEL" | "SERVICE" | "SHOP" | "OTHER";
 
 export interface BusinessSummary {
