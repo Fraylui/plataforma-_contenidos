@@ -11,7 +11,7 @@ import {
   listActiveCategories,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { formatArticleDate, formatPublishedDate } from "@/lib/content-labels";
+import { estimateReadingTime, formatArticleDate, formatPublishedDate } from "@/lib/content-labels";
 import { LikeShareBar } from "@/components/content/like-share-bar";
 import { NeighborNav } from "@/components/article/neighbor-nav";
 import { ReadingProgressBar } from "@/components/article/reading-progress-bar";
@@ -196,6 +196,7 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
                 </time>
               </span>
             )}
+            <span>{estimateReadingTime(article.body)}</span>
           </div>
 
           <ContentImageGallery images={article.images} alt={article.title} />
@@ -209,9 +210,23 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
           )}
 
           {/* article.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
-              de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí. */}
+              de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
+              Overrides sobre el prose por defecto de Tailwind Typography: cita destacada
+              (sin comillas decorativas, borde en --accent, tamaño mayor en vez del
+              italic/borde gris genérico), separador sutil antes de cada H2 para marcar
+              secciones largas, e imágenes con el mismo borde/sombra que el resto del
+              sitio (ContentCard, galería de portada) en vez de solo `rounded-md`. */}
           <div
-            className="prose prose-slate sm:prose-lg mt-6 max-w-none prose-headings:font-bold prose-a:text-accent"
+            className="prose prose-slate sm:prose-lg mt-6 max-w-none
+              prose-headings:font-bold prose-headings:tracking-tight
+              prose-h2:mt-12 prose-h2:border-t prose-h2:border-border prose-h2:pt-8 prose-h2:text-2xl
+              prose-h3:mt-8 prose-h3:text-xl
+              prose-a:text-accent
+              prose-blockquote:border-l-accent prose-blockquote:not-italic prose-blockquote:font-semibold
+              prose-blockquote:text-xl prose-blockquote:leading-snug prose-blockquote:text-foreground
+              prose-blockquote:before:content-none prose-blockquote:after:content-none
+              prose-img:rounded-2xl prose-img:border prose-img:border-foreground/[0.06]
+              prose-img:shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_8px_20px_-12px_rgb(0_0_0_/_0.08)]"
             dangerouslySetInnerHTML={{ __html: article.body }}
           />
 

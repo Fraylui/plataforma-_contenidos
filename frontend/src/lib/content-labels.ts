@@ -164,6 +164,19 @@ export function searchResultHref(type: SearchResultType, slug: string): string {
   return `/${SEARCH_RESULT_TYPE_PATH[type]}/${slug}`;
 }
 
+/**
+ * Tiempo de lectura estimado del cuerpo de una Publicación (200 palabras/min,
+ * promedio estándar en español) — se calcula sobre el HTML ya sanitizado,
+ * sin depender de un campo aparte en el backend. Redondea siempre hacia
+ * arriba y nunca baja de 1 min, para no mostrar "0 min" en textos cortos.
+ */
+export function estimateReadingTime(html: string): string {
+  const text = html.replace(/<[^>]+>/g, " ");
+  const words = text.split(/\s+/).filter(Boolean).length;
+  const minutes = Math.max(1, Math.round(words / 200));
+  return `${minutes} min de lectura`;
+}
+
 export function isEventFinished(event: { startsAt: string; endsAt: string | null }): boolean {
   const reference = event.endsAt ?? event.startsAt;
   return new Date(reference).getTime() < Date.now();
