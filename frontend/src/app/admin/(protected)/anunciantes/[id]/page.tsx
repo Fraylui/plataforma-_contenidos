@@ -26,7 +26,7 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
   const { advertiser, campaigns } = result.data;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <AdminPageHeader title={advertiser.name} action={{ href: `/admin/anunciantes/${id}/campanas/nueva`, label: "Nueva campaña" }} />
 
       <AdvertiserForm mode="edit" advertiser={advertiser} />

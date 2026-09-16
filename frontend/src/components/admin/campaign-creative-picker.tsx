@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Link as LinkIcon, X } from "lucide-react";
 import type { AdminImage } from "@/lib/api/admin-types";
 import { imageUrl } from "@/lib/image-url";
-import { FormField, formInputClass } from "@/components/admin/ui";
+import { formInputClass } from "@/components/admin/ui";
 import { InlineImageUpload } from "./inline-image-upload";
 
 export interface CampaignCreativeValue {
@@ -61,7 +61,7 @@ export function CampaignCreativePicker({
     : value.externalImageUrl;
 
   return (
-    <div className="space-y-3">
+    <div className="mt-1 space-y-3">
       {previewSrc && (
         <div className="relative aspect-[3/1] w-full max-w-sm overflow-hidden rounded-md border border-border">
           {/* eslint-disable-next-line @next/next/no-img-element -- previsualización, host puede ser externo */}
@@ -133,15 +133,19 @@ export function CampaignCreativePicker({
         </div>
       )}
 
-      <FormField label="Texto alternativo (accesibilidad)" name="imageAlt">
+      <div>
+        <label className="mb-1 block text-xs font-medium text-muted" htmlFor="campaign-creative-alt">
+          Texto alternativo (accesibilidad)
+        </label>
         <input
+          id="campaign-creative-alt"
           type="text"
           value={value.imageAlt ?? ""}
           disabled={disabled}
           onChange={(e) => onChange({ ...value, imageAlt: e.target.value || null })}
           className={formInputClass}
         />
-      </FormField>
+      </div>
     </div>
   );
 }

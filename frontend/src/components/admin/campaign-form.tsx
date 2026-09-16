@@ -79,12 +79,9 @@ export function CampaignForm({ mode, advertiserId, placementOptions, allImages, 
         />
       </FormField>
 
-      <div>
-        <p className="text-sm font-medium text-foreground">Creatividad</p>
-        <div className="mt-1">
-          <CampaignCreativePicker allImages={allImages} value={creative} onChange={setCreative} />
-        </div>
-      </div>
+      <FormField label="Creatividad (imagen subida o por enlace externo)" name="creative">
+        <CampaignCreativePicker allImages={allImages} value={creative} onChange={setCreative} />
+      </FormField>
 
       <FormField label="Link de destino (a dónde va el lector al hacer clic)" name="linkUrl">
         <input
