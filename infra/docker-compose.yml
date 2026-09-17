@@ -158,7 +158,15 @@ services:
       frontend:
         condition: service_started
     environment:
-      DOMAIN: ${DOMAIN:?define DOMAIN in .env (ej. midominio.com, sin https:// ni www.)}
+      # Default "localhost" a propósito (no ":?" obligatorio como el resto de
+      # las variables de este archivo): a diferencia de DB_PASSWORD/JWT_SECRET,
+      # sin dominio propio el servicio nginx simplemente no tiene sentido
+      # levantarlo en desarrollo local — pero `docker compose build/up` de
+      # OTRO servicio (backend, frontend) igual interpola TODAS las variables
+      # de TODOS los servicios del archivo, así que exigir DOMAIN acá rompía
+      # el flujo local aunque nadie tocara nginx (bug real, encontrado
+      # reconstruyendo el frontend sin querer levantar nginx).
+      DOMAIN: ${DOMAIN:-localhost}
     ports:
       - "80:80"
       - "443:443"
