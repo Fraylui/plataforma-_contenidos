@@ -82,6 +82,10 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
         />
       </div>
 
+      <div className="mt-8">
+        <AdBlock position="cabecera" className="aspect-[5/1] sm:aspect-[8/1]" />
+      </div>
+
       <section className="mt-8" aria-label="Directorio">
         {result.items.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">

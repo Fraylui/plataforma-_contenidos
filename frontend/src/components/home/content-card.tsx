@@ -37,18 +37,19 @@ const STRETCHED = "after:absolute after:inset-0 after:content-[''] focus-visible
  */
 const KICKER = "text-[10px] font-semibold tracking-wider text-accent uppercase sm:text-[11px]";
 
+const COVER_TRANSFORM =
+  "object-cover transition-transform duration-500 group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100";
+
 function Cover({ item, sizes, className }: { item: HomeItem; sizes: string; className?: string }) {
   return (
     <div className={cn("relative overflow-hidden bg-canvas-strong", className)}>
-      {item.imageUrl ? (
-        <SkeletonImage
-          src={item.imageUrl}
-          alt={item.title}
-          className="object-cover transition-transform duration-500 group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-          sizes={sizes}
-        />
-      ) : (
+      {!item.imageUrl ? (
         <NoImagePlaceholder />
+      ) : item.imageIsExternal ? (
+        // eslint-disable-next-line @next/next/no-img-element -- enlace externo pegado por quien redacta, host arbitrario
+        <img src={item.imageUrl} alt={item.title} className={cn("absolute inset-0 h-full w-full", COVER_TRANSFORM)} />
+      ) : (
+        <SkeletonImage src={item.imageUrl} alt={item.title} className={COVER_TRANSFORM} sizes={sizes} />
       )}
     </div>
   );

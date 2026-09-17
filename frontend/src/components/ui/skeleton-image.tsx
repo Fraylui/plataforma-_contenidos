@@ -22,18 +22,21 @@ export function SkeletonImage({
   className,
   sizes = "(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw",
   fade = true,
+  priority = false,
 }: {
   src: string;
   alt: string;
   className?: string;
   sizes?: string;
   fade?: boolean;
+  /** La imagen más probable de ser el LCP (ej. el slide activo del hero) no debe esperar a "lazy" — next/image además la precarga en el <head>. */
+  priority?: boolean;
 }) {
   const [loaded, setLoaded] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
   if (!fade) {
-    return <Image src={src} alt={alt} fill sizes={sizes} className={className} />;
+    return <Image src={src} alt={alt} fill sizes={sizes} className={className} priority={priority} />;
   }
 
   return (
@@ -54,6 +57,7 @@ export function SkeletonImage({
         alt={alt}
         fill
         sizes={sizes}
+        priority={priority}
         onLoad={() => setLoaded(true)}
         className={cn(className, "transition-[opacity,transform] duration-300", loaded ? "opacity-100" : "opacity-0")}
       />

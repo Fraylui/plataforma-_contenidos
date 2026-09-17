@@ -61,7 +61,10 @@ export function HomeSidebar({
         </section>
       )}
 
-      <AdBlock position="listing" className={SECTION} />
+      {/* "listing" (no "cabecera"): esta caja vive en la columna angosta del sidebar, no es un banner de tope de página — mismo placement que el banner de cierre de los listados, solo que acá se ve como rectángulo en vez de banner ancho. */}
+      <div className={SECTION}>
+        <AdBlock position="listing" className="aspect-[16/9]" />
+      </div>
 
       {topCategories.length > 0 && (
         <section aria-labelledby="explorar-por-tema" className={SECTION}>

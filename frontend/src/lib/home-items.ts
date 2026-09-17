@@ -22,6 +22,8 @@ export interface HomeItem {
   title: string;
   excerpt: string | null;
   imageUrl: string | null;
+  /** true = enlace externo pegado por quien redacta (host arbitrario, nunca pasa por next/image); false/undefined = imagen subida a Medios. */
+  imageIsExternal: boolean;
   categoryId: string;
   /** Etiqueta del tipo que va sobre la imagen ("Crónica", "Lugar", "Galería"…). */
   typeLabel: string;
@@ -35,12 +37,19 @@ function image(id: string | null | undefined): string | null {
   return id ? serverImageUrl(`/api/v1/images/${id}/file`) : null;
 }
 
-/** Portada de Publicación/Lugar/Evento: subida (coverImageId) o por enlace externo (coverImageUrl), nunca ambas. */
-function coverImage(imageId: string | null, imageUrl: string | null): string | null {
-  return imageId ? image(imageId) : imageUrl;
+/**
+ * Portada de Publicación/Lugar/Evento: subida (coverImageId) o por enlace
+ * externo (coverImageUrl), nunca ambas — el `isExternal` que devuelve es lo
+ * que le dice a cada Cover si puede pasar por next/image (host propio,
+ * allowlisteado) o si tiene que ser un <img> plano (host arbitrario, ver
+ * next.config.ts remotePatterns).
+ */
+function coverImage(imageId: string | null, imageUrl: string | null): { url: string | null; isExternal: boolean } {
+  return imageId ? { url: image(imageId), isExternal: false } : { url: imageUrl, isExternal: imageUrl != null };
 }
 
 export function fromArticle(a: ArticleSummary): HomeItem {
+  const cover = coverImage(a.coverImageId, a.coverImageUrl);
   return {
     id: a.id,
     kind: "publicacion",
@@ -49,7 +58,8 @@ export function fromArticle(a: ArticleSummary): HomeItem {
     href: `/publicaciones/${a.slug}`,
     title: a.title,
     excerpt: a.excerpt,
-    imageUrl: coverImage(a.coverImageId, a.coverImageUrl),
+    imageUrl: cover.url,
+    imageIsExternal: cover.isExternal,
     categoryId: a.categoryId,
     typeLabel: articleTypeLabel(a.articleType),
     sortDate: a.publishedAt ?? "",
@@ -58,6 +68,7 @@ export function fromArticle(a: ArticleSummary): HomeItem {
 }
 
 export function fromPlace(p: PlaceSummary): HomeItem {
+  const cover = coverImage(p.coverImageId, p.coverImageUrl);
   return {
     id: p.id,
     kind: "lugar",
@@ -66,7 +77,8 @@ export function fromPlace(p: PlaceSummary): HomeItem {
     href: `/lugares/${p.slug}`,
     title: p.name,
     excerpt: p.excerpt,
-    imageUrl: coverImage(p.coverImageId, p.coverImageUrl),
+    imageUrl: cover.url,
+    imageIsExternal: cover.isExternal,
     categoryId: p.categoryId,
     typeLabel: KIND_LABEL.lugar,
     sortDate: p.publishedAt ?? "",
@@ -75,6 +87,7 @@ export function fromPlace(p: PlaceSummary): HomeItem {
 }
 
 export function fromEvent(e: EventSummary): HomeItem {
+  const cover = coverImage(e.coverImageId, e.coverImageUrl);
   return {
     id: e.id,
     kind: "evento",
@@ -83,7 +96,8 @@ export function fromEvent(e: EventSummary): HomeItem {
     href: `/eventos/${e.slug}`,
     title: e.title,
     excerpt: e.excerpt,
-    imageUrl: coverImage(e.coverImageId, e.coverImageUrl),
+    imageUrl: cover.url,
+    imageIsExternal: cover.isExternal,
     categoryId: e.categoryId,
     typeLabel: KIND_LABEL.evento,
     sortDate: e.startsAt,
@@ -92,6 +106,7 @@ export function fromEvent(e: EventSummary): HomeItem {
 }
 
 export function fromGallery(g: GallerySummary): HomeItem {
+  const cover = coverImage(g.images[0]?.imageId ?? null, g.images[0]?.externalUrl ?? null);
   return {
     id: g.id,
     kind: "galeria",
@@ -100,7 +115,8 @@ export function fromGallery(g: GallerySummary): HomeItem {
     href: `/galerias/${g.slug}`,
     title: g.title,
     excerpt: g.excerpt,
-    imageUrl: coverImage(g.images[0]?.imageId ?? null, g.images[0]?.externalUrl ?? null),
+    imageUrl: cover.url,
+    imageIsExternal: cover.isExternal,
     categoryId: g.categoryId,
     typeLabel: KIND_LABEL.galeria,
     sortDate: g.publishedAt ?? "",
@@ -131,6 +147,7 @@ const FEED_HREF_PREFIX: Record<HomeItemKind, string> = {
  */
 export function fromFeedItem(item: FeedItem): HomeItem {
   const kind = FEED_KIND[item.type];
+  const cover = coverImage(item.coverImageId, item.coverImageUrl);
   return {
     id: item.id,
     kind,
@@ -139,7 +156,8 @@ export function fromFeedItem(item: FeedItem): HomeItem {
     likeCount: item.likeCount,
     title: item.title,
     excerpt: item.excerpt,
-    imageUrl: coverImage(item.coverImageId, item.coverImageUrl),
+    imageUrl: cover.url,
+    imageIsExternal: cover.isExternal,
     categoryId: item.categoryId ?? "",
     typeLabel: item.articleType ? articleTypeLabel(item.articleType) : KIND_LABEL[kind],
     sortDate: item.publishedAt ?? "",

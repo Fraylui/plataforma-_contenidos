@@ -3,6 +3,18 @@
 @plugin "tailwindcss-animate";
 
 /*
+ * Google Auto ads solo evita superponerse con anuncios QUE RECONOCE COMO
+ * SUYOS (`<ins class="adsbygoogle">`) — no tiene forma de saber que un
+ * <a>/<img> cualquiera es publicidad directa nuestra (DirectCampaignBanner),
+ * así que sin esto podría insertar un anuncio propio pegado o encima de una
+ * campaña ya vendida. `google-auto-ads: ignore` es la propiedad que Google
+ * documenta para excluir manualmente un contenedor de Auto ads.
+ */
+.no-auto-ads {
+  google-auto-ads: ignore;
+}
+
+/*
  * Marca: verde/negro/blanco con rojo reservado solo para errores/destructivo,
  * un solo set de tokens para todo el sitio (público + admin). El día que
  * exista platformSettings con colores propios, solo se reescriben estos

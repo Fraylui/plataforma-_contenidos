@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner";
 import { AdsenseLoader } from "@/components/legal/adsense-loader";
+import { AnchorAdSlot } from "@/components/legal/anchor-ad-slot";
 
 /**
  * Chrome del sitio público (header/footer/banner de cookies/AdSense) — a
@@ -27,6 +28,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
         {children}
       </main>
       <SiteFooter />
+      <AnchorAdSlot />
       <CookieConsentBanner adsenseEnabled={settings.adsenseEnabled} />
       {settings.adsenseEnabled && settings.adsenseClientId && (
         <AdsenseLoader clientId={settings.adsenseClientId} />

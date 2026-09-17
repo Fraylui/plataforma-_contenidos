@@ -131,6 +131,7 @@ export default async function AdminDashboardPage() {
 
   // Delta real de datos ya cargados (no una comparación inventada): cuántos
   // de los publicados se crearon en los últimos 7 días.
+  // eslint-disable-next-line react-hooks/purity -- Server Component async (se re-ejecuta entero en cada request, nunca memoizado por el compilador de React), Date.now() acá siempre es del momento real de carga.
   const sevenDaysAgo = Date.now() - SEVEN_DAYS_MS;
   const publishedThisWeek = contentItems.filter(
     (item) => item.status === "PUBLISHED" && new Date(item.createdAt).getTime() >= sevenDaysAgo,

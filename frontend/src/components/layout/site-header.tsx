@@ -1,21 +1,25 @@
 import Link from "next/link";
-import { CalendarDays, FileText, Home, Images, MapPin, Store, type LucideIcon } from "lucide-react";
 import { getPlatformSettings, getPrimaryNavVisibility, listActiveCategories } from "@/lib/api/client";
 import { CategoryMenu } from "./category-menu";
 import { MobileNav } from "./mobile-nav";
 import { SearchBox } from "./search-box";
 import { NavLink } from "./nav-link";
 
-const NAV_LINK = "inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-2 text-sm whitespace-nowrap transition-colors";
+const NAV_LINK = "shrink-0 rounded-md px-2.5 py-2 text-sm font-medium whitespace-nowrap transition-colors";
 
 // Mismo orden que MobileNav (LINKS) — es el mismo menú, en dos formatos.
-const PRIMARY_LINKS: { href: string; label: string; icon: LucideIcon; wide?: boolean }[] = [
-  { href: "/", label: "Inicio", icon: Home },
-  { href: "/publicaciones", label: "Publicaciones", icon: FileText },
-  { href: "/lugares", label: "Lugares", icon: MapPin },
-  { href: "/eventos", label: "Eventos", icon: CalendarDays },
-  { href: "/galerias", label: "Galerías", icon: Images, wide: true },
-  { href: "/directorio", label: "Directorio", icon: Store, wide: true },
+// Sin íconos en escritorio (a diferencia de una versión anterior): con los
+// 6 enlaces + logo + buscador + categorías, el header no entraba en varios
+// anchos de laptop comunes (1024-1366px) y el nav cambiaba a scroll
+// horizontal — texto solo ahorra el espacio suficiente para que quepan
+// todos sin recortarse.
+const PRIMARY_LINKS: { href: string; label: string; wide?: boolean }[] = [
+  { href: "/", label: "Inicio" },
+  { href: "/publicaciones", label: "Publicaciones" },
+  { href: "/lugares", label: "Lugares" },
+  { href: "/eventos", label: "Eventos" },
+  { href: "/galerias", label: "Galerías", wide: true },
+  { href: "/directorio", label: "Directorio", wide: true },
 ];
 
 export async function SiteHeader() {
@@ -41,49 +45,32 @@ export async function SiteHeader() {
           </span>
         </Link>
         <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-          {/* Enlaces de módulo con ícono (antes solo existían en el menú mobile:
-              en escritorio Lugares/Eventos eran inalcanzables sin pasar por
-              Categorías). Los 3 principales siempre; Galerías/Directorio
-              solo desde lg para no saturar el header en tablet.
-              overflow-x-auto + min-w-0: red de seguridad si algún día el
-              conjunto no entra (nombre de marca largo, un enlace nuevo) —
-              antes el header entero se envolvía a una segunda línea y,
-              como quedaba solo un elemento en esa línea, `justify-between`
-              lo pegaba a la izquierda dejando un vacío enorme del lado del
-              buscador (bug real, encontrado en 1358px de viewport — un
-              ancho de laptop común). Ahora en ese caso el menú desliza
-              horizontal en vez de romper el layout; buscador y hamburguesa
-              nunca se mueven de su lugar. */}
-          <nav
-            aria-label="Principal"
-            className="hidden min-w-0 items-center gap-1 overflow-x-auto sm:flex [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            {visibleLinks.map(({ href, label, icon: Icon, wide }) => (
+          {/* Nunca hace scroll horizontal: por debajo de xl (1280px) directamente
+              no se muestra el nav en línea, se usa el menú hamburguesa (Sheet) —
+              mismo patrón que shadcn/Radix NavigationMenu recomiendan para
+              overflow: colapsar a un menú, nunca deslizar la barra (encontramos
+              un caso real roto a 1358px con la versión anterior que sí
+              intentaba entrar todo con scroll). A xl+ ya sobra espacio de sobra
+              para los 6 enlaces + categorías + buscador sin apretar nada. */}
+          <nav aria-label="Principal" className="hidden items-center gap-0.5 xl:flex">
+            {visibleLinks.map(({ href, label, wide }) => (
               <NavLink
                 key={href}
                 href={href}
-                className={`${NAV_LINK} text-muted hover:text-foreground ${wide ? "hidden lg:inline-flex" : ""}`}
-                activeClassName={`${NAV_LINK} font-semibold text-accent ${wide ? "hidden lg:inline-flex" : ""}`}
+                className={`${NAV_LINK} text-muted hover:bg-canvas hover:text-foreground ${wide ? "hidden 2xl:inline-block" : ""}`}
+                activeClassName={`${NAV_LINK} font-semibold text-accent ${wide ? "hidden 2xl:inline-block" : ""}`}
               >
-                <Icon className="h-4 w-4" aria-hidden="true" />
                 {label}
               </NavLink>
             ))}
           </nav>
-          {/* Fuera del <nav> con overflow-x-auto a propósito: overflow-x
-              distinto de visible fuerza overflow-y:auto (regla real de CSS,
-              no hay forma de dejarlo "solo x"), así que el panel del
-              desplegable —que se abre hacia abajo, fuera de los límites de
-              esa fila angosta— quedaba recortado e invisible (bug real,
-              encontrado probando el propio desplegable). Categorías vive
-              junto al buscador, en un contenedor que nunca corta overflow. */}
-          <div className="hidden shrink-0 sm:block">
+          <div className="hidden shrink-0 xl:block">
             <CategoryMenu categories={categories} />
           </div>
           <div className="flex shrink-0 items-center gap-3 sm:gap-4">
             <SearchBox variant="desktop" categoryNames={categoryNames} />
             <SearchBox variant="mobile" categoryNames={categoryNames} />
-            <MobileNav links={visibleLinks.map(({ href, label }) => ({ href, label }))} />
+            <MobileNav links={visibleLinks.map(({ href, label }) => ({ href, label }))} categories={categories} />
           </div>
         </div>
       </div>

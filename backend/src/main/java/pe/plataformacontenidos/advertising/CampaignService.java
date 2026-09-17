@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.media.ImageService;
@@ -80,17 +81,28 @@ public class CampaignService {
     }
 
     /** La primera campaña vigente para la posición (orden de creación) — cuenta como una impresión. */
+    /**
+     * Si hay más de una campaña activa vendida para la misma posición al
+     * mismo tiempo, se rota al azar entre todas las que están vigentes en
+     * vez de siempre devolver la más antigua — así cada anunciante que pagó
+     * esa posición recibe impresiones repartidas (decisión del usuario:
+     * varias campañas por posición es un caso soportado, no un error de
+     * venta). Con volumen de tráfico normal, la aleatoriedad por pedido se
+     * reparte de forma pareja sin necesitar guardar turno en ningún lado.
+     */
     public Optional<Campaign> resolveActive(String placementKey) {
         Instant now = Instant.now();
-        Optional<Campaign> match = campaignRepository.findByPlacementKeyAndActiveTrueOrderByCreatedAtAsc(placementKey)
+        List<Campaign> candidates = campaignRepository.findByPlacementKeyAndActiveTrueOrderByCreatedAtAsc(placementKey)
                 .stream()
                 .filter(campaign -> campaign.isCurrentlyServable(now))
-                .findFirst();
-        match.ifPresent(campaign -> {
-            campaign.recordImpression();
-            campaignRepository.save(campaign);
-        });
-        return match;
+                .toList();
+        if (candidates.isEmpty()) {
+            return Optional.empty();
+        }
+        Campaign chosen = candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
+        chosen.recordImpression();
+        campaignRepository.save(chosen);
+        return Optional.of(chosen);
     }
 
     /** Registra el clic y devuelve a dónde redirigir — el link real nunca queda expuesto directo en el HTML. */

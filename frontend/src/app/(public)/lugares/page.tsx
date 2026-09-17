@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { listActiveCategories, listPublishedPlaces } from "@/lib/api/client";
 import { PlaceCard } from "@/components/place/place-card";
 import { Pagination } from "@/components/ui/pagination";
+import { AdBlock } from "@/components/legal/ad-block";
 import { FilterMenu } from "@/components/filters/filter-menu";
 
 const PAGE_SIZE = 24;
@@ -48,6 +49,10 @@ export default async function PlacesPage(props: PageProps<"/lugares">) {
         <FilterMenu label="Filtrar por tema" allLabel="Todas las categorías" options={categories.map((c) => ({ value: c.id, label: c.name }))} activeValue={categoryId} paramName="categoryId" basePath={BASE_PATH} />
       </div>
 
+      <div className="mt-8">
+        <AdBlock position="cabecera" className="aspect-[5/1] sm:aspect-[8/1]" />
+      </div>
+
       <section className="mt-8" aria-label="Lugares">
         {result.items.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">
@@ -66,6 +71,10 @@ export default async function PlacesPage(props: PageProps<"/lugares">) {
           </div>
         )}
       </section>
+
+      <div className="mt-10">
+        <AdBlock position="listing" />
+      </div>
 
       <Pagination page={result.page} totalPages={result.totalPages} buildHref={(p) => buildHref(categoryId, p)} />
     </div>

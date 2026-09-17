@@ -18,3 +18,7 @@ backend/data/
 
 # Backups locales (scripts/backup.sh) — dumps de la base de datos, nunca commitear
 /backups/
+
+# Capturas de pantalla de depuración local (sesión de navegador con pestañas/marcadores
+# personales visibles) — nunca material del proyecto, nunca commitear.
+/captura de pantalla/

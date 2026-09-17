@@ -10,6 +10,33 @@ import { cn } from "@/lib/utils";
 
 export const HERO_ROTATION_MS = 6000;
 
+function CoverImg({
+  item,
+  className,
+  sizes,
+  priority = false,
+}: {
+  item: HomeItem;
+  className?: string;
+  sizes: string;
+  priority?: boolean;
+}) {
+  if (!item.imageUrl) return <NoImagePlaceholder />;
+  if (item.imageIsExternal) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- enlace externo pegado por quien redacta, host arbitrario
+      <img
+        src={item.imageUrl}
+        alt={item.title}
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : "auto"}
+        className={cn("absolute inset-0 h-full w-full", className)}
+      />
+    );
+  }
+  return <SkeletonImage src={item.imageUrl} alt={item.title} className={className} sizes={sizes} priority={priority} />;
+}
+
 /**
  * Cabecera del home sobre el lienzo verde claro (sin franja negra, a
  * pedido: "que no se vea mucho negro"): un destacado grande que rota solo cada 6 s entre
@@ -67,16 +94,12 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
                   i === index ? "opacity-100" : "pointer-events-none opacity-0",
                 )}
               >
-                {item.imageUrl ? (
-                  <SkeletonImage
-                    src={item.imageUrl}
-                    alt={item.title}
-                    className="object-cover transition-transform duration-700 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-                    sizes="(min-width: 1024px) 58vw, 100vw"
-                  />
-                ) : (
-                  <NoImagePlaceholder />
-                )}
+                <CoverImg
+                  item={item}
+                  className="object-cover transition-transform duration-700 group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                  sizes="(min-width: 1024px) 58vw, 100vw"
+                  priority={i === 0}
+                />
                 <div
                   className="pointer-events-none absolute inset-0"
                   style={{ background: "linear-gradient(to top, rgba(9,9,11,0.92) 0%, rgba(9,9,11,0.45) 45%, transparent 75%)" }}
@@ -136,11 +159,7 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
                 className="flex min-h-0 flex-1 items-center gap-4 rounded-2xl border border-foreground/[0.06] bg-surface p-3 shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_8px_20px_-12px_rgb(0_0_0_/_0.08)] transition-colors hover:border-accent/50"
               >
                 <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-canvas-strong">
-                  {item.imageUrl ? (
-                    <SkeletonImage src={item.imageUrl} alt="" className="object-cover" sizes="96px" />
-                  ) : (
-                    <NoImagePlaceholder />
-                  )}
+                  <CoverImg item={item} className="object-cover" sizes="96px" />
                 </div>
                 <div className="flex min-w-0 flex-col gap-1">
                   {(item.kind === "evento" ? item.dateLabel : categoryNames[item.categoryId]) && (
@@ -169,7 +188,7 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
               className="flex w-56 shrink-0 snap-start items-center gap-3 rounded-xl border border-foreground/[0.06] bg-surface p-2.5 shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_8px_20px_-12px_rgb(0_0_0_/_0.08)]"
             >
               <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-canvas-strong">
-                {item.imageUrl ? <SkeletonImage src={item.imageUrl} alt="" className="object-cover" sizes="56px" /> : <NoImagePlaceholder />}
+                <CoverImg item={item} className="object-cover" sizes="56px" />
               </div>
               <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-foreground">{item.title}</span>
             </Link>

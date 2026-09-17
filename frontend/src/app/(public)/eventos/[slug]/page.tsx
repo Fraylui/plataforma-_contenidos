@@ -248,7 +248,8 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
 
         {hasSidebar && (
           <aside className="mt-14 lg:col-span-4 lg:mt-0">
-            <div className="lg:sticky lg:top-24">
+            <div className="lg:sticky lg:top-24 lg:space-y-8">
+              <AdBlock position="listing" className="aspect-[16/9] rounded-2xl" />
               <RelatedFeed items={related} title={relatedTitle} categoryNames={categoryNames} />
             </div>
           </aside>

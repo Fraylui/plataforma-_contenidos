@@ -48,6 +48,10 @@ export default async function ArticlesPage(props: PageProps<"/publicaciones">) {
         <FilterMenu label="Filtrar por tema" allLabel="Todas las categorías" options={categories.map((c) => ({ value: c.id, label: c.name }))} activeValue={categoryId} paramName="categoryId" basePath={BASE_PATH} />
       </div>
 
+      <div className="mt-8">
+        <AdBlock position="cabecera" className="aspect-[5/1] sm:aspect-[8/1]" />
+      </div>
+
       <section className="mt-8" aria-label="Publicaciones">
         {result.items.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { AdminButton, Dialog, DialogContent, DialogDescription, DialogTitle, formInputClass } from "@/components/admin/ui";
 
 /**
@@ -24,10 +24,15 @@ export function LinkInsertDialog({
   onRemove: () => void;
 }) {
   const [url, setUrl] = useState(currentUrl ?? "");
-
-  useEffect(() => {
+  // Ajuste de estado durante el render (patrón recomendado por React para
+  // "resetear estado cuando cambia una prop") en vez de useEffect+setState:
+  // este componente queda montado entre aperturas del diálogo (lo controla
+  // `open`), así que sin esto el campo arrastraba el valor de la edición anterior.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) setUrl(currentUrl ?? "");
-  }, [open, currentUrl]);
+  }
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
