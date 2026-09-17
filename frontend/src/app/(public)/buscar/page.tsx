@@ -137,7 +137,9 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
 
       <section className="mt-8" aria-label="Resultados de búsqueda">
         {!query ? (
-          <p className="text-sm text-muted">Escribe algo en el buscador de arriba para buscar en todo el contenido publicado.</p>
+          <p className="rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">
+            Escribe algo en el buscador de arriba para buscar en todo el contenido publicado.
+          </p>
         ) : result && result.items.length > 0 ? (
           <>
             <p className="mb-6 text-sm text-muted">
@@ -160,7 +162,9 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
             />
           </>
         ) : (
-          <p className="text-sm text-muted">Sin resultados para «{query}». Prueba con otras palabras.</p>
+          <p className="rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">
+            Sin resultados para «{query}». Prueba con otras palabras.
+          </p>
         )}
       </section>
     </div>
