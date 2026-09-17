@@ -7,6 +7,12 @@
 # Uso: scripts/restore.sh <archivo.dump> [nombre_db_destino]
 # Sin nombre_db_destino, crea "restore_test_<timestamp>" y al final imprime
 # el comando para borrarla una vez verificados los datos.
+#
+# Simétrico con remote-copy.sh (la copia externa de backup.sh): si
+# <archivo.dump> no existe en disco, se busca por nombre en el mismo
+# remoto/bucket de R2 (RCLONE_REMOTE/RCLONE_BACKUP_PATH) y se descarga acá
+# antes de restaurar — útil en un servidor nuevo, donde el .dump nunca
+# estuvo en disco local, solo en R2.
 set -euo pipefail
 
 if [ $# -lt 1 ]; then
@@ -15,8 +21,6 @@ if [ $# -lt 1 ]; then
 fi
 
 DUMP_FILE="$1"
-[ -f "$DUMP_FILE" ] || { echo "No existe el archivo: $DUMP_FILE" >&2; exit 1; }
-DUMP_FILE="$(cd "$(dirname "$DUMP_FILE")" && pwd)/$(basename "$DUMP_FILE")"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -28,6 +32,18 @@ if [ -f "$REPO_ROOT/.env" ]; then
   source "$REPO_ROOT/.env"
   set +a
 fi
+
+if [ ! -f "$DUMP_FILE" ]; then
+  RCLONE_REMOTE="${RCLONE_REMOTE:-r2}"
+  RCLONE_BACKUP_PATH="${RCLONE_BACKUP_PATH:-plataforma-contenidos-backups}"
+  BACKUP_DIR="${BACKUP_DIR:-$REPO_ROOT/backups}"
+  echo "==> No existe local, buscando '$(basename "$DUMP_FILE")' en ${RCLONE_REMOTE}:${RCLONE_BACKUP_PATH}/"
+  mkdir -p "$BACKUP_DIR"
+  rclone copy "${RCLONE_REMOTE}:${RCLONE_BACKUP_PATH}/$(basename "$DUMP_FILE")" "$BACKUP_DIR/"
+  DUMP_FILE="$BACKUP_DIR/$(basename "$DUMP_FILE")"
+fi
+[ -f "$DUMP_FILE" ] || { echo "No existe el archivo (ni local ni en el remoto): $DUMP_FILE" >&2; exit 1; }
+DUMP_FILE="$(cd "$(dirname "$DUMP_FILE")" && pwd)/$(basename "$DUMP_FILE")"
 
 DB_USER="${DB_USER:-plataforma_contenidos}"
 : "${DB_PASSWORD:?define DB_PASSWORD antes de restaurar}"
