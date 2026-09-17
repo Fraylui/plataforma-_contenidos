@@ -142,6 +142,51 @@ services:
     ports:
       - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"
 
+  # Reverse proxy + HTTPS (CONTEXTO.md sección 25) — único servicio con
+  # puertos expuestos a toda la red, no solo 127.0.0.1: es la puerta de
+  # entrada real del sitio. Antes de que exista un certificado real en
+  # ./nginx/certbot/conf, correr infra/nginx/init-letsencrypt.sh (ver ese
+  # archivo — lo arranca con un certificado autofirmado temporal para poder
+  # levantar el bloque HTTPS la primera vez).
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    logging: *default-logging
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    environment:
+      DOMAIN: ${DOMAIN:?define DOMAIN in .env (ej. midominio.com, sin https:// ni www.)}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/templates:/etc/nginx/templates:ro
+      - ./nginx/certbot/conf:/etc/letsencrypt:ro
+      - ./nginx/certbot/www:/var/www/certbot:ro
+    # nginx NO relee el certificado solo cuando certbot lo renueva — hace
+    # falta un reload. En vez de coordinar eso entre dos contenedores
+    # separados (certbot no tiene forma simple de avisarle a nginx sin
+    # darle acceso al socket de Docker), nginx se recarga solo cada 6h de
+    # fondo — de sobra dentro de la ventana de 30 días antes del
+    # vencimiento en la que certbot ya tiene el certificado renovado.
+    entrypoint: >
+      /bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & exec nginx -g "daemon off;"'
+
+  # Renueva el certificado solo (Let's Encrypt vence a los 90 días) —
+  # `certbot renew` no hace nada si todavía falta más de 30 días para el
+  # vencimiento, así que corre cada 12h sin costo real la mayoría de las veces.
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    entrypoint: >
+      /bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done'
+
 volumes:
   postgres_data:
   redis_data:

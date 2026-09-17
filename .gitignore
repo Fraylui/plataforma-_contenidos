@@ -19,6 +19,10 @@ backend/data/
 # Backups locales (scripts/backup.sh) — dumps de la base de datos, nunca commitear
 /backups/
 
+# Certificados HTTPS reales (Let's Encrypt, ver infra/nginx/init-letsencrypt.sh)
+# — claves privadas, nunca commitear. La plantilla de nginx sí se versiona.
+/infra/nginx/certbot/
+
 # Capturas de pantalla de depuración local (sesión de navegador con pestañas/marcadores
 # personales visibles) — nunca material del proyecto, nunca commitear.
 /captura de pantalla/

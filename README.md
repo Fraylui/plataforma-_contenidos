@@ -135,6 +135,33 @@ tomadas: el destino real de la copia externa (sección 29 exige que exista
 antes de confiar en esto para producción) y el despliegue real en Contabo
 en sí (sección 25).
 
+## HTTPS / Nginx (reverse proxy, CONTEXTO.md sección 25)
+
+`infra/nginx/` — Nginx delante del stack: `/api/*` va al backend, todo lo
+demás al frontend (mismo dominio, por eso no hace falta configurar CORS).
+El certificado es de Let's Encrypt, renovado solo.
+
+**No aplica en desarrollo local** (necesita un dominio real apuntando al
+servidor) — es exclusivo del despliegue en el VPS.
+
+```bash
+# 1. DNS del dominio ya apuntando a este servidor, y en .env:
+#    DOMAIN=midominio.com
+#    CERTBOT_EMAIL=vos@midominio.com
+
+# 2. Una sola vez: pide el certificado real (ver los comentarios del
+#    script — usa un certificado autofirmado temporal para poder levantar
+#    nginx la primera vez, antes de tener el real).
+infra/nginx/init-letsencrypt.sh
+
+# El resto del stack (incluido nginx) se levanta como siempre:
+docker compose -f infra/docker-compose.yml up -d
+```
+
+El servicio `certbot` del compose renueva el certificado solo cada 12h
+(no hace nada si todavía faltan más de 30 días para el vencimiento); nginx
+se recarga solo cada 6h para tomar el certificado renovado sin intervención.
+
 ## Estado actual
 
 - **Bootstrap** (2026-08-25): estructura de repo, esqueleto de backend
@@ -303,6 +330,13 @@ en sí (sección 25).
 **Pendiente para un MVP completo** (sección 34): despliegue real en Contabo
 (sección 25 — hoy el stack en contenedores corre pero no está desplegado en
 ningún servidor; el timer de backups está listo pero sin instalar por lo
-mismo), destino real de copia externa de backups, Nginx/reverse proxy
-delante del stack. CORS sigue sin configurarse (el panel admin corre en
-Server Actions, no lo necesita todavía).
+mismo), destino real de copia externa de backups (el mecanismo ya está,
+`scripts/remote-copy.sh` — falta crear la cuenta/bucket de Cloudflare R2
+reales y cargar las credenciales), migrar Media de disco local a Object
+Storage (mismo R2, `StorageService` ya es una interfaz para esto — sección
+10, sin implementar todavía). Nginx/reverse proxy con HTTPS **ya está**
+(`infra/nginx/`, ver sección "HTTPS / Nginx" más arriba) — falta correrlo
+contra un dominio y servidor reales. CORS sigue sin configurarse (el panel
+admin corre en Server Actions, no lo necesita todavía; tampoco hace falta
+para el frontend público, que ahora vive bajo el mismo dominio que la API
+gracias a nginx).
