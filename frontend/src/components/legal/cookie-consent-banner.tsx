@@ -48,14 +48,14 @@ export function CookieConsentBanner({ adsenseEnabled }: { adsenseEnabled: boolea
             <button
               type="button"
               onClick={() => setCookieConsent("rejected")}
-              className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-background cursor-pointer"
+              className="cursor-pointer rounded-full border border-foreground/[0.08] px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-accent/50 hover:text-accent"
             >
               Rechazar
             </button>
             <button
               type="button"
               onClick={() => setCookieConsent("accepted")}
-              className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:opacity-90 cursor-pointer"
+              className="cursor-pointer rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:opacity-90"
             >
               Aceptar
             </button>
