@@ -17,6 +17,7 @@ import { AdBlock } from "@/components/legal/ad-block";
 import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
+import { MapPin } from "lucide-react";
 import type { Category, ContentImage, Place } from "@/lib/api/types";
 
 const RELATED_SIZE = 6;
@@ -176,13 +177,33 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
             {place.name}
           </h1>
 
-          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border pb-6 text-xs text-muted sm:text-sm">
-            {mapsUrl && (
-              <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-accent hover:underline">
-                {place.latitude!.toFixed(4)}, {place.longitude!.toFixed(4)} · Ver en el mapa
+          {mapsUrl && (
+            <div className="mt-6 border-b border-border pb-6">
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-foreground/[0.08] bg-surface px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-accent/50 hover:text-accent"
+              >
+                <MapPin className="h-4 w-4 text-accent" aria-hidden="true" />
+                Ver ubicación en Google Maps
               </a>
-            )}
-          </div>
+              {/* Sin API key: el embed simple de Google Maps (output=embed) no la
+                  necesita, a diferencia de la Maps JavaScript API — suficiente para
+                  mostrar un mapa estático interactivo, no hace falta el widget
+                  completo de LocationPicker (ese es para elegir un punto, acá solo
+                  se muestra uno ya fijo). */}
+              <div className="mt-4 aspect-video w-full overflow-hidden rounded-2xl border border-border shadow-sm">
+                <iframe
+                  src={`https://maps.google.com/maps?q=${place.latitude},${place.longitude}&z=15&output=embed`}
+                  title={`Mapa de ${place.name}`}
+                  className="h-full w-full"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+            </div>
+          )}
 
           <ContentImageGallery
             images={place.images}
