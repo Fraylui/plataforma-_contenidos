@@ -22,3 +22,7 @@ backend/data/
 # Capturas de pantalla de depuración local (sesión de navegador con pestañas/marcadores
 # personales visibles) — nunca material del proyecto, nunca commitear.
 /captura de pantalla/
+
+# Manuales de trabajo del equipo (docs/manuales/*.docx) — uso interno del
+# usuario, no material para el repositorio público.
+/docs/
