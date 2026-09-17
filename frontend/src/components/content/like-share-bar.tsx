@@ -143,25 +143,27 @@ export function LikeShareBar({
   });
 
   return (
-    <div className="my-4 flex flex-wrap items-center gap-4 border-y border-border py-3 text-xs font-medium text-muted">
+    <div className="my-6 flex flex-wrap items-center gap-2 border-y border-foreground/[0.06] py-4">
       <button
         type="button"
         onClick={toggleLike}
         disabled={pending}
         aria-pressed={liked}
-        className={`inline-flex cursor-pointer items-center gap-1.5 transition-colors hover:text-accent ${liked ? "text-accent" : ""}`}
+        className={`inline-flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+          liked
+            ? "border-accent/30 bg-accent-soft text-accent"
+            : "border-foreground/[0.08] text-foreground hover:border-accent/50 hover:text-accent"
+        }`}
       >
         <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} aria-hidden="true" />
         <span>{likeCount}</span>
         <span className="sr-only">Me gusta</span>
       </button>
 
-      <span className="h-4 w-px bg-border" aria-hidden="true" />
-
       <button
         type="button"
         onClick={share}
-        className="inline-flex cursor-pointer items-center gap-1.5 transition-colors hover:text-accent"
+        className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-foreground/[0.08] px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-accent/50 hover:text-accent"
       >
         {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Share2 className="h-4 w-4" aria-hidden="true" />}
         {copied ? "Enlace copiado" : "Compartir"}
