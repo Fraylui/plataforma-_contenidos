@@ -55,17 +55,8 @@ server {
     ssl_session_cache shared:SSL:10m;
     ssl_session_timeout 1d;
 
-    # HSTS: una vez que el sitio corre estable en HTTPS. `preload` queda
-    # afuera a propósito — inscribirse en la lista de preload de los
-    # navegadores es casi irreversible (semanas para salir), mejor decisión
-    # explícita del usuario más adelante, no algo que se activa solo acá.
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    # Sin X-Frame-Options acá: Next.js y Spring ya mandan "DENY" (más la CSP
-    # frame-ancestors 'none'). Agregarlo también en nginx con otro valor
-    # duplicaba la cabecera con valores en conflicto ("DENY" y
-    # "SAMEORIGIN"), y ante eso los navegadores la ignoran por completo.
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    # HSTS, nosniff, Referrer-Policy (ver security-headers.inc.template).
+    include /etc/nginx/conf.d/security-headers.inc;
 
     # Igual al MEDIA_MAX_FILE_SIZE de application.yml (10MB) — si se cambia
     # uno, cambiar el otro: acá manda antes de que el pedido llegue al backend.
@@ -116,6 +107,37 @@ server {
     # directos): dinámicos por visitante, nunca se cachean — solo límite.
     location /api/ {
         limit_req zone=api burst=40 nodelay;
+        proxy_pass http://frontend:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Listados, temas y búsqueda: dinámicos para Next (leen ?page=,
+    # ?categoryId=, ?q=...) y por eso marcados "no-store", pero son públicos
+    # e iguales para todos — micro-caché de 60 s: cada URL se genera como
+    # mucho una vez por minuto, la pidan 10 o 10.000 personas, y se le dice
+    # a Cloudflare que también puede guardarla 60 s. Lo publicado tarda
+    # hasta 1 minuto en aparecer acá (el detalle sigue siendo instantáneo).
+    # Con sesión del panel abierta se salta la caché.
+    location ~ ^/(?:(?:publicaciones|lugares|eventos|galerias|directorio|buscar)|categorias/[^/]+)/?$ {
+        limit_req zone=pages burst=60 nodelay;
+        proxy_cache app;
+        proxy_cache_key "$scheme$host$request_uri|$http_rsc|$http_next_router_prefetch|$http_next_router_segment_prefetch";
+        proxy_cache_bypass $cookie_admin_access_token $cookie_admin_refresh_token;
+        proxy_no_cache $cookie_admin_access_token $cookie_admin_refresh_token;
+        proxy_ignore_headers Cache-Control Expires;
+        proxy_cache_valid 200 60s;
+        proxy_cache_valid 404 10s;
+        proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+        proxy_cache_background_update on;
+        proxy_cache_lock on;
+        proxy_hide_header Cache-Control;
+        add_header Cache-Control "public, s-maxage=60, stale-while-revalidate=300" always;
+        add_header X-Cache-Status $upstream_cache_status always;
+        include /etc/nginx/conf.d/security-headers.inc;
         proxy_pass http://frontend:3000;
         proxy_http_version 1.1;
         proxy_set_header Host $host;

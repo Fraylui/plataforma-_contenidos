@@ -1,0 +1,18 @@
+# Cabeceras de seguridad, en un archivo aparte para poder incluirlas en el
+# `server` Y en cada `location` que agregue cabeceras propias: en nginx, un
+# `add_header` dentro de un location anula TODOS los heredados del server,
+# así que sin repetirlas esas respuestas perdían HSTS, nosniff, etc.
+# La imagen nginx:alpine procesa este .template a conf.d/security-headers.inc;
+# no termina en .conf, así que no se incluye solo a nivel http.
+
+# HSTS: una vez que el sitio corre estable en HTTPS. `preload` queda
+# afuera a propósito — inscribirse en la lista de preload de los
+# navegadores es casi irreversible (semanas para salir), mejor decisión
+# explícita del usuario más adelante, no algo que se activa solo acá.
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+add_header X-Content-Type-Options "nosniff" always;
+# Sin X-Frame-Options acá: Next.js y Spring ya mandan "DENY" (más la CSP
+# frame-ancestors 'none'). Agregarlo también en nginx con otro valor
+# duplicaba la cabecera con valores en conflicto ("DENY" y
+# "SAMEORIGIN"), y ante eso los navegadores la ignoran por completo.
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;

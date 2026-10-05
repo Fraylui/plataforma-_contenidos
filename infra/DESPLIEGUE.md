@@ -36,14 +36,20 @@ Qué quedó preparado en el código:
 | Páginas públicas cacheables | `app/(public)/**` | Portada y detalles son ISR (se ven como `○`/`●` en el build). Next manda `Cache-Control: s-maxage=…`, que Cloudflare y nginx respetan. |
 | Invalidación al publicar | `lib/admin/action-helpers.ts` | Cualquier cambio del panel invalida la caché de Next (`revalidateTag`). |
 | Anuncios directos desde el navegador | `app/api/ads/campaign` | Antes se pedían al renderizar y volvían dinámico TODO el sitio. |
-| Caché + límite por IP en nginx | `infra/nginx/templates/` | `proxy_cache` para páginas e imágenes; `limit_req` 20 r/s páginas y 10 r/s API por IP. |
+| Caché + límite por IP en nginx | `infra/nginx/templates/` | `proxy_cache` para páginas e imágenes, micro-caché de 60 s para listados y búsqueda; `limit_req` 20 r/s páginas y 10 r/s API por IP. |
 | IP real detrás de Cloudflare | `00-edge.conf.template` | `set_real_ip_from` con los rangos de Cloudflare; sin esto el límite por IP bloquearía nodos enteros de Cloudflare. |
 | Imágenes reducidas al subir | `ImageProcessor` | Lado mayor máximo 2560px (`MEDIA_MAX_STORED_DIMENSION_PIXELS`). |
 | Topes de memoria | `infra/docker-compose.yml` | Postgres 2G, backend 1.5G, frontend 1G, Redis 256M, nginx 256M. |
 
-Pendiente conocido: los **listados** (`/publicaciones`, `/lugares`, `/eventos`,
-`/galerias`, `/directorio`, `/categorias/*`, `/buscar`) siguen siendo dinámicos
-porque leen `?page=` de la URL. Pasan por nginx con límite por IP pero sin caché.
+Listados, temas y búsqueda (`/publicaciones`, `/lugares`, `/eventos`,
+`/galerias`, `/directorio`, `/categorias/*`, `/buscar`) leen parámetros de la
+URL (`?page=`, `?categoryId=`, `?q=`), así que Next los genera en cada pedido.
+Como son públicos e iguales para todos, nginx les aplica una **micro-caché de
+60 s** y les pone `Cache-Control: public, s-maxage=60` para que Cloudflare
+también los guarde: cada URL se genera como mucho una vez por minuto. Lo
+publicado tarda hasta 1 minuto en aparecer en esos listados (el detalle de
+cada contenido se actualiza al instante). La respuesta trae `X-Cache-Status`
+(MISS/HIT/BYPASS) para comprobarlo.
 
 ---
 
