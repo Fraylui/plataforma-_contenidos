@@ -1,5 +1,9 @@
 package pe.plataformacontenidos.search;
 
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -201,6 +205,56 @@ class SearchIntegrationTest {
         mockMvc.perform(get("/api/v1/search").param("q", ""))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items").isEmpty());
+    }
+
+    @Test
+    void findsContentByItsCategoryNameEvenIfTheTextNeverMentionsIt() throws Exception {
+        String editorToken = createUserAndLogin("search-cat-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("search-cat-author@plataforma-contenidos.test", Role.AUTHOR);
+        // Nombre con tilde: la búsqueda debe encontrarlo escrito sin tilde y en minúsculas.
+        String categoryId = createCategory(editorToken, "Kunturwási Temático");
+
+        publishArticle(authorToken, editorToken, categoryId, "Paseo por la plaza al atardecer",
+                "Un recorrido tranquilo, sin nombrar el tema en ningún lado.");
+        publishPlaceInCategory(authorToken, editorToken, categoryId, "Mirador del cerro alto");
+
+        mockMvc.perform(get("/api/v1/search").param("q", "kunturwasi"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].title", hasItem("Paseo por la plaza al atardecer")))
+                .andExpect(jsonPath("$.items[*].title", hasItem("Mirador del cerro alto")));
+
+        mockMvc.perform(get("/api/v1/search").param("q", "kunturwasi").param("type", "PLACE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].contentType", everyItem(is("PLACE"))))
+                .andExpect(jsonPath("$.items[*].title", hasItem("Mirador del cerro alto")));
+    }
+
+    @Test
+    void contentMatchingByTextAndByCategoryAppearsOnlyOnce() throws Exception {
+        String editorToken = createUserAndLogin("search-dup-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("search-dup-author@plataforma-contenidos.test", Role.AUTHOR);
+        String categoryId = createCategory(editorToken, "Wiñaypachaq");
+
+        publishArticle(authorToken, editorToken, categoryId, "Guía de Wiñaypachaq para principiantes",
+                "Todo sobre wiñaypachaq.");
+
+        mockMvc.perform(get("/api/v1/search").param("q", "wiñaypachaq"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.title == 'Guía de Wiñaypachaq para principiantes')]", hasSize(1)));
+    }
+
+    private void publishPlaceInCategory(String authorToken, String editorToken, String categoryId, String name)
+            throws Exception {
+        String placeId = createPlace(authorToken, categoryId, name);
+        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
+                        .header("Authorization", "Bearer " + authorToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/approve")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk());
     }
 
     private void publishArticle(String authorToken, String editorToken, String categoryId, String title,

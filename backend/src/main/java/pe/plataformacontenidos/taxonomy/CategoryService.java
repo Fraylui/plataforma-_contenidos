@@ -37,6 +37,14 @@ public class CategoryService {
         categoryRepository.save(category);
     }
 
+    /** Ver CategoryRepository.findActiveIdsMatchingName — lo usa la búsqueda unificada. */
+    public List<UUID> findActiveIdsMatchingName(String query) {
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+        return categoryRepository.findActiveIdsMatchingName(query.trim());
+    }
+
     public List<Category> listActive() {
         return categoryRepository.findByActiveTrueOrderBySortOrderAsc();
     }
