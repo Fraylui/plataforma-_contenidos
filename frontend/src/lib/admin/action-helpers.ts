@@ -1,6 +1,8 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { revalidateTag } from "next/cache";
+import { PUBLIC_CONTENT_TAG } from "@/lib/cache-tags";
 import { AdminApiError, AdminSessionExpiredError } from "@/lib/api/admin-client";
 import { ACCESS_TOKEN_COOKIE } from "./session";
 
@@ -43,6 +45,11 @@ export async function runAdminMutation<T>(call: (accessToken: string) => Promise
   const token = await requireAccessToken();
   try {
     const data = await call(token);
+    // El sitio público queda en caché (ver lib/cache-tags.ts): cualquier
+    // cambio del panel lo invalida. `expire: 0` y no el perfil "max": quien
+    // acaba de publicar abre la página pública y tiene que verla ya
+    // actualizada, no la versión vieja mientras se regenera de fondo.
+    revalidateTag(PUBLIC_CONTENT_TAG, { expire: 0 });
     return { ok: true, data };
   } catch (error) {
     if (error instanceof AdminSessionExpiredError) {

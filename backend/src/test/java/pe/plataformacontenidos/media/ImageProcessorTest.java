@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 class ImageProcessorTest {
 
-    private final MediaProperties defaultProperties = new MediaProperties("unused", 10_000_000, 6000, 30, 15);
+    private final MediaProperties defaultProperties = new MediaProperties("unused", 10_000_000, 6000, 2560, 30, 15);
     private final ImageProcessor processor = new ImageProcessor(defaultProperties);
 
     @Test
@@ -41,7 +41,7 @@ class ImageProcessorTest {
 
     @Test
     void imageExceedingMaxDimensionIsRejected() throws Exception {
-        MediaProperties tightProperties = new MediaProperties("unused", 10_000_000, 10, 30, 15);
+        MediaProperties tightProperties = new MediaProperties("unused", 10_000_000, 10, 2560, 30, 15);
         ImageProcessor tightProcessor = new ImageProcessor(tightProperties);
         byte[] png = pngOf(20, 20);
 
@@ -50,11 +50,46 @@ class ImageProcessorTest {
 
     @Test
     void fileExceedingMaxSizeIsRejected() throws Exception {
-        MediaProperties tightProperties = new MediaProperties("unused", 10, 6000, 30, 15);
+        MediaProperties tightProperties = new MediaProperties("unused", 10, 6000, 2560, 30, 15);
         ImageProcessor tightProcessor = new ImageProcessor(tightProperties);
         byte[] png = pngOf(50, 50);
 
         assertThatThrownBy(() -> tightProcessor.process(png)).isInstanceOf(InvalidImageException.class);
+    }
+
+    @Test
+    void imageLargerThanStoredLimitIsDownscaledKeepingProportion() throws Exception {
+        MediaProperties smallStored = new MediaProperties("unused", 10_000_000, 6000, 100, 30, 15);
+        ImageProcessor downscaling = new ImageProcessor(smallStored);
+        byte[] png = pngOf(400, 300);
+
+        var result = downscaling.process(png);
+        BufferedImage stored = ImageIO.read(new java.io.ByteArrayInputStream(result.content()));
+
+        assertThat(result.width()).isEqualTo(100);
+        assertThat(result.height()).isEqualTo(75);
+        assertThat(stored.getWidth()).isEqualTo(100);
+        assertThat(stored.getHeight()).isEqualTo(75);
+    }
+
+    @Test
+    void portraitImageIsDownscaledByItsHeight() {
+        BufferedImage tall = new BufferedImage(300, 900, BufferedImage.TYPE_INT_RGB);
+
+        BufferedImage scaled = ImageProcessor.downscaleToFit(tall, 300);
+
+        assertThat(scaled.getWidth()).isEqualTo(100);
+        assertThat(scaled.getHeight()).isEqualTo(300);
+    }
+
+    @Test
+    void imageWithinStoredLimitKeepsItsSize() throws Exception {
+        byte[] png = pngOf(50, 25);
+
+        var result = processor.process(png);
+
+        assertThat(result.width()).isEqualTo(50);
+        assertThat(result.height()).isEqualTo(25);
     }
 
     @Test

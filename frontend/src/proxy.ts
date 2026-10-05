@@ -33,7 +33,8 @@ export async function proxy(request: NextRequest) {
     return redirectToLogin(request);
   }
 
-  const renewed = await tryRefresh(refreshToken);
+  const realIp = request.headers.get("x-real-ip");
+  const renewed = await tryRefresh(refreshToken, realIp && /^[0-9a-fA-F:.]{3,45}$/.test(realIp) ? realIp : null);
   if (!renewed) {
     const response = redirectToLogin(request);
     response.cookies.delete(REFRESH_TOKEN_COOKIE);
@@ -50,11 +51,15 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-async function tryRefresh(refreshToken: string): Promise<{ accessToken: string; refreshToken: string } | null> {
+async function tryRefresh(
+  refreshToken: string,
+  clientIp: string | null,
+): Promise<{ accessToken: string; refreshToken: string } | null> {
   try {
     const res = await fetch(`${BACKEND_API_URL}/api/v1/auth/refresh`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      // IP real del visitante (ver clientIpHeaders en lib/api/admin-client.ts).
+      headers: { "Content-Type": "application/json", ...(clientIp ? { "X-Forwarded-For": clientIp } : {}) },
       body: JSON.stringify({ refreshToken }),
       cache: "no-store",
     });

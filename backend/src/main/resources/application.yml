@@ -46,11 +46,22 @@ app:
     local-storage-path: ${MEDIA_STORAGE_PATH:./data/media}
     max-file-size-bytes: ${MEDIA_MAX_FILE_SIZE_BYTES:10485760} # 10 MB
     max-dimension-pixels: ${MEDIA_MAX_DIMENSION_PIXELS:6000}
+    # Lado más largo con el que se GUARDA (se reduce al subir, ver
+    # ImageProcessor). 2560px alcanza para pantallas 2x a todo el ancho;
+    # una foto de celular de 4000-6000px pesaba 3-5x más en disco sin que
+    # nadie pudiera ver la diferencia.
+    max-stored-dimension-pixels: ${MEDIA_MAX_STORED_DIMENSION_PIXELS:2560}
     upload-max-attempts: ${MEDIA_UPLOAD_MAX_ATTEMPTS:30}
     upload-window-minutes: ${MEDIA_UPLOAD_WINDOW_MINUTES:15}
 
 server:
   port: ${SERVER_PORT:8080}
+  # Detrás de nginx/Next.js la IP de getRemoteAddr() era siempre la del proxy:
+  # con "native", Tomcat toma la IP real de X-Forwarded-For, pero SOLO si el
+  # pedido llega desde una red interna (10/8, 172.16/12, 192.168/16, 127/8 —
+  # la red de Docker); un X-Forwarded-For mandado desde internet no se cree.
+  # Lo usan el límite de intentos de login y la auditoría.
+  forward-headers-strategy: native
   error:
     include-message: never # no exponer detalles internos en respuestas de error (OWASP: exposición de información)
     include-stacktrace: never

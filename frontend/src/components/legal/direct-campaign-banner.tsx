@@ -1,8 +1,7 @@
 import { SkeletonImage } from "@/components/ui/skeleton-image";
-import { serverImageUrl } from "@/lib/server-image-url";
 import { imageUrl } from "@/lib/image-url";
 import { cn } from "@/lib/utils";
-import type { ActiveCampaign } from "@/lib/api/types";
+import type { ResolvedCampaign } from "@/lib/api/types";
 
 /**
  * Banner de una campaña de publicidad directa (ver CampaignPublicController)
@@ -11,14 +10,16 @@ import type { ActiveCampaign } from "@/lib/api/types";
  * nunca el `linkUrl` real, así el clic queda contado sin poder evitarse
  * copiando el href. Mismo criterio subida-vs-externa que ContentImageDisplay.
  *
+ * Sin `server-only`: lo renderiza el navegador (ver DirectCampaignSlot),
+ * con la imagen ya resuelta por app/api/ads/campaign/route.ts.
+ *
  * `aspect-[3/1]` es el alto por defecto: a diferencia de AdSlot (que se
  * autodimensiona con el script de AdSense), acá la caja la define el CSS,
  * así que sin un alto explícito el <img> externo (sin next/image `fill`)
- * se renderiza a su tamaño intrínseco — de ahí que ningún caller de AdBlock
- * pasara className hasta ahora, nadie había vendido una campaña directa
- * todavía. Un className con su propio `aspect-*`/`h-*` lo reemplaza (twMerge).
+ * se renderiza a su tamaño intrínseco. Un className con su propio
+ * `aspect-*`/`h-*` lo reemplaza (twMerge).
  */
-export function DirectCampaignBanner({ campaign, className }: { campaign: ActiveCampaign; className?: string }) {
+export function DirectCampaignBanner({ campaign, className }: { campaign: ResolvedCampaign; className?: string }) {
   const clickHref = imageUrl(`/api/v1/ads/campaigns/${campaign.id}/click`);
   const alt = campaign.imageAlt ?? "Publicidad";
 
@@ -32,8 +33,8 @@ export function DirectCampaignBanner({ campaign, className }: { campaign: Active
         className
       )}
     >
-      {campaign.imageId ? (
-        <SkeletonImage src={serverImageUrl(`/api/v1/images/${campaign.imageId}/file`)} alt={alt} />
+      {campaign.imageSrc ? (
+        <SkeletonImage src={campaign.imageSrc} alt={alt} />
       ) : (
         // eslint-disable-next-line @next/next/no-img-element -- host arbitrario, cargado por el anunciante
         <img src={campaign.externalImageUrl ?? ""} alt={alt} className="absolute inset-0 h-full w-full object-cover" />

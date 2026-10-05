@@ -3,8 +3,8 @@
 // preocuparse por CORS (eso solo hace falta para mutaciones desde el
 // navegador, que hoy no existen: no hay panel admin todavía).
 import "server-only";
+import { PUBLIC_CONTENT_TAG } from "@/lib/cache-tags";
 import type {
-  ActiveCampaign,
   AdPlacement,
   Article,
   ArticleNeighbors,
@@ -34,21 +34,12 @@ export class NotFoundError extends Error {}
 
 async function apiFetch<T>(path: string, revalidateSeconds: number): Promise<T> {
   const res = await fetch(`${BACKEND_API_URL}${path}`, {
-    next: { revalidate: revalidateSeconds },
+    next: { revalidate: revalidateSeconds, tags: [PUBLIC_CONTENT_TAG] },
   });
 
   if (res.status === 404) {
     throw new NotFoundError(`No encontrado: ${path}`);
   }
-  if (!res.ok) {
-    throw new Error(`Error del backend (${res.status}) en ${path}`);
-  }
-  return res.json() as Promise<T>;
-}
-
-/** Igual que apiFetch pero sin cache de Next.js — para respuestas que dependen de qué ya vio cada visitante (ver getFeed). */
-async function apiFetchNoStore<T>(path: string): Promise<T> {
-  const res = await fetch(`${BACKEND_API_URL}${path}`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Error del backend (${res.status}) en ${path}`);
   }
@@ -292,16 +283,18 @@ export async function getPrimaryNavVisibility(): Promise<Record<string, boolean>
 
 /**
  * Feed unificado del home (Publicaciones + Lugares + Eventos) — ver
- * FeedController.getFeed en el backend. Sin cache: cada visitante lleva su
- * propio `exclude`/`seed`, así que la respuesta no es la misma para todos
- * (no tiene sentido que Next.js la revalide/comparta).
+ * FeedController.getFeed en el backend. Con caché como el resto: desde el
+ * servidor solo se pide el primer lote del home (semilla por hora, igual
+ * para todos — ver app/(public)/page.tsx) y la reserva de relacionados;
+ * las páginas siguientes del scroll, que sí dependen de cada visitante,
+ * van por app/api/feed/route.ts sin caché.
  */
 export function getFeed(params: { size?: number; exclude?: string[]; seed?: string }): Promise<FeedPage> {
   const query = new URLSearchParams();
   query.set("size", String(params.size ?? 12));
   if (params.seed) query.set("seed", params.seed);
   for (const id of params.exclude ?? []) query.append("exclude", id);
-  return apiFetchNoStore(`/api/v1/feed?${query.toString()}`);
+  return apiFetch(`/api/v1/feed?${query.toString()}`, 60);
 }
 
 /**
@@ -373,17 +366,3 @@ export function listActiveAdPlacements(): Promise<AdPlacement[]> {
   return apiFetch(`/api/v1/ad-placements`, 300);
 }
 
-/**
- * Campaña de publicidad directa vigente para una posición, si hay una (ver
- * CampaignPublicController). Sin cache: cada llamada real cuenta como una
- * impresión en el backend, cachearla falsearía esa métrica.
- */
-export async function getActiveCampaign(placementKey: string): Promise<ActiveCampaign | null> {
-  const res = await fetch(`${BACKEND_API_URL}/api/v1/ads/campaigns/active?placementKey=${encodeURIComponent(placementKey)}`,
-    { cache: "no-store" });
-  if (res.status === 204) return null;
-  if (!res.ok) {
-    throw new Error(`Error del backend (${res.status}) en /api/v1/ads/campaigns/active`);
-  }
-  return res.json() as Promise<ActiveCampaign>;
-}

@@ -21,6 +21,7 @@ import { ContentVideoGallery } from "@/components/content/content-video-gallery"
 import { AdBlock } from "@/components/legal/ad-block";
 import { SITE_URL } from "@/lib/site-url";
 import type { Article, Category } from "@/lib/api/types";
+import { VideoJsonLd } from "@/components/seo/video-json-ld";
 
 const RELATED_SIZE = 6;
 
@@ -33,6 +34,15 @@ async function loadArticle(slug: string) {
     }
     throw error;
   }
+}
+
+// Ninguna ruta se genera en el build (el contenido vive en la base, no en
+// el repo): cada una se genera la primera vez que alguien la visita y
+// queda en caché (ISR) hasta que vence su revalidación o el panel la
+// invalida (lib/cache-tags.ts). Sin esto Next la trataba como dinámica y
+// la volvía a generar en cada visita (ver docs de generateStaticParams).
+export function generateStaticParams() {
+  return [];
 }
 
 export async function generateMetadata(props: PageProps<"/publicaciones/[slug]">): Promise<Metadata> {
@@ -129,6 +139,12 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
       <ReadingProgressBar />
+      <VideoJsonLd
+        videos={article.videos}
+        fallbackTitle={article.title}
+        description={article.metaDescription || article.excerpt}
+        uploadDate={article.publishedAt}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -241,7 +257,7 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
 
         {hasSidebar && (
           <aside className="mt-14 lg:col-span-4 lg:mt-0">
-            <div className="lg:sticky lg:top-24 lg:space-y-8">
+            <div className="lg:sticky lg:top-32 lg:space-y-8">
               <AdBlock position="listing" className="aspect-[16/9] rounded-2xl" />
               <RelatedFeed items={related} title={relatedTitle} categoryNames={categoryNames} />
             </div>

@@ -329,6 +329,17 @@ export interface ActiveCampaign {
   imageAlt: string | null;
 }
 
+/**
+ * ActiveCampaign con la imagen ya resuelta para next/image (ver
+ * app/api/ads/campaign/route.ts) — la forma que recibe el navegador.
+ */
+export interface ResolvedCampaign {
+  id: string;
+  imageSrc: string | null;
+  externalImageUrl: string | null;
+  imageAlt: string | null;
+}
+
 /** Ver FeedItemResponse.java — feed unificado del home y "relacionados" de la vista de detalle. */
 export type FeedItemType = "ARTICLE" | "PLACE" | "EVENT";
 

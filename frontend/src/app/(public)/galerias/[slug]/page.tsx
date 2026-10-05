@@ -37,6 +37,15 @@ async function loadGallery(slug: string) {
   }
 }
 
+// Ninguna ruta se genera en el build (el contenido vive en la base, no en
+// el repo): cada una se genera la primera vez que alguien la visita y
+// queda en caché (ISR) hasta que vence su revalidación o el panel la
+// invalida (lib/cache-tags.ts). Sin esto Next la trataba como dinámica y
+// la volvía a generar en cada visita (ver docs de generateStaticParams).
+export function generateStaticParams() {
+  return [];
+}
+
 export async function generateMetadata(props: PageProps<"/galerias/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
   let gallery;

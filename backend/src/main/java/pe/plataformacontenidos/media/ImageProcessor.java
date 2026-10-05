@@ -1,5 +1,7 @@
 package pe.plataformacontenidos.media;
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -66,11 +68,49 @@ public class ImageProcessor {
             throw new InvalidImageException("Formato no soportado: " + format + " (solo JPEG o PNG)");
         }
 
-        byte[] reencoded = reencode(decoded, format);
+        BufferedImage stored = downscaleToFit(decoded, properties.maxStoredDimensionPixels());
+        byte[] reencoded = reencode(stored, format);
         String contentType = format.equals("JPEG") ? "image/jpeg" : "image/png";
         String extension = format.equals("JPEG") ? "jpg" : "png";
 
-        return new ProcessedImage(reencoded, contentType, extension, decoded.getWidth(), decoded.getHeight());
+        return new ProcessedImage(reencoded, contentType, extension, stored.getWidth(), stored.getHeight());
+    }
+
+    /**
+     * Reduce la imagen para que su lado más largo no pase de {@code maxSide}
+     * (manteniendo la proporción); si ya entra, la devuelve tal cual. Se
+     * reduce a la mitad por pasos y recién el último paso va al tamaño
+     * exacto: escalar 6000px→2560px de un solo salto con interpolación
+     * bilineal saltea píxeles y deja bordes dentados (aliasing).
+     */
+    static BufferedImage downscaleToFit(BufferedImage source, int maxSide) {
+        int longest = Math.max(source.getWidth(), source.getHeight());
+        if (maxSide <= 0 || longest <= maxSide) {
+            return source;
+        }
+        double ratio = (double) maxSide / longest;
+        int targetWidth = Math.max(1, (int) Math.round(source.getWidth() * ratio));
+        int targetHeight = Math.max(1, (int) Math.round(source.getHeight() * ratio));
+        int type = source.getColorModel().hasAlpha() ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
+
+        BufferedImage current = source;
+        int width = source.getWidth();
+        int height = source.getHeight();
+        do {
+            width = Math.max(targetWidth, width / 2);
+            height = Math.max(targetHeight, height / 2);
+            BufferedImage step = new BufferedImage(width, height, type);
+            Graphics2D g = step.createGraphics();
+            try {
+                g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                g.drawImage(current, 0, 0, width, height, null);
+            } finally {
+                g.dispose();
+            }
+            current = step;
+        } while (width != targetWidth || height != targetHeight);
+        return current;
     }
 
     private String detectFormat(byte[] rawBytes) {

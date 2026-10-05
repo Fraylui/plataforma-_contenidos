@@ -20,6 +20,7 @@ import { ContentImageGallery } from "@/components/content/content-image-gallery"
 import { ContentVideoGallery } from "@/components/content/content-video-gallery";
 import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
 import type { Business, Category } from "@/lib/api/types";
+import { VideoJsonLd } from "@/components/seo/video-json-ld";
 
 const RELATED_SIZE = 4;
 
@@ -32,6 +33,15 @@ async function loadBusiness(slug: string) {
     }
     throw error;
   }
+}
+
+// Ninguna ruta se genera en el build (el contenido vive en la base, no en
+// el repo): cada una se genera la primera vez que alguien la visita y
+// queda en caché (ISR) hasta que vence su revalidación o el panel la
+// invalida (lib/cache-tags.ts). Sin esto Next la trataba como dinámica y
+// la volvía a generar en cada visita (ver docs de generateStaticParams).
+export function generateStaticParams() {
+  return [];
 }
 
 export async function generateMetadata(props: PageProps<"/directorio/[slug]">): Promise<Metadata> {
@@ -127,6 +137,12 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+      <VideoJsonLd
+        videos={business.videos}
+        fallbackTitle={business.name}
+        description={business.metaDescription || business.excerpt}
+        uploadDate={business.publishedAt}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -260,7 +276,7 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
 
         {hasSidebar && (
           <aside className="mt-14 lg:col-span-4 lg:mt-0">
-            <div className="lg:sticky lg:top-24 lg:space-y-8">
+            <div className="lg:sticky lg:top-32 lg:space-y-8">
               <AdBlock position="listing" className="aspect-[16/9] rounded-2xl" />
               <section aria-label="Más en el directorio">
                 <h2 className="text-lg font-semibold text-foreground">

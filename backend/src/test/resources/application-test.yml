@@ -8,5 +8,6 @@ app:
     local-storage-path: "target/test-media"
     max-file-size-bytes: 10485760
     max-dimension-pixels: 6000
+    max-stored-dimension-pixels: 2560
     upload-max-attempts: 1000
     upload-window-minutes: 15

@@ -914,6 +914,10 @@ Microservices
 
 según necesidad.
 
+Guía operativa de producción (capas de caché Cloudflare → nginx → ISR, límite
+por IP, swap, reglas de Cloudflare, backups fuera del VPS, comandos a evitar):
+ver `infra/DESPLIEGUE.md`.
+
 ---
 
 # 26. CI/CD

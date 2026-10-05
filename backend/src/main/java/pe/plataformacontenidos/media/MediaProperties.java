@@ -7,6 +7,7 @@ public record MediaProperties(
         String localStoragePath,
         long maxFileSizeBytes,
         int maxDimensionPixels,
+        int maxStoredDimensionPixels,
         int uploadMaxAttempts,
         long uploadWindowMinutes) {
 }

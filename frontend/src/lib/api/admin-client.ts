@@ -4,6 +4,7 @@
 // Solo se invoca desde el servidor de Next.js (Server Actions, Server
 // Components, proxy.ts) — ver src/lib/admin/session.ts para el porqué.
 import "server-only";
+import { headers } from "next/headers";
 import type {
   AdminImage,
   AdminUser,
@@ -63,8 +64,35 @@ async function parseErrorMessage(res: Response): Promise<string> {
   }
 }
 
+const IP_PATTERN = /^[0-9a-fA-F:.]{3,45}$/;
+
+/**
+ * IP real del visitante para el backend. Las llamadas admin salen del
+ * servidor de Next, así que sin esto Spring solo veía la IP del contenedor
+ * del frontend: el límite de intentos de login (LoginRateLimiter, por IP)
+ * era UN contador compartido por todo el mundo — 5 contraseñas falladas de
+ * cualquiera bloqueaban el panel a todos 15 minutos — y la auditoría
+ * registraba siempre la misma IP. nginx pone X-Real-IP (ya resuelta detrás
+ * de Cloudflare, ver infra/nginx); Spring la toma de X-Forwarded-For porque
+ * confía en proxies de la red interna (server.forward-headers-strategy).
+ * Sin nginx delante (desarrollo local) no hay header y todo sigue como antes.
+ */
+async function clientIpHeaders(): Promise<Record<string, string>> {
+  try {
+    const ip = (await headers()).get("x-real-ip");
+    return ip && IP_PATTERN.test(ip) ? { "X-Forwarded-For": ip } : {};
+  } catch {
+    // Fuera de un pedido (build, tareas de fondo): no hay visitante que identificar.
+    return {};
+  }
+}
+
 async function publicJson<T>(path: string, init: RequestInit): Promise<T> {
-  const res = await fetch(`${BACKEND_API_URL}${path}`, { ...init, cache: "no-store" });
+  const res = await fetch(`${BACKEND_API_URL}${path}`, {
+    ...init,
+    headers: { ...(await clientIpHeaders()), ...init.headers },
+    cache: "no-store",
+  });
   if (!res.ok) {
     throw new AdminApiError(res.status, await parseErrorMessage(res));
   }
@@ -93,7 +121,7 @@ export async function logoutSession(refreshToken: string): Promise<void> {
 async function authedJson<T>(path: string, accessToken: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BACKEND_API_URL}${path}`, {
     ...init,
-    headers: { ...init?.headers, Authorization: `Bearer ${accessToken}` },
+    headers: { ...(await clientIpHeaders()), ...init?.headers, Authorization: `Bearer ${accessToken}` },
     cache: "no-store",
   });
   if (res.status === 401) {
