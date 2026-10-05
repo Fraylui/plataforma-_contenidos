@@ -15,7 +15,7 @@ import { estimateReadingTime, formatArticleDate, formatPublishedDate } from "@/l
 import { LikeShareBar } from "@/components/content/like-share-bar";
 import { NeighborNav } from "@/components/article/neighbor-nav";
 import { ReadingProgressBar } from "@/components/article/reading-progress-bar";
-import { RelatedFeed } from "@/components/content/related-feed";
+import { DetailSidebar } from "@/components/content/detail-sidebar";
 import { ContentImageGallery } from "@/components/content/content-image-gallery";
 import { ContentVideoGallery } from "@/components/content/content-video-gallery";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -126,15 +126,15 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
   ]);
   const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
 
-  const { items: related, isFallback: relatedIsFallback } = await getRelatedWithFallback({
+  const { related, more } = await getRelatedWithFallback({
     excludeType: "ARTICLE",
     excludeId: article.id,
     categoryId: article.categoryId,
     size: RELATED_SIZE,
   });
-  const relatedTitle = relatedIsFallback ? "Quizás te interese" : `Relacionado con ${category?.name ?? "esto"}`;
+  const relatedTitle = `Relacionado con ${category?.name ?? "esto"}`;
 
-  const hasSidebar = related.length > 0;
+  const hasSidebar = related.length > 0 || more.length > 0;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
@@ -256,12 +256,13 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
         </article>
 
         {hasSidebar && (
-          <aside className="mt-14 lg:col-span-4 lg:mt-0">
-            <div className="lg:sticky lg:top-32 lg:space-y-8">
-              <AdBlock position="listing" className="aspect-[16/9] rounded-2xl" />
-              <RelatedFeed items={related} title={relatedTitle} categoryNames={categoryNames} />
-            </div>
-          </aside>
+          <DetailSidebar
+            related={related}
+            more={more}
+            relatedTitle={relatedTitle}
+            categoryNames={categoryNames}
+            currentId={article.id}
+          />
         )}
       </div>
     </div>

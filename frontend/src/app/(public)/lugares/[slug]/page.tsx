@@ -10,7 +10,7 @@ import {
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { LikeShareBar } from "@/components/content/like-share-bar";
-import { RelatedFeed } from "@/components/content/related-feed";
+import { DetailSidebar } from "@/components/content/detail-sidebar";
 import { ContentImageGallery } from "@/components/content/content-image-gallery";
 import { ContentVideoGallery } from "@/components/content/content-video-gallery";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -126,15 +126,15 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
   ]);
   const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
 
-  const { items: related, isFallback: relatedIsFallback } = await getRelatedWithFallback({
+  const { related, more } = await getRelatedWithFallback({
     excludeType: "PLACE",
     excludeId: place.id,
     categoryId: place.categoryId,
     size: RELATED_SIZE,
   });
-  const relatedTitle = relatedIsFallback ? "Quizás te interese" : `Relacionado con ${category?.name ?? "esto"}`;
+  const relatedTitle = `Relacionado con ${category?.name ?? "esto"}`;
 
-  const hasSidebar = related.length > 0;
+  const hasSidebar = related.length > 0 || more.length > 0;
   const mapsUrl =
     place.latitude != null && place.longitude != null
       ? `https://www.google.com/maps?q=${place.latitude},${place.longitude}`
@@ -250,12 +250,13 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
         </article>
 
         {hasSidebar && (
-          <aside className="mt-14 lg:col-span-4 lg:mt-0">
-            <div className="lg:sticky lg:top-32 lg:space-y-8">
-              <AdBlock position="listing" className="aspect-[16/9] rounded-2xl" />
-              <RelatedFeed items={related} title={relatedTitle} categoryNames={categoryNames} />
-            </div>
-          </aside>
+          <DetailSidebar
+            related={related}
+            more={more}
+            relatedTitle={relatedTitle}
+            categoryNames={categoryNames}
+            currentId={place.id}
+          />
         )}
       </div>
     </div>

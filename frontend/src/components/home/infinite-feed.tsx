@@ -1,11 +1,10 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { Heart } from "lucide-react";
 import type { HomeItem } from "@/lib/home-items";
 import { ContentCard, FeaturedContentCard } from "@/components/home/content-card";
 import { AdBlockClient } from "@/components/legal/ad-block-client";
+import { TopLikedList } from "@/components/content/top-liked-list";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 12;
@@ -236,38 +235,12 @@ export function InfiniteFeed({
   );
 }
 
-/**
- * Tarjeta de lista dentro de la grilla (la "Historias principales" de MSN):
- * títulos sin foto, numerados, con su cantidad real de me gusta. Ocupa una
- * celda como cualquier tarjeta, así rompe la monotonía sin cortar el feed.
- */
+/** "Lo más gustado" como una celda más de la grilla (2 columnas de ancho). */
 function TopLikedCard({ items }: { items: HomeItem[] }) {
   return (
-    <section
-      aria-labelledby="lo-mas-gustado"
-      className="col-span-2 flex flex-col rounded-2xl border border-foreground/[0.06] bg-surface p-4 shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_8px_20px_-12px_rgb(0_0_0_/_0.08)]"
-    >
-      <h3 id="lo-mas-gustado" className="flex items-center gap-2 text-sm font-bold tracking-tight text-foreground">
-        <Heart className="h-4 w-4 fill-accent text-accent" aria-hidden="true" />
-        Lo más gustado
-      </h3>
-      <ol className="mt-2 flex flex-col divide-y divide-foreground/[0.06]">
-        {items.slice(0, 5).map((item, index) => (
-          <li key={item.id}>
-            <Link href={item.href} className="group flex min-h-11 items-start gap-3 py-2.5">
-              <span className="w-5 shrink-0 text-lg leading-none font-bold text-accent tabular-nums">{index + 1}</span>
-              <span className="min-w-0 flex-1">
-                <span className="line-clamp-2 text-[13px] leading-snug font-semibold text-foreground transition-colors group-hover:text-accent">
-                  {item.title}
-                </span>
-                <span className="mt-0.5 block text-[11px] text-muted tabular-nums">
-                  {item.likeCount.toLocaleString("es")} me gusta
-                </span>
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ol>
-    </section>
+    <TopLikedList
+      items={items}
+      className="col-span-2 rounded-2xl border border-foreground/[0.06] bg-surface p-4 shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_8px_20px_-12px_rgb(0_0_0_/_0.08)]"
+    />
   );
 }

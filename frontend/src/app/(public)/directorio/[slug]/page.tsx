@@ -275,9 +275,10 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
         </article>
 
         {hasSidebar && (
-          <aside className="mt-14 lg:col-span-4 lg:mt-0">
-            <div className="lg:sticky lg:top-32 lg:space-y-8">
-              <AdBlock position="listing" className="aspect-[16/9] rounded-2xl" />
+          <aside className="mt-14 flex flex-col gap-10 lg:col-span-4 lg:mt-0">
+            {/* Mismo patrón que DetailSidebar: la lista arriba y el anuncio fijo al
+                final, acompañando al lector por el resto de la ficha. */}
+            <div>
               <section aria-label="Más en el directorio">
                 <h2 className="text-lg font-semibold text-foreground">
                   Más {businessTypeLabel(business.businessType).toLowerCase()}s
@@ -288,6 +289,9 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
                   ))}
                 </div>
               </section>
+            </div>
+            <div className="lg:sticky lg:top-32">
+              <AdBlock position="listing" className="aspect-[16/9] rounded-2xl" />
             </div>
           </aside>
         )}

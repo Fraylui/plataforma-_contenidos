@@ -324,22 +324,26 @@ export function getFeedRelated(params: {
 }
 
 /**
- * getFeedRelated con reserva: una categoría nueva/con poco contenido no debe
- * dejar la sección de relacionados vacía — de faltar, se completa con el
- * feed general del home (siempre contenido real, nunca relleno). Comparten
- * esta reserva las 3 páginas de detalle (Publicación/Lugar/Evento).
+ * Contenido para la columna lateral del detalle: `related` (misma categoría)
+ * y `more` (feed general) que completa hasta `size`, sin repetir ni incluir
+ * el contenido actual. Antes la reserva solo entraba con CERO relacionados:
+ * un tema con 1 contenido dejaba la columna con un solo ítem y un hueco
+ * largo debajo. Siempre contenido real, nunca relleno.
  */
 export async function getRelatedWithFallback(params: {
   excludeType: FeedItemType;
   excludeId: string;
   categoryId: string | null;
   size?: number;
-}): Promise<{ items: FeedItem[]; isFallback: boolean }> {
-  const items = await getFeedRelated(params);
-  if (items.length > 0) return { items, isFallback: false };
+}): Promise<{ related: FeedItem[]; more: FeedItem[] }> {
+  const size = params.size ?? 6;
+  const related = await getFeedRelated({ ...params, size });
+  if (related.length >= size) return { related, more: [] };
 
-  const fallback = await getFeed({ size: params.size ?? 6, exclude: [params.excludeId] });
-  return { items: fallback.items, isFallback: fallback.items.length > 0 };
+  const fallback = await getFeed({ size: size * 2, exclude: [params.excludeId] });
+  const seen = new Set([params.excludeId, ...related.map((item) => item.id)]);
+  const more = fallback.items.filter((item) => !seen.has(item.id)).slice(0, size - related.length);
+  return { related, more };
 }
 
 export function listActiveCategories(): Promise<Category[]> {
