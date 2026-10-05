@@ -4,10 +4,10 @@ import java.util.UUID;
 
 public class ArticleNotFoundException extends RuntimeException {
     public ArticleNotFoundException(UUID id) {
-        super("Artículo no encontrado: " + id);
+        super("Publicación no encontrada: " + id);
     }
 
     public ArticleNotFoundException(String slug) {
-        super("Artículo no encontrado: " + slug);
+        super("Publicación no encontrada: " + slug);
     }
 }

@@ -1,7 +1,7 @@
 import type { ArticleStatus, ArticleType, BusinessType, SearchResultType } from "@/lib/api/types";
 
 const ARTICLE_TYPE_LABELS: Record<ArticleType, string> = {
-  ARTICULO: "Artículo",
+  ARTICULO: "General",
   NOTICIA: "Noticia",
   REPORTAJE: "Reportaje",
   CRONICA: "Crónica",

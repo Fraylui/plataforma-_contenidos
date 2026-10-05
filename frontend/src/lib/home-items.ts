@@ -1,6 +1,6 @@
 import "server-only";
 import type { ArticleSummary, EventSummary, FeedItem, GallerySummary, PlaceSummary } from "@/lib/api/types";
-import { articleTypeLabel, formatArticleDate, formatEventDateTime, formatShortDate } from "@/lib/content-labels";
+import { formatArticleDate, formatEventDateTime, formatShortDate } from "@/lib/content-labels";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { KIND_LABEL, type HomeItemKind } from "@/lib/content-kind";
 
@@ -61,7 +61,7 @@ export function fromArticle(a: ArticleSummary): HomeItem {
     imageUrl: cover.url,
     imageIsExternal: cover.isExternal,
     categoryId: a.categoryId,
-    typeLabel: articleTypeLabel(a.articleType),
+    typeLabel: KIND_LABEL.publicacion,
     sortDate: a.publishedAt ?? "",
     dateLabel: formatArticleDate(a.publishedAt),
   };
@@ -159,7 +159,7 @@ export function fromFeedItem(item: FeedItem): HomeItem {
     imageUrl: cover.url,
     imageIsExternal: cover.isExternal,
     categoryId: item.categoryId ?? "",
-    typeLabel: item.articleType ? articleTypeLabel(item.articleType) : KIND_LABEL[kind],
+    typeLabel: KIND_LABEL[kind],
     sortDate: item.publishedAt ?? "",
     dateLabel: "",
   };

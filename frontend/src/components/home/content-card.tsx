@@ -30,7 +30,7 @@ const STRETCHED = "after:absolute after:inset-0 after:content-[''] focus-visible
 
 /**
  * Solo la categoría bajo la imagen — sin el tipo de contenido al lado
- * ("Artículo"/"Lugar"/...). El tipo es un dato real que el equipo necesita
+ * ("Publicación"/"Lugar"/...). El tipo es un dato real que el equipo necesita
  * para publicar, pero de cara al visitante no ayuda a decidir qué mirar
  * (a pedido explícito: "para los que trabajan debe estar, pero al mostrar
  * hace ruido"), ni siquiera acá donde el feed mezcla tipos.

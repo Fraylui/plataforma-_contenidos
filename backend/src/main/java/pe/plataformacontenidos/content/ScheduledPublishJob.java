@@ -31,7 +31,7 @@ public class ScheduledPublishJob {
             articleRepository.save(article);
             auditService.record("ARTICLE_PUBLISHED_FROM_SCHEDULE", AuditResult.SUCCESS, null, null,
                     "article", article.getId().toString(), null);
-            log.info("Artículo {} publicado automáticamente (programación cumplida)", article.getId());
+            log.info("Publicación {} publicada automáticamente (programación cumplida)", article.getId());
         }
     }
 }
