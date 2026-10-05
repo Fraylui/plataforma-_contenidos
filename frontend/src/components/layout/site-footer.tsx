@@ -18,7 +18,9 @@ const EXPLORE_LINKS = [
   { href: "/directorio", label: "Directorio", Icon: Building2 },
 ];
 
-const FOOTER_CATEGORIES_MAX = 6;
+// Todas las categorías raíz (con tope de seguridad): son enlaces internos a
+// páginas reales — ayudan a navegar y a que Google descubra cada sección.
+const FOOTER_CATEGORIES_MAX = 24;
 const THIS_WEEK_MAX = 3;
 
 const headingClass = "text-xs font-semibold tracking-wider text-muted uppercase";
@@ -76,6 +78,15 @@ export async function SiteFooter() {
 
   return (
     <footer className="relative overflow-hidden border-t-2 border-accent bg-canvas-strong">
+      {/* Franja de lado a lado (patrón Amazon): al terminar un scroll largo, volver
+          arriba es lo que más se busca — un enlace chico al pie no se encontraba. */}
+      <a
+        href="#top"
+        className="relative flex items-center justify-center gap-2 border-b border-border bg-surface/60 py-3.5 text-sm font-semibold text-foreground transition-colors hover:bg-accent-soft hover:text-accent"
+      >
+        <ArrowUp className="h-4 w-4" aria-hidden="true" />
+        Volver arriba
+      </a>
       <span
         aria-hidden="true"
         style={{ fontSize: `clamp(40px, ${watermarkVw}vw, 220px)` }}
@@ -205,6 +216,11 @@ export async function SiteFooter() {
                     Términos y condiciones
                   </Link>
                 </li>
+                <li>
+                  <Link href="/contacto" className="inline-block py-1.5 text-sm text-muted transition-colors hover:text-accent">
+                    Contacto
+                  </Link>
+                </li>
               </ul>
             </nav>
           </div>
@@ -219,10 +235,6 @@ export async function SiteFooter() {
               <Rss className="h-3.5 w-3.5" aria-hidden="true" />
               RSS
             </Link>
-            <a href="#top" className="inline-flex w-fit items-center gap-1.5 py-1 text-muted transition-colors hover:text-foreground">
-              Volver arriba
-              <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />
-            </a>
           </div>
         </div>
       </div>

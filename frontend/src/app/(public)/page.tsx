@@ -3,6 +3,7 @@ import {
   getPlatformSettings,
   listActiveCategories,
   listPublishedArticles,
+  listPublishedBusinesses,
   listPublishedEvents,
   listPublishedGalleries,
   listPublishedPlaces,
@@ -11,6 +12,8 @@ import { fromArticle, fromEvent, fromFeedItem, fromGallery, fromPlace, sortNewes
 import { HeroRotator } from "@/components/home/hero-rotator";
 import { InfiniteFeed } from "@/components/home/infinite-feed";
 import { HomeSidebar } from "@/components/home/home-sidebar";
+import { ModuleStrip } from "@/components/home/module-strip";
+import { CategoryShowcase } from "@/components/home/category-showcase";
 
 // Cuántos traer de cada tipo: alcanza para el hero (4, uno por tipo,
 // priorizando los que tienen imagen) sin pedir listados enormes.
@@ -51,11 +54,13 @@ function pickHero(byKind: HomeItem[][]): HomeItem[] {
  * sucesión de secciones apiladas hasta el fondo (CONTEXTO.md sección 43).
  */
 export default async function Home() {
-  const [articles, places, galleries, events, categories, settings] = await Promise.all([
+  const [articles, places, galleries, events, businesses, categories, settings] = await Promise.all([
     listPublishedArticles({ size: ARTICLES_SIZE }),
     listPublishedPlaces({ size: PLACES_SIZE }),
     listPublishedGalleries({ size: GALLERIES_SIZE }),
     listPublishedEvents({ when: "upcoming", size: UPCOMING_EVENTS_SIZE }),
+    // Solo para el total del Directorio en la franja de módulos.
+    listPublishedBusinesses({ size: 1 }),
     listActiveCategories(),
     getPlatformSettings(),
   ]);
@@ -73,11 +78,31 @@ export default async function Home() {
   // Scroll infinito (Publicaciones + Lugares + Eventos, ver FeedService en
   // el backend): primer lote acá para que el render inicial y el SEO de la
   // portada no dependan de JS; sin repetir lo que ya se ve en el hero.
-  const feedSeed = crypto.randomUUID();
+  // Semilla por hora, no por visita: antes era un UUID por visita, lo que
+  // obligaba a generar la portada de cero para cada persona y no dejaba
+  // guardarla en caché (ni Next, ni nginx, ni Cloudflare). Ahora todos los
+  // que entran en la misma hora ven el mismo orden, que igual cambia solo a
+  // lo largo del día; el resto del scroll sigue sin repetir (exclude).
+  const feedSeed = new Date().toISOString().slice(0, 13);
   const feedPage = await getFeed({ size: FEED_INITIAL_SIZE, exclude: [...heroIds], seed: feedSeed });
   const feedItems = feedPage.items.map(fromFeedItem);
 
   const isEmpty = hero.length === 0;
+
+  const modules = [
+    { href: "/publicaciones", label: "Publicaciones", count: articles.totalElements, unit: "publicadas" },
+    { href: "/lugares", label: "Lugares", count: places.totalElements, unit: "lugares" },
+    { href: "/eventos", label: "Eventos", count: events.totalElements, unit: events.totalElements === 1 ? "próximo" : "próximos" },
+    { href: "/galerias", label: "Galerías", count: galleries.totalElements, unit: "galerías" },
+    { href: "/directorio", label: "Directorio", count: businesses.totalElements, unit: "negocios" },
+  ];
+  // Explora por tema: todo lo que el home ya trajo, sin lo del hero (ya está a la vista).
+  const showcaseItems = [
+    ...articles.items.map(fromArticle),
+    ...places.items.map(fromPlace),
+    ...galleries.items.map(fromGallery),
+    ...feedItems,
+  ].filter((item) => !heroIds.has(item.id));
 
   return (
     <div className="flex flex-col">
@@ -91,7 +116,13 @@ export default async function Home() {
           </div>
         </div>
       ) : (
-        <HeroRotator items={hero} categoryNames={categoryNames} />
+        <>
+          <HeroRotator items={hero} categoryNames={categoryNames} />
+          <div className="flex flex-col gap-8 pt-1 sm:gap-10">
+            <ModuleStrip modules={modules} />
+            <CategoryShowcase items={showcaseItems} categories={categories} />
+          </div>
+        </>
       )}
 
       {/* El sidebar (agenda + anuncio + categorías) no depende de que el feed haya
@@ -103,7 +134,7 @@ export default async function Home() {
           {/* En celular la barra lateral va ANTES del feed (order-first): después
               de un scroll infinito nunca se llegaría a verla. */}
           <aside className="order-first mb-10 lg:order-none lg:col-span-4 lg:mb-0">
-            <div className="lg:sticky lg:top-24">
+            <div className="lg:sticky lg:top-32">
               <HomeSidebar events={events.items} categories={categories} categoryNames={categoryNames} />
             </div>
           </aside>

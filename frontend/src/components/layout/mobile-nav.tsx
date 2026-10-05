@@ -69,7 +69,7 @@ export function MobileNav({ links, categories }: { links: { href: string; label:
   }, [open]);
 
   return (
-    <div className="xl:hidden">
+    <div className="lg:hidden">
       <button
         type="button"
         onClick={() => setOpen(true)}

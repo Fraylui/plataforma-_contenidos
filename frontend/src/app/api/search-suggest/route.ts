@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const MAX_SIZE = 8;
+const SEARCH_TYPES = new Set(["ARTICLE", "PLACE", "EVENT", "GALLERY", "BUSINESS"]);
 
 /**
  * Proxy de GET /api/v1/search (público, sin autenticación) para las
@@ -22,6 +23,9 @@ export async function GET(request: NextRequest) {
   const size = Math.min(Math.max(Number(request.nextUrl.searchParams.get("size") ?? 6), 1), MAX_SIZE);
 
   const query = new URLSearchParams({ q, page: "0", size: String(size) });
+  // Selector "Buscar en" del header: solo valores conocidos llegan al backend.
+  const type = request.nextUrl.searchParams.get("type");
+  if (type && SEARCH_TYPES.has(type)) query.set("type", type);
   const res = await fetch(`${BACKEND_API_URL}/api/v1/search?${query.toString()}`, { cache: "no-store" });
   if (!res.ok) {
     return NextResponse.json({ items: [] }, { status: res.status });

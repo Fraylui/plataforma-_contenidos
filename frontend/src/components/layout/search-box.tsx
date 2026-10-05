@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Search } from "lucide-react";
-import type { SearchResult } from "@/lib/api/types";
+import type { SearchResult, SearchResultType } from "@/lib/api/types";
 import { searchResultHref } from "@/lib/content-labels";
 import { imageUrl } from "@/lib/image-url";
 import { cn } from "@/lib/utils";
@@ -21,15 +21,28 @@ const DEBOUNCE_MS = 250;
  * panel, llevan a la página de resultados completa (con filtros por tipo,
  * paginación) — esto es un atajo, no un reemplazo de esa página.
  */
+export interface SearchScope {
+  value: SearchResultType | "";
+  label: string;
+}
+
+/**
+ * `scopes` (solo escritorio): selector "Buscar en" pegado al campo, como el
+ * de departamentos de Amazon — acota sugerencias y resultados a un módulo
+ * sin tener que ir primero a /buscar a filtrar. La primera opción es "Todo".
+ */
 export function SearchBox({
   variant,
   categoryNames,
+  scopes = [],
 }: {
   variant: "desktop" | "mobile";
   categoryNames: Record<string, string>;
+  scopes?: SearchScope[];
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [scope, setScope] = useState<SearchResultType | "">("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [totalElements, setTotalElements] = useState(0);
   const [open, setOpen] = useState(false);
@@ -52,7 +65,8 @@ export function SearchBox({
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/search-suggest?q=${encodeURIComponent(trimmed)}&size=6`, {
+        const scopeParam = scope ? `&type=${scope}` : "";
+        const res = await fetch(`/api/search-suggest?q=${encodeURIComponent(trimmed)}&size=6${scopeParam}`, {
           signal: controller.signal,
         });
         if (!res.ok) throw new Error("search-suggest failed");
@@ -70,7 +84,7 @@ export function SearchBox({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [query]);
+  }, [query, scope]);
 
   useEffect(() => {
     if (!open) return;
@@ -85,7 +99,7 @@ export function SearchBox({
     if (!q.trim()) return;
     setOpen(false);
     inputRef.current?.blur();
-    router.push(`/buscar?q=${encodeURIComponent(q.trim())}`);
+    router.push(`/buscar?q=${encodeURIComponent(q.trim())}${scope ? `&type=${scope}` : ""}`);
   }
 
   function selectResult(item: SearchResult) {
@@ -123,7 +137,7 @@ export function SearchBox({
   const desktop = variant === "desktop";
 
   return (
-    <div ref={containerRef} className={cn("relative", desktop ? "hidden sm:block" : "sm:hidden")}>
+    <div ref={containerRef} className={cn("relative", desktop ? "hidden w-full sm:block" : "sm:hidden")}>
       <form
         role="search"
         onSubmit={(e) => {
@@ -135,6 +149,26 @@ export function SearchBox({
           Buscar contenido
         </label>
         {desktop ? (
+          <div className="flex h-11 w-full items-stretch overflow-hidden rounded-full border border-border bg-background shadow-[0_1px_2px_rgb(0_0_0_/_0.04)] transition-[border-color,box-shadow] focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/15">
+            {scopes.length > 1 && (
+              <>
+                <label htmlFor={`${listboxId}-scope`} className="sr-only">
+                  Buscar en
+                </label>
+                <select
+                  id={`${listboxId}-scope`}
+                  value={scope}
+                  onChange={(e) => setScope(e.target.value as SearchResultType | "")}
+                  className="max-w-36 shrink-0 cursor-pointer border-r border-border bg-canvas pr-2 pl-4 text-[13px] font-medium text-foreground outline-none hover:bg-canvas-strong focus-visible:bg-accent-soft"
+                >
+                  {scopes.map((option) => (
+                    <option key={option.value || "all"} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
           <input
             id={`${listboxId}-input`}
             ref={inputRef}
@@ -151,9 +185,17 @@ export function SearchBox({
             }}
             onFocus={() => setOpen(true)}
             onKeyDown={onKeyDown}
-            placeholder="Buscar…"
-            className="h-11 w-40 rounded-md border border-border bg-background px-3 text-sm text-foreground placeholder-muted outline-none transition-[width] focus-visible:w-72 focus-visible:border-accent"
+            placeholder="Busca publicaciones, lugares, eventos…"
+            className="min-w-0 flex-1 bg-transparent px-4 text-sm text-foreground placeholder-muted outline-none [&::-webkit-search-cancel-button]:hidden"
           />
+            <button
+              type="submit"
+              aria-label="Buscar"
+              className="m-1 flex shrink-0 cursor-pointer items-center justify-center rounded-full bg-accent px-4 text-accent-foreground transition-opacity hover:opacity-90"
+            >
+              <Search className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
         ) : (
           <>
             <input
@@ -188,7 +230,10 @@ export function SearchBox({
           id={listboxId}
           role="listbox"
           aria-label="Sugerencias de búsqueda"
-          className="absolute top-full right-0 z-50 mt-2 w-80 max-w-[90vw] overflow-hidden rounded-xl border border-border bg-surface shadow-lg"
+          className={cn(
+            "absolute top-full z-50 mt-2 overflow-hidden rounded-xl border border-border bg-surface shadow-lg",
+            desktop ? "inset-x-0" : "right-0 w-80 max-w-[90vw]",
+          )}
         >
           {loading && results.length === 0 ? (
             <div className="flex items-center gap-2 px-4 py-4 text-sm text-muted">

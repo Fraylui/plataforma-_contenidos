@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, LayoutGrid } from "lucide-react";
 import type { Category } from "@/lib/api/types";
 
 export function CategoryMenu({ categories }: { categories: Category[] }) {
@@ -36,8 +36,9 @@ export function CategoryMenu({ categories }: { categories: Category[] }) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="true"
-        className="flex items-center gap-1 rounded-md px-2 py-3 text-sm font-medium text-muted transition-colors hover:text-foreground"
+        className="flex cursor-pointer items-center gap-2 rounded-md bg-canvas px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-accent-soft hover:text-accent aria-expanded:bg-accent-soft aria-expanded:text-accent"
       >
+        <LayoutGrid className="h-4 w-4" aria-hidden="true" />
         Categorías
         <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
       </button>
@@ -49,7 +50,7 @@ export function CategoryMenu({ categories }: { categories: Category[] }) {
             animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
             exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.97 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute left-1/2 top-full z-30 mt-1 w-[32rem] max-w-[90vw] -translate-x-1/2 rounded-lg border border-border bg-surface p-4 shadow-lg"
+            className="absolute left-0 top-full z-30 mt-2 w-[36rem] max-w-[90vw] rounded-xl border border-border bg-surface p-4 shadow-lg"
           >
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
               {sorted.map((category) => (
