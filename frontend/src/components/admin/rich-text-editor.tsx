@@ -51,7 +51,7 @@ export function RichTextEditor({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm sm:prose-base max-w-none min-h-[16rem] px-3 py-2 focus:outline-none prose-headings:font-bold prose-a:text-accent",
+          "prose prose-theme prose-sm sm:prose-base max-w-none min-h-[16rem] px-3 py-2 focus:outline-none prose-headings:font-bold prose-a:text-accent",
       },
     },
     onUpdate: ({ editor }) => onChange(editor.getHTML()),

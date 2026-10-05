@@ -233,7 +233,7 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
               secciones largas, e imágenes con el mismo borde/sombra que el resto del
               sitio (ContentCard, galería de portada) en vez de solo `rounded-md`. */}
           <div
-            className="prose prose-slate sm:prose-lg mt-6 max-w-none
+            className="prose prose-theme sm:prose-lg mt-6 max-w-none
               prose-headings:font-bold prose-headings:tracking-tight
               prose-h2:mt-12 prose-h2:border-t prose-h2:border-border prose-h2:pt-8 prose-h2:text-2xl
               prose-h3:mt-8 prose-h3:text-xl

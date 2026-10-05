@@ -20,7 +20,8 @@ export function BusinessCard({
   return (
     <AnimatedCard
       href={`/directorio/${business.slug}`}
-      className={featured ? "sm:col-span-2 lg:grid lg:grid-cols-[1.1fr_1fr] lg:col-span-2" : undefined}
+      itemClassName={featured ? "sm:col-span-2" : undefined}
+      className={featured ? "lg:grid lg:grid-cols-[1.1fr_1fr]" : undefined}
     >
       <CardMedia
         imageId={business.coverImageId}

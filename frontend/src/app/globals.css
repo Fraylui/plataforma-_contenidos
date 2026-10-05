@@ -216,3 +216,32 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/*
+ * Texto largo (cuerpo de publicaciones, lugares, eventos, directorio y el
+ * editor del panel) con los colores del TEMA, no los de Tailwind Typography.
+ * Antes usaba `prose-slate`, que trae grises fijos pensados para fondo
+ * blanco: en tema oscuro el cuerpo quedaba gris oscuro sobre fondo oscuro,
+ * casi ilegible (encontrado en captura real de una publicación).
+ * `.prose.prose-theme` (dos clases) gana a `.prose`/`.prose-slate` sin
+ * depender del orden en que el plugin emite su CSS.
+ */
+.prose.prose-theme {
+  --tw-prose-body: color-mix(in srgb, var(--foreground) 88%, transparent);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-lead: var(--foreground);
+  --tw-prose-links: var(--accent);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-counters: var(--muted);
+  --tw-prose-bullets: var(--muted);
+  --tw-prose-hr: var(--border);
+  --tw-prose-quotes: var(--foreground);
+  --tw-prose-quote-borders: var(--accent);
+  --tw-prose-captions: var(--muted);
+  --tw-prose-kbd: var(--foreground);
+  --tw-prose-code: var(--foreground);
+  --tw-prose-pre-code: var(--foreground);
+  --tw-prose-pre-bg: var(--canvas-strong, var(--surface));
+  --tw-prose-th-borders: var(--border);
+  --tw-prose-td-borders: var(--border);
+}

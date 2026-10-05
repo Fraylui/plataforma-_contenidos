@@ -238,7 +238,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
           {/* place.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
               de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí. */}
           <div
-            className="prose prose-slate sm:prose-lg mt-6 max-w-none prose-headings:font-bold prose-a:text-accent"
+            className="prose prose-theme sm:prose-lg mt-6 max-w-none prose-headings:font-bold prose-a:text-accent"
             dangerouslySetInnerHTML={{ __html: place.body }}
           />
 

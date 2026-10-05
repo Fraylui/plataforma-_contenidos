@@ -34,7 +34,8 @@ export function GalleryCard({
   return (
     <AnimatedCard
       href={`/galerias/${gallery.slug}`}
-      className={featured ? "sm:col-span-2 lg:grid lg:grid-cols-[1.1fr_1fr] lg:col-span-2" : undefined}
+      itemClassName={featured ? "sm:col-span-2" : undefined}
+      className={featured ? "lg:grid lg:grid-cols-[1.1fr_1fr]" : undefined}
     >
       <CardMedia alt={gallery.title} className={featured ? "lg:aspect-auto lg:min-h-full" : undefined}>
         {thumbnails.length === 0 ? (
