@@ -61,7 +61,7 @@ export default async function EventsPage(props: PageProps<"/eventos">) {
                 href={buildHref(tab.value, categoryId, 0)}
                 className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
                   active
-                    ? "bg-accent text-accent-foreground"
+                    ? "bg-accent-fill text-accent-foreground"
                     : "border border-foreground/[0.08] text-muted hover:border-accent/50 hover:text-foreground"
                 }`}
               >

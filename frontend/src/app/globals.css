@@ -49,8 +49,17 @@
      directamente sobre el lienzo. green-800 despeja el peor caso
      (--canvas) con margen (6.32:1) sin oscurecer visiblemente el verde de
      marca (hallado con axe-core en e2e/accessibility.spec.ts). */
-  --accent: #166534;
-  --accent-foreground: #ffffff;
+  /* Verde de marca en DOS tonos del mismo matiz (#0BDA51), cada uno para su
+     trabajo — un solo verde no puede ser vibrante Y legible como texto sobre
+     blanco (medido con la fórmula WCAG: #0BDA51 sobre blanco da 1.88):
+       --accent      texto/enlaces/bordes: #06752b → 5.85 sobre blanco,
+                     5.19 sobre el lienzo verde. Antes #166534, un verde
+                     bosque tan oscuro que casi no se notaba como color.
+       --accent-fill rellenos (botones, píldoras, pestaña activa): #0BDA51
+                     vibrante con texto oscuro encima → 9.49. */
+  --accent: #06752b;
+  --accent-fill: #0bda51;
+  --accent-foreground: #0f172a;
   /* Derivado de --accent, no un valor fijo: así una marca personalizada
      (primaryColor en Configuración de plataforma) también obtiene un tinte
      suave coherente sin tener que recalcularlo a mano. */
@@ -89,7 +98,10 @@
      da margen real en vez de rozar el mínimo cada vez que --surface cambia. */
   --muted: #94a3b8;
   --border: #334155;
-  --accent: #4ade80;
+  /* Oscuro: el mismo #0BDA51 sirve de texto (9.49 sobre el fondo, 7.78
+     sobre tarjetas) y de relleno con texto oscuro encima (9.49). */
+  --accent: #0bda51;
+  --accent-fill: #0bda51;
   --accent-foreground: #0f172a;
   --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
   --danger: #dc2626;
@@ -100,9 +112,9 @@
      el mismo Slate que el resto del tema, con el mismo tinte de marca
      sutil que ya usa --canvas claro, en vez de una paleta oscura paralela
      que queda desactualizada cada vez que se ajusta --background. */
-  --canvas: color-mix(in srgb, #4ade80 6%, #0f172a);
-  --canvas-strong: color-mix(in srgb, #4ade80 8%, #1e293b);
-  --canvas-border: color-mix(in srgb, #4ade80 10%, #334155);
+  --canvas: color-mix(in srgb, #0bda51 6%, #0f172a);
+  --canvas-strong: color-mix(in srgb, #0bda51 8%, #1e293b);
+  --canvas-border: color-mix(in srgb, #0bda51 10%, #334155);
 }
 
 /* "Auto": sin elección explícita, sigue el sistema operativo del visitante. */
@@ -113,14 +125,17 @@
     --foreground: #f1f5f9;
     --muted: #94a3b8;
     --border: #334155;
-    --accent: #4ade80;
+    /* Oscuro: el mismo #0BDA51 sirve de texto (9.49 sobre el fondo, 7.78
+       sobre tarjetas) y de relleno con texto oscuro encima (9.49). */
+    --accent: #0bda51;
+    --accent-fill: #0bda51;
     --accent-foreground: #0f172a;
     --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
     --danger: #dc2626;
     --danger-foreground: #0f172a;
-    --canvas: color-mix(in srgb, #4ade80 6%, #0f172a);
-    --canvas-strong: color-mix(in srgb, #4ade80 8%, #1e293b);
-    --canvas-border: color-mix(in srgb, #4ade80 10%, #334155);
+    --canvas: color-mix(in srgb, #0bda51 6%, #0f172a);
+    --canvas-strong: color-mix(in srgb, #0bda51 8%, #1e293b);
+    --canvas-border: color-mix(in srgb, #0bda51 10%, #334155);
   }
 }
 
@@ -131,6 +146,7 @@
   --color-muted: var(--muted);
   --color-border: var(--border);
   --color-accent: var(--accent);
+  --color-accent-fill: var(--accent-fill);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-soft: var(--accent-soft);
   --color-danger: var(--danger);

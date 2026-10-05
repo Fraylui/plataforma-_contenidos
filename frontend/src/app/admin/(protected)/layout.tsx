@@ -26,7 +26,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           color (criterio del skill de diseño de interfaces). */}
       <aside className="flex flex-col border-b border-border sm:h-full sm:w-60 sm:shrink-0 sm:overflow-hidden sm:border-b-0 sm:border-r">
         <div className="flex shrink-0 items-center gap-2 px-4 py-3">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-xs font-bold text-accent-foreground">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent-fill text-xs font-bold text-accent-foreground">
             P
           </span>
           <span className="text-sm font-semibold tracking-tight text-foreground">Panel admin</span>

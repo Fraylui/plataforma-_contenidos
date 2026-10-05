@@ -86,7 +86,7 @@ export function FilterMenu({
         aria-expanded={open}
         aria-haspopup="true"
         className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
-          active ? "bg-accent text-accent-foreground" : "border border-foreground/[0.08] text-muted hover:border-accent/50 hover:text-foreground"
+          active ? "bg-accent-fill text-accent-foreground" : "border border-foreground/[0.08] text-muted hover:border-accent/50 hover:text-foreground"
         }`}
       >
         {active ? active.label : label}

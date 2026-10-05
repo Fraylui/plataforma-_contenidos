@@ -191,7 +191,7 @@ export function SearchBox({
             <button
               type="submit"
               aria-label="Buscar"
-              className="m-1 flex shrink-0 cursor-pointer items-center justify-center rounded-full bg-accent px-4 text-accent-foreground transition-opacity hover:opacity-90"
+              className="m-1 flex shrink-0 cursor-pointer items-center justify-center rounded-full bg-accent-fill px-4 text-accent-foreground transition-opacity hover:opacity-90"
             >
               <Search className="h-4 w-4" aria-hidden="true" />
             </button>

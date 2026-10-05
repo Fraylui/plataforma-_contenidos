@@ -55,7 +55,7 @@ export function CardMedia({
         className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3"
         style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.22) 45%, transparent 100%)" }}
       />
-      <span className="absolute inset-x-0 bottom-0 h-1 bg-accent" aria-hidden="true" />
+      <span className="absolute inset-x-0 bottom-0 h-1 bg-accent-fill" aria-hidden="true" />
     </div>
   );
 }

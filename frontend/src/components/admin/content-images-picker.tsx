@@ -119,7 +119,7 @@ export function ContentImagesPicker({
                   className="h-full w-full object-cover"
                 />
                 {selected && (
-                  <span className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs font-medium text-accent-foreground">
+                  <span className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent-fill text-xs font-medium text-accent-foreground">
                     {index + 1}
                   </span>
                 )}

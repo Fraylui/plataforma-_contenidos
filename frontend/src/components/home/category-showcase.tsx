@@ -72,7 +72,7 @@ export function CategoryShowcase({ items, categories }: { items: HomeItem[]; cat
   return (
     <section aria-labelledby="explora-por-tema" className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
       <h2 id="explora-por-tema" className="flex items-center gap-2.5 text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-        <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
+        <span className="h-2 w-2 rounded-full bg-accent-fill" aria-hidden="true" />
         Explora por tema
       </h2>
       <div className={`mt-4 grid grid-cols-1 gap-3 sm:mt-5 sm:grid-cols-2 ${gridCols}`}>

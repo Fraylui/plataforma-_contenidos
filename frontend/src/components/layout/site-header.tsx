@@ -87,7 +87,7 @@ export async function SiteHeader() {
                 key={href}
                 href={href}
                 className={`${NAV_LINK} text-muted hover:bg-canvas hover:text-foreground`}
-                activeClassName={`${NAV_LINK} font-semibold text-accent after:absolute after:inset-x-3 after:-bottom-[5px] after:h-0.5 after:rounded-full after:bg-accent`}
+                activeClassName={`${NAV_LINK} font-semibold text-accent after:absolute after:inset-x-3 after:-bottom-[5px] after:h-0.5 after:rounded-full after:bg-accent-fill`}
               >
                 {label}
               </NavLink>

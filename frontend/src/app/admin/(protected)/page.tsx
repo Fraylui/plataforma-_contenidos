@@ -162,7 +162,7 @@ export default async function AdminDashboardPage() {
           </p>
           <Link
             href={pendingReview[0].editHref}
-            className="rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-accent-foreground transition-opacity hover:opacity-90"
+            className="rounded-md bg-accent-fill px-3 py-1.5 text-xs font-semibold text-accent-foreground transition-opacity hover:opacity-90"
           >
             Revisar ahora
           </Link>

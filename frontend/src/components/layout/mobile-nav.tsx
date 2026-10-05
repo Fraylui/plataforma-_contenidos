@@ -137,7 +137,7 @@ export function MobileNav({ links, categories }: { links: { href: string; label:
                           {Icon && (
                             <span
                               className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                                active ? "bg-accent text-accent-foreground" : "bg-canvas text-muted"
+                                active ? "bg-accent-fill text-accent-foreground" : "bg-canvas text-muted"
                               }`}
                             >
                               <Icon className="h-[18px] w-[18px]" aria-hidden="true" />

@@ -118,7 +118,7 @@ export async function SiteFooter() {
                 // eslint-disable-next-line @next/next/no-img-element -- URL de logo definida por el usuario en Configuración, host arbitrario
                 <img src={lightLogo || darkLogo!} alt="" className="h-8 w-auto" />
               ) : (
-                <span className="h-2.5 w-2.5 rounded-full bg-accent ring-4 ring-accent/20" aria-hidden="true" />
+                <span className="h-2.5 w-2.5 rounded-full bg-accent-fill ring-4 ring-accent/20" aria-hidden="true" />
               )}
               <span className="text-xl font-bold tracking-tight text-foreground">{settings.name}</span>
             </Link>
@@ -195,7 +195,7 @@ export async function SiteFooter() {
                   </p>
                   <a
                     href={`mailto:${settings.contactEmail}?subject=${encodeURIComponent("Propuesta de contenido")}`}
-                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-[13px] font-semibold text-accent-foreground transition-colors hover:opacity-90"
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-accent-fill px-4 py-2.5 text-[13px] font-semibold text-accent-foreground transition-colors hover:opacity-90"
                   >
                     Proponer contenido
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

@@ -106,7 +106,7 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
                 />
                 <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-4 sm:gap-2.5 sm:p-8">
                   <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-                    <span className="rounded-full bg-accent px-3 py-1 text-[11px] font-semibold tracking-wider text-accent-foreground uppercase sm:text-xs">
+                    <span className="rounded-full bg-accent-fill px-3 py-1 text-[11px] font-semibold tracking-wider text-accent-foreground uppercase sm:text-xs">
                       {item.typeLabel}
                     </span>
                     <span className="text-xs font-semibold tracking-wide text-[color-mix(in_srgb,var(--accent)_35%,white)]">
@@ -137,7 +137,7 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
                     <span
                       className={cn(
                         "block h-1 rounded-full transition-[width,background-color] duration-300",
-                        i === index ? "w-10 bg-accent" : "w-3 bg-canvas-border",
+                        i === index ? "w-10 bg-accent-fill" : "w-3 bg-canvas-border",
                       )}
                     />
                   </button>

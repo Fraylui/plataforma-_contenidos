@@ -31,7 +31,7 @@ export default function Error({
         <button
           type="button"
           onClick={reset}
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground transition-colors hover:opacity-90"
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-accent-fill px-5 py-2.5 text-sm font-semibold text-accent-foreground transition-colors hover:opacity-90"
         >
           <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
           Reintentar

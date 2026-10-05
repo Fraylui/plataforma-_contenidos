@@ -39,7 +39,7 @@ export function ModuleStrip({ modules }: { modules: ModuleCount[] }) {
                 href={href}
                 className="group flex h-full items-center gap-3 rounded-xl border border-foreground/[0.06] bg-surface px-3.5 py-3 shadow-[0_1px_2px_rgb(0_0_0_/_0.04)] transition-colors hover:border-accent/50"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent transition-colors group-hover:bg-accent group-hover:text-accent-foreground">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent transition-colors group-hover:bg-accent-fill group-hover:text-accent-foreground">
                   <Icon className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <span className="flex min-w-0 flex-col">

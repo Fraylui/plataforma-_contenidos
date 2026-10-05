@@ -35,7 +35,7 @@ export function ContentMediaItemFields({
       {thumbnail && <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md bg-surface">{thumbnail}</div>}
       <div className="min-w-0 flex-1 space-y-1.5">
         <div className="flex items-center gap-2">
-          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-medium text-accent-foreground">
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-fill text-xs font-medium text-accent-foreground">
             {index + 1}
           </span>
           <span className="min-w-0 flex-1 truncate text-xs text-muted">{label}</span>

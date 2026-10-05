@@ -20,7 +20,7 @@ export default async function AdminLoginPage(props: PageProps<"/admin/login">) {
             // eslint-disable-next-line @next/next/no-img-element -- URL de logo definida por el usuario en Configuración, host arbitrario
             <img src={settings.logoUrl} alt="" className="h-9 w-auto" />
           ) : (
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-base font-bold text-accent-foreground">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-fill text-base font-bold text-accent-foreground">
               {settings.name.charAt(0).toUpperCase()}
             </span>
           )}

@@ -19,7 +19,7 @@ export function ReadingProgressBar() {
 
   return (
     <div className="fixed inset-x-0 top-0 z-50 h-1 bg-transparent" aria-hidden="true">
-      <div className="h-full bg-accent transition-[width] duration-150 ease-out" style={{ width: `${progress}%` }} />
+      <div className="h-full bg-accent-fill transition-[width] duration-150 ease-out" style={{ width: `${progress}%` }} />
     </div>
   );
 }

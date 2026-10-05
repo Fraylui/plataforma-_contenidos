@@ -76,7 +76,7 @@ export function EventRowCard({
           compact ? "h-11 w-10" : "h-14 w-13 sm:h-16 sm:w-14",
         )}
       >
-        <span className="bg-accent py-0.5 text-[9px] font-bold tracking-wider text-accent-foreground uppercase sm:text-[10px]">
+        <span className="bg-accent-fill py-0.5 text-[9px] font-bold tracking-wider text-accent-foreground uppercase sm:text-[10px]">
           {month}
         </span>
         <span className={cn("flex flex-1 items-center justify-center font-bold leading-none text-foreground", compact ? "text-sm" : "text-lg sm:text-xl")}>
