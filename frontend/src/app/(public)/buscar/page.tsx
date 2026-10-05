@@ -2,10 +2,14 @@ import type { Metadata } from "next";
 import { listActiveCategories, searchContent } from "@/lib/api/client";
 import type { SearchResultType } from "@/lib/api/types";
 import { SearchResultCard } from "@/components/search/search-result-card";
+import { SearchSuggestions } from "@/components/search/search-suggestions";
 import { FilterMenu } from "@/components/filters/filter-menu";
 import { ListingHeader } from "@/components/layout/listing-header";
 import { EventDateRangeFilter } from "@/components/search/event-date-range-filter";
 import { Pagination } from "@/components/ui/pagination";
+
+/** Con menos resultados que esto, la búsqueda sugiere temas y lo más reciente. */
+const SUGGEST_BELOW = 4;
 
 const PAGE_SIZE = 24;
 const BASE_PATH = "/buscar";
@@ -156,9 +160,20 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
             />
           </>
         ) : (
-          <p className="rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">
-            Sin resultados para «{query}». Prueba con otras palabras.
+          <p className="rounded-lg border border-dashed border-border px-6 py-10 text-center text-sm text-muted">
+            Sin resultados para «{query}». Prueba con otras palabras o explora estas sugerencias.
           </p>
+        )}
+
+        {/* Pocos o ningún resultado: nunca una página casi vacía (ver SearchSuggestions). */}
+        {query && result && result.totalElements < SUGGEST_BELOW && (
+          <SearchSuggestions
+            query={query}
+            categories={categories}
+            categoryNames={categoryNames}
+            excludeIds={result.items.map((item) => item.id)}
+            hasResults={result.items.length > 0}
+          />
         )}
       </section>
     </div>
