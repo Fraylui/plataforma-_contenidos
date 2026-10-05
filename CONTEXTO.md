@@ -1809,6 +1809,84 @@ modularidad de la sección 38).
 
 ---
 
+# 45. Algoritmos de contenido y pendientes (estado al 2026-10-04)
+
+Referencias analizadas renderizando sus portadas: AliExpress, Amazon, MSN,
+Substack, Hashnode. Reddit bloqueó el navegador automatizado; de Reddit solo
+se usa su algoritmo público (código abierto 2008-2017). No hay cuentas de
+lectores: ningún algoritmo puede depender de un perfil de usuario en el
+servidor. Regla general: **solo señales reales** (fechas, me gusta, categorías)
+— nunca rellenar listas "populares" con contenido sin esa señal.
+
+## 45.1 Lo que ya funciona
+
+| Pieza | Dónde | Cómo ordena |
+|---|---|---|
+| Feed del home ("Todo" + pestañas por tipo) | `FeedService.diversify` | `0.55·frescura + 0.20·popularidad + 0.25·variación`. Frescura = `1/(1+días)`; popularidad = `likes/(likes+10)` (satura, un ítem viral no tapa todo); variación = jitter determinista por semilla **horaria** (todos ven el mismo orden dentro de la hora → la portada es cacheable). Reparto round-robin por categoría (dos seguidos casi nunca del mismo tema). Excluye lo ya visto en el scroll. |
+| Relacionados del detalle | `FeedService.getRelated` + `getRelatedWithFallback` | Misma categoría: `frescura + 0.3·log1p(likes)`; se completa con el feed general hasta 6, sin repetir. |
+| "Lo más gustado" | `FeedService.getTopLiked` | Me gusta acumulados, desc. Solo contenido con ≥1 me gusta; la lista solo se muestra con ≥3. |
+| Búsqueda | `SearchService` | `tsvector` español sin acentos por módulo **+** contenido de las categorías cuyo nombre coincide (y sus subcategorías). Fusión por fecha. Con <4 resultados: temas parecidos + lo más reciente. |
+| Anuncios en el feed | `InfiniteFeed` | Posición `en-feed` cada 6 celdas de grilla (desde la 12): siempre tras una fila completa en 2 y 3 columnas. |
+
+## 45.2 Planeado — con condición de activación
+
+Cada uno se activa cuando existe el dato que lo hace útil; antes sería
+complejidad sin efecto visible.
+
+**A. "En tendencia" (reemplaza "Lo más gustado") — fórmula "hot" de Reddit adaptada.**
+```text
+puntaje = log10(max(likes, 1)) + (publicado_en_segundos − T0) / 45000
+```
+45000 s = 12,5 h: multiplicar por 10 los me gusta equivale a ser 12,5 h más
+nuevo. Lo popular sube, pero lo viejo baja solo (el acumulado actual dejaría
+un contenido viejo arriba para siempre). Sin votos negativos (sin cuentas se
+usarían para hundir contenido). Cambio acotado a `FeedService.getTopLiked`.
+**Activar:** cuando ≥20 contenidos tengan al menos 1 me gusta.
+
+**B. "Temas de la semana" (los "Trending tags" de Hashnode).**
+```text
+actividad(tema) = publicados_7d + 0.5 · me_gusta_7d
+```
+`engagement.content_likes.created_at` ya guarda la fecha de cada me gusta;
+publicados_7d sale de `publishedAt`. Ordena "Explorar por tema" de la barra
+lateral y la franja de temas en vez del `sortOrder` fijo; desempate por
+`sortOrder`. **Activar:** cuando se publique contenido cada semana.
+
+**C. Atajo de teclado para buscar (Ctrl+K y "/").** Solo frontend, sin
+condición — siguiente tarea chica.
+
+**D. "Para ti" sin cuentas.** Pesos por categoría guardados en el navegador
+(categorías abiertas), enviados como parámetro opcional al feed; requiere
+consentimiento en el aviso de cookies (Europa). **Activar:** con >300
+contenidos y visitantes recurrentes medidos (hoy ~2,4 contenidos por tema:
+personalizar no cambiaría nada).
+
+**E. Relacionados "quien vio esto también vio" (Amazon, item a item).**
+Requiere registrar visitas por sesión; hoy no hay analítica propia.
+**Activar:** después de tener analítica de páginas vistas.
+
+**F. Puntaje de Wilson (Reddit "best").** Solo tiene sentido con votos
+positivos Y negativos o comentarios; no previsto.
+
+## 45.3 Pendientes que no son algoritmos
+
+Del usuario (configuración, no código):
+- Cloudflare (reglas de caché), swap, firewall y copia de backups a R2: ver
+  `infra/DESPLIEGUE.md`.
+- Configuración del panel: correo de contacto (activa "Proponer contenido" y
+  `/contacto`), descripción del sitio (hoy dice "Sistema de gestión…"),
+  descripción de la categoría Turismo (repite el nombre), slot de AdSense
+  para la posición `en-feed`.
+
+Decididos para más adelante:
+- Módulo "Páginas" editable para textos legales: no por ahora — las páginas
+  legales se adaptan solas a la configuración (p. ej. AdSense activado) y
+  cambian poco.
+- Selector de país/ciudad (Geografía) como "Enviar a Perú" de Amazon:
+  cuando haya suficiente contenido por zona.
+
+---
+
 ## Índice de secciones
 
 ```text
@@ -1834,4 +1912,5 @@ modularidad de la sección 38).
 21    Stack tecnológico                  42    Flujo de trabajo con agentes de IA
 22    WebSockets                         43    Estándar de diseño y frontend
                                           44    Modelo de negocio (en validación)
+                                          45    Algoritmos de contenido y pendientes
 ```
