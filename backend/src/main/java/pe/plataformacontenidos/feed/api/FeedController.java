@@ -22,6 +22,7 @@ public class FeedController {
 
     private static final int MAX_PAGE_SIZE = 30;
     private static final int MAX_RELATED_SIZE = 20;
+    private static final int MAX_TOP_SIZE = 10;
 
     private final FeedService feedService;
 
@@ -40,9 +41,16 @@ public class FeedController {
     public FeedPageResponse getFeed(
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(required = false) List<UUID> exclude,
-            @RequestParam(required = false) String seed) {
+            @RequestParam(required = false) String seed,
+            @RequestParam(required = false) ContentType type) {
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
-        return feedService.getFeed(safeSize, exclude, seed);
+        return feedService.getFeed(safeSize, exclude, seed, type);
+    }
+
+    /** "Lo más gustado" del home — ver FeedService.getTopLiked. */
+    @GetMapping("/top")
+    public List<FeedItemResponse> getTopLiked(@RequestParam(defaultValue = "5") int size) {
+        return feedService.getTopLiked(Math.min(Math.max(size, 1), MAX_TOP_SIZE));
     }
 
     /**

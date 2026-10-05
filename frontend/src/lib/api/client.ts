@@ -289,6 +289,11 @@ export async function getPrimaryNavVisibility(): Promise<Record<string, boolean>
  * las páginas siguientes del scroll, que sí dependen de cada visitante,
  * van por app/api/feed/route.ts sin caché.
  */
+/** "Lo más gustado" del home — ver FeedController.getTopLiked (solo contenido con me gusta reales). */
+export function getTopLiked(size = 5): Promise<FeedItem[]> {
+  return apiFetch(`/api/v1/feed/top?size=${size}`, 60);
+}
+
 export function getFeed(params: { size?: number; exclude?: string[]; seed?: string }): Promise<FeedPage> {
   const query = new URLSearchParams();
   query.set("size", String(params.size ?? 12));

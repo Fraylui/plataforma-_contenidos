@@ -1,6 +1,8 @@
 import {
   getFeed,
   getPlatformSettings,
+  getTopLiked,
+  listActiveAdPlacements,
   listActiveCategories,
   listPublishedArticles,
   listPublishedBusinesses,
@@ -86,6 +88,21 @@ export default async function Home() {
   const feedSeed = new Date().toISOString().slice(0, 13);
   const feedPage = await getFeed({ size: FEED_INITIAL_SIZE, exclude: [...heroIds], seed: feedSeed });
   const feedItems = feedPage.items.map(fromFeedItem);
+  // "Lo más gustado" es un extra: si falla, la portada sigue sin esa tarjeta.
+  const [topLikedRaw, placements] = await Promise.all([getTopLiked(5).catch(() => []), listActiveAdPlacements()]);
+  const topLiked = topLikedRaw.map(fromFeedItem);
+  // Espacio "en-feed": la campaña directa la elige el navegador; acá solo la
+  // configuración de AdSense para esa posición (igual que AdBlock).
+  const feedSlot = placements.find((p) => p.key === "en-feed")?.adsenseSlotId;
+  const feedAd =
+    settings.adsenseEnabled && settings.adsenseClientId && feedSlot ? { clientId: settings.adsenseClientId, slot: feedSlot } : null;
+  // Pestañas del feed: solo tipos que el feed incluye y que tienen contenido.
+  const feedTabs = [
+    { value: "" as const, label: "Para ti" },
+    ...(articles.totalElements > 0 ? [{ value: "ARTICLE" as const, label: "Publicaciones" }] : []),
+    ...(places.totalElements > 0 ? [{ value: "PLACE" as const, label: "Lugares" }] : []),
+    ...(events.totalElements > 0 ? [{ value: "EVENT" as const, label: "Eventos" }] : []),
+  ];
 
   const isEmpty = hero.length === 0;
 
@@ -143,7 +160,7 @@ export default async function Home() {
             <section aria-labelledby="descubre" className="lg:col-span-8 lg:row-start-1">
               <div className="flex flex-col gap-1">
                 <h2 id="descubre" className="flex items-center gap-2.5 text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                  <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
+                  <span className="h-2 w-2 rounded-full bg-accent-fill" aria-hidden="true" />
                   Descubre en {settings.shortName || settings.name}
                 </h2>
                 <p className="hidden text-sm text-muted sm:block">Publicaciones, lugares y eventos, sin repetirse mientras exploras.</p>
@@ -155,6 +172,9 @@ export default async function Home() {
                   initialHasMore={feedPage.hasMore}
                   seed={feedSeed}
                   categoryNames={categoryNames}
+                  tabs={feedTabs}
+                  feedAd={feedAd}
+                  topLiked={topLiked}
                 />
               </div>
             </section>

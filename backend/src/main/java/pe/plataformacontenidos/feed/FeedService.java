@@ -66,17 +66,34 @@ public class FeedService {
         this.contentLikeService = contentLikeService;
     }
 
-    public FeedPageResponse getFeed(int size, List<UUID> excludeIds, String seed) {
+    /** Tipos que forman parte del feed (las pestañas del home solo pueden pedir uno de estos). */
+    public static final Set<ContentType> FEED_TYPES = Set.of(ContentType.ARTICLE, ContentType.PLACE, ContentType.EVENT);
+
+    /**
+     * {@code type} null = todos los tipos mezclados ("Para ti"); si no, solo
+     * ese tipo (pestañas del home). Mismo orden y antirrepetición en ambos
+     * casos; con un solo tipo no se consulta a los otros servicios.
+     */
+    public FeedPageResponse getFeed(int size, List<UUID> excludeIds, String seed, ContentType type) {
+        if (type != null && !FEED_TYPES.contains(type)) {
+            throw new InvalidFeedTypeException(type);
+        }
         Set<UUID> excluded = boundedExcludeSet(excludeIds);
         Pageable pageable = PageRequest.of(0, CANDIDATE_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
 
-        List<Article> articles = articleService.listPublished(null, pageable).getContent().stream()
-                .filter(a -> !excluded.contains(a.getId())).toList();
-        List<Place> places = placeService.listPublished(null, pageable).getContent().stream()
-                .filter(p -> !excluded.contains(p.getId())).toList();
+        List<Article> articles = includes(type, ContentType.ARTICLE)
+                ? articleService.listPublished(null, pageable).getContent().stream()
+                        .filter(a -> !excluded.contains(a.getId())).toList()
+                : List.of();
+        List<Place> places = includes(type, ContentType.PLACE)
+                ? placeService.listPublished(null, pageable).getContent().stream()
+                        .filter(p -> !excluded.contains(p.getId())).toList()
+                : List.of();
         // Solo próximos: un feed de descubrimiento no debe recomendar eventos que ya pasaron.
-        List<Event> events = eventService.listPublished(null, true, pageable).getContent().stream()
-                .filter(e -> !excluded.contains(e.getId())).toList();
+        List<Event> events = includes(type, ContentType.EVENT)
+                ? eventService.listPublished(null, true, pageable).getContent().stream()
+                        .filter(e -> !excluded.contains(e.getId())).toList()
+                : List.of();
 
         List<FeedItemResponse> pool = buildPool(articles, places, events);
         List<FeedItemResponse> ordered = diversify(pool, seed);
@@ -84,6 +101,32 @@ public class FeedService {
         List<FeedItemResponse> page = ordered.stream().limit(size).toList();
         boolean hasMore = ordered.size() > page.size();
         return new FeedPageResponse(page, hasMore);
+    }
+
+    private static boolean includes(ContentType requested, ContentType candidate) {
+        return requested == null || requested == candidate;
+    }
+
+    /**
+     * "Lo más gustado" (tarjeta de lista del home, como "Historias
+     * principales" de MSN): solo contenido con al menos un me gusta real,
+     * ordenado por cantidad y, a igualdad, el más nuevo primero. Nunca
+     * rellena con contenido sin me gusta — una lista "popular" inventada
+     * sería engañosa; si no hay nada gustado, la lista sale vacía y el
+     * frontend no la muestra.
+     */
+    public List<FeedItemResponse> getTopLiked(int size) {
+        Pageable pageable = PageRequest.of(0, CANDIDATE_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
+        List<FeedItemResponse> pool = buildPool(
+                articleService.listPublished(null, pageable).getContent(),
+                placeService.listPublished(null, pageable).getContent(),
+                eventService.listPublished(null, true, pageable).getContent());
+        return pool.stream()
+                .filter(item -> item.likeCount() > 0)
+                .sorted(Comparator.comparingLong(FeedItemResponse::likeCount).reversed()
+                        .thenComparing(FeedItemResponse::publishedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                .limit(Math.max(size, 1))
+                .toList();
     }
 
     /**

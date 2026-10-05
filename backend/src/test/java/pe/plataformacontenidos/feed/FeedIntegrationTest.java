@@ -164,6 +164,65 @@ class FeedIntegrationTest {
                 .andExpect(content().json("[]"));
     }
 
+    @Test
+    void feedFiltersByContentTypeForTabs() throws Exception {
+        String editorToken = createUserAndLogin("feed-tab-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("feed-tab-author@plataforma-contenidos.test", Role.AUTHOR);
+        String categoryId = createCategory(editorToken, "Feed Tabs");
+
+        publishArticle(authorToken, editorToken, categoryId, "Feed tab: publicación " + UUID.randomUUID());
+        publishPlace(authorToken, editorToken, categoryId, "Feed tab: lugar " + UUID.randomUUID());
+
+        mockMvc.perform(get("/api/v1/feed").param("size", "30").param("type", "PLACE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items", not(hasSize(0))))
+                .andExpect(jsonPath("$.items[*].type", everyItem(is("PLACE"))));
+    }
+
+    @Test
+    void feedRejectsTypesThatAreNotPartOfTheFeed() throws Exception {
+        mockMvc.perform(get("/api/v1/feed").param("type", "GALLERY"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void topLikedListsMostLikedFirstAndSkipsContentWithoutLikes() throws Exception {
+        String editorToken = createUserAndLogin("feed-top-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("feed-top-author@plataforma-contenidos.test", Role.AUTHOR);
+        String categoryId = createCategory(editorToken, "Feed Top");
+
+        String popularId = publishArticle(authorToken, editorToken, categoryId, "Feed top: popular " + UUID.randomUUID());
+        String lessId = publishArticle(authorToken, editorToken, categoryId, "Feed top: menos " + UUID.randomUUID());
+        String noneId = publishArticle(authorToken, editorToken, categoryId, "Feed top: sin likes " + UUID.randomUUID());
+        likeArticle(popularId, 3);
+        likeArticle(lessId, 1);
+
+        MvcResult result = mockMvc.perform(get("/api/v1/feed/top").param("size", "50"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].likeCount", everyItem(org.hamcrest.Matchers.greaterThan(0))))
+                .andReturn();
+        java.util.List<String> ids = new java.util.ArrayList<>();
+        objectMapper.readTree(result.getResponse().getContentAsString()).forEach(n -> ids.add(n.get("id").asString()));
+        org.assertj.core.api.Assertions.assertThat(ids).contains(popularId, lessId).doesNotContain(noneId);
+        org.assertj.core.api.Assertions.assertThat(ids.indexOf(popularId)).isLessThan(ids.indexOf(lessId));
+    }
+
+    private void likeArticle(String articleId, int times) throws Exception {
+        JsonNode feed = objectMapper.readTree(mockMvc.perform(get("/api/v1/feed").param("size", "50").param("type", "ARTICLE"))
+                .andReturn().getResponse().getContentAsString());
+        String slug = null;
+        for (JsonNode item : feed.get("items")) {
+            if (item.get("id").asString().equals(articleId)) {
+                slug = item.get("slug").asString();
+            }
+        }
+        org.assertj.core.api.Assertions.assertThat(slug).as("slug de " + articleId).isNotNull();
+        for (int i = 0; i < times; i++) {
+            mockMvc.perform(post("/api/v1/articles/" + slug + "/like").param("visitorId", UUID.randomUUID().toString()))
+                    .andExpect(status().isOk());
+        }
+    }
+
     private String publishArticle(String authorToken, String editorToken, String categoryId, String title)
             throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v1/admin/articles")

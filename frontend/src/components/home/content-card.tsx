@@ -99,12 +99,15 @@ export function ContentCard({ item, categoryName }: { item: HomeItem; categoryNa
 }
 
 /**
- * Variante destacada de "Lo nuevo": horizontal (imagen a la izquierda) y
- * ocupa 2 columnas en escritorio; en celular es una tarjeta estándar más.
+ * Variante destacada de "Lo nuevo": ocupa 2 columnas en todos los anchos
+ * (horizontal, imagen a la izquierda, en escritorio). Siempre 2 celdas para
+ * que el feed pueda calcular filas completas (ver InfiniteFeed) — antes era
+ * 1 celda en celular y 2 en escritorio, y los anuncios intercalados
+ * dejaban tarjetas sueltas en una fila.
  */
 export function FeaturedContentCard({ item, categoryName, cta }: { item: HomeItem; categoryName?: string; cta: string }) {
   return (
-    <article className={cn(CHROME, "lg:col-span-2 lg:grid lg:grid-cols-[1.1fr_1fr]")}>
+    <article className={cn(CHROME, "col-span-2 lg:grid lg:grid-cols-[1.1fr_1fr]")}>
       <Cover item={item} sizes="(min-width: 1024px) 30vw, (min-width: 640px) 33vw, 50vw" className="aspect-[16/10] lg:aspect-auto lg:min-h-full" />
       <div className="flex flex-1 flex-col gap-1 p-2.5 pb-1.5 sm:gap-1.5 sm:p-4 sm:pb-2">
         <Kicker categoryName={categoryName} />
