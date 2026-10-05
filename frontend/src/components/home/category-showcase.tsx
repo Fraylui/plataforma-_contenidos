@@ -92,7 +92,7 @@ export function CategoryShowcase({ items, categories }: { items: HomeItem[]; cat
             </div>
             <Link
               href={`/categorias/${category.slug}`}
-              className="mt-4 inline-flex items-center gap-1 self-start text-[13px] font-semibold text-accent hover:underline"
+              className="mt-2 inline-flex min-h-11 items-center gap-1 self-start text-[13px] font-semibold text-accent hover:underline"
             >
               Ver todo en {category.name}
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

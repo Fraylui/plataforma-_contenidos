@@ -58,7 +58,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
       <nav aria-label="Breadcrumb" className="text-xs text-muted">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>
-            <Link href="/" className="hover:text-accent hover:underline">
+            <Link href="/" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
               Inicio
             </Link>
           </li>

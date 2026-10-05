@@ -163,7 +163,7 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
           <nav aria-label="Breadcrumb" className="mb-4 flex max-w-[280px] items-center gap-2 truncate text-xs text-muted sm:max-w-none">
             <ol className="flex flex-wrap items-center gap-1.5 truncate">
               <li>
-                <Link href="/" className="hover:text-accent hover:underline">
+                <Link href="/" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
                   Inicio
                 </Link>
               </li>
@@ -171,7 +171,7 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
               {category && (
                 <>
                   <li>
-                    <Link href={`/categorias/${category.slug}`} className="hover:text-accent hover:underline">
+                    <Link href={`/categorias/${category.slug}`} className="-my-2 inline-block py-2 hover:text-accent hover:underline">
                       {category.name}
                     </Link>
                   </li>

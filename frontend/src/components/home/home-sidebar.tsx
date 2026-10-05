@@ -6,7 +6,7 @@ import { EventRowCard } from "./event-row-card";
 
 const SECTION_TITLE = "flex items-center justify-between gap-3 text-sm font-bold tracking-tight text-foreground";
 const SECTION_LINK =
-  "inline-flex shrink-0 items-center gap-1 text-[12px] font-semibold text-accent transition-colors hover:underline";
+  "-my-3 inline-flex shrink-0 items-center gap-1 py-3 text-[12px] font-semibold text-accent transition-colors hover:underline";
 const SECTION = "p-5 sm:p-6";
 // Mismo límite/criterio que FOOTER_CATEGORIES_MAX en site-footer.tsx — sin
 // tope, un catálogo grande (hoy 23 categorías planas) alarga el panel muy
@@ -76,7 +76,7 @@ export function HomeSidebar({
               <li key={category.id}>
                 <Link
                   href={`/categorias/${category.slug}`}
-                  className="inline-block rounded-full border border-foreground/[0.08] bg-canvas px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-accent hover:bg-accent-soft hover:text-accent"
+                  className="inline-flex min-h-9 items-center rounded-full border border-foreground/[0.08] bg-canvas px-3.5 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:border-accent hover:bg-accent-soft hover:text-accent"
                 >
                   {category.name}
                 </Link>

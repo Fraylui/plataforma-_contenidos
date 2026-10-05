@@ -131,7 +131,7 @@ export async function SiteFooter() {
                   <Link
                     key={category.id}
                     href={`/categorias/${category.slug}`}
-                    className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground shadow-[0_1px_2px_rgb(0_0_0_/_0.08)] transition-colors hover:border-accent/60 hover:text-accent"
+                    className="inline-flex min-h-9 items-center rounded-full border border-border bg-background px-3.5 py-1.5 text-xs font-medium text-foreground shadow-[0_1px_2px_rgb(0_0_0_/_0.08)] transition-colors hover:border-accent/60 hover:text-accent"
                   >
                     {category.name}
                   </Link>
@@ -231,7 +231,7 @@ export async function SiteFooter() {
             © {year} {settings.name}. Todos los derechos reservados.
           </p>
           <div className="flex items-center gap-4">
-            <Link href="/rss.xml" className="inline-flex w-fit items-center gap-1.5 py-1 text-muted transition-colors hover:text-foreground">
+            <Link href="/rss.xml" className="inline-flex min-h-11 w-fit items-center gap-1.5 px-1 text-muted transition-colors hover:text-foreground">
               <Rss className="h-3.5 w-3.5" aria-hidden="true" />
               RSS
             </Link>

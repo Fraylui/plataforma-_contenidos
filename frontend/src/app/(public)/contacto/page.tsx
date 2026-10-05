@@ -41,32 +41,32 @@ export default async function ContactPage() {
         <>
           <p>
             Nuestro correo es{" "}
-            <a href={`mailto:${email}`} className="font-medium text-accent hover:underline">
+            <a href={`mailto:${email}`} className="font-medium text-accent underline underline-offset-2">
               {email}
             </a>
             . Para que tu mensaje llegue a quien corresponde, usa el asunto que mejor encaje:
           </p>
           <ul className="list-disc space-y-1.5 pl-5">
             <li>
-              <a href={mail("Propuesta de contenido")} className="text-accent hover:underline">
+              <a href={mail("Propuesta de contenido")} className="text-accent underline underline-offset-2">
                 Propuesta de contenido
               </a>{" "}
               — un lugar, evento o historia que deberíamos cubrir.
             </li>
             <li>
-              <a href={mail("Corrección")} className="text-accent hover:underline">
+              <a href={mail("Corrección")} className="text-accent underline underline-offset-2">
                 Corrección
               </a>{" "}
               — un dato equivocado o desactualizado en algo que publicamos.
             </li>
             <li>
-              <a href={mail("Publicidad")} className="text-accent hover:underline">
+              <a href={mail("Publicidad")} className="text-accent underline underline-offset-2">
                 Publicidad
               </a>{" "}
               — anunciar tu negocio o evento en el sitio.
             </li>
             <li>
-              <a href={mail("Derechos de autor")} className="text-accent hover:underline">
+              <a href={mail("Derechos de autor")} className="text-accent underline underline-offset-2">
                 Derechos de autor
               </a>{" "}
               — si crees que algo publicado aquí usa material tuyo sin permiso.
@@ -83,7 +83,7 @@ export default async function ContactPage() {
       content: (
         <p>
           Solo usamos tu correo para responderte. Más detalle en la{" "}
-          <Link href="/privacidad" className="text-accent hover:underline">
+          <Link href="/privacidad" className="text-accent underline underline-offset-2">
             Política de privacidad
           </Link>
           .

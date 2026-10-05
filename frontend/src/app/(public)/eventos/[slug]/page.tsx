@@ -168,13 +168,13 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
           <nav aria-label="Breadcrumb" className="mb-4 flex max-w-[280px] items-center gap-2 truncate text-xs text-muted sm:max-w-none">
             <ol className="flex flex-wrap items-center gap-1.5 truncate">
               <li>
-                <Link href="/" className="hover:text-accent hover:underline">
+                <Link href="/" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
                   Inicio
                 </Link>
               </li>
               <li aria-hidden="true">/</li>
               <li>
-                <Link href="/eventos" className="hover:text-accent hover:underline">
+                <Link href="/eventos" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
                   Eventos
                 </Link>
               </li>
@@ -182,7 +182,7 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
                 <>
                   <li aria-hidden="true">/</li>
                   <li>
-                    <Link href={`/categorias/${category.slug}`} className="hover:text-accent hover:underline">
+                    <Link href={`/categorias/${category.slug}`} className="-my-2 inline-block py-2 hover:text-accent hover:underline">
                       {category.name}
                     </Link>
                   </li>

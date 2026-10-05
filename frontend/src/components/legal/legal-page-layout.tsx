@@ -30,7 +30,7 @@ export function LegalPageLayout({
       <nav aria-label="Breadcrumb" className="text-xs text-muted">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>
-            <Link href="/" className="hover:text-accent hover:underline">
+            <Link href="/" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
               Inicio
             </Link>
           </li>
@@ -47,7 +47,7 @@ export function LegalPageLayout({
       <nav aria-label="Contenido" className="mt-6 flex flex-wrap gap-x-2 gap-y-1 text-sm text-muted">
         {sections.map((section, index) => (
           <span key={section.id} className="flex items-center gap-2">
-            <a href={`#${section.id}`} className="hover:text-accent hover:underline">
+            <a href={`#${section.id}`} className="-my-2 inline-block py-2 hover:text-accent hover:underline">
               {section.title}
             </a>
             {index < sections.length - 1 && <span aria-hidden="true">·</span>}

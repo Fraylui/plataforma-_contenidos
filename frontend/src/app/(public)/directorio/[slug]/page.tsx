@@ -161,13 +161,13 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
           <nav aria-label="Breadcrumb" className="mb-4 flex max-w-[280px] items-center gap-2 truncate text-xs text-muted sm:max-w-none">
             <ol className="flex flex-wrap items-center gap-1.5 truncate">
               <li>
-                <Link href="/" className="hover:text-accent hover:underline">
+                <Link href="/" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
                   Inicio
                 </Link>
               </li>
               <li aria-hidden="true">/</li>
               <li>
-                <Link href="/directorio" className="hover:text-accent hover:underline">
+                <Link href="/directorio" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
                   Directorio
                 </Link>
               </li>
