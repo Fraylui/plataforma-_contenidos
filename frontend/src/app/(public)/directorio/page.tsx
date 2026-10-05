@@ -4,6 +4,7 @@ import { BusinessCard } from "@/components/directory/business-card";
 import { Pagination } from "@/components/ui/pagination";
 import { AdBlock } from "@/components/legal/ad-block";
 import { FilterMenu } from "@/components/filters/filter-menu";
+import { ListingHeader } from "@/components/layout/listing-header";
 import { businessTypeLabel } from "@/lib/content-labels";
 import type { BusinessType } from "@/lib/api/types";
 
@@ -54,14 +55,11 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <header className="max-w-2xl">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Directorio</h1>
-        <p className="mt-3 text-base leading-relaxed text-muted">
-          Restaurantes, hoteles y servicios locales.
-        </p>
-      </header>
-
-      <div className="mt-6 flex flex-wrap items-center gap-2 border-b border-foreground/[0.06] pb-4">
+      <ListingHeader
+        title="Directorio"
+        description="Restaurantes, hoteles y servicios locales."
+        count={`${result.totalElements.toLocaleString("es")} ${result.totalElements === 1 ? "negocio" : "negocios"}`}
+      >
         <FilterMenu
           label="Tipo de negocio"
           allLabel="Todos los tipos"
@@ -80,7 +78,7 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
           basePath={BASE_PATH}
           extraParams={businessType ? { businessType } : undefined}
         />
-      </div>
+      </ListingHeader>
 
       <div className="mt-8">
         <AdBlock position="cabecera" className="aspect-[5/1] sm:aspect-[8/1]" />

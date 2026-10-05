@@ -100,7 +100,7 @@ export function FilterMenu({
             animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
             exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.97 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute left-0 top-full z-30 mt-2 w-64 max-w-[90vw] rounded-2xl border border-foreground/[0.06] bg-surface p-2 shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_16px_32px_-16px_rgb(0_0_0_/_0.16)]"
+            className="absolute left-0 md:left-auto md:right-0 top-full z-30 mt-2 w-64 max-w-[90vw] rounded-2xl border border-foreground/[0.06] bg-surface p-2 shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_16px_32px_-16px_rgb(0_0_0_/_0.16)]"
           >
             <Link
               href={hrefFor(null)}

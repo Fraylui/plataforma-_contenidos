@@ -5,6 +5,7 @@ import { EventCard } from "@/components/event/event-card";
 import { Pagination } from "@/components/ui/pagination";
 import { AdBlock } from "@/components/legal/ad-block";
 import { FilterMenu } from "@/components/filters/filter-menu";
+import { ListingHeader } from "@/components/layout/listing-header";
 
 const PAGE_SIZE = 24;
 const BASE_PATH = "/eventos";
@@ -44,14 +45,11 @@ export default async function EventsPage(props: PageProps<"/eventos">) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <header className="max-w-2xl">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Eventos</h1>
-        <p className="mt-3 text-base leading-relaxed text-muted">
-          Ferias, festivales y actividades — próximas y pasadas.
-        </p>
-      </header>
-
-      <div className="mt-6 flex flex-wrap items-center gap-2 border-b border-foreground/[0.06] pb-4">
+      <ListingHeader
+        title="Eventos"
+        description="Ferias, festivales y actividades — próximas y pasadas."
+        count={`${result.totalElements.toLocaleString("es")} ${result.totalElements === 1 ? "evento" : "eventos"}`}
+      >
         <nav aria-label="Filtrar por fecha" className="flex gap-2">
           {WHEN_TABS.map((tab) => {
             const active = tab.value === when;
@@ -70,7 +68,6 @@ export default async function EventsPage(props: PageProps<"/eventos">) {
             );
           })}
         </nav>
-        <span className="h-5 w-px bg-foreground/[0.08]" aria-hidden="true" />
         <FilterMenu
           label="Filtrar por tema"
           allLabel="Todas las categorías"
@@ -80,7 +77,7 @@ export default async function EventsPage(props: PageProps<"/eventos">) {
           basePath={BASE_PATH}
           extraParams={{ when }}
         />
-      </div>
+      </ListingHeader>
 
       <div className="mt-8">
         <AdBlock position="cabecera" className="aspect-[5/1] sm:aspect-[8/1]" />

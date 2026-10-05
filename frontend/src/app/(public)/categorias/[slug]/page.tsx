@@ -15,6 +15,7 @@ import { EventCard } from "@/components/event/event-card";
 import { GalleryCard } from "@/components/gallery/gallery-card";
 import { BusinessCard } from "@/components/directory/business-card";
 import { Pagination } from "@/components/ui/pagination";
+import { ListingHeader } from "@/components/layout/listing-header";
 
 const FEATURED_PLACES_SIZE = 4;
 const UPCOMING_EVENTS_SIZE = 3;
@@ -53,6 +54,19 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
       listPublishedArticles({ categoryId: category.id, page, size: ARTICLES_PAGE_SIZE }),
     ]);
 
+  // Resumen real de lo que hay en el tema ("10 lugares · 3 eventos …"): a la
+  // derecha del título, en la misma franja (ver ListingHeader).
+  const categorySummary = [
+    [articlesResult.totalElements, "publicación", "publicaciones"],
+    [placesResult.totalElements, "lugar", "lugares"],
+    [eventsResult.totalElements, "evento próximo", "eventos próximos"],
+    [galleriesResult.totalElements, "galería", "galerías"],
+    [businessesResult.totalElements, "negocio", "negocios"],
+  ]
+    .filter(([n]) => (n as number) > 0)
+    .map(([n, one, many]) => `${n} ${n === 1 ? one : many}`)
+    .join(" · ");
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <nav aria-label="Breadcrumb" className="text-xs text-muted">
@@ -69,14 +83,9 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
         </ol>
       </nav>
 
-      <header className="mt-3 max-w-2xl">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          {category.name}
-        </h1>
-        {category.description && (
-          <p className="mt-3 text-base leading-relaxed text-muted">{category.description}</p>
-        )}
-      </header>
+      <div className="mt-3">
+        <ListingHeader title={category.name} description={category.description} count={categorySummary} />
+      </div>
 
       {placesResult.items.length > 0 && (
         <section className="mt-12" aria-label="Lugares">

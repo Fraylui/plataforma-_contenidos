@@ -3,6 +3,7 @@ import { listActiveCategories, searchContent } from "@/lib/api/client";
 import type { SearchResultType } from "@/lib/api/types";
 import { SearchResultCard } from "@/components/search/search-result-card";
 import { FilterMenu } from "@/components/filters/filter-menu";
+import { ListingHeader } from "@/components/layout/listing-header";
 import { EventDateRangeFilter } from "@/components/search/event-date-range-filter";
 import { Pagination } from "@/components/ui/pagination";
 
@@ -85,24 +86,18 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
           literalmente el mismo control repetido dos veces en la misma
           pantalla (encontrado probando el buscador real). Para cambiar de
           término, se usa el del header. */}
-      <header className="max-w-2xl">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          {query ? <>Resultados para «{query}»</> : "Buscar"}
-        </h1>
-      </header>
-
-      {query && (
-        <div className="mt-6 space-y-4">
-          {/* Dos desplegables compactos, no chips fijas: antes esto eran dos
-              filas apiladas (tipo Y categoría, cada una con hasta 7
-              pastillas) más 5 selectores de geografía en cascada debajo —
-              se sentía un formulario, no una búsqueda. Las opciones de
-              "tipo" además repetían palabra por palabra los enlaces de la
-              navegación principal (Publicaciones/Lugares/Eventos/...),
-              puro ruido visual sin aportar nada nuevo al lado de esos
-              mismos enlaces ya visibles arriba. La geografía se sacó por
-              completo: no aportaba lo suficiente para el espacio que ocupaba. */}
-          <div className="flex flex-wrap items-center gap-2 border-b border-foreground/[0.06] pb-4">
+      <ListingHeader
+        title={query ? `Resultados para «${query}»` : "Buscar"}
+        count={
+          query && result ? `${result.totalElements.toLocaleString("es")} ${result.totalElements === 1 ? "resultado" : "resultados"}` : null
+        }
+      >
+        {/* Dos desplegables compactos, no chips fijas: antes esto eran dos
+            filas apiladas (tipo Y categoría, cada una con hasta 7 pastillas)
+            más selectores de geografía en cascada — se sentía un
+            formulario, no una búsqueda. */}
+        {query && (
+          <>
             <FilterMenu
               label="Todo el contenido"
               allLabel="Todo el contenido"
@@ -121,17 +116,19 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
               basePath={BASE_PATH}
               extraParams={{ q: query, ...(type ? { type } : {}) }}
             />
-          </div>
+          </>
+        )}
+      </ListingHeader>
 
-          {type === "EVENT" && (
-            <EventDateRangeFilter
-              q={query}
-              categoryId={categoryId}
-              from={from}
-              to={to}
-              clearHref={buildHref(query, type, categoryId, null, null, 0)}
-            />
-          )}
+      {query && type === "EVENT" && (
+        <div className="mt-4">
+          <EventDateRangeFilter
+            q={query}
+            categoryId={categoryId}
+            from={from}
+            to={to}
+            clearHref={buildHref(query, type, categoryId, null, null, 0)}
+          />
         </div>
       )}
 
@@ -142,9 +139,6 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
           </p>
         ) : result && result.items.length > 0 ? (
           <>
-            <p className="mb-6 text-sm text-muted">
-              {result.totalElements} resultado{result.totalElements === 1 ? "" : "s"}
-            </p>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {result.items.map((item) => (
                 <SearchResultCard

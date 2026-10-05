@@ -18,7 +18,7 @@ const PAGE_SIZE = 12;
  */
 const AD_EVERY_CELLS = 6;
 const FIRST_AD_CELL = 12;
-/** Después de qué tarjeta va "Lo más gustado" (una sola vez, solo en "Para ti"). */
+/** Después de qué tarjeta va "Lo más gustado" (una sola vez, solo en "Todo"). */
 const TOP_LIKED_AFTER = 4;
 
 export type FeedTab = "" | "ARTICLE" | "PLACE" | "EVENT";
@@ -31,7 +31,7 @@ export type FeedTab = "" | "ARTICLE" | "PLACE" | "EVENT";
  * el orden de una página a la siguiente (FeedService.diversify).
  *
  * Tomado de los feeds de MSN y Substack, adaptado a un sitio sin cuentas:
- *  - Pestañas "Para ti · Publicaciones · Lugares · Eventos" para segmentar
+ *  - Pestañas "Todo · Publicaciones · Lugares · Eventos" para segmentar
  *    sin salir del home.
  *  - Un espacio publicitario cada AD_EVERY tarjetas (posición "en-feed":
  *    campaña directa o AdSense; si no hay ninguna no ocupa lugar).
@@ -106,7 +106,7 @@ export function InfiniteFeed({
     setTab(next);
     setError(false);
     if (next === "") {
-      // "Para ti" vuelve al lote que ya trajo el servidor, sin pedir nada.
+      // "Todo" vuelve al lote que ya trajo el servidor, sin pedir nada.
       seenIdsRef.current = new Set(initialItems.map((item) => item.id));
       setItems(initialItems);
       setHasMore(initialHasMore);
@@ -169,7 +169,7 @@ export function InfiniteFeed({
             const active = option.value === tab;
             return (
               <button
-                key={option.value || "para-ti"}
+                key={option.value || "todo"}
                 type="button"
                 role="tab"
                 aria-selected={active}

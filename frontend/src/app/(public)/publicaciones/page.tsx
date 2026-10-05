@@ -4,6 +4,7 @@ import { ArticleCard } from "@/components/article/article-card";
 import { Pagination } from "@/components/ui/pagination";
 import { AdBlock } from "@/components/legal/ad-block";
 import { FilterMenu } from "@/components/filters/filter-menu";
+import { ListingHeader } from "@/components/layout/listing-header";
 
 const PAGE_SIZE = 24;
 const BASE_PATH = "/publicaciones";
@@ -37,16 +38,13 @@ export default async function ArticlesPage(props: PageProps<"/publicaciones">) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <header className="max-w-2xl">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Publicaciones</h1>
-        <p className="mt-3 text-base leading-relaxed text-muted">
-          Todo el contenido publicado, más reciente primero.
-        </p>
-      </header>
-
-      <div className="mt-6 border-b border-foreground/[0.06] pb-4">
+      <ListingHeader
+        title="Publicaciones"
+        description="Todo el contenido publicado, más reciente primero."
+        count={`${result.totalElements.toLocaleString("es")} ${result.totalElements === 1 ? "publicación" : "publicaciones"}`}
+      >
         <FilterMenu label="Filtrar por tema" allLabel="Todas las categorías" options={categories.map((c) => ({ value: c.id, label: c.name }))} activeValue={categoryId} paramName="categoryId" basePath={BASE_PATH} />
-      </div>
+      </ListingHeader>
 
       <div className="mt-8">
         <AdBlock position="cabecera" className="aspect-[5/1] sm:aspect-[8/1]" />

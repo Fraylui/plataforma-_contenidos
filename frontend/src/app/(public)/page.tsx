@@ -98,7 +98,9 @@ export default async function Home() {
     settings.adsenseEnabled && settings.adsenseClientId && feedSlot ? { clientId: settings.adsenseClientId, slot: feedSlot } : null;
   // Pestañas del feed: solo tipos que el feed incluye y que tienen contenido.
   const feedTabs = [
-    { value: "" as const, label: "Para ti" },
+    // "Todo" y no "Para ti": el feed es igual para todos (no hay cuentas ni
+    // personalización), y el nombre no debe prometer algo que no hace.
+    { value: "" as const, label: "Todo" },
     ...(articles.totalElements > 0 ? [{ value: "ARTICLE" as const, label: "Publicaciones" }] : []),
     ...(places.totalElements > 0 ? [{ value: "PLACE" as const, label: "Lugares" }] : []),
     ...(events.totalElements > 0 ? [{ value: "EVENT" as const, label: "Eventos" }] : []),
