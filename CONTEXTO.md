@@ -1925,6 +1925,126 @@ Decididos para más adelante:
 
 ---
 
+# 46. Rediseño estilo red social — estado y pendientes (pausa del 2026-10-06)
+
+Documento para retomar sin depender del chat. Diseño acordado con el dueño:
+el sitio y el panel dejan de verse "como un diario/editorial" y pasan a
+sentirse como una **red social moderna (referencia Instagram, también
+Facebook y X)**, pensada para 2027, intuitiva e interactiva. Solo publican
+el dueño y sus trabajadores; los visitantes miran, dan "me gusta",
+comparten y exploran (sin cuentas, sin comentarios, sin firma de autor).
+
+Archivos de trabajo (locales, `docs/` está en `.gitignore`):
+- Diseño: `docs/superpowers/specs/2026-10-06-sitio-publico-estilo-instagram-design.md`
+- Plan por sprints/tareas: `docs/superpowers/plans/2026-10-06-sitio-publico-estilo-instagram.md`
+- Registro de avance y decisiones ("Ruling"): `.superpowers/sdd/2026-10-06-sitio-publico-estilo-instagram/progress.md`
+
+## 46.1 Estado de git al pausar
+
+- **Rama de trabajo: `feat/sitio-red-social`** (sale de `main` en `d3a415e`).
+  9 commits, todos con tests en verde. **No está fusionada a `main`.**
+- **`main` tiene 4 commits sin subir a GitHub** (publicidad profesional):
+  `a717f10`, `6cae3ca`, `b727913`, `d3a415e`. Preguntar al dueño antes de
+  `git push`.
+- Docker local corre la rama (backend + frontend reconstruidos el 2026-10-06).
+- Al retomar: `git switch feat/sitio-red-social` y leer el registro de avance.
+
+## 46.2 Hecho en la rama (Sprint 1 completo + parte del 2)
+
+| Tarea | Qué quedó |
+|---|---|
+| 1 | Feed del backend con los 5 tipos (galerías y directorio incluidos), filtro por tema con subtemas (`categoryId`), Agenda (`type=EVENT&sort=upcoming`), datos de tarjeta: carrusel (`images`, hasta 10), `startsAt`, `latitude/longitude`, `phone`, `website`. |
+| 2 | `GET /api/v1/feed/topics`: círculos de temas raíz con portada automática y `hasNew` (48 h), orden por actividad de la semana (`publicados_7d + 0.5·me_gusta_7d`). |
+| 3 | Tipos/mapeo/proxy del frontend (`HomeItem.images`, tipo `directorio`). |
+| 4 | Navegación tipo app: barra de pestañas abajo en celular (Inicio · Explorar · Buscar · Agenda · Más), riel izquierdo en escritorio, variable CSS `--bottom-bar-h` (anuncio fijo y aviso de cookies se apilan encima). Íconos **Phosphor** (contorno / relleno activo). |
+| 5 | `PostCard`: encabezado de marca, imagen cuadrada 1:1 con carrusel, doble toque = me gusta, acciones por tipo (Agendar, Cómo llegar, Llamar, Sitio web), sin antetítulos. |
+| 5b | Buscador moderno sin desplegable "Buscar en"; `/buscar` con chips de tipo y de tema y campo propio en celular. |
+| 6 | Inicio = feed de una columna + círculos de temas + chips de tipo + columna derecha (≥1280 px: próximos eventos, lo más gustado, anuncio). Riel con secciones y temas (5 + "Ver más"), sin línea al costado. Franja superior: título de la pantalla + flecha "volver" + buscador (estilo X). Sin barras de desplazamiento visibles (utilidad `.no-scrollbar`) y flechas ‹ › en los círculos. |
+| 7 (parcial) | Componentes listos y testeados pero **todavía no usados por las páginas**: `PostView` (variante `visual` y `text`), `GridTile`, `PostHeader` reutilizable. |
+
+## 46.3 Pendiente — en este orden
+
+### A. Tarea 6b — Riel interactivo como redes sociales (pedido explícito, siguiente)
+1. **"Buscar" del riel abre un panel lateral** (Radix Dialog, como Instagram desktop): foco en el campo, `Esc` cierra, reutiliza `SearchBox`. En celular la pestaña sigue yendo a `/buscar`.
+2. **"Más" abre un menú** (Radix Popover, como Instagram/X) con:
+   - **Apariencia**: Sistema / Claro / Oscuro, por visitante → `localStorage["theme-pref"]` + `data-theme` en `<html>`. Para que no parpadee, script en línea en `<head>` de `app/layout.tsx` (CSP ya permite `'unsafe-inline'`) y `suppressHydrationWarning` en `<html>`. Si no eligió nada, manda la configuración del panel (`settings.theme`).
+   - Contacto, Privacidad, Términos (reemplaza los enlaces sueltos del pie del riel).
+3. **Contador en Agenda**: cantidad de eventos de los próximos 7 días (dato del servidor, sin guardar nada).
+4. **Microinteracciones**: hover con fondo de "píldora" e ícono 1.05 (solo `motion-safe`), presión 0.95, tooltips en el modo solo íconos (1024–1279 px).
+5. Tests: `rail-interactions.test.tsx` (panel de búsqueda con foco, menú con radios de apariencia y `data-theme="dark"` guardado, contador "3 eventos esta semana"). Verificar en Docker con capturas.
+
+### B. Tarea 7 — Conectar `PostView` a las 5 páginas de detalle
+En `app/(public)/{publicaciones,lugares,eventos,galerias,directorio}/[slug]/page.tsx`:
+- **Mantener**: `generateMetadata`, todos los JSON-LD (incluido `BreadcrumbList`), `VideoJsonLd`, `notFound`.
+- **Quitar**: `<nav aria-label="Breadcrumb">`, antetítulo en mayúsculas, "min de lectura" (`estimateReadingTime`), `ReadingProgressBar`, entradilla en negrita, `NeighborNav` ("Seguir leyendo"), `DetailSidebar` y las listas "Otras galerías / Lugares en… / Más de…" de galerías.
+- `variant`: `text` para publicaciones; `visual` para el resto.
+- `media`: `ContentImageGallery` + `ContentVideoGallery` existentes.
+- `facts` por tipo: **evento** (fecha y hora absolutas, lugar con enlace, "Agendar": Google + `.ics` con `calendarLinks`), **lugar** (mapa embebido + "Cómo llegar" `mapsDirections`), **directorio** (dirección, teléfono `tel:`, email, web + "Cómo llegar"), publicación y galería sin facts.
+- `actions`: `LikeShareBar` (reestilizar como barra de post: corazón Phosphor, compartir).
+- `ad`: `AdBlock position="article" layout="band" count={2}` con su `section`/`categoryId`.
+- `more`: `getRelatedWithFallback` → `fromFeedItem` (hasta 9 miniaturas).
+- Test e2e `frontend/tests/e2e/seo-urls.spec.ts`: cada detalle conserva `<title>`, canonical y JSON-LD con `BreadcrumbList`. Verificar los 5 tipos en Docker a 390/1366.
+
+### C. Tarea 8 — Explorar y resultados de búsqueda en cuadrícula
+- Página nueva `/explorar` (hoy da 404): `ExploreGrid` (cliente, scroll infinito con `/api/feed`, chips de tipo) usando `GridTile`; metadatos propios.
+- `/buscar`: reemplazar `SearchResultCard` (todavía con antetítulo "ACTUALIDAD") por `GridTile` en cuadrícula de 3.
+
+### D. Tarea 9 — Secciones y temas = feed filtrado
+- `/publicaciones`, `/lugares`, `/galerias`, `/directorio`: `TopicStories` + `FilterChips` (tipo activo) + `Feed filter={{type}}`; sin `ListingHeader` ni `FilterMenu` ("Filtrar por tema").
+- `/eventos` = **Agenda**: `Feed filter={{type:"EVENT", sort:"upcoming"}}`.
+- `/categorias/[slug]`: `Feed filter={{categoryId}}` con su círculo activo.
+- SEO: cada URL conserva título/descripción/canonical y enlaces `?page=` en el HTML inicial para bots.
+- Quitar `AdBlock position="cabecera"` (la franja 728×90 se deja de mostrar).
+
+### E. Tarea 10 — Anuncio "Patrocinado" con forma de post
+`SponsoredPost` envuelve `AdBlockClient position="en-feed"` con encabezado "Patrocinado" (sin marco de color). 1 cada 6 posts. Nada si no hay campaña ni AdSense.
+
+### F. Tarea 11 — Limpieza y guardia anti-diario
+- Borrar (verificar con `grep` que no tengan usos): `home/hero-rotator`, `home/module-strip`, `home/category-showcase`, `home/content-card`, `home/infinite-feed`, `home/home-sidebar`, `layout/listing-header`, `layout/mobile-nav`, `layout/category-menu`, `layout/nav-link`, `layout/site-footer`, `content/detail-sidebar`, `content/card-actions`, `filters/filter-menu`, `ReadingProgressBar`, `NeighborNav`, `SearchResultCard`.
+- Test e2e `no-editorial-patterns.spec.ts`: recorre todas las URLs públicas y falla con "min de lectura", "cubrimos", "editorial", ruta visible o antetítulos en mayúsculas.
+- Lighthouse en inicio y un detalle (LCP < 2,5 s, CLS < 0,1, INP < 200 ms). Actualizar §43 y §45.
+
+### G. Sprint 5 — Algoritmos de red social (pedido explícito)
+12. Velocidad de interacción con decaimiento (Hacker News) en el puntaje del feed.
+13. "En tendencia" (Reddit hot) con activación a ≥ 20 contenidos con me gusta; antes "Lo más gustado".
+14. "Más como esto" por similitud (tema, subtema, tipo, Jaccard de palabras del título/bajada).
+15. "Para ti" en el navegador **solo con consentimiento de cookies** (afinidad por tema, nada sale del navegador).
+16. Visitas anónimas + "quienes vieron esto también vieron" (co-visitas ≥ 5; robots fuera; sin datos personales).
+Detalle de cada uno en el plan.
+
+### H. Cierre del proyecto 1
+Revisión completa de la rama con un revisor nuevo (code review), corregir lo crítico, **preguntar al dueño** y fusionar `feat/sitio-red-social` → `main`; subir a GitHub con su permiso.
+
+### I. Proyecto 2 — Panel de administración moderno + trabajadores
+Acordado con el dueño ("todas las páginas del panel se ven antiguas, estilo editorial"):
+1. **Primero**: crear una cuenta de prueba **solo en la base local** (aprobado: opción A), recorrer y capturar todas las pantallas del panel, y **borrarla al terminar**.
+2. Rediseño moderno e intuitivo de todo el panel (mismo lenguaje visual del sitio, íconos Phosphor, sin desplegables anticuados, sin vacíos ni líneas sobrantes).
+3. **Trabajadores con módulos asignados** (diseño aprobado):
+   - **Dueño** (SUPER_ADMIN): todo; exclusivos: Usuarios, Configuración, Auditoría.
+   - **Trabajador**: módulos que asigna el dueño. Siempre tiene: Inicio del panel, Imágenes, Mi cuenta.
+   - Módulos de contenido (Publicaciones, Lugares, Eventos, Galerías, Directorio) con nivel **Crear** (solo lo suyo, pasa a revisión) o **Publicar** (revisa y publica lo de todos); Categorías, Estadísticas y Publicidad: acceso sí/no.
+   - **Plantillas**: Redactor, Editor, Gestor de eventos, Gestor de directorio, Publicidad.
+   - Migración: el ADMIN actual → trabajador con "Editor" + Publicidad; se eliminan MODERATOR, COLLABORATOR, USER.
+   - Permisos aplicados **en el servidor** (no solo ocultar botones) y auditados.
+4. Documento de diseño + plan antes de programar (mismo proceso que el proyecto 1).
+
+## 46.4 Reglas aprendidas (aplican a todo lo pendiente)
+
+- El dueño revisa con capturas en **Edge**; quiere: nada de vacíos, nada de líneas sobrantes (bordes, barras de desplazamiento visibles), nada que "parezca diario", interacciones como Instagram/Facebook/X, íconos modernos (Phosphor), estándares (WCAG 2.2 AA, Core Web Vitals, SEO, OWASP), metodología Scrum + XP (§41) y verificación en ciclos con Playwright.
+- **Reglas CSS globales sin capa** (`:focus-visible`, `* { scrollbar-width }`) le ganan a las clases de Tailwind (en capa): usar utilidades **sin capa** en `globals.css` (como `.no-scrollbar`) o `!`.
+- Cuando cambia un contrato de la API, **reconstruir backend y frontend juntos** en Docker (`docker compose build backend frontend && docker compose up -d`): un backend viejo rompió el build del inicio.
+- Publicidad en local: todas las visitas comparten la IP del contenedor de Next → el tope de 6 vistas/día oculta campañas; borrar `ads:*` en Redis (clave en `infra/.env`). Los banners de demostración solo existen en la base local.
+- Fechas: eventos/lugares absolutas; publicaciones relativas. Nunca "editorial"/"artículo(s)" en textos visibles.
+
+## 46.5 Pendientes del dueño (configuración, no código)
+
+- Cloudflare: activar "Add visitor location headers" (segmentación de publicidad por país/región) y las reglas de caché (`infra/DESPLIEGUE.md` §3).
+- AdSense: si se vende la barra fija, desactivar los anuncios fijos (anchor) de Auto ads.
+- Panel → Configuración: correo de contacto, descripción del sitio (dice "Sistema de gestión…"), descripción de Turismo, slot de AdSense en-feed.
+- Backups: copia a R2; **corregir `scripts/backup.sh`**: (1) la retención de 14 días borraría el único backup viejo, (2) no respalda las imágenes reales (están en el volumen Docker `media_data`, no en `backend/data/media`).
+
+---
+
 ## Índice de secciones
 
 ```text
@@ -1951,4 +2071,5 @@ Decididos para más adelante:
 22    WebSockets                         43    Estándar de diseño y frontend
                                           44    Modelo de negocio (en validación)
                                           45    Algoritmos de contenido y pendientes
+                                          46    Rediseño estilo red social (pendientes)
 ```
