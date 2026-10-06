@@ -13,7 +13,7 @@ const OWNER_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "";
 async function login(page: Page, email: string, password: string) {
   await page.goto("/admin/login");
   await page.getByLabel("Correo electrónico").fill(email);
-  await page.getByLabel("Contraseña").fill(password);
+  await page.getByLabel("Contraseña", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Iniciar sesión" }).click();
   await expect(page).toHaveURL(/\/admin(?!\/login)/, { timeout: 10_000 });
 }
