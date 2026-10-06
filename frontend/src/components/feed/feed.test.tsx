@@ -3,7 +3,7 @@ import { axe } from "vitest-axe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { HomeItem } from "@/lib/home-items";
 import { TopicStories } from "./topic-stories";
-import { typeChipOptions } from "./type-chips";
+import { exploreChipOptions, typeChipOptions } from "./type-chips";
 import { Feed } from "./feed";
 
 vi.mock("@/components/legal/ad-block-client", () => ({
@@ -53,6 +53,16 @@ describe("TopicStories", () => {
   it("es accesible", async () => {
     const { container } = render(<TopicStories topics={topics} activeCategoryId="t1" />);
     expect(await axe(container)).toHaveNoViolations();
+  });
+});
+
+describe("exploreChipOptions", () => {
+  it("filtran la cuadrícula de Explorar (?tipo=) en vez de ir a la sección", () => {
+    const options = exploreChipOptions({ "/lugares": true, "/eventos": false }, "PLACE");
+    expect(options).toEqual([
+      { label: "Todo", href: "/explorar", active: false },
+      { label: "Lugares", href: "/explorar?tipo=PLACE", active: true },
+    ]);
   });
 });
 

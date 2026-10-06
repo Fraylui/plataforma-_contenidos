@@ -68,3 +68,30 @@ describe("fromFeedItem", () => {
     expect(fromFeedItem(feedItem({ type: "GALLERY", slug: "fotos" })).href).toBe("/galerias/fotos");
   });
 });
+
+describe("fromSearchResult", () => {
+  it("convierte un resultado de búsqueda en miniatura de cuadrícula (enlace, tipo y portada)", async () => {
+    const { fromSearchResult } = await import("./home-items");
+    const item = fromSearchResult({
+      contentType: "EVENT",
+      id: "e1",
+      slug: "feria",
+      title: "Feria",
+      excerpt: null,
+      categoryId: null,
+      featuredImageId: null,
+      featuredImageUrl: "https://example.com/a.jpg",
+      hasVideo: true,
+      publishedAt: null,
+      eventStartsAt: "2026-11-05T15:00:00Z",
+    });
+    expect(item).toMatchObject({
+      kind: "evento",
+      href: "/eventos/feria",
+      typeLabel: "Evento",
+      hasVideo: true,
+      likeCount: 0,
+      images: [{ url: "https://example.com/a.jpg", isExternal: true }],
+    });
+  });
+});

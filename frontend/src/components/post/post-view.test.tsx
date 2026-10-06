@@ -72,6 +72,13 @@ describe("PostView", () => {
 });
 
 describe("GridTile", () => {
+  it("al pasar el mouse muestra los me gusta solo si hay (sin «♥ 0»)", () => {
+    const { container, rerender } = render(<GridTile item={tile({ likeCount: 7 })} />);
+    expect(container.querySelector("[data-testid='tile-likes']")).toHaveTextContent("7");
+    rerender(<GridTile item={tile({ likeCount: 0 })} />);
+    expect(container.querySelector("[data-testid='tile-likes']")).toBeNull();
+  });
+
   it("marca carrusel, video y evento con ícono y muestra los me gusta", () => {
     const { rerender } = render(<GridTile item={tile({ images: [{ url: "a", isExternal: true }, { url: "b", isExternal: true }] })} />);
     expect(screen.getByLabelText("Varias imágenes")).toBeInTheDocument();

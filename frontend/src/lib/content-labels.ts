@@ -138,8 +138,7 @@ export function formatEventDateTime(iso: string): string {
 
 /** Un evento se considera finalizado cuando pasó endsAt (o startsAt si no tiene hora de fin). */
 // Ver SearchResultResponse.java (CONTEXTO.md sección 16) — un solo lugar para
-// la etiqueta y la ruta de cada tipo buscable, en vez de repetir el mapa en
-// SearchResultCard y en el buscador con sugerencias en vivo del header.
+// la etiqueta y la ruta de cada tipo buscable (buscador con sugerencias en vivo).
 const SEARCH_RESULT_TYPE_LABEL: Record<SearchResultType, string> = {
   ARTICLE: "Publicación",
   PLACE: "Lugar",

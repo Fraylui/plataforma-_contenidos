@@ -1,5 +1,5 @@
 import "server-only";
-import type { ArticleSummary, EventSummary, FeedItem, GallerySummary, PlaceSummary } from "@/lib/api/types";
+import type { ArticleSummary, EventSummary, FeedItem, GallerySummary, PlaceSummary, SearchResult } from "@/lib/api/types";
 import { formatArticleDate, formatEventDateTime, formatShortDate } from "@/lib/content-labels";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { KIND_LABEL, type HomeItemKind } from "@/lib/content-kind";
@@ -201,6 +201,34 @@ export function fromFeedItem(item: FeedItem): HomeItem {
     longitude: item.longitude,
     phone: item.phone,
     website: item.website,
+  };
+}
+
+/**
+ * Resultado de búsqueda como miniatura de cuadrícula (GridTile), igual que
+ * Explorar. La búsqueda no trae "me gusta": likeCount 0 (GridTile no muestra
+ * el conteo en 0).
+ */
+export function fromSearchResult(r: SearchResult): HomeItem {
+  const kind = FEED_KIND[r.contentType];
+  const cover = coverImage(r.featuredImageId, r.featuredImageUrl);
+  return {
+    id: r.id,
+    kind,
+    slug: r.slug,
+    href: `${FEED_HREF_PREFIX[kind]}/${r.slug}`,
+    likeCount: 0,
+    title: r.title,
+    excerpt: r.excerpt,
+    imageUrl: cover.url,
+    imageIsExternal: cover.isExternal,
+    categoryId: r.categoryId ?? "",
+    typeLabel: KIND_LABEL[kind],
+    sortDate: (r.contentType === "EVENT" ? r.eventStartsAt : r.publishedAt) ?? "",
+    dateLabel: r.contentType === "EVENT" && r.eventStartsAt ? formatEventDateTime(r.eventStartsAt) : "",
+    images: coverAsImages(cover),
+    hasVideo: r.hasVideo,
+    startsAt: r.eventStartsAt,
   };
 }
 

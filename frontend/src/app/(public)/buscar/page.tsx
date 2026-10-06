@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { listActiveCategories, searchContent } from "@/lib/api/client";
 import type { SearchResultType } from "@/lib/api/types";
-import { SearchResultCard } from "@/components/search/search-result-card";
+import { fromSearchResult } from "@/lib/home-items";
+import { GridTile } from "@/components/post/grid-tile";
 import { SearchSuggestions } from "@/components/search/search-suggestions";
 import { FilterChips } from "@/components/feed/filter-chips";
 import { MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
@@ -80,7 +81,6 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
       : Promise.resolve(null),
     listActiveCategories(),
   ]);
-  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
 
   const typeChips = [
     { label: "Todo", href: buildHref(query, null, categoryId, null, null, 0), active: type === null },
@@ -96,7 +96,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
   ];
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
+    <div className="mx-auto w-full max-w-[935px] px-4 py-5 sm:py-6">
       {/* Pestaña "Buscar" en celular: campo propio arriba, como el buscador de
           Instagram (la barra superior en celular solo tiene una lupa). En
           escritorio el buscador ya está siempre visible arriba. Formulario
@@ -154,16 +154,14 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
           </p>
         ) : result && result.items.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {/* Cuadrícula de 3 como Explorar (Instagram), sin tarjetas con antetítulo. */}
+            <ul aria-label="Resultados" className="grid grid-cols-3 gap-0.5 sm:gap-1">
               {result.items.map((item) => (
-                <SearchResultCard
-                  key={`${item.contentType}-${item.id}`}
-                  result={item}
-                  query={query}
-                  categoryName={item.categoryId ? categoryNames[item.categoryId] : undefined}
-                />
+                <li key={`${item.contentType}-${item.id}`}>
+                  <GridTile item={fromSearchResult(item)} />
+                </li>
               ))}
-            </div>
+            </ul>
             <Pagination
               page={result.page}
               totalPages={result.totalPages}
@@ -171,7 +169,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
             />
           </>
         ) : (
-          <p className="rounded-lg border border-dashed border-border px-6 py-10 text-center text-sm text-muted">
+          <p className="px-6 py-10 text-center text-sm text-muted">
             Sin resultados para «{query}». Prueba con otras palabras o explora estas sugerencias.
           </p>
         )}
@@ -181,7 +179,6 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
           <SearchSuggestions
             query={query}
             categories={categories}
-            categoryNames={categoryNames}
             excludeIds={result.items.map((item) => item.id)}
             hasResults={result.items.length > 0}
           />

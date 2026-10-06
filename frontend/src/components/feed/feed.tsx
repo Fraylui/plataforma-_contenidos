@@ -1,12 +1,12 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { Fragment } from "react";
 import type { HomeItem } from "@/lib/home-items";
-import type { FeedItemType } from "@/lib/api/types";
 import { AdBlockClient } from "@/components/legal/ad-block-client";
 import { TopLikedList } from "@/components/content/top-liked-list";
 import { PostCard } from "@/components/post/post-card";
 import type { PostBrand } from "@/components/post/post-header";
+import { useFeedPages, type FeedFilter } from "./use-feed-pages";
 
 const PAGE_SIZE = 12;
 /** Un anuncio cada 6 posts y nunca antes del 6º (~14 %, tope Better Ads 30 %). */
@@ -14,11 +14,6 @@ const AD_EVERY = 6;
 /** Después de qué post va "Lo más gustado" en celular (en escritorio vive en la columna derecha). */
 const TOP_LIKED_AFTER = 3;
 
-export interface FeedFilter {
-  type?: FeedItemType;
-  categoryId?: string;
-  sort?: "upcoming";
-}
 
 /**
  * Feed de una columna estilo Instagram con scroll infinito. Arranca con el
@@ -50,50 +45,13 @@ export function Feed({
   adSection?: "HOME" | "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS";
   emptyMessage?: string;
 }) {
-  const [items, setItems] = useState(initialItems);
-  const [hasMore, setHasMore] = useState(initialHasMore);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const seenRef = useRef<Set<string>>(new Set(initialItems.map((i) => i.id)));
-  const loadingRef = useRef(false);
-
-  const loadMore = useCallback(async () => {
-    if (loadingRef.current || !hasMore) return;
-    loadingRef.current = true;
-    setLoading(true);
-    setError(false);
-    try {
-      const query = new URLSearchParams({ size: String(PAGE_SIZE), seed });
-      if (filter.type) query.set("type", filter.type);
-      if (filter.categoryId) query.set("categoryId", filter.categoryId);
-      if (filter.sort) query.set("sort", filter.sort);
-      for (const id of seenRef.current) query.append("exclude", id);
-      const res = await fetch(`/api/feed?${query.toString()}`);
-      if (!res.ok) throw new Error("feed");
-      const page = (await res.json()) as { items: HomeItem[]; hasMore: boolean };
-      const fresh = page.items.filter((i) => !seenRef.current.has(i.id));
-      fresh.forEach((i) => seenRef.current.add(i.id));
-      setItems((prev) => [...prev, ...fresh]);
-      setHasMore(page.hasMore && fresh.length > 0);
-    } catch {
-      setError(true);
-    } finally {
-      loadingRef.current = false;
-      setLoading(false);
-    }
-  }, [filter.categoryId, filter.sort, filter.type, hasMore, seed]);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel || !hasMore || error) return;
-    // Margen amplio: la siguiente tanda llega antes de que se vea el final.
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0]?.isIntersecting) void loadMore();
-    }, { rootMargin: "800px" });
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [error, hasMore, loadMore]);
+  const { items, hasMore, loading, error, loadMore, sentinelRef } = useFeedPages({
+    initialItems,
+    initialHasMore,
+    seed,
+    filter,
+    pageSize: PAGE_SIZE,
+  });
 
   if (items.length === 0 && !hasMore) {
     return <p className="px-4 py-16 text-center text-sm text-muted">{emptyMessage}</p>;

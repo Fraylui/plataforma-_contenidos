@@ -6,7 +6,7 @@ import { SkeletonImage } from "@/components/ui/skeleton-image";
 /**
  * Miniatura cuadrada de la cuadrícula (Explorar, "Más como esto", resultados
  * de búsqueda), como la de Instagram: ícono arriba a la derecha si es
- * carrusel, video o evento, y al pasar el mouse los me gusta. Sin imagen:
+ * carrusel, video o evento, y al pasar el mouse los me gusta (si hay). Sin imagen:
  * bloque de color con el título.
  */
 export function GridTile({ item }: { item: HomeItem }) {
@@ -43,13 +43,16 @@ export function GridTile({ item }: { item: HomeItem }) {
           className="absolute top-2 right-2 h-5 w-5 text-white drop-shadow-[0_1px_2px_rgb(0_0_0_/_0.6)]"
         />
       )}
-      <span
-        aria-hidden="true"
-        className="absolute inset-0 hidden items-center justify-center gap-1.5 bg-black/35 text-sm font-bold text-white group-hover:flex"
-      >
-        <Heart weight="fill" className="h-5 w-5" />
-        {item.likeCount}
-      </span>
+      {item.likeCount > 0 && (
+        <span
+          aria-hidden="true"
+          data-testid="tile-likes"
+          className="absolute inset-0 hidden items-center justify-center gap-1.5 bg-black/35 text-sm font-bold text-white group-hover:flex"
+        >
+          <Heart weight="fill" className="h-5 w-5" />
+          {item.likeCount}
+        </span>
+      )}
     </Link>
   );
 }
