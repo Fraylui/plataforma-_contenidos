@@ -2043,6 +2043,65 @@ Acordado con el dueño ("todas las páginas del panel se ven antiguas, estilo ed
 - Panel → Configuración: correo de contacto, descripción del sitio (dice "Sistema de gestión…"), descripción de Turismo, slot de AdSense en-feed.
 - Backups: copia a R2; **corregir `scripts/backup.sh`**: (1) la retención de 14 días borraría el único backup viejo, (2) no respalda las imágenes reales (están en el volumen Docker `media_data`, no en `backend/data/media`).
 
+## 46.6 Inventario de páginas — qué falta transformar
+
+Estado en la rama `feat/sitio-red-social` al 2026-10-06. ✅ hecho · ⚠️ parcial · ❌ falta.
+
+### Sitio público (17 páginas)
+
+| Página | Estado | Qué falta |
+|---|---|---|
+| `/` Inicio | ✅ | Solo el anuncio "Patrocinado" con forma de post (46.3-E). |
+| `/buscar` | ⚠️ | Cabecera, campo y chips listos; los resultados siguen con la tarjeta vieja (`SearchResultCard`, antetítulo "ACTUALIDAD") → cuadrícula `GridTile` (46.3-C). |
+| `/explorar` | ❌ | **No existe (da 404)** y la pestaña ya la enlaza: crear `ExploreGrid` (46.3-C). |
+| `/publicaciones` `/lugares` `/galerias` `/directorio` | ❌ | Portada de sección + desplegable "Filtrar por tema" → feed filtrado (46.3-D). |
+| `/eventos` | ❌ | → **Agenda** (próximos por fecha) (46.3-D). |
+| `/categorias/[slug]` | ❌ | → feed del tema con su círculo activo (46.3-D). |
+| 5 detalles `[slug]` | ❌ | Conectar `PostView` (ya hecho y probado) y quitar ruta visible, "min de lectura", antetítulo, entradilla en negrita, "Seguir leyendo", columna lateral vieja (46.3-B). |
+| `/contacto` `/privacidad` `/terminos` | ⚠️ | Funcionan dentro del cascarón nuevo, pero con el estilo de página vieja: pasarlas a una columna simple estilo app (título + texto + formulario), sin portada. |
+| `not-found` (404) y `error` | ⚠️ | Rediseñar como pantalla de app (ilustración/ícono Phosphor, "Volver al inicio", sugerencias). |
+| `loading.tsx` (10 archivos de secciones y detalles + raíz) | ❌ | Los esqueletos de carga imitan los listados viejos; cambiarlos por esqueletos de post / cuadrícula. |
+
+### Panel de administración (34 páginas) — todo ❌, proyecto 2 (46.3-I)
+
+| Módulo | Páginas |
+|---|---|
+| Acceso | `login` |
+| Inicio y Estadísticas | `/admin`, `/admin/estadisticas` |
+| Contenido (listado, nuevo, editar) | Publicaciones, Lugares, Eventos, Galerías, Directorio (3 páginas c/u = 15) |
+| Organización | Categorías (3), Medios (1) |
+| Monetización | Publicidad/posiciones (3), Anunciantes (3) + campañas (2) |
+| Administración | Usuarios (2) → pasa a **Trabajadores**, Configuración, Auditoría |
+| **Nuevas** | **Trabajadores**: permisos por módulo y plantillas; **Mi cuenta**: cambiar contraseña (hoy no hay una página propia). |
+
+## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
+
+Ordenadas por prioridad.
+
+### Seguridad (primero)
+1. **Next.js 16.3.3 tiene una vulnerabilidad CRÍTICA** (`npm audit`: rango 16.2.0–16.3.5) → actualizar a **16.3.8** (misma versión mayor). Además `npm audit fix` para `postcss-selector-parser` (moderada) y `source-map-js` (alta). El paso de CI `npm audit --omit=dev --audit-level=high` **falla** mientras no se actualice.
+2. CSP con *nonce* para quitar `'unsafe-inline'` de `script-src` (pendiente anotado en `next.config.ts`).
+3. Permisos de trabajadores aplicados en el servidor (proyecto 2).
+4. MFA quedó retirado por decisión del dueño (2026-09-14); reconsiderar antes de tener trabajadores con acceso al panel.
+
+### Backend
+5. `scripts/backup.sh`: la retención de 14 días borra backups viejos aunque sean los únicos; no respalda las imágenes reales (volumen Docker `media_data`). Respaldar el volumen con `docker compose exec backend tar …` y no borrar el último backup.
+6. Medios en Object Storage (Cloudflare R2): `StorageService` ya es una interfaz; falta la implementación (README "Pendiente para un MVP completo").
+7. Visitas anónimas por contenido (base de "más vistos" y "también vieron", Sprint 5 tarea 16).
+8. Campos sin uso en Configuración (`primaryColor`, `secondaryColor`, `backgroundColor`, `fontFamily`): quitarlos o conectarlos.
+9. Roles `MODERATOR`, `COLLABORATOR`, `USER` sin uso → se eliminan con el proyecto 2; "editorial" aparece solo en comentarios internos de 7 archivos Java (no visible) → limpiar al tocar esos archivos.
+10. CORS y auto-registro público: **no aplican** (no hay cuentas de visitantes; el panel usa Server Actions).
+
+### Frontend
+11. Dependencias: actualizaciones menores de Radix, Tiptap y tipos; `@tanstack/react-table` 9 es versión mayor (evaluar en el proyecto 2).
+12. Pruebas E2E existentes (`e2e/accessibility`, `admin-auth`, `public-navigation`, `visual-regression`): `public-navigation` y las capturas de `visual-regression` **quedarán desactualizadas** con el rediseño → actualizar al cerrar el proyecto 1.
+13. Agregar las E2E del plan: `seo-urls.spec.ts` y `no-editorial-patterns.spec.ts`.
+14. Componentes viejos a retirar (46.3-F) cuando nada los use.
+
+### Infraestructura / lanzamiento
+15. Despliegue real en el VPS (Contabo) con dominio, HTTPS, Cloudflare y el timer de backups instalado (`infra/DESPLIEGUE.md`).
+16. Copia externa de backups a R2 (credenciales y bucket reales).
+
 ---
 
 ## Índice de secciones
