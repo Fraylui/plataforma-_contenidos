@@ -1,16 +1,7 @@
 import Link from "next/link";
-import { getPrimaryNavVisibility, listActiveCategories } from "@/lib/api/client";
-import type { SearchResultType } from "@/lib/api/types";
-import { SearchBox, type SearchScope } from "@/components/layout/search-box";
+import { listActiveCategories } from "@/lib/api/client";
+import { SearchBox } from "@/components/layout/search-box";
 import type { ShellBrand } from "./left-rail";
-
-const SCOPES: { href: string; label: string; scope: SearchResultType }[] = [
-  { href: "/publicaciones", label: "Publicaciones", scope: "ARTICLE" },
-  { href: "/lugares", label: "Lugares", scope: "PLACE" },
-  { href: "/eventos", label: "Eventos", scope: "EVENT" },
-  { href: "/galerias", label: "Galerías", scope: "GALLERY" },
-  { href: "/directorio", label: "Directorio", scope: "BUSINESS" },
-];
 
 /**
  * Franja superior mínima. Celular: marca + buscador desplegable. Escritorio:
@@ -19,12 +10,8 @@ const SCOPES: { href: string; label: string; scope: SearchResultType }[] = [
  * todas las páginas.
  */
 export async function TopBar({ brand }: { brand: ShellBrand }) {
-  const [categories, visibility] = await Promise.all([listActiveCategories(), getPrimaryNavVisibility()]);
+  const categories = await listActiveCategories();
   const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
-  const scopes: SearchScope[] = [
-    { value: "", label: "Todo" },
-    ...SCOPES.filter((s) => visibility[s.href]).map(({ scope, label }) => ({ value: scope, label })),
-  ];
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-surface/90 backdrop-blur-md">
@@ -40,7 +27,7 @@ export async function TopBar({ brand }: { brand: ShellBrand }) {
           <SearchBox variant="mobile" categoryNames={categoryNames} />
         </div>
         <div className="hidden w-full max-w-2xl sm:mx-auto sm:block">
-          <SearchBox variant="desktop" categoryNames={categoryNames} scopes={scopes} />
+          <SearchBox variant="desktop" categoryNames={categoryNames} />
         </div>
       </div>
     </header>
