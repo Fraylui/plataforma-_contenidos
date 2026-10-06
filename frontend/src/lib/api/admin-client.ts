@@ -8,6 +8,9 @@ import { headers } from "next/headers";
 import type {
   AdminImage,
   AdminUser,
+  CreateWorkerInput,
+  ModulePermissions,
+  Worker,
   AdPlacementCreateInput,
   AdPlacementUpdateInput,
   Advertiser,
@@ -671,4 +674,36 @@ export function listAdminAuditLog(
   params.set("page", String(filters.page ?? 0));
   params.set("size", String(filters.size ?? 20));
   return authedJson(`/api/v1/admin/audit?${params.toString()}`, accessToken);
+}
+
+// --- Trabajadores (solo el dueño; spec 2a §5) ---
+
+export function listWorkers(accessToken: string): Promise<Worker[]> {
+  return authedJson("/api/v1/admin/workers", accessToken);
+}
+
+export function createWorker(accessToken: string, input: CreateWorkerInput): Promise<{ worker: Worker; temporaryPassword: string }> {
+  return authedJson("/api/v1/admin/workers", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateWorkerPermissions(accessToken: string, id: string, permissions: ModulePermissions): Promise<Worker> {
+  return authedJson(`/api/v1/admin/workers/${encodeURIComponent(id)}/permissions`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ permissions }),
+  });
+}
+
+export function resetWorkerPassword(accessToken: string, id: string): Promise<{ temporaryPassword: string }> {
+  return authedJson(`/api/v1/admin/workers/${encodeURIComponent(id)}/reset-password`, accessToken, { method: "POST" });
+}
+
+export function setWorkerActive(accessToken: string, id: string, active: boolean): Promise<Worker> {
+  return authedJson(`/api/v1/admin/workers/${encodeURIComponent(id)}/${active ? "activate" : "deactivate"}`, accessToken, {
+    method: "POST",
+  });
 }

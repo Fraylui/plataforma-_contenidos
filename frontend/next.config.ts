@@ -111,6 +111,8 @@ const nextConfig: NextConfig = {
       { source: "/admin/categorias/:path*", destination: "/admin/temas/:path*", permanent: true },
       { source: "/admin/publicidad/:path*", destination: "/admin/espacios/:path*", permanent: true },
       { source: "/admin/auditoria/:path*", destination: "/admin/actividad/:path*", permanent: true },
+      { source: "/admin/usuarios/nuevo", destination: "/admin/trabajadores/nuevo", permanent: true },
+      { source: "/admin/usuarios/:path*", destination: "/admin/trabajadores/:path*", permanent: true },
     ];
   },
 

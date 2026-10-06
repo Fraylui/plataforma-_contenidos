@@ -27,6 +27,25 @@ export interface TokenResponse {
   tokenType: string;
 }
 
+/** Trabajador del panel — WorkerAdminController.WorkerResponse. */
+export interface Worker {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  status: "ACTIVE" | "DISABLED";
+  mustChangePassword: boolean;
+  lastLoginAt: string | null;
+  permissions: ModulePermissions;
+}
+
+export interface CreateWorkerInput {
+  email: string;
+  firstName: string;
+  lastName: string;
+  permissions: ModulePermissions;
+}
+
 /** Sesión actual del panel — GET /api/v1/users/me (MeResponse.java). */
 export interface AdminUser {
   id: string;
