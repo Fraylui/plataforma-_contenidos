@@ -1,6 +1,6 @@
 import "server-only";
-import type { ArticleSummary, EventSummary, FeedItem, GallerySummary, PlaceSummary, SearchResult } from "@/lib/api/types";
-import { formatArticleDate, formatEventDateTime, formatShortDate } from "@/lib/content-labels";
+import type { FeedItem, SearchResult } from "@/lib/api/types";
+import { formatEventDateTime } from "@/lib/content-labels";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { KIND_LABEL, type HomeItemKind } from "@/lib/content-kind";
 
@@ -66,89 +66,6 @@ function image(id: string | null | undefined): string | null {
  */
 function coverImage(imageId: string | null, imageUrl: string | null): { url: string | null; isExternal: boolean } {
   return imageId ? { url: image(imageId), isExternal: false } : { url: imageUrl, isExternal: imageUrl != null };
-}
-
-export function fromArticle(a: ArticleSummary): HomeItem {
-  const cover = coverImage(a.coverImageId, a.coverImageUrl);
-  return {
-    id: a.id,
-    kind: "publicacion",
-    slug: a.slug,
-    likeCount: a.likeCount,
-    href: `/publicaciones/${a.slug}`,
-    title: a.title,
-    excerpt: a.excerpt,
-    imageUrl: cover.url,
-    imageIsExternal: cover.isExternal,
-    categoryId: a.categoryId,
-    typeLabel: KIND_LABEL.publicacion,
-    sortDate: a.publishedAt ?? "",
-    dateLabel: formatArticleDate(a.publishedAt),
-    images: coverAsImages(cover),
-  };
-}
-
-export function fromPlace(p: PlaceSummary): HomeItem {
-  const cover = coverImage(p.coverImageId, p.coverImageUrl);
-  return {
-    id: p.id,
-    kind: "lugar",
-    slug: p.slug,
-    likeCount: p.likeCount,
-    href: `/lugares/${p.slug}`,
-    title: p.name,
-    excerpt: p.excerpt,
-    imageUrl: cover.url,
-    imageIsExternal: cover.isExternal,
-    categoryId: p.categoryId,
-    typeLabel: KIND_LABEL.lugar,
-    sortDate: p.publishedAt ?? "",
-    dateLabel: formatShortDate(p.publishedAt),
-    images: coverAsImages(cover),
-    latitude: p.latitude ?? null,
-    longitude: p.longitude ?? null,
-  };
-}
-
-export function fromEvent(e: EventSummary): HomeItem {
-  const cover = coverImage(e.coverImageId, e.coverImageUrl);
-  return {
-    id: e.id,
-    kind: "evento",
-    slug: e.slug,
-    likeCount: e.likeCount,
-    href: `/eventos/${e.slug}`,
-    title: e.title,
-    excerpt: e.excerpt,
-    imageUrl: cover.url,
-    imageIsExternal: cover.isExternal,
-    categoryId: e.categoryId,
-    typeLabel: KIND_LABEL.evento,
-    sortDate: e.startsAt,
-    dateLabel: formatEventDateTime(e.startsAt),
-    images: coverAsImages(cover),
-    startsAt: e.startsAt,
-  };
-}
-
-export function fromGallery(g: GallerySummary): HomeItem {
-  const cover = coverImage(g.images[0]?.imageId ?? null, g.images[0]?.externalUrl ?? null);
-  return {
-    id: g.id,
-    kind: "galeria",
-    slug: g.slug,
-    likeCount: g.likeCount,
-    href: `/galerias/${g.slug}`,
-    title: g.title,
-    excerpt: g.excerpt,
-    imageUrl: cover.url,
-    imageIsExternal: cover.isExternal,
-    categoryId: g.categoryId,
-    typeLabel: KIND_LABEL.galeria,
-    sortDate: g.publishedAt ?? "",
-    dateLabel: formatShortDate(g.publishedAt),
-    images: g.images.flatMap((i) => coverAsImages(coverImage(i.imageId ?? null, i.externalUrl ?? null))),
-  };
 }
 
 const FEED_KIND: Record<FeedItem["type"], HomeItemKind> = {
@@ -232,7 +149,3 @@ export function fromSearchResult(r: SearchResult): HomeItem {
   };
 }
 
-/** Más nuevo primero; los que no tienen fecha van al final. */
-export function sortNewestFirst(items: HomeItem[]): HomeItem[] {
-  return [...items].sort((a, b) => (b.sortDate || "").localeCompare(a.sortDate || ""));
-}

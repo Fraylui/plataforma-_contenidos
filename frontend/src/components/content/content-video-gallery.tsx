@@ -1,5 +1,5 @@
 import type { ContentVideo } from "@/lib/api/types";
-import { YouTubeEmbed } from "@/components/article/youtube-embed";
+import { YouTubeEmbed } from "@/components/content/youtube-embed";
 import { MediaCarousel, MediaCaption } from "./media-carousel";
 
 /**

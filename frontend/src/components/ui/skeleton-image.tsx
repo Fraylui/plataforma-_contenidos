@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 /**
  * next/image (fill) + skeleton pulsante mientras carga. Siempre dentro de un
  * contenedor `relative` con aspect-ratio fijo (fill se posiciona absoluto y
- * llena ese contenedor) — CardMedia es Server Component, así que el estado
+ * llena ese contenedor) — quien la usa suele ser Server Component, así que el estado
  * de "cargando" vive acá, el único punto que sí necesita ser Client Component.
  *
  * `fade={false}` desactiva el pulso + aparición gradual: para imágenes que

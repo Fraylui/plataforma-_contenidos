@@ -3,8 +3,8 @@
 import { useEffect, type RefObject } from "react";
 
 /** Estándar MRC/IAB de impresión visible para display: 50 % de los píxeles en pantalla durante 1 s seguido. */
-export const VIEWABLE_RATIO = 0.5;
-export const VIEWABLE_MS = 1000;
+const VIEWABLE_RATIO = 0.5;
+const VIEWABLE_MS = 1000;
 
 /**
  * Avisa al servidor (una vez por montaje) cuando el anuncio se vio de

@@ -107,7 +107,7 @@ export async function listAllPublishedArticlesForSitemap(): Promise<ArticleSumma
   return items;
 }
 
-export function listPublishedPlaces(params?: {
+function listPublishedPlaces(params?: {
   categoryId?: string;
   page?: number;
   size?: number;
@@ -183,7 +183,7 @@ export async function listAllPublishedEventsForSitemap(): Promise<EventSummary[]
   return items;
 }
 
-export function listPublishedGalleries(params?: {
+function listPublishedGalleries(params?: {
   categoryId?: string;
   page?: number;
   size?: number;
@@ -211,7 +211,7 @@ export async function listAllPublishedGalleriesForSitemap(): Promise<GallerySumm
   return items;
 }
 
-export function listPublishedBusinesses(params?: {
+function listPublishedBusinesses(params?: {
   categoryId?: string;
   businessType?: BusinessType;
   page?: number;
@@ -318,7 +318,7 @@ export function getFeedTopics(): Promise<FeedTopic[]> {
  * `categoryId` viene del propio recurso que la página de detalle ya cargó
  * (no hace falta otra consulta para resolverlo).
  */
-export function getFeedRelated(params: {
+function getFeedRelated(params: {
   excludeType: FeedItemType;
   excludeId: string;
   categoryId: string | null;

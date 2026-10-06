@@ -40,8 +40,8 @@ function useLocalStorageFlag(getSnapshot: () => boolean): boolean {
 
 /**
  * Estado y acciones de reacción de un contenido, compartidos entre la barra
- * de la página de detalle (LikeShareBar) y las acciones compactas de las
- * tarjetas del home (CardActions). Solo dos reacciones a propósito — sin
+ * de la vista de post (LikeShareBar) y la barra de la tarjeta del feed
+ * (PostCard). Solo dos reacciones a propósito — sin
  * cuenta de usuario no hay ningún lugar donde mostrarle a alguien su lista
  * de "guardados" después, así que esa tercera reacción no tenía a dónde ir:
  *
@@ -109,7 +109,7 @@ export function useContentReactions({
     await copyLink();
   }
 
-  /** Copia el link sin pasar por navigator.share primero — usado por los botones de red específica de LikeShareBar (el share() genérico de CardActions sí prueba el diálogo nativo primero). */
+  /** Copia el link sin pasar por navigator.share — respaldo de share() cuando el navegador no tiene el diálogo nativo. */
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(resolveShareUrl());
@@ -120,7 +120,7 @@ export function useContentReactions({
     }
   }
 
-  return { liked, likeCount, pending, copied, toggleLike, share, copyLink, resolveShareUrl };
+  return { liked, likeCount, pending, copied, toggleLike, share };
 }
 
 /** Píldora de acción del post (Agendar, Cómo llegar, Llamar…): fondo suave, sin borde. */

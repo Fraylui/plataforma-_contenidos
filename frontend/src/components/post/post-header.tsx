@@ -7,7 +7,7 @@ export interface PostBrand {
 }
 
 /** Fecha ISO usable para el encabezado según el tipo, o null si falta o es inválida. */
-export function postDateIso(item: Pick<HomeItem, "kind" | "sortDate" | "startsAt">): string | null {
+function postDateIso(item: Pick<HomeItem, "kind" | "sortDate" | "startsAt">): string | null {
   const iso = item.kind === "evento" ? (item.startsAt ?? item.sortDate) : item.sortDate;
   return iso && !Number.isNaN(Date.parse(iso)) ? iso : null;
 }
@@ -19,7 +19,7 @@ export function postDateIso(item: Pick<HomeItem, "kind" | "sortDate" | "startsAt
  * — un dato faltante nunca debe romper la página (pasó en el build con un
  * backend desactualizado).
  */
-export function postTimeLabel(item: Pick<HomeItem, "kind" | "sortDate" | "startsAt">): string {
+function postTimeLabel(item: Pick<HomeItem, "kind" | "sortDate" | "startsAt">): string {
   const iso = postDateIso(item);
   if (!iso) return "";
   if (item.kind === "evento") return formatEventDateTime(iso);

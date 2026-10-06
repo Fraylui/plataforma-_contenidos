@@ -16,7 +16,7 @@ const DISMISS_KEY = "anchor-ad-dismissed";
  * el visitante hace scroll, así que tiene que poder cerrarse.
  *
  * Se monta con un portal a `document.body` (no inline donde se use el
- * componente) por el mismo motivo que MobileNav: cualquier ancestro con
+ * componente) porque cualquier ancestro con
  * `backdrop-filter`/`filter`/`transform` (o un simulador de dispositivo del
  * navegador) puede convertir el `position: fixed` en "fijo respecto a ese
  * ancestro" en vez de la pantalla — visto en captura real, la barra flotante

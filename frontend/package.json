@@ -17,7 +17,8 @@
     "test:perf": "lhci autorun",
     "test:api": "docker run --rm -i --network host -e BASE_URL=http://localhost:8080 grafana/k6 run - < tests/load/k6-smoke.js",
     "test:load": "docker run --rm -i --network host -e BASE_URL=http://localhost:8080 grafana/k6 run - < tests/load/k6-load.js",
-    "test:stress": "docker run --rm -i --network host -e BASE_URL=http://localhost:8080 grafana/k6 run - < tests/load/k6-stress.js"
+    "test:stress": "docker run --rm -i --network host -e BASE_URL=http://localhost:8080 grafana/k6 run - < tests/load/k6-stress.js",
+    "lint:unused": "knip"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
@@ -64,6 +65,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
     "jsdom": "^30.0.1",
+    "knip": "^5.88.1",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.11",

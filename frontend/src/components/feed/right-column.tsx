@@ -6,6 +6,7 @@ import { formatEventDateTime } from "@/lib/content-labels";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { SkeletonImage } from "@/components/ui/skeleton-image";
 import { AdBlock } from "@/components/legal/ad-block";
+import type { AdSection } from "@/lib/ads/ad-context";
 
 /** Fila de la columna: píldora de fondo al pasar el mouse, sin bordes ni líneas (como Facebook). */
 const ROW = "group -mx-2 flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-surface";
@@ -70,10 +71,12 @@ export function RightColumn({
   events,
   topLiked,
   categoryNames,
+  adSection = "HOME",
 }: {
   events: EventSummary[];
   topLiked: HomeItem[];
   categoryNames: Record<string, string>;
+  adSection?: AdSection;
 }) {
   return (
     <div className="flex flex-col gap-7">
@@ -112,7 +115,7 @@ export function RightColumn({
           </ol>
         </section>
       )}
-      <AdBlock position="listing" layout="fill" section="HOME" />
+      <AdBlock position="listing" layout="fill" section={adSection} />
     </div>
   );
 }

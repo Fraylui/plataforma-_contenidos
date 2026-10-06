@@ -15,7 +15,7 @@ export interface ShellNavItem {
   icon: Icon;
 }
 
-export const SHELL_NAV: ShellNavItem[] = [
+const SHELL_NAV: ShellNavItem[] = [
   { tab: "inicio", href: "/", label: "Inicio", icon: House },
   { tab: "explorar", href: "/explorar", label: "Explorar", icon: Compass },
   { tab: "buscar", href: "/buscar", label: "Buscar", icon: MagnifyingGlass },

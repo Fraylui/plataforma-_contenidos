@@ -144,6 +144,10 @@ jobs:
         working-directory: frontend
         run: npm run lint
 
+      - name: Unused files and exports (knip)
+        working-directory: frontend
+        run: npm run lint:unused
+
       - name: Typecheck
         working-directory: frontend
         run: npx tsc --noEmit
