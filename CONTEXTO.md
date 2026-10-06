@@ -2047,20 +2047,20 @@ Acordado con el dueño ("todas las páginas del panel se ven antiguas, estilo ed
 
 Estado en la rama `feat/sitio-red-social` al 2026-10-06. ✅ hecho · ⚠️ parcial · ❌ falta.
 
-### Sitio público (17 páginas)
+### Sitio público (17 páginas) — actualizado 2026-10-06 (sesión 2)
 
-| Página | Estado | Qué falta |
+| Página | Estado | Nota |
 |---|---|---|
-| `/` Inicio | ✅ | Solo el anuncio "Patrocinado" con forma de post (46.3-E). |
-| `/buscar` | ⚠️ | Cabecera, campo y chips listos; los resultados siguen con la tarjeta vieja (`SearchResultCard`, antetítulo "ACTUALIDAD") → cuadrícula `GridTile` (46.3-C). |
-| `/explorar` | ❌ | **No existe (da 404)** y la pestaña ya la enlaza: crear `ExploreGrid` (46.3-C). |
-| `/publicaciones` `/lugares` `/galerias` `/directorio` | ❌ | Portada de sección + desplegable "Filtrar por tema" → feed filtrado (46.3-D). |
-| `/eventos` | ❌ | → **Agenda** (próximos por fecha) (46.3-D). |
-| `/categorias/[slug]` | ❌ | → feed del tema con su círculo activo (46.3-D). |
-| 5 detalles `[slug]` | ❌ | Conectar `PostView` (ya hecho y probado) y quitar ruta visible, "min de lectura", antetítulo, entradilla en negrita, "Seguir leyendo", columna lateral vieja (46.3-B). |
-| `/contacto` `/privacidad` `/terminos` | ⚠️ | Funcionan dentro del cascarón nuevo, pero con el estilo de página vieja: pasarlas a una columna simple estilo app (título + texto + formulario), sin portada. |
-| `not-found` (404) y `error` | ⚠️ | Rediseñar como pantalla de app (ilustración/ícono Phosphor, "Volver al inicio", sugerencias). |
-| `loading.tsx` (10 archivos de secciones y detalles + raíz) | ❌ | Los esqueletos de carga imitan los listados viejos; cambiarlos por esqueletos de post / cuadrícula. |
+| `/` Inicio | ✅ | `FeedScreen` + anuncio «Patrocinado» con forma de post. |
+| `/buscar` | ✅ | Resultados y sugerencias en cuadrícula `GridTile`. |
+| `/explorar` | ✅ | Cuadrícula de 3 con chips `?tipo=` y scroll infinito. |
+| `/publicaciones` `/lugares` `/galerias` `/directorio` | ✅ | Feed filtrado por tipo (`FeedScreen`); `?page=` viejos responden 200 con canonical a la sección. |
+| `/eventos` | ✅ | **Agenda**: próximos por fecha. |
+| `/categorias/[slug]` | ✅ | Feed del tema, encabezado con nombre y descripción, círculo activo. |
+| 5 detalles `[slug]` | ✅ | `PostView` + `PostFacts` + barra de post + «Más como esto» (9). JSON-LD intacto. |
+| `/contacto` `/privacidad` `/terminos` | ✅ | Pantalla de app: chips de secciones, texto en superficie blanca. |
+| `not-found` (404) y `error` | ✅ | Pantalla de app con Phosphor e Inicio / Explorar / Buscar. |
+| `loading.tsx` | ✅ | Esqueletos de feed, post y cuadrícula. El `app/loading.tsx` raíz queda solo para el panel (proyecto 2). |
 
 ### Panel de administración (34 páginas) — todo ❌, proyecto 2 (46.3-I)
 
@@ -2073,6 +2073,33 @@ Estado en la rama `feat/sitio-red-social` al 2026-10-06. ✅ hecho · ⚠️ par
 | Monetización | Publicidad/posiciones (3), Anunciantes (3) + campañas (2) |
 | Administración | Usuarios (2) → pasa a **Trabajadores**, Configuración, Auditoría |
 | **Nuevas** | **Trabajadores**: permisos por módulo y plantillas; **Mi cuenta**: cambiar contraseña (hoy no hay una página propia). |
+
+## 46.6b Avance 2026-10-06 (sesión 2) — commits en `feat/sitio-red-social`
+
+- `76213b2`, `f2c3be9`: riel estilo Facebook/Instagram (secciones con círculos de color, temas con anillo de historia y «Novedades», enlaces legales a la vista, sin el «Más» de rayitas), panel de búsqueda lateral, contador de Agenda, columna derecha pegada al borde, lienzo claro `#f0f2f5` (gris de Facebook, contraste AA). **Sin selector de apariencia**: claro/oscuro según el dispositivo — el panel debe estar en Configuración → Apariencia → «Sistema».
+- `abab37b`: `/explorar` y búsqueda en cuadrícula.
+- `f88ea5d`: los 5 detalles como post; se retiró el endpoint `/articles/{slug}/neighbors` (sin consumidores).
+- `d32b169`: `FeedScreen` para inicio/secciones/Agenda/temas; **knip** (`npm run lint:unused`, también en CI) — 23 archivos huérfanos borrados.
+- `964f962`, `a3408a4`: anuncio «Patrocinado» con forma de post.
+- `d8a60f9`: carga, 404, error y páginas de información con forma de app; e2e `no-editorial-patterns.spec.ts` y `seo-urls.spec.ts`.
+- Seguridad: test `json-ld-escape.test.ts` exige el escape de `<` en todo JSON-LD (se detectó y corrigió una regresión al reescribir Eventos).
+
+**Pendiente del proyecto 1:** verificación en Docker/Edge de todo lo anterior (los builds dependen de la memoria libre del equipo), Lighthouse (LCP/CLS/INP), Sprint 5 (algoritmos, 46.3-G), revisión completa de la rama y fusión a `main` con permiso del dueño.
+
+## 46.6c Marco de trabajo — ITIL 4, COBIT 2019 e ISO aplicados (sin burocracia)
+
+Cada tarea es un ciclo corto (PDCA de ISO 9001): **planificar** (brief del plan) → **hacer** (test que falla primero, luego código) → **verificar** (suite completa + Docker/Edge) → **actuar** (registro en el ledger y en este documento).
+
+| Marco | Práctica / objetivo | Cómo se cumple aquí |
+|---|---|---|
+| ITIL 4 | Habilitación del cambio | Rama propia, commits pequeños con tests en verde, fusión a `main` solo con permiso del dueño. |
+| ITIL 4 | Gestión de liberaciones y despliegue | Build y verificación en Docker antes de mostrar; `infra/DESPLIEGUE.md` para el VPS. |
+| ITIL 4 | Gestión de problemas | Causa raíz anotada en el ledger (`Fix: … causa raíz …`) con test de regresión. |
+| COBIT 2019 | BAI03 (soluciones), BAI06 (cambios), BAI07 (aceptación) | Plan con criterios de aceptación por tarea; CI (lint, knip, tipos, tests, build); revisión del dueño con capturas. |
+| COBIT 2019 | MEA01 (monitoreo del desempeño) | Core Web Vitals (Lighthouse), métricas del panel, auditoría. |
+| ISO/IEC 25010 | Calidad del producto | Definición de "hecho": funcional, usable (WCAG 2.2 AA), eficiente (CWV), mantenible (cero huérfanos con knip), seguro. |
+| ISO/IEC 27001 (A.8.25–A.8.29) | Desarrollo seguro | OWASP (escape de JSON-LD, HTML saneado en backend, CSP), `npm audit` en CI, CodeQL. |
+| WCAG 2.2 AA | Accesibilidad | `vitest-axe` en componentes, objetivos táctiles ≥ 44 px, foco visible, contraste verificado. |
 
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
