@@ -1827,6 +1827,7 @@ servidor. Regla general: **solo señales reales** (fechas, me gusta, categorías
 | "Lo más gustado" | `FeedService.getTopLiked` | Me gusta acumulados, desc. Solo contenido con ≥1 me gusta; la lista solo se muestra con ≥3. |
 | Búsqueda | `SearchService` | `tsvector` español sin acentos por módulo **+** contenido de las categorías cuyo nombre coincide (y sus subcategorías). Fusión por fecha. Con <4 resultados: temas parecidos + lo más reciente. |
 | Anuncios en el feed | `InfiniteFeed` | Posición `en-feed` cada 6 celdas de grilla (desde la 12): siempre tras una fila completa en 2 y 3 columnas. |
+| Atajo de búsqueda | `SearchBox` + `lib/search-shortcut.ts` | Ctrl+K / ⌘K siempre; "/" solo fuera de campos de texto (no roba la barra al escribir). Solo el buscador de escritorio lo registra; pista "Ctrl K"/"⌘K" en el campo, oculta al enfocar o escribir. |
 
 ## 45.2 Planeado — con condición de activación
 
@@ -1852,8 +1853,8 @@ publicados_7d sale de `publishedAt`. Ordena "Explorar por tema" de la barra
 lateral y la franja de temas en vez del `sortOrder` fijo; desempate por
 `sortOrder`. **Activar:** cuando se publique contenido cada semana.
 
-**C. Atajo de teclado para buscar (Ctrl+K y "/").** Solo frontend, sin
-condición — siguiente tarea chica.
+**C. Atajo de teclado para buscar (Ctrl+K y "/").** Hecho el 2026-10-05 —
+ver tabla 45.1.
 
 **D. "Para ti" sin cuentas.** Pesos por categoría guardados en el navegador
 (categorías abiertas), enviados como parámetro opcional al feed; requiere

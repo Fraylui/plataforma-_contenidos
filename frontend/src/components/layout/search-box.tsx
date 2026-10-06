@@ -1,15 +1,26 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Search } from "lucide-react";
 import type { SearchResult, SearchResultType } from "@/lib/api/types";
 import { searchResultHref } from "@/lib/content-labels";
 import { imageUrl } from "@/lib/image-url";
+import { isSearchShortcut } from "@/lib/search-shortcut";
 import { cn } from "@/lib/utils";
 import { Highlighted } from "@/components/ui/highlighted";
 
 const DEBOUNCE_MS = 250;
+
+const noopSubscribe = () => () => {};
+/** "⌘K" en Apple, "Ctrl K" en el resto; null en el servidor (la pista aparece tras hidratar). */
+function useShortcutLabel(): string | null {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => (/Mac|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "Ctrl K"),
+    () => null,
+  );
+}
 
 /**
  * Buscador del header con sugerencias en vivo (mismo input para desktop y
@@ -51,6 +62,26 @@ export function SearchBox({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listboxId = useId();
+  const desktop = variant === "desktop";
+  const shortcutLabel = useShortcutLabel();
+
+  // Atajo global (§45.2-C). Solo la variante de escritorio: la móvil se
+  // muestra bajo 640 px, donde no hay teclado físico, y así un solo listener
+  // enfoca siempre el campo visible.
+  useEffect(() => {
+    if (!desktop) return;
+    function onGlobalKeyDown(e: globalThis.KeyboardEvent) {
+      // Campos explícitos: un spread de KeyboardEvent no copia ctrlKey & cía. (getters del prototipo).
+      const { key, ctrlKey, metaKey, altKey, shiftKey, isComposing } = e;
+      const target = e.target as HTMLElement | null;
+      if (e.defaultPrevented || !isSearchShortcut({ key, ctrlKey, metaKey, altKey, shiftKey, isComposing, target })) return;
+      e.preventDefault();
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+    document.addEventListener("keydown", onGlobalKeyDown);
+    return () => document.removeEventListener("keydown", onGlobalKeyDown);
+  }, [desktop]);
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -134,7 +165,6 @@ export function SearchBox({
   }
 
   const showDropdown = open && query.trim().length > 0;
-  const desktop = variant === "desktop";
 
   return (
     <div ref={containerRef} className={cn("relative", desktop ? "hidden w-full sm:block" : "sm:hidden")}>
@@ -149,7 +179,9 @@ export function SearchBox({
           Buscar contenido
         </label>
         {desktop ? (
-          <div className="flex h-11 w-full items-stretch overflow-hidden rounded-full border border-border bg-background shadow-[0_1px_2px_rgb(0_0_0_/_0.04)] transition-[border-color,box-shadow] focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/15">
+          // El anillo lo dibuja este contenedor (focus-within); el campo y el selector anulan
+          // el contorno global de :focus-visible (sin capa, le gana a outline-none) para no duplicarlo.
+          <div className="group flex h-11 w-full items-stretch overflow-hidden rounded-full border border-border bg-background shadow-[0_1px_2px_rgb(0_0_0_/_0.04)] transition-[border-color,box-shadow] focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/15">
             {scopes.length > 1 && (
               <>
                 <label htmlFor={`${listboxId}-scope`} className="sr-only">
@@ -159,7 +191,7 @@ export function SearchBox({
                   id={`${listboxId}-scope`}
                   value={scope}
                   onChange={(e) => setScope(e.target.value as SearchResultType | "")}
-                  className="max-w-36 shrink-0 cursor-pointer border-r border-border bg-canvas pr-2 pl-4 text-[13px] font-medium text-foreground outline-none hover:bg-canvas-strong focus-visible:bg-accent-soft"
+                  className="max-w-36 shrink-0 cursor-pointer border-r border-border bg-canvas pr-2 pl-4 text-[13px] font-medium text-foreground outline-none focus-visible:outline-none! hover:bg-canvas-strong focus-visible:bg-accent-soft"
                 >
                   {scopes.map((option) => (
                     <option key={option.value || "all"} value={option.value}>
@@ -185,9 +217,18 @@ export function SearchBox({
             }}
             onFocus={() => setOpen(true)}
             onKeyDown={onKeyDown}
+            aria-keyshortcuts="Control+K Meta+K /"
             placeholder="Busca publicaciones, lugares, eventos…"
-            className="min-w-0 flex-1 bg-transparent px-4 text-sm text-foreground placeholder-muted outline-none [&::-webkit-search-cancel-button]:hidden"
+            className="min-w-0 flex-1 bg-transparent px-4 text-sm text-foreground placeholder-muted outline-none focus-visible:outline-none! [&::-webkit-search-cancel-button]:hidden"
           />
+            {shortcutLabel && !query && (
+              <kbd
+                aria-hidden="true"
+                className="pointer-events-none my-auto hidden shrink-0 rounded border border-border bg-canvas px-1.5 py-0.5 font-sans text-[11px] font-medium text-muted lg:block group-focus-within:hidden"
+              >
+                {shortcutLabel}
+              </kbd>
+            )}
             <button
               type="submit"
               aria-label="Buscar"
