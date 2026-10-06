@@ -3,9 +3,32 @@ import { ADMIN_NAV_GROUP_LABELS, groupedNavItems } from "@/lib/admin/nav";
 import { roleLabel } from "@/lib/admin/role-labels";
 import { logoutAction } from "./actions";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { ChangePasswordForm } from "@/components/admin/change-password-form";
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const { user } = await requireAdminUser();
+
+  // Contraseña temporal: en cualquier URL del panel solo se puede cambiarla
+  // (el servidor rechaza todo lo demás con PASSWORD_CHANGE_REQUIRED).
+  if (user.mustChangePassword) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-background px-4 py-10">
+        <div className="text-center">
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Hola, {user.firstName}</h1>
+          <p className="mt-1 text-sm text-muted">Antes de empezar, elige tu contraseña.</p>
+        </div>
+        <div className="w-full max-w-md">
+          <ChangePasswordForm temporary />
+        </div>
+        <form action={logoutAction}>
+          <button type="submit" className="cursor-pointer text-sm font-medium text-muted hover:text-foreground">
+            Cerrar sesión
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   const groups = groupedNavItems(user);
 
   return (

@@ -707,3 +707,12 @@ export function setWorkerActive(accessToken: string, id: string, active: boolean
     method: "POST",
   });
 }
+
+/** Mi cuenta: cambio de la contraseña propia (POST /users/me/password, 204). */
+export async function changeOwnPassword(accessToken: string, currentPassword: string, newPassword: string): Promise<void> {
+  await authedJson<unknown>("/api/v1/users/me/password", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+}
