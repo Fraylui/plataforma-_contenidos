@@ -1,4 +1,5 @@
-import { getPlatformSettings, getPrimaryNavVisibility } from "@/lib/api/client";
+import { getFeedTopics, getPlatformSettings, getPrimaryNavVisibility } from "@/lib/api/client";
+import { imageUrl } from "@/lib/image-url";
 import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner";
 import { AdsenseLoader } from "@/components/legal/adsense-loader";
 import { AnchorAdSlot } from "@/components/legal/anchor-ad-slot";
@@ -16,7 +17,18 @@ import { TopBar } from "@/components/shell/top-bar";
  * Separado del layout raíz (app/layout.tsx) para que /admin/* no lo herede.
  */
 export default async function PublicLayout({ children }: LayoutProps<"/">) {
-  const [settings, visibility] = await Promise.all([getPlatformSettings(), getPrimaryNavVisibility()]);
+  const [settings, visibility, topics] = await Promise.all([
+    getPlatformSettings(),
+    getPrimaryNavVisibility(),
+    getFeedTopics().catch(() => []),
+  ]);
+  const topicLinks = topics.map((t) => ({
+    categoryId: t.categoryId,
+    name: t.name,
+    slug: t.slug,
+    coverUrl: t.coverImageId ? imageUrl(`/api/v1/images/${t.coverImageId}/file`) : t.coverImageUrl,
+    hasNew: t.hasNew,
+  }));
   const brand = { name: settings.name, logoUrl: settings.logoUrl ?? null };
   const showAgenda = Boolean(visibility["/eventos"]);
 
@@ -28,7 +40,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
       >
         Saltar al contenido principal
       </a>
-      <LeftRail brand={brand} showAgenda={showAgenda} />
+      <LeftRail brand={brand} showAgenda={showAgenda} sections={visibility} topics={topicLinks} />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar brand={brand} />
         <main id="main-content" className="flex-1 pb-(--bottom-bar-h)">

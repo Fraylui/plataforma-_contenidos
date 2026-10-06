@@ -49,6 +49,23 @@ describe("BottomTabBar", () => {
   });
 });
 
+describe("LeftRail — sin vacío, como Facebook/X", () => {
+  it("muestra secciones con contenido y temas con su foto", () => {
+    pathname = "/lugares";
+    render(
+      <LeftRail
+        brand={brand}
+        showAgenda
+        sections={{ "/publicaciones": true, "/lugares": true, "/galerias": false, "/directorio": true }}
+        topics={[{ categoryId: "t1", name: "Turismo", slug: "turismo", coverUrl: null, hasNew: true }]}
+      />,
+    );
+    expect(screen.getByRole("link", { name: "Lugares" })).toHaveAttribute("aria-current", "page");
+    expect(screen.queryByRole("link", { name: "Galerías" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Turismo/ })).toHaveAttribute("href", "/categorias/turismo");
+  });
+});
+
 describe("LeftRail", () => {
   it("muestra la marca y las mismas secciones, con la activa marcada", () => {
     pathname = "/explorar";

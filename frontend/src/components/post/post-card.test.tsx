@@ -69,6 +69,12 @@ describe("PostCard", () => {
     expect(screen.getByRole("link", { name: /Sitio web/ })).toHaveAttribute("href", "https://hostal.example.com");
   });
 
+  it("una fecha faltante o inválida no rompe la tarjeta (queda sin fecha)", () => {
+    render(<PostCard item={item({ kind: "evento", typeLabel: "Evento", startsAt: null, sortDate: "" })} brand={brand} />);
+    expect(screen.getByTestId("post-header")).toHaveTextContent("Evento");
+    expect(screen.getByTestId("post-header").querySelector("time")).toBeNull();
+  });
+
   it("publicaciones y galerías no tienen acción extra", () => {
     render(<PostCard item={item({})} brand={brand} />);
     expect(screen.queryByRole("link", { name: /Agendar|Cómo llegar|Llamar|Sitio web/ })).not.toBeInTheDocument();

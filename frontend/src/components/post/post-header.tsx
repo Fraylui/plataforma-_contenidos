@@ -6,15 +6,25 @@ export interface PostBrand {
   logoUrl: string | null;
 }
 
+/** Fecha ISO usable para el encabezado según el tipo, o null si falta o es inválida. */
+function postDateIso(item: Pick<HomeItem, "kind" | "sortDate" | "startsAt">): string | null {
+  const iso = item.kind === "evento" ? (item.startsAt ?? item.sortDate) : item.sortDate;
+  return iso && !Number.isNaN(Date.parse(iso)) ? iso : null;
+}
+
 /**
  * Fecha del encabezado según la regla de cada tipo (CONTEXTO, memoria de
  * fechas): publicaciones en relativo ("hace 2 h"), eventos con su fecha y
- * hora absolutas, el resto con fecha corta absoluta.
+ * hora absolutas, el resto con fecha corta absoluta. Sin fecha válida, ""
+ * — un dato faltante nunca debe romper la página (pasó en el build con un
+ * backend desactualizado).
  */
 export function postTimeLabel(item: Pick<HomeItem, "kind" | "sortDate" | "startsAt">): string {
-  if (item.kind === "evento") return formatEventDateTime(item.startsAt ?? item.sortDate);
-  if (item.kind === "publicacion") return formatArticleDate(item.sortDate || null);
-  return formatShortDate(item.sortDate || null);
+  const iso = postDateIso(item);
+  if (!iso) return "";
+  if (item.kind === "evento") return formatEventDateTime(iso);
+  if (item.kind === "publicacion") return formatArticleDate(iso);
+  return formatShortDate(iso);
 }
 
 /**
@@ -22,6 +32,7 @@ export function postTimeLabel(item: Pick<HomeItem, "kind" | "sortDate" | "starts
  * autor), luego tipo, tema y tiempo — sin antetítulo en mayúsculas.
  */
 export function PostHeader({ item, brand, categoryName }: { item: HomeItem; brand: PostBrand; categoryName?: string }) {
+  const dateIso = postDateIso(item);
   return (
     <header data-testid="post-header" className="flex items-center gap-3 px-4 py-3">
       {brand.logoUrl ? (
@@ -38,10 +49,17 @@ export function PostHeader({ item, brand, categoryName }: { item: HomeItem; bran
           <span className="text-muted"> · {item.typeLabel}</span>
         </p>
         <p className="truncate text-xs text-muted">
-          {categoryName && <>{categoryName} · </>}
-          <time dateTime={item.kind === "evento" ? (item.startsAt ?? item.sortDate) : item.sortDate} suppressHydrationWarning>
-            {postTimeLabel(item)}
-          </time>
+          {categoryName && (
+            <>
+              {categoryName}
+              {dateIso && " · "}
+            </>
+          )}
+          {dateIso && (
+            <time dateTime={dateIso} suppressHydrationWarning>
+              {postTimeLabel(item)}
+            </time>
+          )}
         </p>
       </div>
     </header>

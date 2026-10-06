@@ -1,188 +1,88 @@
 import {
   getFeed,
+  getFeedTopics,
   getPlatformSettings,
+  getPrimaryNavVisibility,
   getTopLiked,
   listActiveAdPlacements,
   listActiveCategories,
-  listPublishedArticles,
-  listPublishedBusinesses,
   listPublishedEvents,
-  listPublishedGalleries,
-  listPublishedPlaces,
 } from "@/lib/api/client";
-import { fromArticle, fromEvent, fromFeedItem, fromGallery, fromPlace, sortNewestFirst, type HomeItem } from "@/lib/home-items";
-import { HeroRotator } from "@/components/home/hero-rotator";
-import { InfiniteFeed } from "@/components/home/infinite-feed";
-import { HomeSidebar } from "@/components/home/home-sidebar";
-import { ModuleStrip } from "@/components/home/module-strip";
-import { CategoryShowcase } from "@/components/home/category-showcase";
+import { fromFeedItem } from "@/lib/home-items";
+import { imageUrl } from "@/lib/image-url";
+import { TopicStories, type TopicStory } from "@/components/feed/topic-stories";
+import { FilterChips } from "@/components/feed/filter-chips";
+import { typeChipOptions } from "@/components/feed/type-chips";
+import { Feed } from "@/components/feed/feed";
+import { RightColumn } from "@/components/feed/right-column";
 
-// Cuántos traer de cada tipo: alcanza para el hero (4, uno por tipo,
-// priorizando los que tienen imagen) sin pedir listados enormes.
-const ARTICLES_SIZE = 12;
-const PLACES_SIZE = 8;
-const GALLERIES_SIZE = 6;
-const UPCOMING_EVENTS_SIZE = 5;
-
-const HERO_SIZE = 4;
-// Primer lote del scroll infinito (ver InfiniteFeed) — el resto lo pide el cliente a medida que se acerca al final.
 const FEED_INITIAL_SIZE = 12;
+const UPCOMING_EVENTS_SIZE = 4;
 
 /**
- * Hero: un contenido por tipo (el más nuevo de cada uno, priorizando los
- * que tienen imagen) para que la rotación muestre la variedad de la
- * plataforma, no 4 publicaciones seguidas.
- */
-function pickHero(byKind: HomeItem[][]): HomeItem[] {
-  const withImage = byKind.map((list) => list.find((i) => i.imageUrl)).filter((i): i is HomeItem => Boolean(i));
-  const picked = withImage.slice(0, HERO_SIZE);
-  if (picked.length < HERO_SIZE) {
-    for (const list of byKind) {
-      for (const item of list) {
-        if (picked.length >= HERO_SIZE) break;
-        if (!picked.some((p) => p.id === item.id)) picked.push(item);
-      }
-    }
-  }
-  // Lo más reciente siempre primero: es el slide inicial y el que ve quien
-  // no espera la rotación.
-  return sortNewestFirst(picked);
-}
-
-/**
- * Home = hero + dos columnas: el feed con scroll infinito a la izquierda y
- * una barra lateral fija (agenda de eventos, anuncio, categorías) a la
- * derecha — la estructura de un sitio de contenidos con AdSense, no una
- * sucesión de secciones apiladas hasta el fondo (CONTEXTO.md sección 43).
+ * Inicio = feed estilo Instagram (diseño 2026-10-06): círculos de temas,
+ * chips de tipo y publicaciones de una columna con scroll infinito; en
+ * escritorio ancho, columna derecha con próximos eventos, lo más gustado y
+ * un anuncio. Sin portada rotativa, franja de módulos ni bloques por tema:
+ * eso era la estructura de un diario.
+ *
+ * Semilla del feed por hora (no por visita): todos los que entran en la
+ * misma hora ven el mismo orden, así la página se puede guardar en caché
+ * (Next, nginx, Cloudflare); el resto del scroll no repite (exclude).
  */
 export default async function Home() {
-  const [articles, places, galleries, events, businesses, categories, settings] = await Promise.all([
-    listPublishedArticles({ size: ARTICLES_SIZE }),
-    listPublishedPlaces({ size: PLACES_SIZE }),
-    listPublishedGalleries({ size: GALLERIES_SIZE }),
-    listPublishedEvents({ when: "upcoming", size: UPCOMING_EVENTS_SIZE }),
-    // Solo para el total del Directorio en la franja de módulos.
-    listPublishedBusinesses({ size: 1 }),
-    listActiveCategories(),
+  const feedSeed = new Date().toISOString().slice(0, 13);
+  const [settings, categories, topics, feedPage, events, visibility, placements, topLikedRaw] = await Promise.all([
     getPlatformSettings(),
+    listActiveCategories(),
+    getFeedTopics().catch(() => []),
+    getFeed({ size: FEED_INITIAL_SIZE, seed: feedSeed }),
+    listPublishedEvents({ when: "upcoming", size: UPCOMING_EVENTS_SIZE }),
+    getPrimaryNavVisibility(),
+    listActiveAdPlacements(),
+    getTopLiked(5).catch(() => []),
   ]);
 
   const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
-
-  const hero = pickHero([
-    articles.items.map(fromArticle),
-    places.items.map(fromPlace),
-    galleries.items.map(fromGallery),
-    events.items.map(fromEvent),
-  ]);
-  const heroIds = new Set(hero.map((i) => i.id));
-
-  // Scroll infinito (Publicaciones + Lugares + Eventos, ver FeedService en
-  // el backend): primer lote acá para que el render inicial y el SEO de la
-  // portada no dependan de JS; sin repetir lo que ya se ve en el hero.
-  // Semilla por hora, no por visita: antes era un UUID por visita, lo que
-  // obligaba a generar la portada de cero para cada persona y no dejaba
-  // guardarla en caché (ni Next, ni nginx, ni Cloudflare). Ahora todos los
-  // que entran en la misma hora ven el mismo orden, que igual cambia solo a
-  // lo largo del día; el resto del scroll sigue sin repetir (exclude).
-  const feedSeed = new Date().toISOString().slice(0, 13);
-  const feedPage = await getFeed({ size: FEED_INITIAL_SIZE, exclude: [...heroIds], seed: feedSeed });
+  const stories: TopicStory[] = topics.map((t) => ({
+    categoryId: t.categoryId,
+    name: t.name,
+    slug: t.slug,
+    coverUrl: t.coverImageId ? imageUrl(`/api/v1/images/${t.coverImageId}/file`) : t.coverImageUrl,
+    hasNew: t.hasNew,
+  }));
   const feedItems = feedPage.items.map(fromFeedItem);
-  // "Lo más gustado" es un extra: si falla, la portada sigue sin esa tarjeta.
-  const [topLikedRaw, placements] = await Promise.all([getTopLiked(5).catch(() => []), listActiveAdPlacements()]);
   const topLiked = topLikedRaw.map(fromFeedItem);
-  // Espacio "en-feed": la campaña directa la elige el navegador; acá solo la
-  // configuración de AdSense para esa posición (igual que AdBlock).
   const feedSlot = placements.find((p) => p.key === "en-feed")?.adsenseSlotId;
   const feedAd =
     settings.adsenseEnabled && settings.adsenseClientId && feedSlot ? { clientId: settings.adsenseClientId, slot: feedSlot } : null;
-  // Pestañas del feed: solo tipos que el feed incluye y que tienen contenido.
-  const feedTabs = [
-    // "Todo" y no "Para ti": el feed es igual para todos (no hay cuentas ni
-    // personalización), y el nombre no debe prometer algo que no hace.
-    { value: "" as const, label: "Todo" },
-    ...(articles.totalElements > 0 ? [{ value: "ARTICLE" as const, label: "Publicaciones" }] : []),
-    ...(places.totalElements > 0 ? [{ value: "PLACE" as const, label: "Lugares" }] : []),
-    ...(events.totalElements > 0 ? [{ value: "EVENT" as const, label: "Eventos" }] : []),
-  ];
-
-  const isEmpty = hero.length === 0;
-
-  const modules = [
-    { href: "/publicaciones", label: "Publicaciones", count: articles.totalElements, unit: "publicadas" },
-    { href: "/lugares", label: "Lugares", count: places.totalElements, unit: "lugares" },
-    { href: "/eventos", label: "Eventos", count: events.totalElements, unit: events.totalElements === 1 ? "próximo" : "próximos" },
-    { href: "/galerias", label: "Galerías", count: galleries.totalElements, unit: "galerías" },
-    { href: "/directorio", label: "Directorio", count: businesses.totalElements, unit: "negocios" },
-  ];
-  // Explora por tema: todo lo que el home ya trajo, sin lo del hero (ya está a la vista).
-  const showcaseItems = [
-    ...articles.items.map(fromArticle),
-    ...places.items.map(fromPlace),
-    ...galleries.items.map(fromGallery),
-    ...feedItems,
-  ].filter((item) => !heroIds.has(item.id));
+  const brand = { name: settings.name, logoUrl: settings.logoUrl ?? null };
 
   return (
-    <div className="flex flex-col">
-      {/* Único <h1> de la página, fuera de pantalla: el header ya muestra la marca. */}
-      <h1 className="sr-only">{settings.name}</h1>
-
-      {isEmpty ? (
-        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-dashed border-canvas-border px-6 py-16 text-center">
-            <p className="text-sm text-muted">Todavía no hay contenido publicado. Vuelve pronto.</p>
-          </div>
+    <div className="mx-auto flex w-full max-w-[1040px] justify-center gap-10 py-3 sm:px-4 sm:py-6">
+      <div className="w-full max-w-[630px] min-w-0">
+        {/* Único <h1>, fuera de pantalla: la marca ya se ve en la navegación. */}
+        <h1 className="sr-only">{settings.name}</h1>
+        <div className="px-4 sm:px-0">
+          <TopicStories topics={stories} />
+          <FilterChips label="Tipo de contenido" options={typeChipOptions(visibility, "/")} className="mt-2 mb-3" />
         </div>
-      ) : (
-        <>
-          <HeroRotator items={hero} categoryNames={categoryNames} />
-          <div className="flex flex-col gap-8 pt-1 sm:gap-10">
-            <ModuleStrip modules={modules} />
-            <CategoryShowcase items={showcaseItems} categories={categories} />
-          </div>
-        </>
-      )}
-
-      {/* El sidebar (agenda + anuncio + categorías) no depende de que el feed haya
-          devuelto algo: si el feed viene vacío (sitio con poco contenido todavía)
-          pero hay categorías activas, "Explorar por tema" debe seguir visible — es
-          la navegación principal, no un acompañante del feed. */}
-      {(feedItems.length > 0 || events.items.length > 0 || categories.length > 0) && (
-        <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:grid lg:grid-cols-12 lg:gap-10 lg:px-8">
-          {/* En celular la barra lateral va ANTES del feed (order-first): después
-              de un scroll infinito nunca se llegaría a verla. */}
-          <aside className="order-first mb-10 lg:order-none lg:col-span-4 lg:mb-0">
-            <div className="lg:sticky lg:top-32">
-              <HomeSidebar events={events.items} categories={categories} categoryNames={categoryNames} />
-            </div>
-          </aside>
-
-          {feedItems.length > 0 && (
-            <section aria-labelledby="descubre" className="lg:col-span-8 lg:row-start-1">
-              <div className="flex flex-col gap-1">
-                <h2 id="descubre" className="flex items-center gap-2.5 text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-                  <span className="h-2 w-2 rounded-full bg-accent-fill" aria-hidden="true" />
-                  Descubre en {settings.shortName || settings.name}
-                </h2>
-                <p className="hidden text-sm text-muted sm:block">Publicaciones, lugares y eventos, sin repetirse mientras exploras.</p>
-              </div>
-
-              <div className="mt-4 sm:mt-5">
-                <InfiniteFeed
-                  initialItems={feedItems}
-                  initialHasMore={feedPage.hasMore}
-                  seed={feedSeed}
-                  categoryNames={categoryNames}
-                  tabs={feedTabs}
-                  feedAd={feedAd}
-                  topLiked={topLiked}
-                />
-              </div>
-            </section>
-          )}
+        <Feed
+          initialItems={feedItems}
+          initialHasMore={feedPage.hasMore}
+          seed={feedSeed}
+          filter={{}}
+          brand={brand}
+          categoryNames={categoryNames}
+          feedAd={feedAd}
+          topLiked={topLiked}
+        />
+      </div>
+      <aside aria-label="Más para descubrir" className="hidden w-80 shrink-0 xl:block">
+        <div className="sticky top-24">
+          <RightColumn events={events.items} topLiked={topLiked} categoryNames={categoryNames} />
         </div>
-      )}
+      </aside>
     </div>
   );
 }

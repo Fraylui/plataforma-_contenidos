@@ -1,32 +1,27 @@
-import Link from "next/link";
 import { listActiveCategories } from "@/lib/api/client";
 import { SearchBox } from "@/components/layout/search-box";
 import type { ShellBrand } from "./left-rail";
+import { TopBarTitle } from "./top-bar-title";
 
 /**
- * Franja superior mínima. Celular: marca + buscador desplegable. Escritorio:
- * solo el buscador (la marca y la navegación viven en el riel izquierdo),
- * como YouTube o LinkedIn — así el buscador con sugerencias y Ctrl+K está en
- * todas las páginas.
+ * Franja superior, como el encabezado de X: a la izquierda el nombre de la
+ * pantalla (con flecha para volver en los detalles), a la derecha el
+ * buscador — en vez del buscador solo en medio de la franja, que se veía
+ * vacío. Sin línea inferior: se funde con el fondo y se separa por el
+ * desenfoque al hacer scroll.
  */
 export async function TopBar({ brand }: { brand: ShellBrand }) {
   const categories = await listActiveCategories();
   const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-surface/90 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-4 lg:h-16 lg:px-8">
-        <Link href="/" className="flex min-w-0 items-center gap-2 lg:hidden">
-          {brand.logoUrl && (
-            // eslint-disable-next-line @next/next/no-img-element -- logo definido en Configuración, host arbitrario
-            <img src={brand.logoUrl} alt="" className="h-8 w-8 shrink-0 rounded-lg object-cover" />
-          )}
-          <span className="truncate text-base font-bold tracking-tight text-foreground">{brand.name}</span>
-        </Link>
+    <header className="sticky top-0 z-30 bg-canvas/85 backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-[1040px] items-center gap-4 px-4 lg:h-16 lg:px-6">
+        <TopBarTitle brand={brand} />
         <div className="ml-auto flex items-center sm:hidden">
           <SearchBox variant="mobile" categoryNames={categoryNames} />
         </div>
-        <div className="hidden w-full max-w-2xl sm:mx-auto sm:block">
+        <div className="ml-auto hidden w-full max-w-md sm:block">
           <SearchBox variant="desktop" categoryNames={categoryNames} />
         </div>
       </div>
