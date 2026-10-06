@@ -16,7 +16,7 @@ export interface FilterChipOption {
 export function FilterChips({ label, options, className }: { label: string; options: FilterChipOption[]; className?: string }) {
   if (options.length < 2) return null;
   return (
-    <nav aria-label={label} className={cn("-mx-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden", className)}>
+    <nav aria-label={label} className={cn("-mx-4 overflow-x-auto px-4 no-scrollbar sm:mx-0 sm:px-0", className)}>
       <ul className="flex w-max gap-2 py-1">
         {options.map((option) => (
           <li key={option.href}>

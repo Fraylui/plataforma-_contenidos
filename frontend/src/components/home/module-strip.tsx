@@ -30,7 +30,7 @@ export function ModuleStrip({ modules }: { modules: ModuleCount[] }) {
 
   return (
     <nav aria-label="Secciones del sitio" className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-      <ul className="-mx-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-5 [&::-webkit-scrollbar]:hidden">
+      <ul className="-mx-4 flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-4 pb-1 no-scrollbar sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-5">
         {visible.map(({ href, label, count, unit }) => {
           const Icon = ICONS[href] ?? BookOpen;
           return (

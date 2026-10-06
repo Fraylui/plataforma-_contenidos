@@ -180,7 +180,7 @@ export function HeroRotator({ items, categoryNames }: { items: HomeItem[]; categ
           directo al contenido, igual que en escritorio (los puntos de abajo son los que
           cambian de slide sin salir de la página). */}
       {others.length > 0 && (
-        <div className="-mx-0 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden">
+        <div className="-mx-0 mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 no-scrollbar lg:hidden">
           {others.map((item) => (
             <Link
               key={item.id}

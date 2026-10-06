@@ -207,6 +207,16 @@ body {
   background-color: var(--muted);
 }
 
+/* Filas deslizables (historias de temas, chips, menú lateral): sin barra
+   visible, como Instagram/Facebook. Va SIN capa y después de la regla
+   global `*` de arriba: una clase de Tailwind (en capa) nunca le ganaría. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Foco visible siempre, también con mouse (accesibilidad — no solo :focus-visible por si algún navegador viejo no lo soporta bien) */
 :focus-visible {
   outline: 2px solid var(--accent);

@@ -66,6 +66,19 @@ describe("LeftRail — sin vacío, como Facebook/X", () => {
   });
 });
 
+describe("LeftRail — temas con «Ver más» (como Facebook)", () => {
+  it("muestra 5 temas y despliega el resto con «Ver más»", async () => {
+    pathname = "/";
+    const topics = Array.from({ length: 8 }, (_, i) => ({ categoryId: `t${i}`, name: `Tema ${i}`, slug: `tema-${i}`, coverUrl: null, hasNew: false }));
+    render(<LeftRail brand={brand} showAgenda topics={topics} />);
+    const nav = screen.getByRole("navigation", { name: "Temas del menú" });
+    expect(nav.querySelectorAll("a")).toHaveLength(5);
+    await userEvent.click(screen.getByRole("button", { name: "Ver más temas" }));
+    expect(nav.querySelectorAll("a")).toHaveLength(8);
+    expect(screen.getByRole("button", { name: "Ver menos temas" })).toHaveAttribute("aria-expanded", "true");
+  });
+});
+
 describe("LeftRail", () => {
   it("muestra la marca y las mismas secciones, con la activa marcada", () => {
     pathname = "/explorar";

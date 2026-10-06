@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Buildings, ImagesSquare, MapPin, Notepad, type Icon } from "@phosphor-icons/react";
+import { Buildings, CaretDown, ImagesSquare, MapPin, Notepad, type Icon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import type { TopicStory } from "@/components/feed/topic-stories";
 import { MORE_LINKS, activeTab, visibleNav } from "./shell-nav";
@@ -18,7 +19,8 @@ const SECTIONS: { href: string; label: string; icon: Icon }[] = [
   { href: "/galerias", label: "Galerías", icon: ImagesSquare },
   { href: "/directorio", label: "Directorio", icon: Buildings },
 ];
-const MAX_TOPICS = 8;
+/** Temas visibles antes de "Ver más" (como los accesos directos de Facebook): el menú cabe en pantalla sin barra de desplazamiento. */
+const VISIBLE_TOPICS = 5;
 
 const ITEM = "flex min-h-11 items-center gap-4 rounded-xl px-3 text-[15px] transition-colors hover:bg-canvas";
 
@@ -50,6 +52,8 @@ export function LeftRail({
   const current = activeTab(pathname);
   const year = new Date().getFullYear();
   const visibleSections = SECTIONS.filter((s) => sections[s.href]);
+  const [showAllTopics, setShowAllTopics] = useState(false);
+  const shownTopics = showAllTopics ? topics : topics.slice(0, VISIBLE_TOPICS);
 
   return (
     <aside className="sticky top-0 hidden h-dvh w-[72px] shrink-0 flex-col bg-surface px-3 py-5 lg:flex xl:w-64">
@@ -65,7 +69,8 @@ export function LeftRail({
         <span className="hidden truncate text-[15px] font-bold tracking-tight text-foreground xl:block">{brand.name}</span>
       </Link>
 
-      <div className="-mx-1 flex min-h-0 flex-1 flex-col overflow-y-auto px-1 [scrollbar-width:thin]">
+      {/* Sin barra de desplazamiento visible (como Facebook/Instagram): el menú está pensado para caber; si en una pantalla muy baja no cabe, igual se puede desplazar con la rueda o el teclado. */}
+      <div className="-mx-1 flex min-h-0 flex-1 flex-col overflow-y-auto px-1 no-scrollbar">
         <nav aria-label="Principal" className="flex flex-col gap-0.5">
           {visibleNav(showAgenda).map(({ tab, href, label, icon: NavIcon }) => {
             const active = tab === current && !visibleSections.some((s) => isActive(pathname, s.href));
@@ -110,7 +115,7 @@ export function LeftRail({
         {topics.length > 0 && (
           <nav aria-label="Temas del menú" className="mt-5 hidden flex-col gap-0.5 xl:flex">
             <p className="mb-1 px-3 text-xs font-semibold text-muted">Temas</p>
-            {topics.slice(0, MAX_TOPICS).map((topic) => {
+            {shownTopics.map((topic) => {
               const href = `/categorias/${topic.slug}`;
               const active = isActive(pathname, href);
               return (
@@ -138,6 +143,20 @@ export function LeftRail({
                 </Link>
               );
             })}
+            {topics.length > VISIBLE_TOPICS && (
+              <button
+                type="button"
+                onClick={() => setShowAllTopics((v) => !v)}
+                aria-expanded={showAllTopics}
+                aria-label={showAllTopics ? "Ver menos temas" : "Ver más temas"}
+                className={cn(ITEM, "cursor-pointer gap-3 font-medium text-muted hover:text-foreground")}
+              >
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-canvas-strong">
+                  <CaretDown className={cn("h-4 w-4 transition-transform", showAllTopics && "rotate-180")} aria-hidden="true" />
+                </span>
+                {showAllTopics ? "Ver menos" : "Ver más"}
+              </button>
+            )}
           </nav>
         )}
       </div>

@@ -106,7 +106,7 @@ export function MobileNav({ links, categories }: { links: { href: string; label:
                   // — si no, con el aviso de cookies todavía visible, tapaba la parte de abajo del menú.
                   // scrollbar oculta (Windows/Edge la dibuja visible incluso cuando el contenido casi
                   // no desborda): sigue siendo scrolleable si el menú crece, solo no se ve la barra.
-                  className="fixed inset-y-0 right-0 z-[60] flex h-[100dvh] w-80 max-w-[88vw] flex-col overflow-y-auto border-l border-foreground/[0.06] bg-surface shadow-2xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                  className="fixed inset-y-0 right-0 z-[60] flex h-[100dvh] w-80 max-w-[88vw] flex-col overflow-y-auto border-l border-foreground/[0.06] bg-surface shadow-2xl no-scrollbar"
                 >
                   <div className="flex h-16 shrink-0 items-center justify-between border-b border-foreground/[0.06] px-5">
                     <span className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">Menú</span>

@@ -169,7 +169,7 @@ export function InfiniteFeed({
         <div
           role="tablist"
           aria-label="Filtrar el feed"
-          className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
+          className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 no-scrollbar sm:mx-0 sm:px-0"
         >
           {tabs.map((option) => {
             const active = option.value === tab;
