@@ -2023,8 +2023,8 @@ Acordado con el dueño ("todas las páginas del panel se ven antiguas, estilo ed
    - **Dueño** (SUPER_ADMIN): todo; exclusivos: Usuarios, Configuración, Auditoría.
    - **Trabajador**: módulos que asigna el dueño. Siempre tiene: Inicio del panel, Imágenes, Mi cuenta.
    - Módulos de contenido (Publicaciones, Lugares, Eventos, Galerías, Directorio) con nivel **Crear** (solo lo suyo, pasa a revisión) o **Publicar** (revisa y publica lo de todos); Categorías, Estadísticas y Publicidad: acceso sí/no.
-   - **Plantillas**: Redactor, Editor, Gestor de eventos, Gestor de directorio, Publicidad.
-   - Migración: el ADMIN actual → trabajador con "Editor" + Publicidad; se eliminan MODERATOR, COLLABORATOR, USER.
+   - **Plantillas**: Creador, Publicador, Gestor de eventos, Gestor de directorio, Publicidad.
+   - Migración: el ADMIN actual → trabajador con "Publicador" + Publicidad; se eliminan MODERATOR, COLLABORATOR, USER.
    - Permisos aplicados **en el servidor** (no solo ocultar botones) y auditados.
 4. Documento de diseño + plan antes de programar (mismo proceso que el proyecto 1).
 5. **2026-10-06:** se divide en **2a (trabajadores y permisos, primero)** y **2b (rediseño visual del panel)**. Spec de 2a: `docs/superpowers/specs/2026-10-06-trabajadores-y-permisos-design.md` (local). Decisiones: roles DUEÑO/TRABAJADOR + tabla `identity.worker_permissions` verificada en cada petición (revocación inmediata), contraseña temporal con cambio obligatorio, desactivar en vez de borrar, sin MFA.
