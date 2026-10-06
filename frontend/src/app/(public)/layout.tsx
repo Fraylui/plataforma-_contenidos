@@ -1,9 +1,10 @@
-import { getFeedTopics, getPlatformSettings, getPrimaryNavVisibility } from "@/lib/api/client";
+import { getFeed, getFeedTopics, getPlatformSettings, getPrimaryNavVisibility, listActiveCategories } from "@/lib/api/client";
 import { imageUrl } from "@/lib/image-url";
 import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner";
 import { AdsenseLoader } from "@/components/legal/adsense-loader";
 import { AnchorAdSlot } from "@/components/legal/anchor-ad-slot";
 import { LeftRail } from "@/components/shell/left-rail";
+import { countThisWeek } from "@/components/shell/agenda-count";
 import { BottomTabBar } from "@/components/shell/bottom-tab-bar";
 import { TopBar } from "@/components/shell/top-bar";
 
@@ -17,11 +18,15 @@ import { TopBar } from "@/components/shell/top-bar";
  * Separado del layout raíz (app/layout.tsx) para que /admin/* no lo herede.
  */
 export default async function PublicLayout({ children }: LayoutProps<"/">) {
-  const [settings, visibility, topics] = await Promise.all([
+  const [settings, visibility, topics, categories, upcoming] = await Promise.all([
     getPlatformSettings(),
     getPrimaryNavVisibility(),
     getFeedTopics().catch(() => []),
+    listActiveCategories(),
+    // Contador de Agenda: los próximos por fecha; 10 alcanzan para mostrar "9+".
+    getFeed({ type: "EVENT", sort: "upcoming", size: 10 }).catch(() => ({ items: [], hasMore: false })),
   ]);
+  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
   const topicLinks = topics.map((t) => ({
     categoryId: t.categoryId,
     name: t.name,
@@ -31,6 +36,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
   }));
   const brand = { name: settings.name, logoUrl: settings.logoUrl ?? null };
   const showAgenda = Boolean(visibility["/eventos"]);
+  const agendaCount = showAgenda ? countThisWeek(upcoming.items.map((e) => e.startsAt)) : 0;
 
   return (
     <div id="top" className="flex min-h-full bg-canvas">
@@ -40,7 +46,14 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
       >
         Saltar al contenido principal
       </a>
-      <LeftRail brand={brand} showAgenda={showAgenda} sections={visibility} topics={topicLinks} />
+      <LeftRail
+        brand={brand}
+        showAgenda={showAgenda}
+        sections={visibility}
+        topics={topicLinks}
+        agendaCount={agendaCount}
+        categoryNames={categoryNames}
+      />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar brand={brand} />
         <main id="main-content" className="flex-1 pb-(--bottom-bar-h)">

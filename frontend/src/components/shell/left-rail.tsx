@@ -6,7 +6,9 @@ import { usePathname } from "next/navigation";
 import { Buildings, CaretDown, ImagesSquare, MapPin, Notepad, type Icon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import type { TopicStory } from "@/components/feed/topic-stories";
-import { MORE_LINKS, activeTab, visibleNav } from "./shell-nav";
+import { MoreMenu } from "./more-menu";
+import { SearchDrawer } from "./search-drawer";
+import { activeTab, visibleNav } from "./shell-nav";
 
 export interface ShellBrand {
   name: string;
@@ -22,7 +24,34 @@ const SECTIONS: { href: string; label: string; icon: Icon }[] = [
 /** Temas visibles antes de "Ver más" (como los accesos directos de Facebook): el menú cabe en pantalla sin barra de desplazamiento. */
 const VISIBLE_TOPICS = 5;
 
-const ITEM = "flex min-h-11 items-center gap-4 rounded-xl px-3 text-[15px] transition-colors hover:bg-canvas";
+/**
+ * Fila del riel: píldora de fondo al pasar el mouse, ícono que crece un 5 %
+ * y se hunde al presionar (como Instagram/X); sin movimiento si el sistema
+ * pide reducirlo.
+ */
+const ITEM =
+  "group relative flex min-h-11 w-full cursor-pointer items-center gap-4 rounded-xl px-3 text-[15px] transition-[background-color,color,transform] hover:bg-canvas motion-safe:active:scale-95";
+const ITEM_ICON = "h-6 w-6 shrink-0 transition-transform motion-safe:group-hover:scale-105";
+
+/**
+ * Etiqueta flotante del modo solo íconos (1024–1279 px), al pasar el mouse
+ * o al llegar con el teclado. Decorativa: el enlace ya tiene aria-label.
+ */
+function RailTooltip({ label }: { label: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="pointer-events-none absolute top-1/2 left-full z-50 ml-3 -translate-y-1/2 rounded-lg bg-foreground px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 xl:hidden"
+    >
+      {label}
+    </span>
+  );
+}
+
+function agendaLabel(count: number) {
+  if (count <= 0) return "Agenda";
+  return `Agenda, ${count} ${count === 1 ? "evento" : "eventos"} esta semana`;
+}
 
 function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -33,24 +62,30 @@ function isActive(pathname: string, href: string) {
  * X: navegación principal, secciones con contenido y temas con su foto
  * (punto verde = novedades), así la columna no queda vacía. Solo íconos de
  * 1024 a 1279 px; con etiquetas, secciones y temas desde 1280 px. Sin
- * línea al costado: la separación es el color de fondo. Al pie, los
- * enlaces legales.
+ * línea al costado: la separación es el color de fondo. "Buscar" abre un
+ * panel lateral (como Instagram), Agenda lleva el contador de eventos de la
+ * semana y al pie va el menú "Más" (apariencia y enlaces legales).
  */
 export function LeftRail({
   brand,
   showAgenda,
   sections = {},
   topics = [],
+  agendaCount = 0,
+  categoryNames = {},
 }: {
   brand: ShellBrand;
   showAgenda: boolean;
   /** Qué secciones tienen contenido (getPrimaryNavVisibility). */
   sections?: Record<string, boolean>;
   topics?: TopicStory[];
+  /** Eventos de los próximos 7 días (countThisWeek), calculado en el servidor. */
+  agendaCount?: number;
+  /** Nombres de temas para las sugerencias del panel de búsqueda. */
+  categoryNames?: Record<string, string>;
 }) {
   const pathname = usePathname();
   const current = activeTab(pathname);
-  const year = new Date().getFullYear();
   const visibleSections = SECTIONS.filter((s) => sections[s.href]);
   const [showAllTopics, setShowAllTopics] = useState(false);
   const shownTopics = showAllTopics ? topics : topics.slice(0, VISIBLE_TOPICS);
@@ -70,21 +105,50 @@ export function LeftRail({
       </Link>
 
       {/* Sin barra de desplazamiento visible (como Facebook/Instagram): el menú está pensado para caber; si en una pantalla muy baja no cabe, igual se puede desplazar con la rueda o el teclado. */}
-      <div className="-mx-1 flex min-h-0 flex-1 flex-col overflow-y-auto px-1 no-scrollbar">
+      {/* Desplazable solo con etiquetas (≥ 1280 px): en el modo de íconos el menú cabe y las etiquetas flotantes deben poder salir de la columna. */}
+      <div className="-mx-1 flex min-h-0 flex-1 flex-col px-1 no-scrollbar xl:overflow-y-auto">
         <nav aria-label="Principal" className="flex flex-col gap-0.5">
           {visibleNav(showAgenda).map(({ tab, href, label, icon: NavIcon }) => {
             const active = tab === current && !visibleSections.some((s) => isActive(pathname, s.href));
+            const className = cn(ITEM, active ? "font-bold text-foreground" : "font-medium text-muted hover:text-foreground");
+            const icon = <NavIcon className={ITEM_ICON} weight={active ? "fill" : "regular"} aria-hidden="true" />;
+            if (tab === "buscar") {
+              return (
+                <SearchDrawer
+                  key={tab}
+                  categoryNames={categoryNames}
+                  trigger={
+                    <button type="button" aria-label={label} className={className}>
+                      {icon}
+                      <span className="hidden xl:inline">{label}</span>
+                      <RailTooltip label={label} />
+                    </button>
+                  }
+                />
+              );
+            }
+            const count = tab === "agenda" ? agendaCount : 0;
             return (
               <Link
                 key={tab}
                 href={href}
                 aria-current={active ? "page" : undefined}
-                aria-label={label}
-                title={label}
-                className={cn(ITEM, active ? "font-bold text-foreground" : "font-medium text-muted hover:text-foreground")}
+                aria-label={tab === "agenda" ? agendaLabel(count) : label}
+                className={className}
               >
-                <NavIcon className="h-6 w-6 shrink-0" weight={active ? "fill" : "regular"} aria-hidden="true" />
+                <span className="relative shrink-0">
+                  {icon}
+                  {count > 0 && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute -top-1.5 -right-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent-fill px-1 text-[11px] leading-none font-bold text-accent-foreground ring-2 ring-surface"
+                    >
+                      {count > 9 ? "9+" : count}
+                    </span>
+                  )}
+                </span>
                 <span className="hidden xl:inline">{label}</span>
+                <RailTooltip label={label} />
               </Link>
             );
           })}
@@ -101,11 +165,11 @@ export function LeftRail({
                   href={href}
                   aria-current={active ? "page" : undefined}
                   aria-label={label}
-                  title={label}
                   className={cn(ITEM, active ? "bg-canvas font-bold text-foreground" : "font-medium text-muted hover:text-foreground")}
                 >
-                  <SectionIcon className="h-6 w-6 shrink-0" weight={active ? "fill" : "regular"} aria-hidden="true" />
+                  <SectionIcon className={ITEM_ICON} weight={active ? "fill" : "regular"} aria-hidden="true" />
                   <span className="hidden xl:inline">{label}</span>
+                  <RailTooltip label={label} />
                 </Link>
               );
             })}
@@ -161,18 +225,9 @@ export function LeftRail({
         )}
       </div>
 
-      <footer className="mt-4 hidden px-3 text-xs leading-relaxed text-muted xl:block">
-        <nav aria-label="Legal" className="flex flex-wrap gap-x-3 gap-y-1">
-          {MORE_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className="hover:text-foreground hover:underline">
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-        <p className="mt-2">
-          © {year} {brand.name}
-        </p>
-      </footer>
+      <div className="mt-3">
+        <MoreMenu brandName={brand.name} triggerClassName={cn(ITEM, "font-medium text-muted hover:text-foreground data-[state=open]:bg-canvas data-[state=open]:font-bold data-[state=open]:text-foreground")} />
+      </div>
     </aside>
   );
 }

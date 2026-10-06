@@ -50,7 +50,17 @@ function useShortcutLabel(): string | null {
  * miniatura, título resaltado y tipo con ícono; navegable con flechas.
  * Enter sin sugerencia activa, o "Ver todos", llevan a /buscar.
  */
-export function SearchBox({ variant, categoryNames }: { variant: "desktop" | "mobile"; categoryNames: Record<string, string> }) {
+export function SearchBox({
+  variant,
+  categoryNames,
+  onNavigate,
+}: {
+  /** "panel": dentro del panel lateral del riel — campo enfocado al abrir y sugerencias en línea, sin atajo propio. */
+  variant: "desktop" | "mobile" | "panel";
+  categoryNames: Record<string, string>;
+  /** Avisa al contenedor (panel lateral) que se navegó, para cerrarse. */
+  onNavigate?: () => void;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -62,6 +72,8 @@ export function SearchBox({ variant, categoryNames }: { variant: "desktop" | "mo
   const inputRef = useRef<HTMLInputElement>(null);
   const listboxId = useId();
   const desktop = variant === "desktop";
+  const panel = variant === "panel";
+  const wide = desktop || panel;
   const shortcutLabel = useShortcutLabel();
 
   // Atajo global (§45.2-C). Solo la variante de escritorio: la móvil se
@@ -122,11 +134,13 @@ export function SearchBox({ variant, categoryNames }: { variant: "desktop" | "mo
     setOpen(false);
     inputRef.current?.blur();
     router.push(`/buscar?q=${encodeURIComponent(q.trim())}`);
+    onNavigate?.();
   }
 
   function selectResult(item: SearchResult) {
     setOpen(false);
     router.push(searchResultHref(item.contentType, item.slug));
+    onNavigate?.();
   }
 
   function clear() {
@@ -138,6 +152,8 @@ export function SearchBox({ variant, categoryNames }: { variant: "desktop" | "mo
 
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Escape") {
+      // En el panel, Esc lo cierra (lo maneja el diálogo).
+      if (panel) return;
       setOpen(false);
       inputRef.current?.blur();
       return;
@@ -162,7 +178,7 @@ export function SearchBox({ variant, categoryNames }: { variant: "desktop" | "mo
   const showDropdown = open && query.trim().length > 0;
 
   return (
-    <div ref={containerRef} className={cn("relative", desktop ? "hidden w-full sm:block" : "sm:hidden")}>
+    <div ref={containerRef} className={cn("relative", panel ? "w-full" : desktop ? "hidden w-full sm:block" : "sm:hidden")}>
       <form
         role="search"
         onSubmit={(e) => {
@@ -177,12 +193,12 @@ export function SearchBox({ variant, categoryNames }: { variant: "desktop" | "mo
           className={cn(
             "group flex items-center rounded-full border border-transparent bg-canvas-strong transition-[background-color,border-color,box-shadow,width] duration-200",
             "focus-within:border-accent focus-within:bg-surface focus-within:ring-4 focus-within:ring-accent/15",
-            desktop ? "h-11 w-full" : "h-10 w-10 focus-within:w-[min(18rem,calc(100vw-8rem))]",
+            wide ? "h-11 w-full" : "h-10 w-10 focus-within:w-[min(18rem,calc(100vw-8rem))]",
           )}
         >
           <MagnifyingGlass
             aria-hidden="true"
-            className={cn("pointer-events-none h-5 w-5 shrink-0 text-muted", desktop ? "ml-4" : "ml-2.5")}
+            className={cn("pointer-events-none h-5 w-5 shrink-0 text-muted", wide ? "ml-4" : "ml-2.5")}
           />
           <input
             id={`${listboxId}-input`}
@@ -203,7 +219,8 @@ export function SearchBox({ variant, categoryNames }: { variant: "desktop" | "mo
             }}
             onFocus={() => setOpen(true)}
             onKeyDown={onKeyDown}
-            placeholder={desktop ? "Buscar lugares, eventos, publicaciones…" : "Buscar…"}
+            autoFocus={panel}
+            placeholder={wide ? "Buscar lugares, eventos, publicaciones…" : "Buscar…"}
             className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm text-foreground placeholder-muted outline-none focus-visible:outline-none! [&::-webkit-search-cancel-button]:hidden"
           />
           {query && (
@@ -233,8 +250,10 @@ export function SearchBox({ variant, categoryNames }: { variant: "desktop" | "mo
           role="listbox"
           aria-label="Sugerencias de búsqueda"
           className={cn(
-            "absolute top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-surface shadow-xl",
-            desktop ? "inset-x-0" : "right-0 w-[min(22rem,calc(100vw-2rem))]",
+            panel
+              ? "mt-3 -mx-2 overflow-hidden"
+              : "absolute top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-surface shadow-xl",
+            !panel && (desktop ? "inset-x-0" : "right-0 w-[min(22rem,calc(100vw-2rem))]"),
           )}
         >
           {loading && results.length === 0 ? (
@@ -245,7 +264,7 @@ export function SearchBox({ variant, categoryNames }: { variant: "desktop" | "mo
           ) : results.length === 0 ? (
             <p className="px-4 py-4 text-sm text-muted">Sin resultados para «{query.trim()}». Prueba con otras palabras.</p>
           ) : (
-            <ul className="max-h-[26rem] overflow-y-auto py-1.5">
+            <ul className={cn("py-1.5", !panel && "max-h-[26rem] overflow-y-auto")}>
               {results.map((item, index) => {
                 const TypeIcon = TYPE_ICON[item.contentType];
                 const category = item.categoryId ? categoryNames[item.categoryId] : null;
