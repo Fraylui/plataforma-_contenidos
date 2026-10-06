@@ -183,23 +183,6 @@ public class ArticleService {
                 .orElseThrow(() -> new ArticleNotFoundException(slug));
     }
 
-    /** Navegación anterior (más antiguo)/siguiente (más nuevo) en la vista de lectura, ambos nullable. */
-    public ArticleNeighbors getNeighbors(Article article) {
-        if (article.getPublishedAt() == null) {
-            return new ArticleNeighbors(null, null);
-        }
-        Article previous = articleRepository
-                .findFirstByStatusAndPublishedAtLessThanOrderByPublishedAtDesc(ArticleStatus.PUBLISHED, article.getPublishedAt())
-                .orElse(null);
-        Article next = articleRepository
-                .findFirstByStatusAndPublishedAtGreaterThanOrderByPublishedAtAsc(ArticleStatus.PUBLISHED, article.getPublishedAt())
-                .orElse(null);
-        return new ArticleNeighbors(previous, next);
-    }
-
-    public record ArticleNeighbors(Article previous, Article next) {
-    }
-
     public Page<Article> listPublished(UUID categoryId, Pageable pageable) {
         if (categoryId != null) {
             return articleRepository.findByStatusAndCategoryId(ArticleStatus.PUBLISHED, categoryId, pageable);

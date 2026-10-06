@@ -7,7 +7,6 @@ import { PUBLIC_CONTENT_TAG } from "@/lib/cache-tags";
 import type {
   AdPlacement,
   Article,
-  ArticleNeighbors,
   ArticleSummary,
   Business,
   BusinessSummary,
@@ -92,11 +91,6 @@ export function searchContent(
 export function getPublishedArticleBySlug(slug: string): Promise<Article> {
   // Detalle: revalidación más larga, un artículo publicado rara vez cambia.
   return apiFetch(`/api/v1/articles/${encodeURIComponent(slug)}`, 300);
-}
-
-/** Navegación anterior/siguiente en la vista de lectura — ver ArticlePublicController.getNeighbors. */
-export function getArticleNeighbors(slug: string): Promise<ArticleNeighbors> {
-  return apiFetch(`/api/v1/articles/${encodeURIComponent(slug)}/neighbors`, 300);
 }
 
 const SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en ArticlePublicController

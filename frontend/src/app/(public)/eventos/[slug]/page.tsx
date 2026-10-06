@@ -1,28 +1,29 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, MapPin } from "lucide-react";
+import { CalendarBlank, CalendarPlus, DownloadSimple, MapPin } from "@phosphor-icons/react/dist/ssr";
 import {
   getCategoryById,
   getPlatformSettings,
   getPublishedEventBySlug,
   getPublishedPlaceById,
   getRelatedWithFallback,
-  listActiveCategories,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { formatEventDateTime, isEventFinished } from "@/lib/content-labels";
-import { LikeShareBar } from "@/components/content/like-share-bar";
-import { DetailSidebar } from "@/components/content/detail-sidebar";
-import { ContentImageGallery } from "@/components/content/content-image-gallery";
-import { ContentVideoGallery } from "@/components/content/content-video-gallery";
+import { LikeShareBar, POST_ACTION_PILL } from "@/components/content/like-share-bar";
+import { PostView } from "@/components/post/post-view";
+import { PostDetailMedia } from "@/components/post/post-detail-media";
+import { PostFacts, type PostFact } from "@/components/post/post-facts";
+import { calendarLinks } from "@/components/post/calendar-link";
+import { KIND_LABEL } from "@/lib/content-kind";
+import { fromFeedItem } from "@/lib/home-items";
 import { AdBlock } from "@/components/legal/ad-block";
 import { SITE_URL } from "@/lib/site-url";
-import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
 import type { Category, Event } from "@/lib/api/types";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
 
-const RELATED_SIZE = 6;
+/** "Más como esto": 3 filas de la cuadrícula de 3. */
+const MORE_SIZE = 9;
 
 async function loadEvent(slug: string) {
   try {
@@ -122,28 +123,35 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
   const { slug } = await props.params;
   const event = await loadEvent(slug);
 
-  const [category, settings, place, categories] = await Promise.all([
+  const [category, settings, place, relatedPage] = await Promise.all([
     getCategoryById(event.categoryId).catch(() => null),
     getPlatformSettings(),
     event.placeId ? getPublishedPlaceById(event.placeId).catch(() => null) : Promise.resolve(null),
-    listActiveCategories(),
+    getRelatedWithFallback({ excludeType: "EVENT", excludeId: event.id, categoryId: event.categoryId, size: MORE_SIZE }),
   ]);
-  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
-
-  const { related, more } = await getRelatedWithFallback({
-    excludeType: "EVENT",
-    excludeId: event.id,
-    categoryId: event.categoryId,
-    size: RELATED_SIZE,
-  });
-  const relatedTitle = `Relacionado con ${category?.name ?? "esto"}`;
 
   const venue = place ? { name: place.name, slug: place.slug } : null;
   const finished = isEventFinished(event);
-  const hasSidebar = related.length > 0 || more.length > 0;
+  const when = `${formatEventDateTime(event.startsAt)}${event.endsAt ? ` — ${formatEventDateTime(event.endsAt)}` : ""}`;
+  const where = venue?.name ?? event.venueName;
+  const calendar = calendarLinks({
+    title: event.title,
+    startsAt: event.startsAt,
+    endsAt: event.endsAt,
+    url: `${SITE_URL}/eventos/${event.slug}`,
+    location: where,
+  });
+  const facts: PostFact[] = [
+    { icon: CalendarBlank, label: finished ? "Finalizó" : "Cuándo", value: when },
+    ...(venue
+      ? [{ icon: MapPin, label: "Dónde", value: venue.name, href: `/lugares/${venue.slug}` }]
+      : event.venueName
+        ? [{ icon: MapPin, label: "Dónde", value: event.venueName }]
+        : []),
+  ];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+    <>
       <VideoJsonLd
         videos={event.videos}
         fallbackTitle={event.title}
@@ -163,115 +171,41 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
         }}
       />
 
-      <div className={hasSidebar ? "lg:grid lg:grid-cols-12 lg:gap-12" : undefined}>
-        <article className={`mx-auto max-w-3xl ${hasSidebar ? "lg:col-span-8 lg:mx-0 lg:max-w-none" : ""}`}>
-          <nav aria-label="Breadcrumb" className="mb-4 flex max-w-[280px] items-center gap-2 truncate text-xs text-muted sm:max-w-none">
-            <ol className="flex flex-wrap items-center gap-1.5 truncate">
-              <li>
-                <Link href="/" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-                  Inicio
-                </Link>
-              </li>
-              <li aria-hidden="true">/</li>
-              <li>
-                <Link href="/eventos" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-                  Eventos
-                </Link>
-              </li>
-              {category && (
-                <>
-                  <li aria-hidden="true">/</li>
-                  <li>
-                    <Link href={`/categorias/${category.slug}`} className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-                      {category.name}
-                    </Link>
-                  </li>
-                </>
-              )}
-              <li aria-hidden="true">/</li>
-              <li className="max-w-[12rem] truncate text-foreground/80 sm:max-w-[24rem]" aria-current="page">
-                {event.title}
-              </li>
-            </ol>
-          </nav>
-
-          {(category || finished) && (
-            <div className="flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide text-accent uppercase">
-              {category && <span>{category.name}</span>}
-              {finished && (
-                <>
-                  {category && (
-                    <span aria-hidden="true" className="text-border">
-                      ·
-                    </span>
-                  )}
-                  <span className="rounded-full bg-canvas-strong px-2 py-0.5 text-muted normal-case">Finalizado</span>
-                </>
-              )}
-            </div>
-          )}
-
-          <h1 className="mt-4 text-2xl leading-tight font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            {event.title}
-          </h1>
-
-          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border pb-6 text-xs text-muted sm:text-sm">
-            <span className="inline-flex items-center gap-1.5 font-semibold text-accent">
-              <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-              {formatEventDateTime(event.startsAt)}
-              {event.endsAt ? ` — ${formatEventDateTime(event.endsAt)}` : ""}
-            </span>
-            {venue ? (
-              <Link href={`/lugares/${venue.slug}`} className="inline-flex items-center gap-1.5 hover:text-accent hover:underline">
-                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                {venue.name}
-              </Link>
-            ) : event.venueName ? (
-              <span className="inline-flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                {event.venueName}
-              </span>
-            ) : null}
-          </div>
-
-          <ContentImageGallery
-            images={event.images}
-            alt={event.title}
-            spacing="mt-8"
-            background="bg-canvas-strong"
-            fallback={<NoImagePlaceholder />}
-          />
-
-          <ContentVideoGallery videos={event.videos} title={event.title} />
-
-          {event.excerpt && (
-            <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">{event.excerpt}</p>
-          )}
-
-          {/* event.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
-              de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí. */}
-          <div
-            className="prose prose-theme sm:prose-lg mt-6 max-w-none prose-headings:font-bold prose-a:text-accent"
-            dangerouslySetInnerHTML={{ __html: event.body }}
-          />
-
-          <AdBlock position="article" section="EVENT" categoryId={event.categoryId} layout="band" count={2} className="mt-10" />
-
-          <LikeShareBar contentType="events" slug={event.slug} initialLikeCount={event.likeCount} title={event.title} />
-        </article>
-
-        {hasSidebar && (
-          <DetailSidebar
-            related={related}
-            more={more}
-            relatedTitle={relatedTitle}
-            categoryNames={categoryNames}
-            currentId={event.id}
-            adSection="EVENT"
-            adCategoryId={event.categoryId}
-          />
-        )}
-      </div>
-    </div>
+      <PostView
+        variant="visual"
+        brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}
+        typeLabel={KIND_LABEL.evento}
+        categoryName={category?.name}
+        // La fecha del evento va en los datos ("Cuándo"), no repetida en el encabezado.
+        time={null}
+        title={event.title}
+        media={<PostDetailMedia images={event.images} videos={event.videos} title={event.title} />}
+        excerpt={event.excerpt}
+        facts={<PostFacts facts={facts} />}
+        body={
+          // event.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
+          // de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
+          <div className="prose prose-theme max-w-none prose-headings:font-bold prose-a:text-accent" dangerouslySetInnerHTML={{ __html: event.body }} />
+        }
+        actions={
+          <LikeShareBar contentType="events" slug={event.slug} initialLikeCount={event.likeCount} title={event.title}>
+            {!finished && (
+              <>
+                <a href={calendar.google} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL}>
+                  <CalendarPlus className="h-4 w-4" aria-hidden="true" />
+                  Google Calendar
+                </a>
+                <a href={calendar.ics} download={`${event.slug}.ics`} className={POST_ACTION_PILL}>
+                  <DownloadSimple className="h-4 w-4" aria-hidden="true" />
+                  Otro calendario
+                </a>
+              </>
+            )}
+          </LikeShareBar>
+        }
+        ad={<AdBlock position="article" section="EVENT" categoryId={event.categoryId} layout="band" count={2} />}
+        more={[...relatedPage.related, ...relatedPage.more].map(fromFeedItem)}
+      />
+    </>
   );
 }

@@ -23,6 +23,16 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
     expect(await axe(container)).toHaveNoViolations();
   });
 
+  it("barra de post (Instagram): sin bordes ni cajas y con las acciones del tipo al lado", () => {
+    const { container } = render(
+      <LikeShareBar {...props}>
+        <a href="https://maps.example">Cómo llegar</a>
+      </LikeShareBar>,
+    );
+    expect(container.querySelector("[class*='border']")).toBeNull();
+    expect(screen.getByRole("link", { name: "Cómo llegar" })).toBeInTheDocument();
+  });
+
   it("Me gusta llama al endpoint con el visitorId, actualiza el conteo y recuerda el estado", async () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockResolvedValue(

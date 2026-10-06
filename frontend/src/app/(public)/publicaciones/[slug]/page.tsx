@@ -1,29 +1,20 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays } from "lucide-react";
-import {
-  getArticleNeighbors,
-  getCategoryById,
-  getPlatformSettings,
-  getPublishedArticleBySlug,
-  getRelatedWithFallback,
-  listActiveCategories,
-} from "@/lib/api/client";
+import { getCategoryById, getPlatformSettings, getPublishedArticleBySlug, getRelatedWithFallback } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { estimateReadingTime, formatArticleDate, formatPublishedDate } from "@/lib/content-labels";
 import { LikeShareBar } from "@/components/content/like-share-bar";
-import { NeighborNav } from "@/components/article/neighbor-nav";
-import { ReadingProgressBar } from "@/components/article/reading-progress-bar";
-import { DetailSidebar } from "@/components/content/detail-sidebar";
-import { ContentImageGallery } from "@/components/content/content-image-gallery";
-import { ContentVideoGallery } from "@/components/content/content-video-gallery";
 import { AdBlock } from "@/components/legal/ad-block";
+import { PostView } from "@/components/post/post-view";
+import { PostDetailMedia } from "@/components/post/post-detail-media";
+import { headerTimeFor } from "@/components/post/post-header";
+import { KIND_LABEL } from "@/lib/content-kind";
+import { fromFeedItem } from "@/lib/home-items";
 import { SITE_URL } from "@/lib/site-url";
 import type { Article, Category } from "@/lib/api/types";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
 
-const RELATED_SIZE = 6;
+/** "Más como esto": 3 filas de la cuadrícula de 3. */
+const MORE_SIZE = 9;
 
 async function loadArticle(slug: string) {
   try {
@@ -118,27 +109,15 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
   const { slug } = await props.params;
   const article = await loadArticle(slug);
 
-  const [category, settings, neighbors, categories] = await Promise.all([
+  const [category, settings, relatedPage] = await Promise.all([
     getCategoryById(article.categoryId).catch(() => null),
     getPlatformSettings(),
-    getArticleNeighbors(slug).catch(() => ({ previous: null, next: null })),
-    listActiveCategories(),
+    getRelatedWithFallback({ excludeType: "ARTICLE", excludeId: article.id, categoryId: article.categoryId, size: MORE_SIZE }),
   ]);
-  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
-
-  const { related, more } = await getRelatedWithFallback({
-    excludeType: "ARTICLE",
-    excludeId: article.id,
-    categoryId: article.categoryId,
-    size: RELATED_SIZE,
-  });
-  const relatedTitle = `Relacionado con ${category?.name ?? "esto"}`;
-
-  const hasSidebar = related.length > 0 || more.length > 0;
+  const hasMedia = article.images.length > 0 || article.videos.length > 0;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-      <ReadingProgressBar />
+    <>
       <VideoJsonLd
         videos={article.videos}
         fallbackTitle={article.title}
@@ -158,113 +137,38 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
         }}
       />
 
-      <div className={hasSidebar ? "lg:grid lg:grid-cols-12 lg:gap-12" : undefined}>
-        <article className={`mx-auto max-w-3xl ${hasSidebar ? "lg:col-span-8 lg:mx-0 lg:max-w-none" : ""}`}>
-          <nav aria-label="Breadcrumb" className="mb-4 flex max-w-[280px] items-center gap-2 truncate text-xs text-muted sm:max-w-none">
-            <ol className="flex flex-wrap items-center gap-1.5 truncate">
-              <li>
-                <Link href="/" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-                  Inicio
-                </Link>
-              </li>
-              <li aria-hidden="true">/</li>
-              {category && (
-                <>
-                  <li>
-                    <Link href={`/categorias/${category.slug}`} className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-                      {category.name}
-                    </Link>
-                  </li>
-                  <li aria-hidden="true">/</li>
-                </>
-              )}
-              <li className="max-w-[12rem] truncate text-foreground/80 sm:max-w-[24rem]" aria-current="page">
-                {article.title}
-              </li>
-            </ol>
-          </nav>
-
-          {category && (
-            <div className="text-xs font-medium tracking-wide text-accent uppercase">
-              <span>{category.name}</span>
-            </div>
-          )}
-
-          <h1 className="mt-4 text-2xl leading-tight font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            {article.title}
-          </h1>
-
-          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border pb-6 text-xs text-muted sm:text-sm">
-            {article.publishedAt && (
-              <span className="inline-flex items-center gap-1.5">
-                <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-                <time dateTime={article.publishedAt} title={formatPublishedDate(article.publishedAt)}>
-                  {formatArticleDate(article.publishedAt)}
-                </time>
-              </span>
-            )}
-            {article.publishedAt && article.updatedAt
-              && new Date(article.updatedAt).getTime() - new Date(article.publishedAt).getTime() > 5 * 60 * 1000 && (
-              <span>
-                Actualizado el{" "}
-                <time dateTime={article.updatedAt} title={formatPublishedDate(article.updatedAt)}>
-                  {formatPublishedDate(article.updatedAt)}
-                </time>
-              </span>
-            )}
-            <span>{estimateReadingTime(article.body)}</span>
-          </div>
-
-          <ContentImageGallery images={article.images} alt={article.title} />
-
-          <ContentVideoGallery videos={article.videos} title={article.title} />
-
-          {article.excerpt && (
-            <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">
-              {article.excerpt}
-            </p>
-          )}
-
-          {/* article.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
-              de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
-              Overrides sobre el prose por defecto de Tailwind Typography: cita destacada
-              (sin comillas decorativas, borde en --accent, tamaño mayor en vez del
-              italic/borde gris genérico), separador sutil antes de cada H2 para marcar
-              secciones largas, e imágenes con el mismo borde/sombra que el resto del
-              sitio (ContentCard, galería de portada) en vez de solo `rounded-md`. */}
+      <PostView
+        variant="text"
+        brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}
+        typeLabel={KIND_LABEL.publicacion}
+        categoryName={category?.name}
+        time={headerTimeFor({ kind: "publicacion", sortDate: article.publishedAt ?? "" })}
+        title={article.title}
+        // Texto largo: sin fotos ni videos no hace falta el bloque de marca, el título ya encabeza.
+        media={hasMedia ? <PostDetailMedia images={article.images} videos={article.videos} title={article.title} aspect="aspect-video" /> : null}
+        excerpt={article.excerpt}
+        body={
+          // article.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
+          // de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
+          // Cita destacada con borde de acento; imágenes y subtítulos sin líneas ni
+          // sombras (la separación es el espacio, como el resto del sitio).
           <div
-            className="prose prose-theme sm:prose-lg mt-6 max-w-none
+            className="prose prose-theme sm:prose-lg max-w-none
               prose-headings:font-bold prose-headings:tracking-tight
-              prose-h2:mt-12 prose-h2:border-t prose-h2:border-border prose-h2:pt-8 prose-h2:text-2xl
+              prose-h2:mt-10 prose-h2:text-2xl
               prose-h3:mt-8 prose-h3:text-xl
               prose-a:text-accent
               prose-blockquote:border-l-accent prose-blockquote:not-italic prose-blockquote:font-semibold
               prose-blockquote:text-xl prose-blockquote:leading-snug prose-blockquote:text-foreground
               prose-blockquote:before:content-none prose-blockquote:after:content-none
-              prose-img:rounded-2xl prose-img:border prose-img:border-foreground/[0.06]
-              prose-img:shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_8px_20px_-12px_rgb(0_0_0_/_0.08)]"
+              prose-img:rounded-2xl"
             dangerouslySetInnerHTML={{ __html: article.body }}
           />
-
-          <AdBlock position="article" section="ARTICLE" categoryId={article.categoryId} layout="band" count={2} className="mt-10" />
-
-          <LikeShareBar contentType="articles" slug={article.slug} initialLikeCount={article.likeCount} title={article.title} />
-
-          <NeighborNav neighbors={neighbors} />
-        </article>
-
-        {hasSidebar && (
-          <DetailSidebar
-            related={related}
-            more={more}
-            relatedTitle={relatedTitle}
-            categoryNames={categoryNames}
-            currentId={article.id}
-            adSection="ARTICLE"
-            adCategoryId={article.categoryId}
-          />
-        )}
-      </div>
-    </div>
+        }
+        actions={<LikeShareBar contentType="articles" slug={article.slug} initialLikeCount={article.likeCount} title={article.title} />}
+        ad={<AdBlock position="article" section="ARTICLE" categoryId={article.categoryId} layout="band" count={2} />}
+        more={[...relatedPage.related, ...relatedPage.more].map(fromFeedItem)}
+      />
+    </>
   );
 }

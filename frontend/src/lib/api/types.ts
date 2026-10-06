@@ -46,11 +46,6 @@ export interface ArticleSummary {
   likeCount: number;
 }
 
-export interface ArticleNeighbors {
-  previous: ArticleSummary | null;
-  next: ArticleSummary | null;
-}
-
 export interface Article {
   id: string;
   slug: string;

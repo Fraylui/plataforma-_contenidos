@@ -7,14 +7,14 @@ import { MediaCarousel, MediaCaption } from "./media-carousel";
  * ContentImageGallery: un solo video se muestra fijo, varios se navegan
  * como carrusel (ver MediaCarousel).
  */
-export function ContentVideoGallery({ videos, title }: { videos: ContentVideo[]; title: string }) {
+export function ContentVideoGallery({ videos, title, spacing = "" }: { videos: ContentVideo[]; title: string; spacing?: string }) {
   if (videos.length === 0) return null;
 
   if (videos.length === 1) {
     const video = videos[0];
     return (
-      <figure className="my-8">
-        <div className="overflow-hidden rounded-2xl border border-border shadow-lg">
+      <figure className={spacing}>
+        <div className="overflow-hidden sm:rounded-2xl">
           <YouTubeEmbed videoId={video.videoId} title={video.title ?? title} />
         </div>
         <MediaCaption title={video.title} caption={video.caption} />
@@ -29,7 +29,7 @@ export function ContentVideoGallery({ videos, title }: { videos: ContentVideo[];
 
   return (
     <MediaCarousel
-      spacing="my-8"
+      spacing={spacing}
       background=""
       slides={slides}
       captions={captions}

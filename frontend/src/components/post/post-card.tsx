@@ -90,7 +90,7 @@ export function PostCard({
                 key={label}
                 href={href}
                 {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border px-3 text-[13px] font-semibold text-foreground transition-colors hover:border-accent hover:text-accent"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-canvas-strong px-3 text-[13px] font-semibold text-foreground transition-colors hover:bg-accent-soft hover:text-accent"
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />
                 {label}

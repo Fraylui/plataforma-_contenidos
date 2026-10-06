@@ -1,28 +1,31 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Globe, Mail, MapPin, Phone } from "lucide-react";
+import { Envelope, Globe, MapPin, NavigationArrow, Phone, Storefront } from "@phosphor-icons/react/dist/ssr";
 import {
   getCategoryById,
   getPlatformSettings,
   getPublishedBusinessBySlug,
   getPublishedPlaceById,
-  listPublishedBusinesses,
+  getRelatedWithFallback,
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { BusinessCard } from "@/components/directory/business-card";
 import { businessTypeLabel } from "@/lib/content-labels";
 import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
 import { AdBlock } from "@/components/legal/ad-block";
-import { LikeShareBar } from "@/components/content/like-share-bar";
-import { ContentImageGallery } from "@/components/content/content-image-gallery";
-import { ContentVideoGallery } from "@/components/content/content-video-gallery";
-import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
+import { LikeShareBar, POST_ACTION_PILL } from "@/components/content/like-share-bar";
+import { PostView } from "@/components/post/post-view";
+import { PostDetailMedia } from "@/components/post/post-detail-media";
+import { PostFacts, type PostFact } from "@/components/post/post-facts";
+import { headerTimeFor } from "@/components/post/post-header";
+import { mapsDirections } from "@/components/post/post-actions";
+import { KIND_LABEL } from "@/lib/content-kind";
+import { fromFeedItem } from "@/lib/home-items";
 import type { Business, Category } from "@/lib/api/types";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
 
-const RELATED_SIZE = 4;
+/** "Más como esto": 3 filas de la cuadrícula de 3. */
+const MORE_SIZE = 9;
 
 async function loadBusiness(slug: string) {
   try {
@@ -120,23 +123,29 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
   const { slug } = await props.params;
   const business = await loadBusiness(slug);
 
-  const [category, place] = await Promise.all([
+  const [category, place, settings, relatedPage] = await Promise.all([
     getCategoryById(business.categoryId).catch(() => null),
     business.placeId ? getPublishedPlaceById(business.placeId).catch(() => null) : Promise.resolve(null),
+    getPlatformSettings(),
+    getRelatedWithFallback({ excludeType: "BUSINESS", excludeId: business.id, categoryId: business.categoryId, size: MORE_SIZE }),
   ]);
 
-  const relatedResult = await listPublishedBusinesses({
-    businessType: business.businessType,
-    size: RELATED_SIZE + 1,
-  });
-  const related = relatedResult.items.filter((b) => b.id !== business.id).slice(0, RELATED_SIZE);
-
-  const hasSidebar = related.length > 0;
-  const hasContact = Boolean(place || business.address || business.phone || business.email || business.website);
   const websiteLabel = business.website ? business.website.replace(/^https?:\/\//, "").replace(/\/$/, "") : null;
+  const facts: PostFact[] = [
+    { icon: Storefront, label: "Rubro", value: businessTypeLabel(business.businessType) },
+    ...(place
+      ? [{ icon: MapPin, label: "Dirección", value: place.name, href: `/lugares/${place.slug}` }]
+      : business.address
+        ? [{ icon: MapPin, label: "Dirección", value: business.address }]
+        : []),
+    ...(business.phone ? [{ icon: Phone, label: "Teléfono", value: business.phone, href: `tel:${business.phone.replace(/[^\d+]/g, "")}` }] : []),
+    ...(business.email ? [{ icon: Envelope, label: "Correo", value: business.email, href: `mailto:${business.email}` }] : []),
+    ...(business.website && websiteLabel ? [{ icon: Globe, label: "Sitio web", value: websiteLabel, href: business.website, external: true }] : []),
+  ];
+  const hasMap = business.latitude != null && business.longitude != null;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+    <>
       <VideoJsonLd
         videos={business.videos}
         fallbackTitle={business.name}
@@ -156,144 +165,40 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
         }}
       />
 
-      <div className={hasSidebar ? "lg:grid lg:grid-cols-12 lg:gap-12" : undefined}>
-        <article className={`mx-auto max-w-3xl ${hasSidebar ? "lg:col-span-8 lg:mx-0 lg:max-w-none" : ""}`}>
-          <nav aria-label="Breadcrumb" className="mb-4 flex max-w-[280px] items-center gap-2 truncate text-xs text-muted sm:max-w-none">
-            <ol className="flex flex-wrap items-center gap-1.5 truncate">
-              <li>
-                <Link href="/" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-                  Inicio
-                </Link>
-              </li>
-              <li aria-hidden="true">/</li>
-              <li>
-                <Link href="/directorio" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-                  Directorio
-                </Link>
-              </li>
-              <li aria-hidden="true">/</li>
-              <li className="max-w-[12rem] truncate text-foreground/80 sm:max-w-[24rem]" aria-current="page">
-                {business.name}
-              </li>
-            </ol>
-          </nav>
-
-          {category && (
-            <div className="text-xs font-medium tracking-wide text-accent uppercase">
-              <span>{category.name}</span>
-            </div>
-          )}
-
-          <h1 className="mt-4 text-2xl leading-tight font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            {business.name}
-          </h1>
-
-          <ContentImageGallery
-            images={business.images}
-            alt={business.name}
-            spacing="mt-8"
-            background="bg-canvas-strong"
-            fallback={<NoImagePlaceholder />}
-          />
-
-          {hasContact && (
-            <div className="mt-6 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-surface p-5 shadow-sm sm:grid-cols-2">
-              {(place || business.address) && (
-                <div className="flex items-start gap-2.5 text-sm">
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-                  <div>
-                    <div className="text-xs font-semibold tracking-wide text-muted uppercase">Dirección</div>
-                    {place ? (
-                      <Link href={`/lugares/${place.slug}`} className="font-medium text-foreground hover:text-accent hover:underline">
-                        {place.name}
-                      </Link>
-                    ) : (
-                      <span className="font-medium text-foreground">{business.address}</span>
-                    )}
-                  </div>
-                </div>
-              )}
-              {business.phone && (
-                <div className="flex items-start gap-2.5 text-sm">
-                  <Phone className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-                  <div>
-                    <div className="text-xs font-semibold tracking-wide text-muted uppercase">Teléfono</div>
-                    <a href={`tel:${business.phone}`} className="font-medium text-foreground hover:text-accent hover:underline">
-                      {business.phone}
-                    </a>
-                  </div>
-                </div>
-              )}
-              {business.email && (
-                <div className="flex items-start gap-2.5 text-sm">
-                  <Mail className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-                  <div>
-                    <div className="text-xs font-semibold tracking-wide text-muted uppercase">Email</div>
-                    <a href={`mailto:${business.email}`} className="font-medium break-all text-foreground hover:text-accent hover:underline">
-                      {business.email}
-                    </a>
-                  </div>
-                </div>
-              )}
-              {business.website && (
-                <div className="flex items-start gap-2.5 text-sm">
-                  <Globe className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-                  <div>
-                    <div className="text-xs font-semibold tracking-wide text-muted uppercase">Web</div>
-                    <a
-                      href={business.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium break-all text-foreground hover:text-accent hover:underline"
-                    >
-                      {websiteLabel}
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          <ContentVideoGallery videos={business.videos} title={business.name} />
-
-          {business.excerpt && (
-            <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">{business.excerpt}</p>
-          )}
-
-          {/* business.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
-              de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí. */}
-          <div
-            className="prose prose-theme sm:prose-lg mt-6 max-w-none prose-headings:font-bold prose-a:text-accent"
-            dangerouslySetInnerHTML={{ __html: business.body }}
-          />
-
-          <AdBlock position="article" section="BUSINESS" categoryId={business.categoryId} layout="band" count={2} className="mt-10" />
-
-          <LikeShareBar contentType="directory" slug={business.slug} initialLikeCount={business.likeCount} title={business.name} />
-        </article>
-
-        {hasSidebar && (
-          <aside className="mt-14 flex flex-col gap-10 lg:col-span-4 lg:mt-0">
-            {/* Mismo patrón que DetailSidebar: la lista arriba y el anuncio fijo al
-                final, acompañando al lector por el resto de la ficha. */}
-            <div>
-              <section aria-label="Más en el directorio">
-                <h2 className="text-lg font-semibold text-foreground">
-                  Más {businessTypeLabel(business.businessType).toLowerCase()}s
-                </h2>
-                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                  {related.map((item) => (
-                    <BusinessCard key={item.id} business={item} />
-                  ))}
-                </div>
-              </section>
-            </div>
-            <div className="lg:sticky lg:top-32">
-              <AdBlock position="listing" layout="fill" section="BUSINESS" categoryId={business.categoryId} />
-            </div>
-          </aside>
-        )}
-      </div>
-    </div>
+      <PostView
+        variant="visual"
+        brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}
+        typeLabel={KIND_LABEL.directorio}
+        categoryName={category?.name}
+        time={headerTimeFor({ kind: "directorio", sortDate: business.publishedAt ?? "" })}
+        title={business.name}
+        media={<PostDetailMedia images={business.images} videos={business.videos} title={business.name} />}
+        excerpt={business.excerpt}
+        facts={<PostFacts facts={facts} />}
+        body={
+          // business.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
+          // de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
+          <div className="prose prose-theme max-w-none prose-headings:font-bold prose-a:text-accent" dangerouslySetInnerHTML={{ __html: business.body }} />
+        }
+        actions={
+          <LikeShareBar contentType="directory" slug={business.slug} initialLikeCount={business.likeCount} title={business.name}>
+            {business.phone && (
+              <a href={`tel:${business.phone.replace(/[^\d+]/g, "")}`} className={POST_ACTION_PILL}>
+                <Phone className="h-4 w-4" aria-hidden="true" />
+                Llamar
+              </a>
+            )}
+            {hasMap && (
+              <a href={mapsDirections(business.latitude!, business.longitude!)} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL}>
+                <NavigationArrow className="h-4 w-4" aria-hidden="true" />
+                Cómo llegar
+              </a>
+            )}
+          </LikeShareBar>
+        }
+        ad={<AdBlock position="article" section="BUSINESS" categoryId={business.categoryId} layout="band" count={2} />}
+        more={[...relatedPage.related, ...relatedPage.more].map(fromFeedItem)}
+      />
+    </>
   );
 }

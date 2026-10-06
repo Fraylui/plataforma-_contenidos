@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import useEmblaCarousel from "embla-carousel-react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 
 export function MediaCaption({ title, caption }: { title: string | null; caption: string | null }) {
   if (!title && !caption) return null;
   return (
-    <figcaption className="mt-2 text-sm text-muted">
+    <figcaption className="mt-2 px-4 text-sm text-muted sm:px-0">
       {title && <span className="font-medium text-foreground">{title}</span>}
       {title && caption && " — "}
       {caption}
@@ -59,7 +59,7 @@ export function MediaCarousel({
 
   return (
     <div className={spacing}>
-      <div className={`relative overflow-hidden rounded-2xl border border-border ${background} shadow-lg`}>
+      <div className={`relative overflow-hidden sm:rounded-2xl ${background}`}>
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex">
             {slides.map((slide, index) => (
@@ -74,17 +74,17 @@ export function MediaCarousel({
           type="button"
           onClick={() => emblaApi?.scrollPrev()}
           aria-label={prevLabel}
-          className="absolute top-1/2 left-2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white transition-colors hover:bg-black/70"
+          className="absolute top-1/2 left-3 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 text-zinc-900 shadow-md transition-colors hover:bg-white"
         >
-          <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+          <CaretLeft className="h-4 w-4" weight="bold" aria-hidden="true" />
         </button>
         <button
           type="button"
           onClick={() => emblaApi?.scrollNext()}
           aria-label={nextLabel}
-          className="absolute top-1/2 right-2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white transition-colors hover:bg-black/70"
+          className="absolute top-1/2 right-3 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 text-zinc-900 shadow-md transition-colors hover:bg-white"
         >
-          <ChevronRight className="h-5 w-5" aria-hidden="true" />
+          <CaretRight className="h-4 w-4" weight="bold" aria-hidden="true" />
         </button>
 
         <div className="absolute right-0 bottom-3 left-0 flex justify-center gap-1.5">
