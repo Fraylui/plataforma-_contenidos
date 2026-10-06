@@ -1,3 +1,4 @@
+import { canPublish } from "./permissions";
 import type { Event, EventStatus } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
 
@@ -17,11 +18,10 @@ export interface EventPermissions {
   canArchive: boolean;
 }
 
-const EDITOR_OR_ABOVE: Array<AdminUser["role"]> = ["SUPER_ADMIN", "ADMIN", "EDITOR"];
 const EDITABLE_STATUSES: EventStatus[] = ["DRAFT", "IN_REVIEW", "APPROVED", "REJECTED"];
 
 export function computeEventPermissions(event: Event, user: AdminUser): EventPermissions {
-  const isEditorOrAbove = EDITOR_OR_ABOVE.includes(user.role);
+  const isEditorOrAbove = canPublish(user, "EVENTS");
   const isOwner = event.authorId === user.id;
 
   const canEdit = isEditorOrAbove

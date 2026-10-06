@@ -21,7 +21,6 @@ import type {
   CampaignInput,
   CategoryCreateInput,
   CategoryUpdateInput,
-  CreateUserInput,
   EventInput,
   GalleryInput,
   PlaceInput,
@@ -632,26 +631,6 @@ export function deleteImage(accessToken: string, id: string): Promise<void> {
 }
 
 // --- Identity module: usuarios (UserAdminController) ---
-
-export function listAdminUsers(accessToken: string): Promise<AdminUser[]> {
-  return authedJson("/api/v1/admin/users", accessToken);
-}
-
-export function createUser(accessToken: string, input: CreateUserInput): Promise<AdminUser> {
-  return authedJson("/api/v1/admin/users", accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-}
-
-export function activateUser(accessToken: string, id: string): Promise<AdminUser> {
-  return authedJson(`/api/v1/admin/users/${encodeURIComponent(id)}/activate`, accessToken, { method: "POST" });
-}
-
-export function deactivateUser(accessToken: string, id: string): Promise<AdminUser> {
-  return authedJson(`/api/v1/admin/users/${encodeURIComponent(id)}`, accessToken, { method: "DELETE" });
-}
 
 // --- Configuration module: identidad de plataforma (PlatformSettingsAdminController) ---
 

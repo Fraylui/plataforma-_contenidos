@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computePlacePermissions } from "./place-permissions";
 import type { Place, PlaceStatus } from "@/lib/api/types";
-import type { AdminUser, Role } from "@/lib/api/admin-types";
+import type { AdminUser } from "@/lib/api/admin-types";
 
 function makePlace(overrides: Partial<Place> = {}): Place {
   return {
@@ -37,10 +37,9 @@ function makeUser(overrides: Partial<AdminUser> = {}): AdminUser {
     email: "user@test.local",
     firstName: "Usuario",
     lastName: "de prueba",
-    role: "AUTHOR",
-    status: "ACTIVE",
-    createdAt: "2026-01-01T00:00:00Z",
-    lastLoginAt: null,
+    role: "WORKER",
+    mustChangePassword: false,
+    permissions: { PLACES: "CREATE" },
     ...overrides,
   };
 }
@@ -65,25 +64,28 @@ describe("computePlacePermissions", () => {
     expect(permissions.canSubmit).toBe(false);
   });
 
-  describe.each<Role>(["EDITOR", "ADMIN", "SUPER_ADMIN"])("%s (EDITOR o superior)", (role) => {
+  describe.each<Partial<AdminUser>>([
+    { role: "WORKER", permissions: { PLACES: "PUBLISH" } },
+    { role: "OWNER", permissions: {} },
+  ])("con permiso de publicar ($role)", (publisher) => {
     it("edita cualquier lugar en estado editable sin ser el dueño", () => {
       const place = makePlace({ status: "APPROVED", authorId: "otro-author" });
-      const permissions = computePlacePermissions(place, makeUser({ role, id: "reviewer-1" }));
+      const permissions = computePlacePermissions(place, makeUser({ ...publisher, id: "reviewer-1" }));
       expect(permissions.canEdit).toBe(true);
     });
 
     it("aprueba/rechaza solo en IN_REVIEW, publica/programa solo en APPROVED, archiva solo en PUBLISHED", () => {
-      const inReview = computePlacePermissions(makePlace({ status: "IN_REVIEW" }), makeUser({ role }));
+      const inReview = computePlacePermissions(makePlace({ status: "IN_REVIEW" }), makeUser(publisher));
       expect(inReview.canApprove).toBe(true);
       expect(inReview.canReject).toBe(true);
       expect(inReview.canPublish).toBe(false);
 
-      const approved = computePlacePermissions(makePlace({ status: "APPROVED" }), makeUser({ role }));
+      const approved = computePlacePermissions(makePlace({ status: "APPROVED" }), makeUser(publisher));
       expect(approved.canPublish).toBe(true);
       expect(approved.canSchedule).toBe(true);
       expect(approved.canArchive).toBe(false);
 
-      const published = computePlacePermissions(makePlace({ status: "PUBLISHED" }), makeUser({ role }));
+      const published = computePlacePermissions(makePlace({ status: "PUBLISHED" }), makeUser(publisher));
       expect(published.canArchive).toBe(true);
       expect(published.canEdit).toBe(false);
     });

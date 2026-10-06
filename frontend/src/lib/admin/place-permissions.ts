@@ -1,3 +1,4 @@
+import { canPublish } from "./permissions";
 import type { Place, PlaceStatus } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
 
@@ -17,11 +18,10 @@ export interface PlacePermissions {
   canArchive: boolean;
 }
 
-const EDITOR_OR_ABOVE: Array<AdminUser["role"]> = ["SUPER_ADMIN", "ADMIN", "EDITOR"];
 const EDITABLE_STATUSES: PlaceStatus[] = ["DRAFT", "IN_REVIEW", "APPROVED", "REJECTED"];
 
 export function computePlacePermissions(place: Place, user: AdminUser): PlacePermissions {
-  const isEditorOrAbove = EDITOR_OR_ABOVE.includes(user.role);
+  const isEditorOrAbove = canPublish(user, "PLACES");
   const isOwner = place.authorId === user.id;
 
   const canEdit = isEditorOrAbove

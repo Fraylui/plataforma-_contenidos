@@ -110,7 +110,7 @@ function auditDayLabel(iso: string): string {
 
 export default async function AdminDashboardPage() {
   const { user, accessToken } = await requireAdminUser();
-  const allowedHrefs = new Set(visibleNavItems(user.role).map((item) => item.href));
+  const allowedHrefs = new Set(visibleNavItems(user).map((item) => item.href));
   const quickCreate = QUICK_CREATE.filter((item) => allowedHrefs.has(item.navHref));
   const canSeeStats = allowedHrefs.has("/admin/estadisticas");
   const canSeeAudit = allowedHrefs.has("/admin/actividad");

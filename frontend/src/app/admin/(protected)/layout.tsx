@@ -6,7 +6,7 @@ import { AdminNav } from "@/components/admin/admin-nav";
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const { user } = await requireAdminUser();
-  const groups = groupedNavItems(user.role);
+  const groups = groupedNavItems(user);
 
   return (
     // sm+: "cáscara de app" fijada al viewport (position:fixed + inset:0),

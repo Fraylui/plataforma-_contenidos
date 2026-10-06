@@ -1,3 +1,4 @@
+import { canPublishAnyContent } from "@/lib/admin/permissions";
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { listAdminImages } from "@/lib/api/admin-client";
@@ -12,14 +13,13 @@ export const metadata: Metadata = {
   robots: "noindex,nofollow",
 };
 
-const EDITOR_OR_ABOVE = new Set(["SUPER_ADMIN", "ADMIN", "EDITOR"]);
 
 export default async function AdminMediaPage() {
   const { user, accessToken } = await requireAdminUser();
   const result = await fetchOrAccessDenied(() => listAdminImages(accessToken));
   if ("denied" in result) return <AccessDenied />;
   const sorted = [...result.data].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  const isEditorOrAbove = EDITOR_OR_ABOVE.has(user.role);
+  const isEditorOrAbove = canPublishAnyContent(user);
 
   return (
     <div>
