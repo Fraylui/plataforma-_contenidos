@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import type { Category } from "@/lib/api/types";
-import { createCategoryAction, updateCategoryAction, type ActionResult } from "@/app/admin/(protected)/categorias/actions";
+import { createCategoryAction, updateCategoryAction, type ActionResult } from "@/app/admin/(protected)/temas/actions";
 import { AdminButton, Combobox, FormError, FormField, formInputClass } from "@/components/admin/ui";
 
 interface CategoryFormProps {
@@ -48,11 +48,11 @@ export function CategoryForm({ mode, category, parentOptions }: CategoryFormProp
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className={formInputClass} />
       </FormField>
 
-      <FormField label="Categoría padre (opcional, para subcategorías)" name="parentId">
+      <FormField label="Tema principal (opcional, para subtemas)" name="parentId">
         <Combobox
           options={parentOptions.map((option) => ({ id: option.id, label: `${"— ".repeat(option.depth)}${option.name}` }))}
           value={parentId || null}
-          placeholder="Ninguna (categoría raíz)"
+          placeholder="Ninguno (tema principal)"
           onSelect={(id) => setParentId(id ?? "")}
         />
       </FormField>
@@ -70,7 +70,7 @@ export function CategoryForm({ mode, category, parentOptions }: CategoryFormProp
 
       {error && <FormError message={error} />}
       <AdminButton disabled={pending || !name.trim()} onClick={handleSubmit}>
-        {pending ? "Guardando…" : mode === "create" ? "Crear categoría" : "Guardar cambios"}
+        {pending ? "Guardando…" : mode === "create" ? "Crear tema" : "Guardar cambios"}
       </AdminButton>
     </div>
   );

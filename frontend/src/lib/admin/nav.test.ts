@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ADMIN_NAV_ITEMS, visibleNavItems } from "./nav";
+import { ADMIN_NAV_GROUP_LABELS, ADMIN_NAV_ITEMS, groupedNavItems, visibleNavItems } from "./nav";
 import type { Role } from "@/lib/api/admin-types";
 
 const ALL_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR", "MODERATOR", "COLLABORATOR", "USER"];
@@ -37,10 +37,22 @@ describe("visibleNavItems", () => {
     }
   });
 
-  it("solo muestra /admin/auditoria a SUPER_ADMIN y ADMIN (espeja SecurityConfig: /api/v1/admin/audit/**)", () => {
+  it("solo muestra /admin/actividad a SUPER_ADMIN y ADMIN (espeja SecurityConfig: /api/v1/admin/audit/**)", () => {
     for (const role of ALL_ROLES) {
-      const visible = visibleNavItems(role).some((i) => i.href === "/admin/auditoria");
+      const visible = visibleNavItems(role).some((i) => i.href === "/admin/actividad");
       expect(visible).toBe(role === "SUPER_ADMIN" || role === "ADMIN");
     }
+  });
+});
+
+describe("lenguaje de plataforma (no de redacción)", () => {
+  it("grupos y secciones del menú con nombres de plataforma", () => {
+    const menu = groupedNavItems("SUPER_ADMIN").map(({ group, items }) => [ADMIN_NAV_GROUP_LABELS[group], items.map((i) => i.label)]);
+    expect(menu).toEqual([
+      [null, ["Inicio", "Estadísticas"]],
+      ["Contenido", ["Publicaciones", "Lugares", "Eventos", "Galerías", "Directorio", "Temas", "Imágenes"]],
+      ["Publicidad", ["Espacios publicitarios", "Anunciantes"]],
+      ["Equipo y ajustes", ["Usuarios", "Configuración", "Registro de actividad"]],
+    ]);
   });
 });

@@ -108,7 +108,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
             Alcance
           </h2>
           <ul className="mt-4 space-y-4">
-            <RatioRow label="Categorías activas" active={stats.activeCategories} total={stats.totalCategories} />
+            <RatioRow label="Temas activos" active={stats.activeCategories} total={stats.totalCategories} />
           </ul>
         </section>
 

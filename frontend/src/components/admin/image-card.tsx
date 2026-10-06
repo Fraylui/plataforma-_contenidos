@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AdminImage } from "@/lib/api/admin-types";
 import { imageUrl } from "@/lib/image-url";
-import { deleteImageAction, updateImageAltTextAction } from "@/app/admin/(protected)/medios/actions";
+import { deleteImageAction, updateImageAltTextAction } from "@/app/admin/(protected)/imagenes/actions";
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;

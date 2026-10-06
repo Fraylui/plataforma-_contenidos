@@ -7,11 +7,11 @@ import { AdPlacementForm } from "@/components/admin/ad-placement-form";
 import { AdminPageHeader } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
-  title: "Editar posición de anuncio",
+  title: "Editar espacio publicitario",
   robots: "noindex,nofollow",
 };
 
-export default async function EditAdPlacementPage(props: PageProps<"/admin/publicidad/[id]">) {
+export default async function EditAdPlacementPage(props: PageProps<"/admin/espacios/[id]">) {
   const { id } = await props.params;
   const { accessToken } = await requireAdminUser();
 

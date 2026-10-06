@@ -209,7 +209,7 @@ class ArticleWorkflowIntegrationTest {
                 + "\"title\":\"" + title + "\","
                 + "\"excerpt\":\"Resumen breve\","
                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
-                + "\"articleType\":\"ARTICULO\","
+                + "\"articleType\":\"GENERAL\","
                 + "\"categoryId\":\"" + categoryId + "\","
                 + "\"videos\":[{\"url\":\"" + youtubeUrl + "\"}]"
                 + "}";
@@ -231,7 +231,7 @@ class ArticleWorkflowIntegrationTest {
                 + "\"title\":\"" + title + "\","
                 + "\"excerpt\":\"Resumen breve\","
                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
-                + "\"articleType\":\"ARTICULO\","
+                + "\"articleType\":\"GENERAL\","
                 + "\"categoryId\":\"" + categoryId + "\""
                 + "}";
     }

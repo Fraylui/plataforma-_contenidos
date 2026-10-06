@@ -23,18 +23,7 @@ import {
   type ActionResult,
 } from "@/app/admin/(protected)/publicaciones/actions";
 
-const ARTICLE_TYPES: ArticleType[] = [
-  "ARTICULO",
-  "NOTICIA",
-  "REPORTAJE",
-  "CRONICA",
-  "GUIA",
-  "ENTREVISTA",
-  "HISTORIA",
-  "RANKING",
-  "TUTORIAL",
-  "OPINION",
-];
+const ARTICLE_TYPES: ArticleType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA", "ENTREVISTA"];
 
 const ROBOTS_OPTIONS = ["index,follow", "noindex,follow", "index,nofollow", "noindex,nofollow"];
 
@@ -59,7 +48,7 @@ export function ArticleForm({
   const [title, setTitle] = useState(article?.title ?? "");
   const [excerpt, setExcerpt] = useState(article?.excerpt ?? "");
   const [body, setBody] = useState(article?.body ?? "");
-  const [articleType, setArticleType] = useState<ArticleType>(article?.articleType ?? "ARTICULO");
+  const [articleType, setArticleType] = useState<ArticleType>(article?.articleType ?? "GENERAL");
   const [categoryId, setCategoryId] = useState(article?.categoryId ?? categories[0]?.id ?? "");
   const [seoTitle, setSeoTitle] = useState(article?.seoTitle ?? "");
   const [metaDescription, setMetaDescription] = useState(article?.metaDescription ?? "");
@@ -314,7 +303,7 @@ export function ArticleForm({
               />
             </FormField>
 
-            <FormField label="Categoría" name="categoryId">
+            <FormField label="Tema" name="categoryId">
               <Combobox
                 options={categories.map((category) => ({ id: category.id, label: category.name }))}
                 value={categoryId}
@@ -324,7 +313,7 @@ export function ArticleForm({
             </FormField>
           </SectionCard>
 
-          <SectionCard title="Medios">
+          <SectionCard title="Fotos y videos">
             <FormField label="Imágenes (opcional — la primera es la portada de tarjeta/feed)" name="images">
               <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
             </FormField>

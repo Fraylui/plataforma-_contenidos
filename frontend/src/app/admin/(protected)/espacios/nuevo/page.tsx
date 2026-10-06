@@ -4,7 +4,7 @@ import { AdPlacementForm } from "@/components/admin/ad-placement-form";
 import { AdminPageHeader } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
-  title: "Nueva posición de anuncio",
+  title: "Nuevo espacio publicitario",
   robots: "noindex,nofollow",
 };
 
@@ -13,7 +13,7 @@ export default async function NewAdPlacementPage() {
 
   return (
     <div>
-      <AdminPageHeader title="Nueva posición de anuncio" />
+      <AdminPageHeader title="Nuevo espacio publicitario" />
       <div className="mt-6">
         <AdPlacementForm mode="create" />
       </div>

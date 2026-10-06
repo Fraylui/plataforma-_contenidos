@@ -9,29 +9,29 @@ export type { ActionResult };
 
 export async function uploadImageAction(formData: FormData): Promise<ActionResult> {
   const result = await runAdminMutation((token) => uploadImage(token, formData));
-  if (result.ok) revalidatePath("/admin/medios");
+  if (result.ok) revalidatePath("/admin/imagenes");
   return result;
 }
 
 /**
  * Igual que uploadImageAction pero devuelve la imagen creada: para subir una
  * foto "al vuelo" desde el selector de un formulario de contenido
- * (Artículo/Lugar/Evento/...) sin obligar a pasar antes por /admin/medios.
+ * (Artículo/Lugar/Evento/...) sin obligar a pasar antes por /admin/imagenes.
  */
 export async function uploadImageInlineAction(formData: FormData): Promise<MutationResult<AdminImage>> {
   const result = await runAdminMutation((token) => uploadImage(token, formData));
-  if (result.ok) revalidatePath("/admin/medios");
+  if (result.ok) revalidatePath("/admin/imagenes");
   return result;
 }
 
 export async function updateImageAltTextAction(id: string, altText: string): Promise<ActionResult> {
   const result = await runAdminMutation((token) => updateImageAltText(token, id, altText));
-  if (result.ok) revalidatePath("/admin/medios");
+  if (result.ok) revalidatePath("/admin/imagenes");
   return result;
 }
 
 export async function deleteImageAction(id: string): Promise<ActionResult> {
   const result = await runAdminMutation((token) => deleteImage(token, id));
-  if (result.ok) revalidatePath("/admin/medios");
+  if (result.ok) revalidatePath("/admin/imagenes");
   return result;
 }

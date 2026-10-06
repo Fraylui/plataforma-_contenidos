@@ -9,7 +9,7 @@ import { formatSize } from "@/lib/ads/ad-formats";
 import { setAdPlacementActiveAction, deleteAdPlacementAction } from "./actions";
 
 export const metadata: Metadata = {
-  title: "Publicidad",
+  title: "Espacios publicitarios",
   robots: "noindex,nofollow",
 };
 
@@ -22,8 +22,8 @@ export default async function AdminAdPlacementsPage() {
   return (
     <div>
       <AdminPageHeader
-        title="Publicidad"
-        action={{ href: "/admin/publicidad/nueva", label: "Nueva posición" }}
+        title="Espacios publicitarios"
+        action={{ href: "/admin/espacios/nuevo", label: "Nuevo espacio" }}
       />
       <p className="mt-2 max-w-2xl text-sm text-muted">
         Posiciones de anuncio (AdSense) disponibles para usar en el sitio con{" "}
@@ -36,7 +36,7 @@ export default async function AdminAdPlacementsPage() {
       </p>
 
       {placements.length === 0 ? (
-        <EmptyState title="Todavía no hay posiciones de anuncio" />
+        <EmptyState title="Todavía no hay espacios publicitarios" />
       ) : (
         <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface">
           <table className="w-full min-w-[640px] text-left text-sm">
@@ -55,7 +55,7 @@ export default async function AdminAdPlacementsPage() {
                 <tr key={placement.id} className="border-b border-border last:border-0 hover:bg-accent-soft/40">
                   <td className="px-4 py-3">
                     <Link
-                      href={`/admin/publicidad/${placement.id}`}
+                      href={`/admin/espacios/${placement.id}`}
                       className="font-medium text-foreground hover:text-accent hover:underline"
                     >
                       {placement.label}

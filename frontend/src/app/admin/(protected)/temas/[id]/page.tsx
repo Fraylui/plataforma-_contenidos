@@ -11,11 +11,11 @@ import { CategoryForm } from "@/components/admin/category-form";
 import { AdminPageHeader } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
-  title: "Editar categoría",
+  title: "Editar tema",
   robots: "noindex,nofollow",
 };
 
-export default async function EditCategoryPage(props: PageProps<"/admin/categorias/[id]">) {
+export default async function EditCategoryPage(props: PageProps<"/admin/temas/[id]">) {
   const { id } = await props.params;
   const { accessToken } = await requireAdminUser();
 

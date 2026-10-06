@@ -321,7 +321,7 @@ export function EventForm({
           </SectionCard>
 
           <SectionCard title="Organización">
-            <FormField label="Categoría" name="categoryId">
+            <FormField label="Tema" name="categoryId">
               <Combobox
                 options={categories.map((category) => ({ id: category.id, label: category.name }))}
                 value={categoryId}
@@ -331,7 +331,7 @@ export function EventForm({
             </FormField>
           </SectionCard>
 
-          <SectionCard title="Medios">
+          <SectionCard title="Fotos y videos">
             <FormField label="Fotografías (opcional — la primera es la portada de tarjeta/feed)" name="images">
               <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
             </FormField>

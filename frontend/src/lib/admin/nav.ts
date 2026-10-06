@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import type { Role } from "@/lib/api/admin-types";
 
-export type AdminNavGroup = "principal" | "contenido" | "organizacion" | "monetizacion" | "cuenta";
+export type AdminNavGroup = "principal" | "contenido" | "publicidad" | "equipo";
 
 export interface AdminNavItem {
   href: string;
@@ -31,14 +31,12 @@ export interface AdminNavItem {
 export const ADMIN_NAV_GROUP_LABELS: Record<AdminNavGroup, string | null> = {
   principal: null,
   contenido: "Contenido",
-  organizacion: "Organización",
-  monetizacion: "Monetización",
-  cuenta: "Administración",
+  publicidad: "Publicidad",
+  equipo: "Equipo y ajustes",
 };
 
-// Se agregan ítems aquí a medida que se implementa cada sección del CMS
-// (CONTEXTO.md sección 11): artículos, categorías, medios, usuarios. De
-// momento solo existen las páginas del "cimiento".
+// Menú del panel con lenguaje de plataforma de contenido (2026-10-06): sin
+// términos de redacción ("Medios", "Monetización", "Administración").
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { href: "/admin", label: "Inicio", group: "principal", icon: Home },
   {
@@ -90,17 +88,17 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR"],
   },
   {
-    href: "/admin/categorias",
-    label: "Categorías",
-    group: "organizacion",
+    href: "/admin/temas",
+    label: "Temas",
+    group: "contenido",
     icon: FolderTree,
     // Debe coincidir con SecurityConfig: /api/v1/admin/categories/** -> SUPER_ADMIN, ADMIN, EDITOR.
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR"],
   },
   {
-    href: "/admin/medios",
-    label: "Medios",
-    group: "organizacion",
+    href: "/admin/imagenes",
+    label: "Imágenes",
+    group: "contenido",
     icon: ImageIcon,
     // Debe coincidir con SecurityConfig: /api/v1/admin/images/** -> SUPER_ADMIN, ADMIN, EDITOR, AUTHOR.
     roles: ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR"],
@@ -108,7 +106,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   {
     href: "/admin/usuarios",
     label: "Usuarios",
-    group: "cuenta",
+    group: "equipo",
     icon: Users,
     // Debe coincidir con SecurityConfig: /api/v1/admin/users/** -> SUPER_ADMIN, ADMIN.
     roles: ["SUPER_ADMIN", "ADMIN"],
@@ -116,15 +114,15 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   {
     href: "/admin/configuracion",
     label: "Configuración",
-    group: "cuenta",
+    group: "equipo",
     icon: Settings,
     // Debe coincidir con SecurityConfig: /api/v1/admin/platform-settings/** -> SUPER_ADMIN, ADMIN.
     roles: ["SUPER_ADMIN", "ADMIN"],
   },
   {
-    href: "/admin/publicidad",
-    label: "Publicidad",
-    group: "monetizacion",
+    href: "/admin/espacios",
+    label: "Espacios publicitarios",
+    group: "publicidad",
     icon: Megaphone,
     // Debe coincidir con SecurityConfig: /api/v1/admin/ad-placements/** -> SUPER_ADMIN, ADMIN.
     roles: ["SUPER_ADMIN", "ADMIN"],
@@ -132,15 +130,15 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   {
     href: "/admin/anunciantes",
     label: "Anunciantes",
-    group: "monetizacion",
+    group: "publicidad",
     icon: Building2,
     // Debe coincidir con SecurityConfig: /api/v1/admin/advertisers/**, /api/v1/admin/campaigns/** -> SUPER_ADMIN, ADMIN.
     roles: ["SUPER_ADMIN", "ADMIN"],
   },
   {
-    href: "/admin/auditoria",
-    label: "Auditoría",
-    group: "cuenta",
+    href: "/admin/actividad",
+    label: "Registro de actividad",
+    group: "equipo",
     icon: ShieldCheck,
     // Debe coincidir con SecurityConfig: /api/v1/admin/audit/** -> SUPER_ADMIN, ADMIN.
     roles: ["SUPER_ADMIN", "ADMIN"],
@@ -153,7 +151,7 @@ export function visibleNavItems(role: Role): AdminNavItem[] {
 
 export function groupedNavItems(role: Role): Array<{ group: AdminNavGroup; items: AdminNavItem[] }> {
   const items = visibleNavItems(role);
-  const groups: AdminNavGroup[] = ["principal", "contenido", "organizacion", "monetizacion", "cuenta"];
+  const groups: AdminNavGroup[] = ["principal", "contenido", "publicidad", "equipo"];
   return groups
     .map((group) => ({ group, items: items.filter((item) => item.group === group) }))
     .filter((entry) => entry.items.length > 0);

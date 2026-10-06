@@ -246,7 +246,7 @@ export function GalleryForm({
           </SectionCard>
 
           <SectionCard title="Organización">
-            <FormField label="Categoría" name="categoryId">
+            <FormField label="Tema" name="categoryId">
               <Combobox
                 options={categories.map((category) => ({ id: category.id, label: category.name }))}
                 value={categoryId}

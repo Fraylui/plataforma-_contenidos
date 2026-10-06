@@ -1,16 +1,12 @@
 import type { ArticleStatus, ArticleType, BusinessType, SearchResultType } from "@/lib/api/types";
 
 const ARTICLE_TYPE_LABELS: Record<ArticleType, string> = {
-  ARTICULO: "General",
-  NOTICIA: "Noticia",
-  REPORTAJE: "Reportaje",
-  CRONICA: "Crónica",
+  GENERAL: "General",
   GUIA: "Guía",
-  ENTREVISTA: "Entrevista",
-  HISTORIA: "Historia",
-  RANKING: "Ranking",
+  LISTA: "Lista",
   TUTORIAL: "Tutorial",
-  OPINION: "Opinión",
+  HISTORIA: "Historia",
+  ENTREVISTA: "Entrevista",
 };
 
 export function articleTypeLabel(type: ArticleType): string {

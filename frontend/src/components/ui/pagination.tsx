@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 /**
  * Paginación server-rendered (links normales, sin JS) — mismo patrón ya
- * probado en app/admin/(protected)/auditoria/page.tsx, generalizado para
+ * probado en app/admin/(protected)/actividad/page.tsx, generalizado para
  * el sitio público. `page` es 0-indexado (como PageResponse del backend);
  * `buildHref` arma la URL completa para una página dada, dejando que cada
  * pantalla decida qué otros query params conservar (filtros, etc.).

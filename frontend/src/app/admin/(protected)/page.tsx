@@ -38,7 +38,7 @@ import type { PlatformStats } from "@/lib/api/admin-types";
 import type { ArticleStatus } from "@/lib/api/types";
 
 export const metadata: Metadata = {
-  title: "Panel administrativo",
+  title: "Panel",
   robots: "noindex,nofollow",
 };
 
@@ -113,7 +113,7 @@ export default async function AdminDashboardPage() {
   const allowedHrefs = new Set(visibleNavItems(user.role).map((item) => item.href));
   const quickCreate = QUICK_CREATE.filter((item) => allowedHrefs.has(item.navHref));
   const canSeeStats = allowedHrefs.has("/admin/estadisticas");
-  const canSeeAudit = allowedHrefs.has("/admin/auditoria");
+  const canSeeAudit = allowedHrefs.has("/admin/actividad");
 
   const [statsResult, contentItems, auditResult] = await Promise.all([
     canSeeStats ? fetchOrAccessDenied(() => getAdminStats(accessToken)) : Promise.resolve(null),
@@ -178,7 +178,7 @@ export default async function AdminDashboardPage() {
             trend={{ value: publishedThisWeek, label: "esta semana" }}
           />
           <StatCard label="Pendiente de revisión" value={summary.pending} icon={Clock} accent={summary.pending > 0} />
-          <StatCard label="Categorías activas" value={stats.activeCategories} icon={FolderTree} />
+          <StatCard label="Temas activos" value={stats.activeCategories} icon={FolderTree} />
           <StatCard
             label="Publicado (30 días)"
             value={stats.articlesPublishedLast30Days}
@@ -298,7 +298,7 @@ export default async function AdminDashboardPage() {
                   })}
                 </ul>
               )}
-              <Link href="/admin/auditoria" className="mt-3 inline-block text-sm font-medium text-accent hover:underline">
+              <Link href="/admin/actividad" className="mt-3 inline-block text-sm font-medium text-accent hover:underline">
                 Ver auditoría completa →
               </Link>
             </div>

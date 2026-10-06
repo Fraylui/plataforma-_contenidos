@@ -2,7 +2,7 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { uploadImageAction } from "@/app/admin/(protected)/medios/actions";
+import { uploadImageAction } from "@/app/admin/(protected)/imagenes/actions";
 import { AdminButton, FormError } from "@/components/admin/ui";
 
 export function ImageUploadForm() {

@@ -58,7 +58,7 @@ class StatsIntegrationTest {
                         .header("Authorization", "Bearer " + authorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Artículo para estadísticas\",\"excerpt\":\"Resumen\","
-                                + "\"body\":\"Cuerpo suficientemente largo.\",\"articleType\":\"ARTICULO\","
+                                + "\"body\":\"Cuerpo suficientemente largo.\",\"articleType\":\"GENERAL\","
                                 + "\"categoryId\":\"" + categoryId + "\"}"))
                 .andExpect(status().isCreated());
 

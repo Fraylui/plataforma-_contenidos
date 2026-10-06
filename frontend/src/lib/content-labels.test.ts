@@ -2,18 +2,7 @@ import { describe, expect, it } from "vitest";
 import { articleStatusLabel, articleStatusTone, articleTypeLabel, formatPublishedDate } from "./content-labels";
 import type { ArticleStatus, ArticleType } from "@/lib/api/types";
 
-const ALL_ARTICLE_TYPES: ArticleType[] = [
-  "ARTICULO",
-  "NOTICIA",
-  "REPORTAJE",
-  "CRONICA",
-  "GUIA",
-  "ENTREVISTA",
-  "HISTORIA",
-  "RANKING",
-  "TUTORIAL",
-  "OPINION",
-];
+const ALL_ARTICLE_TYPES: ArticleType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA", "ENTREVISTA"];
 
 const ALL_ARTICLE_STATUSES: ArticleStatus[] = [
   "DRAFT",
@@ -30,6 +19,10 @@ const ALL_ARTICLE_STATUSES: ArticleStatus[] = [
 describe("mapas de etiquetas", () => {
   it.each(ALL_ARTICLE_TYPES)("articleTypeLabel(%s) devuelve una etiqueta no vacía", (type) => {
     expect(articleTypeLabel(type)).toBeTruthy();
+  });
+
+  it("formatos de plataforma, sin géneros periodísticos", () => {
+    expect(ALL_ARTICLE_TYPES.map(articleTypeLabel)).toEqual(["General", "Guía", "Lista", "Tutorial", "Historia", "Entrevista"]);
   });
 
   it.each(ALL_ARTICLE_STATUSES)("articleStatusLabel(%s) y articleStatusTone(%s) están definidos", (status) => {

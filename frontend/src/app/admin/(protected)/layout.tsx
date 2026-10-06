@@ -29,9 +29,9 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent-fill text-xs font-bold text-accent-foreground">
             P
           </span>
-          <span className="text-sm font-semibold tracking-tight text-foreground">Panel admin</span>
+          <span className="text-sm font-semibold tracking-tight text-foreground">Panel</span>
         </div>
-        <nav aria-label="Panel administrativo" className="min-h-0 flex-1 space-y-2 px-3 pb-4 sm:overflow-y-auto">
+        <nav aria-label="Menú del panel" className="min-h-0 flex-1 space-y-2 px-3 pb-4 sm:overflow-y-auto">
           <AdminNav
             groups={groups.map(({ group, items }) => ({
               group,

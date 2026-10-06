@@ -8,7 +8,7 @@ import { ImageCard } from "@/components/admin/image-card";
 import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
-  title: "Medios",
+  title: "Imágenes",
   robots: "noindex,nofollow",
 };
 
@@ -24,7 +24,7 @@ export default async function AdminMediaPage() {
   return (
     <div>
       <AdminPageHeader
-        title="Medios"
+        title="Imágenes"
         description="Sube tus fotos aquí una sola vez. Al crear o editar cualquier contenido (Publicación, Lugar, Evento, Galería, Directorio) las eliges directamente de una galería visual — no hace falta copiar ninguna URL."
       />
 

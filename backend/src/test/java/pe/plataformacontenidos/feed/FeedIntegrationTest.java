@@ -470,7 +470,7 @@ class FeedIntegrationTest {
                 + "\"title\":\"" + title + "\","
                 + "\"excerpt\":\"Resumen breve\","
                 + "\"body\":\"Cuerpo de prueba con suficiente contenido para publicar.\","
-                + "\"articleType\":\"ARTICULO\","
+                + "\"articleType\":\"GENERAL\","
                 + "\"categoryId\":\"" + categoryId + "\""
                 + "}";
     }

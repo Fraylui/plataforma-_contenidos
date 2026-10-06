@@ -11,15 +11,15 @@ export type { ActionResult };
 export async function createCategoryAction(input: CategoryCreateInput): Promise<ActionResult> {
   const result = await runAdminMutation((token) => createCategory(token, input));
   if (!result.ok) return result;
-  revalidatePath("/admin/categorias");
-  redirect("/admin/categorias");
+  revalidatePath("/admin/temas");
+  redirect("/admin/temas");
 }
 
 export async function updateCategoryAction(id: string, input: CategoryUpdateInput): Promise<ActionResult> {
   const result = await runAdminMutation((token) => updateCategory(token, id, input));
   if (result.ok) {
-    revalidatePath("/admin/categorias");
-    revalidatePath(`/admin/categorias/${id}`);
+    revalidatePath("/admin/temas");
+    revalidatePath(`/admin/temas/${id}`);
   }
   return result;
 }
@@ -37,5 +37,5 @@ export async function setCategoryActiveAction(id: string, active: boolean): Prom
   if (!result.ok) {
     throw new Error(result.error);
   }
-  revalidatePath("/admin/categorias");
+  revalidatePath("/admin/temas");
 }

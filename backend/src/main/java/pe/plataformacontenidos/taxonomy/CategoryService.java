@@ -115,13 +115,13 @@ public class CategoryService {
             return;
         }
         if (parentId.equals(selfId)) {
-            throw new InvalidCategoryHierarchyException("Una categoría no puede ser su propio padre");
+            throw new InvalidCategoryHierarchyException("Un tema no puede ser su propio tema principal");
         }
         if (!categoryRepository.existsById(parentId)) {
             throw new CategoryNotFoundException(parentId);
         }
         if (selfId != null && createsCycle(parentId, selfId)) {
-            throw new InvalidCategoryHierarchyException("La jerarquía de categorías no puede formar un ciclo");
+            throw new InvalidCategoryHierarchyException("Los temas no pueden formar un ciclo (un tema dentro de sí mismo)");
         }
     }
 

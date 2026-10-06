@@ -9,7 +9,7 @@ import { AdminPageHeader, EmptyState, StatusPill } from "@/components/admin/ui";
 import { setCategoryActiveAction } from "./actions";
 
 export const metadata: Metadata = {
-  title: "Categorías",
+  title: "Temas",
   robots: "noindex,nofollow",
 };
 
@@ -21,10 +21,10 @@ export default async function AdminCategoriesPage() {
 
   return (
     <div>
-      <AdminPageHeader title="Categorías" action={{ href: "/admin/categorias/nueva", label: "Nueva categoría" }} />
+      <AdminPageHeader title="Temas" action={{ href: "/admin/temas/nuevo", label: "Nuevo tema" }} />
 
       {rows.length === 0 ? (
-        <EmptyState title="Todavía no hay categorías" />
+        <EmptyState title="Todavía no hay temas" />
       ) : (
         <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface">
           <table className="w-full min-w-[560px] text-left text-sm">
@@ -40,7 +40,7 @@ export default async function AdminCategoriesPage() {
                 <tr key={category.id} className="border-b border-border last:border-0 hover:bg-accent-soft/40">
                   <td className="px-4 py-3">
                     <span style={{ paddingLeft: `${depth * 1.25}rem` }} className="inline-block">
-                      <Link href={`/admin/categorias/${category.id}`} className="font-medium text-foreground hover:text-accent hover:underline">
+                      <Link href={`/admin/temas/${category.id}`} className="font-medium text-foreground hover:text-accent hover:underline">
                         {category.name}
                       </Link>
                     </span>

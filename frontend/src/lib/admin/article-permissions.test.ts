@@ -10,7 +10,7 @@ function makeArticle(overrides: Partial<Article> = {}): Article {
     title: "Artículo de prueba",
     excerpt: null,
     body: "Cuerpo",
-    articleType: "ARTICULO",
+    articleType: "GENERAL",
     status: "DRAFT",
     authorId: "author-1",
     categoryId: "cat-1",

@@ -63,7 +63,7 @@ class ArticleImagesIntegrationTest {
                         .content("{\"title\":\"Publicación con imagen inexistente\","
                                 + "\"excerpt\":\"Resumen breve\","
                                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
-                                + "\"articleType\":\"ARTICULO\","
+                                + "\"articleType\":\"GENERAL\","
                                 + "\"categoryId\":\"" + categoryId + "\","
                                 + "\"images\":[{\"imageId\":\"00000000-0000-0000-0000-000000000000\"}]}"))
                 .andExpect(status().isNotFound());
@@ -81,7 +81,7 @@ class ArticleImagesIntegrationTest {
                         .content("{\"title\":\"Publicación con imagen sin fuente\","
                                 + "\"excerpt\":\"Resumen breve\","
                                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
-                                + "\"articleType\":\"ARTICULO\","
+                                + "\"articleType\":\"GENERAL\","
                                 + "\"categoryId\":\"" + categoryId + "\","
                                 + "\"images\":[{}]}"))
                 .andExpect(status().isBadRequest());
@@ -107,7 +107,7 @@ class ArticleImagesIntegrationTest {
                         .content("{\"title\":\"Publicación con varias imágenes\","
                                 + "\"excerpt\":\"Resumen breve\","
                                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
-                                + "\"articleType\":\"ARTICULO\","
+                                + "\"articleType\":\"GENERAL\","
                                 + "\"categoryId\":\"" + categoryId + "\","
                                 + "\"images\":[{\"imageId\":\"" + imageId + "\"},"
                                 + "{\"externalUrl\":\"https://example.com/foto.jpg\"}]}"))

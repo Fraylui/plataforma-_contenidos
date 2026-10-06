@@ -25,7 +25,7 @@ export interface HomeItem {
   /** true = enlace externo pegado por quien redacta (host arbitrario, nunca pasa por next/image); false/undefined = imagen subida a Medios. */
   imageIsExternal: boolean;
   categoryId: string;
-  /** Etiqueta del tipo que va sobre la imagen ("Crónica", "Lugar", "Galería"…). */
+  /** Etiqueta del tipo ("Publicación", "Lugar", "Galería"…). */
   typeLabel: string;
   /** ISO usado para ordenar "Lo nuevo" (publishedAt, o startsAt en Evento). */
   sortDate: string;

@@ -3,17 +3,8 @@
 // Mantener sincronizados a mano por ahora; si esto crece, considerar
 // generarlos desde una spec OpenAPI.
 
-export type ArticleType =
-  | "ARTICULO"
-  | "NOTICIA"
-  | "REPORTAJE"
-  | "CRONICA"
-  | "GUIA"
-  | "ENTREVISTA"
-  | "HISTORIA"
-  | "RANKING"
-  | "TUTORIAL"
-  | "OPINION";
+/** Formato de publicación (plataforma de contenido, no géneros periodísticos — ver V48 en el backend). */
+export type ArticleType = "GENERAL" | "GUIA" | "LISTA" | "TUTORIAL" | "HISTORIA" | "ENTREVISTA";
 
 export type ArticleStatus = "DRAFT" | "IN_REVIEW" | "APPROVED" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED" | "REJECTED";
 

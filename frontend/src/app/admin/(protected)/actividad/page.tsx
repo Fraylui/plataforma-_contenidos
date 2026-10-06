@@ -8,7 +8,7 @@ import { AccessDenied } from "@/components/admin/access-denied";
 import { AdminButton, AdminLinkButton, AdminPageHeader, StatusPill, type StatusTone } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
-  title: "Auditoría",
+  title: "Registro de actividad",
   robots: "noindex,nofollow",
 };
 
@@ -48,10 +48,10 @@ function buildPageHref(params: Record<string, string | undefined>, page: number)
     if (value) query.set(key, value);
   }
   query.set("page", String(page));
-  return `/admin/auditoria?${query.toString()}`;
+  return `/admin/actividad?${query.toString()}`;
 }
 
-export default async function AdminAuditPage(props: PageProps<"/admin/auditoria">) {
+export default async function AdminAuditPage(props: PageProps<"/admin/actividad">) {
   const { accessToken } = await requireAdminUser();
   const sp = await props.searchParams;
   const get = (key: string) => {
@@ -86,7 +86,7 @@ export default async function AdminAuditPage(props: PageProps<"/admin/auditoria"
   return (
     <div>
       <AdminPageHeader
-        title="Auditoría"
+        title="Registro de actividad"
         description="Registro de acciones administrativas y de seguridad (solo lectura, no editable)."
       />
 
@@ -179,7 +179,7 @@ export default async function AdminAuditPage(props: PageProps<"/admin/auditoria"
         </div>
         <div className="col-span-2 flex items-end gap-2 sm:col-span-3 lg:col-span-6">
           <AdminButton type="submit">Filtrar</AdminButton>
-          <Link href="/admin/auditoria" className="text-sm text-muted underline underline-offset-2 hover:text-accent">
+          <Link href="/admin/actividad" className="text-sm text-muted underline underline-offset-2 hover:text-accent">
             Limpiar filtros
           </Link>
         </div>

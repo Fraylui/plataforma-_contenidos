@@ -330,7 +330,7 @@ class SearchIntegrationTest {
                 + "\"title\":\"" + title + "\","
                 + "\"excerpt\":\"Resumen breve\","
                 + "\"body\":\"" + body + "\","
-                + "\"articleType\":\"ARTICULO\","
+                + "\"articleType\":\"GENERAL\","
                 + "\"categoryId\":\"" + categoryId + "\""
                 + "}";
     }

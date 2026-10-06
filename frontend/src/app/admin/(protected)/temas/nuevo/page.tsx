@@ -8,7 +8,7 @@ import { CategoryForm } from "@/components/admin/category-form";
 import { AdminPageHeader } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
-  title: "Nueva categoría",
+  title: "Nuevo tema",
   robots: "noindex,nofollow",
 };
 
@@ -19,7 +19,7 @@ export default async function NewCategoryPage() {
 
   return (
     <div>
-      <AdminPageHeader title="Nueva categoría" />
+      <AdminPageHeader title="Nuevo tema" />
       <div className="mt-6">
         <CategoryForm mode="create" parentOptions={categoryParentOptions(result.data)} />
       </div>

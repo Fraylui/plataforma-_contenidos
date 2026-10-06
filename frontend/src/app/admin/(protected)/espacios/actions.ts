@@ -17,15 +17,15 @@ export type { ActionResult };
 export async function createAdPlacementAction(input: AdPlacementCreateInput): Promise<ActionResult> {
   const result = await runAdminMutation((token) => createAdPlacement(token, input));
   if (!result.ok) return result;
-  revalidatePath("/admin/publicidad");
-  redirect("/admin/publicidad");
+  revalidatePath("/admin/espacios");
+  redirect("/admin/espacios");
 }
 
 export async function updateAdPlacementAction(id: string, input: AdPlacementUpdateInput): Promise<ActionResult> {
   const result = await runAdminMutation((token) => updateAdPlacement(token, id, input));
   if (result.ok) {
-    revalidatePath("/admin/publicidad");
-    revalidatePath(`/admin/publicidad/${id}`);
+    revalidatePath("/admin/espacios");
+    revalidatePath(`/admin/espacios/${id}`);
   }
   return result;
 }
@@ -38,7 +38,7 @@ export async function setAdPlacementActiveAction(id: string, active: boolean): P
   if (!result.ok) {
     throw new Error(result.error);
   }
-  revalidatePath("/admin/publicidad");
+  revalidatePath("/admin/espacios");
 }
 
 /**
@@ -50,5 +50,5 @@ export async function deleteAdPlacementAction(id: string): Promise<void> {
   if (!result.ok) {
     throw new Error(result.error);
   }
-  revalidatePath("/admin/publicidad");
+  revalidatePath("/admin/espacios");
 }
