@@ -34,6 +34,18 @@ public class ContentLikeService {
         return counts;
     }
 
+    /** "Me gusta" recibidos desde `since`, por id (sin entrada = 0). */
+    public Map<UUID, Long> countLikesSince(ContentType type, Collection<UUID> contentIds, java.time.Instant since) {
+        Map<UUID, Long> counts = new HashMap<>();
+        if (contentIds.isEmpty()) {
+            return counts;
+        }
+        for (Object[] row : contentLikeRepository.countGroupedByContentIdSince(type, contentIds, since)) {
+            counts.put((UUID) row[0], (Long) row[1]);
+        }
+        return counts;
+    }
+
     /** Alterna el "me gusta" de un lector anónimo. Devuelve el nuevo estado y el contador actualizado. */
     public LikeResult toggleLike(ContentType type, UUID contentId, UUID visitorId) {
         var existing = contentLikeRepository.findByContentTypeAndContentIdAndVisitorId(type, contentId, visitorId);

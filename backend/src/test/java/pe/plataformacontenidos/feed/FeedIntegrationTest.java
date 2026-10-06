@@ -51,6 +51,9 @@ class FeedIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     @Test
     void feedMixesArticlesPlacesAndEvents() throws Exception {
         String editorToken = createUserAndLogin("feed-editor@plataforma-contenidos.test", Role.EDITOR);
@@ -346,6 +349,51 @@ class FeedIntegrationTest {
         String id = textField(result, "id");
         runWorkflow("/api/v1/admin/events/" + id, authorToken, editorToken);
         return id;
+    }
+
+    @Test
+    void topicsListOnlyRootTopicsWithContentIncludingSubtopics() throws Exception {
+        String editorToken = createUserAndLogin("feed-topics-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("feed-topics-author@plataforma-contenidos.test", Role.AUTHOR);
+        String rootId = createCategory(editorToken, "Tema Raíz");
+        String childId = createSubcategory(editorToken, "Tema Hijo", rootId);
+        String emptyId = createCategory(editorToken, "Tema Vacío");
+        publishArticle(authorToken, editorToken, childId, "Tema hijo " + UUID.randomUUID());
+
+        mockMvc.perform(get("/api/v1/feed/topics"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].categoryId", hasItem(rootId)))
+                .andExpect(jsonPath("$[*].categoryId", not(hasItem(childId))))
+                .andExpect(jsonPath("$[*].categoryId", not(hasItem(emptyId))));
+    }
+
+    @Test
+    void topicIsMarkedNewOnlyWithin48Hours() throws Exception {
+        String editorToken = createUserAndLogin("feed-new-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("feed-new-author@plataforma-contenidos.test", Role.AUTHOR);
+        String freshId = createCategory(editorToken, "Tema Fresco");
+        String oldId = createCategory(editorToken, "Tema Viejo");
+        publishArticle(authorToken, editorToken, freshId, "Fresco " + UUID.randomUUID());
+        String old = publishArticle(authorToken, editorToken, oldId, "Viejo " + UUID.randomUUID());
+        jdbcTemplate.update("UPDATE content.articles SET published_at = now() - interval '3 days' WHERE id = ?::uuid", old);
+
+        mockMvc.perform(get("/api/v1/feed/topics"))
+                .andExpect(jsonPath("$[?(@.categoryId == '" + freshId + "')].hasNew", hasItem(true)))
+                .andExpect(jsonPath("$[?(@.categoryId == '" + oldId + "')].hasNew", hasItem(false)));
+    }
+
+    @Test
+    void topicCoverIsTheLatestContentThatHasAnImage() throws Exception {
+        String editorToken = createUserAndLogin("feed-cover-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("feed-cover-author@plataforma-contenidos.test", Role.AUTHOR);
+        String topicId = createCategory(editorToken, "Tema Portada");
+        String gallery = publishGallery(authorToken, editorToken, topicId, "Portada " + UUID.randomUUID());
+        jdbcTemplate.update("UPDATE galleries.galleries SET published_at = now() - interval '1 day' WHERE id = ?::uuid", gallery);
+        publishArticle(authorToken, editorToken, topicId, "Sin imagen " + UUID.randomUUID());
+
+        mockMvc.perform(get("/api/v1/feed/topics"))
+                .andExpect(jsonPath("$[?(@.categoryId == '" + topicId + "')].coverImageUrl",
+                        hasItem("https://example.com/g.jpg")));
     }
 
     private String publishEventAt(String authorToken, String editorToken, String categoryId, String title,

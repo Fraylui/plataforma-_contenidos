@@ -16,5 +16,11 @@ public interface ContentLikeRepository extends JpaRepository<ContentLike, UUID> 
     @Query("select l.contentId, count(l) from ContentLike l where l.contentType = :type and l.contentId in :ids group by l.contentId")
     List<Object[]> countGroupedByContentId(@Param("type") ContentType type, @Param("ids") Collection<UUID> ids);
 
+    /** Como countGroupedByContentId, pero solo los "me gusta" dados desde `since` (actividad reciente). */
+    @Query("select l.contentId, count(l) from ContentLike l where l.contentType = :type and l.contentId in :ids"
+            + " and l.createdAt >= :since group by l.contentId")
+    List<Object[]> countGroupedByContentIdSince(@Param("type") ContentType type, @Param("ids") Collection<UUID> ids,
+            @Param("since") java.time.Instant since);
+
     Optional<ContentLike> findByContentTypeAndContentIdAndVisitorId(ContentType contentType, UUID contentId, UUID visitorId);
 }

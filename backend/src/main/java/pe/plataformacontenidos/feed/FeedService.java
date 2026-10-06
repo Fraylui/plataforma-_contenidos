@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,6 +25,8 @@ import pe.plataformacontenidos.events.Event;
 import pe.plataformacontenidos.events.EventService;
 import pe.plataformacontenidos.feed.api.dto.FeedItemResponse;
 import pe.plataformacontenidos.feed.api.dto.FeedPageResponse;
+import pe.plataformacontenidos.feed.api.dto.FeedTopicResponse;
+import pe.plataformacontenidos.taxonomy.Category;
 import pe.plataformacontenidos.galleries.Gallery;
 import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.places.Place;
@@ -164,6 +167,86 @@ public class FeedService {
                         .thenComparing(FeedItemResponse::publishedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                 .limit(Math.max(size, 1))
                 .toList();
+    }
+
+    /**
+     * Círculos de temas del feed: solo temas raíz activos con contenido
+     * publicado (propio o de sus subtemas). Orden por actividad de la semana
+     * — `publicados_7d + 0.5 · me_gusta_7d` (algoritmo B de CONTEXTO §45.2) —
+     * y, a igualdad, por el orden del panel. Portada: la imagen del contenido
+     * más reciente que tenga una (cero trabajo de carga para el admin).
+     */
+    public List<FeedTopicResponse> getTopics() {
+        Instant now = Instant.now();
+        Instant weekAgo = now.minus(Duration.ofDays(7));
+        Instant newSince = now.minus(Duration.ofHours(NEW_TOPIC_HOURS));
+        Pageable pageable = PageRequest.of(0, CANDIDATE_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
+        List<FeedItemResponse> pool = buildPool(
+                articleService.listPublished(null, pageable).getContent(),
+                placeService.listPublished(null, pageable).getContent(),
+                eventService.listPublished(null, true, pageable).getContent(),
+                galleryService.listPublished(null, pageable).getContent(),
+                businessService.listPublished(null, null, pageable).getContent());
+
+        Map<UUID, Category> byId = new HashMap<>();
+        categoryService.listAll().forEach(c -> byId.put(c.getId(), c));
+        Map<UUID, List<FeedItemResponse>> byRoot = new LinkedHashMap<>();
+        for (FeedItemResponse item : pool) {
+            Category root = rootOf(item.categoryId(), byId);
+            if (root != null && root.isActive()) {
+                byRoot.computeIfAbsent(root.getId(), k -> new ArrayList<>()).add(item);
+            }
+        }
+
+        Map<UUID, Long> weeklyLikes = weeklyLikes(pool, weekAgo);
+        Map<UUID, Double> activity = new HashMap<>();
+        byRoot.forEach((rootId, items) -> activity.put(rootId, items.stream()
+                .mapToDouble(i -> (isAfter(i.publishedAt(), weekAgo) ? 1 : 0) + 0.5 * weeklyLikes.getOrDefault(i.id(), 0L))
+                .sum()));
+
+        return byRoot.entrySet().stream()
+                .sorted(Comparator.comparingDouble((Map.Entry<UUID, List<FeedItemResponse>> e) -> activity.get(e.getKey()))
+                        .reversed()
+                        .thenComparingInt(e -> byId.get(e.getKey()).getSortOrder()))
+                .map(e -> toTopic(byId.get(e.getKey()), e.getValue(), newSince))
+                .toList();
+    }
+
+    private static final int NEW_TOPIC_HOURS = 48;
+
+    private static Category rootOf(UUID categoryId, Map<UUID, Category> byId) {
+        Category current = categoryId == null ? null : byId.get(categoryId);
+        Set<UUID> seen = new HashSet<>();
+        while (current != null && current.getParentId() != null && seen.add(current.getId())) {
+            current = byId.get(current.getParentId());
+        }
+        return current;
+    }
+
+    private Map<UUID, Long> weeklyLikes(List<FeedItemResponse> pool, Instant since) {
+        Map<UUID, Long> likes = new HashMap<>();
+        for (ContentType type : FEED_TYPES) {
+            List<UUID> ids = pool.stream().filter(i -> i.type() == type).map(FeedItemResponse::id).toList();
+            likes.putAll(contentLikeService.countLikesSince(type, ids, since));
+        }
+        return likes;
+    }
+
+    private static boolean isAfter(Instant instant, Instant threshold) {
+        return instant != null && instant.isAfter(threshold);
+    }
+
+    private static FeedTopicResponse toTopic(Category category, List<FeedItemResponse> items, Instant newSince) {
+        Comparator<FeedItemResponse> newestFirst = Comparator.comparing(FeedItemResponse::publishedAt,
+                Comparator.nullsLast(Comparator.reverseOrder()));
+        FeedItemResponse cover = items.stream()
+                .filter(i -> i.coverImageId() != null || i.coverImageUrl() != null)
+                .sorted(newestFirst)
+                .findFirst()
+                .orElse(null);
+        boolean hasNew = items.stream().anyMatch(i -> isAfter(i.publishedAt(), newSince));
+        return new FeedTopicResponse(category.getId(), category.getName(), category.getSlug(),
+                cover == null ? null : cover.coverImageId(), cover == null ? null : cover.coverImageUrl(), hasNew);
     }
 
     /**
