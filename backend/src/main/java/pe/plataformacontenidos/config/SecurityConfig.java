@@ -61,7 +61,7 @@ public class SecurityConfig {
                 // Panel (spec 2a §4.1): las rutas exclusivas del dueño se exigen por rol;
                 // el resto del panel exige sesión y cada endpoint declara su módulo con
                 // @RequiresModule (ModuleAccessInterceptor, contra la base en cada petición).
-                .requestMatchers(OwnerOnlyPaths.PATTERNS.toArray(String[]::new)).hasRole("SUPER_ADMIN")
+                .requestMatchers(OwnerOnlyPaths.PATTERNS.toArray(String[]::new)).hasRole("OWNER")
                 .requestMatchers("/api/v1/admin/**").authenticated()
 
                 .requestMatchers("/api/v1/users/me", "/api/v1/users/me/**").authenticated()

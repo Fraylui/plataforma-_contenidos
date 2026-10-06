@@ -48,7 +48,7 @@ class ModuleAccessIntegrationTest {
     })
     void moduleIsRequiredAndRevocationIsImmediate(Module module, String path, AccessLevel level) throws Exception {
         String email = "worker-" + UUID.randomUUID() + "@perm.test";
-        User worker = userRepository.save(new User(email, passwordEncoder.encode("ClaveSegura12345"), "T", "W", Role.AUTHOR));
+        User worker = userRepository.save(new User(email, passwordEncoder.encode("ClaveSegura12345"), "T", "W", Role.WORKER));
         String token = login(email);
 
         mockMvc.perform(get(path).header("Authorization", "Bearer " + token))

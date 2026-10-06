@@ -50,7 +50,7 @@ class AdminActionAuditInterceptorTest {
     }
 
     private void signIn() {
-        var principal = new UserPrincipal(adminId, Role.SUPER_ADMIN);
+        var principal = new UserPrincipal(adminId, Role.OWNER);
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(principal, null, List.of()));
     }
 

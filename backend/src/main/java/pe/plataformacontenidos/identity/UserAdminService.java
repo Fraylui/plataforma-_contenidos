@@ -25,8 +25,8 @@ public class UserAdminService {
 
     public User createUser(String email, String rawPassword, String firstName, String lastName, Role role,
             UUID actingAdminId, Role actingAdminRole, String ipAddress) {
-        if (role == Role.SUPER_ADMIN && actingAdminRole != Role.SUPER_ADMIN) {
-            throw new SuperAdminManagementDeniedException();
+        if (role == Role.OWNER && actingAdminRole != Role.OWNER) {
+            throw new OwnerManagementDeniedException();
         }
         if (userRepository.existsByEmailIgnoreCase(email)) {
             throw new EmailAlreadyExistsException();
@@ -53,8 +53,8 @@ public class UserAdminService {
             throw new CannotModifyOwnAccountException();
         }
         User user = getOrThrow(userId);
-        if (user.getRole() == Role.SUPER_ADMIN && actingAdminRole != Role.SUPER_ADMIN) {
-            throw new SuperAdminManagementDeniedException();
+        if (user.getRole() == Role.OWNER && actingAdminRole != Role.OWNER) {
+            throw new OwnerManagementDeniedException();
         }
 
         user.setActive(active);

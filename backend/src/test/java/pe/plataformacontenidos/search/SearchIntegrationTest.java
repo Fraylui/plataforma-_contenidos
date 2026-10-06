@@ -1,6 +1,5 @@
 package pe.plataformacontenidos.search;
 
-import pe.plataformacontenidos.identity.permission.LegacyRoleGrants;
 import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.everyItem;
@@ -28,7 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.LegacyRole;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
@@ -62,8 +61,8 @@ class SearchIntegrationTest {
 
     @Test
     void findsPublishedArticleByTitleWordAndNotUnrelatedMatches() throws Exception {
-        String editorToken = createUserAndLogin("search-editor@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("search-author@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("search-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("search-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Turismo Búsqueda Test");
 
         // Palabra distintiva (no "turismo"/"andino" sueltos: la suite completa
@@ -85,8 +84,8 @@ class SearchIntegrationTest {
 
     @Test
     void findsPublishedPlace() throws Exception {
-        String editorToken = createUserAndLogin("search-place-editor@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("search-place-author@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("search-place-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("search-place-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Categoría Lugar Búsqueda Test");
 
         String placeId = createPlace(authorToken, categoryId, "Templo colonial de Huamanguilla");
@@ -108,8 +107,8 @@ class SearchIntegrationTest {
 
     @Test
     void typeParamFiltersOutTheOtherContentTypeEvenIfItMatches() throws Exception {
-        String editorToken = createUserAndLogin("search-type-editor@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("search-type-author@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("search-type-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("search-type-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Categoría Filtro Tipo Test");
 
         // Misma palabra distintiva en un artículo y en un lugar, para probar
@@ -143,8 +142,8 @@ class SearchIntegrationTest {
 
     @Test
     void findsPublishedEvent() throws Exception {
-        String editorToken = createUserAndLogin("search-event-editor@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("search-event-author@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("search-event-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("search-event-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Categoría Evento Búsqueda Test");
 
         String eventId = createEvent(authorToken, categoryId, "Festival Puyllay de Quinua");
@@ -166,8 +165,8 @@ class SearchIntegrationTest {
 
     @Test
     void findsPublishedGallery() throws Exception {
-        String editorToken = createUserAndLogin("search-gallery-editor@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("search-gallery-author@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("search-gallery-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("search-gallery-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Categoría Galería Búsqueda Test");
         String imageId = uploadImage(authorToken);
 
@@ -190,8 +189,8 @@ class SearchIntegrationTest {
 
     @Test
     void doesNotReturnDraftArticles() throws Exception {
-        String authorToken = createUserAndLogin("search-author-2@plataforma-contenidos.test", Role.AUTHOR);
-        String editorToken = createUserAndLogin("search-editor-2@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("search-author-2@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String editorToken = createUserAndLogin("search-editor-2@plataforma-contenidos.test", LegacyRole.EDITOR);
         String categoryId = createCategory(editorToken, "Categoría Draft Test");
 
         mockMvc.perform(post("/api/v1/admin/articles")
@@ -214,8 +213,8 @@ class SearchIntegrationTest {
 
     @Test
     void findsContentByItsCategoryNameEvenIfTheTextNeverMentionsIt() throws Exception {
-        String editorToken = createUserAndLogin("search-cat-editor@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("search-cat-author@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("search-cat-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("search-cat-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
         // Nombre con tilde: la búsqueda debe encontrarlo escrito sin tilde y en minúsculas.
         String categoryId = createCategory(editorToken, "Kunturwási Temático");
 
@@ -236,8 +235,8 @@ class SearchIntegrationTest {
 
     @Test
     void contentMatchingByTextAndByCategoryAppearsOnlyOnce() throws Exception {
-        String editorToken = createUserAndLogin("search-dup-editor@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("search-dup-author@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("search-dup-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("search-dup-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Wiñaypachaq");
 
         publishArticle(authorToken, editorToken, categoryId, "Guía de Wiñaypachaq para principiantes",
@@ -361,10 +360,10 @@ class SearchIntegrationTest {
         return json.get(field).asText();
     }
 
-    private String createUserAndLogin(String email, Role role) throws Exception {
+    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
         String password = "SomeStrongPassword123!";
-        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
-        LegacyRoleGrants.grant(workerPermissions, created.getId(), role);
+        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
+        role.grant(workerPermissions, created.getId());
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))

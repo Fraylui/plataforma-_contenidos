@@ -116,7 +116,7 @@ class AuthFlowIntegrationTest {
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value(ADMIN_EMAIL))
-                .andExpect(jsonPath("$.role").value("SUPER_ADMIN"));
+                .andExpect(jsonPath("$.role").value("OWNER"));
     }
 
     @Test
@@ -152,7 +152,7 @@ class AuthFlowIntegrationTest {
             put("password", "AnotherSecret123!");
             put("firstName", "Editor");
             put("lastName", "de Prueba");
-            put("role", "EDITOR");
+            put("role", "WORKER");
         }});
 
         mockMvc.perform(post("/api/v1/admin/users")
@@ -160,7 +160,7 @@ class AuthFlowIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(createUserJson))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.role").value("EDITOR"));
+                .andExpect(jsonPath("$.role").value("WORKER"));
 
         String editorToken = login("editor@plataforma-contenidos.test", "AnotherSecret123!");
 
@@ -182,13 +182,13 @@ class AuthFlowIntegrationTest {
                 .andExpect(status().isConflict());
     }
 
-    /** CONTEXTO.md sección 36.4: un ADMIN no gestiona cuentas SUPER_ADMIN. */
+    /** Spec 2a: solo el dueño gestiona cuentas; un trabajador no llega a esa API. */
     @Test
-    void adminCannotCreateOrDeactivateSuperAdmin() throws Exception {
+    void workerCannotCreateAccountsNorDeactivateTheOwner() throws Exception {
         String superAdminToken = login(ADMIN_EMAIL, ADMIN_PASSWORD);
         String superAdminId = currentUserId(superAdminToken);
 
-        createUser(superAdminToken, "plain-admin@plataforma-contenidos.test", "AnotherSecret123!", "ADMIN");
+        createUser(superAdminToken, "plain-admin@plataforma-contenidos.test", "AnotherSecret123!", "WORKER");
         String plainAdminToken = login("plain-admin@plataforma-contenidos.test", "AnotherSecret123!");
 
         String createSuperJson = objectMapper.writeValueAsString(new java.util.HashMap<>() {{
@@ -196,7 +196,7 @@ class AuthFlowIntegrationTest {
             put("password", "AnotherSecret123!");
             put("firstName", "Wannabe");
             put("lastName", "Super");
-            put("role", "SUPER_ADMIN");
+            put("role", "OWNER");
         }});
         mockMvc.perform(post("/api/v1/admin/users")
                         .header("Authorization", "Bearer " + plainAdminToken)
@@ -214,7 +214,7 @@ class AuthFlowIntegrationTest {
         String adminToken = login(ADMIN_EMAIL, ADMIN_PASSWORD);
         String email = "to-deactivate@plataforma-contenidos.test";
         String password = "AnotherSecret123!";
-        String userId = createUser(adminToken, email, password, "AUTHOR");
+        String userId = createUser(adminToken, email, password, "WORKER");
 
         login(email, password); // funciona mientras está activo
 

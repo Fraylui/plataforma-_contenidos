@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import pe.plataformacontenidos.identity.CannotModifyOwnAccountException;
 import pe.plataformacontenidos.identity.EmailAlreadyExistsException;
 import pe.plataformacontenidos.identity.InvalidCredentialsException;
-import pe.plataformacontenidos.identity.SuperAdminManagementDeniedException;
+import pe.plataformacontenidos.identity.OwnerManagementDeniedException;
 import pe.plataformacontenidos.identity.TooManyAttemptsException;
 import pe.plataformacontenidos.identity.UserNotFoundException;
 
@@ -37,8 +37,8 @@ public class IdentityExceptionHandler {
         return error(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-    @ExceptionHandler(SuperAdminManagementDeniedException.class)
-    public ResponseEntity<ApiError> handleSuperAdminManagementDenied(SuperAdminManagementDeniedException ex) {
+    @ExceptionHandler(OwnerManagementDeniedException.class)
+    public ResponseEntity<ApiError> handleOwnerManagementDenied(OwnerManagementDeniedException ex) {
         return error(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 

@@ -1,6 +1,5 @@
 package pe.plataformacontenidos.events;
 
-import pe.plataformacontenidos.identity.permission.LegacyRoleGrants;
 import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -19,7 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.LegacyRole;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
@@ -49,8 +48,8 @@ class EventWorkflowIntegrationTest {
 
     @Test
     void fullContentLifecycleFromDraftToPublished() throws Exception {
-        String editorToken = createUserAndLogin("events-editor@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("events-author@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("events-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("events-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Eventos Culturales Test");
 
         String eventId = createDraftEvent(authorToken, categoryId, "Festival de la Wamanripa", "2030-06-14T19:00:00Z");
@@ -102,8 +101,8 @@ class EventWorkflowIntegrationTest {
 
     @Test
     void separatesUpcomingFromPastEvents() throws Exception {
-        String editorToken = createUserAndLogin("events-editor-2@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("events-author-2@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("events-editor-2@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("events-author-2@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Categoría Próximos Pasados Test");
 
         publishEvent(authorToken, editorToken, categoryId, "Feria Kimsapampa Próxima", "2031-03-01T10:00:00Z");
@@ -125,8 +124,8 @@ class EventWorkflowIntegrationTest {
 
     @Test
     void rejectsEndsAtBeforeStartsAt() throws Exception {
-        String authorToken = createUserAndLogin("events-author-3@plataforma-contenidos.test", Role.AUTHOR);
-        String editorToken = createUserAndLogin("events-editor-3@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("events-author-3@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String editorToken = createUserAndLogin("events-editor-3@plataforma-contenidos.test", LegacyRole.EDITOR);
         String categoryId = createCategory(editorToken, "Categoría Fechas Test");
 
         mockMvc.perform(post("/api/v1/admin/events")
@@ -140,8 +139,8 @@ class EventWorkflowIntegrationTest {
 
     @Test
     void rejectsUnknownPlaceId() throws Exception {
-        String authorToken = createUserAndLogin("events-author-4@plataforma-contenidos.test", Role.AUTHOR);
-        String editorToken = createUserAndLogin("events-editor-4@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("events-author-4@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String editorToken = createUserAndLogin("events-editor-4@plataforma-contenidos.test", LegacyRole.EDITOR);
         String categoryId = createCategory(editorToken, "Categoría Lugar Inexistente Test");
 
         mockMvc.perform(post("/api/v1/admin/events")
@@ -156,9 +155,9 @@ class EventWorkflowIntegrationTest {
 
     @Test
     void authorCannotEditSomeoneElsesEvent() throws Exception {
-        String editorToken = createUserAndLogin("events-editor-5@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("events-author-5@plataforma-contenidos.test", Role.AUTHOR);
-        String otherAuthorToken = createUserAndLogin("events-author-6@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("events-editor-5@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("events-author-5@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String otherAuthorToken = createUserAndLogin("events-author-6@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Categoría Evento Ajeno Test");
 
         String eventId = createDraftEvent(authorToken, categoryId, "Concierto privado", "2030-06-14T19:00:00Z");
@@ -214,10 +213,10 @@ class EventWorkflowIntegrationTest {
         return json.get(field).asText();
     }
 
-    private String createUserAndLogin(String email, Role role) throws Exception {
+    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
         String password = "SomeStrongPassword123!";
-        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
-        LegacyRoleGrants.grant(workerPermissions, created.getId(), role);
+        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
+        role.grant(workerPermissions, created.getId());
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))

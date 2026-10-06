@@ -1,6 +1,5 @@
 package pe.plataformacontenidos.stats;
 
-import pe.plataformacontenidos.identity.permission.LegacyRoleGrants;
 import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -18,7 +17,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.LegacyRole;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
@@ -48,8 +47,8 @@ class StatsIntegrationTest {
 
     @Test
     void reflectsCreatedCategoryAndArticleCounts() throws Exception {
-        String editorToken = createUserAndLogin("stats-editor@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("stats-author@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("stats-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("stats-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
 
         MvcResult categoryResult = mockMvc.perform(post("/api/v1/admin/categories")
                         .header("Authorization", "Bearer " + editorToken)
@@ -71,13 +70,13 @@ class StatsIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.articlesByStatus.DRAFT").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
                 .andExpect(jsonPath("$.totalCategories").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
-                .andExpect(jsonPath("$.usersByRole.EDITOR").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
-                .andExpect(jsonPath("$.usersByRole.AUTHOR").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)));
+                // Roles de 2a: dueño y trabajador (el alcance de cada trabajador está en sus permisos).
+                .andExpect(jsonPath("$.usersByRole.WORKER").value(org.hamcrest.Matchers.greaterThanOrEqualTo(2)));
     }
 
     @Test
     void authorCannotAccessStats() throws Exception {
-        String authorToken = createUserAndLogin("stats-author-2@plataforma-contenidos.test", Role.AUTHOR);
+        String authorToken = createUserAndLogin("stats-author-2@plataforma-contenidos.test", LegacyRole.AUTHOR);
 
         mockMvc.perform(get("/api/v1/admin/stats").header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isForbidden());
@@ -93,10 +92,10 @@ class StatsIntegrationTest {
         return json.get(field).asText();
     }
 
-    private String createUserAndLogin(String email, Role role) throws Exception {
+    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
         String password = "SomeStrongPassword123!";
-        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
-        LegacyRoleGrants.grant(workerPermissions, created.getId(), role);
+        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
+        role.grant(workerPermissions, created.getId());
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))

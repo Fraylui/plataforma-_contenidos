@@ -32,12 +32,12 @@ class PermissionServiceIntegrationTest {
 
     @Test
     void superAdminIsTheOwner() {
-        assertThat(permissionService.forUser(user(Role.SUPER_ADMIN).getId()).owner()).isTrue();
+        assertThat(permissionService.forUser(user(Role.OWNER).getId()).owner()).isTrue();
     }
 
     @Test
     void workerPermissionsComeFromItsRows() {
-        User worker = user(Role.AUTHOR);
+        User worker = user(Role.WORKER);
         repository.save(new WorkerPermission(worker.getId(), Module.EVENTS, AccessLevel.PUBLISH));
 
         Permissions p = permissionService.forUser(worker.getId());
@@ -48,7 +48,7 @@ class PermissionServiceIntegrationTest {
 
     @Test
     void databaseRejectsInvalidModuleLevelCombinations() {
-        User worker = user(Role.AUTHOR);
+        User worker = user(Role.WORKER);
         assertThatThrownBy(() -> jdbc.update(
                 "INSERT INTO identity.worker_permissions (user_id, module, level) VALUES (?, 'CATEGORIES', 'PUBLISH')", worker.getId()))
                 .isInstanceOf(DataIntegrityViolationException.class);

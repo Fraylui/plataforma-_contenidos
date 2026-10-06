@@ -1,6 +1,5 @@
 package pe.plataformacontenidos.media;
 
-import pe.plataformacontenidos.identity.permission.LegacyRoleGrants;
 import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -22,7 +21,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.LegacyRole;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.ObjectMapper;
@@ -51,7 +50,7 @@ class MediaUploadRateLimitIntegrationTest {
 
     @Test
     void blocksUploadsAfterConfiguredLimit() throws Exception {
-        String token = createUserAndLogin("media-rate-limit@plataforma-contenidos.test", Role.AUTHOR);
+        String token = createUserAndLogin("media-rate-limit@plataforma-contenidos.test", LegacyRole.AUTHOR);
         byte[] png = generatePng();
 
         for (int i = 0; i < 2; i++) {
@@ -74,10 +73,10 @@ class MediaUploadRateLimitIntegrationTest {
         return out.toByteArray();
     }
 
-    private String createUserAndLogin(String email, Role role) throws Exception {
+    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
         String password = "SomeStrongPassword123!";
-        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
-        LegacyRoleGrants.grant(workerPermissions, created.getId(), role);
+        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
+        role.grant(workerPermissions, created.getId());
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))

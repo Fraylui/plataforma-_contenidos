@@ -32,7 +32,7 @@ public class PermissionService {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
         Map<Module, AccessLevel> levels = new EnumMap<>(Module.class);
         repository.findByUserId(userId).forEach(p -> levels.put(p.getModule(), p.getLevel()));
-        return new Permissions(userId, user.getRole() == Role.SUPER_ADMIN, user.getStatus() == UserStatus.ACTIVE,
+        return new Permissions(userId, user.getRole() == Role.OWNER, user.getStatus() == UserStatus.ACTIVE,
                 user.isMustChangePassword(), levels);
     }
 }

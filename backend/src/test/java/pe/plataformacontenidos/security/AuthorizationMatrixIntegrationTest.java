@@ -1,6 +1,5 @@
 package pe.plataformacontenidos.security;
 
-import pe.plataformacontenidos.identity.permission.LegacyRoleGrants;
 import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -25,7 +24,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.LegacyRole;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.ObjectMapper;
@@ -60,10 +59,10 @@ class AuthorizationMatrixIntegrationTest {
     @BeforeAll
     void createUsers() throws Exception {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
-        authorToken = createUserAndLogin("matrix-author-" + suffix + "@plataforma-contenidos.test", Role.AUTHOR);
-        editorToken = createUserAndLogin("matrix-editor-" + suffix + "@plataforma-contenidos.test", Role.EDITOR);
-        adminToken = createUserAndLogin("matrix-admin-" + suffix + "@plataforma-contenidos.test", Role.ADMIN);
-        ownerToken = createUserAndLogin("matrix-owner-" + suffix + "@plataforma-contenidos.test", Role.SUPER_ADMIN);
+        authorToken = createUserAndLogin("matrix-author-" + suffix + "@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        editorToken = createUserAndLogin("matrix-editor-" + suffix + "@plataforma-contenidos.test", LegacyRole.EDITOR);
+        adminToken = createUserAndLogin("matrix-admin-" + suffix + "@plataforma-contenidos.test", LegacyRole.ADMIN);
+        ownerToken = createUserAndLogin("matrix-owner-" + suffix + "@plataforma-contenidos.test", LegacyRole.SUPER_ADMIN);
     }
 
     /** Endpoints exclusivos del dueño (spec 2a: usuarios/trabajadores, configuración, auditoría). */
@@ -183,9 +182,9 @@ class AuthorizationMatrixIntegrationTest {
         };
     }
 
-    private String createUserAndLogin(String email, Role role) throws Exception {
-        User created = userRepository.save(new User(email, passwordEncoder.encode(PASSWORD), "Matrix", "Test", role));
-        LegacyRoleGrants.grant(workerPermissions, created.getId(), role);
+    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
+        User created = userRepository.save(new User(email, passwordEncoder.encode(PASSWORD), "Matrix", "Test", role.toRole()));
+        role.grant(workerPermissions, created.getId());
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + PASSWORD + "\"}"))
