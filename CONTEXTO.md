@@ -2101,6 +2101,33 @@ Cada tarea es un ciclo corto (PDCA de ISO 9001): **planificar** (brief del plan)
 | ISO/IEC 27001 (A.8.25–A.8.29) | Desarrollo seguro | OWASP (escape de JSON-LD, HTML saneado en backend, CSP), `npm audit` en CI, CodeQL. |
 | WCAG 2.2 AA | Accesibilidad | `vitest-axe` en componentes, objetivos táctiles ≥ 44 px, foco visible, contraste verificado. |
 
+## 46.6d Sprint de calidad (2026-10-06) — seguridad, observabilidad y datos personales
+
+Pedido del dueño: software seguro, mantenible, medible y que no sature el VPS (bots, memoria).
+
+| Tema | Hecho |
+|---|---|
+| Dependencias | Next.js 16.3.3 → **16.3.8** (vulnerabilidad crítica); `npm audit --audit-level=high` del CI vuelve a pasar. Quedan 2 moderadas de `@tailwindcss/typography` (solo al compilar CSS propio) aceptadas como riesgo bajo. |
+| Logs | `RequestIdFilter`: id por petición en cada línea de log y en la cabecera `X-Request-Id` (nginx manda su `$request_id`; ids inseguros se descartan → sin falsificación de logs). Docker/VPS: **JSON ECS**. Rotación 10 MB × 5 por servicio. |
+| Auditoría | `AdminActionAuditInterceptor`: **toda** acción del panel que modifica algo queda registrada (quién, método+ruta, recurso, IP, resultado). Antes solo login/usuarios/configuración/imágenes. Sin duplicados con los eventos propios. |
+| Retención (Ley 29733) | `AuditRetentionJob` purga a diario la auditoría con más de `AUDIT_RETENTION_DAYS` (365) y deja constancia. |
+| VPS / bots | nginx: tiempos cortos (slowloris), 30 conexiones simultáneas por IP, `server_tokens off`, escáneres (`wp-*`, `.php`, `.env`, `.git`) cortados con 444. Ya existían: límite de peticiones por IP, micro-caché, topes de memoria por contenedor, JVM al 70 %, Redis `maxmemory`, límite de intentos de login y de subidas. |
+| Orden del código | knip en CI (cero archivos/exportaciones sin uso); carpeta `public` versionada (el build en un clon limpio fallaba). |
+| MFA | **No se reactiva** (decisión del dueño, 2026-10-06): riesgo aceptado, compensado con límite de intentos de login y auditoría de accesos. |
+
+**Inventario de datos personales (Ley 29733):**
+
+| Dato | Dónde | Retención |
+|---|---|---|
+| Correo, nombre y contraseña (hash) del personal | `identity.users` | Mientras exista la cuenta |
+| Correo e IP de quien actúa en el panel | `audit.audit_log` | 365 días (`AUDIT_RETENTION_DAYS`) |
+| «Me gusta» | `engagement.content_likes` — UUID aleatorio del navegador, sin datos personales | Indefinida (no identifica) |
+| Frecuencia de anuncios | Redis — hash de la IP | 26 h |
+| Intentos de login | Redis | Ventana de 15 min |
+| Logs de contenedores (IP en nginx) | Archivos JSON rotados | 50 MB por servicio |
+
+Pendiente del sprint: barrido de código muerto del backend Java y Lighthouse (LCP/CLS/INP con umbrales).
+
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
 Ordenadas por prioridad.

@@ -111,6 +111,9 @@ services:
       JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70"
       # Logs en JSON estructurado (ECS), con requestId en cada línea.
       LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
+      # Retención de la auditoría (Ley 29733 / ISO 27001): días que se conservan
+      # los eventos (guardan correo e IP); AuditRetentionJob purga a diario.
+      AUDIT_RETENTION_DAYS: ${AUDIT_RETENTION_DAYS:-365}
       MEDIA_UPLOAD_MAX_ATTEMPTS: ${MEDIA_UPLOAD_MAX_ATTEMPTS:-30}
       MEDIA_UPLOAD_WINDOW_MINUTES: ${MEDIA_UPLOAD_WINDOW_MINUTES:-15}
     ports:
