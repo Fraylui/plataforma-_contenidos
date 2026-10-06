@@ -17,7 +17,8 @@ describe("LeftRail — «Buscar» abre un panel lateral (como Instagram)", () =>
     await waitFor(() => expect(panel.querySelector("input")).toHaveFocus());
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("dialog", { name: "Buscar" })).not.toBeInTheDocument();
-  });
+    // Margen amplio: con la CPU ocupada (p. ej. un build de Docker en paralelo) el diálogo de Radix superó los 5 s por defecto.
+  }, 15_000);
 });
 
 describe("LeftRail — sin selector de apariencia: claro u oscuro según el dispositivo", () => {

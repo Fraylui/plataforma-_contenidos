@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 function pages(dir: string): string[] {
@@ -17,7 +18,7 @@ function pages(dir: string): string[] {
  * código fuente es "<" en JavaScript y no escapa nada.
  */
 describe("JSON-LD de las páginas", () => {
-  const files = pages(join(process.cwd(), "src", "app")).filter((f) => readFileSync(f, "utf-8").includes("application/ld+json"));
+  const files = pages(dirname(fileURLToPath(import.meta.url))).filter((f) => readFileSync(f, "utf-8").includes("application/ld+json"));
 
   it("hay páginas con JSON-LD", () => {
     expect(files.length).toBeGreaterThan(0);
