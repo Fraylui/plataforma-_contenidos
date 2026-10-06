@@ -33,7 +33,10 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explorar
   return (
     <div className="mx-auto w-full max-w-[935px] py-3 sm:px-4 sm:py-6">
       <h1 className="sr-only">Explorar</h1>
-      <FilterChips label="Tipo de contenido" options={exploreChipOptions(visibility, type)} className="mb-3 px-4 sm:px-0" />
+      {/* FilterChips sale hasta el borde con -mx-4: necesita un padre con px-4 en celular. */}
+      <div className="px-4 sm:px-0">
+        <FilterChips label="Tipo de contenido" options={exploreChipOptions(visibility, type)} className="mb-3" />
+      </div>
       <ExploreGrid
         key={type ?? "todo"}
         initialItems={page.items.map(fromFeedItem)}
