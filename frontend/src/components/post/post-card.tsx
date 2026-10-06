@@ -70,7 +70,6 @@ export function PostCard({
           }}
           disabled={pending}
           aria-pressed={liked}
-          aria-label={liked ? "Quitar me gusta" : "Me gusta"}
           className={ICON_BUTTON}
         >
           <Heart
@@ -79,6 +78,9 @@ export function PostCard({
             aria-hidden="true"
           />
           <span className="text-sm font-semibold tabular-nums">{likeCount}</span>
+          {/* El nombre accesible incluye el número visible (WCAG 2.5.3); aria-pressed dice si ya está marcado. */}
+          {" "}
+          <span className="sr-only">Me gusta</span>
         </button>
         <button type="button" onClick={() => void share()} aria-label="Compartir" className={ICON_BUTTON}>
           {copied ? <Check className="h-6 w-6 text-accent" aria-hidden="true" /> : <PaperPlaneTilt className="h-6 w-6" aria-hidden="true" />}

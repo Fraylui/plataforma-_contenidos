@@ -75,6 +75,30 @@ describe("PostCard", () => {
     expect(screen.getByTestId("post-header").querySelector("time")).toBeNull();
   });
 
+  it("el nombre accesible de me gusta incluye el número visible (WCAG 2.5.3)", () => {
+    render(<PostCard item={item({ likeCount: 12 })} brand={brand} />);
+    expect(screen.getByRole("button", { name: "12 Me gusta" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("los puntos del carrusel son fáciles de tocar (objetivo ≥ 24 px, WCAG 2.5.8)", () => {
+    render(
+      <PostCard
+        item={item({ images: [{ url: "https://e.com/a.jpg", isExternal: true }, { url: "https://e.com/b.jpg", isExternal: true }] })}
+        brand={brand}
+      />,
+    );
+    for (const dot of screen.getAllByRole("button", { name: /Ir a la imagen/ })) {
+      expect(dot).toHaveClass("h-6", "w-6");
+    }
+  });
+
+  it("la foto del primer post se pide con prioridad alta (LCP), también si es un enlace externo", () => {
+    const { container } = render(<PostCard item={item({ images: [{ url: "https://e.com/a.jpg", isExternal: true }] })} brand={brand} priority />);
+    const img = container.querySelector("img[src='https://e.com/a.jpg']");
+    expect(img).toHaveAttribute("fetchpriority", "high");
+    expect(img).toHaveAttribute("loading", "eager");
+  });
+
   it("publicaciones y galerías no tienen acción extra", () => {
     render(<PostCard item={item({})} brand={brand} />);
     expect(screen.queryByRole("link", { name: /Agendar|Cómo llegar|Llamar|Sitio web/ })).not.toBeInTheDocument();

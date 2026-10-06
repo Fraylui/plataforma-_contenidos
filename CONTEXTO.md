@@ -2126,7 +2126,20 @@ Pedido del dueño: software seguro, mantenible, medible y que no sature el VPS (
 | Intentos de login | Redis | Ventana de 15 min |
 | Logs de contenedores (IP en nginx) | Archivos JSON rotados | 50 MB por servicio |
 
-Pendiente del sprint: barrido de código muerto del backend Java y Lighthouse (LCP/CLS/INP con umbrales).
+Barrido de código muerto del backend: 3 métodos sin uso borrados (`dae0306`); el resto eran falsos positivos (records, `@Scheduled`, getters JPA).
+
+**Lighthouse (2026-10-06, perfil móvil, Docker local, equipo con poca memoria → rendimiento pesimista):**
+
+| Pantalla | Rend. | Accesib. | B. prácticas | SEO | LCP | CLS | TBT |
+|---|---|---|---|---|---|---|---|
+| Inicio | 57 | 96 | 100 | 100 | 8,3 s | 0 | 722 ms |
+| Explorar | 79 | 100 | 100 | 100 | 3,9 s | 0 | 310 ms |
+| Lugares | 71 | 96 | 96 | 100 | 5,4 s | 0 | 376 ms |
+| Detalle evento | 74 | 100 | 100 | 100 | 5,6 s | 0 | 243 ms |
+
+Corregido a partir de la medición: (1) **bug real** — imágenes con 500 en `/_next/image`: las páginas prerenderizadas en el build de Docker quedaban con `localhost:8080`; `serverImageUrl` ahora usa `RUNTIME_BACKEND_INTERNAL_URL`; (2) WCAG 2.5.3: el nombre de «me gusta» incluye el número visible; (3) WCAG 2.5.8: puntos del carrusel con área de toque de 24 px; (4) `fetchpriority="high"` en la foto principal aunque sea un enlace externo. `lighthouserc.js` pasa a perfil móvil con las pantallas nuevas.
+
+Pendiente: el LCP alto se debe en gran parte a las fotos de demostración de `picsum.photos` (JPG de 1400 px por enlace externo, sin optimizar); el contenido real subido por el panel pasa por el optimizador. Volver a medir con contenido real y en el VPS. TBT: un paquete JS de ~1,7 s de ejecución en CPU lenta → analizar el bundle (`next build` con análisis) antes del lanzamiento.
 
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 

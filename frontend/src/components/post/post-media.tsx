@@ -83,6 +83,8 @@ export function PostMedia({
                     src={image.url}
                     alt={index === 0 ? title : ""}
                     loading={priority && index === 0 ? "eager" : "lazy"}
+                    // Mismo trato que next/image con priority: es la imagen principal (LCP) de la pantalla.
+                    fetchPriority={priority && index === 0 ? "high" : "auto"}
                     className="absolute inset-0 h-full w-full object-cover"
                   />
                 ) : (
@@ -127,7 +129,8 @@ export function PostMedia({
           >
             <CaretRight className="h-4 w-4" weight="bold" aria-hidden="true" />
           </button>
-          <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
+          {/* Punto visible de 6 px dentro de un botón de 24 px: fácil de tocar (WCAG 2.5.8) sin agrandar el diseño. */}
+          <div className="absolute inset-x-0 bottom-1.5 flex justify-center">
             {images.map((_, index) => (
               <button
                 key={index}
@@ -138,8 +141,13 @@ export function PostMedia({
                   e.stopPropagation();
                   emblaApi?.scrollTo(index);
                 }}
-                className={cn("h-1.5 w-1.5 cursor-pointer rounded-full transition-colors", index === selected ? "bg-white" : "bg-white/50")}
-              />
+                className="flex h-6 w-6 cursor-pointer items-center justify-center"
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn("h-1.5 w-1.5 rounded-full transition-colors", index === selected ? "bg-white" : "bg-white/50")}
+                />
+              </button>
             ))}
           </div>
         </>

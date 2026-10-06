@@ -169,6 +169,7 @@ export function LikeShareBar({
           aria-hidden="true"
         />
         <span className="text-[15px] font-semibold tabular-nums">{likeCount}</span>
+        {" "}
         <span className="sr-only">Me gusta</span>
       </button>
 
