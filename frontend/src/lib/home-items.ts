@@ -31,6 +31,24 @@ export interface HomeItem {
   sortDate: string;
   /** Texto de fecha ya formateado según la regla de cada tipo (ver content-labels.ts). */
   dateLabel: string;
+  /** Carrusel de la tarjeta tipo post; la primera es la portada. Vacío si no hay imágenes. */
+  images: HomeImage[];
+  /** Acciones por tipo (Agendar, Cómo llegar, Llamar, Sitio web); null si no aplican. */
+  startsAt?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  phone?: string | null;
+  website?: string | null;
+}
+
+export interface HomeImage {
+  url: string;
+  isExternal: boolean;
+}
+
+/** La portada como carrusel de una sola imagen (listados que no traen la galería completa). */
+function coverAsImages(cover: { url: string | null; isExternal: boolean }): HomeImage[] {
+  return cover.url ? [{ url: cover.url, isExternal: cover.isExternal }] : [];
 }
 
 function image(id: string | null | undefined): string | null {
@@ -64,6 +82,7 @@ export function fromArticle(a: ArticleSummary): HomeItem {
     typeLabel: KIND_LABEL.publicacion,
     sortDate: a.publishedAt ?? "",
     dateLabel: formatArticleDate(a.publishedAt),
+    images: coverAsImages(cover),
   };
 }
 
@@ -83,6 +102,9 @@ export function fromPlace(p: PlaceSummary): HomeItem {
     typeLabel: KIND_LABEL.lugar,
     sortDate: p.publishedAt ?? "",
     dateLabel: formatShortDate(p.publishedAt),
+    images: coverAsImages(cover),
+    latitude: p.latitude ?? null,
+    longitude: p.longitude ?? null,
   };
 }
 
@@ -102,6 +124,8 @@ export function fromEvent(e: EventSummary): HomeItem {
     typeLabel: KIND_LABEL.evento,
     sortDate: e.startsAt,
     dateLabel: formatEventDateTime(e.startsAt),
+    images: coverAsImages(cover),
+    startsAt: e.startsAt,
   };
 }
 
@@ -121,6 +145,7 @@ export function fromGallery(g: GallerySummary): HomeItem {
     typeLabel: KIND_LABEL.galeria,
     sortDate: g.publishedAt ?? "",
     dateLabel: formatShortDate(g.publishedAt),
+    images: g.images.flatMap((i) => coverAsImages(coverImage(i.imageId ?? null, i.externalUrl ?? null))),
   };
 }
 
@@ -128,6 +153,8 @@ const FEED_KIND: Record<FeedItem["type"], HomeItemKind> = {
   ARTICLE: "publicacion",
   PLACE: "lugar",
   EVENT: "evento",
+  GALLERY: "galeria",
+  BUSINESS: "directorio",
 };
 
 const FEED_HREF_PREFIX: Record<HomeItemKind, string> = {
@@ -135,6 +162,7 @@ const FEED_HREF_PREFIX: Record<HomeItemKind, string> = {
   lugar: "/lugares",
   evento: "/eventos",
   galeria: "/galerias",
+  directorio: "/directorio",
 };
 
 /**
@@ -148,6 +176,7 @@ const FEED_HREF_PREFIX: Record<HomeItemKind, string> = {
 export function fromFeedItem(item: FeedItem): HomeItem {
   const kind = FEED_KIND[item.type];
   const cover = coverImage(item.coverImageId, item.coverImageUrl);
+  const images = (item.images ?? []).flatMap((i) => coverAsImages(coverImage(i.imageId, i.externalUrl)));
   return {
     id: item.id,
     kind,
@@ -160,8 +189,15 @@ export function fromFeedItem(item: FeedItem): HomeItem {
     imageIsExternal: cover.isExternal,
     categoryId: item.categoryId ?? "",
     typeLabel: KIND_LABEL[kind],
-    sortDate: item.publishedAt ?? "",
-    dateLabel: "",
+    // En la agenda importa cuándo es el evento, no cuándo se publicó.
+    sortDate: (item.type === "EVENT" ? item.startsAt : item.publishedAt) ?? "",
+    dateLabel: item.type === "EVENT" && item.startsAt ? formatEventDateTime(item.startsAt) : "",
+    images: images.length > 0 ? images : coverAsImages(cover),
+    startsAt: item.startsAt,
+    latitude: item.latitude,
+    longitude: item.longitude,
+    phone: item.phone,
+    website: item.website,
   };
 }
 

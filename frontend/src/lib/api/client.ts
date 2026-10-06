@@ -18,6 +18,7 @@ import type {
   FeedItem,
   FeedItemType,
   FeedPage,
+  FeedTopic,
   Gallery,
   GallerySummary,
   PageResponse,
@@ -294,12 +295,28 @@ export function getTopLiked(size = 5): Promise<FeedItem[]> {
   return apiFetch(`/api/v1/feed/top?size=${size}`, 60);
 }
 
-export function getFeed(params: { size?: number; exclude?: string[]; seed?: string }): Promise<FeedPage> {
+export function getFeed(params: {
+  size?: number;
+  exclude?: string[];
+  seed?: string;
+  type?: FeedItemType;
+  categoryId?: string;
+  /** Agenda: con type EVENT, próximos por fecha de inicio. */
+  sort?: "upcoming";
+}): Promise<FeedPage> {
   const query = new URLSearchParams();
   query.set("size", String(params.size ?? 12));
   if (params.seed) query.set("seed", params.seed);
+  if (params.type) query.set("type", params.type);
+  if (params.categoryId) query.set("categoryId", params.categoryId);
+  if (params.sort) query.set("sort", params.sort);
   for (const id of params.exclude ?? []) query.append("exclude", id);
   return apiFetch(`/api/v1/feed?${query.toString()}`, 60);
+}
+
+/** Círculos de temas del feed — ver FeedController.getTopics. Si falla, el feed sigue sin círculos. */
+export function getFeedTopics(): Promise<FeedTopic[]> {
+  return apiFetch("/api/v1/feed/topics", 60);
 }
 
 /**

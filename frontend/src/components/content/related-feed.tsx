@@ -8,6 +8,8 @@ const HREF_PREFIX: Record<FeedItemType, string> = {
   ARTICLE: "/publicaciones",
   PLACE: "/lugares",
   EVENT: "/eventos",
+  GALLERY: "/galerias",
+  BUSINESS: "/directorio",
 };
 
 /**

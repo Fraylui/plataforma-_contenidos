@@ -359,7 +359,13 @@ export interface ResolvedRotation {
 }
 
 /** Ver FeedItemResponse.java — feed unificado del home y "relacionados" de la vista de detalle. */
-export type FeedItemType = "ARTICLE" | "PLACE" | "EVENT";
+export type FeedItemType = "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS";
+
+/** Una imagen del carrusel de un ítem del feed: subida (`imageId`) o por enlace externo, nunca ambas. */
+export interface FeedImage {
+  imageId: string | null;
+  externalUrl: string | null;
+}
 
 export interface FeedItem {
   type: FeedItemType;
@@ -374,6 +380,26 @@ export interface FeedItem {
   hasVideo: boolean;
   publishedAt: string | null;
   likeCount: number;
+  /** Carrusel (hasta 10). */
+  images: FeedImage[];
+  /** Solo eventos. */
+  startsAt: string | null;
+  /** Lugares y directorio. */
+  latitude: number | null;
+  longitude: number | null;
+  /** Solo directorio. */
+  phone: string | null;
+  website: string | null;
+}
+
+/** Ver FeedTopicResponse.java — un círculo de la fila de temas. */
+export interface FeedTopic {
+  categoryId: string;
+  name: string;
+  slug: string;
+  coverImageId: string | null;
+  coverImageUrl: string | null;
+  hasNew: boolean;
 }
 
 /** Ver FeedPageResponse.java. `hasMore` indica si queda contenido sin mostrar dado lo ya excluido. */
