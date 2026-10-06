@@ -27,6 +27,14 @@ public class ModuleAccessInterceptor implements HandlerInterceptor {
         if (!(handler instanceof HandlerMethod method)) {
             return true;
         }
+        RequiresAnyModule anyOf = method.getMethodAnnotation(RequiresAnyModule.class);
+        if (anyOf != null) {
+            Permissions permissions = currentPermissions();
+            if (permissions == null || java.util.Arrays.stream(anyOf.value()).noneMatch(m -> permissions.can(m, AccessLevel.CREATE))) {
+                throw new ModuleAccessDeniedException();
+            }
+            return true;
+        }
         RequiresModule required = method.getMethodAnnotation(RequiresModule.class);
         if (required == null) {
             required = AnnotatedElementUtils.findMergedAnnotation(method.getBeanType(), RequiresModule.class);
@@ -34,11 +42,17 @@ public class ModuleAccessInterceptor implements HandlerInterceptor {
         if (required == null) {
             return true;
         }
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (!(auth != null && auth.getPrincipal() instanceof UserPrincipal principal)
-                || !permissionService.forUser(principal.userId()).can(required.value(), required.level())) {
+        Permissions permissions = currentPermissions();
+        if (permissions == null || !permissions.can(required.value(), required.level())) {
             throw new ModuleAccessDeniedException();
         }
         return true;
+    }
+
+    private Permissions currentPermissions() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getPrincipal() instanceof UserPrincipal principal
+                ? permissionService.forUser(principal.userId())
+                : null;
     }
 }

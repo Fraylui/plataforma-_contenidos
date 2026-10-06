@@ -42,6 +42,7 @@ class PanelEndpointsArchitectureTest {
                 .filter(pair -> {
                     var method = (org.springframework.web.method.HandlerMethod) pair[1];
                     return !method.hasMethodAnnotation(RequiresModule.class)
+                            && !method.hasMethodAnnotation(pe.plataformacontenidos.identity.permission.RequiresAnyModule.class)
                             && !AnnotatedElementUtils.hasAnnotation(method.getBeanType(), RequiresModule.class);
                 })
                 .map(pair -> (String) pair[0])

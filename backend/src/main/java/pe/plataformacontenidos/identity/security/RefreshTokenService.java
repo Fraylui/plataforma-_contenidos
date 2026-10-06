@@ -40,22 +40,30 @@ public class RefreshTokenService {
         String token = generateOpaqueToken();
         String tokenHash = hash(token);
         Duration ttl = Duration.ofDays(properties.refreshTokenTtlDays());
-        redisTemplate.opsForValue().set(KEY_PREFIX + tokenHash, userId.toString(), ttl);
+        // userId|emitido (ms): AuthService.refresh rechaza las emitidas antes de users.sessions_valid_after.
+        redisTemplate.opsForValue().set(KEY_PREFIX + tokenHash, userId + "|" + System.currentTimeMillis(), ttl);
         redisTemplate.opsForSet().add(USER_INDEX_PREFIX + userId, tokenHash);
         redisTemplate.expire(USER_INDEX_PREFIX + userId, ttl);
         return token;
     }
 
-    /** Consume (invalida) el token presentado y devuelve el userId si era válido. */
-    public Optional<UUID> consume(String token) {
+    /** Sesión consumida: de quién y cuándo se emitió (las anteriores al índice cuentan como emitidas en 1970). */
+    public record Issued(UUID userId, java.time.Instant issuedAt) {
+    }
+
+    /** Consume (invalida) el token presentado y devuelve de quién era y cuándo se emitió, si era válido. */
+    public Optional<Issued> consume(String token) {
         String key = KEY_PREFIX + hash(token);
-        String userId = redisTemplate.opsForValue().get(key);
-        if (userId == null) {
+        String value = redisTemplate.opsForValue().get(key);
+        if (value == null) {
             return Optional.empty();
         }
         redisTemplate.delete(key);
+        String[] parts = value.split("\\|", 2);
+        UUID userId = UUID.fromString(parts[0]);
+        java.time.Instant issuedAt = parts.length == 2 ? java.time.Instant.ofEpochMilli(Long.parseLong(parts[1])) : java.time.Instant.EPOCH;
         redisTemplate.opsForSet().remove(USER_INDEX_PREFIX + userId, hash(token));
-        return Optional.of(UUID.fromString(userId));
+        return Optional.of(new Issued(userId, issuedAt));
     }
 
     public void revoke(String token) {

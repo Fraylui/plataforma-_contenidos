@@ -96,6 +96,7 @@ public class WorkerService {
         User worker = workerOrThrow(workerId);
         String password = passwordGenerator.next();
         worker.setTemporaryPassword(passwordEncoder.encode(password));
+        worker.invalidateSessions(java.time.Instant.now());
         userRepository.save(worker);
         refreshTokenService.revokeAll(workerId);
         audit("WORKER_PASSWORD_RESET", worker, actor, null);
@@ -106,6 +107,9 @@ public class WorkerService {
     public User setActive(UUID workerId, boolean active, Actor actor) {
         User worker = workerOrThrow(workerId);
         worker.setActive(active);
+        if (!active) {
+            worker.invalidateSessions(java.time.Instant.now());
+        }
         userRepository.save(worker);
         if (!active) {
             refreshTokenService.revokeAll(workerId);

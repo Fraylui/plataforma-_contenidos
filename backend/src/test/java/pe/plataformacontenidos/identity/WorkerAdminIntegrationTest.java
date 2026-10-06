@@ -171,7 +171,7 @@ class WorkerAdminIntegrationTest {
         mockMvc.perform(post("/api/v1/users/me/password").header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"currentPassword\":\"" + created.get("temporaryPassword").asText() + "\",\"newPassword\":\"ClaveDeAna2026!\"}"))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
 
         as(token, get("/api/v1/admin/workers")).andExpect(status().isForbidden());
     }

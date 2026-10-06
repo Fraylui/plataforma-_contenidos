@@ -53,6 +53,10 @@ public class User {
     @Column(name = "must_change_password", nullable = false)
     private boolean mustChangePassword;
 
+    /** Sesiones (refresh tokens) emitidas antes de este instante ya no valen (V51). */
+    @Column(name = "sessions_valid_after")
+    private Instant sessionsValidAfter;
+
     protected User() {
         // JPA
     }
@@ -83,6 +87,20 @@ public class User {
 
     public String getLastName() {
         return lastName;
+    }
+
+    public Instant getSessionsValidAfter() {
+        return sessionsValidAfter;
+    }
+
+    /**
+     * Invalida todas las sesiones emitidas hasta ahora (cambio o
+     * restablecimiento de contraseña, desactivación), aunque no estén en el
+     * índice de Redis — p. ej. emitidas antes de que existiera.
+     */
+    public void invalidateSessions(Instant when) {
+        // Milisegundos: la misma precisión con que se sella cada sesión (RefreshTokenService).
+        this.sessionsValidAfter = when.truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
     }
 
     public boolean isMustChangePassword() {

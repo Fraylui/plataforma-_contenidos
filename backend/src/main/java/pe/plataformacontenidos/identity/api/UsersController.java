@@ -1,17 +1,17 @@
 package pe.plataformacontenidos.identity.api;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.identity.AccountService;
 import pe.plataformacontenidos.identity.api.dto.ChangePasswordRequest;
 import pe.plataformacontenidos.identity.api.dto.MeResponse;
+import pe.plataformacontenidos.identity.api.dto.TokenResponse;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
 
 /** La cuenta propia ("Mi cuenta" en el panel): datos, permisos y cambio de contraseña. */
@@ -30,10 +30,12 @@ public class UsersController {
         return accountService.me(principal.userId());
     }
 
+    /** Devuelve una sesión nueva: las anteriores (incluida la actual) quedan invalidadas. */
     @PostMapping("/me/password")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void changePassword(@AuthenticationPrincipal UserPrincipal principal,
-            @Valid @RequestBody ChangePasswordRequest request) {
-        accountService.changePassword(principal.userId(), request.currentPassword(), request.newPassword());
+    public TokenResponse changePassword(@AuthenticationPrincipal UserPrincipal principal,
+            @Valid @RequestBody ChangePasswordRequest request, HttpServletRequest http) {
+        var tokens = accountService.changePassword(principal.userId(), request.currentPassword(), request.newPassword(),
+                http.getRemoteAddr());
+        return TokenResponse.of(tokens.accessToken(), tokens.refreshToken());
     }
 }

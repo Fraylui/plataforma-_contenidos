@@ -73,7 +73,7 @@ class AccountStateIntegrationTest {
         mockMvc.perform(post("/api/v1/users/me/password").header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"currentPassword\":\"" + PASSWORD + "\",\"newPassword\":\"MiClaveNueva2026\"}"))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/v1/admin/events").header("Authorization", "Bearer " + token)).andExpect(status().isOk());
         // Las demás sesiones (refresh tokens anteriores) quedan cerradas.
