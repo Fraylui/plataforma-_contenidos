@@ -26,10 +26,17 @@ public class AuditService {
 
     public void record(String action, AuditResult result, UUID actorUserId, String actorEmail,
             String resourceType, String resourceId, String ipAddress) {
+        record(action, result, actorUserId, actorEmail, resourceType, resourceId, ipAddress, null);
+    }
+
+    /** Con detalle (p. ej. permisos antes → después). */
+    public void record(String action, AuditResult result, UUID actorUserId, String actorEmail,
+            String resourceType, String resourceId, String ipAddress, String details) {
         AuditEvent event = AuditEvent.builder(action, result)
                 .actor(actorUserId, actorEmail)
                 .resource(resourceType, resourceId)
                 .ipAddress(ipAddress)
+                .details(details)
                 .build();
         repository.save(event);
         if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes) {

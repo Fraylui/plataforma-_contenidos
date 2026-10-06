@@ -6,7 +6,6 @@ import java.util.List;
 public final class OwnerOnlyPaths {
 
     public static final List<String> PATTERNS = List.of(
-            "/api/v1/admin/users/**",
             "/api/v1/admin/workers/**",
             "/api/v1/admin/platform-settings/**",
             "/api/v1/admin/audit/**");

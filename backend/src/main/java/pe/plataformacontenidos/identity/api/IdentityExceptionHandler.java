@@ -7,10 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import pe.plataformacontenidos.identity.CannotModifyOwnAccountException;
 import pe.plataformacontenidos.identity.EmailAlreadyExistsException;
 import pe.plataformacontenidos.identity.InvalidCredentialsException;
-import pe.plataformacontenidos.identity.OwnerManagementDeniedException;
 import pe.plataformacontenidos.identity.WeakPasswordException;
 import pe.plataformacontenidos.identity.WrongCurrentPasswordException;
 import pe.plataformacontenidos.identity.TooManyAttemptsException;
@@ -39,15 +37,7 @@ public class IdentityExceptionHandler {
         return error(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-    @ExceptionHandler(OwnerManagementDeniedException.class)
-    public ResponseEntity<ApiError> handleOwnerManagementDenied(OwnerManagementDeniedException ex) {
-        return error(HttpStatus.FORBIDDEN, ex.getMessage());
-    }
 
-    @ExceptionHandler(CannotModifyOwnAccountException.class)
-    public ResponseEntity<ApiError> handleCannotModifyOwnAccount(CannotModifyOwnAccountException ex) {
-        return error(HttpStatus.CONFLICT, ex.getMessage());
-    }
 
     @ExceptionHandler({ WeakPasswordException.class, WrongCurrentPasswordException.class })
     public ResponseEntity<ApiError> handlePasswordRejected(RuntimeException ex) {

@@ -67,7 +67,7 @@ class AuthorizationMatrixIntegrationTest {
 
     /** Endpoints exclusivos del dueño (spec 2a: usuarios/trabajadores, configuración, auditoría). */
     static Stream<String> adminOnlyEndpoints() {
-        return Stream.of("/api/v1/admin/users", "/api/v1/admin/audit", "/api/v1/admin/platform-settings");
+        return Stream.of("/api/v1/admin/workers", "/api/v1/admin/audit", "/api/v1/admin/platform-settings");
     }
 
     /** Endpoints de gestión que requieren al menos EDITOR (no AUTHOR). */
