@@ -2142,6 +2142,17 @@ Corregido a partir de la medición: (1) **bug real** — imágenes con 500 en `/
 
 Pendiente: el LCP alto se debe en gran parte a las fotos de demostración de `picsum.photos` (JPG de 1400 px por enlace externo, sin optimizar); el contenido real subido por el panel pasa por el optimizador. Volver a medir con contenido real y en el VPS. TBT: un paquete JS de ~1,7 s de ejecución en CPU lenta → analizar el bundle (`next build` con análisis) antes del lanzamiento.
 
+## 46.6e Proyecto 2a — Trabajadores y permisos (rama `feat/trabajadores-permisos`, 2026-10-06)
+
+Hecho en 10 tareas (spec y plan en `docs/superpowers/`, local):
+
+- **Roles:** `OWNER` (dueño, puede todo) y `WORKER` (V50). Lo que puede un trabajador vive en `identity.worker_permissions` (V49): módulo + nivel `CREATE` / `PUBLISH` / `ACCESS`, con CHECK por módulo. Las cuentas viejas conservaron su alcance (ADMIN → Publicador + Publicidad).
+- **Servidor:** cada endpoint del panel declara `@RequiresModule` (un test de arquitectura falla si alguno queda sin declarar); permisos leídos en cada petición → quitar un permiso o desactivar rige al instante. Publicar exige `PUBLISH` (403 `PUBLISH_PERMISSION_REQUIRED`). Solo el dueño: Trabajadores, Configuración, Registro de actividad.
+- **Cuentas:** alta con contraseña temporal de 20 caracteres mostrada una vez; con temporal solo se puede cambiarla (403 `PASSWORD_CHANGE_REQUIRED`); Mi cuenta (12+ caracteres, distinta, cierra las demás sesiones); restablecer y desactivar cierran sesiones; el dueño es intocable (403 `OWNER_MANAGEMENT_DENIED`). Sin MFA (decisión del dueño).
+- **Auditoría:** eventos `WORKER_*` y `PASSWORD_CHANGED` con detalle antes → después (`audit_log.details`).
+- **Panel:** menú y botones por permisos; `/admin/trabajadores` con matriz de permisos (controles segmentados) y plantillas Creador, Publicador, Gestor de eventos, Gestor de directorio, Publicidad; `/admin/cuenta`; `/admin/usuarios` redirige.
+- **Antes de migrar en el VPS:** backup obligatorio (`scripts/backup.sh`); las sesiones abiertas antes de V50 piden volver a iniciar sesión.
+
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
 Ordenadas por prioridad.
