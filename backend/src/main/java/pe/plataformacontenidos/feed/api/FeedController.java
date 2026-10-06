@@ -42,9 +42,11 @@ public class FeedController {
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(required = false) List<UUID> exclude,
             @RequestParam(required = false) String seed,
-            @RequestParam(required = false) ContentType type) {
+            @RequestParam(required = false) ContentType type,
+            @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false) String sort) {
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
-        return feedService.getFeed(safeSize, exclude, seed, type);
+        return feedService.getFeed(safeSize, exclude, seed, type, categoryId, "upcoming".equals(sort));
     }
 
     /** "Lo más gustado" del home — ver FeedService.getTopLiked. */

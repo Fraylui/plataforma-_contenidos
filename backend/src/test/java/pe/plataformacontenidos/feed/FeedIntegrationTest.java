@@ -180,9 +180,91 @@ class FeedIntegrationTest {
     }
 
     @Test
-    void feedRejectsTypesThatAreNotPartOfTheFeed() throws Exception {
-        mockMvc.perform(get("/api/v1/feed").param("type", "GALLERY"))
+    void unknownTypeIsRejected() throws Exception {
+        mockMvc.perform(get("/api/v1/feed").param("type", "NOPE"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void feedIncludesGalleriesAndBusinesses() throws Exception {
+        String editorToken = createUserAndLogin("feed-five-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("feed-five-author@plataforma-contenidos.test", Role.AUTHOR);
+        String categoryId = createCategory(editorToken, "Feed Cinco");
+
+        publishGallery(authorToken, editorToken, categoryId, "Feed: galería " + UUID.randomUUID());
+        String businessId = publishBusiness(authorToken, editorToken, categoryId, "Feed: negocio " + UUID.randomUUID());
+
+        mockMvc.perform(get("/api/v1/feed").param("size", "30").param("type", "GALLERY"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items", not(hasSize(0))))
+                .andExpect(jsonPath("$.items[*].type", everyItem(is("GALLERY"))));
+        mockMvc.perform(get("/api/v1/feed").param("size", "30").param("type", "BUSINESS"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.id == '" + businessId + "')].phone", hasItem("+51 966 123 456")))
+                .andExpect(jsonPath("$.items[?(@.id == '" + businessId + "')].website", hasItem("https://hostal.example.com")));
+    }
+
+    @Test
+    void feedFiltersByCategoryIncludingSubcategories() throws Exception {
+        String editorToken = createUserAndLogin("feed-cat-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("feed-cat-author@plataforma-contenidos.test", Role.AUTHOR);
+        String parentId = createCategory(editorToken, "Feed Padre");
+        String childId = createSubcategory(editorToken, "Feed Hija", parentId);
+        String otherId = createCategory(editorToken, "Feed Otro");
+
+        String inChild = publishArticle(authorToken, editorToken, childId, "Feed hija " + UUID.randomUUID());
+        String inOther = publishPlace(authorToken, editorToken, otherId, "Feed otro " + UUID.randomUUID());
+
+        mockMvc.perform(get("/api/v1/feed").param("size", "30").param("categoryId", parentId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].id", hasItem(inChild)))
+                .andExpect(jsonPath("$.items[*].id", not(hasItem(inOther))));
+    }
+
+    @Test
+    void itemCarriesImagesAndLocationForTheCard() throws Exception {
+        String editorToken = createUserAndLogin("feed-img-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("feed-img-author@plataforma-contenidos.test", Role.AUTHOR);
+        String categoryId = createCategory(editorToken, "Feed Imágenes");
+
+        MvcResult created = mockMvc.perform(post("/api/v1/admin/places")
+                        .header("Authorization", "Bearer " + authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Mirador " + UUID.randomUUID() + "\",\"excerpt\":\"Resumen\","
+                                + "\"body\":\"Cuerpo de prueba con suficiente contenido.\","
+                                + "\"categoryId\":\"" + categoryId + "\",\"latitude\":-13.16,\"longitude\":-74.22,"
+                                + "\"images\":[" + externalImage("a") + "," + externalImage("b") + "," + externalImage("c") + "]}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String placeId = textField(created, "id");
+        runWorkflow("/api/v1/admin/places/" + placeId, authorToken, editorToken);
+
+        mockMvc.perform(get("/api/v1/feed").param("size", "30").param("categoryId", categoryId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].id").value(placeId))
+                .andExpect(jsonPath("$.items[0].images.length()").value(3))
+                .andExpect(jsonPath("$.items[0].images[1].externalUrl").value("https://example.com/b.jpg"))
+                .andExpect(jsonPath("$.items[0].latitude").value(-13.16))
+                .andExpect(jsonPath("$.items[0].longitude").value(-74.22));
+    }
+
+    @Test
+    void upcomingAgendaIsOrderedByStartDate() throws Exception {
+        String editorToken = createUserAndLogin("feed-agenda-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("feed-agenda-author@plataforma-contenidos.test", Role.AUTHOR);
+        String categoryId = createCategory(editorToken, "Feed Agenda");
+
+        String later = publishEventAt(authorToken, editorToken, categoryId, "Agenda tarde " + UUID.randomUUID(),
+                "2031-03-01T19:00:00Z");
+        String sooner = publishEventAt(authorToken, editorToken, categoryId, "Agenda pronto " + UUID.randomUUID(),
+                "2030-01-10T19:00:00Z");
+
+        mockMvc.perform(get("/api/v1/feed").param("size", "30").param("type", "EVENT").param("sort", "upcoming")
+                        .param("categoryId", categoryId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].id").value(sooner))
+                .andExpect(jsonPath("$.items[1].id").value(later))
+                .andExpect(jsonPath("$.items[0].startsAt").value("2030-01-10T19:00:00Z"));
     }
 
     @Test
@@ -264,6 +346,66 @@ class FeedIntegrationTest {
         String id = textField(result, "id");
         runWorkflow("/api/v1/admin/events/" + id, authorToken, editorToken);
         return id;
+    }
+
+    private String publishEventAt(String authorToken, String editorToken, String categoryId, String title,
+            String startsAt) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/events")
+                        .header("Authorization", "Bearer " + authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"" + title + "\",\"excerpt\":\"Resumen breve\","
+                                + "\"body\":\"Cuerpo de prueba con suficiente contenido.\","
+                                + "\"categoryId\":\"" + categoryId + "\",\"startsAt\":\"" + startsAt + "\"}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String id = textField(result, "id");
+        runWorkflow("/api/v1/admin/events/" + id, authorToken, editorToken);
+        return id;
+    }
+
+    private String publishGallery(String authorToken, String editorToken, String categoryId, String title)
+            throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/galleries")
+                        .header("Authorization", "Bearer " + authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"" + title + "\",\"excerpt\":\"Resumen\","
+                                + "\"categoryId\":\"" + categoryId + "\",\"images\":[" + externalImage("g") + "]}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String id = textField(result, "id");
+        runWorkflow("/api/v1/admin/galleries/" + id, authorToken, editorToken);
+        return id;
+    }
+
+    private String publishBusiness(String authorToken, String editorToken, String categoryId, String name)
+            throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/directory")
+                        .header("Authorization", "Bearer " + authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"" + name + "\",\"excerpt\":\"Resumen\","
+                                + "\"body\":\"Cuerpo de prueba con suficiente contenido.\","
+                                + "\"categoryId\":\"" + categoryId + "\",\"businessType\":\"HOTEL\","
+                                + "\"phone\":\"+51 966 123 456\",\"website\":\"https://hostal.example.com\"}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String id = textField(result, "id");
+        runWorkflow("/api/v1/admin/directory/" + id, authorToken, editorToken);
+        return id;
+    }
+
+    private static String externalImage(String name) {
+        return "{\"externalUrl\":\"https://example.com/" + name + ".jpg\",\"title\":\"Foto " + name + "\"}";
+    }
+
+    private String createSubcategory(String editorToken, String name, String parentId) throws Exception {
+        name = name + " " + UUID.randomUUID().toString().substring(0, 8);
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/categories")
+                        .header("Authorization", "Bearer " + editorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"" + name + "\",\"parentId\":\"" + parentId + "\"}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        return textField(result, "id");
     }
 
     private void runWorkflow(String basePath, String authorToken, String editorToken) throws Exception {
