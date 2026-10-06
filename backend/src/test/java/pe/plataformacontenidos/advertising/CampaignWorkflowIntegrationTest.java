@@ -165,6 +165,74 @@ class CampaignWorkflowIntegrationTest {
                 .andExpect(jsonPath("$.weight").value(9));
     }
 
+    @Test
+    void contextualTargetingPutsTheMatchingCampaignFirstAndHidesItElsewhere() throws Exception {
+        String adminToken = createUserAndLogin("ads-admin-8@plataforma-contenidos.test");
+        String placementKey = createAdPlacement(adminToken);
+        String advertiserId = createAdvertiser(adminToken, "Hostal Plaza");
+        String everywhere = textField(mockMvc.perform(post("/api/v1/admin/campaigns")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(campaignJson(advertiserId, placementKey, "https://example.com/a.jpg", null)))
+                .andExpect(status().isCreated()).andReturn(), "id");
+        String placesInPeru = textField(mockMvc.perform(post("/api/v1/admin/campaigns")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(campaignJson(advertiserId, placementKey, "https://example.com/b.jpg", null)
+                                .replace("}", ",\"targetSections\":[\"PLACE\"],\"targetCountries\":[\"pe\"]}")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.targetSections[0]").value("PLACE"))
+                .andExpect(jsonPath("$.targetCountries[0]").value("PE"))
+                .andReturn(), "id");
+
+        // En Lugares, desde Perú: la segmentada va primero (más específica), la general después.
+        mockMvc.perform(get("/api/v1/ads/campaigns/rotation").param("placementKey", placementKey)
+                        .param("section", "PLACE").header("CF-IPCountry", "PE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.campaigns.length()").value(2))
+                .andExpect(jsonPath("$.campaigns[0].id").value(placesInPeru))
+                .andExpect(jsonPath("$.campaigns[1].id").value(everywhere));
+
+        // En Eventos, o sin saber el país del visitante: solo la general.
+        mockMvc.perform(get("/api/v1/ads/campaigns/rotation").param("placementKey", placementKey)
+                        .param("section", "EVENT").header("CF-IPCountry", "PE"))
+                .andExpect(jsonPath("$.campaigns.length()").value(1))
+                .andExpect(jsonPath("$.campaigns[0].id").value(everywhere));
+        mockMvc.perform(get("/api/v1/ads/campaigns/rotation").param("placementKey", placementKey)
+                        .param("section", "PLACE"))
+                .andExpect(jsonPath("$.campaigns.length()").value(1));
+    }
+
+    @Test
+    void placementAcceptsAtMostFiveCompetingCampaignsForTheSameAudience() throws Exception {
+        String adminToken = createUserAndLogin("ads-admin-9@plataforma-contenidos.test");
+        String placementKey = createAdPlacement(adminToken);
+        String advertiserId = createAdvertiser(adminToken, "Agencia Wari Tours");
+        String body = campaignJson(advertiserId, placementKey, "https://example.com/a.jpg", null);
+        for (int i = 0; i < CampaignService.MAX_COMPETING_CAMPAIGNS; i++) {
+            mockMvc.perform(post("/api/v1/admin/campaigns").header("Authorization", "Bearer " + adminToken)
+                            .contentType(MediaType.APPLICATION_JSON).content(body))
+                    .andExpect(status().isCreated());
+        }
+        // La sexta para el mismo público y fechas: cupo lleno.
+        mockMvc.perform(post("/api/v1/admin/campaigns").header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isConflict());
+        // Un público que no se cruza (otra sección, cuando las 5 son solo de Eventos) sí entra.
+        String eventsOnly = createAdPlacement(adminToken);
+        String eventsBody = campaignJson(advertiserId, eventsOnly, "https://example.com/a.jpg", null)
+                .replace("}", ",\"targetSections\":[\"EVENT\"]}");
+        for (int i = 0; i < CampaignService.MAX_COMPETING_CAMPAIGNS; i++) {
+            mockMvc.perform(post("/api/v1/admin/campaigns").header("Authorization", "Bearer " + adminToken)
+                            .contentType(MediaType.APPLICATION_JSON).content(eventsBody))
+                    .andExpect(status().isCreated());
+        }
+        mockMvc.perform(post("/api/v1/admin/campaigns").header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventsBody.replace("EVENT", "PLACE")))
+                .andExpect(status().isCreated());
+    }
+
     private static final String BROWSER =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36";
     private static final String BOT = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";

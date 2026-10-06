@@ -8,8 +8,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.Set;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 import pe.plataformacontenidos.shared.ContentImage;
 
 /**
@@ -65,6 +70,23 @@ public class Campaign {
     @Column(nullable = false)
     private int weight = DEFAULT_WEIGHT;
 
+    // Segmentación (ver CampaignTargeting): arrays de Postgres, vacíos = sin restricción.
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "target_sections", nullable = false, columnDefinition = "text[]")
+    private String[] targetSections = new String[0];
+
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "target_category_ids", nullable = false, columnDefinition = "uuid[]")
+    private UUID[] targetCategoryIds = new UUID[0];
+
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "target_countries", nullable = false, columnDefinition = "text[]")
+    private String[] targetCountries = new String[0];
+
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "target_regions", nullable = false, columnDefinition = "text[]")
+    private String[] targetRegions = new String[0];
+
     @Column(name = "impression_count", nullable = false)
     private long impressionCount = 0;
 
@@ -82,7 +104,7 @@ public class Campaign {
     }
 
     public Campaign(UUID advertiserId, String placementKey, ContentImage creative, String linkUrl, Instant startsAt,
-            Instant endsAt, BigDecimal amount, String currency, int weight) {
+            Instant endsAt, BigDecimal amount, String currency, int weight, CampaignTargeting targeting) {
         this.advertiserId = advertiserId;
         this.placementKey = placementKey;
         this.creative = creative;
@@ -92,6 +114,7 @@ public class Campaign {
         this.amount = amount;
         this.currency = currency;
         this.weight = weight;
+        setTargeting(targeting);
     }
 
     public UUID getId() {
@@ -138,6 +161,19 @@ public class Campaign {
         return weight;
     }
 
+    public CampaignTargeting getTargeting() {
+        return new CampaignTargeting(
+                Arrays.stream(targetSections).map(AdSection::valueOf).collect(Collectors.toSet()),
+                Set.of(targetCategoryIds), Set.of(targetCountries), Set.of(targetRegions));
+    }
+
+    private void setTargeting(CampaignTargeting targeting) {
+        this.targetSections = targeting.sections().stream().map(Enum::name).sorted().toArray(String[]::new);
+        this.targetCategoryIds = targeting.categoryIds().toArray(UUID[]::new);
+        this.targetCountries = targeting.countries().stream().sorted().toArray(String[]::new);
+        this.targetRegions = targeting.regions().stream().sorted().toArray(String[]::new);
+    }
+
     public long getImpressionCount() {
         return impressionCount;
     }
@@ -151,7 +187,7 @@ public class Campaign {
     }
 
     public void update(String placementKey, ContentImage creative, String linkUrl, Instant startsAt,
-            Instant endsAt, BigDecimal amount, String currency, int weight) {
+            Instant endsAt, BigDecimal amount, String currency, int weight, CampaignTargeting targeting) {
         this.placementKey = placementKey;
         this.creative = creative;
         this.linkUrl = linkUrl;
@@ -160,6 +196,7 @@ public class Campaign {
         this.amount = amount;
         this.currency = currency;
         this.weight = weight;
+        setTargeting(targeting);
         this.updatedAt = Instant.now();
     }
 

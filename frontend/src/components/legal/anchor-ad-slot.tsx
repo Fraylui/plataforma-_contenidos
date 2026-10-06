@@ -5,6 +5,8 @@ import { StickyAnchorAd } from "@/components/legal/sticky-anchor-ad";
 import { DirectCampaignBanner } from "@/components/legal/direct-campaign-banner";
 import { usePlannedCampaign } from "@/components/legal/use-ad-rotation";
 import { getCookieConsent, subscribeToCookieConsent } from "@/lib/cookie-consent";
+import { usePathname } from "next/navigation";
+import { sectionFromPath } from "@/lib/ads/ad-context";
 
 const getServerSnapshot = () => null;
 
@@ -23,7 +25,8 @@ const getServerSnapshot = () => null;
  */
 export function AnchorAdSlot() {
   const consent = useSyncExternalStore(subscribeToCookieConsent, getCookieConsent, getServerSnapshot);
-  const planned = usePlannedCampaign("anchor", 0, consent !== null);
+  const section = sectionFromPath(usePathname());
+  const planned = usePlannedCampaign("anchor", 0, consent !== null, { section });
   if (!planned?.campaign) return null;
   const { rotation, campaign } = planned;
   return (

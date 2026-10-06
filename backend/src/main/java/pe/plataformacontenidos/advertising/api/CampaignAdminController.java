@@ -50,14 +50,15 @@ public class CampaignAdminController {
     public CampaignResponse create(@Valid @RequestBody CampaignRequest request) {
         var campaign = campaignService.create(request.advertiserId(), request.placementKey(), toImageInput(request),
                 request.linkUrl(), request.startsAt(), request.endsAt(), request.amount(), request.currency(),
-                request.weight());
+                request.weight(), request.targeting());
         return CampaignResponse.from(campaign);
     }
 
     @PutMapping("/{id}")
     public CampaignResponse update(@PathVariable UUID id, @Valid @RequestBody CampaignRequest request) {
         var campaign = campaignService.update(id, request.placementKey(), toImageInput(request), request.linkUrl(),
-                request.startsAt(), request.endsAt(), request.amount(), request.currency(), request.weight());
+                request.startsAt(), request.endsAt(), request.amount(), request.currency(), request.weight(),
+                request.targeting());
         return CampaignResponse.from(campaign);
     }
 

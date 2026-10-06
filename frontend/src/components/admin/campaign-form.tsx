@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { AdminImage, Campaign } from "@/lib/api/admin-types";
-import type { AdPlacement } from "@/lib/api/types";
+import type { AdPlacement, Category } from "@/lib/api/types";
+import { CampaignTargetingFields, splitList } from "@/components/admin/campaign-targeting-fields";
 import { creativeFit, formatSize } from "@/lib/ads/ad-formats";
 import { imageUrl } from "@/lib/image-url";
 import {
@@ -47,11 +48,12 @@ interface CampaignFormProps {
   mode: "create" | "edit";
   advertiserId: string;
   placements: AdPlacement[];
+  categories: Category[];
   allImages: AdminImage[];
   campaign?: Campaign;
 }
 
-export function CampaignForm({ mode, advertiserId, placements, allImages, campaign }: CampaignFormProps) {
+export function CampaignForm({ mode, advertiserId, placements, categories, allImages, campaign }: CampaignFormProps) {
   const [placementKey, setPlacementKey] = useState<string | null>(campaign?.placementKey ?? null);
   const [creative, setCreative] = useState({
     imageId: campaign?.imageId ?? null,
@@ -64,6 +66,12 @@ export function CampaignForm({ mode, advertiserId, placements, allImages, campai
   const [amount, setAmount] = useState(campaign?.amount != null ? String(campaign.amount) : "");
   const [currency, setCurrency] = useState(campaign?.currency ?? "PEN");
   const [weight, setWeight] = useState(campaign?.weight ?? 5);
+  const [targeting, setTargeting] = useState({
+    sections: campaign?.targetSections ?? [],
+    categoryIds: campaign?.targetCategoryIds ?? [],
+    countries: (campaign?.targetCountries ?? []).join(", "),
+    regions: (campaign?.targetRegions ?? []).join(", "),
+  });
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -95,6 +103,10 @@ export function CampaignForm({ mode, advertiserId, placements, allImages, campai
       amount: amount.trim() ? Number(amount) : null,
       currency: amount.trim() ? currency.trim().toUpperCase() || null : null,
       weight,
+      targetSections: targeting.sections,
+      targetCategoryIds: targeting.categoryIds,
+      targetCountries: splitList(targeting.countries).map((c) => c.toUpperCase()),
+      targetRegions: splitList(targeting.regions),
     };
     const result: ActionResult =
       mode === "create"
@@ -149,6 +161,8 @@ export function CampaignForm({ mode, advertiserId, placements, allImages, campai
           className={formInputClass}
         />
       </FormField>
+
+      <CampaignTargetingFields value={targeting} onChange={setTargeting} categories={categories} />
 
       <FormField label="Peso de rotación (1–10): con varias campañas en la misma posición, cuánto más seguido sale esta" name="weight">
         <div className="flex items-center gap-3">

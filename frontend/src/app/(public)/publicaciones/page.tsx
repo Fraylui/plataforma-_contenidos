@@ -46,7 +46,7 @@ export default async function ArticlesPage(props: PageProps<"/publicaciones">) {
         <FilterMenu label="Filtrar por tema" allLabel="Todas las categorías" options={categories.map((c) => ({ value: c.id, label: c.name }))} activeValue={categoryId} paramName="categoryId" basePath={BASE_PATH} />
       </ListingHeader>
 
-      <AdBlock position="cabecera" layout="band" className="mt-8 max-md:hidden" />
+      <AdBlock position="cabecera" section="ARTICLE" categoryId={categoryId} layout="band" className="mt-8 max-md:hidden" />
 
       <section className="mt-8" aria-label="Publicaciones">
         {result.items.length === 0 ? (
@@ -67,7 +67,7 @@ export default async function ArticlesPage(props: PageProps<"/publicaciones">) {
         )}
       </section>
 
-      <AdBlock position="listing" layout="band" count={3} className="mt-10" />
+      <AdBlock position="listing" section="ARTICLE" categoryId={categoryId} layout="band" count={3} className="mt-10" />
 
       <Pagination page={result.page} totalPages={result.totalPages} buildHref={(p) => buildHref(categoryId, p)} />
     </div>

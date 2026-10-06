@@ -246,7 +246,7 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
             dangerouslySetInnerHTML={{ __html: article.body }}
           />
 
-          <AdBlock position="article" layout="band" count={2} className="mt-10" />
+          <AdBlock position="article" section="ARTICLE" categoryId={article.categoryId} layout="band" count={2} className="mt-10" />
 
           <LikeShareBar contentType="articles" slug={article.slug} initialLikeCount={article.likeCount} title={article.title} />
 
@@ -260,6 +260,8 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
             relatedTitle={relatedTitle}
             categoryNames={categoryNames}
             currentId={article.id}
+            adSection="ARTICLE"
+            adCategoryId={article.categoryId}
           />
         )}
       </div>

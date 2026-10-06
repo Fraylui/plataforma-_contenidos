@@ -4,6 +4,7 @@ import { getTopLiked, listPublishedEvents } from "@/lib/api/client";
 import type { FeedItem } from "@/lib/api/types";
 import { fromFeedItem } from "@/lib/home-items";
 import { AdBlock } from "@/components/legal/ad-block";
+import type { AdSection } from "@/lib/ads/ad-context";
 import { RelatedFeed } from "@/components/content/related-feed";
 import { TopLikedList } from "@/components/content/top-liked-list";
 import { EventRowCard } from "@/components/home/event-row-card";
@@ -28,7 +29,12 @@ export async function DetailSidebar({
   categoryNames,
   currentId,
   showEvents = true,
+  adSection,
+  adCategoryId,
 }: {
+  /** Contexto del contenido que se está viendo, para la segmentación del anuncio lateral. */
+  adSection?: AdSection;
+  adCategoryId?: string;
   related: FeedItem[];
   more: FeedItem[];
   relatedTitle: string;
@@ -76,7 +82,7 @@ export async function DetailSidebar({
       )}
 
       <div className="lg:sticky lg:top-32">
-        <AdBlock position="listing" layout="fill" />
+        <AdBlock position="listing" layout="fill" section={adSection} categoryId={adCategoryId} />
       </div>
     </aside>
   );

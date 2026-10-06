@@ -206,6 +206,7 @@ export function InfiniteFeed({
                   position="en-feed"
                   slot={adSlot}
                   layout="fill"
+                  context={{ section: "HOME" }}
                   adsense={feedAd}
                   className="col-span-2 self-center sm:col-span-1"
                 />

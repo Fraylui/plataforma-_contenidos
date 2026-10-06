@@ -1,5 +1,6 @@
 import { getPlatformSettings, listActiveAdPlacements } from "@/lib/api/client";
 import { AdBlockClient, type AdLayout } from "@/components/legal/ad-block-client";
+import type { AdSection } from "@/lib/ads/ad-context";
 
 /**
  * Punto de inserción de anuncios listo para usar en cualquier página
@@ -18,8 +19,13 @@ export async function AdBlock({
   layout,
   count,
   className,
+  section,
+  categoryId,
 }: {
   position: string;
+  /** Sección y tema de la página: las campañas segmentadas solo salen donde calzan. */
+  section?: AdSection;
+  categoryId?: string | null;
   layout?: AdLayout;
   /** Fila patrocinada: hasta cuántas campañas distintas lado a lado (solo layout "band"). */
   count?: number;
@@ -29,5 +35,14 @@ export async function AdBlock({
   const slot = placements.find((p) => p.key === position)?.adsenseSlotId;
   const adsense = settings.adsenseEnabled && settings.adsenseClientId && slot ? { clientId: settings.adsenseClientId, slot } : null;
 
-  return <AdBlockClient position={position} layout={layout} count={count} className={className} adsense={adsense} />;
+  return (
+    <AdBlockClient
+      position={position}
+      layout={layout}
+      count={count}
+      className={className}
+      adsense={adsense}
+      context={{ section, categoryId }}
+    />
+  );
 }

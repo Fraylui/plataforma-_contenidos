@@ -1,3 +1,4 @@
+import type { AdSection } from "@/lib/ads/ad-context";
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
 import type { ArticleStatus, ArticleType, BusinessType, ContentImage } from "./types";
@@ -211,6 +212,10 @@ export interface Campaign {
   currency: string | null;
   /** 1–10: cuánto más seguido sale frente a otras campañas de la misma posición. */
   weight: number;
+  targetSections: AdSection[];
+  targetCategoryIds: string[];
+  targetCountries: string[];
+  targetRegions: string[];
 }
 
 /** Ver CampaignDailyStatResponse.java — un día (UTC) del reporte de una campaña. */
@@ -233,6 +238,10 @@ export interface CampaignInput {
   amount: number | null;
   currency: string | null;
   weight: number;
+  targetSections: AdSection[];
+  targetCategoryIds: string[];
+  targetCountries: string[];
+  targetRegions: string[];
 }
 
 /** Ver PlatformStatsResponse.java (CONTEXTO.md sección 34, estadísticas básicas). */

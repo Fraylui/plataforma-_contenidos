@@ -6,6 +6,8 @@ import type { PlacementRotation, ResolvedRotation } from "@/lib/api/types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const PLACEMENT_KEY = /^[a-z0-9_-]{1,64}$/;
+const SECTION = /^(HOME|ARTICLE|PLACE|EVENT|GALLERY|BUSINESS)$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const NO_STORE = { "Cache-Control": "no-store" };
 
 /**
@@ -26,8 +28,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Posición inválida" }, { status: 400 });
   }
 
+  // Contexto opcional de la página: lo que no tenga forma válida simplemente no se manda.
+  const query = new URLSearchParams({ placementKey: placement });
+  const section = request.nextUrl.searchParams.get("section");
+  const categoryId = request.nextUrl.searchParams.get("categoryId");
+  if (section && SECTION.test(section)) query.set("section", section);
+  if (categoryId && UUID.test(categoryId)) query.set("categoryId", categoryId);
+
   const res = await fetch(
-    `${BACKEND_API_URL}/api/v1/ads/campaigns/rotation?placementKey=${encodeURIComponent(placement)}`,
+    `${BACKEND_API_URL}/api/v1/ads/campaigns/rotation?${query.toString()}`,
     { cache: "no-store", headers: visitorHeaders(request) },
   ).catch(() => null);
   if (!res || res.status !== 200) return new NextResponse(null, { status: 204, headers: NO_STORE });

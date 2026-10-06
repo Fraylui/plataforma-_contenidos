@@ -1,6 +1,10 @@
 package pe.plataformacontenidos.taxonomy;
 
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,6 +67,23 @@ public class CategoryService {
 
     public Category getOrThrow(UUID id) {
         return categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(id));
+    }
+
+    /**
+     * La categoría y todos sus ancestros (hasta la raíz). Lo usa la
+     * segmentación de publicidad: una campaña que eligió "Turismo" también
+     * corresponde a contenido de una subcategoría de Turismo.
+     */
+    public Set<UUID> lineage(UUID id) {
+        Map<UUID, UUID> parentOf = new HashMap<>();
+        for (Category category : categoryRepository.findAll()) {
+            parentOf.put(category.getId(), category.getParentId());
+        }
+        Set<UUID> lineage = new LinkedHashSet<>();
+        for (UUID current = id; current != null && lineage.add(current); current = parentOf.get(current)) {
+            // sube hasta la raíz; `add` falso corta un ciclo (no debería existir, ver validateParent)
+        }
+        return lineage;
     }
 
     public boolean existsActive(UUID id) {

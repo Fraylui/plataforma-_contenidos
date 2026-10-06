@@ -4,6 +4,7 @@ import { AdSlot } from "@/components/legal/ad-slot";
 import { DirectCampaignBanner } from "@/components/legal/direct-campaign-banner";
 import { usePlannedCampaign } from "@/components/legal/use-ad-rotation";
 import { cn } from "@/lib/utils";
+import type { AdContext } from "@/lib/ads/ad-context";
 
 /**
  * Cómo se presenta el anuncio en su contexto:
@@ -39,8 +40,11 @@ export function AdBlockClient({
   layout = "inline",
   className,
   adsense,
+  context,
 }: {
   position: string;
+  /** Sección y tema de la página, para la segmentación de las campañas. */
+  context?: AdContext;
   slot?: number;
   /** Solo con layout "band": cuántas campañas distintas como máximo en la fila. */
   count?: number;
@@ -62,6 +66,7 @@ export function AdBlockClient({
             key={i}
             position={position}
             slot={slot + i}
+            context={context}
             fill
             // AdSense solo en el primero: una fila de unidades de Google no aporta y satura.
             adsense={i === 0 ? adsense : null}
@@ -78,6 +83,7 @@ export function AdBlockClient({
     <PlannedAd
       position={position}
       slot={slot}
+      context={context}
       fill={layout === "fill"}
       adsense={adsense}
       className={band ? undefined : className}
@@ -101,14 +107,16 @@ function PlannedAd({
   fill,
   adsense,
   className,
+  context,
 }: {
   position: string;
   slot: number;
+  context?: AdContext;
   fill: boolean;
   adsense: AdSense;
   className?: string;
 }) {
-  const planned = usePlannedCampaign(position, slot);
+  const planned = usePlannedCampaign(position, slot, true, context);
   if (planned === undefined) return null;
   if (planned?.campaign) {
     const { rotation, campaign } = planned;

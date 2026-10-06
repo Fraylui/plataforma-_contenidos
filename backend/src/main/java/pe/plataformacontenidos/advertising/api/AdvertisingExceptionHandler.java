@@ -14,6 +14,8 @@ import pe.plataformacontenidos.advertising.DuplicateAdPlacementKeyException;
 import pe.plataformacontenidos.advertising.InvalidCampaignAmountException;
 import pe.plataformacontenidos.advertising.InvalidCampaignImageException;
 import pe.plataformacontenidos.advertising.InvalidCampaignScheduleException;
+import pe.plataformacontenidos.advertising.InvalidCampaignTargetingException;
+import pe.plataformacontenidos.advertising.AdInventoryFullException;
 
 @RestControllerAdvice
 public class AdvertisingExceptionHandler {
@@ -30,11 +32,16 @@ public class AdvertisingExceptionHandler {
     }
 
     @ExceptionHandler({ InvalidCampaignImageException.class, InvalidCampaignScheduleException.class,
-            InvalidCampaignAmountException.class })
+            InvalidCampaignAmountException.class, InvalidCampaignTargetingException.class })
     public ResponseEntity<ApiError> handleBadRequest(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
     }
 
     public record ApiError(Instant timestamp, int status, String message) {
+    }
+
+    @ExceptionHandler(AdInventoryFullException.class)
+    public ResponseEntity<ApiError> handleInventoryFull(AdInventoryFullException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError(Instant.now(), 409, ex.getMessage()));
     }
 }

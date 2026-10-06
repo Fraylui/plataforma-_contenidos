@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { ResolvedCampaign, ResolvedRotation } from "@/lib/api/types";
 import { assignSlot, createPageAdPlan, type PageAdPlan } from "@/lib/ads/page-ad-plan";
+import { adContextQuery, type AdContext } from "@/lib/ads/ad-context";
 
 /**
  * Un solo pedido por posición y por página vista, compartido por todos los
@@ -15,11 +16,11 @@ import { assignSlot, createPageAdPlan, type PageAdPlan } from "@/lib/ads/page-ad
  */
 const pending = new Map<string, Promise<ResolvedRotation | null>>();
 
-function fetchRotation(placement: string, pathname: string): Promise<ResolvedRotation | null> {
-  const key = `${pathname}|${placement}`;
+function fetchRotation(placement: string, pathname: string, contextQuery: string): Promise<ResolvedRotation | null> {
+  const key = `${pathname}|${placement}${contextQuery}`;
   let request = pending.get(key);
   if (!request) {
-    request = fetch(`/api/ads/campaign?placement=${encodeURIComponent(placement)}`)
+    request = fetch(`/api/ads/campaign?placement=${encodeURIComponent(placement)}${contextQuery}`)
       .then(async (res) => (res.status === 200 ? ((await res.json()) as ResolvedRotation) : null))
       .catch(() => null);
     pending.set(key, request);
@@ -32,20 +33,21 @@ function fetchRotation(placement: string, pathname: string): Promise<ResolvedRot
  * navegador (ver app/api/ads/campaign/route.ts por qué no al renderizar).
  * `undefined` mientras carga, `null` si no hay ninguna que pueda ver.
  */
-export function useAdRotation(placement: string): ResolvedRotation | null | undefined {
+export function useAdRotation(placement: string, context: AdContext = {}): ResolvedRotation | null | undefined {
   const pathname = usePathname();
   const [result, setResult] = useState<{ key: string; rotation: ResolvedRotation | null } | null>(null);
-  const key = `${pathname}|${placement}`;
+  const contextQuery = adContextQuery(context);
+  const key = `${pathname}|${placement}${contextQuery}`;
 
   useEffect(() => {
     let cancelled = false;
-    fetchRotation(placement, pathname).then((rotation) => {
+    fetchRotation(placement, pathname, contextQuery).then((rotation) => {
       if (!cancelled) setResult({ key, rotation });
     });
     return () => {
       cancelled = true;
     };
-  }, [placement, pathname, key]);
+  }, [placement, pathname, contextQuery, key]);
 
   return result?.key === key ? result.rotation : undefined;
 }
@@ -64,9 +66,10 @@ export function usePlannedCampaign(
   placement: string,
   slot: number,
   enabled = true,
+  context: AdContext = {},
 ): { rotation: ResolvedRotation; campaign: ResolvedCampaign | null } | null | undefined {
   const pathname = usePathname();
-  const rotation = useAdRotation(placement);
+  const rotation = useAdRotation(placement, context);
   // Un espacio que todavía no se muestra no reserva campaña ni anunciante.
   if (!rotation || !enabled) return rotation && null;
   let plan = plans.get(pathname);

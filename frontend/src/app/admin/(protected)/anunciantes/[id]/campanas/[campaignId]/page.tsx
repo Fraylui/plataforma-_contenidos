@@ -5,6 +5,7 @@ import {
   getCampaign,
   getCampaignStats,
   listAdminAdPlacements,
+  listAdminCategories,
   listAdminImages,
 } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
@@ -31,10 +32,11 @@ export default async function EditCampaignPage({
     const placements = await listAdminAdPlacements(accessToken);
     const images = await listAdminImages(accessToken);
     const stats = await getCampaignStats(accessToken, campaignId);
-    return { advertiser, campaign, placements, images, stats };
+    const categories = await listAdminCategories(accessToken);
+    return { categories, advertiser, campaign, placements, images, stats };
   });
   if ("denied" in result) return <AccessDenied />;
-  const { advertiser, campaign, placements, images, stats } = result.data;
+  const { advertiser, campaign, placements, categories, images, stats } = result.data;
 
   return (
     <div>
@@ -48,6 +50,7 @@ export default async function EditCampaignPage({
           advertiserId={id}
           campaign={campaign}
           placements={placements}
+          categories={categories}
           allImages={images}
         />
       </div>
