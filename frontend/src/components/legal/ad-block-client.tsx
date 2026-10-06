@@ -9,8 +9,9 @@ import { cn } from "@/lib/utils";
  * Cómo se presenta el anuncio en su contexto:
  *  - "inline": a su medida, centrado (por defecto).
  *  - "fill": ocupa el ancho de su columna (lateral, celda del feed).
- *  - "band": dentro de una franja de fondo suave a todo el ancho (cabecera
- *    y final de listados, final del artículo). Con `count` > 1 es una "fila
+ *  - "band": bloque a todo el ancho, sin marco ni fondo (el usuario vio el
+ *    contorno con relleno como feo, 2026-10-06: el anuncio va limpio sobre
+ *    la página, como en los diarios). Con `count` > 1 es una "fila
  *    patrocinada" (MSN, diarios): hasta `count` campañas distintas lado a
  *    lado, que llenan el ancho en vez de dejar un 300×250 solo en medio de
  *    1200 px. Con una sola campaña disponible queda una, centrada en su
@@ -52,7 +53,7 @@ export function AdBlockClient({
       // empty:hidden — si ningún espacio de la fila recibió anuncio, la franja no se dibuja.
       <div
         className={cn(
-          "flex justify-center gap-4 rounded-2xl border border-canvas-border bg-canvas-strong px-4 py-5 empty:hidden sm:py-6",
+          "flex justify-center gap-4 empty:hidden",
           className,
         )}
       >
@@ -88,7 +89,7 @@ export function AdBlockClient({
 
 function BandIfFilled({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn("rounded-2xl border border-canvas-border bg-canvas-strong px-4 py-5 empty:hidden sm:py-6", className)}>
+    <div className={cn("empty:hidden", className)}>
       {children}
     </div>
   );
