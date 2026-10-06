@@ -33,6 +33,8 @@ export interface HomeItem {
   dateLabel: string;
   /** Carrusel de la tarjeta tipo post; la primera es la portada. Vacío si no hay imágenes. */
   images: HomeImage[];
+  /** Tiene video (ícono en la cuadrícula de Explorar). */
+  hasVideo?: boolean;
   /** Acciones por tipo (Agendar, Cómo llegar, Llamar, Sitio web); null si no aplican. */
   startsAt?: string | null;
   latitude?: number | null;
@@ -193,6 +195,7 @@ export function fromFeedItem(item: FeedItem): HomeItem {
     sortDate: (item.type === "EVENT" ? item.startsAt : item.publishedAt) ?? "",
     dateLabel: item.type === "EVENT" && item.startsAt ? formatEventDateTime(item.startsAt) : "",
     images: images.length > 0 ? images : coverAsImages(cover),
+    hasVideo: item.hasVideo,
     startsAt: item.startsAt,
     latitude: item.latitude,
     longitude: item.longitude,

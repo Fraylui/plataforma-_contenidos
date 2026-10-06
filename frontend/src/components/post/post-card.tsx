@@ -7,7 +7,7 @@ import type { HomeItem } from "@/lib/home-items";
 import { homeLikeType } from "@/lib/content-kind";
 import { useContentReactions } from "@/components/content/like-share-bar";
 import { cn } from "@/lib/utils";
-import { PostHeader, type PostBrand } from "./post-header";
+import { PostHeader, headerTimeFor, type PostBrand } from "./post-header";
 import { PostMedia } from "./post-media";
 import { typeActions } from "./post-actions";
 
@@ -58,7 +58,7 @@ export function PostCard({
       aria-labelledby={titleId}
       className="overflow-hidden border-b border-border/70 bg-surface sm:rounded-2xl sm:border sm:shadow-[0_1px_2px_rgb(0_0_0_/_0.04)]"
     >
-      <PostHeader item={item} brand={brand} categoryName={categoryName} />
+      <PostHeader brand={brand} typeLabel={item.typeLabel} categoryName={categoryName} time={headerTimeFor(item)} />
       <PostMedia images={item.images} title={item.title} href={item.href} onDoubleTap={likeFromDoubleTap} priority={priority} />
 
       <div className="flex items-center gap-1 px-2 pt-1.5">

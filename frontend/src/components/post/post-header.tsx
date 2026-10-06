@@ -7,7 +7,7 @@ export interface PostBrand {
 }
 
 /** Fecha ISO usable para el encabezado según el tipo, o null si falta o es inválida. */
-function postDateIso(item: Pick<HomeItem, "kind" | "sortDate" | "startsAt">): string | null {
+export function postDateIso(item: Pick<HomeItem, "kind" | "sortDate" | "startsAt">): string | null {
   const iso = item.kind === "evento" ? (item.startsAt ?? item.sortDate) : item.sortDate;
   return iso && !Number.isNaN(Date.parse(iso)) ? iso : null;
 }
@@ -27,14 +27,38 @@ export function postTimeLabel(item: Pick<HomeItem, "kind" | "sortDate" | "starts
   return formatShortDate(iso);
 }
 
+export interface PostHeaderTime {
+  label: string;
+  iso: string;
+}
+
+/** Fecha del encabezado ya resuelta para un ítem del feed, o null si no hay una válida. */
+export function headerTimeFor(item: Pick<HomeItem, "kind" | "sortDate" | "startsAt">): PostHeaderTime | null {
+  const iso = postDateIso(item);
+  return iso ? { label: postTimeLabel(item), iso } : null;
+}
+
 /**
- * Encabezado de post: la marca es la "cuenta" que publica (sin firma de
- * autor), luego tipo, tema y tiempo — sin antetítulo en mayúsculas.
+ * Encabezado de post (tarjeta del feed y vista de contenido): la marca es la
+ * "cuenta" que publica (sin firma de autor), luego tipo, tema y tiempo — sin
+ * antetítulo en mayúsculas. `as`: "header" en la tarjeta; en la vista de
+ * contenido también.
  */
-export function PostHeader({ item, brand, categoryName }: { item: HomeItem; brand: PostBrand; categoryName?: string }) {
-  const dateIso = postDateIso(item);
+export function PostHeader({
+  brand,
+  typeLabel,
+  categoryName,
+  time,
+  className,
+}: {
+  brand: PostBrand;
+  typeLabel: string;
+  categoryName?: string;
+  time: PostHeaderTime | null;
+  className?: string;
+}) {
   return (
-    <header data-testid="post-header" className="flex items-center gap-3 px-4 py-3">
+    <header data-testid="post-header" className={className ?? "flex items-center gap-3 px-4 py-3"}>
       {brand.logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- logo definido en Configuración, host arbitrario
         <img src={brand.logoUrl} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-accent-fill/70" />
@@ -46,18 +70,18 @@ export function PostHeader({ item, brand, categoryName }: { item: HomeItem; bran
       <div className="min-w-0 leading-tight">
         <p className="truncate text-sm">
           <span className="font-bold text-foreground">{brand.name}</span>
-          <span className="text-muted"> · {item.typeLabel}</span>
+          <span className="text-muted"> · {typeLabel}</span>
         </p>
         <p className="truncate text-xs text-muted">
           {categoryName && (
             <>
               {categoryName}
-              {dateIso && " · "}
+              {time && " · "}
             </>
           )}
-          {dateIso && (
-            <time dateTime={dateIso} suppressHydrationWarning>
-              {postTimeLabel(item)}
+          {time && (
+            <time dateTime={time.iso} suppressHydrationWarning>
+              {time.label}
             </time>
           )}
         </p>
