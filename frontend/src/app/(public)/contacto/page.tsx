@@ -51,7 +51,7 @@ export default async function ContactPage() {
               <a href={mail("Propuesta de contenido")} className="text-accent underline underline-offset-2">
                 Propuesta de contenido
               </a>{" "}
-              — un lugar, evento o historia que deberíamos cubrir.
+              — un lugar, evento o historia que debería estar aquí.
             </li>
             <li>
               <a href={mail("Corrección")} className="text-accent underline underline-offset-2">

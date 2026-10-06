@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { RefreshCw, TriangleAlert } from "lucide-react";
+import { ArrowClockwise, House, WarningCircle } from "@phosphor-icons/react";
 
 export default function Error({
   error,
@@ -17,30 +17,29 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center px-4 py-24 text-center sm:px-6">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent-soft text-accent">
-        <TriangleAlert className="h-8 w-8" aria-hidden="true" />
+    <div className="mx-auto flex min-h-[70dvh] max-w-md flex-col items-center justify-center px-6 py-16 text-center">
+      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-canvas-strong text-foreground">
+        <WarningCircle className="h-10 w-10" aria-hidden="true" />
       </div>
-      <h1 className="mt-6 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-        Algo no funcionó como esperábamos
-      </h1>
-      <p className="mt-3 max-w-md text-[15px] leading-relaxed text-muted">
-        No pudimos cargar este contenido. Puede ser temporal — intenta de nuevo en unos segundos.
+      <h1 className="mt-6 text-2xl font-extrabold tracking-tight text-foreground">Algo no salió bien</h1>
+      <p className="mt-2 text-[15px] leading-relaxed text-muted">
+        No pudimos cargar esto. Suele ser temporal: vuelve a intentarlo en unos segundos.
       </p>
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
         <button
           type="button"
           onClick={reset}
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-accent-fill px-5 py-2.5 text-sm font-semibold text-accent-foreground transition-colors hover:opacity-90"
+          className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-accent-fill px-5 text-sm font-semibold text-accent-foreground transition-colors hover:opacity-90"
         >
-          <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+          <ArrowClockwise className="h-4 w-4" weight="bold" aria-hidden="true" />
           Reintentar
         </button>
         <Link
           href="/"
-          className="rounded-full border border-foreground/[0.08] bg-surface px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-accent/50 hover:text-accent"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full bg-canvas-strong px-5 text-sm font-semibold text-foreground transition-colors hover:bg-accent-soft hover:text-accent"
         >
-          Volver al inicio
+          <House className="h-4 w-4" aria-hidden="true" />
+          Ir al inicio
         </Link>
       </div>
     </div>
