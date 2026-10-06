@@ -114,6 +114,20 @@ public class User {
         return lastLoginAt;
     }
 
+    /** Cambio de contraseña por el propio usuario: deja de ser temporal. */
+    public void changePassword(String newPasswordHash) {
+        this.passwordHash = newPasswordHash;
+        this.mustChangePassword = false;
+        this.updatedAt = Instant.now();
+    }
+
+    /** Contraseña temporal puesta por el dueño: el próximo ingreso obliga a cambiarla. */
+    public void setTemporaryPassword(String passwordHash) {
+        this.passwordHash = passwordHash;
+        this.mustChangePassword = true;
+        this.updatedAt = Instant.now();
+    }
+
     public void recordLogin(Instant when) {
         this.lastLoginAt = when;
         this.updatedAt = when;

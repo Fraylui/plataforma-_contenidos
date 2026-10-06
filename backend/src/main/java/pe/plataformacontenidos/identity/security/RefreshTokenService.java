@@ -24,6 +24,8 @@ import org.springframework.stereotype.Service;
 public class RefreshTokenService {
 
     private static final String KEY_PREFIX = "refresh_token:";
+    /** Índice de sesiones por usuario, para cerrarlas todas (desactivar, restablecer o cambiar contraseña). */
+    private static final String USER_INDEX_PREFIX = "refresh_tokens_of:";
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final StringRedisTemplate redisTemplate;
@@ -36,10 +38,11 @@ public class RefreshTokenService {
 
     public String issue(UUID userId) {
         String token = generateOpaqueToken();
-        redisTemplate.opsForValue().set(
-                KEY_PREFIX + hash(token),
-                userId.toString(),
-                Duration.ofDays(properties.refreshTokenTtlDays()));
+        String tokenHash = hash(token);
+        Duration ttl = Duration.ofDays(properties.refreshTokenTtlDays());
+        redisTemplate.opsForValue().set(KEY_PREFIX + tokenHash, userId.toString(), ttl);
+        redisTemplate.opsForSet().add(USER_INDEX_PREFIX + userId, tokenHash);
+        redisTemplate.expire(USER_INDEX_PREFIX + userId, ttl);
         return token;
     }
 
@@ -51,11 +54,22 @@ public class RefreshTokenService {
             return Optional.empty();
         }
         redisTemplate.delete(key);
+        redisTemplate.opsForSet().remove(USER_INDEX_PREFIX + userId, hash(token));
         return Optional.of(UUID.fromString(userId));
     }
 
     public void revoke(String token) {
         redisTemplate.delete(KEY_PREFIX + hash(token));
+    }
+
+    /** Cierra todas las sesiones de un usuario (sus refresh tokens dejan de servir). */
+    public void revokeAll(UUID userId) {
+        String index = USER_INDEX_PREFIX + userId;
+        var hashes = redisTemplate.opsForSet().members(index);
+        if (hashes != null) {
+            hashes.forEach(h -> redisTemplate.delete(KEY_PREFIX + h));
+        }
+        redisTemplate.delete(index);
     }
 
     private static String generateOpaqueToken() {

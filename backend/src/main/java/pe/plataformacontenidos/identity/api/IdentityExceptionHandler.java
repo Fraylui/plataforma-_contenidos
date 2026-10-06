@@ -11,6 +11,8 @@ import pe.plataformacontenidos.identity.CannotModifyOwnAccountException;
 import pe.plataformacontenidos.identity.EmailAlreadyExistsException;
 import pe.plataformacontenidos.identity.InvalidCredentialsException;
 import pe.plataformacontenidos.identity.OwnerManagementDeniedException;
+import pe.plataformacontenidos.identity.WeakPasswordException;
+import pe.plataformacontenidos.identity.WrongCurrentPasswordException;
 import pe.plataformacontenidos.identity.TooManyAttemptsException;
 import pe.plataformacontenidos.identity.UserNotFoundException;
 
@@ -45,6 +47,11 @@ public class IdentityExceptionHandler {
     @ExceptionHandler(CannotModifyOwnAccountException.class)
     public ResponseEntity<ApiError> handleCannotModifyOwnAccount(CannotModifyOwnAccountException ex) {
         return error(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler({ WeakPasswordException.class, WrongCurrentPasswordException.class })
+    public ResponseEntity<ApiError> handlePasswordRejected(RuntimeException ex) {
+        return error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
