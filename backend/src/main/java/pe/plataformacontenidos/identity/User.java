@@ -81,10 +81,6 @@ public class User {
         return lastName;
     }
 
-    public String getFullName() {
-        return firstName + " " + lastName;
-    }
-
     public Role getRole() {
         return role;
     }

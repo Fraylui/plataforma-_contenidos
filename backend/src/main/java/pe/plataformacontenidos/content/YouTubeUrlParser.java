@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
  */
 public final class YouTubeUrlParser {
 
-    private static final Pattern VIDEO_ID = Pattern.compile("^[a-zA-Z0-9_-]{11}$");
 
     private static final Pattern[] URL_PATTERNS = {
             Pattern.compile("(?:youtube\\.com/watch\\?v=)([a-zA-Z0-9_-]{11})"),
@@ -34,9 +33,5 @@ public final class YouTubeUrlParser {
             }
         }
         return Optional.empty();
-    }
-
-    public static boolean isValidVideoId(String videoId) {
-        return videoId != null && VIDEO_ID.matcher(videoId).matches();
     }
 }
