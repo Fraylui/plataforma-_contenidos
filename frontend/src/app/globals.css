@@ -80,14 +80,16 @@
   --accent-soft: color-mix(in srgb, var(--accent) 15%, var(--surface));
   --danger: #991b1b;
   --danger-foreground: #ffffff;
-  /* Lienzo del sitio público: tinte verde muy claro en vez de blanco plano
-     (a pedido: "que no haya mucho blanco, tampoco oscuro"). El blanco puro
-     queda solo dentro de las tarjetas (--surface), así resaltan. Esto es
-     intencional y distinto de --background: el lienzo público sí lleva
-     personalidad de marca, los neutros base del panel no. */
-  --canvas: #e9f4ec;
-  --canvas-strong: #dcebe0;
-  --canvas-border: #cfe3d5;
+  /* Lienzo del sitio público: gris neutro de Facebook (#f0f2f5) en vez de
+     blanco plano ("que no haya mucho blanco") y en vez del tinte verde de
+     2026-09, que teñía todo y se veía apagado ("en modo claro se ve feo",
+     2026-10-06). El blanco puro queda en tarjetas y menús (--surface) y el
+     verde solo en marca y acciones. Contraste WCAG: foreground 15.9,
+     muted 6.76, accent 5.22 sobre el lienzo; 4.69 del accent sobre
+     --canvas-strong. */
+  --canvas: #f0f2f5;
+  --canvas-strong: #e4e6eb;
+  --canvas-border: #dadde1;
 }
 
 /*

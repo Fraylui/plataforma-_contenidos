@@ -59,27 +59,31 @@ export default async function Home() {
   const brand = { name: settings.name, logoUrl: settings.logoUrl ?? null };
 
   return (
-    <div className="mx-auto flex w-full max-w-[1040px] justify-center gap-10 py-3 sm:px-4 sm:py-6">
-      <div className="w-full max-w-[630px] min-w-0">
-        {/* Único <h1>, fuera de pantalla: la marca ya se ve en la navegación. */}
-        <h1 className="sr-only">{settings.name}</h1>
-        <div className="px-4 sm:px-0">
-          <TopicStories topics={stories} />
-          <FilterChips label="Tipo de contenido" options={typeChipOptions(visibility, "/")} className="mt-2 mb-3" />
+    // Como Facebook: el feed se centra en el espacio libre y la columna derecha queda pegada al borde de la pantalla, sin franjas vacías a los costados.
+    <div className="flex w-full">
+      <div className="flex min-w-0 flex-1 justify-center py-3 sm:px-4 sm:py-6">
+        <div className="w-full max-w-[630px] min-w-0">
+          {/* Único <h1>, fuera de pantalla: la marca ya se ve en la navegación. */}
+          <h1 className="sr-only">{settings.name}</h1>
+          <div className="px-4 sm:px-0">
+            <TopicStories topics={stories} />
+            <FilterChips label="Tipo de contenido" options={typeChipOptions(visibility, "/")} className="mt-2 mb-3" />
+          </div>
+          <Feed
+            initialItems={feedItems}
+            initialHasMore={feedPage.hasMore}
+            seed={feedSeed}
+            filter={{}}
+            brand={brand}
+            categoryNames={categoryNames}
+            feedAd={feedAd}
+            topLiked={topLiked}
+          />
         </div>
-        <Feed
-          initialItems={feedItems}
-          initialHasMore={feedPage.hasMore}
-          seed={feedSeed}
-          filter={{}}
-          brand={brand}
-          categoryNames={categoryNames}
-          feedAd={feedAd}
-          topLiked={topLiked}
-        />
       </div>
-      <aside aria-label="Más para descubrir" className="hidden w-80 shrink-0 xl:block">
-        <div className="sticky top-24">
+      <aside aria-label="Más para descubrir" className="hidden w-[22.5rem] shrink-0 xl:block">
+        {/* Alto de pantalla bajo la franja superior (h-16), con desplazamiento propio sin barra visible. */}
+        <div className="sticky top-16 h-[calc(100dvh-4rem)] overflow-y-auto px-5 py-6 no-scrollbar">
           <RightColumn events={events.items} topLiked={topLiked} categoryNames={categoryNames} />
         </div>
       </aside>

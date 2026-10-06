@@ -53,7 +53,7 @@ export function StickyAnchorAd({ children, width }: { children: ReactNode; width
 
   return createPortal(
     // La franja ocupa todo el ancho solo para centrar la tarjeta: no captura clics (en escritorio tapaba el pie del riel). Desde 1024 px se centra en la columna de contenido, no sobre el riel.
-    <div className="pointer-events-none fixed inset-x-0 bottom-(--bottom-bar-h) z-40 flex justify-center px-3 pb-3 sm:px-4 lg:left-[72px] xl:left-64">
+    <div className="pointer-events-none fixed inset-x-0 bottom-(--bottom-bar-h) z-40 flex justify-center px-3 pb-3 sm:px-4 lg:left-[76px] xl:left-[17.5rem]">
       <div
         className="pointer-events-auto relative w-full rounded-xl border border-border bg-surface px-2 pt-1.5 pb-2 shadow-lg"
         style={{ maxWidth: width + 16 }}

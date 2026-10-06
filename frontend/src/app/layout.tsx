@@ -5,7 +5,6 @@ import { Toaster } from "sonner";
 import "./globals.css";
 import { getPlatformSettings } from "@/lib/api/client";
 import { SITE_URL } from "@/lib/site-url";
-import { themeInitScript } from "@/components/shell/theme-pref";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -37,12 +36,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const dataTheme = settings.theme === "LIGHT" ? "light" : settings.theme === "DARK" ? "dark" : undefined;
 
   return (
-    // suppressHydrationWarning: el script del <head> puede cambiar data-theme antes de hidratar (apariencia elegida por el visitante).
-    <html lang="es" data-theme={dataTheme} suppressHydrationWarning className={`${inter.variable} h-full antialiased`}>
-      <head>
-        {/* Apariencia guardada por el visitante (menú "Más"), aplicada antes de pintar para que no parpadee. */}
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
+    <html lang="es" data-theme={dataTheme} className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full bg-background text-foreground">
         {children}
         <Toaster
