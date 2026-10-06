@@ -3,6 +3,7 @@
 import { AdSlot } from "@/components/legal/ad-slot";
 import { DirectCampaignBanner } from "@/components/legal/direct-campaign-banner";
 import { usePlannedCampaign } from "@/components/legal/use-ad-rotation";
+import { SponsoredPost } from "@/components/post/sponsored-post";
 import { cn } from "@/lib/utils";
 import type { AdContext } from "@/lib/ads/ad-context";
 
@@ -41,6 +42,7 @@ export function AdBlockClient({
   className,
   adsense,
   context,
+  frame,
 }: {
   position: string;
   /** Sección y tema de la página, para la segmentación de las campañas. */
@@ -51,6 +53,8 @@ export function AdBlockClient({
   layout?: AdLayout;
   className?: string;
   adsense: AdSense;
+  /** "post": dentro del feed, el anuncio va con forma de post («Patrocinado»), solo si hay anuncio. */
+  frame?: "post";
 }) {
   if (layout === "band" && count > 1) {
     return (
@@ -87,6 +91,7 @@ export function AdBlockClient({
       fill={layout === "fill"}
       adsense={adsense}
       className={band ? undefined : className}
+      frame={frame}
     />
   );
   if (!band) return ad;
@@ -108,6 +113,7 @@ function PlannedAd({
   adsense,
   className,
   context,
+  frame,
 }: {
   position: string;
   slot: number;
@@ -115,21 +121,28 @@ function PlannedAd({
   fill: boolean;
   adsense: AdSense;
   className?: string;
+  frame?: "post";
 }) {
   const planned = usePlannedCampaign(position, slot, true, context);
   if (planned === undefined) return null;
+  const post = frame === "post";
+  let ad: React.ReactNode = null;
   if (planned?.campaign) {
     const { rotation, campaign } = planned;
-    return (
+    ad = (
       <DirectCampaignBanner
         campaign={campaign}
         width={rotation.width}
         height={rotation.height}
         fill={fill}
+        // En el post la etiqueta es el encabezado «Patrocinado».
+        label={!post}
         className={className}
       />
     );
+  } else if (adsense) {
+    ad = <AdSlot clientId={adsense.clientId} slot={adsense.slot} className={className} />;
   }
-  if (!adsense) return null;
-  return <AdSlot clientId={adsense.clientId} slot={adsense.slot} className={className} />;
+  if (!ad) return null;
+  return post ? <SponsoredPost>{ad}</SponsoredPost> : ad;
 }

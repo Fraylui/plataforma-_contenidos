@@ -74,7 +74,7 @@ export function Feed({
               />
             )}
             {withAd && (
-              <AdBlockClient position="en-feed" slot={slot} layout="fill" context={{ section: adSection }} adsense={feedAd} className="px-4 py-3 sm:px-0" />
+              <AdBlockClient position="en-feed" slot={slot} layout="fill" frame="post" context={{ section: adSection }} adsense={feedAd} />
             )}
           </Fragment>
         );

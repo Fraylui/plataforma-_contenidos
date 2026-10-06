@@ -34,12 +34,15 @@ export function DirectCampaignBanner({
   width,
   height,
   fill = false,
+  label = true,
   className,
 }: {
   campaign: ResolvedCampaign;
   width: number;
   height: number;
   fill?: boolean;
+  /** false cuando quien lo envuelve ya muestra la etiqueta (post «Patrocinado» del feed). */
+  label?: boolean;
   className?: string;
 }) {
   const ref = useRef<HTMLAnchorElement>(null);
@@ -49,7 +52,7 @@ export function DirectCampaignBanner({
 
   return (
     <figure className={cn("no-auto-ads mx-auto w-full", className)} style={{ maxWidth: fill ? Math.round(width * FILL_MAX_SCALE) : width }}>
-      <figcaption className="mb-1 text-[10px] font-medium tracking-[0.08em] text-muted uppercase">Publicidad</figcaption>
+      {label && <figcaption className="mb-1 text-[10px] font-medium tracking-[0.08em] text-muted uppercase">Publicidad</figcaption>}
       <a
         ref={ref}
         href={clickHref}
