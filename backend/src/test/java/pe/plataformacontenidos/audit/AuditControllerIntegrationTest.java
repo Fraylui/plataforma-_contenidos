@@ -75,6 +75,25 @@ class AuditControllerIntegrationTest {
     }
 
     @Test
+    void panelActionsAreAuditedAutomatically() throws Exception {
+        String adminToken = createUserAndLogin("audit-admin-3@plataforma-contenidos.test", Role.ADMIN);
+
+        mockMvc.perform(post("/api/v1/admin/categories")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Tema auditado\"}"))
+                .andExpect(status().is2xxSuccessful());
+
+        mockMvc.perform(get("/api/v1/admin/audit")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("actorEmail", "audit-admin-3@plataforma-contenidos.test")
+                        .param("action", "POST /admin/categories"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].result").value("SUCCESS"))
+                .andExpect(jsonPath("$.items[0].resourceType").value("categories"));
+    }
+
+    @Test
     void editorCannotAccessAuditLog() throws Exception {
         String editorToken = createUserAndLogin("audit-editor@plataforma-contenidos.test", Role.EDITOR);
 
