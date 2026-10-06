@@ -205,6 +205,7 @@ export function InfiniteFeed({
                 <AdBlockClient
                   position="en-feed"
                   slot={adSlot}
+                  layout="fill"
                   adsense={feedAd}
                   className="col-span-2 self-center sm:col-span-1"
                 />

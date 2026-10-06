@@ -267,7 +267,7 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
             dangerouslySetInnerHTML={{ __html: business.body }}
           />
 
-          <AdBlock position="article" className="mt-10" />
+          <AdBlock position="article" layout="band" count={2} className="mt-10" />
 
           <LikeShareBar contentType="directory" slug={business.slug} initialLikeCount={business.likeCount} title={business.name} />
         </article>
@@ -289,7 +289,7 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
               </section>
             </div>
             <div className="lg:sticky lg:top-32">
-              <AdBlock position="listing" />
+              <AdBlock position="listing" layout="fill" />
             </div>
           </aside>
         )}

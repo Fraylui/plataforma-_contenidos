@@ -47,7 +47,7 @@ export default async function GalleriesPage(props: PageProps<"/galerias">) {
         <FilterMenu label="Filtrar por tema" allLabel="Todas las categorías" options={categories.map((c) => ({ value: c.id, label: c.name }))} activeValue={categoryId} paramName="categoryId" basePath={BASE_PATH} />
       </ListingHeader>
 
-      <AdBlock position="cabecera" className="mt-8 hidden md:block" />
+      <AdBlock position="cabecera" layout="band" className="mt-8 max-md:hidden" />
 
       <section className="mt-8" aria-label="Galerías">
         {result.items.length === 0 ? (
@@ -66,7 +66,7 @@ export default async function GalleriesPage(props: PageProps<"/galerias">) {
                 />
               ))}
             </div>
-            <AdBlock position="listing" className="mt-10" />
+            <AdBlock position="listing" layout="band" count={3} className="mt-10" />
             <Pagination
               page={result.page}
               totalPages={result.totalPages}

@@ -15,23 +15,31 @@ import { useViewableImpression } from "@/components/legal/use-viewable-impressio
  *    muestra ENTERA: caja con esa proporción exacta y `object-contain`.
  *    Antes cada espacio imponía su propia proporción con `object-cover` y la
  *    imagen salía recortada (un banner con texto quedaba mutilado).
- *  - Nunca más ancho que su medida: centrado, y se achica en pantallas
- *    angostas sin cambiar de proporción.
+ *  - Sin `fill`: nunca más ancho que su medida, centrado (se achica en
+ *    pantallas angostas sin cambiar de proporción). Con `fill`: ocupa el
+ *    ancho de su columna (lateral, celda del feed, fila patrocinada) hasta
+ *    FILL_MAX_SCALE veces su medida — la creatividad viene al doble, así que
+ *    se sigue viendo nítida, sin franjas vacías a los costados ni un banner
+ *    gigante.
  *  - "Publicidad" va arriba, FUERA de la creatividad (Google y la IAB piden
  *    que la etiqueta no tape ni se confunda con el anuncio).
  *  - El link pasa siempre por `/ads/campaigns/{id}/click` (backend): el
  *    clic queda contado y el link real nunca está en el HTML.
  *  - Cuenta la impresión solo cuando se vio de verdad (useViewableImpression).
  */
+const FILL_MAX_SCALE = 1.3;
+
 export function DirectCampaignBanner({
   campaign,
   width,
   height,
+  fill = false,
   className,
 }: {
   campaign: ResolvedCampaign;
   width: number;
   height: number;
+  fill?: boolean;
   className?: string;
 }) {
   const ref = useRef<HTMLAnchorElement>(null);
@@ -40,7 +48,7 @@ export function DirectCampaignBanner({
   const alt = campaign.imageAlt ?? "Publicidad";
 
   return (
-    <figure className={cn("no-auto-ads mx-auto w-full", className)} style={{ maxWidth: width }}>
+    <figure className={cn("no-auto-ads mx-auto w-full", className)} style={{ maxWidth: fill ? Math.round(width * FILL_MAX_SCALE) : width }}>
       <figcaption className="mb-1 text-[10px] font-medium tracking-[0.08em] text-muted uppercase">Publicidad</figcaption>
       <a
         ref={ref}
@@ -51,7 +59,7 @@ export function DirectCampaignBanner({
         style={{ aspectRatio: `${width} / ${height}` }}
       >
         {campaign.imageSrc ? (
-          <SkeletonImage src={campaign.imageSrc} alt={alt} className="object-contain" sizes={`${width}px`} />
+          <SkeletonImage src={campaign.imageSrc} alt={alt} className="object-contain" sizes={`${fill ? Math.round(width * FILL_MAX_SCALE) : width}px`} />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element -- host arbitrario, cargado por el anunciante
           <img

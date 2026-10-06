@@ -1885,8 +1885,18 @@ y Coalition for Better Ads), sin cookies ni cuentas:
 | Tráfico inválido | `InvalidTraffic` | Robots, previsualizadores (WhatsApp, Facebook), scripts y pedidos sin user agent no cuentan impresión ni clic. |
 | Antiduplicado | `AdDeliveryGuard` | Impresión: misma persona y campaña, 1 cada 10 s. Clic: 1 cada 30 min (el visitante igual llega al destino). |
 | Conteo atómico | `CampaignRepository` / `campaign_daily_stats` | `UPDATE … + 1` y upsert por día: vistas simultáneas no se pierden. |
+| Presentación por contexto | `AdBlock layout` | `fill`: ocupa el ancho de la columna (lateral, celda del feed), hasta 1,3× su medida. `band`: franja de fondo suave (cabecera de listados). `band` + `count`: "fila patrocinada" de hasta 3 campañas distintas (final de listados) o 2 (final del artículo); con una sola disponible queda centrada; en celular siempre una. Nada de franjas vacías a los costados. |
 | Barra fija | `AnchorAdSlot` | Aparece recién después de responder el aviso de cookies (antes quedaba tapada y contaba vistas que nadie veía). |
 | Reporte | Panel → Anunciantes → campaña | Impresiones visibles, clics, % de clics y gráfico diario de 30 días (UTC). |
+
+**Con AdSense:** Google permite anuncios vendidos directamente en las
+mismas páginas siempre que no imiten a los de Google (por eso: etiqueta
+"Publicidad" propia, sin "Anuncios de Google", creatividades del
+anunciante). En páginas con AdSense, lo que promocionen las campañas
+directas también debe cumplir las políticas de Google (nada de apuestas,
+contenido adulto, armas, etc.). Si se vende la barra fija (`anchor`),
+desactivar los "anuncios fijos" (anchor) en los Auto ads de AdSense para no
+tener dos barras abajo.
 
 Los totales `impression_count` de antes del 2026-10-05 se contaban al pedir
 la campaña (inflados); desde esta fecha son vistas reales.

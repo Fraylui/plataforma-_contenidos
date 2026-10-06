@@ -80,7 +80,7 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
         />
       </ListingHeader>
 
-      <AdBlock position="cabecera" className="mt-8 hidden md:block" />
+      <AdBlock position="cabecera" layout="band" className="mt-8 max-md:hidden" />
 
       <section className="mt-8" aria-label="Directorio">
         {result.items.length === 0 ? (
@@ -110,7 +110,7 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
         )}
       </section>
 
-      <AdBlock position="listing" className="mt-10" />
+      <AdBlock position="listing" layout="band" count={3} className="mt-10" />
     </div>
   );
 }
