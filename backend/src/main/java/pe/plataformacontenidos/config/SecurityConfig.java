@@ -9,6 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import pe.plataformacontenidos.identity.permission.OwnerOnlyPaths;
 import pe.plataformacontenidos.identity.security.JwtAuthenticationFilter;
 import pe.plataformacontenidos.identity.security.JwtService;
 
@@ -57,21 +58,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/ads/campaigns/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/ads/campaigns/*/impression").permitAll()
 
-                .requestMatchers("/api/v1/admin/users/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
-                .requestMatchers("/api/v1/admin/platform-settings/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
-                // Publicidad/monetización (sección 43.2): mismo nivel que platform-settings, no contenido.
-                .requestMatchers("/api/v1/admin/ad-placements/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
-                .requestMatchers("/api/v1/admin/advertisers/**", "/api/v1/admin/campaigns/**")
-                    .hasAnyRole("SUPER_ADMIN", "ADMIN")
-                // Audit log: incluye IPs y acciones de todos los usuarios (incluidos otros
-                // admins) — sección 37, más sensible que un listado de contenido normal.
-                .requestMatchers("/api/v1/admin/audit/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
-                .requestMatchers("/api/v1/admin/categories/**", "/api/v1/admin/stats/**")
-                    .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR")
-                .requestMatchers("/api/v1/admin/articles/**", "/api/v1/admin/images/**", "/api/v1/admin/places/**",
-                        "/api/v1/admin/events/**", "/api/v1/admin/galleries/**",
-                        "/api/v1/admin/directory/**")
-                    .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR")
+                // Panel (spec 2a §4.1): las rutas exclusivas del dueño se exigen por rol;
+                // el resto del panel exige sesión y cada endpoint declara su módulo con
+                // @RequiresModule (ModuleAccessInterceptor, contra la base en cada petición).
+                .requestMatchers(OwnerOnlyPaths.PATTERNS.toArray(String[]::new)).hasRole("SUPER_ADMIN")
+                .requestMatchers("/api/v1/admin/**").authenticated()
 
                 .requestMatchers("/api/v1/users/me", "/api/v1/users/me/**").authenticated()
                 .anyRequest().denyAll()

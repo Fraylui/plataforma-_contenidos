@@ -1,5 +1,8 @@
 package pe.plataformacontenidos.advertising.api;
 
+import pe.plataformacontenidos.identity.permission.AccessLevel;
+import pe.plataformacontenidos.identity.permission.Module;
+import pe.plataformacontenidos.identity.permission.RequiresModule;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -24,6 +27,7 @@ import pe.plataformacontenidos.shared.ContentImageInput;
 
 /** Solo admin (SecurityConfig): CRUD de campañas, incluye impresiones/clics para mostrarle métricas al anunciante. */
 @RestController
+@RequiresModule(value = Module.ADVERTISING, level = AccessLevel.ACCESS)
 @RequestMapping("/api/v1/admin/campaigns")
 public class CampaignAdminController {
 

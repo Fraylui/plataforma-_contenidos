@@ -1,5 +1,7 @@
 package pe.plataformacontenidos.search;
 
+import pe.plataformacontenidos.identity.permission.LegacyRoleGrants;
+import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.is;
@@ -51,6 +53,9 @@ class SearchIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private WorkerPermissionRepository workerPermissions;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -358,8 +363,8 @@ class SearchIntegrationTest {
 
     private String createUserAndLogin(String email, Role role) throws Exception {
         String password = "SomeStrongPassword123!";
-        userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
-
+        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
+        LegacyRoleGrants.grant(workerPermissions, created.getId(), role);
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))

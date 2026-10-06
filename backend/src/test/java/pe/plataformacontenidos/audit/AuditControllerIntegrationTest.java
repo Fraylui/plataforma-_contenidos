@@ -1,5 +1,7 @@
 package pe.plataformacontenidos.audit;
 
+import pe.plataformacontenidos.identity.permission.LegacyRoleGrants;
+import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -39,6 +41,9 @@ class AuditControllerIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private WorkerPermissionRepository workerPermissions;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -46,7 +51,7 @@ class AuditControllerIntegrationTest {
 
     @Test
     void adminCanFilterAuditLogByResourceTypeAndResult() throws Exception {
-        String adminToken = createUserAndLogin("audit-admin@plataforma-contenidos.test", Role.ADMIN);
+        String adminToken = createUserAndLogin("audit-admin@plataforma-contenidos.test", Role.SUPER_ADMIN);
 
         auditService.record("TEST_ACTION_A", AuditResult.SUCCESS, null, "someone@test", "widget", "1", "127.0.0.1");
         auditService.record("TEST_ACTION_B", AuditResult.FAILURE, null, "someone@test", "gadget", "2", "127.0.0.1");
@@ -62,7 +67,7 @@ class AuditControllerIntegrationTest {
 
     @Test
     void loginSuccessIsRecordedAndVisibleToAdmin() throws Exception {
-        String adminToken = createUserAndLogin("audit-admin-2@plataforma-contenidos.test", Role.ADMIN);
+        String adminToken = createUserAndLogin("audit-admin-2@plataforma-contenidos.test", Role.SUPER_ADMIN);
         createUserAndLogin("audit-target@plataforma-contenidos.test", Role.AUTHOR);
 
         mockMvc.perform(get("/api/v1/admin/audit")
@@ -76,7 +81,7 @@ class AuditControllerIntegrationTest {
 
     @Test
     void panelActionsAreAuditedAutomatically() throws Exception {
-        String adminToken = createUserAndLogin("audit-admin-3@plataforma-contenidos.test", Role.ADMIN);
+        String adminToken = createUserAndLogin("audit-admin-3@plataforma-contenidos.test", Role.SUPER_ADMIN);
 
         mockMvc.perform(post("/api/v1/admin/categories")
                         .header("Authorization", "Bearer " + adminToken)
@@ -113,8 +118,8 @@ class AuditControllerIntegrationTest {
 
     private String createUserAndLogin(String email, Role role) throws Exception {
         String password = "SomeStrongPassword123!";
-        userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
-
+        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
+        LegacyRoleGrants.grant(workerPermissions, created.getId(), role);
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))

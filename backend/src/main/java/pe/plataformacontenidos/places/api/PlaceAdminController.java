@@ -1,5 +1,8 @@
 package pe.plataformacontenidos.places.api;
 
+import pe.plataformacontenidos.identity.permission.AccessLevel;
+import pe.plataformacontenidos.identity.permission.Module;
+import pe.plataformacontenidos.identity.permission.RequiresModule;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +28,7 @@ import pe.plataformacontenidos.places.api.dto.SchedulePlaceRequest;
  * ArticleAdminController. La autorización fina vive en PlaceService.
  */
 @RestController
+@RequiresModule(value = Module.PLACES)
 @RequestMapping("/api/v1/admin/places")
 public class PlaceAdminController {
 

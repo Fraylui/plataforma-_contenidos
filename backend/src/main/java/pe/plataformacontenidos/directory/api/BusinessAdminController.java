@@ -1,5 +1,8 @@
 package pe.plataformacontenidos.directory.api;
 
+import pe.plataformacontenidos.identity.permission.AccessLevel;
+import pe.plataformacontenidos.identity.permission.Module;
+import pe.plataformacontenidos.identity.permission.RequiresModule;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +29,7 @@ import pe.plataformacontenidos.identity.security.UserPrincipal;
  * BusinessService.
  */
 @RestController
+@RequiresModule(value = Module.DIRECTORY)
 @RequestMapping("/api/v1/admin/directory")
 public class BusinessAdminController {
 

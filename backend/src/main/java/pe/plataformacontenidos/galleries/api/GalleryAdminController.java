@@ -1,5 +1,8 @@
 package pe.plataformacontenidos.galleries.api;
 
+import pe.plataformacontenidos.identity.permission.AccessLevel;
+import pe.plataformacontenidos.identity.permission.Module;
+import pe.plataformacontenidos.identity.permission.RequiresModule;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +28,7 @@ import pe.plataformacontenidos.identity.security.UserPrincipal;
  * EventAdminController. La autorización fina vive en GalleryService.
  */
 @RestController
+@RequiresModule(value = Module.GALLERIES)
 @RequestMapping("/api/v1/admin/galleries")
 public class GalleryAdminController {
 

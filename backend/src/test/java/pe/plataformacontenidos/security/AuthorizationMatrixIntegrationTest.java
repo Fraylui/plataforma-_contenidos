@@ -1,5 +1,7 @@
 package pe.plataformacontenidos.security;
 
+import pe.plataformacontenidos.identity.permission.LegacyRoleGrants;
+import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,11 +49,13 @@ class AuthorizationMatrixIntegrationTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
     @Autowired private UserRepository userRepository;
+    @Autowired private WorkerPermissionRepository workerPermissions;
     @Autowired private PasswordEncoder passwordEncoder;
 
     private String authorToken;
     private String editorToken;
     private String adminToken;
+    private String ownerToken;
 
     @BeforeAll
     void createUsers() throws Exception {
@@ -59,9 +63,10 @@ class AuthorizationMatrixIntegrationTest {
         authorToken = createUserAndLogin("matrix-author-" + suffix + "@plataforma-contenidos.test", Role.AUTHOR);
         editorToken = createUserAndLogin("matrix-editor-" + suffix + "@plataforma-contenidos.test", Role.EDITOR);
         adminToken = createUserAndLogin("matrix-admin-" + suffix + "@plataforma-contenidos.test", Role.ADMIN);
+        ownerToken = createUserAndLogin("matrix-owner-" + suffix + "@plataforma-contenidos.test", Role.SUPER_ADMIN);
     }
 
-    /** Endpoints admin que requieren rol ADMIN o SUPER_ADMIN. */
+    /** Endpoints exclusivos del dueño (spec 2a: usuarios/trabajadores, configuración, auditoría). */
     static Stream<String> adminOnlyEndpoints() {
         return Stream.of("/api/v1/admin/users", "/api/v1/admin/audit", "/api/v1/admin/platform-settings");
     }
@@ -137,10 +142,16 @@ class AuthorizationMatrixIntegrationTest {
         mockMvc.perform(withToken(get(path), authorToken)).andExpect(passedAuthorization());
     }
 
-    @ParameterizedTest(name = "ADMIN -> {0} pasa la puerta")
+    @ParameterizedTest(name = "ADMIN (trabajador) -> {0} = 403")
+    @MethodSource("adminOnlyEndpoints")
+    void adminWorkerCannotReachOwnerOnlyEndpoints(String path) throws Exception {
+        mockMvc.perform(withToken(get(path), adminToken)).andExpect(status().isForbidden());
+    }
+
+    @ParameterizedTest(name = "dueño -> {0} pasa la puerta")
     @MethodSource("everyAdminEndpoint")
-    void adminPassesEveryAdminEndpoint(String path) throws Exception {
-        mockMvc.perform(withToken(get(path), adminToken)).andExpect(passedAuthorization());
+    void ownerPassesEveryAdminEndpoint(String path) throws Exception {
+        mockMvc.perform(withToken(get(path), ownerToken)).andExpect(passedAuthorization());
     }
 
     @ParameterizedTest(name = "ruta desconocida {0} = deny-by-default")
@@ -173,7 +184,8 @@ class AuthorizationMatrixIntegrationTest {
     }
 
     private String createUserAndLogin(String email, Role role) throws Exception {
-        userRepository.save(new User(email, passwordEncoder.encode(PASSWORD), "Matrix", "Test", role));
+        User created = userRepository.save(new User(email, passwordEncoder.encode(PASSWORD), "Matrix", "Test", role));
+        LegacyRoleGrants.grant(workerPermissions, created.getId(), role);
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + PASSWORD + "\"}"))

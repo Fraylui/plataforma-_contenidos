@@ -1,5 +1,8 @@
 package pe.plataformacontenidos.events.api;
 
+import pe.plataformacontenidos.identity.permission.AccessLevel;
+import pe.plataformacontenidos.identity.permission.Module;
+import pe.plataformacontenidos.identity.permission.RequiresModule;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +28,7 @@ import pe.plataformacontenidos.identity.security.UserPrincipal;
  * PlaceAdminController. La autorización fina vive en EventService.
  */
 @RestController
+@RequiresModule(value = Module.EVENTS)
 @RequestMapping("/api/v1/admin/events")
 public class EventAdminController {
 

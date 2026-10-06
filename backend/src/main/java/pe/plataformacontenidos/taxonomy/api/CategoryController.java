@@ -1,5 +1,8 @@
 package pe.plataformacontenidos.taxonomy.api;
 
+import pe.plataformacontenidos.identity.permission.AccessLevel;
+import pe.plataformacontenidos.identity.permission.Module;
+import pe.plataformacontenidos.identity.permission.RequiresModule;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -44,11 +47,13 @@ public class CategoryController {
         return CategoryResponse.from(categoryService.getOrThrow(id));
     }
 
+    @RequiresModule(value = Module.CATEGORIES, level = AccessLevel.ACCESS)
     @GetMapping("/admin/categories")
     public List<CategoryResponse> listAll() {
         return categoryService.listAll().stream().map(CategoryResponse::from).toList();
     }
 
+    @RequiresModule(value = Module.CATEGORIES, level = AccessLevel.ACCESS)
     @PostMapping("/admin/categories")
     @ResponseStatus(HttpStatus.CREATED)
     public CategoryResponse create(@Valid @RequestBody CreateCategoryRequest request) {
@@ -56,6 +61,7 @@ public class CategoryController {
         return CategoryResponse.from(category);
     }
 
+    @RequiresModule(value = Module.CATEGORIES, level = AccessLevel.ACCESS)
     @PutMapping("/admin/categories/{id}")
     public CategoryResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateCategoryRequest request) {
         var category = categoryService.update(id, request.name(), request.description(), request.parentId(),
@@ -63,11 +69,13 @@ public class CategoryController {
         return CategoryResponse.from(category);
     }
 
+    @RequiresModule(value = Module.CATEGORIES, level = AccessLevel.ACCESS)
     @PostMapping("/admin/categories/{id}/activate")
     public void activate(@PathVariable UUID id) {
         categoryService.setActive(id, true);
     }
 
+    @RequiresModule(value = Module.CATEGORIES, level = AccessLevel.ACCESS)
     @DeleteMapping("/admin/categories/{id}")
     public void deactivate(@PathVariable UUID id) {
         // "Eliminar" una categoría con contenido asociado es destructivo; se
