@@ -18,4 +18,10 @@ public class PermissionExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(new PermissionError(Instant.now(), 403, "MODULE_ACCESS_DENIED", ex.getMessage()));
     }
+
+    @ExceptionHandler(PublishPermissionRequiredException.class)
+    public ResponseEntity<PermissionError> handlePublishRequired(PublishPermissionRequiredException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new PermissionError(Instant.now(), 403, "PUBLISH_PERMISSION_REQUIRED", ex.getMessage()));
+    }
 }

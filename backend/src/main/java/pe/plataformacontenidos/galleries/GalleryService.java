@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.PublishPermissionRequiredException;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
@@ -58,9 +58,9 @@ public class GalleryService {
         return saved;
     }
 
-    public Gallery update(UUID galleryId, GalleryInput input, UUID actingUserId, Role actingRole) {
+    public Gallery update(UUID galleryId, GalleryInput input, UUID actingUserId, boolean canPublish) {
         Gallery gallery = getOrThrow(galleryId);
-        requireCanEdit(gallery, actingUserId, actingRole);
+        requireCanEdit(gallery, actingUserId, canPublish);
 
         if (!gallery.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
@@ -88,8 +88,8 @@ public class GalleryService {
         return saved;
     }
 
-    public Gallery approve(UUID galleryId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Gallery approve(UUID galleryId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Gallery gallery = getOrThrow(galleryId);
         if (gallery.getStatus() != GalleryStatus.IN_REVIEW) {
             throw new InvalidGalleryTransitionException(gallery.getStatus(), "aprobar");
@@ -100,8 +100,8 @@ public class GalleryService {
         return saved;
     }
 
-    public Gallery reject(UUID galleryId, String reason, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Gallery reject(UUID galleryId, String reason, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Gallery gallery = getOrThrow(galleryId);
         if (gallery.getStatus() != GalleryStatus.IN_REVIEW) {
             throw new InvalidGalleryTransitionException(gallery.getStatus(), "rechazar");
@@ -112,8 +112,8 @@ public class GalleryService {
         return saved;
     }
 
-    public Gallery publish(UUID galleryId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Gallery publish(UUID galleryId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Gallery gallery = getOrThrow(galleryId);
         if (gallery.getStatus() != GalleryStatus.APPROVED) {
             throw new InvalidGalleryTransitionException(gallery.getStatus(), "publicar");
@@ -124,8 +124,8 @@ public class GalleryService {
         return saved;
     }
 
-    public Gallery schedule(UUID galleryId, Instant when, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Gallery schedule(UUID galleryId, Instant when, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         if (when.isBefore(Instant.now())) {
             throw new InvalidGalleryScheduleException("La fecha de publicación programada debe ser futura");
         }
@@ -139,8 +139,8 @@ public class GalleryService {
         return saved;
     }
 
-    public Gallery archive(UUID galleryId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Gallery archive(UUID galleryId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Gallery gallery = getOrThrow(galleryId);
         if (gallery.getStatus() != GalleryStatus.PUBLISHED) {
             throw new InvalidGalleryTransitionException(gallery.getStatus(), "archivar");
@@ -151,16 +151,16 @@ public class GalleryService {
         return saved;
     }
 
-    public Gallery getForAdmin(UUID galleryId, UUID actingUserId, Role actingRole) {
+    public Gallery getForAdmin(UUID galleryId, UUID actingUserId, boolean canPublish) {
         Gallery gallery = getOrThrow(galleryId);
-        if (!isEditorOrAbove(actingRole) && !gallery.isOwnedBy(actingUserId)) {
+        if (!canPublish && !gallery.isOwnedBy(actingUserId)) {
             throw new GalleryAccessDeniedException();
         }
         return gallery;
     }
 
-    public List<Gallery> listForAdmin(UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
+    public List<Gallery> listForAdmin(UUID actingUserId, boolean canPublish) {
+        if (canPublish) {
             return galleryRepository.findAll();
         }
         return galleryRepository.findByAuthorIdOrderByCreatedAtDesc(actingUserId);
@@ -215,8 +215,8 @@ public class GalleryService {
         return result;
     }
 
-    private void requireCanEdit(Gallery gallery, UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
+    private void requireCanEdit(Gallery gallery, UUID actingUserId, boolean canPublish) {
+        if (canPublish) {
             if (!gallery.isEditable()) {
                 throw new InvalidGalleryTransitionException(gallery.getStatus(), "editar");
             }
@@ -230,15 +230,7 @@ public class GalleryService {
         }
     }
 
-    private void requireEditorOrAbove(Role role) {
-        if (!isEditorOrAbove(role)) {
-            throw new GalleryAccessDeniedException();
-        }
-    }
 
-    private boolean isEditorOrAbove(Role role) {
-        return role == Role.EDITOR || role == Role.ADMIN || role == Role.SUPER_ADMIN;
-    }
 
     private Gallery getOrThrow(UUID id) {
         return galleryRepository.findById(id).orElseThrow(() -> new GalleryNotFoundException(id));
@@ -257,5 +249,12 @@ public class GalleryService {
     private void audit(String action, Gallery gallery, UUID actingUserId) {
         auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "gallery", gallery.getId().toString(),
                 null);
+    }
+
+    /** Aprobar, rechazar, publicar, programar y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
+    private static void requirePublish(boolean canPublish) {
+        if (!canPublish) {
+            throw new PublishPermissionRequiredException();
+        }
     }
 }

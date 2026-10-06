@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.PublishPermissionRequiredException;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
@@ -67,9 +67,9 @@ public class ArticleService {
         return saved;
     }
 
-    public Article update(UUID articleId, ArticleInput input, UUID actingUserId, Role actingRole) {
+    public Article update(UUID articleId, ArticleInput input, UUID actingUserId, boolean canPublish) {
         Article article = getOrThrow(articleId);
-        requireCanEdit(article, actingUserId, actingRole);
+        requireCanEdit(article, actingUserId, canPublish);
 
         if (!article.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
@@ -100,8 +100,8 @@ public class ArticleService {
         return saved;
     }
 
-    public Article approve(UUID articleId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Article approve(UUID articleId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Article article = getOrThrow(articleId);
         if (article.getStatus() != ArticleStatus.IN_REVIEW) {
             throw new InvalidArticleTransitionException(article.getStatus(), "aprobar");
@@ -112,8 +112,8 @@ public class ArticleService {
         return saved;
     }
 
-    public Article reject(UUID articleId, String reason, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Article reject(UUID articleId, String reason, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Article article = getOrThrow(articleId);
         if (article.getStatus() != ArticleStatus.IN_REVIEW) {
             throw new InvalidArticleTransitionException(article.getStatus(), "rechazar");
@@ -124,8 +124,8 @@ public class ArticleService {
         return saved;
     }
 
-    public Article publish(UUID articleId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Article publish(UUID articleId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Article article = getOrThrow(articleId);
         if (article.getStatus() != ArticleStatus.APPROVED) {
             throw new InvalidArticleTransitionException(article.getStatus(), "publicar");
@@ -136,8 +136,8 @@ public class ArticleService {
         return saved;
     }
 
-    public Article schedule(UUID articleId, Instant when, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Article schedule(UUID articleId, Instant when, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         if (when.isBefore(Instant.now())) {
             throw new InvalidScheduleException("La fecha de publicación programada debe ser futura");
         }
@@ -151,8 +151,8 @@ public class ArticleService {
         return saved;
     }
 
-    public Article archive(UUID articleId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Article archive(UUID articleId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Article article = getOrThrow(articleId);
         if (article.getStatus() != ArticleStatus.PUBLISHED) {
             throw new InvalidArticleTransitionException(article.getStatus(), "archivar");
@@ -163,16 +163,16 @@ public class ArticleService {
         return saved;
     }
 
-    public Article getForAdmin(UUID articleId, UUID actingUserId, Role actingRole) {
+    public Article getForAdmin(UUID articleId, UUID actingUserId, boolean canPublish) {
         Article article = getOrThrow(articleId);
-        if (!isEditorOrAbove(actingRole) && !article.isOwnedBy(actingUserId)) {
+        if (!canPublish && !article.isOwnedBy(actingUserId)) {
             throw new ArticleAccessDeniedException();
         }
         return article;
     }
 
-    public List<Article> listForAdmin(UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
+    public List<Article> listForAdmin(UUID actingUserId, boolean canPublish) {
+        if (canPublish) {
             return articleRepository.findAll();
         }
         return articleRepository.findByAuthorIdOrderByCreatedAtDesc(actingUserId);
@@ -259,8 +259,8 @@ public class ArticleService {
         return result;
     }
 
-    private void requireCanEdit(Article article, UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
+    private void requireCanEdit(Article article, UUID actingUserId, boolean canPublish) {
+        if (canPublish) {
             if (!article.isEditable()) {
                 throw new InvalidArticleTransitionException(article.getStatus(), "editar");
             }
@@ -274,15 +274,7 @@ public class ArticleService {
         }
     }
 
-    private void requireEditorOrAbove(Role role) {
-        if (!isEditorOrAbove(role)) {
-            throw new ArticleAccessDeniedException();
-        }
-    }
 
-    private boolean isEditorOrAbove(Role role) {
-        return role == Role.EDITOR || role == Role.ADMIN || role == Role.SUPER_ADMIN;
-    }
 
     private Article getOrThrow(UUID id) {
         return articleRepository.findById(id).orElseThrow(() -> new ArticleNotFoundException(id));
@@ -301,5 +293,12 @@ public class ArticleService {
     private void audit(String action, Article article, UUID actingUserId) {
         auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "article", article.getId().toString(),
                 null);
+    }
+
+    /** Aprobar, rechazar, publicar, programar y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
+    private static void requirePublish(boolean canPublish) {
+        if (!canPublish) {
+            throw new PublishPermissionRequiredException();
+        }
     }
 }

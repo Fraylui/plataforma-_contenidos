@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.media.api;
 
+import pe.plataformacontenidos.identity.permission.PermissionService;
 import jakarta.validation.Valid;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -30,14 +31,16 @@ import pe.plataformacontenidos.identity.security.UserPrincipal;
 public class ImageAdminController {
 
     private final ImageService imageService;
+    private final PermissionService permissionService;
 
-    public ImageAdminController(ImageService imageService) {
+    public ImageAdminController(ImageService imageService, PermissionService permissionService) {
+        this.permissionService = permissionService;
         this.imageService = imageService;
     }
 
     @GetMapping
     public List<ImageResponse> list(@AuthenticationPrincipal UserPrincipal principal) {
-        return imageService.listForAdmin(principal.userId(), principal.role()).stream()
+        return imageService.listForAdmin(principal.userId(), canPublish(principal)).stream()
                 .map(ImageResponse::from).toList();
     }
 
@@ -62,12 +65,17 @@ public class ImageAdminController {
     @PutMapping("/{id}")
     public ImageResponse updateAltText(@PathVariable UUID id, @Valid @RequestBody UpdateAltTextRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
-        var image = imageService.updateAltText(id, request.altText(), principal.userId(), principal.role());
+        var image = imageService.updateAltText(id, request.altText(), principal.userId(), canPublish(principal));
         return ImageResponse.from(image);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        imageService.delete(id, principal.userId(), principal.role());
+        imageService.delete(id, principal.userId(), canPublish(principal));
+    }
+
+    private boolean canPublish(UserPrincipal principal) {
+        var permissions = permissionService.forUser(principal.userId());
+        return permissions.canPublishAnyContent();
     }
 }

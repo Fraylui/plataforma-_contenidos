@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.PublishPermissionRequiredException;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
@@ -65,9 +65,9 @@ public class PlaceService {
         return saved;
     }
 
-    public Place update(UUID placeId, PlaceInput input, UUID actingUserId, Role actingRole) {
+    public Place update(UUID placeId, PlaceInput input, UUID actingUserId, boolean canPublish) {
         Place place = getOrThrow(placeId);
-        requireCanEdit(place, actingUserId, actingRole);
+        requireCanEdit(place, actingUserId, canPublish);
 
         if (!place.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
@@ -98,8 +98,8 @@ public class PlaceService {
         return saved;
     }
 
-    public Place approve(UUID placeId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Place approve(UUID placeId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Place place = getOrThrow(placeId);
         if (place.getStatus() != PlaceStatus.IN_REVIEW) {
             throw new InvalidPlaceTransitionException(place.getStatus(), "aprobar");
@@ -110,8 +110,8 @@ public class PlaceService {
         return saved;
     }
 
-    public Place reject(UUID placeId, String reason, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Place reject(UUID placeId, String reason, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Place place = getOrThrow(placeId);
         if (place.getStatus() != PlaceStatus.IN_REVIEW) {
             throw new InvalidPlaceTransitionException(place.getStatus(), "rechazar");
@@ -122,8 +122,8 @@ public class PlaceService {
         return saved;
     }
 
-    public Place publish(UUID placeId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Place publish(UUID placeId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Place place = getOrThrow(placeId);
         if (place.getStatus() != PlaceStatus.APPROVED) {
             throw new InvalidPlaceTransitionException(place.getStatus(), "publicar");
@@ -134,8 +134,8 @@ public class PlaceService {
         return saved;
     }
 
-    public Place schedule(UUID placeId, Instant when, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Place schedule(UUID placeId, Instant when, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         if (when.isBefore(Instant.now())) {
             throw new InvalidScheduleException("La fecha de publicación programada debe ser futura");
         }
@@ -149,8 +149,8 @@ public class PlaceService {
         return saved;
     }
 
-    public Place archive(UUID placeId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Place archive(UUID placeId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Place place = getOrThrow(placeId);
         if (place.getStatus() != PlaceStatus.PUBLISHED) {
             throw new InvalidPlaceTransitionException(place.getStatus(), "archivar");
@@ -161,16 +161,16 @@ public class PlaceService {
         return saved;
     }
 
-    public Place getForAdmin(UUID placeId, UUID actingUserId, Role actingRole) {
+    public Place getForAdmin(UUID placeId, UUID actingUserId, boolean canPublish) {
         Place place = getOrThrow(placeId);
-        if (!isEditorOrAbove(actingRole) && !place.isOwnedBy(actingUserId)) {
+        if (!canPublish && !place.isOwnedBy(actingUserId)) {
             throw new PlaceAccessDeniedException();
         }
         return place;
     }
 
-    public List<Place> listForAdmin(UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
+    public List<Place> listForAdmin(UUID actingUserId, boolean canPublish) {
+        if (canPublish) {
             return placeRepository.findAll();
         }
         return placeRepository.findByAuthorIdOrderByCreatedAtDesc(actingUserId);
@@ -255,8 +255,8 @@ public class PlaceService {
         return result;
     }
 
-    private void requireCanEdit(Place place, UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
+    private void requireCanEdit(Place place, UUID actingUserId, boolean canPublish) {
+        if (canPublish) {
             if (!place.isEditable()) {
                 throw new InvalidPlaceTransitionException(place.getStatus(), "editar");
             }
@@ -270,15 +270,7 @@ public class PlaceService {
         }
     }
 
-    private void requireEditorOrAbove(Role role) {
-        if (!isEditorOrAbove(role)) {
-            throw new PlaceAccessDeniedException();
-        }
-    }
 
-    private boolean isEditorOrAbove(Role role) {
-        return role == Role.EDITOR || role == Role.ADMIN || role == Role.SUPER_ADMIN;
-    }
 
     private Place getOrThrow(UUID id) {
         return placeRepository.findById(id).orElseThrow(() -> new PlaceNotFoundException(id));
@@ -297,5 +289,12 @@ public class PlaceService {
     private void audit(String action, Place place, UUID actingUserId) {
         auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "place", place.getId().toString(),
                 null);
+    }
+
+    /** Aprobar, rechazar, publicar, programar y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
+    private static void requirePublish(boolean canPublish) {
+        if (!canPublish) {
+            throw new PublishPermissionRequiredException();
+        }
     }
 }

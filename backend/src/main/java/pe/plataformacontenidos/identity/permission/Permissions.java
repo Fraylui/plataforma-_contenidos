@@ -31,4 +31,14 @@ public record Permissions(UUID userId, boolean owner, boolean active, boolean mu
     public boolean canPublish(Module module) {
         return can(module, AccessLevel.PUBLISH);
     }
+
+    /** Imágenes: editar o borrar las de otros exige publicar en algún módulo de contenido. */
+    public boolean canPublishAnyContent() {
+        for (Module module : Module.values()) {
+            if (module.isContent() && canPublish(module)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
