@@ -29,6 +29,20 @@
  * criterio aplicado aquí. --danger se mantiene en rojo aparte para no
  * perder la señal de "esto es peligroso".
  */
+/*
+ * Alto de la barra de pestañas inferior (BottomTabBar, < 1024 px), incluida
+ * la zona segura del iPhone. Lo usan el `main`, el anuncio fijo y el aviso
+ * de cookies para apilarse encima en vez de quedar tapados.
+ */
+:root {
+  --bottom-bar-h: calc(4rem + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  :root {
+    --bottom-bar-h: 0px;
+  }
+}
+
 :root {
   /* slate-50/blanco puro: distinción sutil (no cero, no exagerada) entre
      el lienzo y las tarjetas, sin recurrir a tintar el neutro con verde. */

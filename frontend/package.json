@@ -20,6 +20,7 @@
     "test:stress": "docker run --rm -i --network host -e BASE_URL=http://localhost:8080 grafana/k6 run - < tests/load/k6-stress.js"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "@radix-ui/react-alert-dialog": "^1.1.23",
     "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-dropdown-menu": "^2.1.24",

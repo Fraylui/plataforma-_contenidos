@@ -52,7 +52,7 @@ export function StickyAnchorAd({ children, width }: { children: ReactNode; width
   }
 
   return createPortal(
-    <div className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-3 sm:px-4">
+    <div className="fixed inset-x-0 bottom-(--bottom-bar-h) z-40 flex justify-center px-3 pb-3 sm:px-4">
       <div
         className="relative w-full rounded-xl border border-border bg-surface px-2 pt-1.5 pb-2 shadow-lg"
         style={{ maxWidth: width + 16 }}
