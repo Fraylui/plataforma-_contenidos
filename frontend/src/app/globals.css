@@ -275,3 +275,13 @@ body {
   --tw-prose-th-borders: var(--border);
   --tw-prose-td-borders: var(--border);
 }
+
+/* Corazón del doble toque (PostMedia): aparece, crece y se desvanece. Solo
+   con motion-safe — si el sistema pide menos movimiento no se anima. */
+@keyframes heart-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+  25% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  45% { transform: translate(-50%, -50%) scale(0.95); }
+  80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+}
