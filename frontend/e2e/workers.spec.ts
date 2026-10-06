@@ -56,7 +56,7 @@ test("el dueño crea un trabajador y este solo ve sus módulos", async ({ browse
   await expect(menu.getByRole("link")).toHaveText(["Inicio", "Lugares", "Eventos", "Imágenes", "Mi cuenta"]);
 
   await worker.goto("/admin/trabajadores");
-  await expect(worker.getByText(/No tienes acceso|sin acceso/i)).toBeVisible();
+  await expect(worker.getByText("No tienes acceso a esta sección")).toBeVisible();
 
   // El dueño lo desactiva: la siguiente acción del trabajador lo saca al login.
   await owner.goto(workerUrl);
