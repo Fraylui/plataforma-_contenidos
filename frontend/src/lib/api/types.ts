@@ -319,11 +319,15 @@ export interface AdPlacement {
   label: string;
   adsenseSlotId: string | null;
   enabled: boolean;
+  /** Medida de la creatividad en px CSS (tamaño estándar IAB): se muestra entera, nunca recortada. */
+  width: number;
+  height: number;
 }
 
 /** Ver ActiveCampaignResponse.java — nunca trae el link real, solo `id` para armar el link de clic. */
 export interface ActiveCampaign {
   id: string;
+  advertiserId: string;
   imageId: string | null;
   externalImageUrl: string | null;
   imageAlt: string | null;
@@ -335,9 +339,23 @@ export interface ActiveCampaign {
  */
 export interface ResolvedCampaign {
   id: string;
+  advertiserId: string;
   imageSrc: string | null;
   externalImageUrl: string | null;
   imageAlt: string | null;
+}
+
+/** Ver PlacementRotationResponse.java: medida de la posición + campañas en el orden a asignar. */
+export interface PlacementRotation {
+  width: number;
+  height: number;
+  campaigns: ActiveCampaign[];
+}
+
+export interface ResolvedRotation {
+  width: number;
+  height: number;
+  campaigns: ResolvedCampaign[];
 }
 
 /** Ver FeedItemResponse.java — feed unificado del home y "relacionados" de la vista de detalle. */

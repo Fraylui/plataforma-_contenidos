@@ -242,9 +242,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
             dangerouslySetInnerHTML={{ __html: place.body }}
           />
 
-          <div className="mt-10">
-            <AdBlock position="article" />
-          </div>
+          <AdBlock position="article" className="mt-10" />
 
           <LikeShareBar contentType="places" slug={place.slug} initialLikeCount={place.likeCount} title={place.name} />
         </article>

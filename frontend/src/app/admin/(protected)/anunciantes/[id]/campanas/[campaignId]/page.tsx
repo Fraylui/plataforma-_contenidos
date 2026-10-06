@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { getAdvertiser, getCampaign, listAdminAdPlacements, listAdminImages } from "@/lib/api/admin-client";
+import {
+  getAdvertiser,
+  getCampaign,
+  getCampaignStats,
+  listAdminAdPlacements,
+  listAdminImages,
+} from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { CampaignForm } from "@/components/admin/campaign-form";
+import { CampaignReport } from "@/components/admin/campaign-report";
 import { AdminPageHeader } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
@@ -23,20 +30,24 @@ export default async function EditCampaignPage({
     const campaign = await getCampaign(accessToken, campaignId);
     const placements = await listAdminAdPlacements(accessToken);
     const images = await listAdminImages(accessToken);
-    return { advertiser, campaign, placements, images };
+    const stats = await getCampaignStats(accessToken, campaignId);
+    return { advertiser, campaign, placements, images, stats };
   });
   if ("denied" in result) return <AccessDenied />;
-  const { advertiser, campaign, placements, images } = result.data;
+  const { advertiser, campaign, placements, images, stats } = result.data;
 
   return (
     <div>
       <AdminPageHeader title={`Campaña — ${advertiser.name}`} />
+      <div className="mt-6 max-w-3xl">
+        <CampaignReport campaign={campaign} stats={stats} />
+      </div>
       <div className="mt-6">
         <CampaignForm
           mode="edit"
           advertiserId={id}
           campaign={campaign}
-          placementOptions={placements.map((p) => ({ id: p.key, label: p.label }))}
+          placements={placements}
           allImages={images}
         />
       </div>

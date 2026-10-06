@@ -17,6 +17,7 @@ import type {
   AuditSearchFilters,
   BusinessInput,
   Campaign,
+  CampaignDailyStat,
   CampaignInput,
   CategoryCreateInput,
   CategoryUpdateInput,
@@ -565,6 +566,11 @@ export function listCampaigns(accessToken: string, advertiserId?: string): Promi
 
 export function getCampaign(accessToken: string, id: string): Promise<Campaign> {
   return authedJson(`/api/v1/admin/campaigns/${encodeURIComponent(id)}`, accessToken);
+}
+
+/** Impresiones visibles y clics válidos por día (UTC) — ver CampaignAdminController.stats. */
+export function getCampaignStats(accessToken: string, id: string, days = 30): Promise<CampaignDailyStat[]> {
+  return authedJson(`/api/v1/admin/campaigns/${encodeURIComponent(id)}/stats?days=${days}`, accessToken);
 }
 
 export function createCampaign(accessToken: string, input: CampaignInput): Promise<Campaign> {

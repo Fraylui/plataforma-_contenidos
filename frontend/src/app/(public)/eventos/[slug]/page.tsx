@@ -255,9 +255,7 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
             dangerouslySetInnerHTML={{ __html: event.body }}
           />
 
-          <div className="mt-10">
-            <AdBlock position="article" />
-          </div>
+          <AdBlock position="article" className="mt-10" />
 
           <LikeShareBar contentType="events" slug={event.slug} initialLikeCount={event.likeCount} title={event.title} />
         </article>

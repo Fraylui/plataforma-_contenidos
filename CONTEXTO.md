@@ -1826,7 +1826,8 @@ servidor. Regla general: **solo señales reales** (fechas, me gusta, categorías
 | Relacionados del detalle | `FeedService.getRelated` + `getRelatedWithFallback` | Misma categoría: `frescura + 0.3·log1p(likes)`; se completa con el feed general hasta 6, sin repetir. |
 | "Lo más gustado" | `FeedService.getTopLiked` | Me gusta acumulados, desc. Solo contenido con ≥1 me gusta; la lista solo se muestra con ≥3. |
 | Búsqueda | `SearchService` | `tsvector` español sin acentos por módulo **+** contenido de las categorías cuyo nombre coincide (y sus subcategorías). Fusión por fecha. Con <4 resultados: temas parecidos + lo más reciente. |
-| Anuncios en el feed | `InfiniteFeed` | Posición `en-feed` cada 6 celdas de grilla (desde la 12): siempre tras una fila completa en 2 y 3 columnas. |
+| Anuncios en el feed | `InfiniteFeed` | Posición `en-feed` (300×250, ocupa una tarjeta; fila entera en celular) cada 8 celdas de grilla desde la 16: 1 anuncio cada 6 tarjetas, ~14 % de la grilla (tope Better Ads: 30 %). |
+| Entrega de publicidad directa | ver 45.4 | Selección ponderada, sin repetir campaña ni anunciante en la página, tope de frecuencia, impresión visible, clic válido. |
 | Atajo de búsqueda | `SearchBox` + `lib/search-shortcut.ts` | Ctrl+K / ⌘K siempre; "/" solo fuera de campos de texto (no roba la barra al escribir). Solo el buscador de escritorio lo registra; pista "Ctrl K"/"⌘K" en el campo, oculta al enfocar o escribir. |
 
 ## 45.2 Planeado — con condición de activación
@@ -1868,6 +1869,27 @@ Requiere registrar visitas por sesión; hoy no hay analítica propia.
 
 **F. Puntaje de Wilson (Reddit "best").** Solo tiene sentido con votos
 positivos Y negativos o comentarios; no previsto.
+
+## 45.4 Publicidad directa — cómo se entrega (2026-10-05)
+
+Criterio de los ad servers profesionales (Google Ad Manager, normas IAB/MRC
+y Coalition for Better Ads), sin cookies ni cuentas:
+
+| Regla | Dónde | Detalle |
+|---|---|---|
+| Medida estándar por posición | `ad_placements.width/height` (V46) | 300×250 (feed, lateral, contenido), 728×90 (cabecera de listados, solo escritorio), 320×50 (barra fija). El anunciante entrega su banner diseñado a esa medida (mejor al doble) y se muestra **entero** (`object-contain`), con "Publicidad" fuera de la imagen. El backend rechaza imágenes subidas con otra proporción o más chicas; el panel avisa también para enlaces externos. |
+| Selección ponderada | `WeightedOrder` (Efraimidis–Spirakis) | `clave = −ln(u) / peso`, orden ascendente. Peso 1–10 por campaña (5 por defecto): peso 10 sale primero el doble que peso 5, sin dejar a nadie sin vistas. |
+| Sin repetir en la página | `page-ad-plan.ts` | Cada espacio toma la primera campaña de la rotación que no esté ya en la página y, si se puede, de otro anunciante. Sobrantes → AdSense o vacío. |
+| Tope de frecuencia | `AdDeliveryGuard` (Redis) | Máximo 6 vistas por persona, campaña y día (UTC); luego deja de ofrecérsele. Persona = hash de la IP, vive horas en Redis, nunca en la base. **En local todas las visitas comparten la IP del contenedor de Next: tras 6 vistas propias la campaña desaparece hasta el día siguiente** (borrar `ads:*` en Redis para probar). |
+| Impresión visible | `useViewableImpression` | Se cuenta cuando ≥50 % del anuncio estuvo 1 s seguido en pantalla (pestaña visible), vía `sendBeacon` a `/api/ads/impression`. Pedir la campaña ya no cuenta. |
+| Tráfico inválido | `InvalidTraffic` | Robots, previsualizadores (WhatsApp, Facebook), scripts y pedidos sin user agent no cuentan impresión ni clic. |
+| Antiduplicado | `AdDeliveryGuard` | Impresión: misma persona y campaña, 1 cada 10 s. Clic: 1 cada 30 min (el visitante igual llega al destino). |
+| Conteo atómico | `CampaignRepository` / `campaign_daily_stats` | `UPDATE … + 1` y upsert por día: vistas simultáneas no se pierden. |
+| Barra fija | `AnchorAdSlot` | Aparece recién después de responder el aviso de cookies (antes quedaba tapada y contaba vistas que nadie veía). |
+| Reporte | Panel → Anunciantes → campaña | Impresiones visibles, clics, % de clics y gráfico diario de 30 días (UTC). |
+
+Los totales `impression_count` de antes del 2026-10-05 se contaban al pedir
+la campaña (inflados); desde esta fecha son vistas reales.
 
 ## 45.3 Pendientes que no son algoritmos
 

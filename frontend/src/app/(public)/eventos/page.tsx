@@ -79,9 +79,7 @@ export default async function EventsPage(props: PageProps<"/eventos">) {
         />
       </ListingHeader>
 
-      <div className="mt-8">
-        <AdBlock position="cabecera" className="aspect-[5/1] sm:aspect-[8/1]" />
-      </div>
+      <AdBlock position="cabecera" className="mt-8 hidden md:block" />
 
       <section className="mt-8" aria-label="Eventos">
         {result.items.length === 0 ? (
@@ -104,9 +102,7 @@ export default async function EventsPage(props: PageProps<"/eventos">) {
                 />
               ))}
             </div>
-            <div className="mt-10">
-              <AdBlock position="listing" />
-            </div>
+            <AdBlock position="listing" className="mt-10" />
             <Pagination
               page={result.page}
               totalPages={result.totalPages}

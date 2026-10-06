@@ -1,20 +1,21 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { serverImageUrl } from "@/lib/server-image-url";
-import type { ActiveCampaign, ResolvedCampaign } from "@/lib/api/types";
+import { visitorHeaders } from "@/lib/ads/forward-visitor";
+import type { PlacementRotation, ResolvedRotation } from "@/lib/api/types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const PLACEMENT_KEY = /^[a-z0-9_-]{1,64}$/;
+const NO_STORE = { "Cache-Control": "no-store" };
 
 /**
- * Proxy de GET /api/v1/ads/campaigns/active (ver CampaignPublicController)
- * para que la campaña directa se elija en el navegador, no al renderizar la
- * página. Antes AdBlock/AnchorAdSlot la pedían sin caché durante el render
- * (cada llamada cuenta una impresión), y como AnchorAdSlot vive en el
- * layout público, eso volvía dinámicas TODAS las páginas públicas: ninguna
- * podía guardarse en caché (ni ISR, ni nginx, ni Cloudflare). Pedirla desde
- * el cliente deja las páginas estáticas y además cuenta impresiones solo
- * de navegadores reales, no de bots que no ejecutan JavaScript.
+ * Proxy de GET /api/v1/ads/campaigns/rotation (ver CampaignPublicController)
+ * para que las campañas directas se elijan en el navegador, no al renderizar
+ * la página: así todas las páginas públicas siguen siendo cacheables (ISR,
+ * nginx, Cloudflare). Devuelve la medida de la posición y las campañas que
+ * este visitante puede ver, ya en orden ponderado — el navegador le da una
+ * distinta a cada espacio. Pedirla no cuenta impresiones (ver
+ * api/ads/impression).
  *
  * Igual que api/feed: resuelve acá la URL de imagen para next/image
  * (serverImageUrl, red interna de Docker), que el cliente no puede armar.
@@ -26,18 +27,22 @@ export async function GET(request: NextRequest) {
   }
 
   const res = await fetch(
-    `${BACKEND_API_URL}/api/v1/ads/campaigns/active?placementKey=${encodeURIComponent(placement)}`,
-    { cache: "no-store" },
-  );
-  if (res.status === 204) return new NextResponse(null, { status: 204, headers: { "Cache-Control": "no-store" } });
-  if (!res.ok) return new NextResponse(null, { status: 204, headers: { "Cache-Control": "no-store" } });
+    `${BACKEND_API_URL}/api/v1/ads/campaigns/rotation?placementKey=${encodeURIComponent(placement)}`,
+    { cache: "no-store", headers: visitorHeaders(request) },
+  ).catch(() => null);
+  if (!res || res.status !== 200) return new NextResponse(null, { status: 204, headers: NO_STORE });
 
-  const campaign = (await res.json()) as ActiveCampaign;
-  const resolved: ResolvedCampaign = {
-    id: campaign.id,
-    imageSrc: campaign.imageId ? serverImageUrl(`/api/v1/images/${campaign.imageId}/file`) : null,
-    externalImageUrl: campaign.externalImageUrl,
-    imageAlt: campaign.imageAlt,
+  const rotation = (await res.json()) as PlacementRotation;
+  const resolved: ResolvedRotation = {
+    width: rotation.width,
+    height: rotation.height,
+    campaigns: rotation.campaigns.map((campaign) => ({
+      id: campaign.id,
+      advertiserId: campaign.advertiserId,
+      imageSrc: campaign.imageId ? serverImageUrl(`/api/v1/images/${campaign.imageId}/file`) : null,
+      externalImageUrl: campaign.externalImageUrl,
+      imageAlt: campaign.imageAlt,
+    })),
   };
-  return NextResponse.json(resolved, { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json(resolved, { headers: NO_STORE });
 }

@@ -25,6 +25,9 @@ import pe.plataformacontenidos.shared.ContentImage;
 @Table(name = "campaigns", schema = "advertising")
 public class Campaign {
 
+    /** Peso de rotación por defecto, a mitad de la escala 1–10 (ver CampaignRotation). */
+    public static final int DEFAULT_WEIGHT = 5;
+
     @Id
     @GeneratedValue
     @UuidGenerator
@@ -58,6 +61,10 @@ public class Campaign {
     @Column(nullable = false)
     private boolean active = true;
 
+    /** 1–10: con varias campañas en la misma posición, cuánto más seguido sale esta (selección ponderada). */
+    @Column(nullable = false)
+    private int weight = DEFAULT_WEIGHT;
+
     @Column(name = "impression_count", nullable = false)
     private long impressionCount = 0;
 
@@ -75,7 +82,7 @@ public class Campaign {
     }
 
     public Campaign(UUID advertiserId, String placementKey, ContentImage creative, String linkUrl, Instant startsAt,
-            Instant endsAt, BigDecimal amount, String currency) {
+            Instant endsAt, BigDecimal amount, String currency, int weight) {
         this.advertiserId = advertiserId;
         this.placementKey = placementKey;
         this.creative = creative;
@@ -84,6 +91,7 @@ public class Campaign {
         this.endsAt = endsAt;
         this.amount = amount;
         this.currency = currency;
+        this.weight = weight;
     }
 
     public UUID getId() {
@@ -126,6 +134,10 @@ public class Campaign {
         return active;
     }
 
+    public int getWeight() {
+        return weight;
+    }
+
     public long getImpressionCount() {
         return impressionCount;
     }
@@ -139,7 +151,7 @@ public class Campaign {
     }
 
     public void update(String placementKey, ContentImage creative, String linkUrl, Instant startsAt,
-            Instant endsAt, BigDecimal amount, String currency) {
+            Instant endsAt, BigDecimal amount, String currency, int weight) {
         this.placementKey = placementKey;
         this.creative = creative;
         this.linkUrl = linkUrl;
@@ -147,20 +159,13 @@ public class Campaign {
         this.endsAt = endsAt;
         this.amount = amount;
         this.currency = currency;
+        this.weight = weight;
         this.updatedAt = Instant.now();
     }
 
     public void setActive(boolean active) {
         this.active = active;
         this.updatedAt = Instant.now();
-    }
-
-    public void recordImpression() {
-        this.impressionCount++;
-    }
-
-    public void recordClick() {
-        this.clickCount++;
     }
 
     /** Vigente = activa y, si tiene fechas, dentro del rango. Sin fechas de inicio/fin, corre indefinidamente. */

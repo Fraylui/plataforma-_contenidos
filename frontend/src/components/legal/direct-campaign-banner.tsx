@@ -1,48 +1,67 @@
+"use client";
+
+import { useRef } from "react";
 import { SkeletonImage } from "@/components/ui/skeleton-image";
 import { imageUrl } from "@/lib/image-url";
 import { cn } from "@/lib/utils";
 import type { ResolvedCampaign } from "@/lib/api/types";
+import { useViewableImpression } from "@/components/legal/use-viewable-impression";
 
 /**
- * Banner de una campaña de publicidad directa (ver CampaignPublicController)
- * — lo que AdBlock muestra en vez de AdSense cuando hay una vendida para esa
- * posición. El link pasa siempre por `/ads/campaigns/{id}/click` (backend):
- * nunca el `linkUrl` real, así el clic queda contado sin poder evitarse
- * copiando el href. Mismo criterio subida-vs-externa que ContentImageDisplay.
- *
- * Sin `server-only`: lo renderiza el navegador (ver DirectCampaignSlot),
- * con la imagen ya resuelta por app/api/ads/campaign/route.ts.
- *
- * `aspect-[3/1]` es el alto por defecto: a diferencia de AdSlot (que se
- * autodimensiona con el script de AdSense), acá la caja la define el CSS,
- * así que sin un alto explícito el <img> externo (sin next/image `fill`)
- * se renderiza a su tamaño intrínseco. Un className con su propio
- * `aspect-*`/`h-*` lo reemplaza (twMerge).
+ * Banner de display de una campaña directa, como lo muestra cualquier medio
+ * profesional:
+ *  - La creatividad la diseña el anunciante (marca, mensaje, botón) para la
+ *    medida estándar de la posición (`width`×`height`, p. ej. 300×250) y se
+ *    muestra ENTERA: caja con esa proporción exacta y `object-contain`.
+ *    Antes cada espacio imponía su propia proporción con `object-cover` y la
+ *    imagen salía recortada (un banner con texto quedaba mutilado).
+ *  - Nunca más ancho que su medida: centrado, y se achica en pantallas
+ *    angostas sin cambiar de proporción.
+ *  - "Publicidad" va arriba, FUERA de la creatividad (Google y la IAB piden
+ *    que la etiqueta no tape ni se confunda con el anuncio).
+ *  - El link pasa siempre por `/ads/campaigns/{id}/click` (backend): el
+ *    clic queda contado y el link real nunca está en el HTML.
+ *  - Cuenta la impresión solo cuando se vio de verdad (useViewableImpression).
  */
-export function DirectCampaignBanner({ campaign, className }: { campaign: ResolvedCampaign; className?: string }) {
+export function DirectCampaignBanner({
+  campaign,
+  width,
+  height,
+  className,
+}: {
+  campaign: ResolvedCampaign;
+  width: number;
+  height: number;
+  className?: string;
+}) {
+  const ref = useRef<HTMLAnchorElement>(null);
+  useViewableImpression(ref, campaign.id);
   const clickHref = imageUrl(`/api/v1/ads/campaigns/${campaign.id}/click`);
   const alt = campaign.imageAlt ?? "Publicidad";
 
   return (
-    <a
-      href={clickHref}
-      target="_blank"
-      rel="noopener noreferrer sponsored"
-      className={cn(
-        "no-auto-ads relative block aspect-[3/1] max-h-64 w-full overflow-hidden rounded-2xl bg-canvas",
-        className
-      )}
-    >
-      {campaign.imageSrc ? (
-        <SkeletonImage src={campaign.imageSrc} alt={alt} />
-      ) : (
-        // eslint-disable-next-line @next/next/no-img-element -- host arbitrario, cargado por el anunciante
-        <img src={campaign.externalImageUrl ?? ""} alt={alt} className="absolute inset-0 h-full w-full object-cover" />
-      )}
-      {/* Autodisclosure liviano: tiene que quedar claro que es pauta paga sin taparle la imagen al anunciante. */}
-      <span className="absolute top-1.5 left-1.5 rounded bg-black/30 px-1.5 py-[1px] text-[9px] font-medium tracking-wide text-white">
-        Publicidad
-      </span>
-    </a>
+    <figure className={cn("no-auto-ads mx-auto w-full", className)} style={{ maxWidth: width }}>
+      <figcaption className="mb-1 text-[10px] font-medium tracking-[0.08em] text-muted uppercase">Publicidad</figcaption>
+      <a
+        ref={ref}
+        href={clickHref}
+        target="_blank"
+        rel="noopener noreferrer sponsored"
+        className="relative block w-full overflow-hidden rounded-md bg-canvas outline-offset-2"
+        style={{ aspectRatio: `${width} / ${height}` }}
+      >
+        {campaign.imageSrc ? (
+          <SkeletonImage src={campaign.imageSrc} alt={alt} className="object-contain" sizes={`${width}px`} />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element -- host arbitrario, cargado por el anunciante
+          <img
+            src={campaign.externalImageUrl ?? ""}
+            alt={alt}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-contain"
+          />
+        )}
+      </a>
+    </figure>
   );
 }

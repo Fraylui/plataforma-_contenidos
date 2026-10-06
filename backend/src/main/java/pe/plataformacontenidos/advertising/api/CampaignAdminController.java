@@ -1,6 +1,8 @@
 package pe.plataformacontenidos.advertising.api;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.advertising.CampaignService;
+import pe.plataformacontenidos.advertising.api.dto.CampaignDailyStatResponse;
 import pe.plataformacontenidos.advertising.api.dto.CampaignRequest;
 import pe.plataformacontenidos.advertising.api.dto.CampaignResponse;
 import pe.plataformacontenidos.shared.ContentImageInput;
@@ -46,15 +49,23 @@ public class CampaignAdminController {
     @ResponseStatus(HttpStatus.CREATED)
     public CampaignResponse create(@Valid @RequestBody CampaignRequest request) {
         var campaign = campaignService.create(request.advertiserId(), request.placementKey(), toImageInput(request),
-                request.linkUrl(), request.startsAt(), request.endsAt(), request.amount(), request.currency());
+                request.linkUrl(), request.startsAt(), request.endsAt(), request.amount(), request.currency(),
+                request.weight());
         return CampaignResponse.from(campaign);
     }
 
     @PutMapping("/{id}")
     public CampaignResponse update(@PathVariable UUID id, @Valid @RequestBody CampaignRequest request) {
         var campaign = campaignService.update(id, request.placementKey(), toImageInput(request), request.linkUrl(),
-                request.startsAt(), request.endsAt(), request.amount(), request.currency());
+                request.startsAt(), request.endsAt(), request.amount(), request.currency(), request.weight());
         return CampaignResponse.from(campaign);
+    }
+
+    /** Impresiones visibles y clics válidos por día (UTC), de los últimos `days` días — reporte al anunciante. */
+    @GetMapping("/{id}/stats")
+    public List<CampaignDailyStatResponse> stats(@PathVariable UUID id,
+            @RequestParam(defaultValue = "30") @Min(1) @Max(365) int days) {
+        return campaignService.dailyStats(id, days).stream().map(CampaignDailyStatResponse::from).toList();
     }
 
     @PostMapping("/{id}/activate")

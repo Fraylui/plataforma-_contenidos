@@ -52,13 +52,15 @@ public class AdPlacementController {
     @PostMapping("/admin/ad-placements")
     @ResponseStatus(HttpStatus.CREATED)
     public AdPlacementResponse create(@Valid @RequestBody CreateAdPlacementRequest request) {
-        var placement = adPlacementService.create(request.key(), request.label(), request.adsenseSlotId());
+        var placement = adPlacementService.create(request.key(), request.label(), request.adsenseSlotId(),
+                request.width(), request.height());
         return AdPlacementResponse.from(placement);
     }
 
     @PutMapping("/admin/ad-placements/{id}")
     public AdPlacementResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateAdPlacementRequest request) {
-        var placement = adPlacementService.update(id, request.label(), request.adsenseSlotId());
+        var placement = adPlacementService.update(id, request.label(), request.adsenseSlotId(), request.width(),
+                request.height());
         return AdPlacementResponse.from(placement);
     }
 

@@ -9,7 +9,7 @@ export function StatCard({
   trend,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   icon: LucideIcon;
   hint?: string;
   accent?: boolean;

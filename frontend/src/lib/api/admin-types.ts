@@ -166,12 +166,16 @@ export interface AdPlacementCreateInput {
   key: string;
   label: string;
   adsenseSlotId: string | null;
+  width: number;
+  height: number;
 }
 
 /** Cuerpo de PUT /api/v1/admin/ad-placements/{id} — ver UpdateAdPlacementRequest.java. */
 export interface AdPlacementUpdateInput {
   label: string;
   adsenseSlotId: string | null;
+  width: number;
+  height: number;
 }
 
 /** Ver Advertiser.java. */
@@ -205,6 +209,15 @@ export interface Campaign {
   clickCount: number;
   amount: number | null;
   currency: string | null;
+  /** 1–10: cuánto más seguido sale frente a otras campañas de la misma posición. */
+  weight: number;
+}
+
+/** Ver CampaignDailyStatResponse.java — un día (UTC) del reporte de una campaña. */
+export interface CampaignDailyStat {
+  day: string;
+  impressions: number;
+  clicks: number;
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/campaigns — ver CampaignRequest.java. */
@@ -219,6 +232,7 @@ export interface CampaignInput {
   endsAt: string | null;
   amount: number | null;
   currency: string | null;
+  weight: number;
 }
 
 /** Ver PlatformStatsResponse.java (CONTEXTO.md sección 34, estadísticas básicas). */

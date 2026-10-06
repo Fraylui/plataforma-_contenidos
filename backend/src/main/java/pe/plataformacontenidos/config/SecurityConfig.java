@@ -54,6 +54,7 @@ public class SecurityConfig {
                 // Publicidad directa: resolución de campaña activa y el redirect de clic los
                 // consume cualquier lector anónimo (ver AdBlock), igual que ad-placements.
                 .requestMatchers(HttpMethod.GET, "/api/v1/ads/campaigns/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/ads/campaigns/*/impression").permitAll()
 
                 .requestMatchers("/api/v1/admin/users/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
                 .requestMatchers("/api/v1/admin/platform-settings/**").hasAnyRole("SUPER_ADMIN", "ADMIN")

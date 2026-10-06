@@ -22,16 +22,15 @@ const DISMISS_KEY = "anchor-ad-dismissed";
  * ancestro" en vez de la pantalla — visto en captura real, la barra flotante
  * quedaba encajada como una tarjeta más del listado en vez de flotar abajo.
  *
- * Recibe el banner ya resuelto como `children` (server component,
- * DirectCampaignBanner usa `server-only` para resolver la imagen) en vez
- * de recibir `campaign` y renderizarlo acá adentro — este componente solo
- * aporta la interactividad de cerrar, no puede importar nada server-only.
+ * Recibe el banner como `children`: este componente solo aporta la barra
+ * flotante y el cierre. `width` es la medida de la creatividad (320×50, el
+ * banner móvil estándar): la barra se ajusta a ella en vez de estirarla.
  *
  * El cierre se guarda en sessionStorage (no localStorage): vuelve a
  * aparecer en la próxima visita, pero no reaparece en cada página mientras
  * el visitante sigue navegando la misma sesión — igual que hace Google.
  */
-export function StickyAnchorAd({ children }: { children: ReactNode }) {
+export function StickyAnchorAd({ children, width }: { children: ReactNode; width: number }) {
   const mounted = useMounted();
   const [dismissed, setDismissed] = useState(() => {
     try {
@@ -54,7 +53,10 @@ export function StickyAnchorAd({ children }: { children: ReactNode }) {
 
   return createPortal(
     <div className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-3 sm:px-4">
-      <div className="relative w-full max-w-md">
+      <div
+        className="relative w-full rounded-xl border border-border bg-surface px-2 pt-1.5 pb-2 shadow-lg"
+        style={{ maxWidth: width + 16 }}
+      >
         {children}
         <button
           type="button"

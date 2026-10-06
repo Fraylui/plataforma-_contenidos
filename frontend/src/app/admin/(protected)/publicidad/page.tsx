@@ -5,6 +5,7 @@ import { listAdminAdPlacements } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdminPageHeader, EmptyState, StatusPill } from "@/components/admin/ui";
+import { formatSize } from "@/lib/ads/ad-formats";
 import { setAdPlacementActiveAction, deleteAdPlacementAction } from "./actions";
 
 export const metadata: Metadata = {
@@ -43,6 +44,7 @@ export default async function AdminAdPlacementsPage() {
               <tr>
                 <th className="px-4 py-3 font-medium text-muted">Posición</th>
                 <th className="px-4 py-3 font-medium text-muted">Clave</th>
+                <th className="px-4 py-3 font-medium text-muted">Medida</th>
                 <th className="px-4 py-3 font-medium text-muted">Slot de AdSense</th>
                 <th className="px-4 py-3 font-medium text-muted">Estado</th>
                 <th className="px-4 py-3 font-medium text-muted" />
@@ -62,6 +64,7 @@ export default async function AdminAdPlacementsPage() {
                   <td className="px-4 py-3">
                     <code className="text-xs text-muted">{placement.key}</code>
                   </td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap tabular-nums text-foreground">{formatSize(placement.width, placement.height)}</td>
                   <td className="px-4 py-3 text-xs text-muted">{placement.adsenseSlotId || "— sin completar —"}</td>
                   <td className="px-4 py-3">
                     <StatusPill

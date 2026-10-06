@@ -246,9 +246,7 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
             dangerouslySetInnerHTML={{ __html: article.body }}
           />
 
-          <div className="mt-10">
-            <AdBlock position="article" />
-          </div>
+          <AdBlock position="article" className="mt-10" />
 
           <LikeShareBar contentType="articles" slug={article.slug} initialLikeCount={article.likeCount} title={article.title} />
 

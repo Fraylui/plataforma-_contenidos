@@ -9,13 +9,16 @@ import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 12;
 /**
- * Anuncios cada AD_EVERY_CELLS celdas de grilla, no cada N tarjetas: 6 es
- * múltiplo de 2 y de 3 columnas, así el anuncio (fila completa) siempre cae
- * después de una fila llena en celular y en escritorio. La destacada y
- * "Lo más gustado" ocupan 2 celdas cada una. El primero recién a partir de
- * FIRST_AD_CELL: la primera pantalla es contenido, no publicidad.
+ * Anuncios cada AD_EVERY_CELLS celdas de grilla (par, por el celular). El
+ * anuncio (rectángulo medio 300×250) ocupa el lugar de UNA tarjeta en escritorio y la fila entera en celular (dos
+ * columnas de 170 px lo dejarían ilegible), así que se cuenta como 2 celdas:
+ * en celular siempre cae tras una fila llena y no deja huecos. La destacada
+ * y "Lo más gustado" ocupan 2 celdas cada una. El primero recién a partir de
+ * FIRST_AD_CELL: la primera pantalla es contenido, no publicidad. Densidad:
+ * 1 anuncio cada 6 tarjetas (≈1 por pantalla, ~14 % de la grilla), muy por
+ * debajo del 30 % de la Coalition for Better Ads.
  */
-const AD_EVERY_CELLS = 6;
+const AD_EVERY_CELLS = 8;
 const FIRST_AD_CELL = 12;
 /** Después de qué tarjeta va "Lo más gustado" (una sola vez, solo en "Todo"). */
 const TOP_LIKED_AFTER = 4;
@@ -148,12 +151,16 @@ export function InfiniteFeed({
   const showTopLiked = tab === "" && topLiked.length >= 3;
   // Qué va después de cada tarjeta, contando celdas de grilla (ver AD_EVERY_CELLS).
   let cells = 2; // la destacada
+  let ads = 0;
   const layout = rest.map((item, index) => {
     cells += 1;
     const withTopLiked = showTopLiked && index + 2 === TOP_LIKED_AFTER;
     if (withTopLiked) cells += 2;
     const withAd = cells >= FIRST_AD_CELL && cells % AD_EVERY_CELLS === 0;
-    return { item, withTopLiked, withAd };
+    // Índice del espacio: cada uno recibe otra campaña de la rotación (nunca la misma dos veces).
+    const adSlot = withAd ? ads++ : -1;
+    if (withAd) cells += 2;
+    return { item, withTopLiked, adSlot };
   });
 
   return (
@@ -190,15 +197,16 @@ export function InfiniteFeed({
       {first && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <FeaturedContentCard item={first} categoryName={categoryNames[first.categoryId]} cta="Ver" />
-          {layout.map(({ item, withTopLiked, withAd }) => (
+          {layout.map(({ item, withTopLiked, adSlot }) => (
             <Fragment key={item.id}>
               <ContentCard item={item} categoryName={categoryNames[item.categoryId]} />
               {withTopLiked && <TopLikedCard items={topLiked} />}
-              {withAd && (
+              {adSlot >= 0 && (
                 <AdBlockClient
                   position="en-feed"
+                  slot={adSlot}
                   adsense={feedAd}
-                  className="col-span-2 aspect-[4/1] max-h-48 sm:col-span-3 sm:aspect-[6/1]"
+                  className="col-span-2 self-center sm:col-span-1"
                 />
               )}
             </Fragment>

@@ -76,7 +76,7 @@ export async function DetailSidebar({
       )}
 
       <div className="lg:sticky lg:top-32">
-        <AdBlock position="listing" className="aspect-[16/9] rounded-2xl" />
+        <AdBlock position="listing" />
       </div>
     </aside>
   );

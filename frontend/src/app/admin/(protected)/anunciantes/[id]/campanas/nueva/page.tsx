@@ -30,7 +30,7 @@ export default async function NewCampaignPage({ params }: { params: Promise<{ id
         <CampaignForm
           mode="create"
           advertiserId={id}
-          placementOptions={placements.map((p) => ({ id: p.key, label: p.label }))}
+          placements={placements}
           allImages={images}
         />
       </div>
