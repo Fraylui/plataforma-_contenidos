@@ -49,6 +49,10 @@ public class User {
     @Column(name = "last_login_at")
     private Instant lastLoginAt;
 
+    /** Contraseña temporal pendiente de cambio: solo puede cambiarla (spec 2a §4.3). */
+    @Column(name = "must_change_password", nullable = false)
+    private boolean mustChangePassword;
+
     protected User() {
         // JPA
     }
@@ -79,6 +83,10 @@ public class User {
 
     public String getLastName() {
         return lastName;
+    }
+
+    public boolean isMustChangePassword() {
+        return mustChangePassword;
     }
 
     public Role getRole() {
