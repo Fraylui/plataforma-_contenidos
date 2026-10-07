@@ -2185,6 +2185,16 @@ Arreglado con TDD: **N+1 del feed** (`default_batch_fetch_size`), **«me gusta»
 
 **Límite actual:** el servidor de Next (un solo proceso Node) hace de intermediario de feed, me gusta, anuncios y sugerencias y es lo primero que se satura (~80 pet/s aquí). Opciones cuando haga falta (no antes): 2+ instancias de Next detrás de nginx según los núcleos del VPS, o que nginx enrute las rutas de solo-paso directo al backend.
 
+## 46.6h Flujo de plataforma y compositor (F5 + F6, 2026-10-07)
+
+Spec: `docs/superpowers/specs/2026-10-07-compositor-y-flujo-design.md` (local).
+
+- **Estados** (los 5 tipos): Borrador → Pendiente de aprobación → Programado → Publicado → Archivado. Sin «Aprobado» ni «Rechazado». Quien publica publica o programa desde Borrador o Pendiente, o **devuelve a borrador con nota** (`POST /{tipo}/{id}/return-to-draft`); quien solo crea **envía para aprobar**. Quien publica edita todo menos lo archivado (antes no podía editar lo publicado ni lo programado).
+- **Backend:** una sola máquina de estados `shared.publishing.PublishableContent` (`@MappedSuperclass`, mismos nombres de campo → los repositorios no cambian). Se borraron 5 enums, 9 excepciones y 10 DTO duplicados. Migración **V52** (`rejection_reason` → `review_note`, CHECK nuevo). Errores en castellano llano («No se puede publicar: está Archivado.»).
+- **Frontend:** una regla de permisos (`lib/admin/publication.ts`), una acción de servidor (`publication-actions.ts`, tipo y paso validados contra lista cerrada), una función del cliente (`runPublicationStep`); se borraron 5 archivos de permisos y 60 funciones/acciones duplicadas. `PublishPanel` compartido (Lugares, Eventos, Galerías, Directorio).
+- **Compositor de Publicaciones** (`article-composer.tsx`, reemplaza `article-form`): fotos y videos primero, título grande, «Descripción corta» y «Texto», panel Publicar fijo (en celular al final del flujo), tema y formato, vista previa en el feed, «Cómo se ve al compartir» (Google y redes, autocompletado; canónica y robots en Avanzado). zod + react-hook-form; guardado automático del borrador cada 10 s (crea el borrador y cambia la URL sin recargar; nunca lo publicado); aviso al salir con cambios. Muestra sin sesión en desarrollo: `/admin/muestra/compositor`.
+- **Pendiente:** compositor completo para Lugar, Evento, Galería y Directorio (hoy con `PublishPanel` dentro del formulario anterior); selector de fotos con arrastrar y soltar (F8).
+
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
 Ordenadas por prioridad.
