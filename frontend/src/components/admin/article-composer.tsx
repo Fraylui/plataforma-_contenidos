@@ -297,9 +297,11 @@ export function ArticleComposer({
         </CollapsibleCard>
       </div>
 
-      <aside className="space-y-6 lg:sticky lg:top-6">
-        {error && <FormError message={error} />}
-        <PublishPanel
+      {/* En celular, Publicar cierra el flujo (después de tema y vista previa), como «Compartir» en Instagram. */}
+      <aside className="flex flex-col gap-6 lg:sticky lg:top-6">
+        <div className="order-last space-y-4 lg:order-none">
+          {error && <FormError message={error} />}
+          <PublishPanel
           kind="articles"
           item={{ id, status, scheduledAt: article?.scheduledAt ?? null, reviewNote: article?.reviewNote ?? null }}
           permissions={permissions}
@@ -307,7 +309,8 @@ export function ArticleComposer({
           saving={saving}
           onSave={save}
           savedAt={savedAt}
-        />
+          />
+        </div>
 
         <Card title="Tema y formato">
           <Field label="Tema" name="categoryId" error={errors.categoryId?.message}>

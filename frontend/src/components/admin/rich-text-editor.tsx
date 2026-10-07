@@ -3,10 +3,8 @@
 import { useState } from "react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
 import TiptapImage from "@tiptap/extension-image";
-import { TextB, TextItalic, TextHTwo, TextHThree, ListBullets, ListNumbers, Quotes, LinkSimple as LinkIcon, LinkBreak, Image as ImageIcon } from "@phosphor-icons/react";
-import { type Icon } from "@phosphor-icons/react";
+import { Image as ImageIcon, LinkBreak, LinkSimple as LinkIcon, ListBullets, ListNumbers, Quotes, TextB, TextHThree, TextHTwo, TextItalic, type Icon } from "@phosphor-icons/react";
 import type { AdminImage } from "@/lib/api/admin-types";
 import { ImageInsertDialog } from "./image-insert-dialog";
 import { LinkInsertDialog } from "./link-insert-dialog";
@@ -31,8 +29,8 @@ export function RichTextEditor({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit.configure({ heading: { levels: [2, 3] } }),
-      Link.configure({ openOnClick: false, autolink: true }),
+      // StarterKit 3 ya trae Link: configurarlo aparte lo registraba dos veces (aviso de Tiptap en consola).
+      StarterKit.configure({ heading: { levels: [2, 3] }, link: { openOnClick: false, autolink: true } }),
       TiptapImage.configure({ HTMLAttributes: { class: "rounded-md" } }),
     ],
     content: value,
