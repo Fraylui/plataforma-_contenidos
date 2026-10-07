@@ -2156,6 +2156,17 @@ Hecho en 10 tareas (spec y plan en `docs/superpowers/`, local):
 - **Cierre (Fase 0 de la hoja de ruta, 2026-10-07):** panel con commit (`34a9d46`), backend 297/297 tests, Docker reconstruido. Unido a `main` **en local, sin push** (`0dce210`), junto con `feat/sitio-red-social`: 2a nació de esa rama, así que no se pueden separar. El rediseño público sigue a medias (se termina en la Fase 10). El e2e de trabajadores requiere `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` con la clave actual del dueño (la de `BOOTSTRAP_ADMIN_PASSWORD` ya no vale).
 - **Decisiones del dueño para la hoja de ruta:** Inter se mantiene; validación con zod + react-hook-form; orden de fases según el plan (F1 → F2 → F3 → F4…). Pendientes: estados simplificados, guardado automático, renombrar Article → Publication.
 
+## 46.6f Fase 1 — Sistema de diseño moderno (rama `feat/sistema-diseno`, 2026-10-07)
+
+Spec y plan en `docs/superpowers/` (local). El panel cambia de aspecto, no solo de orden.
+
+- **Tokens** (`globals.css`): campo (`--field`, `--field-border`, `--ring`), estados `success`/`warning`/`info` con fondo `-soft`, `--danger-ink` (texto rojo legible en oscuro), sombras `shadow-card`/`shadow-pop`/`shadow-overlay`, radios `rounded-control` (10) / `rounded-card` (16) / `rounded-modal` (20), `text-title` y `text-label`, `color-scheme` por tema. El foco global pasó a `@layer base` para que gane el anillo suave de los componentes.
+- **Componentes** en `src/components/ui/` (compartidos; el sitio público los adopta en F10): `Button`/`LinkButton`/`IconButton` (cargando con `aria-busy`), `Field` (etiqueta, ayuda y error conectados por `aria-describedby`/`aria-invalid`; cliente; conecta nativos y controles marcados con `markFieldControl`), `TextInput` (inicio/final, el final acepta botones), `TextArea` (contador), `Select`, `Checkbox`/`Radio`, `DateTimeInput` (lectura absoluta "vie 12 dic, 7:00 p. m."), `Combobox` (rol combobox), `Badge`, `Card`/`CollapsibleCard`.
+- **Borrados:** `AdminButton`, `FormField`/`formInputClass`, `StatusPill`, `SectionCard`; **`lucide-react` desinstalado** (todo Phosphor; menú con ícono relleno en el activo).
+- **Validación:** zod + react-hook-form, piloto en Mi cuenta → cambiar contraseña. `@hookform/resolvers` fijado en `~5.5` (la 5.9 choca en npm por un peer opcional que pide zod 3).
+- **Muestra:** `/admin/muestra`, solo en desarrollo y sin sesión (el proxy la deja pasar fuera de producción; en producción es 404).
+- **Siguiente (prioridad del dueño):** el compositor de publicaciones (F5 flujo + F6) antes de F2–F4.
+
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
 Ordenadas por prioridad.
