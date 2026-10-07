@@ -6,7 +6,7 @@ import {
   getAdminEvent,
   listActiveCategoriesFresh,
   listAdminImages,
-  listAdminPlaces,
+  listPlaceOptions,
 } from "@/lib/api/admin-client";
 import { getCategoryById } from "@/lib/api/client";
 import { computeEventPermissions } from "@/lib/admin/event-permissions";
@@ -45,7 +45,7 @@ export default async function EditEventPage(props: PageProps<"/admin/eventos/[id
   const [activeCategories, allImages, places] = await Promise.all([
     listActiveCategoriesFresh(),
     listAdminImages(accessToken),
-    listAdminPlaces(accessToken),
+    listPlaceOptions(accessToken),
   ]);
   const categories = await resolveCategories(activeCategories, event.categoryId);
   const permissions = computeEventPermissions(event, user);

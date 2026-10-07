@@ -27,6 +27,12 @@ export interface TokenResponse {
   tokenType: string;
 }
 
+/** Lugar para elegir en Eventos y Directorio — PlaceOptionsController (acceso a Lugares, Eventos o Directorio). */
+export interface PlaceOption {
+  id: string;
+  name: string;
+}
+
 /** Trabajador del panel — WorkerAdminController.WorkerResponse. */
 export interface Worker {
   id: string;

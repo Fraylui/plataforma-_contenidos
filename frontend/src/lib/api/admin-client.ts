@@ -9,6 +9,7 @@ import type {
   AdminImage,
   AdminUser,
   CreateWorkerInput,
+  PlaceOption,
   ModulePermissions,
   Worker,
   AdPlacementCreateInput,
@@ -708,11 +709,16 @@ export function setWorkerActive(accessToken: string, id: string, active: boolean
   });
 }
 
-/** Mi cuenta: cambio de la contraseña propia (POST /users/me/password, 204). */
-export async function changeOwnPassword(accessToken: string, currentPassword: string, newPassword: string): Promise<void> {
-  await authedJson<unknown>("/api/v1/users/me/password", accessToken, {
+/** Mi cuenta: cambio de la contraseña propia. Devuelve una sesión nueva (las anteriores quedan invalidadas). */
+export function changeOwnPassword(accessToken: string, currentPassword: string, newPassword: string): Promise<TokenResponse> {
+  return authedJson<TokenResponse>("/api/v1/users/me/password", accessToken, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ currentPassword, newPassword }),
   });
+}
+
+/** Lugares para elegir en Eventos y Directorio (no exige el módulo Lugares). */
+export function listPlaceOptions(accessToken: string): Promise<PlaceOption[]> {
+  return authedJson("/api/v1/admin/place-options", accessToken);
 }

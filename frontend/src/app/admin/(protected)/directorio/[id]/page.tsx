@@ -6,7 +6,7 @@ import {
   getAdminBusiness,
   listActiveCategoriesFresh,
   listAdminImages,
-  listAdminPlaces,
+  listPlaceOptions,
 } from "@/lib/api/admin-client";
 import { getCategoryById } from "@/lib/api/client";
 import { computeBusinessPermissions } from "@/lib/admin/business-permissions";
@@ -45,7 +45,7 @@ export default async function EditBusinessPage(props: PageProps<"/admin/director
   const [activeCategories, allImages, places] = await Promise.all([
     listActiveCategoriesFresh(),
     listAdminImages(accessToken),
-    listAdminPlaces(accessToken),
+    listPlaceOptions(accessToken),
   ]);
   const categories = await resolveCategories(activeCategories, business.categoryId);
   const permissions = computeBusinessPermissions(business, user);
