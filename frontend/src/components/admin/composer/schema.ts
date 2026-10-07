@@ -9,8 +9,13 @@ export const optionalUrl = z
   .trim()
   .refine((value) => value === "" || /^https?:\/\/\S+$/i.test(value), "Usa una dirección completa, que empiece con https://");
 
-/** Texto del editor: obligatorio con contenido real, no solo etiquetas vacías. */
-export const bodyField = z.string().refine((html) => html.replace(/<[^>]*>/g, "").trim().length > 0, "Escribe el texto.");
+/** Texto visible de un HTML del editor, leído con el parser del navegador (no con expresiones regulares). */
+function visibleText(html: string): string {
+  return new DOMParser().parseFromString(html, "text/html").body.textContent ?? "";
+}
+
+/** Texto del editor: obligatorio con contenido real, no solo etiquetas vacías. Se limpia en el backend (HtmlSanitizer). */
+export const bodyField = z.string().refine((html) => visibleText(html).trim().length > 0, "Escribe el texto.");
 
 export const videosField = z.array(z.custom<ContentVideoInput>());
 

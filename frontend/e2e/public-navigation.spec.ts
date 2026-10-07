@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
 
+/** Escapa todo lo especial de una expresión regular (CodeQL: escapar solo "/" quedaba incompleto). */
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+}
+
 /**
  * E2E del recorrido público real (diseño estilo red social 2026-10-06):
  * inicio -> sección (feed filtrado) -> post -> me gusta, y las pantallas de
@@ -26,7 +31,7 @@ test.describe("Navegación pública", () => {
     const firstLink = page.locator("a[href^='/publicaciones/']").first();
     const href = await firstLink.getAttribute("href");
     await firstLink.click();
-    await expect(page).toHaveURL(new RegExp(href!.replace(/[/]/g, "\\/")));
+    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(href!)}$`));
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
 
