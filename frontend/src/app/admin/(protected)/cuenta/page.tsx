@@ -18,7 +18,7 @@ export default async function AccountPage() {
     <div>
       <AdminPageHeader title="Mi cuenta" />
       <div className="mt-6 flex flex-col gap-6">
-        <section className="flex max-w-md items-center gap-4 rounded-2xl bg-surface p-5">
+        <section className="flex max-w-md items-center gap-4 rounded-card bg-surface shadow-card p-5">
           <span aria-hidden="true" className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-soft text-lg font-black text-accent">
             {user.firstName.charAt(0)}
           </span>

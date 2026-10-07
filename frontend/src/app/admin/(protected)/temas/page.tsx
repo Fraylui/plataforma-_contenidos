@@ -27,7 +27,7 @@ export default async function AdminCategoriesPage() {
       {rows.length === 0 ? (
         <EmptyState title="Todavía no hay temas" />
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface">
+        <div className="mt-6 overflow-x-auto rounded-card bg-surface shadow-card">
           <table className="w-full min-w-[560px] text-left text-sm">
             <thead className="border-b border-border">
               <tr>

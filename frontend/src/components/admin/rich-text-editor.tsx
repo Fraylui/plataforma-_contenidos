@@ -49,7 +49,7 @@ export function RichTextEditor({
   if (!editor) return null;
 
   return (
-    <div className="mt-1 overflow-hidden rounded-md border border-border bg-background">
+    <div className="overflow-hidden rounded-control border border-field-border bg-field transition-[border-color,box-shadow] focus-within:border-accent focus-within:ring-[3px] focus-within:ring-ring">
       {!disabled && <Toolbar editor={editor} allImages={allImages} />}
       <EditorContent editor={editor} />
     </div>

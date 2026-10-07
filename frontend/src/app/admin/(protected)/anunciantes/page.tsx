@@ -32,7 +32,7 @@ export default async function AdminAdvertisersPage() {
       {advertisers.length === 0 ? (
         <EmptyState title="Todavía no hay anunciantes" />
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface">
+        <div className="mt-6 overflow-x-auto rounded-card bg-surface shadow-card">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="border-b border-border">
               <tr>

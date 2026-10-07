@@ -5,7 +5,7 @@ import { articleStatusLabel } from "@/lib/content-labels";
 import { AdminPageHeader } from "@/components/admin/ui";
 import { ContentTypesChart, PipelineChart, PublishTrendChart, RoleChart, TotalDistributionDonut } from "@/components/admin/stats-charts";
 
-const CARD_CLASS = "rounded-xl border border-border/60 bg-surface p-5 transition-colors hover:border-accent/40";
+const CARD_CLASS = "rounded-card bg-surface shadow-card p-5 transition-colors hover:border-accent/40";
 const SECTION_TITLE_CLASS = "flex items-center gap-2 text-xs font-semibold tracking-wide text-muted uppercase";
 
 // Orden real del flujo de publicación (CONTEXTO.md sección 12) — la "línea de

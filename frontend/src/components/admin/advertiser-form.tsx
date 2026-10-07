@@ -43,7 +43,7 @@ export function AdvertiserForm({ mode, advertiser }: AdvertiserFormProps) {
   }
 
   return (
-    <div className="max-w-lg space-y-4 rounded-xl border border-border/60 bg-surface p-5">
+    <div className="max-w-lg space-y-4 rounded-card bg-surface shadow-card p-5">
       <Field label="Nombre del negocio/empresa" name="name">
         <TextInput type="text" value={name} onChange={(e) => setName(e.target.value)} />
       </Field>

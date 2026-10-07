@@ -12,8 +12,8 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ChevronsUpDown, Search } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { CaretDown, CaretLeft, CaretRight, CaretUp, CaretUpDown, MagnifyingGlass } from "@phosphor-icons/react";
+import { Button, TextInput } from "@/components/ui";
 
 interface DataTableProps<TData> {
   columns: ColumnDef<TData, unknown>[];
@@ -78,21 +78,20 @@ export function DataTable<TData>({
 
   return (
     <div>
-      <div className="relative">
-        <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
-        <input
-          type="search"
-          name="tableSearch"
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          placeholder={searchPlaceholder}
-          className="h-10 w-full max-w-xs rounded-md border border-border bg-background pl-9 pr-3 text-sm text-foreground placeholder-muted outline-none transition-colors focus-visible:border-accent sm:max-w-sm"
-        />
-      </div>
+      <TextInput
+        type="search"
+        name="tableSearch"
+        aria-label={searchPlaceholder}
+        value={globalFilter}
+        onChange={(e) => setGlobalFilter(e.target.value)}
+        placeholder={searchPlaceholder}
+        leading={<MagnifyingGlass aria-hidden="true" />}
+        className="max-w-xs sm:max-w-sm"
+      />
 
-      <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-surface">
+      <div className="mt-4 overflow-x-auto rounded-card bg-surface shadow-card">
         <table className="w-full min-w-max text-left text-sm">
-          <thead className="border-b border-border">
+          <thead className="border-b border-field-border bg-field/50">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -108,11 +107,11 @@ export function DataTable<TData>({
                         >
                           {flexRender(header.column.columnDef.header, header.getContext())}
                           {sortDirection === "asc" ? (
-                            <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
+                            <CaretUp weight="bold" className="size-3.5" aria-hidden="true" />
                           ) : sortDirection === "desc" ? (
-                            <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+                            <CaretDown weight="bold" className="size-3.5" aria-hidden="true" />
                           ) : (
-                            <ChevronsUpDown className="h-3.5 w-3.5 opacity-40" aria-hidden="true" />
+                            <CaretUpDown className="size-3.5 opacity-40" aria-hidden="true" />
                           )}
                         </button>
                       ) : (
@@ -133,7 +132,7 @@ export function DataTable<TData>({
               </tr>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-b border-border last:border-0 hover:bg-accent-soft/40">
+                <tr key={row.id} className="border-b border-field-border transition-colors last:border-0 hover:bg-field/60">
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-3 align-middle text-foreground">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -152,30 +151,13 @@ export function DataTable<TData>({
             Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()} · {table.getFilteredRowModel().rows.length} resultados
           </span>
           <div className="flex gap-1">
-            <button
-              type="button"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-              className={cn(
-                "inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 transition-colors hover:bg-accent-soft hover:text-accent",
-                "disabled:pointer-events-none disabled:opacity-40",
-              )}
-            >
-              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            <Button size="sm" variant="secondary" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} icon={<CaretLeft aria-hidden="true" />}>
               Anterior
-            </button>
-            <button
-              type="button"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-              className={cn(
-                "inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 transition-colors hover:bg-accent-soft hover:text-accent",
-                "disabled:pointer-events-none disabled:opacity-40",
-              )}
-            >
+            </Button>
+            <Button size="sm" variant="secondary" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
               Siguiente
-              <ChevronRight className="h-4 w-4" aria-hidden="true" />
-            </button>
+              <CaretRight aria-hidden="true" />
+            </Button>
           </div>
         </div>
       )}
@@ -203,7 +185,7 @@ function selectionColumn<TData>(): ColumnDef<TData, unknown> {
             if (el) el.indeterminate = table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected();
           }}
           onChange={table.getToggleAllPageRowsSelectedHandler()}
-          className="h-4 w-4 cursor-pointer rounded border-border accent-accent"
+          className="size-4 cursor-pointer accent-[var(--accent-fill)]"
         />
       </label>
     ),
@@ -215,7 +197,7 @@ function selectionColumn<TData>(): ColumnDef<TData, unknown> {
           checked={row.getIsSelected()}
           disabled={!row.getCanSelect()}
           onChange={row.getToggleSelectedHandler()}
-          className="h-4 w-4 cursor-pointer rounded border-border accent-accent disabled:cursor-not-allowed"
+          className="size-4 cursor-pointer accent-[var(--accent-fill)] disabled:cursor-not-allowed"
         />
       </label>
     ),

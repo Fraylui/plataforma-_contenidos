@@ -18,7 +18,7 @@ import {
   rejectBusinessAction,
   submitBusinessAction,
 } from "@/app/admin/(protected)/directorio/actions";
-import { Badge, type BadgeTone } from "@/components/ui";
+import { Badge } from "@/components/ui";
 
 export function BusinessesTable({ businesses, currentUser }: { businesses: Business[]; currentUser: AdminUser }) {
   const router = useRouter();

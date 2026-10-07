@@ -67,7 +67,7 @@ export function CampaignTargetingFields({
   ];
 
   return (
-    <div className="space-y-4 rounded-lg border border-border/60 bg-background p-4">
+    <div className="space-y-4 rounded-control bg-field p-4">
       <div>
         <p className="text-sm font-semibold text-foreground">Segmentación</p>
         <p className="mt-0.5 text-xs text-muted">

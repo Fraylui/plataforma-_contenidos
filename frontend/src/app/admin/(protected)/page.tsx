@@ -20,7 +20,7 @@ import { StatCard } from "@/components/admin/ui";
 import { CreateNewMenu } from "@/components/admin/create-new-menu";
 import type { PlatformStats } from "@/lib/api/admin-types";
 import type { ArticleStatus } from "@/lib/api/types";
-import { Badge, type BadgeTone } from "@/components/ui";
+import { Badge } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Panel",
@@ -186,11 +186,11 @@ export default async function AdminDashboardPage() {
             Contenido reciente
           </h2>
           {recentContent.length === 0 ? (
-            <p className="mt-3 rounded-xl border border-border/60 bg-surface px-4 py-6 text-center text-sm text-muted">
+            <p className="mt-3 rounded-card bg-surface shadow-card px-4 py-6 text-center text-sm text-muted">
               Todavía no hay contenido creado.
             </p>
           ) : (
-            <div className="mt-3 overflow-x-auto rounded-xl border border-border/60 bg-surface">
+            <div className="mt-3 overflow-x-auto rounded-card bg-surface shadow-card">
               <table className="w-full min-w-max text-left text-sm">
                 <thead className="border-b border-border/60 text-xs text-muted">
                   <tr>
@@ -223,7 +223,7 @@ export default async function AdminDashboardPage() {
 
         <div className="space-y-6">
           {pendingReview.length > 0 && (
-            <div className="rounded-xl border border-border/60 bg-surface p-4">
+            <div className="rounded-card bg-surface shadow-card p-4">
               <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <ListChecks className="h-4 w-4 text-muted" aria-hidden="true" />
                 Pendientes de revisión
@@ -245,7 +245,7 @@ export default async function AdminDashboardPage() {
           )}
 
           {canSeeAudit && (
-            <div className="rounded-xl border border-border/60 bg-surface p-4">
+            <div className="rounded-card bg-surface shadow-card p-4">
               <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <ClockCounterClockwise className="h-4 w-4 text-muted" aria-hidden="true" />
                 Actividad reciente del sistema

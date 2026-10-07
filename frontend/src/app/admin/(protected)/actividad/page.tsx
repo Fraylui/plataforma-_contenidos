@@ -133,7 +133,7 @@ export default async function AdminAuditPage(props: PageProps<"/admin/actividad"
       {auditPage.items.length === 0 ? (
         <p className="mt-4 text-sm text-muted">No hay eventos que coincidan con los filtros.</p>
       ) : (
-        <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-surface">
+        <div className="mt-4 overflow-x-auto rounded-card bg-surface shadow-card">
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="border-b border-border">
               <tr>

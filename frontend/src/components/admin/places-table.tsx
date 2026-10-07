@@ -18,7 +18,7 @@ import {
   rejectPlaceAction,
   submitPlaceAction,
 } from "@/app/admin/(protected)/lugares/actions";
-import { Badge, type BadgeTone } from "@/components/ui";
+import { Badge } from "@/components/ui";
 
 export function PlacesTable({ places, currentUser }: { places: Place[]; currentUser: AdminUser }) {
   const router = useRouter();

@@ -169,7 +169,7 @@ const NAV_ITEMS = [
 /** Misma tarjeta que el resto del panel (article-form.tsx, place-form.tsx, ...): border-border/60 bg-surface, sin shadow. */
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
-    <div id={id} className="scroll-mt-24 rounded-xl border border-border/60 bg-surface p-5">
+    <div id={id} className="scroll-mt-24 rounded-card bg-surface shadow-card p-5">
       <h2 className="text-sm font-semibold text-foreground">{title}</h2>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
     </div>

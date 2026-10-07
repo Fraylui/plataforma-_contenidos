@@ -1,4 +1,5 @@
-import { AdminButton } from "./admin-button";
+import { Archive } from "@phosphor-icons/react/dist/ssr";
+import { Button } from "@/components/ui";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,9 +29,9 @@ export function ArchiveButton({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <AdminButton type="button" variant="secondary" disabled={disabled}>
+        <Button variant="secondary" disabled={disabled} icon={<Archive aria-hidden="true" />}>
           Archivar
-        </AdminButton>
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogTitle>¿Archivar {itemLabel}?</AlertDialogTitle>
@@ -39,14 +40,12 @@ export function ArchiveButton({
         </AlertDialogDescription>
         <AlertDialogFooter>
           <AlertDialogCancel asChild>
-            <AdminButton type="button" variant="secondary">
-              Cancelar
-            </AdminButton>
+            <Button variant="secondary">Cancelar</Button>
           </AlertDialogCancel>
           <AlertDialogAction asChild>
-            <AdminButton type="button" variant="danger" onClick={onConfirm}>
+            <Button variant="danger" onClick={onConfirm}>
               Archivar
-            </AdminButton>
+            </Button>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

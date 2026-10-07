@@ -18,7 +18,7 @@ import {
   rejectArticleAction,
   submitArticleAction,
 } from "@/app/admin/(protected)/publicaciones/actions";
-import { Badge, type BadgeTone } from "@/components/ui";
+import { Badge } from "@/components/ui";
 
 export function PublicationsTable({ articles, currentUser }: { articles: Article[]; currentUser: AdminUser }) {
   const router = useRouter();

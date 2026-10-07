@@ -34,7 +34,7 @@ export default async function WorkersPage() {
             <li key={worker.id}>
               <Link
                 href={`/admin/trabajadores/${worker.id}`}
-                className="group flex items-center gap-4 rounded-2xl bg-surface p-4 transition-colors hover:bg-accent-soft/40"
+                className="group flex items-center gap-4 rounded-card bg-surface shadow-card p-4 transition-colors hover:bg-accent-soft/40"
               >
                 <span
                   aria-hidden="true"

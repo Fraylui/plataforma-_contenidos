@@ -18,7 +18,7 @@ import {
   rejectGalleryAction,
   submitGalleryAction,
 } from "@/app/admin/(protected)/galerias/actions";
-import { Badge, type BadgeTone } from "@/components/ui";
+import { Badge } from "@/components/ui";
 
 export function GalleriesTable({ galleries, currentUser }: { galleries: Gallery[]; currentUser: AdminUser }) {
   const router = useRouter();

@@ -100,7 +100,7 @@ export function GalleryForm({
   return (
     <div className="max-w-6xl space-y-6">
       {gallery && (
-        <div className="flex flex-wrap items-center gap-3 rounded-md border border-border bg-surface px-4 py-3 text-sm">
+        <div className="flex flex-wrap items-center gap-3 rounded-card bg-surface px-4 py-3 text-sm shadow-card">
           <span className="font-medium text-foreground">Estado: {articleStatusLabel(gallery.status)}</span>
           {gallery.rejectionReason && <span className="text-muted">Motivo de rechazo: {gallery.rejectionReason}</span>}
         </div>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Archive, CheckCircle, DotsThree, PencilSimple, PaperPlaneTilt, ArrowCounterClockwise, XCircle } from "@phosphor-icons/react";
 import type { ActionResult } from "@/lib/admin/action-helpers";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle, AlertDialogTrigger, Dialog, DialogContent, DialogDescription, DialogTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/admin/ui";
-import { Button } from "@/components/ui";
+import { Button, TextArea } from "@/components/ui";
 
 export interface ContentPermissions {
   canSubmit: boolean;
@@ -141,11 +141,12 @@ export function ContentRowActions({
         <DialogContent>
           <DialogTitle>Rechazar {itemLabel}</DialogTitle>
           <DialogDescription>Explica brevemente el motivo — el autor lo verá para corregirlo.</DialogDescription>
-          <textarea
+          <TextArea
+            aria-label="Motivo de rechazo"
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
             rows={3}
-            className="mt-4 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
+            className="mt-4"
             placeholder="Motivo de rechazo"
           />
           <div className="mt-4 flex justify-end gap-2">

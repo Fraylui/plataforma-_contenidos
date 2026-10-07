@@ -71,7 +71,7 @@ export function WorkerForm({ worker }: { worker?: Worker }) {
 
   return (
     <div className="flex max-w-3xl flex-col gap-6">
-      <section className="rounded-2xl bg-surface p-5 sm:p-6">
+      <section className="rounded-card bg-surface shadow-card p-5 sm:p-6">
         <h2 className="text-base font-bold text-foreground">Datos</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <Field label="Nombre" name="firstName">
@@ -88,7 +88,7 @@ export function WorkerForm({ worker }: { worker?: Worker }) {
         </div>
       </section>
 
-      <section className="rounded-2xl bg-surface p-5 sm:p-6">
+      <section className="rounded-card bg-surface shadow-card p-5 sm:p-6">
         <h2 className="text-base font-bold text-foreground">Permisos</h2>
         <p className="mt-1 text-sm text-muted">Parte de una plantilla y ajusta lo que necesites. «Crear»: lo suyo, a revisión. «Publicar»: revisa y publica lo de todos.</p>
         <div className="mt-4">

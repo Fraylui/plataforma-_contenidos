@@ -33,7 +33,7 @@ export function CampaignStatsChart({ data }: { data: CampaignDailyStat[] }) {
             const row = payload?.[0]?.payload as CampaignDailyStat | undefined;
             if (!active || !row) return null;
             return (
-              <div className="rounded-lg border border-border bg-surface px-3 py-2 text-xs text-foreground shadow-sm">
+              <div className="rounded-card bg-surface shadow-card px-3 py-2 text-xs text-foreground shadow-sm">
                 <p className="mb-1 font-semibold capitalize">{DATE_LONG.format(new Date(`${row.day}T00:00:00Z`))}</p>
                 <p>{row.impressions} impresiones visibles</p>
                 <p>

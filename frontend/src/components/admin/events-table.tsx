@@ -18,7 +18,7 @@ import {
   rejectEventAction,
   submitEventAction,
 } from "@/app/admin/(protected)/eventos/actions";
-import { Badge, type BadgeTone } from "@/components/ui";
+import { Badge } from "@/components/ui";
 
 export function EventsTable({ events, currentUser }: { events: Event[]; currentUser: AdminUser }) {
   const router = useRouter();
