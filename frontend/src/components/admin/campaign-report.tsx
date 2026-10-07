@@ -1,8 +1,9 @@
-import { Eye, MousePointerClick, Percent } from "lucide-react";
+import { Eye, CursorClick, Percent } from "@phosphor-icons/react/dist/ssr";
 import type { Campaign, CampaignDailyStat } from "@/lib/api/admin-types";
 import { ctr, fillDays } from "@/lib/ads/campaign-report";
-import { SectionCard, StatCard } from "@/components/admin/ui";
+import { StatCard } from "@/components/admin/ui";
 import { CampaignStatsChart } from "@/components/admin/campaign-stats-chart";
+import { Card } from "@/components/ui";
 
 const REPORT_DAYS = 30;
 const DATE = new Intl.DateTimeFormat("es-PE", { day: "numeric", month: "short", timeZone: "UTC" });
@@ -17,10 +18,10 @@ export function CampaignReport({ campaign, stats }: { campaign: Campaign; stats:
   const recent = days.filter((d) => d.impressions > 0 || d.clicks > 0).reverse();
 
   return (
-    <SectionCard title="Rendimiento">
+    <Card title="Rendimiento">
       <div className="grid gap-3 sm:grid-cols-3">
         <StatCard label="Impresiones visibles" value={campaign.impressionCount} icon={Eye} accent hint="Desde que empezó la campaña" />
-        <StatCard label="Clics" value={campaign.clickCount} icon={MousePointerClick} hint="Sin robots ni clics repetidos" />
+        <StatCard label="Clics" value={campaign.clickCount} icon={CursorClick} hint="Sin robots ni clics repetidos" />
         <StatCard
           label="Porcentaje de clics"
           value={ctr(campaign.clickCount, campaign.impressionCount)}
@@ -64,6 +65,6 @@ export function CampaignReport({ campaign, stats }: { campaign: Campaign; stats:
           </>
         )}
       </div>
-    </SectionCard>
+    </Card>
   );
 }

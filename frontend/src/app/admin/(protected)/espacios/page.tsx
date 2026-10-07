@@ -4,9 +4,10 @@ import { requireAdminUser } from "@/lib/admin/auth";
 import { listAdminAdPlacements } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
-import { AdminPageHeader, EmptyState, StatusPill } from "@/components/admin/ui";
+import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
 import { formatSize } from "@/lib/ads/ad-formats";
 import { setAdPlacementActiveAction, deleteAdPlacementAction } from "./actions";
+import { Badge } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Espacios publicitarios",
@@ -67,10 +68,7 @@ export default async function AdminAdPlacementsPage() {
                   <td className="px-4 py-3 text-xs whitespace-nowrap tabular-nums text-foreground">{formatSize(placement.width, placement.height)}</td>
                   <td className="px-4 py-3 text-xs text-muted">{placement.adsenseSlotId || "— sin completar —"}</td>
                   <td className="px-4 py-3">
-                    <StatusPill
-                      tone={placement.enabled ? "success" : "neutral"}
-                      label={placement.enabled ? "Activa" : "Inactiva"}
-                    />
+                    <Badge tone={placement.enabled ? "success" : "neutral"} dot>{placement.enabled ? "Activa" : "Inactiva"}</Badge>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-3">

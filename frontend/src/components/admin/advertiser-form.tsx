@@ -8,7 +8,8 @@ import {
   updateAdvertiserAction,
   type ActionResult,
 } from "@/app/admin/(protected)/anunciantes/actions";
-import { AdminButton, FormError, FormField, formInputClass } from "@/components/admin/ui";
+import { FormError } from "@/components/admin/ui";
+import { Button, Field, TextInput } from "@/components/ui";
 
 interface AdvertiserFormProps {
   mode: "create" | "edit";
@@ -43,32 +44,30 @@ export function AdvertiserForm({ mode, advertiser }: AdvertiserFormProps) {
 
   return (
     <div className="max-w-lg space-y-4 rounded-xl border border-border/60 bg-surface p-5">
-      <FormField label="Nombre del negocio/empresa" name="name">
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={formInputClass} />
-      </FormField>
+      <Field label="Nombre del negocio/empresa" name="name">
+        <TextInput type="text" value={name} onChange={(e) => setName(e.target.value)} />
+      </Field>
 
-      <FormField label="Email de contacto (opcional)" name="contactEmail">
-        <input
+      <Field label="Email de contacto (opcional)" name="contactEmail">
+        <TextInput
           type="email"
           value={contactEmail}
           onChange={(e) => setContactEmail(e.target.value)}
-          className={formInputClass}
         />
-      </FormField>
+      </Field>
 
-      <FormField label="Teléfono de contacto (opcional)" name="contactPhone">
-        <input
+      <Field label="Teléfono de contacto (opcional)" name="contactPhone">
+        <TextInput
           type="text"
           value={contactPhone}
           onChange={(e) => setContactPhone(e.target.value)}
-          className={formInputClass}
         />
-      </FormField>
+      </Field>
 
       {error && <FormError message={error} />}
-      <AdminButton disabled={pending || !name.trim()} onClick={handleSubmit}>
+      <Button type="submit" disabled={pending || !name.trim()} onClick={handleSubmit}>
         {pending ? "Guardando…" : mode === "create" ? "Crear anunciante" : "Guardar cambios"}
-      </AdminButton>
+      </Button>
     </div>
   );
 }

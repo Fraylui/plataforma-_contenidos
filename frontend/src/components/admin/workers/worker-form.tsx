@@ -5,20 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowCounterClockwise, Prohibit, UserCheck } from "@phosphor-icons/react";
 import type { ModulePermissions, Worker } from "@/lib/api/admin-types";
-import {
-  AdminButton,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-  FormError,
-  FormField,
-  formInputClass,
-} from "@/components/admin/ui";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle, AlertDialogTrigger, FormError } from "@/components/admin/ui";
 import {
   createWorkerAction,
   resetWorkerPasswordAction,
@@ -28,6 +15,7 @@ import {
 import { PermissionMatrix } from "./permission-matrix";
 import { TemplateChips } from "./template-chips";
 import { TemporaryPasswordDialog } from "./temporary-password-dialog";
+import { Button, Field, TextInput } from "@/components/ui";
 
 /**
  * Alta y ficha de un trabajador (spec 2a §6): datos, plantilla como punto
@@ -86,16 +74,16 @@ export function WorkerForm({ worker }: { worker?: Worker }) {
       <section className="rounded-2xl bg-surface p-5 sm:p-6">
         <h2 className="text-base font-bold text-foreground">Datos</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <FormField label="Nombre" name="firstName">
-            <input id="firstName" className={formInputClass} value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={editing} required />
-          </FormField>
-          <FormField label="Apellido" name="lastName">
-            <input id="lastName" className={formInputClass} value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={editing} required />
-          </FormField>
+          <Field label="Nombre" name="firstName">
+            <TextInput id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={editing} required />
+          </Field>
+          <Field label="Apellido" name="lastName">
+            <TextInput id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={editing} required />
+          </Field>
           <div className="sm:col-span-2">
-            <FormField label="Correo" name="email">
-              <input id="email" type="email" className={formInputClass} value={email} onChange={(e) => setEmail(e.target.value)} disabled={editing} required />
-            </FormField>
+            <Field label="Correo" name="email">
+              <TextInput id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={editing} required />
+            </Field>
           </div>
         </div>
       </section>
@@ -114,18 +102,18 @@ export function WorkerForm({ worker }: { worker?: Worker }) {
       {error && <FormError message={error} />}
 
       <div className="flex flex-wrap items-center gap-2">
-        <AdminButton type="button" onClick={save} disabled={pending || (!editing && (!email || !firstName || !lastName))}>
+        <Button type="button" onClick={save} disabled={pending || (!editing && (!email || !firstName || !lastName))}>
           {pending ? "Guardando…" : editing ? "Guardar permisos" : "Crear trabajador"}
-        </AdminButton>
+        </Button>
 
         {worker && (
           <>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <AdminButton type="button" variant="secondary" disabled={pending}>
+                <Button type="button" variant="secondary" disabled={pending}>
                   <ArrowCounterClockwise className="h-4 w-4" aria-hidden="true" />
                   Restablecer contraseña
-                </AdminButton>
+                </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogTitle>¿Restablecer la contraseña de {name}?</AlertDialogTitle>
@@ -139,10 +127,10 @@ export function WorkerForm({ worker }: { worker?: Worker }) {
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <AdminButton type="button" variant={worker.status === "ACTIVE" ? "danger" : "secondary"} disabled={pending}>
+                <Button type="button" variant={worker.status === "ACTIVE" ? "danger" : "secondary"} disabled={pending}>
                   {worker.status === "ACTIVE" ? <Prohibit className="h-4 w-4" aria-hidden="true" /> : <UserCheck className="h-4 w-4" aria-hidden="true" />}
                   {worker.status === "ACTIVE" ? "Desactivar" : "Reactivar"}
-                </AdminButton>
+                </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogTitle>{worker.status === "ACTIVE" ? `¿Desactivar a ${name}?` : `¿Reactivar a ${name}?`}</AlertDialogTitle>

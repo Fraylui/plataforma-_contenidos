@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { listAdminAuditLog } from "@/lib/api/admin-client";
 import type { AuditResult } from "@/lib/api/admin-types";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
-import { AdminButton, AdminLinkButton, AdminPageHeader, StatusPill, type StatusTone } from "@/components/admin/ui";
+import { AdminPageHeader } from "@/components/admin/ui";
+import { Badge, type BadgeTone, Button, DateTimeInput, Field, LinkButton, Select, TextInput } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Registro de actividad",
@@ -19,7 +19,7 @@ const RESULT_LABELS: Record<AuditResult, string> = {
   FAILURE: "Fallo",
 };
 
-const RESULT_TONE: Record<AuditResult, StatusTone> = {
+const RESULT_TONE: Record<AuditResult, BadgeTone> = {
   SUCCESS: "success",
   FAILURE: "danger",
 };
@@ -90,98 +90,41 @@ export default async function AdminAuditPage(props: PageProps<"/admin/actividad"
         description="Registro de acciones administrativas y de seguridad (solo lectura, no editable)."
       />
 
-      <form
-        method="get"
-        className="mt-6 grid grid-cols-2 gap-3 rounded-xl border border-border/60 bg-surface p-5 sm:grid-cols-3 lg:grid-cols-6"
-      >
-        <div className="col-span-2 flex flex-col gap-1 sm:col-span-1">
-          <label htmlFor="actorEmail" className="text-xs font-medium text-muted">
-            Correo del usuario
-          </label>
-          <input
-            id="actorEmail"
-            name="actorEmail"
-            type="text"
-            defaultValue={actorEmail ?? ""}
-            placeholder="correo@ejemplo.com"
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-          />
-        </div>
-        <div className="col-span-2 flex flex-col gap-1 sm:col-span-1">
-          <label htmlFor="action" className="text-xs font-medium text-muted">
-            Acción
-          </label>
-          <input
-            id="action"
-            name="action"
-            type="text"
-            defaultValue={action ?? ""}
-            placeholder="LOGIN_FAILURE…"
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="resourceType" className="text-xs font-medium text-muted">
-            Recurso
-          </label>
-          <select
-            id="resourceType"
-            name="resourceType"
-            defaultValue={resourceType ?? ""}
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-          >
+      <form method="get" className="mt-6 grid grid-cols-2 gap-4 rounded-card bg-surface p-5 shadow-card sm:grid-cols-3 lg:grid-cols-6">
+        <Field label="Correo del usuario" name="actorEmail" className="col-span-2 sm:col-span-1">
+          <TextInput type="text" defaultValue={actorEmail ?? ""} placeholder="correo@ejemplo.com" />
+        </Field>
+        <Field label="Acción" name="action" className="col-span-2 sm:col-span-1">
+          <TextInput type="text" defaultValue={action ?? ""} placeholder="LOGIN_FAILURE…" />
+        </Field>
+        <Field label="Recurso" name="resourceType">
+          <Select defaultValue={resourceType ?? ""}>
             <option value="">Todos</option>
             {RESOURCE_TYPES.map((type) => (
               <option key={type} value={type}>
                 {type}
               </option>
             ))}
-          </select>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="result" className="text-xs font-medium text-muted">
-            Resultado
-          </label>
-          <select
-            id="result"
-            name="result"
-            defaultValue={result ?? ""}
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-          >
+          </Select>
+        </Field>
+        <Field label="Resultado" name="result">
+          <Select defaultValue={result ?? ""}>
             <option value="">Todos</option>
             <option value="SUCCESS">Éxito</option>
             <option value="FAILURE">Fallo</option>
-          </select>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="from" className="text-xs font-medium text-muted">
-            Desde
-          </label>
-          <input
-            id="from"
-            name="from"
-            type="date"
-            defaultValue={from ?? ""}
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="to" className="text-xs font-medium text-muted">
-            Hasta
-          </label>
-          <input
-            id="to"
-            name="to"
-            type="date"
-            defaultValue={to ?? ""}
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-          />
-        </div>
-        <div className="col-span-2 flex items-end gap-2 sm:col-span-3 lg:col-span-6">
-          <AdminButton type="submit">Filtrar</AdminButton>
-          <Link href="/admin/actividad" className="text-sm text-muted underline underline-offset-2 hover:text-accent">
+          </Select>
+        </Field>
+        <Field label="Desde" name="from">
+          <DateTimeInput type="date" defaultValue={from ?? ""} />
+        </Field>
+        <Field label="Hasta" name="to">
+          <DateTimeInput type="date" defaultValue={to ?? ""} />
+        </Field>
+        <div className="col-span-2 flex items-center gap-2 sm:col-span-3 lg:col-span-6">
+          <Button type="submit">Filtrar</Button>
+          <LinkButton href="/admin/actividad" variant="ghost">
             Limpiar filtros
-          </Link>
+          </LinkButton>
         </div>
       </form>
 
@@ -213,7 +156,7 @@ export default async function AdminAuditPage(props: PageProps<"/admin/actividad"
                   </td>
                   <td className="px-4 py-3 font-mono text-xs text-muted">{event.ipAddress ?? "—"}</td>
                   <td className="px-4 py-3">
-                    <StatusPill tone={RESULT_TONE[event.result]} label={RESULT_LABELS[event.result]} />
+                    <Badge tone={RESULT_TONE[event.result]} dot>{RESULT_LABELS[event.result]}</Badge>
                   </td>
                 </tr>
               ))}
@@ -229,14 +172,14 @@ export default async function AdminAuditPage(props: PageProps<"/admin/actividad"
           </span>
           <div className="flex gap-2">
             {auditPage.page > 0 && (
-              <AdminLinkButton href={buildPageHref(filterParams, auditPage.page - 1)} variant="secondary">
+              <LinkButton href={buildPageHref(filterParams, auditPage.page - 1)} variant="secondary">
                 Anterior
-              </AdminLinkButton>
+              </LinkButton>
             )}
             {auditPage.page + 1 < auditPage.totalPages && (
-              <AdminLinkButton href={buildPageHref(filterParams, auditPage.page + 1)} variant="secondary">
+              <LinkButton href={buildPageHref(filterParams, auditPage.page + 1)} variant="secondary">
                 Siguiente
-              </AdminLinkButton>
+              </LinkButton>
             )}
           </div>
         </div>

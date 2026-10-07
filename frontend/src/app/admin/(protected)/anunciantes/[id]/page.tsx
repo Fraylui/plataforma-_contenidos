@@ -5,9 +5,10 @@ import { getAdvertiser, listCampaigns } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdvertiserForm } from "@/components/admin/advertiser-form";
-import { AdminPageHeader, EmptyState, StatusPill } from "@/components/admin/ui";
+import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
 import { formatEventDateTime } from "@/lib/content-labels";
 import { deleteAdvertiserAction, deleteCampaignAction, setCampaignActiveAction } from "../actions";
+import { Badge } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Anunciante",
@@ -66,7 +67,7 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
                       {campaign.endsAt ? formatEventDateTime(campaign.endsAt) : "sin fin"}
                     </td>
                     <td className="px-4 py-3">
-                      <StatusPill tone={campaign.active ? "success" : "neutral"} label={campaign.active ? "Activa" : "Inactiva"} />
+                      <Badge tone={campaign.active ? "success" : "neutral"} dot>{campaign.active ? "Activa" : "Inactiva"}</Badge>
                     </td>
                     <td className="px-4 py-3 text-muted">
                       {campaign.amount != null ? `${campaign.currency ?? ""} ${campaign.amount.toFixed(2)}` : "—"}

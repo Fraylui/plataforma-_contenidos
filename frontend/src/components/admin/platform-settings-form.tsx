@@ -5,8 +5,8 @@ import Link from "next/link";
 import type { PlatformSettings } from "@/lib/api/types";
 import type { PlatformSettingsInput } from "@/lib/api/admin-types";
 import { updatePlatformSettingsAction } from "@/app/admin/(protected)/configuracion/actions";
-import { AdminButton, FormError, FormField, formInputClass } from "@/components/admin/ui";
-import { Combobox } from "@/components/ui";
+import { FormError } from "@/components/admin/ui";
+import { Button, Checkbox, Combobox, Field, TextArea, TextInput } from "@/components/ui";
 import { InlineImageUpload } from "@/components/admin/inline-image-upload";
 import { imageUrl } from "@/lib/image-url";
 import type { AdminImage } from "@/lib/api/admin-types";
@@ -80,9 +80,9 @@ function TextField({
   type?: string;
 }) {
   return (
-    <FormField label={label} name={name}>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className={formInputClass} />
-    </FormField>
+    <Field label={label} name={name}>
+      <TextInput type={type} value={value} onChange={(e) => onChange(e.target.value)} />
+    </Field>
   );
 }
 
@@ -109,24 +109,24 @@ function ImageUrlField({
   }
 
   return (
-    <FormField label={label} name={name}>
+    <Field label={label} name={name}>
       <div className="flex flex-wrap items-center gap-2">
         {value && (
           // eslint-disable-next-line @next/next/no-img-element -- vista previa de una URL arbitraria, no un asset local
           <img src={value} alt="" className="h-9 w-9 shrink-0 rounded border border-border object-contain" />
         )}
-        <input
+        <TextInput
           id={name}
           name={name}
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="URL de la imagen"
-          className={`${formInputClass} flex-1`}
+          className="flex-1"
         />
         <InlineImageUpload onUploaded={handleUploaded} compact />
       </div>
-    </FormField>
+    </Field>
   );
 }
 
@@ -231,18 +231,17 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
             value={state.ogImageUrl}
             onChange={(v) => set("ogImageUrl", v)}
           />
-          <FormField label="Descripción" name="description">
-            <textarea
+          <Field label="Descripción" name="description">
+            <TextArea
               value={state.description}
               onChange={(e) => set("description", e.target.value)}
               rows={2}
-              className={formInputClass}
             />
-          </FormField>
+          </Field>
         </Section>
 
         <Section id="apariencia" title="Apariencia">
-          <FormField label="Tema" name="theme">
+          <Field label="Tema" name="theme">
             <Combobox
               options={[
                 { id: "AUTO", label: "Auto (según el sistema)" },
@@ -252,7 +251,7 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
               value={state.theme}
               onSelect={(id) => id && set("theme", id as FormState["theme"])}
             />
-          </FormField>
+          </Field>
         </Section>
 
         <Section id="seo" title="SEO por defecto">
@@ -263,14 +262,13 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
             value={state.seoDefaultImageUrl}
             onChange={(v) => set("seoDefaultImageUrl", v)}
           />
-          <FormField label="Meta descripción por defecto" name="seoDefaultDescription">
-            <textarea
+          <Field label="Meta descripción por defecto" name="seoDefaultDescription">
+            <TextArea
               value={state.seoDefaultDescription}
               onChange={(e) => set("seoDefaultDescription", e.target.value)}
               rows={2}
-              className={formInputClass}
             />
-          </FormField>
+          </Field>
           <TextField
             label="Google Search Console (verificación)"
             name="googleSearchConsoleVerification"
@@ -299,16 +297,12 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
         </Section>
 
         <Section id="publicidad" title="Publicidad y AdSense">
-          <label className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <input
-              type="checkbox"
-              name="adsenseEnabled"
-              checked={state.adsenseEnabled}
-              onChange={(e) => set("adsenseEnabled", e.target.checked)}
-              className="h-4 w-4 rounded border-border"
-            />
-            AdSense habilitado
-          </label>
+          <Checkbox
+            name="adsenseEnabled"
+            label="AdSense habilitado"
+            checked={state.adsenseEnabled}
+            onChange={(e) => set("adsenseEnabled", e.target.checked)}
+          />
           <TextField
             label="AdSense Client ID"
             name="adsenseClientId"
@@ -332,9 +326,9 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
           </p>
         )}
 
-        <AdminButton type="submit" disabled={pending || !state.name.trim()}>
+        <Button type="submit" disabled={pending || !state.name.trim()}>
           {pending ? "Guardando…" : "Guardar cambios"}
-        </AdminButton>
+        </Button>
       </div>
     </form>
   );

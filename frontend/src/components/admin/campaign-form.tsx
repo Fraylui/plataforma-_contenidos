@@ -12,8 +12,8 @@ import {
   updateCampaignAction,
   type ActionResult,
 } from "@/app/admin/(protected)/anunciantes/actions";
-import { AdminButton, FormError, FormField, formInputClass } from "@/components/admin/ui";
-import { Combobox } from "@/components/ui";
+import { FormError } from "@/components/admin/ui";
+import { Button, Combobox, DateTimeInput, Field, TextInput } from "@/components/ui";
 import { CampaignCreativePicker } from "@/components/admin/campaign-creative-picker";
 
 /** ISO (UTC) -> valor local para <input type="datetime-local"> — mismo helper que EventForm. */
@@ -124,16 +124,16 @@ export function CampaignForm({ mode, advertiserId, placements, categories, allIm
 
   return (
     <div className="max-w-xl space-y-4 rounded-xl border border-border/60 bg-surface p-5">
-      <FormField label="Posición" name="placementKey">
+      <Field label="Posición" name="placementKey">
         <Combobox
           options={placementOptions}
           value={placementKey}
           onSelect={setPlacementKey}
           placeholder="Elegir posición…"
         />
-      </FormField>
+      </Field>
 
-      <FormField label="Creatividad (imagen subida o por enlace externo)" name="creative">
+      <Field label="Creatividad (imagen subida o por enlace externo)" name="creative">
         {placement && (
           <p className="mb-2 text-xs text-muted">
             Diseño del anunciante a <strong className="text-foreground">{formatSize(placement.width, placement.height)} px</strong>
@@ -151,21 +151,20 @@ export function CampaignForm({ mode, advertiserId, placements, categories, allIm
                 : `La imagen mide ${formatSize(creativeSize.width, creativeSize.height)}, más chica que ${formatSize(placement.width, placement.height)}: se vería borrosa.`}
           </p>
         )}
-      </FormField>
+      </Field>
 
-      <FormField label="Link de destino (a dónde va el lector al hacer clic)" name="linkUrl">
-        <input
+      <Field label="Link de destino (a dónde va el lector al hacer clic)" name="linkUrl">
+        <TextInput
           type="text"
           value={linkUrl}
           onChange={(e) => setLinkUrl(e.target.value)}
           placeholder="https://…"
-          className={formInputClass}
         />
-      </FormField>
+      </Field>
 
       <CampaignTargetingFields value={targeting} onChange={setTargeting} categories={categories} />
 
-      <FormField label="Peso de rotación (1–10): con varias campañas en la misma posición, cuánto más seguido sale esta" name="weight">
+      <Field label="Peso de rotación (1–10): con varias campañas en la misma posición, cuánto más seguido sale esta" name="weight">
         <div className="flex items-center gap-3">
           <input
             type="range"
@@ -180,45 +179,44 @@ export function CampaignForm({ mode, advertiserId, placements, categories, allIm
           <span className="w-8 text-right text-sm font-semibold tabular-nums text-foreground">{weight}</span>
         </div>
         <p className="mt-1 text-xs text-muted">5 es lo normal; 10 sale el doble de veces que una de 5. Sola en su posición, el peso no cambia nada.</p>
-      </FormField>
+      </Field>
 
       <div className="grid grid-cols-2 gap-4">
-        <FormField label="Empieza (opcional, corre desde ya si se deja vacío)" name="startsAt">
-          <input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} className={formInputClass} />
-        </FormField>
-        <FormField label="Termina (opcional, indefinida si se deja vacío)" name="endsAt">
-          <input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} className={formInputClass} />
-        </FormField>
+        <Field label="Empieza (opcional, corre desde ya si se deja vacío)" name="startsAt">
+          <DateTimeInput value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
+        </Field>
+        <Field label="Termina (opcional, indefinida si se deja vacío)" name="endsAt">
+          <DateTimeInput value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
+        </Field>
       </div>
 
       <div className="grid grid-cols-[1fr_100px] gap-4">
-        <FormField label="Monto cobrado (opcional — solo registro, sin facturación)" name="amount">
-          <input
+        <Field label="Monto cobrado (opcional — solo registro, sin facturación)" name="amount">
+          <TextInput
             type="number"
             min="0"
             step="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="0.00"
-            className={formInputClass}
           />
-        </FormField>
-        <FormField label="Moneda" name="currency">
-          <input
+        </Field>
+        <Field label="Moneda" name="currency">
+          <TextInput
             type="text"
             value={currency}
             disabled={!amount.trim()}
             onChange={(e) => setCurrency(e.target.value)}
             maxLength={3}
-            className={`${formInputClass} uppercase`}
+            className="uppercase"
           />
-        </FormField>
+        </Field>
       </div>
 
       {error && <FormError message={error} />}
-      <AdminButton disabled={pending || !canSubmit} onClick={handleSubmit}>
+      <Button type="submit" disabled={pending || !canSubmit} onClick={handleSubmit}>
         {pending ? "Guardando…" : mode === "create" ? "Crear campaña" : "Guardar cambios"}
-      </AdminButton>
+      </Button>
     </div>
   );
 }

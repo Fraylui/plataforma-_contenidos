@@ -7,7 +7,8 @@ import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { detectTemplate } from "@/lib/admin/worker-templates";
 import { formatPublishedDate } from "@/lib/content-labels";
 import { AccessDenied } from "@/components/admin/access-denied";
-import { AdminPageHeader, EmptyState, StatusPill } from "@/components/admin/ui";
+import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
+import { Badge } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Trabajadores",
@@ -50,8 +51,8 @@ export default async function WorkersPage() {
                     {worker.lastLoginAt ? ` · último ingreso ${formatPublishedDate(worker.lastLoginAt)}` : " · aún no ingresa"}
                   </span>
                 </span>
-                {worker.status !== "ACTIVE" && <StatusPill tone="neutral" label="Desactivado" />}
-                {worker.status === "ACTIVE" && worker.mustChangePassword && <StatusPill tone="warning" label="Contraseña temporal" />}
+                {worker.status !== "ACTIVE" && <Badge tone="neutral" dot>Desactivado</Badge>}
+                {worker.status === "ACTIVE" && worker.mustChangePassword && <Badge tone="warning" dot>Contraseña temporal</Badge>}
                 <CaretRight className="h-5 w-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
               </Link>
             </li>

@@ -2,8 +2,8 @@
 
 import type { Category } from "@/lib/api/types";
 import { AD_SECTIONS, type AdSection } from "@/lib/ads/ad-context";
-import { FormField, formInputClass } from "@/components/admin/ui";
 import { cn } from "@/lib/utils";
+import { Field, TextInput } from "@/components/ui";
 
 export interface CampaignTargetingValue {
   sections: AdSection[];
@@ -75,7 +75,7 @@ export function CampaignTargetingFields({
         </p>
       </div>
 
-      <FormField label="Secciones del sitio" name="targetSections">
+      <Field label="Secciones del sitio" name="targetSections">
         <div className="flex flex-wrap gap-2">
           {AD_SECTIONS.map((section) => (
             <Chip
@@ -87,10 +87,10 @@ export function CampaignTargetingFields({
             </Chip>
           ))}
         </div>
-      </FormField>
+      </Field>
 
       {sorted.length > 0 && (
-        <FormField label="Temas (cada uno incluye sus subtemas)" name="targetCategoryIds">
+        <Field label="Temas (cada uno incluye sus subtemas)" name="targetCategoryIds">
           <div className="flex flex-wrap gap-2">
             {sorted.map((category) => (
               <Chip
@@ -102,28 +102,27 @@ export function CampaignTargetingFields({
               </Chip>
             ))}
           </div>
-        </FormField>
+        </Field>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label="País del visitante (código de 2 letras, separados por coma)" name="targetCountries">
-          <input
+        <Field label="País del visitante (código de 2 letras, separados por coma)" name="targetCountries">
+          <TextInput
             type="text"
             value={value.countries}
             onChange={(e) => onChange({ ...value, countries: e.target.value })}
             placeholder="PE, CO"
-            className={`${formInputClass} uppercase`}
+            className="uppercase"
           />
-        </FormField>
-        <FormField label="Región del visitante (separadas por coma)" name="targetRegions">
-          <input
+        </Field>
+        <Field label="Región del visitante (separadas por coma)" name="targetRegions">
+          <TextInput
             type="text"
             value={value.regions}
             onChange={(e) => onChange({ ...value, regions: e.target.value })}
             placeholder="Ayacucho, Lima"
-            className={formInputClass}
           />
-        </FormField>
+        </Field>
       </div>
       <p className="text-xs text-muted">
         La ubicación del visitante la informa Cloudflare según su conexión. Requiere activar «Add visitor location

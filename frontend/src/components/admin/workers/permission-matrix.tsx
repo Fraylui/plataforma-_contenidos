@@ -40,8 +40,8 @@ function Row({
             <label
               key={choice.label}
               className={cn(
-                "flex min-h-9 flex-1 cursor-pointer items-center justify-center rounded-full px-4 text-sm font-semibold transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent sm:flex-none",
-                checked ? "bg-surface text-foreground shadow-sm" : "text-muted hover:text-foreground",
+                "flex min-h-9 flex-1 cursor-pointer items-center justify-center rounded-full px-4 text-sm font-semibold transition-colors has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring sm:flex-none",
+                checked ? "bg-surface text-foreground shadow-card" : "text-muted hover:text-foreground",
               )}
             >
               <input
