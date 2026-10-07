@@ -15,6 +15,11 @@ spring:
       hibernate:
         jdbc:
           time_zone: UTC
+        # Colecciones perezosas (fotos, videos) en lotes de hasta 100 dueños por
+        # consulta, no una por ítem: el feed hacía 2 consultas por contenido
+        # (N+1) y el backend se saturaba en ~86 peticiones/s (simulación k6,
+        # 2026-10-07; FeedIntegrationTest.feedQueryCountDoesNotGrowWithContent).
+        default_batch_fetch_size: 100
 
   flyway:
     enabled: true

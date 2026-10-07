@@ -12,7 +12,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import jakarta.persistence.EntityManagerFactory;
 import java.util.UUID;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -58,6 +63,9 @@ class FeedIntegrationTest {
     @Autowired
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
+
     @Test
     void feedMixesArticlesPlacesAndEvents() throws Exception {
         String editorToken = createUserAndLogin("feed-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
@@ -73,6 +81,34 @@ class FeedIntegrationTest {
                 .andExpect(jsonPath("$.items[*].type", hasItem("ARTICLE")))
                 .andExpect(jsonPath("$.items[*].type", hasItem("PLACE")))
                 .andExpect(jsonPath("$.items[*].type", hasItem("EVENT")));
+    }
+
+    /**
+     * Hallado con la simulación de carga (k6, 2026-10-07): cada ítem del pool
+     * cargaba sus fotos y videos con una consulta propia (N+1) y el backend se
+     * saturaba en ~86 peticiones/s. Las colecciones se cargan por lotes: la
+     * cantidad de consultas no crece con la cantidad de contenido.
+     */
+    @Test
+    void feedQueryCountDoesNotGrowWithContent() throws Exception {
+        String editorToken = createUserAndLogin("feed-n1-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("feed-n1-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String categoryId = createCategory(editorToken, "Feed N+1");
+        for (int i = 0; i < 12; i++) {
+            publishArticle(authorToken, editorToken, categoryId, "Feed N+1: publicación " + i + " " + UUID.randomUUID());
+        }
+        for (int i = 0; i < 6; i++) {
+            publishPlace(authorToken, editorToken, categoryId, "Feed N+1: lugar " + i + " " + UUID.randomUUID());
+        }
+
+        Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        statistics.setStatisticsEnabled(true);
+        statistics.clear();
+        mockMvc.perform(get("/api/v1/feed").param("size", "30")).andExpect(status().isOk());
+        long queries = statistics.getPrepareStatementCount();
+        statistics.setStatisticsEnabled(false);
+
+        assertThat(queries).as("consultas de una página del feed").isLessThan(30);
     }
 
     @Test
