@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.places;
 
+import pe.plataformacontenidos.shared.publishing.PublishableContent;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -29,7 +30,7 @@ import pe.plataformacontenidos.shared.ContentVideo;
  */
 @Entity
 @Table(name = "places", schema = "places")
-public class Place {
+public class Place extends PublishableContent {
 
     @Id
     @GeneratedValue
@@ -46,10 +47,6 @@ public class Place {
 
     @Column(nullable = false, columnDefinition = "text")
     private String body;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private PlaceStatus status = PlaceStatus.DRAFT;
 
     @Column(name = "author_id", nullable = false)
     private UUID authorId;
@@ -86,20 +83,8 @@ public class Place {
     @Column(nullable = false)
     private String robots = "index,follow";
 
-    @Column(name = "rejection_reason")
-    private String rejectionReason;
-
-    @Column(name = "published_at")
-    private Instant publishedAt;
-
-    @Column(name = "scheduled_at")
-    private Instant scheduledAt;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
-
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt = Instant.now();
 
     protected Place() {
         // JPA
@@ -132,10 +117,6 @@ public class Place {
 
     public String getBody() {
         return body;
-    }
-
-    public PlaceStatus getStatus() {
-        return status;
     }
 
     public UUID getAuthorId() {
@@ -187,29 +168,12 @@ public class Place {
         return robots;
     }
 
-    public String getRejectionReason() {
-        return rejectionReason;
-    }
-
-    public Instant getPublishedAt() {
-        return publishedAt;
-    }
-
-    public Instant getScheduledAt() {
-        return scheduledAt;
-    }
-
     public Instant getCreatedAt() {
         return createdAt;
     }
 
     public boolean isOwnedBy(UUID userId) {
         return authorId.equals(userId);
-    }
-
-    public boolean isEditable() {
-        return status == PlaceStatus.DRAFT || status == PlaceStatus.IN_REVIEW
-                || status == PlaceStatus.APPROVED || status == PlaceStatus.REJECTED;
     }
 
     public void updateContent(String name, String excerpt, String body, UUID categoryId,
@@ -228,48 +192,7 @@ public class Place {
         this.ogImageUrl = ogImageUrl;
         this.videos = new ArrayList<>(videos);
         this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
-        this.updatedAt = Instant.now();
+        touch();
     }
 
-    public void submitForReview() {
-        this.status = PlaceStatus.IN_REVIEW;
-        this.rejectionReason = null;
-        this.updatedAt = Instant.now();
-    }
-
-    public void approve() {
-        this.status = PlaceStatus.APPROVED;
-        this.updatedAt = Instant.now();
-    }
-
-    public void reject(String reason) {
-        this.status = PlaceStatus.REJECTED;
-        this.rejectionReason = reason;
-        this.updatedAt = Instant.now();
-    }
-
-    public void publishNow() {
-        this.status = PlaceStatus.PUBLISHED;
-        this.publishedAt = Instant.now();
-        this.scheduledAt = null;
-        this.updatedAt = Instant.now();
-    }
-
-    public void schedule(Instant when) {
-        this.status = PlaceStatus.SCHEDULED;
-        this.scheduledAt = when;
-        this.updatedAt = Instant.now();
-    }
-
-    /** Usado por el job de publicación programada cuando scheduledAt ya pasó. */
-    void publishFromSchedule() {
-        this.status = PlaceStatus.PUBLISHED;
-        this.publishedAt = Instant.now();
-        this.updatedAt = Instant.now();
-    }
-
-    public void archive() {
-        this.status = PlaceStatus.ARCHIVED;
-        this.updatedAt = Instant.now();
-    }
 }

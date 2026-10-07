@@ -92,9 +92,6 @@ class SearchIntegrationTest {
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
                         .header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
-                .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isOk());
@@ -119,9 +116,6 @@ class SearchIntegrationTest {
         String placeId = createPlace(authorToken, categoryId, "Mirador Wamanripa");
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
                         .header("Authorization", "Bearer " + authorToken))
-                .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))
@@ -150,9 +144,6 @@ class SearchIntegrationTest {
         mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/submit")
                         .header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
-                .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isOk());
@@ -173,9 +164,6 @@ class SearchIntegrationTest {
         String galleryId = createGallery(authorToken, categoryId, "Carnaval de Ayacucho en fotos", imageId);
         mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/submit")
                         .header("Authorization", "Bearer " + authorToken))
-                .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))
@@ -253,9 +241,6 @@ class SearchIntegrationTest {
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
                         .header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
-                .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isOk());
@@ -273,9 +258,6 @@ class SearchIntegrationTest {
 
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/submit")
                         .header("Authorization", "Bearer " + authorToken))
-                .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))

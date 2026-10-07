@@ -68,15 +68,10 @@ class GalleryWorkflowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_REVIEW"));
 
-        // El autor no puede aprobar su propia galería
-        mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/approve")
+        // El autor no puede publicar su propia galería
+        mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/publish")
                         .header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isForbidden());
-
-        mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("APPROVED"));
 
         mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))

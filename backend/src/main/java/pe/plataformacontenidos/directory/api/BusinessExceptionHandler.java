@@ -9,8 +9,6 @@ import pe.plataformacontenidos.directory.BusinessAccessDeniedException;
 import pe.plataformacontenidos.directory.BusinessNotFoundException;
 import pe.plataformacontenidos.directory.BusinessPlaceNotFoundException;
 import pe.plataformacontenidos.directory.InvalidBusinessImageException;
-import pe.plataformacontenidos.directory.InvalidBusinessScheduleException;
-import pe.plataformacontenidos.directory.InvalidBusinessTransitionException;
 import pe.plataformacontenidos.directory.InvalidBusinessYouTubeUrlException;
 
 @RestControllerAdvice
@@ -31,15 +29,7 @@ public class BusinessExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiError(Instant.now(), 403, ex.getMessage()));
     }
 
-    @ExceptionHandler(InvalidBusinessTransitionException.class)
-    public ResponseEntity<ApiError> handleInvalidTransition(InvalidBusinessTransitionException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError(Instant.now(), 409, ex.getMessage()));
-    }
 
-    @ExceptionHandler(InvalidBusinessScheduleException.class)
-    public ResponseEntity<ApiError> handleInvalidSchedule(InvalidBusinessScheduleException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
-    }
 
     @ExceptionHandler(InvalidBusinessYouTubeUrlException.class)
     public ResponseEntity<ApiError> handleInvalidYouTubeUrl(InvalidBusinessYouTubeUrlException ex) {

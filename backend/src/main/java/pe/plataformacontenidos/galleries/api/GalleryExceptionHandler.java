@@ -9,8 +9,6 @@ import pe.plataformacontenidos.galleries.GalleryAccessDeniedException;
 import pe.plataformacontenidos.galleries.GalleryNotFoundException;
 import pe.plataformacontenidos.galleries.InvalidGalleryImageCountException;
 import pe.plataformacontenidos.galleries.InvalidGalleryImageException;
-import pe.plataformacontenidos.galleries.InvalidGalleryScheduleException;
-import pe.plataformacontenidos.galleries.InvalidGalleryTransitionException;
 
 @RestControllerAdvice
 public class GalleryExceptionHandler {
@@ -25,15 +23,7 @@ public class GalleryExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiError(Instant.now(), 403, ex.getMessage()));
     }
 
-    @ExceptionHandler(InvalidGalleryTransitionException.class)
-    public ResponseEntity<ApiError> handleInvalidTransition(InvalidGalleryTransitionException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError(Instant.now(), 409, ex.getMessage()));
-    }
 
-    @ExceptionHandler(InvalidGalleryScheduleException.class)
-    public ResponseEntity<ApiError> handleInvalidSchedule(InvalidGalleryScheduleException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
-    }
 
     @ExceptionHandler(InvalidGalleryImageCountException.class)
     public ResponseEntity<ApiError> handleInvalidImageCount(InvalidGalleryImageCountException ex) {

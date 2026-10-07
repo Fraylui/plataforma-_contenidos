@@ -22,6 +22,8 @@ import pe.plataformacontenidos.shared.ContentImageInput;
 import pe.plataformacontenidos.shared.ContentVideo;
 import pe.plataformacontenidos.shared.ContentVideoInput;
 import pe.plataformacontenidos.shared.HtmlSanitizer;
+import pe.plataformacontenidos.shared.publishing.InvalidPublicationTransitionException;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
@@ -86,81 +88,43 @@ public class ArticleService {
         return saved;
     }
 
+    /** Quien solo crea lo manda a quien publica (Pendiente de aprobación). */
     public Article submit(UUID articleId, UUID actingUserId) {
         Article article = getOrThrow(articleId);
         if (!article.isOwnedBy(actingUserId)) {
             throw new ArticleAccessDeniedException();
         }
-        if (article.getStatus() != ArticleStatus.DRAFT && article.getStatus() != ArticleStatus.REJECTED) {
-            throw new InvalidArticleTransitionException(article.getStatus(), "enviar a revisión");
-        }
-        article.submitForReview();
-        Article saved = articleRepository.save(article);
-        audit("ARTICLE_SUBMITTED", saved, actingUserId);
-        return saved;
-    }
-
-    public Article approve(UUID articleId, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
-        Article article = getOrThrow(articleId);
-        if (article.getStatus() != ArticleStatus.IN_REVIEW) {
-            throw new InvalidArticleTransitionException(article.getStatus(), "aprobar");
-        }
-        article.approve();
-        Article saved = articleRepository.save(article);
-        audit("ARTICLE_APPROVED", saved, actingUserId);
-        return saved;
-    }
-
-    public Article reject(UUID articleId, String reason, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
-        Article article = getOrThrow(articleId);
-        if (article.getStatus() != ArticleStatus.IN_REVIEW) {
-            throw new InvalidArticleTransitionException(article.getStatus(), "rechazar");
-        }
-        article.reject(reason);
-        Article saved = articleRepository.save(article);
-        audit("ARTICLE_REJECTED", saved, actingUserId);
-        return saved;
+        article.submitForApproval();
+        return saveAndAudit(article, "ARTICLE_SUBMITTED", actingUserId);
     }
 
     public Article publish(UUID articleId, UUID actingUserId, boolean canPublish) {
         requirePublish(canPublish);
         Article article = getOrThrow(articleId);
-        if (article.getStatus() != ArticleStatus.APPROVED) {
-            throw new InvalidArticleTransitionException(article.getStatus(), "publicar");
-        }
-        article.publishNow();
-        Article saved = articleRepository.save(article);
-        audit("ARTICLE_PUBLISHED", saved, actingUserId);
-        return saved;
+        article.publishNow(Instant.now());
+        return saveAndAudit(article, "ARTICLE_PUBLISHED", actingUserId);
     }
 
     public Article schedule(UUID articleId, Instant when, UUID actingUserId, boolean canPublish) {
         requirePublish(canPublish);
-        if (when.isBefore(Instant.now())) {
-            throw new InvalidScheduleException("La fecha de publicación programada debe ser futura");
-        }
         Article article = getOrThrow(articleId);
-        if (article.getStatus() != ArticleStatus.APPROVED) {
-            throw new InvalidArticleTransitionException(article.getStatus(), "programar");
-        }
-        article.schedule(when);
-        Article saved = articleRepository.save(article);
-        audit("ARTICLE_SCHEDULED", saved, actingUserId);
-        return saved;
+        article.schedule(when, Instant.now());
+        return saveAndAudit(article, "ARTICLE_SCHEDULED", actingUserId);
+    }
+
+    /** Devuelve a borrador lo pendiente o programado, con una nota opcional para quien lo creó. */
+    public Article returnToDraft(UUID articleId, String note, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
+        Article article = getOrThrow(articleId);
+        article.returnToDraft(note);
+        return saveAndAudit(article, "ARTICLE_RETURNED_TO_DRAFT", actingUserId);
     }
 
     public Article archive(UUID articleId, UUID actingUserId, boolean canPublish) {
         requirePublish(canPublish);
         Article article = getOrThrow(articleId);
-        if (article.getStatus() != ArticleStatus.PUBLISHED) {
-            throw new InvalidArticleTransitionException(article.getStatus(), "archivar");
-        }
         article.archive();
-        Article saved = articleRepository.save(article);
-        audit("ARTICLE_ARCHIVED", saved, actingUserId);
-        return saved;
+        return saveAndAudit(article, "ARTICLE_ARCHIVED", actingUserId);
     }
 
     public Article getForAdmin(UUID articleId, UUID actingUserId, boolean canPublish) {
@@ -179,15 +143,15 @@ public class ArticleService {
     }
 
     public Article getPublishedBySlug(String slug) {
-        return articleRepository.findBySlugAndStatus(slug, ArticleStatus.PUBLISHED)
+        return articleRepository.findBySlugAndStatus(slug, PublicationStatus.PUBLISHED)
                 .orElseThrow(() -> new ArticleNotFoundException(slug));
     }
 
     public Page<Article> listPublished(UUID categoryId, Pageable pageable) {
         if (categoryId != null) {
-            return articleRepository.findByStatusAndCategoryId(ArticleStatus.PUBLISHED, categoryId, pageable);
+            return articleRepository.findByStatusAndCategoryId(PublicationStatus.PUBLISHED, categoryId, pageable);
         }
-        return articleRepository.findByStatus(ArticleStatus.PUBLISHED, pageable);
+        return articleRepository.findByStatus(PublicationStatus.PUBLISHED, pageable);
     }
 
     /** CONTEXTO.md sección 16. Query en blanco: página vacía, no error — evita un 400 por un input trivial. */
@@ -199,16 +163,16 @@ public class ArticleService {
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
-    public Map<ArticleStatus, Long> countByStatus() {
-        Map<ArticleStatus, Long> counts = new EnumMap<>(ArticleStatus.class);
-        for (ArticleStatus status : ArticleStatus.values()) {
+    public Map<PublicationStatus, Long> countByStatus() {
+        Map<PublicationStatus, Long> counts = new EnumMap<>(PublicationStatus.class);
+        for (PublicationStatus status : PublicationStatus.values()) {
             counts.put(status, articleRepository.countByStatus(status));
         }
         return counts;
     }
 
     public long countPublishedSince(Instant threshold) {
-        return articleRepository.countByStatusAndPublishedAtAfter(ArticleStatus.PUBLISHED, threshold);
+        return articleRepository.countByStatusAndPublishedAtAfter(PublicationStatus.PUBLISHED, threshold);
     }
 
     /** Ver StatsService.trend — un conteo por día (UTC), solo los días con al menos una publicación. */
@@ -260,17 +224,12 @@ public class ArticleService {
     }
 
     private void requireCanEdit(Article article, UUID actingUserId, boolean canPublish) {
-        if (canPublish) {
-            if (!article.isEditable()) {
-                throw new InvalidArticleTransitionException(article.getStatus(), "editar");
-            }
-            return;
-        }
-        if (!article.isOwnedBy(actingUserId)) {
+        if (!canPublish && !article.isOwnedBy(actingUserId)) {
             throw new ArticleAccessDeniedException();
         }
-        if (article.getStatus() != ArticleStatus.DRAFT && article.getStatus() != ArticleStatus.REJECTED) {
-            throw new InvalidArticleTransitionException(article.getStatus(), "editar");
+        boolean editable = canPublish ? article.isEditableByPublisher() : article.isEditableByCreator();
+        if (!editable) {
+            throw new InvalidPublicationTransitionException(article.getStatus(), "editar");
         }
     }
 
@@ -290,12 +249,18 @@ public class ArticleService {
         return candidate;
     }
 
+    private Article saveAndAudit(Article article, String action, UUID actingUserId) {
+        Article saved = articleRepository.save(article);
+        audit(action, saved, actingUserId);
+        return saved;
+    }
+
     private void audit(String action, Article article, UUID actingUserId) {
         auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "article", article.getId().toString(),
                 null);
     }
 
-    /** Aprobar, rechazar, publicar, programar y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
+    /** Publicar, programar, devolver a borrador y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
     private static void requirePublish(boolean canPublish) {
         if (!canPublish) {
             throw new PublishPermissionRequiredException();

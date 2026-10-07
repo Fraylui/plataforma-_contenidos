@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import pe.plataformacontenidos.content.Article;
-import pe.plataformacontenidos.content.ArticleStatus;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import pe.plataformacontenidos.content.ArticleType;
 import pe.plataformacontenidos.shared.ContentImageResponse;
 import pe.plataformacontenidos.shared.ContentVideoResponse;
@@ -16,7 +16,7 @@ public record ArticleResponse(
         String excerpt,
         String body,
         ArticleType articleType,
-        ArticleStatus status,
+        PublicationStatus status,
         UUID authorId,
         UUID categoryId,
         String seoTitle,
@@ -26,7 +26,7 @@ public record ArticleResponse(
         List<ContentImageResponse> images,
         List<ContentVideoResponse> videos,
         String robots,
-        String rejectionReason,
+        String reviewNote,
         Instant publishedAt,
         Instant scheduledAt,
         Instant createdAt,
@@ -40,7 +40,7 @@ public record ArticleResponse(
                 article.getMetaDescription(), article.getCanonicalUrl(), article.getOgImageUrl(),
                 article.getImages().stream().map(ContentImageResponse::from).toList(),
                 article.getVideos().stream().map(ContentVideoResponse::from).toList(), article.getRobots(),
-                article.getRejectionReason(), article.getPublishedAt(), article.getScheduledAt(),
+                article.getReviewNote(), article.getPublishedAt(), article.getScheduledAt(),
                 article.getCreatedAt(), article.getUpdatedAt(), likeCount);
     }
 

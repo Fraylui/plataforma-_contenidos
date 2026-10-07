@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.galleries;
 
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -12,19 +13,19 @@ import org.springframework.data.repository.query.Param;
 
 public interface GalleryRepository extends JpaRepository<Gallery, UUID> {
 
-    Optional<Gallery> findBySlugAndStatus(String slug, GalleryStatus status);
+    Optional<Gallery> findBySlugAndStatus(String slug, PublicationStatus status);
 
     boolean existsBySlug(String slug);
 
-    Page<Gallery> findByStatus(GalleryStatus status, Pageable pageable);
+    Page<Gallery> findByStatus(PublicationStatus status, Pageable pageable);
 
-    Page<Gallery> findByStatusAndCategoryId(GalleryStatus status, UUID categoryId, Pageable pageable);
+    Page<Gallery> findByStatusAndCategoryId(PublicationStatus status, UUID categoryId, Pageable pageable);
 
     List<Gallery> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 
-    List<Gallery> findByStatusAndScheduledAtBefore(GalleryStatus status, Instant threshold);
+    List<Gallery> findByStatusAndScheduledAtBefore(PublicationStatus status, Instant threshold);
 
-    long countByStatus(GalleryStatus status);
+    long countByStatus(PublicationStatus status);
 
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre galerías

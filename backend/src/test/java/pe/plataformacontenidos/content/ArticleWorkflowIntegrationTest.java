@@ -68,16 +68,10 @@ class ArticleWorkflowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_REVIEW"));
 
-        // El autor no puede aprobar su propio artículo
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/approve")
+        // El autor no puede publicar su propio artículo
+        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
                         .header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isForbidden());
-
-        // El editor aprueba y publica
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("APPROVED"));
 
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))
@@ -104,30 +98,62 @@ class ArticleWorkflowIntegrationTest {
     }
 
     @Test
-    void rejectionFlowAllowsAuthorToReviseAndResubmit() throws Exception {
+    void returnToDraftWithNoteLetsCreatorReviseAndResubmit() throws Exception {
         String editorToken = createUserAndLogin("wf-editor-2@plataforma-contenidos.test", LegacyRole.EDITOR);
         String authorToken = createUserAndLogin("wf-author-2@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Historia");
 
-        String articleId = createDraftArticle(authorToken, categoryId, "Artículo que será rechazado");
+        String articleId = createDraftArticle(authorToken, categoryId, "Publicación que vuelve a borrador");
 
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/submit")
                         .header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/reject")
+        // Quien solo crea no puede devolver (es una acción de quien publica)
+        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/return-to-draft")
+                        .header("Authorization", "Bearer " + authorToken))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/return-to-draft")
                         .header("Authorization", "Bearer " + editorToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"reason\":\"Faltan fuentes\"}"))
+                        .content("{\"note\":\"Agrega una foto de portada\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("REJECTED"))
-                .andExpect(jsonPath("$.rejectionReason").value("Faltan fuentes"));
+                .andExpect(jsonPath("$.status").value("DRAFT"))
+                .andExpect(jsonPath("$.reviewNote").value("Agrega una foto de portada"));
 
-        // El autor puede volver a enviarlo tras revisar
+        // De nuevo en borrador: quien lo creó puede editarlo y volver a enviarlo (la nota se borra)
+        mockMvc.perform(put("/api/v1/admin/articles/" + articleId)
+                        .header("Authorization", "Bearer " + authorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(articleJson(categoryId, "Publicación que vuelve a borrador, corregida")))
+                .andExpect(status().isOk());
+
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/submit")
                         .header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("IN_REVIEW"));
+                .andExpect(jsonPath("$.status").value("IN_REVIEW"))
+                .andExpect(jsonPath("$.reviewNote").doesNotExist());
+    }
+
+    @Test
+    void publisherCanPublishStraightFromDraftButNotArchivedContent() throws Exception {
+        String editorToken = createUserAndLogin("wf-editor-6@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String categoryId = createCategory(editorToken, "Directo");
+
+        String articleId = createDraftArticle(editorToken, categoryId, "Publicada directo desde borrador");
+        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PUBLISHED"));
+
+        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/archive")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
+                        .header("Authorization", "Bearer " + editorToken))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("No se puede publicar: está Archivado."));
     }
 
     @Test
@@ -156,9 +182,6 @@ class ArticleWorkflowIntegrationTest {
 
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/submit")
                         .header("Authorization", "Bearer " + authorToken))
-                .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isOk());
 
         Instant scheduledAt = Instant.now().plusSeconds(2);

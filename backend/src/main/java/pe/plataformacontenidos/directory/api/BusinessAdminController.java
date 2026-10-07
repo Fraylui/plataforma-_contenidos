@@ -20,9 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.directory.BusinessService;
 import pe.plataformacontenidos.directory.api.dto.BusinessRequest;
 import pe.plataformacontenidos.directory.api.dto.BusinessResponse;
-import pe.plataformacontenidos.directory.api.dto.RejectBusinessRequest;
-import pe.plataformacontenidos.directory.api.dto.ScheduleBusinessRequest;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.shared.publishing.api.ReturnToDraftRequest;
+import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;
 
 /**
  * CRUD de contenido + transiciones de workflow para el Directorio — mismo
@@ -72,16 +72,12 @@ public class BusinessAdminController {
         return BusinessResponse.from(businessService.submit(id, principal.userId()));
     }
 
-    @PostMapping("/{id}/approve")
-    public BusinessResponse approve(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return BusinessResponse.from(businessService.approve(id, principal.userId(), canPublish(principal)));
-    }
-
-    @PostMapping("/{id}/reject")
-    public BusinessResponse reject(@PathVariable UUID id, @Valid @RequestBody RejectBusinessRequest request,
+    @PostMapping("/{id}/return-to-draft")
+    public BusinessResponse returnToDraft(@PathVariable UUID id,
+            @Valid @RequestBody(required = false) ReturnToDraftRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
-        return BusinessResponse.from(
-                businessService.reject(id, request.reason(), principal.userId(), canPublish(principal)));
+        String note = request == null ? null : request.note();
+        return BusinessResponse.from(businessService.returnToDraft(id, note, principal.userId(), canPublish(principal)));
     }
 
     @PostMapping("/{id}/publish")
@@ -90,7 +86,7 @@ public class BusinessAdminController {
     }
 
     @PostMapping("/{id}/schedule")
-    public BusinessResponse schedule(@PathVariable UUID id, @Valid @RequestBody ScheduleBusinessRequest request,
+    public BusinessResponse schedule(@PathVariable UUID id, @Valid @RequestBody ScheduleRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return BusinessResponse.from(
                 businessService.schedule(id, request.scheduledAt(), principal.userId(), canPublish(principal)));

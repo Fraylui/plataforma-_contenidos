@@ -20,9 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.galleries.api.dto.GalleryRequest;
 import pe.plataformacontenidos.galleries.api.dto.GalleryResponse;
-import pe.plataformacontenidos.galleries.api.dto.RejectGalleryRequest;
-import pe.plataformacontenidos.galleries.api.dto.ScheduleGalleryRequest;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.shared.publishing.api.ReturnToDraftRequest;
+import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;
 
 /**
  * CRUD de contenido + transiciones de workflow para Galerías — mismo patrón que
@@ -71,16 +71,12 @@ public class GalleryAdminController {
         return GalleryResponse.from(galleryService.submit(id, principal.userId()));
     }
 
-    @PostMapping("/{id}/approve")
-    public GalleryResponse approve(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return GalleryResponse.from(galleryService.approve(id, principal.userId(), canPublish(principal)));
-    }
-
-    @PostMapping("/{id}/reject")
-    public GalleryResponse reject(@PathVariable UUID id, @Valid @RequestBody RejectGalleryRequest request,
+    @PostMapping("/{id}/return-to-draft")
+    public GalleryResponse returnToDraft(@PathVariable UUID id,
+            @Valid @RequestBody(required = false) ReturnToDraftRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
-        return GalleryResponse.from(
-                galleryService.reject(id, request.reason(), principal.userId(), canPublish(principal)));
+        String note = request == null ? null : request.note();
+        return GalleryResponse.from(galleryService.returnToDraft(id, note, principal.userId(), canPublish(principal)));
     }
 
     @PostMapping("/{id}/publish")
@@ -89,7 +85,7 @@ public class GalleryAdminController {
     }
 
     @PostMapping("/{id}/schedule")
-    public GalleryResponse schedule(@PathVariable UUID id, @Valid @RequestBody ScheduleGalleryRequest request,
+    public GalleryResponse schedule(@PathVariable UUID id, @Valid @RequestBody ScheduleRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return GalleryResponse.from(
                 galleryService.schedule(id, request.scheduledAt(), principal.userId(), canPublish(principal)));

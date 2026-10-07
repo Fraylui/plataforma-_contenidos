@@ -45,16 +45,16 @@ class ContentPublishPermissionIntegrationTest {
 
     Stream<Consumer<Boolean>> publishActions() {
         return List.<Consumer<Boolean>>of(
-                can -> articles.approve(ANY, ME, can), can -> articles.reject(ANY, "x", ME, can),
+                can -> articles.returnToDraft(ANY, "x", ME, can),
                 can -> articles.publish(ANY, ME, can), can -> articles.schedule(ANY, LATER, ME, can),
                 can -> articles.archive(ANY, ME, can),
-                can -> places.approve(ANY, ME, can), can -> places.publish(ANY, ME, can),
+                can -> places.returnToDraft(ANY, "x", ME, can), can -> places.publish(ANY, ME, can),
                 can -> places.schedule(ANY, LATER, ME, can), can -> places.archive(ANY, ME, can),
-                can -> events.approve(ANY, ME, can), can -> events.publish(ANY, ME, can),
+                can -> events.returnToDraft(ANY, "x", ME, can), can -> events.publish(ANY, ME, can),
                 can -> events.schedule(ANY, LATER, ME, can), can -> events.archive(ANY, ME, can),
-                can -> galleries.approve(ANY, ME, can), can -> galleries.publish(ANY, ME, can),
+                can -> galleries.returnToDraft(ANY, "x", ME, can), can -> galleries.publish(ANY, ME, can),
                 can -> galleries.schedule(ANY, LATER, ME, can), can -> galleries.archive(ANY, ME, can),
-                can -> businesses.approve(ANY, ME, can), can -> businesses.publish(ANY, ME, can),
+                can -> businesses.returnToDraft(ANY, "x", ME, can), can -> businesses.publish(ANY, ME, can),
                 can -> businesses.schedule(ANY, LATER, ME, can), can -> businesses.archive(ANY, ME, can)).stream();
     }
 

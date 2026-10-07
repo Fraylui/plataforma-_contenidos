@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.directory;
 
+import pe.plataformacontenidos.shared.publishing.PublishableContent;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -32,7 +33,7 @@ import pe.plataformacontenidos.shared.ContentVideo;
  */
 @Entity
 @Table(name = "businesses", schema = "directory")
-public class Business {
+public class Business extends PublishableContent {
 
     @Id
     @GeneratedValue
@@ -49,10 +50,6 @@ public class Business {
 
     @Column(nullable = false, columnDefinition = "text")
     private String body;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private BusinessStatus status = BusinessStatus.DRAFT;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "business_type", nullable = false)
@@ -101,20 +98,8 @@ public class Business {
     @Column(nullable = false)
     private String robots = "index,follow";
 
-    @Column(name = "rejection_reason")
-    private String rejectionReason;
-
-    @Column(name = "published_at")
-    private Instant publishedAt;
-
-    @Column(name = "scheduled_at")
-    private Instant scheduledAt;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
-
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt = Instant.now();
 
     protected Business() {
         // JPA
@@ -149,10 +134,6 @@ public class Business {
 
     public String getBody() {
         return body;
-    }
-
-    public BusinessStatus getStatus() {
-        return status;
     }
 
     public BusinessType getBusinessType() {
@@ -228,29 +209,12 @@ public class Business {
         return robots;
     }
 
-    public String getRejectionReason() {
-        return rejectionReason;
-    }
-
-    public Instant getPublishedAt() {
-        return publishedAt;
-    }
-
-    public Instant getScheduledAt() {
-        return scheduledAt;
-    }
-
     public Instant getCreatedAt() {
         return createdAt;
     }
 
     public boolean isOwnedBy(UUID userId) {
         return authorId.equals(userId);
-    }
-
-    public boolean isEditable() {
-        return status == BusinessStatus.DRAFT || status == BusinessStatus.IN_REVIEW
-                || status == BusinessStatus.APPROVED || status == BusinessStatus.REJECTED;
     }
 
     public void updateContent(String name, String excerpt, String body, UUID categoryId,
@@ -276,48 +240,7 @@ public class Business {
         this.ogImageUrl = ogImageUrl;
         this.videos = new ArrayList<>(videos);
         this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
-        this.updatedAt = Instant.now();
+        touch();
     }
 
-    public void submitForReview() {
-        this.status = BusinessStatus.IN_REVIEW;
-        this.rejectionReason = null;
-        this.updatedAt = Instant.now();
-    }
-
-    public void approve() {
-        this.status = BusinessStatus.APPROVED;
-        this.updatedAt = Instant.now();
-    }
-
-    public void reject(String reason) {
-        this.status = BusinessStatus.REJECTED;
-        this.rejectionReason = reason;
-        this.updatedAt = Instant.now();
-    }
-
-    public void publishNow() {
-        this.status = BusinessStatus.PUBLISHED;
-        this.publishedAt = Instant.now();
-        this.scheduledAt = null;
-        this.updatedAt = Instant.now();
-    }
-
-    public void schedule(Instant when) {
-        this.status = BusinessStatus.SCHEDULED;
-        this.scheduledAt = when;
-        this.updatedAt = Instant.now();
-    }
-
-    /** Usado por el job de publicación programada cuando scheduledAt ya pasó. */
-    void publishFromSchedule() {
-        this.status = BusinessStatus.PUBLISHED;
-        this.publishedAt = Instant.now();
-        this.updatedAt = Instant.now();
-    }
-
-    public void archive() {
-        this.status = BusinessStatus.ARCHIVED;
-        this.updatedAt = Instant.now();
-    }
 }

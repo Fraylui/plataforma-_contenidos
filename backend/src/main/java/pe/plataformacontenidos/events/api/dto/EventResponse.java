@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import pe.plataformacontenidos.events.Event;
-import pe.plataformacontenidos.events.EventStatus;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import pe.plataformacontenidos.shared.ContentImageResponse;
 import pe.plataformacontenidos.shared.ContentVideoResponse;
 
@@ -14,7 +14,7 @@ public record EventResponse(
         String title,
         String excerpt,
         String body,
-        EventStatus status,
+        PublicationStatus status,
         UUID authorId,
         UUID categoryId,
         UUID placeId,
@@ -28,7 +28,7 @@ public record EventResponse(
         String ogImageUrl,
         List<ContentVideoResponse> videos,
         String robots,
-        String rejectionReason,
+        String reviewNote,
         Instant publishedAt,
         Instant scheduledAt,
         Instant createdAt,
@@ -41,7 +41,7 @@ public record EventResponse(
                 event.getEndsAt(), event.getImages().stream().map(ContentImageResponse::from).toList(),
                 event.getSeoTitle(), event.getMetaDescription(), event.getCanonicalUrl(), event.getOgImageUrl(),
                 event.getVideos().stream().map(ContentVideoResponse::from).toList(), event.getRobots(),
-                event.getRejectionReason(), event.getPublishedAt(), event.getScheduledAt(), event.getCreatedAt(),
+                event.getReviewNote(), event.getPublishedAt(), event.getScheduledAt(), event.getCreatedAt(),
                 likeCount);
     }
 

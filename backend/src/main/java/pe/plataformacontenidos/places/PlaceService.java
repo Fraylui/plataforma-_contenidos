@@ -23,6 +23,8 @@ import pe.plataformacontenidos.shared.HtmlSanitizer;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
+import pe.plataformacontenidos.shared.publishing.InvalidPublicationTransitionException;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
 /**
  * Orquesta el ciclo de publicación de Lugares (CONTEXTO.md sección 12), mismo
@@ -84,81 +86,43 @@ public class PlaceService {
         return saved;
     }
 
+    /** Quien solo crea lo manda a quien publica (Pendiente de aprobación). */
     public Place submit(UUID placeId, UUID actingUserId) {
         Place place = getOrThrow(placeId);
         if (!place.isOwnedBy(actingUserId)) {
             throw new PlaceAccessDeniedException();
         }
-        if (place.getStatus() != PlaceStatus.DRAFT && place.getStatus() != PlaceStatus.REJECTED) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "enviar a revisión");
-        }
-        place.submitForReview();
-        Place saved = placeRepository.save(place);
-        audit("PLACE_SUBMITTED", saved, actingUserId);
-        return saved;
-    }
-
-    public Place approve(UUID placeId, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
-        Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.IN_REVIEW) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "aprobar");
-        }
-        place.approve();
-        Place saved = placeRepository.save(place);
-        audit("PLACE_APPROVED", saved, actingUserId);
-        return saved;
-    }
-
-    public Place reject(UUID placeId, String reason, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
-        Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.IN_REVIEW) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "rechazar");
-        }
-        place.reject(reason);
-        Place saved = placeRepository.save(place);
-        audit("PLACE_REJECTED", saved, actingUserId);
-        return saved;
+        place.submitForApproval();
+        return saveAndAudit(place, "PLACE_SUBMITTED", actingUserId);
     }
 
     public Place publish(UUID placeId, UUID actingUserId, boolean canPublish) {
         requirePublish(canPublish);
         Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.APPROVED) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "publicar");
-        }
-        place.publishNow();
-        Place saved = placeRepository.save(place);
-        audit("PLACE_PUBLISHED", saved, actingUserId);
-        return saved;
+        place.publishNow(Instant.now());
+        return saveAndAudit(place, "PLACE_PUBLISHED", actingUserId);
     }
 
     public Place schedule(UUID placeId, Instant when, UUID actingUserId, boolean canPublish) {
         requirePublish(canPublish);
-        if (when.isBefore(Instant.now())) {
-            throw new InvalidScheduleException("La fecha de publicación programada debe ser futura");
-        }
         Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.APPROVED) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "programar");
-        }
-        place.schedule(when);
-        Place saved = placeRepository.save(place);
-        audit("PLACE_SCHEDULED", saved, actingUserId);
-        return saved;
+        place.schedule(when, Instant.now());
+        return saveAndAudit(place, "PLACE_SCHEDULED", actingUserId);
+    }
+
+    /** Devuelve a borrador lo pendiente o programado, con una nota opcional para quien lo creó. */
+    public Place returnToDraft(UUID placeId, String note, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
+        Place place = getOrThrow(placeId);
+        place.returnToDraft(note);
+        return saveAndAudit(place, "PLACE_RETURNED_TO_DRAFT", actingUserId);
     }
 
     public Place archive(UUID placeId, UUID actingUserId, boolean canPublish) {
         requirePublish(canPublish);
         Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.PUBLISHED) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "archivar");
-        }
         place.archive();
-        Place saved = placeRepository.save(place);
-        audit("PLACE_ARCHIVED", saved, actingUserId);
-        return saved;
+        return saveAndAudit(place, "PLACE_ARCHIVED", actingUserId);
     }
 
     public Place getForAdmin(UUID placeId, UUID actingUserId, boolean canPublish) {
@@ -182,14 +146,14 @@ public class PlaceService {
     }
 
     public Place getPublishedBySlug(String slug) {
-        return placeRepository.findBySlugAndStatus(slug, PlaceStatus.PUBLISHED)
+        return placeRepository.findBySlugAndStatus(slug, PublicationStatus.PUBLISHED)
                 .orElseThrow(() -> new PlaceNotFoundException(slug));
     }
 
     /** Usado por Events para resolver el nombre/slug de un lugar vinculado (placeId) sin exponer su body completo. */
     public Place getPublishedById(UUID placeId) {
         Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.PUBLISHED) {
+        if (place.getStatus() != PublicationStatus.PUBLISHED) {
             throw new PlaceNotFoundException(placeId);
         }
         return place;
@@ -197,9 +161,9 @@ public class PlaceService {
 
     public Page<Place> listPublished(UUID categoryId, Pageable pageable) {
         if (categoryId != null) {
-            return placeRepository.findByStatusAndCategoryId(PlaceStatus.PUBLISHED, categoryId, pageable);
+            return placeRepository.findByStatusAndCategoryId(PublicationStatus.PUBLISHED, categoryId, pageable);
         }
-        return placeRepository.findByStatus(PlaceStatus.PUBLISHED, pageable);
+        return placeRepository.findByStatus(PublicationStatus.PUBLISHED, pageable);
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que ArticleService.search (query en blanco: página vacía, no error). */
@@ -211,9 +175,9 @@ public class PlaceService {
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
-    public Map<PlaceStatus, Long> countByStatus() {
-        Map<PlaceStatus, Long> counts = new EnumMap<>(PlaceStatus.class);
-        for (PlaceStatus status : PlaceStatus.values()) {
+    public Map<PublicationStatus, Long> countByStatus() {
+        Map<PublicationStatus, Long> counts = new EnumMap<>(PublicationStatus.class);
+        for (PublicationStatus status : PublicationStatus.values()) {
             counts.put(status, placeRepository.countByStatus(status));
         }
         return counts;
@@ -256,17 +220,12 @@ public class PlaceService {
     }
 
     private void requireCanEdit(Place place, UUID actingUserId, boolean canPublish) {
-        if (canPublish) {
-            if (!place.isEditable()) {
-                throw new InvalidPlaceTransitionException(place.getStatus(), "editar");
-            }
-            return;
-        }
-        if (!place.isOwnedBy(actingUserId)) {
+        if (!canPublish && !place.isOwnedBy(actingUserId)) {
             throw new PlaceAccessDeniedException();
         }
-        if (place.getStatus() != PlaceStatus.DRAFT && place.getStatus() != PlaceStatus.REJECTED) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "editar");
+        boolean editable = canPublish ? place.isEditableByPublisher() : place.isEditableByCreator();
+        if (!editable) {
+            throw new InvalidPublicationTransitionException(place.getStatus(), "editar");
         }
     }
 
@@ -286,12 +245,18 @@ public class PlaceService {
         return candidate;
     }
 
+    private Place saveAndAudit(Place place, String action, UUID actingUserId) {
+        Place saved = placeRepository.save(place);
+        audit(action, saved, actingUserId);
+        return saved;
+    }
+
     private void audit(String action, Place place, UUID actingUserId) {
         auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "place", place.getId().toString(),
                 null);
     }
 
-    /** Aprobar, rechazar, publicar, programar y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
+    /** Publicar, programar, devolver a borrador y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
     private static void requirePublish(boolean canPublish) {
         if (!canPublish) {
             throw new PublishPermissionRequiredException();

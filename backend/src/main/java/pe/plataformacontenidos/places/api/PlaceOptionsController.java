@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.places.api;
 
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -8,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.identity.permission.Module;
 import pe.plataformacontenidos.identity.permission.RequiresAnyModule;
 import pe.plataformacontenidos.places.PlaceRepository;
-import pe.plataformacontenidos.places.PlaceStatus;
 
 /**
  * Lugares para elegir en los formularios de Eventos y Directorio (spec 2a,
@@ -35,7 +35,7 @@ public class PlaceOptionsController {
     @RequiresAnyModule({ Module.PLACES, Module.EVENTS, Module.DIRECTORY })
     public List<PlaceOption> options() {
         return placeRepository.findAll().stream()
-                .filter(place -> place.getStatus() != PlaceStatus.ARCHIVED)
+                .filter(place -> place.getStatus() != PublicationStatus.ARCHIVED)
                 .map(place -> new PlaceOption(place.getId(), place.getName()))
                 .sorted(Comparator.comparing(PlaceOption::name, String.CASE_INSENSITIVE_ORDER))
                 .toList();

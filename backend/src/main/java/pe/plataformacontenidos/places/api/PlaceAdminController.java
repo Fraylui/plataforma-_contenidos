@@ -21,8 +21,8 @@ import pe.plataformacontenidos.identity.security.UserPrincipal;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.places.api.dto.PlaceRequest;
 import pe.plataformacontenidos.places.api.dto.PlaceResponse;
-import pe.plataformacontenidos.places.api.dto.RejectPlaceRequest;
-import pe.plataformacontenidos.places.api.dto.SchedulePlaceRequest;
+import pe.plataformacontenidos.shared.publishing.api.ReturnToDraftRequest;
+import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;
 
 /**
  * CRUD de contenido + transiciones de workflow para Lugares — mismo patrón que
@@ -71,16 +71,12 @@ public class PlaceAdminController {
         return PlaceResponse.fromAdmin(placeService.submit(id, principal.userId()));
     }
 
-    @PostMapping("/{id}/approve")
-    public PlaceResponse approve(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return PlaceResponse.fromAdmin(placeService.approve(id, principal.userId(), canPublish(principal)));
-    }
-
-    @PostMapping("/{id}/reject")
-    public PlaceResponse reject(@PathVariable UUID id, @Valid @RequestBody RejectPlaceRequest request,
+    @PostMapping("/{id}/return-to-draft")
+    public PlaceResponse returnToDraft(@PathVariable UUID id,
+            @Valid @RequestBody(required = false) ReturnToDraftRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
-        return PlaceResponse.fromAdmin(
-                placeService.reject(id, request.reason(), principal.userId(), canPublish(principal)));
+        String note = request == null ? null : request.note();
+        return PlaceResponse.fromAdmin(placeService.returnToDraft(id, note, principal.userId(), canPublish(principal)));
     }
 
     @PostMapping("/{id}/publish")
@@ -89,7 +85,7 @@ public class PlaceAdminController {
     }
 
     @PostMapping("/{id}/schedule")
-    public PlaceResponse schedule(@PathVariable UUID id, @Valid @RequestBody SchedulePlaceRequest request,
+    public PlaceResponse schedule(@PathVariable UUID id, @Valid @RequestBody ScheduleRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return PlaceResponse.fromAdmin(
                 placeService.schedule(id, request.scheduledAt(), principal.userId(), canPublish(principal)));

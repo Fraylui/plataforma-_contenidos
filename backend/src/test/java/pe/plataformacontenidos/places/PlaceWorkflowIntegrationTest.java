@@ -62,15 +62,10 @@ class PlaceWorkflowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_REVIEW"));
 
-        // El autor no puede aprobar su propio lugar
-        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/approve")
+        // El autor no puede publicar su propio lugar
+        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
                         .header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isForbidden());
-
-        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("APPROVED"));
 
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))

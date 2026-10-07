@@ -533,8 +533,6 @@ class FeedIntegrationTest {
     private void runWorkflow(String basePath, String authorToken, String editorToken) throws Exception {
         mockMvc.perform(post(basePath + "/submit").header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isOk());
-        mockMvc.perform(post(basePath + "/approve").header("Authorization", "Bearer " + editorToken))
-                .andExpect(status().isOk());
         mockMvc.perform(post(basePath + "/publish").header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isOk());
     }

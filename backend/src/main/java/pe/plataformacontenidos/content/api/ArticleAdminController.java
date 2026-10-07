@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.content.ArticleService;
 import pe.plataformacontenidos.content.api.dto.ArticleRequest;
 import pe.plataformacontenidos.content.api.dto.ArticleResponse;
-import pe.plataformacontenidos.content.api.dto.RejectArticleRequest;
-import pe.plataformacontenidos.content.api.dto.ScheduleArticleRequest;
+import pe.plataformacontenidos.shared.publishing.api.ReturnToDraftRequest;
+import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
 
 /**
@@ -72,16 +72,11 @@ public class ArticleAdminController {
         return ArticleResponse.from(articleService.submit(id, principal.userId()));
     }
 
-    @PostMapping("/{id}/approve")
-    public ArticleResponse approve(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return ArticleResponse.from(articleService.approve(id, principal.userId(), canPublish(principal)));
-    }
-
-    @PostMapping("/{id}/reject")
-    public ArticleResponse reject(@PathVariable UUID id, @Valid @RequestBody RejectArticleRequest request,
+    @PostMapping("/{id}/return-to-draft")
+    public ArticleResponse returnToDraft(@PathVariable UUID id, @Valid @RequestBody(required = false) ReturnToDraftRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
-        return ArticleResponse.from(
-                articleService.reject(id, request.reason(), principal.userId(), canPublish(principal)));
+        String note = request == null ? null : request.note();
+        return ArticleResponse.from(articleService.returnToDraft(id, note, principal.userId(), canPublish(principal)));
     }
 
     @PostMapping("/{id}/publish")
@@ -90,7 +85,7 @@ public class ArticleAdminController {
     }
 
     @PostMapping("/{id}/schedule")
-    public ArticleResponse schedule(@PathVariable UUID id, @Valid @RequestBody ScheduleArticleRequest request,
+    public ArticleResponse schedule(@PathVariable UUID id, @Valid @RequestBody ScheduleRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return ArticleResponse.from(
                 articleService.schedule(id, request.scheduledAt(), principal.userId(), canPublish(principal)));

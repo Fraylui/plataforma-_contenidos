@@ -62,15 +62,10 @@ class EventWorkflowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_REVIEW"));
 
-        // El autor no puede aprobar su propio evento
-        mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/approve")
+        // El autor no puede publicar su propio evento
+        mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/publish")
                         .header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isForbidden());
-
-        mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("APPROVED"));
 
         mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))
@@ -172,9 +167,6 @@ class EventWorkflowIntegrationTest {
         String eventId = createDraftEvent(authorToken, categoryId, title, startsAt);
         mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/submit")
                         .header("Authorization", "Bearer " + authorToken))
-                .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))

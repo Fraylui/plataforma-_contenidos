@@ -20,9 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.events.EventService;
 import pe.plataformacontenidos.events.api.dto.EventRequest;
 import pe.plataformacontenidos.events.api.dto.EventResponse;
-import pe.plataformacontenidos.events.api.dto.RejectEventRequest;
-import pe.plataformacontenidos.events.api.dto.ScheduleEventRequest;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.shared.publishing.api.ReturnToDraftRequest;
+import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;
 
 /**
  * CRUD de contenido + transiciones de workflow para Eventos — mismo patrón que
@@ -71,16 +71,12 @@ public class EventAdminController {
         return EventResponse.from(eventService.submit(id, principal.userId()));
     }
 
-    @PostMapping("/{id}/approve")
-    public EventResponse approve(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return EventResponse.from(eventService.approve(id, principal.userId(), canPublish(principal)));
-    }
-
-    @PostMapping("/{id}/reject")
-    public EventResponse reject(@PathVariable UUID id, @Valid @RequestBody RejectEventRequest request,
+    @PostMapping("/{id}/return-to-draft")
+    public EventResponse returnToDraft(@PathVariable UUID id,
+            @Valid @RequestBody(required = false) ReturnToDraftRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
-        return EventResponse.from(
-                eventService.reject(id, request.reason(), principal.userId(), canPublish(principal)));
+        String note = request == null ? null : request.note();
+        return EventResponse.from(eventService.returnToDraft(id, note, principal.userId(), canPublish(principal)));
     }
 
     @PostMapping("/{id}/publish")
@@ -89,7 +85,7 @@ public class EventAdminController {
     }
 
     @PostMapping("/{id}/schedule")
-    public EventResponse schedule(@PathVariable UUID id, @Valid @RequestBody ScheduleEventRequest request,
+    public EventResponse schedule(@PathVariable UUID id, @Valid @RequestBody ScheduleRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return EventResponse.from(
                 eventService.schedule(id, request.scheduledAt(), principal.userId(), canPublish(principal)));

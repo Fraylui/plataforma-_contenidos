@@ -125,9 +125,6 @@ class ArticleImagesIntegrationTest {
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/submit")
                         .header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
-                .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isOk());

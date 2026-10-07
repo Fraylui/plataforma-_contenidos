@@ -64,15 +64,10 @@ class BusinessWorkflowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_REVIEW"));
 
-        // El autor no puede aprobar su propia ficha
-        mockMvc.perform(post("/api/v1/admin/directory/" + businessId + "/approve")
+        // El autor no puede publicar su propia ficha
+        mockMvc.perform(post("/api/v1/admin/directory/" + businessId + "/publish")
                         .header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isForbidden());
-
-        mockMvc.perform(post("/api/v1/admin/directory/" + businessId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("APPROVED"));
 
         mockMvc.perform(post("/api/v1/admin/directory/" + businessId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))
@@ -193,9 +188,6 @@ class BusinessWorkflowIntegrationTest {
         String placeId = textField(result, "id");
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
                         .header("Authorization", "Bearer " + authorToken))
-                .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))
