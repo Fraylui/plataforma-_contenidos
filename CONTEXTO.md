@@ -2195,6 +2195,14 @@ Spec: `docs/superpowers/specs/2026-10-07-compositor-y-flujo-design.md` (local).
 - **Compositor de Publicaciones** (`article-composer.tsx`, reemplaza `article-form`): fotos y videos primero, título grande, «Descripción corta» y «Texto», panel Publicar fijo (en celular al final del flujo), tema y formato, vista previa en el feed, «Cómo se ve al compartir» (Google y redes, autocompletado; canónica y robots en Avanzado). zod + react-hook-form; guardado automático del borrador cada 10 s (crea el borrador y cambia la URL sin recargar; nunca lo publicado); aviso al salir con cambios. Muestra sin sesión en desarrollo: `/admin/muestra/compositor`.
 - **Pendiente:** compositor completo para Lugar, Evento, Galería y Directorio (hoy con `PublishPanel` dentro del formulario anterior); selector de fotos con arrastrar y soltar (F8).
 
+## 46.6i CI en GitHub, seguridad y zona horaria (2026-10-07)
+
+- **Lo pesado corre en GitHub Actions** (la laptop se recalentaba): rama + PR en borrador (#22) → backend, frontend, build y CodeQL en ~3 min. En local solo las pruebas de lo que se cambia (`vitest` con 2 procesos; Docker con 4 CPU en `.wslconfig`). El push lo hace el dueño (`! git push`).
+- **El CI de main fallaba desde 2026-09**: `tsc` corría antes de que Next generara `PageProps`/`LayoutProps`; ahora `next typegen && tsc`.
+- **CodeQL encontró un XSS real**: `VideoJsonLd` escapaba `<` con `"<"` escrito como `"<"` (que ES `<`); un título de video con `</script>` podía inyectar HTML en la página pública. Arreglado con prueba. También: ReDoS en `Slugify`, chequeo de texto vacío sin regex, escape completo en un e2e. La alerta «CSRF desactivado» es un falso positivo (API sin estado con token en cabecera).
+- **Zona horaria**: las fechas salían en la zona de la máquina; el servidor (Docker) está en UTC → un evento de las 11 p. m. de Lima se veía al día siguiente. `SITE_TIME_ZONE` (`NEXT_PUBLIC_SITE_TIME_ZONE`, por defecto `America/Lima`) en todas las fechas; las estadísticas (días UTC) caían en el día anterior en Lima. Las pruebas corren en UTC como el CI.
+- **Vercel** está vinculado al repositorio y arma vistas previas que fallan (no es el despliegue real, que es el VPS): decisión del dueño si se desconecta.
+
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
 Ordenadas por prioridad.
