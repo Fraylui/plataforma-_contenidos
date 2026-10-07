@@ -3,10 +3,33 @@ import { ADMIN_NAV_GROUP_LABELS, groupedNavItems } from "@/lib/admin/nav";
 import { roleLabel } from "@/lib/admin/role-labels";
 import { logoutAction } from "./actions";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { ChangePasswordForm } from "@/components/admin/change-password-form";
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const { user } = await requireAdminUser();
-  const groups = groupedNavItems(user.role);
+
+  // Contraseña temporal: en cualquier URL del panel solo se puede cambiarla
+  // (el servidor rechaza todo lo demás con PASSWORD_CHANGE_REQUIRED).
+  if (user.mustChangePassword) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-background px-4 py-10">
+        <div className="text-center">
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground">Hola, {user.firstName}</h1>
+          <p className="mt-1 text-sm text-muted">Antes de empezar, elige tu contraseña.</p>
+        </div>
+        <div className="w-full max-w-md">
+          <ChangePasswordForm temporary />
+        </div>
+        <form action={logoutAction}>
+          <button type="submit" className="cursor-pointer text-sm font-medium text-muted hover:text-foreground">
+            Cerrar sesión
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  const groups = groupedNavItems(user);
 
   return (
     // sm+: "cáscara de app" fijada al viewport (position:fixed + inset:0),
@@ -29,9 +52,9 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent-fill text-xs font-bold text-accent-foreground">
             P
           </span>
-          <span className="text-sm font-semibold tracking-tight text-foreground">Panel admin</span>
+          <span className="text-sm font-semibold tracking-tight text-foreground">Panel</span>
         </div>
-        <nav aria-label="Panel administrativo" className="min-h-0 flex-1 space-y-2 px-3 pb-4 sm:overflow-y-auto">
+        <nav aria-label="Menú del panel" className="min-h-0 flex-1 space-y-2 px-3 pb-4 sm:overflow-y-auto">
           <AdminNav
             groups={groups.map(({ group, items }) => ({
               group,
@@ -40,6 +63,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
                 href: item.href,
                 label: item.label,
                 icon: <item.icon aria-hidden="true" />,
+                activeIcon: <item.icon weight="fill" aria-hidden="true" />,
               })),
             }))}
           />

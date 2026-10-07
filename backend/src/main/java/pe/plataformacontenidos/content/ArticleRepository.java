@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.content;
 
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -12,21 +13,21 @@ import org.springframework.data.repository.query.Param;
 
 public interface ArticleRepository extends JpaRepository<Article, UUID> {
 
-    Optional<Article> findBySlugAndStatus(String slug, ArticleStatus status);
+    Optional<Article> findBySlugAndStatus(String slug, PublicationStatus status);
 
     boolean existsBySlug(String slug);
 
-    Page<Article> findByStatus(ArticleStatus status, Pageable pageable);
+    Page<Article> findByStatus(PublicationStatus status, Pageable pageable);
 
-    Page<Article> findByStatusAndCategoryId(ArticleStatus status, UUID categoryId, Pageable pageable);
+    Page<Article> findByStatusAndCategoryId(PublicationStatus status, UUID categoryId, Pageable pageable);
 
     List<Article> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 
-    List<Article> findByStatusAndScheduledAtBefore(ArticleStatus status, Instant threshold);
+    List<Article> findByStatusAndScheduledAtBefore(PublicationStatus status, Instant threshold);
 
-    long countByStatus(ArticleStatus status);
+    long countByStatus(PublicationStatus status);
 
-    long countByStatusAndPublishedAtAfter(ArticleStatus status, Instant threshold);
+    long countByStatusAndPublishedAtAfter(PublicationStatus status, Instant threshold);
 
     /** Ver StatsService — un punto por día con publicaciones, para el gráfico de tendencia de Estadísticas. Los días sin publicaciones no aparecen; StatsService completa los huecos con 0. */
     @Query(value = """
@@ -44,10 +45,6 @@ public interface ArticleRepository extends JpaRepository<Article, UUID> {
         Long getCnt();
     }
 
-    /** Navegación anterior/siguiente en la vista de detalle — orden de lectura por publishedAt, igual que el listado público. */
-    Optional<Article> findFirstByStatusAndPublishedAtLessThanOrderByPublishedAtDesc(ArticleStatus status, Instant publishedAt);
-
-    Optional<Article> findFirstByStatusAndPublishedAtGreaterThanOrderByPublishedAtAsc(ArticleStatus status, Instant publishedAt);
 
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre artículos

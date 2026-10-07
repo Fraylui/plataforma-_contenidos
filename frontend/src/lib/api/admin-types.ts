@@ -1,6 +1,7 @@
+import type { AdSection } from "@/lib/ads/ad-context";
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
-import type { ArticleStatus, ArticleType, BusinessType, ContentImage } from "./types";
+import type { PublicationStatus, ArticleType, BusinessType, ContentImage } from "./types";
 
 /** Cuerpo de un video en ArticleInput/PlaceInput/EventInput — ver ContentVideoInput.java. */
 export interface ContentVideoInput {
@@ -9,7 +10,16 @@ export interface ContentVideoInput {
   caption: string | null;
 }
 
-export type Role = "SUPER_ADMIN" | "ADMIN" | "EDITOR" | "AUTHOR" | "MODERATOR" | "COLLABORATOR" | "USER";
+/** Roles del panel (spec 2a): el dueño puede todo; el trabajador, lo que digan sus permisos. */
+export type Role = "OWNER" | "WORKER";
+
+/** Módulos que se asignan a un trabajador (espejo de Module.java). */
+export type Module = "ARTICLES" | "PLACES" | "EVENTS" | "GALLERIES" | "DIRECTORY" | "CATEGORIES" | "STATS" | "ADVERTISING";
+
+/** CREATE: lo propio a revisión · PUBLISH: publica lo de todos · ACCESS: módulos que no son de contenido. */
+export type AccessLevel = "CREATE" | "PUBLISH" | "ACCESS";
+
+export type ModulePermissions = Partial<Record<Module, AccessLevel>>;
 
 export interface TokenResponse {
   accessToken: string;
@@ -17,15 +27,40 @@ export interface TokenResponse {
   tokenType: string;
 }
 
+/** Lugar para elegir en Eventos y Directorio — PlaceOptionsController (acceso a Lugares, Eventos o Directorio). */
+export interface PlaceOption {
+  id: string;
+  name: string;
+}
+
+/** Trabajador del panel — WorkerAdminController.WorkerResponse. */
+export interface Worker {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  status: "ACTIVE" | "DISABLED";
+  mustChangePassword: boolean;
+  lastLoginAt: string | null;
+  permissions: ModulePermissions;
+}
+
+export interface CreateWorkerInput {
+  email: string;
+  firstName: string;
+  lastName: string;
+  permissions: ModulePermissions;
+}
+
+/** Sesión actual del panel — GET /api/v1/users/me (MeResponse.java). */
 export interface AdminUser {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
   role: Role;
-  status: string;
-  createdAt: string;
-  lastLoginAt: string | null;
+  mustChangePassword: boolean;
+  permissions: ModulePermissions;
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/articles — ver ArticleRequest.java. */
@@ -129,13 +164,6 @@ export interface CategoryUpdateInput extends CategoryCreateInput {
 }
 
 /** Cuerpo de POST /api/v1/admin/users — ver CreateUserRequest.java. */
-export interface CreateUserInput {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  role: Role;
-}
 
 /** Cuerpo de PUT /api/v1/admin/platform-settings — ver UpdatePlatformSettingsRequest.java. */
 export interface PlatformSettingsInput {
@@ -166,12 +194,16 @@ export interface AdPlacementCreateInput {
   key: string;
   label: string;
   adsenseSlotId: string | null;
+  width: number;
+  height: number;
 }
 
 /** Cuerpo de PUT /api/v1/admin/ad-placements/{id} — ver UpdateAdPlacementRequest.java. */
 export interface AdPlacementUpdateInput {
   label: string;
   adsenseSlotId: string | null;
+  width: number;
+  height: number;
 }
 
 /** Ver Advertiser.java. */
@@ -205,6 +237,19 @@ export interface Campaign {
   clickCount: number;
   amount: number | null;
   currency: string | null;
+  /** 1–10: cuánto más seguido sale frente a otras campañas de la misma posición. */
+  weight: number;
+  targetSections: AdSection[];
+  targetCategoryIds: string[];
+  targetCountries: string[];
+  targetRegions: string[];
+}
+
+/** Ver CampaignDailyStatResponse.java — un día (UTC) del reporte de una campaña. */
+export interface CampaignDailyStat {
+  day: string;
+  impressions: number;
+  clicks: number;
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/campaigns — ver CampaignRequest.java. */
@@ -219,6 +264,11 @@ export interface CampaignInput {
   endsAt: string | null;
   amount: number | null;
   currency: string | null;
+  weight: number;
+  targetSections: AdSection[];
+  targetCategoryIds: string[];
+  targetCountries: string[];
+  targetRegions: string[];
 }
 
 /** Ver PlatformStatsResponse.java (CONTEXTO.md sección 34, estadísticas básicas). */
@@ -229,13 +279,13 @@ export interface DailyCount {
 }
 
 export interface PlatformStats {
-  articlesByStatus: Record<ArticleStatus, number>;
+  articlesByStatus: Record<PublicationStatus, number>;
   articlesPublishedLast30Days: number;
   publishedTrendLast30Days: DailyCount[];
-  placesByStatus: Record<ArticleStatus, number>;
-  eventsByStatus: Record<ArticleStatus, number>;
-  galleriesByStatus: Record<ArticleStatus, number>;
-  businessesByStatus: Record<ArticleStatus, number>;
+  placesByStatus: Record<PublicationStatus, number>;
+  eventsByStatus: Record<PublicationStatus, number>;
+  galleriesByStatus: Record<PublicationStatus, number>;
+  businessesByStatus: Record<PublicationStatus, number>;
   totalCategories: number;
   activeCategories: number;
   usersByRole: Record<Role, number>;

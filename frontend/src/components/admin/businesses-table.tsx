@@ -6,18 +6,12 @@ import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Business } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
-import { computeBusinessPermissions } from "@/lib/admin/business-permissions";
-import { articleStatusLabel, articleStatusTone, businessTypeLabel, formatPublishedDate } from "@/lib/content-labels";
-import { StatusPill, DataTable } from "@/components/admin/ui";
+import { computePublicationPermissions } from "@/lib/admin/publication";
+import { publicationStatusLabel, publicationStatusTone, businessTypeLabel, formatPublishedDate } from "@/lib/content-labels";
+import { DataTable } from "@/components/admin/ui";
 import { ContentRowActions } from "@/components/admin/content-row-actions";
 import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
-import {
-  approveBusinessAction,
-  archiveBusinessAction,
-  publishBusinessAction,
-  rejectBusinessAction,
-  submitBusinessAction,
-} from "@/app/admin/(protected)/directorio/actions";
+import { Badge } from "@/components/ui";
 
 export function BusinessesTable({ businesses, currentUser }: { businesses: Business[]; currentUser: AdminUser }) {
   const router = useRouter();
@@ -42,7 +36,7 @@ export function BusinessesTable({ businesses, currentUser }: { businesses: Busin
       {
         accessorKey: "status",
         header: "Estado",
-        cell: ({ row }) => <StatusPill tone={articleStatusTone(row.original.status)} label={articleStatusLabel(row.original.status)} />,
+        cell: ({ row }) => <Badge tone={publicationStatusTone(row.original.status)} dot>{publicationStatusLabel(row.original.status)}</Badge>,
       },
       {
         accessorKey: "createdAt",
@@ -57,15 +51,10 @@ export function BusinessesTable({ businesses, currentUser }: { businesses: Busin
           <ContentRowActions
             id={row.original.id}
             editHref={`/admin/directorio/${row.original.id}`}
-            permissions={computeBusinessPermissions(row.original, currentUser)}
+            permissions={computePublicationPermissions(row.original, currentUser, "directory")}
             itemLabel="esta ficha"
-            actions={{
-              submit: submitBusinessAction,
-              approve: approveBusinessAction,
-              reject: rejectBusinessAction,
-              publish: publishBusinessAction,
-              archive: archiveBusinessAction,
-            }}
+          kind="directory"
+          status={row.original.status}
           />
         ),
       },
@@ -78,10 +67,10 @@ export function BusinessesTable({ businesses, currentUser }: { businesses: Busin
       <ContentBulkActions
         selected={selected}
         permissions={{
-          canPublish: (item) => computeBusinessPermissions(item, currentUser).canPublish,
-          canArchive: (item) => computeBusinessPermissions(item, currentUser).canArchive,
+          canPublish: (item) => computePublicationPermissions(item, currentUser, "directory").canPublish,
+          canArchive: (item) => computePublicationPermissions(item, currentUser, "directory").canArchive,
         }}
-        actions={{ publish: publishBusinessAction, archive: archiveBusinessAction }}
+        kind="directory"
         onDone={() => router.refresh()}
       />
       <DataTable

@@ -2,8 +2,9 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { uploadImageAction } from "@/app/admin/(protected)/medios/actions";
-import { AdminButton, FormError } from "@/components/admin/ui";
+import { uploadImageAction } from "@/app/admin/(protected)/imagenes/actions";
+import { FormError } from "@/components/admin/ui";
+import { Button, Field, TextInput } from "@/components/ui";
 
 export function ImageUploadForm() {
   const router = useRouter();
@@ -31,7 +32,7 @@ export function ImageUploadForm() {
   }
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3 rounded-lg border border-dashed border-border p-4">
+    <form ref={formRef} onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3 rounded-card border-2 border-dashed border-field-border bg-surface p-5">
       <label className="text-sm font-medium text-foreground">
         Archivo
         <input
@@ -39,20 +40,15 @@ export function ImageUploadForm() {
           name="file"
           accept="image/*"
           required
-          className="mt-1 block text-sm text-foreground file:mr-3 file:rounded-md file:border-0 file:bg-accent-soft file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-accent"
+          className="mt-1 block text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-accent-soft file:px-4 file:py-2 file:text-sm file:font-semibold file:text-accent"
         />
       </label>
-      <label className="text-sm font-medium text-foreground">
-        Texto alternativo (opcional)
-        <input
-          type="text"
-          name="altText"
-          className="mt-1 w-56 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-        />
-      </label>
-      <AdminButton type="submit" disabled={pending}>
+      <Field label="Texto alternativo (opcional)" name="altText" className="w-56">
+        <TextInput type="text" />
+      </Field>
+      <Button type="submit" disabled={pending}>
         {pending ? "Subiendo…" : "Subir imagen"}
-      </AdminButton>
+      </Button>
       {error && <FormError message={error} className="w-full" />}
     </form>
   );

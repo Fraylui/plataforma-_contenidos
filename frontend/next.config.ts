@@ -104,6 +104,15 @@ const nextConfig: NextConfig = {
     return [
       { source: "/articulos", destination: "/publicaciones", permanent: true },
       { source: "/articulos/:slug", destination: "/publicaciones/:slug", permanent: true },
+      // Panel con lenguaje de plataforma (2026-10-06): las URLs viejas siguen funcionando.
+      { source: "/admin/categorias/nueva", destination: "/admin/temas/nuevo", permanent: true },
+      { source: "/admin/publicidad/nueva", destination: "/admin/espacios/nuevo", permanent: true },
+      { source: "/admin/medios/:path*", destination: "/admin/imagenes/:path*", permanent: true },
+      { source: "/admin/categorias/:path*", destination: "/admin/temas/:path*", permanent: true },
+      { source: "/admin/publicidad/:path*", destination: "/admin/espacios/:path*", permanent: true },
+      { source: "/admin/auditoria/:path*", destination: "/admin/actividad/:path*", permanent: true },
+      { source: "/admin/usuarios/nuevo", destination: "/admin/trabajadores/nuevo", permanent: true },
+      { source: "/admin/usuarios/:path*", destination: "/admin/trabajadores/:path*", permanent: true },
     ];
   },
 

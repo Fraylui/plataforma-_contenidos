@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus } from "@phosphor-icons/react";
 import type { ContentVideoInput } from "@/lib/api/admin-types";
-import { formInputClass } from "@/components/admin/ui";
 import { ContentMediaItemFields } from "./content-media-item-fields";
+import { TextInput } from "@/components/ui";
 
 /**
  * Lista de videos de YouTube por URL (varios por publicación/lugar/evento).
@@ -73,12 +73,12 @@ export function VideoLinksEditor({
       )}
       {!disabled && (
         <div className="flex items-end gap-2">
-          <input
+          <TextInput
             type="text"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="https://www.youtube.com/watch?v=…"
-            className={`${formInputClass} flex-1`}
+            className="flex-1"
           />
           <button
             type="button"

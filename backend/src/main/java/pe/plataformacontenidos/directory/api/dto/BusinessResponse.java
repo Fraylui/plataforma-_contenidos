@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import pe.plataformacontenidos.directory.Business;
-import pe.plataformacontenidos.directory.BusinessStatus;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import pe.plataformacontenidos.directory.BusinessType;
 import pe.plataformacontenidos.shared.ContentImageResponse;
 import pe.plataformacontenidos.shared.ContentVideoResponse;
@@ -15,7 +15,7 @@ public record BusinessResponse(
         String name,
         String excerpt,
         String body,
-        BusinessStatus status,
+        PublicationStatus status,
         BusinessType businessType,
         UUID authorId,
         UUID categoryId,
@@ -33,7 +33,7 @@ public record BusinessResponse(
         String ogImageUrl,
         List<ContentVideoResponse> videos,
         String robots,
-        String rejectionReason,
+        String reviewNote,
         Instant publishedAt,
         Instant scheduledAt,
         Instant createdAt,
@@ -47,7 +47,7 @@ public record BusinessResponse(
                 business.getLongitude(), business.getImages().stream().map(ContentImageResponse::from).toList(),
                 business.getSeoTitle(), business.getMetaDescription(), business.getCanonicalUrl(),
                 business.getOgImageUrl(), business.getVideos().stream().map(ContentVideoResponse::from).toList(),
-                business.getRobots(), business.getRejectionReason(), business.getPublishedAt(),
+                business.getRobots(), business.getReviewNote(), business.getPublishedAt(),
                 business.getScheduledAt(), business.getCreatedAt(), likeCount);
     }
 

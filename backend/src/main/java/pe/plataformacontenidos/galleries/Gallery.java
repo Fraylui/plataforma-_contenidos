@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.galleries;
 
+import pe.plataformacontenidos.shared.publishing.PublishableContent;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -30,7 +31,7 @@ import pe.plataformacontenidos.shared.ContentImage;
  */
 @Entity
 @Table(name = "galleries", schema = "galleries")
-public class Gallery {
+public class Gallery extends PublishableContent {
 
     @Id
     @GeneratedValue
@@ -44,10 +45,6 @@ public class Gallery {
     private String title;
 
     private String excerpt;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private GalleryStatus status = GalleryStatus.DRAFT;
 
     @Column(name = "author_id", nullable = false)
     private UUID authorId;
@@ -75,20 +72,8 @@ public class Gallery {
     @Column(nullable = false)
     private String robots = "index,follow";
 
-    @Column(name = "rejection_reason")
-    private String rejectionReason;
-
-    @Column(name = "published_at")
-    private Instant publishedAt;
-
-    @Column(name = "scheduled_at")
-    private Instant scheduledAt;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
-
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt = Instant.now();
 
     protected Gallery() {
         // JPA
@@ -116,10 +101,6 @@ public class Gallery {
 
     public String getExcerpt() {
         return excerpt;
-    }
-
-    public GalleryStatus getStatus() {
-        return status;
     }
 
     public UUID getAuthorId() {
@@ -159,29 +140,12 @@ public class Gallery {
         return robots;
     }
 
-    public String getRejectionReason() {
-        return rejectionReason;
-    }
-
-    public Instant getPublishedAt() {
-        return publishedAt;
-    }
-
-    public Instant getScheduledAt() {
-        return scheduledAt;
-    }
-
     public Instant getCreatedAt() {
         return createdAt;
     }
 
     public boolean isOwnedBy(UUID userId) {
         return authorId.equals(userId);
-    }
-
-    public boolean isEditable() {
-        return status == GalleryStatus.DRAFT || status == GalleryStatus.IN_REVIEW
-                || status == GalleryStatus.APPROVED || status == GalleryStatus.REJECTED;
     }
 
     public void updateContent(String title, String excerpt, UUID categoryId, List<ContentImage> images,
@@ -195,48 +159,7 @@ public class Gallery {
         this.canonicalUrl = canonicalUrl;
         this.ogImageUrl = ogImageUrl;
         this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
-        this.updatedAt = Instant.now();
+        touch();
     }
 
-    public void submitForReview() {
-        this.status = GalleryStatus.IN_REVIEW;
-        this.rejectionReason = null;
-        this.updatedAt = Instant.now();
-    }
-
-    public void approve() {
-        this.status = GalleryStatus.APPROVED;
-        this.updatedAt = Instant.now();
-    }
-
-    public void reject(String reason) {
-        this.status = GalleryStatus.REJECTED;
-        this.rejectionReason = reason;
-        this.updatedAt = Instant.now();
-    }
-
-    public void publishNow() {
-        this.status = GalleryStatus.PUBLISHED;
-        this.publishedAt = Instant.now();
-        this.scheduledAt = null;
-        this.updatedAt = Instant.now();
-    }
-
-    public void schedule(Instant when) {
-        this.status = GalleryStatus.SCHEDULED;
-        this.scheduledAt = when;
-        this.updatedAt = Instant.now();
-    }
-
-    /** Usado por el job de publicación programada cuando scheduledAt ya pasó. */
-    void publishFromSchedule() {
-        this.status = GalleryStatus.PUBLISHED;
-        this.publishedAt = Instant.now();
-        this.updatedAt = Instant.now();
-    }
-
-    public void archive() {
-        this.status = GalleryStatus.ARCHIVED;
-        this.updatedAt = Instant.now();
-    }
 }

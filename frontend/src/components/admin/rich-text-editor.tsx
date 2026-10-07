@@ -3,21 +3,8 @@
 import { useState } from "react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
 import TiptapImage from "@tiptap/extension-image";
-import {
-  Bold,
-  Italic,
-  Heading2,
-  Heading3,
-  List,
-  ListOrdered,
-  Quote,
-  Link as LinkIcon,
-  Unlink,
-  Image as ImageIcon,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Image as ImageIcon, LinkBreak, LinkSimple as LinkIcon, ListBullets, ListNumbers, Quotes, TextB, TextHThree, TextHTwo, TextItalic, type Icon } from "@phosphor-icons/react";
 import type { AdminImage } from "@/lib/api/admin-types";
 import { ImageInsertDialog } from "./image-insert-dialog";
 import { LinkInsertDialog } from "./link-insert-dialog";
@@ -42,8 +29,8 @@ export function RichTextEditor({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit.configure({ heading: { levels: [2, 3] } }),
-      Link.configure({ openOnClick: false, autolink: true }),
+      // StarterKit 3 ya trae Link: configurarlo aparte lo registraba dos veces (aviso de Tiptap en consola).
+      StarterKit.configure({ heading: { levels: [2, 3] }, link: { openOnClick: false, autolink: true } }),
       TiptapImage.configure({ HTMLAttributes: { class: "rounded-md" } }),
     ],
     content: value,
@@ -60,7 +47,7 @@ export function RichTextEditor({
   if (!editor) return null;
 
   return (
-    <div className="mt-1 overflow-hidden rounded-md border border-border bg-background">
+    <div className="overflow-hidden rounded-control border border-field-border bg-field transition-[border-color,box-shadow] focus-within:border-accent focus-within:ring-[3px] focus-within:ring-ring">
       {!disabled && <Toolbar editor={editor} allImages={allImages} />}
       <EditorContent editor={editor} />
     </div>
@@ -73,45 +60,45 @@ function Toolbar({ editor, allImages }: { editor: Editor; allImages: AdminImage[
   return (
     <div className="flex flex-wrap items-center gap-1 border-b border-border bg-surface px-2 py-1.5">
       <ToolbarButton
-        icon={Bold}
+        icon={TextB}
         label="Negrita"
         active={editor.isActive("bold")}
         onClick={() => editor.chain().focus().toggleBold().run()}
       />
       <ToolbarButton
-        icon={Italic}
+        icon={TextItalic}
         label="Cursiva"
         active={editor.isActive("italic")}
         onClick={() => editor.chain().focus().toggleItalic().run()}
       />
       <ToolbarDivider />
       <ToolbarButton
-        icon={Heading2}
+        icon={TextHTwo}
         label="Título 2"
         active={editor.isActive("heading", { level: 2 })}
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
       />
       <ToolbarButton
-        icon={Heading3}
+        icon={TextHThree}
         label="Título 3"
         active={editor.isActive("heading", { level: 3 })}
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
       />
       <ToolbarDivider />
       <ToolbarButton
-        icon={List}
+        icon={ListBullets}
         label="Lista"
         active={editor.isActive("bulletList")}
         onClick={() => editor.chain().focus().toggleBulletList().run()}
       />
       <ToolbarButton
-        icon={ListOrdered}
+        icon={ListNumbers}
         label="Lista numerada"
         active={editor.isActive("orderedList")}
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
       />
       <ToolbarButton
-        icon={Quote}
+        icon={Quotes}
         label="Cita"
         active={editor.isActive("blockquote")}
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
@@ -124,7 +111,7 @@ function Toolbar({ editor, allImages }: { editor: Editor; allImages: AdminImage[
         onClick={() => setLinkDialogOpen(true)}
       />
       <ToolbarButton
-        icon={Unlink}
+        icon={LinkBreak}
         label="Quitar enlace"
         active={false}
         disabled={!editor.isActive("link")}
@@ -161,7 +148,7 @@ function ToolbarButton({
   disabled,
   onClick,
 }: {
-  icon: LucideIcon;
+  icon: Icon;
   label: string;
   active: boolean;
   disabled?: boolean;

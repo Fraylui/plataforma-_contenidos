@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.PublishPermissionRequiredException;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.shared.ContentImage;
@@ -25,6 +25,8 @@ import pe.plataformacontenidos.shared.HtmlSanitizer;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
+import pe.plataformacontenidos.shared.publishing.InvalidPublicationTransitionException;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
 /**
  * Orquesta el ciclo de publicación de fichas de Directorio (CONTEXTO.md sección
@@ -71,9 +73,9 @@ public class BusinessService {
         return saved;
     }
 
-    public Business update(UUID businessId, BusinessInput input, UUID actingUserId, Role actingRole) {
+    public Business update(UUID businessId, BusinessInput input, UUID actingUserId, boolean canPublish) {
         Business business = getOrThrow(businessId);
-        requireCanEdit(business, actingUserId, actingRole);
+        requireCanEdit(business, actingUserId, canPublish);
 
         if (!business.getCategoryId().equals(input.categoryId())
                 && !categoryService.existsActive(input.categoryId())) {
@@ -95,111 +97,73 @@ public class BusinessService {
         return saved;
     }
 
+    /** Quien solo crea lo manda a quien publica (Pendiente de aprobación). */
     public Business submit(UUID businessId, UUID actingUserId) {
         Business business = getOrThrow(businessId);
         if (!business.isOwnedBy(actingUserId)) {
             throw new BusinessAccessDeniedException();
         }
-        if (business.getStatus() != BusinessStatus.DRAFT && business.getStatus() != BusinessStatus.REJECTED) {
-            throw new InvalidBusinessTransitionException(business.getStatus(), "enviar a revisión");
-        }
-        business.submitForReview();
-        Business saved = businessRepository.save(business);
-        audit("BUSINESS_SUBMITTED", saved, actingUserId);
-        return saved;
+        business.submitForApproval();
+        return saveAndAudit(business, "BUSINESS_SUBMITTED", actingUserId);
     }
 
-    public Business approve(UUID businessId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Business publish(UUID businessId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Business business = getOrThrow(businessId);
-        if (business.getStatus() != BusinessStatus.IN_REVIEW) {
-            throw new InvalidBusinessTransitionException(business.getStatus(), "aprobar");
-        }
-        business.approve();
-        Business saved = businessRepository.save(business);
-        audit("BUSINESS_APPROVED", saved, actingUserId);
-        return saved;
+        business.publishNow(Instant.now());
+        return saveAndAudit(business, "BUSINESS_PUBLISHED", actingUserId);
     }
 
-    public Business reject(UUID businessId, String reason, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Business schedule(UUID businessId, Instant when, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Business business = getOrThrow(businessId);
-        if (business.getStatus() != BusinessStatus.IN_REVIEW) {
-            throw new InvalidBusinessTransitionException(business.getStatus(), "rechazar");
-        }
-        business.reject(reason);
-        Business saved = businessRepository.save(business);
-        audit("BUSINESS_REJECTED", saved, actingUserId);
-        return saved;
+        business.schedule(when, Instant.now());
+        return saveAndAudit(business, "BUSINESS_SCHEDULED", actingUserId);
     }
 
-    public Business publish(UUID businessId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    /** Devuelve a borrador lo pendiente o programado, con una nota opcional para quien lo creó. */
+    public Business returnToDraft(UUID businessId, String note, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Business business = getOrThrow(businessId);
-        if (business.getStatus() != BusinessStatus.APPROVED) {
-            throw new InvalidBusinessTransitionException(business.getStatus(), "publicar");
-        }
-        business.publishNow();
-        Business saved = businessRepository.save(business);
-        audit("BUSINESS_PUBLISHED", saved, actingUserId);
-        return saved;
+        business.returnToDraft(note);
+        return saveAndAudit(business, "BUSINESS_RETURNED_TO_DRAFT", actingUserId);
     }
 
-    public Business schedule(UUID businessId, Instant when, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
-        if (when.isBefore(Instant.now())) {
-            throw new InvalidBusinessScheduleException("La fecha de publicación programada debe ser futura");
-        }
+    public Business archive(UUID businessId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Business business = getOrThrow(businessId);
-        if (business.getStatus() != BusinessStatus.APPROVED) {
-            throw new InvalidBusinessTransitionException(business.getStatus(), "programar");
-        }
-        business.schedule(when);
-        Business saved = businessRepository.save(business);
-        audit("BUSINESS_SCHEDULED", saved, actingUserId);
-        return saved;
-    }
-
-    public Business archive(UUID businessId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
-        Business business = getOrThrow(businessId);
-        if (business.getStatus() != BusinessStatus.PUBLISHED) {
-            throw new InvalidBusinessTransitionException(business.getStatus(), "archivar");
-        }
         business.archive();
-        Business saved = businessRepository.save(business);
-        audit("BUSINESS_ARCHIVED", saved, actingUserId);
-        return saved;
+        return saveAndAudit(business, "BUSINESS_ARCHIVED", actingUserId);
     }
 
-    public Business getForAdmin(UUID businessId, UUID actingUserId, Role actingRole) {
+    public Business getForAdmin(UUID businessId, UUID actingUserId, boolean canPublish) {
         Business business = getOrThrow(businessId);
-        if (!isEditorOrAbove(actingRole) && !business.isOwnedBy(actingUserId)) {
+        if (!canPublish && !business.isOwnedBy(actingUserId)) {
             throw new BusinessAccessDeniedException();
         }
         return business;
     }
 
-    public List<Business> listForAdmin(UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
+    public List<Business> listForAdmin(UUID actingUserId, boolean canPublish) {
+        if (canPublish) {
             return businessRepository.findAll();
         }
         return businessRepository.findByAuthorIdOrderByCreatedAtDesc(actingUserId);
     }
 
     public Business getPublishedBySlug(String slug) {
-        return businessRepository.findBySlugAndStatus(slug, BusinessStatus.PUBLISHED)
+        return businessRepository.findBySlugAndStatus(slug, PublicationStatus.PUBLISHED)
                 .orElseThrow(() -> new BusinessNotFoundException(slug));
     }
 
     public Page<Business> listPublished(UUID categoryId, BusinessType businessType, Pageable pageable) {
         if (businessType != null) {
-            return businessRepository.findByStatusAndBusinessType(BusinessStatus.PUBLISHED, businessType, pageable);
+            return businessRepository.findByStatusAndBusinessType(PublicationStatus.PUBLISHED, businessType, pageable);
         }
         if (categoryId != null) {
-            return businessRepository.findByStatusAndCategoryId(BusinessStatus.PUBLISHED, categoryId, pageable);
+            return businessRepository.findByStatusAndCategoryId(PublicationStatus.PUBLISHED, categoryId, pageable);
         }
-        return businessRepository.findByStatus(BusinessStatus.PUBLISHED, pageable);
+        return businessRepository.findByStatus(PublicationStatus.PUBLISHED, pageable);
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que el resto de módulos.search (query en blanco: página vacía, no error). */
@@ -211,9 +175,9 @@ public class BusinessService {
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
-    public Map<BusinessStatus, Long> countByStatus() {
-        Map<BusinessStatus, Long> counts = new EnumMap<>(BusinessStatus.class);
-        for (BusinessStatus status : BusinessStatus.values()) {
+    public Map<PublicationStatus, Long> countByStatus() {
+        Map<PublicationStatus, Long> counts = new EnumMap<>(PublicationStatus.class);
+        for (PublicationStatus status : PublicationStatus.values()) {
             counts.put(status, businessRepository.countByStatus(status));
         }
         return counts;
@@ -261,30 +225,17 @@ public class BusinessService {
         return result;
     }
 
-    private void requireCanEdit(Business business, UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
-            if (!business.isEditable()) {
-                throw new InvalidBusinessTransitionException(business.getStatus(), "editar");
-            }
-            return;
-        }
-        if (!business.isOwnedBy(actingUserId)) {
+    private void requireCanEdit(Business business, UUID actingUserId, boolean canPublish) {
+        if (!canPublish && !business.isOwnedBy(actingUserId)) {
             throw new BusinessAccessDeniedException();
         }
-        if (business.getStatus() != BusinessStatus.DRAFT && business.getStatus() != BusinessStatus.REJECTED) {
-            throw new InvalidBusinessTransitionException(business.getStatus(), "editar");
+        boolean editable = canPublish ? business.isEditableByPublisher() : business.isEditableByCreator();
+        if (!editable) {
+            throw new InvalidPublicationTransitionException(business.getStatus(), "editar");
         }
     }
 
-    private void requireEditorOrAbove(Role role) {
-        if (!isEditorOrAbove(role)) {
-            throw new BusinessAccessDeniedException();
-        }
-    }
 
-    private boolean isEditorOrAbove(Role role) {
-        return role == Role.EDITOR || role == Role.ADMIN || role == Role.SUPER_ADMIN;
-    }
 
     private Business getOrThrow(UUID id) {
         return businessRepository.findById(id).orElseThrow(() -> new BusinessNotFoundException(id));
@@ -300,8 +251,21 @@ public class BusinessService {
         return candidate;
     }
 
+    private Business saveAndAudit(Business business, String action, UUID actingUserId) {
+        Business saved = businessRepository.save(business);
+        audit(action, saved, actingUserId);
+        return saved;
+    }
+
     private void audit(String action, Business business, UUID actingUserId) {
         auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "business", business.getId().toString(),
                 null);
+    }
+
+    /** Publicar, programar, devolver a borrador y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
+    private static void requirePublish(boolean canPublish) {
+        if (!canPublish) {
+            throw new PublishPermissionRequiredException();
+        }
     }
 }

@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.advertising;
 
+import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -8,19 +9,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.LegacyRole;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
@@ -28,8 +33,8 @@ import tools.jackson.databind.ObjectMapper;
 
 /**
  * Cubre el flujo completo de publicidad directa: crear anunciante + campaña,
- * resolverla como AdBlock haría antes de caer a AdSense (con conteo de
- * impresión), contar un clic con redirect, y las validaciones de negocio
+ * rotación pública (sin contar), impresión visible y clic válidos (sin
+ * robots ni duplicados), tope de frecuencia, reporte diario, y las validaciones de negocio
  * (creatividad XOR, vigencia, borrado de anunciante con campañas activas).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -48,10 +53,16 @@ class CampaignWorkflowIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private WorkerPermissionRepository workerPermissions;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private StringRedisTemplate redis;
+
     @Test
-    void campaignIsServedToPublicAndCountsImpressionsAndClicks() throws Exception {
+    void campaignIsServedToPublicAndCountsViewableImpressionsAndValidClicks() throws Exception {
         String adminToken = createUserAndLogin("ads-admin-1@plataforma-contenidos.test");
         String placementKey = createAdPlacement(adminToken);
         String advertiserId = createAdvertiser(adminToken, "Panadería La Espiga");
@@ -62,41 +73,188 @@ class CampaignWorkflowIntegrationTest {
                         .content(campaignJson(advertiserId, placementKey, "https://example.com/banner.jpg", null)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.impressionCount").value(0))
+                .andExpect(jsonPath("$.weight").value(5))
                 .andReturn();
         String campaignId = textField(created, "id");
 
         // Sin campaña vigente para otra posición: 204.
-        mockMvc.perform(get("/api/v1/ads/campaigns/active").param("placementKey", "posicion-inexistente"))
+        mockMvc.perform(get("/api/v1/ads/campaigns/rotation").param("placementKey", "posicion-inexistente"))
                 .andExpect(status().isNoContent());
 
-        // AdBlock resuelve la posición real: 200 y cuenta como impresión.
-        mockMvc.perform(get("/api/v1/ads/campaigns/active").param("placementKey", placementKey))
+        // La rotación trae la medida de la posición y las campañas, sin contar impresión.
+        mockMvc.perform(get("/api/v1/ads/campaigns/rotation").param("placementKey", placementKey))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(campaignId))
-                .andExpect(jsonPath("$.externalImageUrl").value("https://example.com/banner.jpg"));
+                .andExpect(jsonPath("$.width").value(300))
+                .andExpect(jsonPath("$.height").value(250))
+                .andExpect(jsonPath("$.campaigns[0].id").value(campaignId))
+                .andExpect(jsonPath("$.campaigns[0].externalImageUrl").value("https://example.com/banner.jpg"));
+        expectCounts(adminToken, campaignId, 0, 0);
 
-        mockMvc.perform(get("/api/v1/admin/campaigns/" + campaignId)
+        // Vista real informada por el navegador: cuenta. Repetida al instante o desde un robot: no.
+        mockMvc.perform(post("/api/v1/ads/campaigns/" + campaignId + "/impression").with(visitor("203.0.113.10", BROWSER)))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(post("/api/v1/ads/campaigns/" + campaignId + "/impression").with(visitor("203.0.113.10", BROWSER)))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(post("/api/v1/ads/campaigns/" + campaignId + "/impression").with(visitor("203.0.113.11", BOT)))
+                .andExpect(status().isNoContent());
+        expectCounts(adminToken, campaignId, 1, 0);
+
+        // Clic: siempre redirige al link real; solo el primero de la persona cuenta.
+        for (int i = 0; i < 2; i++) {
+            mockMvc.perform(get("/api/v1/ads/campaigns/" + campaignId + "/click").with(visitor("203.0.113.10", BROWSER)))
+                    .andExpect(status().isFound())
+                    .andExpect(header().string("Location", "https://laespiga.example.com"));
+        }
+        expectCounts(adminToken, campaignId, 1, 1);
+
+        // Reporte diario para el anunciante.
+        mockMvc.perform(get("/api/v1/admin/campaigns/" + campaignId + "/stats")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.impressionCount").value(1))
-                .andExpect(jsonPath("$.clickCount").value(0));
-
-        // El lector hace clic: redirect 302 al link real, nunca expuesto antes en el HTML.
-        mockMvc.perform(get("/api/v1/ads/campaigns/" + campaignId + "/click"))
-                .andExpect(status().isFound())
-                .andExpect(header().string("Location", "https://laespiga.example.com"));
-
-        mockMvc.perform(get("/api/v1/admin/campaigns/" + campaignId)
-                        .header("Authorization", "Bearer " + adminToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.clickCount").value(1));
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].impressions").value(1))
+                .andExpect(jsonPath("$[0].clicks").value(1));
 
         // Desactivada, deja de servirse.
         mockMvc.perform(post("/api/v1/admin/campaigns/" + campaignId + "/deactivate")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk());
-        mockMvc.perform(get("/api/v1/ads/campaigns/active").param("placementKey", placementKey))
+        mockMvc.perform(get("/api/v1/ads/campaigns/rotation").param("placementKey", placementKey))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void visitorWhoReachedTheDailyFrequencyCapStopsSeeingTheCampaign() throws Exception {
+        String adminToken = createUserAndLogin("ads-admin-6@plataforma-contenidos.test");
+        String placementKey = createAdPlacement(adminToken);
+        String advertiserId = createAdvertiser(adminToken, "Pollería El Dorado");
+        MvcResult created = mockMvc.perform(post("/api/v1/admin/campaigns")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(campaignJson(advertiserId, placementKey, "https://example.com/banner.jpg", null)))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String campaignId = textField(created, "id");
+
+        String capped = "198.51.100.7";
+        redis.opsForValue().set("ads:freq:" + LocalDate.now(ZoneOffset.UTC) + ":" + campaignId + ":"
+                + AdDeliveryGuard.visitorKey(capped), String.valueOf(AdDeliveryGuard.DAILY_FREQUENCY_CAP));
+
+        mockMvc.perform(get("/api/v1/ads/campaigns/rotation").param("placementKey", placementKey)
+                        .with(visitor(capped, BROWSER)))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/v1/ads/campaigns/rotation").param("placementKey", placementKey)
+                        .with(visitor("198.51.100.8", BROWSER)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.campaigns[0].id").value(campaignId));
+    }
+
+    @Test
+    void campaignWeightMustBeBetweenOneAndTen() throws Exception {
+        String adminToken = createUserAndLogin("ads-admin-7@plataforma-contenidos.test");
+        String placementKey = createAdPlacement(adminToken);
+        String advertiserId = createAdvertiser(adminToken, "Botica Santa Rosa");
+        String body = campaignJson(advertiserId, placementKey, "https://example.com/banner.jpg", null);
+
+        mockMvc.perform(post("/api/v1/admin/campaigns")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body.replace("}", ",\"weight\":11}")))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/v1/admin/campaigns")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body.replace("}", ",\"weight\":9}")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.weight").value(9));
+    }
+
+    @Test
+    void contextualTargetingPutsTheMatchingCampaignFirstAndHidesItElsewhere() throws Exception {
+        String adminToken = createUserAndLogin("ads-admin-8@plataforma-contenidos.test");
+        String placementKey = createAdPlacement(adminToken);
+        String advertiserId = createAdvertiser(adminToken, "Hostal Plaza");
+        String everywhere = textField(mockMvc.perform(post("/api/v1/admin/campaigns")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(campaignJson(advertiserId, placementKey, "https://example.com/a.jpg", null)))
+                .andExpect(status().isCreated()).andReturn(), "id");
+        String placesInPeru = textField(mockMvc.perform(post("/api/v1/admin/campaigns")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(campaignJson(advertiserId, placementKey, "https://example.com/b.jpg", null)
+                                .replace("}", ",\"targetSections\":[\"PLACE\"],\"targetCountries\":[\"pe\"]}")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.targetSections[0]").value("PLACE"))
+                .andExpect(jsonPath("$.targetCountries[0]").value("PE"))
+                .andReturn(), "id");
+
+        // En Lugares, desde Perú: la segmentada va primero (más específica), la general después.
+        mockMvc.perform(get("/api/v1/ads/campaigns/rotation").param("placementKey", placementKey)
+                        .param("section", "PLACE").header("CF-IPCountry", "PE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.campaigns.length()").value(2))
+                .andExpect(jsonPath("$.campaigns[0].id").value(placesInPeru))
+                .andExpect(jsonPath("$.campaigns[1].id").value(everywhere));
+
+        // En Eventos, o sin saber el país del visitante: solo la general.
+        mockMvc.perform(get("/api/v1/ads/campaigns/rotation").param("placementKey", placementKey)
+                        .param("section", "EVENT").header("CF-IPCountry", "PE"))
+                .andExpect(jsonPath("$.campaigns.length()").value(1))
+                .andExpect(jsonPath("$.campaigns[0].id").value(everywhere));
+        mockMvc.perform(get("/api/v1/ads/campaigns/rotation").param("placementKey", placementKey)
+                        .param("section", "PLACE"))
+                .andExpect(jsonPath("$.campaigns.length()").value(1));
+    }
+
+    @Test
+    void placementAcceptsAtMostFiveCompetingCampaignsForTheSameAudience() throws Exception {
+        String adminToken = createUserAndLogin("ads-admin-9@plataforma-contenidos.test");
+        String placementKey = createAdPlacement(adminToken);
+        String advertiserId = createAdvertiser(adminToken, "Agencia Wari Tours");
+        String body = campaignJson(advertiserId, placementKey, "https://example.com/a.jpg", null);
+        for (int i = 0; i < CampaignService.MAX_COMPETING_CAMPAIGNS; i++) {
+            mockMvc.perform(post("/api/v1/admin/campaigns").header("Authorization", "Bearer " + adminToken)
+                            .contentType(MediaType.APPLICATION_JSON).content(body))
+                    .andExpect(status().isCreated());
+        }
+        // La sexta para el mismo público y fechas: cupo lleno.
+        mockMvc.perform(post("/api/v1/admin/campaigns").header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isConflict());
+        // Un público que no se cruza (otra sección, cuando las 5 son solo de Eventos) sí entra.
+        String eventsOnly = createAdPlacement(adminToken);
+        String eventsBody = campaignJson(advertiserId, eventsOnly, "https://example.com/a.jpg", null)
+                .replace("}", ",\"targetSections\":[\"EVENT\"]}");
+        for (int i = 0; i < CampaignService.MAX_COMPETING_CAMPAIGNS; i++) {
+            mockMvc.perform(post("/api/v1/admin/campaigns").header("Authorization", "Bearer " + adminToken)
+                            .contentType(MediaType.APPLICATION_JSON).content(eventsBody))
+                    .andExpect(status().isCreated());
+        }
+        mockMvc.perform(post("/api/v1/admin/campaigns").header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(eventsBody.replace("EVENT", "PLACE")))
+                .andExpect(status().isCreated());
+    }
+
+    private static final String BROWSER =
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36";
+    private static final String BOT = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
+
+    private static RequestPostProcessor visitor(String ip, String userAgent) {
+        return request -> {
+            request.setRemoteAddr(ip);
+            request.addHeader("User-Agent", userAgent);
+            return request;
+        };
+    }
+
+    private void expectCounts(String adminToken, String campaignId, long impressions, long clicks) throws Exception {
+        mockMvc.perform(get("/api/v1/admin/campaigns/" + campaignId)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.impressionCount").value(impressions))
+                .andExpect(jsonPath("$.clickCount").value(clicks));
     }
 
     @Test
@@ -241,8 +399,8 @@ class CampaignWorkflowIntegrationTest {
 
     private String createUserAndLogin(String email) throws Exception {
         String password = "SomeStrongPassword123!";
-        userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "Admin", Role.ADMIN));
-
+        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "Admin", LegacyRole.ADMIN.toRole()));
+        LegacyRole.ADMIN.grant(workerPermissions, created.getId());
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))

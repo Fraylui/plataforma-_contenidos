@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { AdminButton, Dialog, DialogContent, DialogDescription, DialogTitle, formInputClass } from "@/components/admin/ui";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/admin/ui";
+import { Button, TextInput } from "@/components/ui";
 
 /**
  * Modal para insertar/editar el enlace de un texto seleccionado — antes
@@ -50,19 +51,18 @@ export function LinkInsertDialog({
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">
           <label className="block">
             <span className="mb-1 block text-xs font-medium text-muted">URL</span>
-            <input
+            <TextInput
               type="url"
               autoFocus
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://…"
-              className={formInputClass}
             />
           </label>
 
           <div className="flex items-center justify-between gap-2">
             {currentUrl ? (
-              <AdminButton
+              <Button
                 type="button"
                 variant="secondary"
                 onClick={() => {
@@ -71,17 +71,17 @@ export function LinkInsertDialog({
                 }}
               >
                 Quitar enlace
-              </AdminButton>
+              </Button>
             ) : (
               <span />
             )}
             <div className="flex gap-2">
-              <AdminButton type="button" variant="secondary" onClick={() => onOpenChange(false)}>
+              <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
                 Cancelar
-              </AdminButton>
-              <AdminButton type="submit" disabled={!url.trim()}>
+              </Button>
+              <Button type="submit" disabled={!url.trim()}>
                 {currentUrl ? "Guardar" : "Insertar"}
-              </AdminButton>
+              </Button>
             </div>
           </div>
         </form>

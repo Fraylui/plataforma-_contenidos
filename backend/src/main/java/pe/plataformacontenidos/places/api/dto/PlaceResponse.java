@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import pe.plataformacontenidos.places.Place;
-import pe.plataformacontenidos.places.PlaceStatus;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import pe.plataformacontenidos.shared.ContentImageResponse;
 import pe.plataformacontenidos.shared.ContentVideoResponse;
 
@@ -14,7 +14,7 @@ public record PlaceResponse(
         String name,
         String excerpt,
         String body,
-        PlaceStatus status,
+        PublicationStatus status,
         UUID authorId,
         UUID categoryId,
         Double latitude,
@@ -26,7 +26,7 @@ public record PlaceResponse(
         String ogImageUrl,
         List<ContentVideoResponse> videos,
         String robots,
-        String rejectionReason,
+        String reviewNote,
         Instant publishedAt,
         Instant scheduledAt,
         Instant createdAt,
@@ -39,7 +39,7 @@ public record PlaceResponse(
                 place.getImages().stream().map(ContentImageResponse::from).toList(), place.getSeoTitle(),
                 place.getMetaDescription(), place.getCanonicalUrl(), place.getOgImageUrl(),
                 place.getVideos().stream().map(ContentVideoResponse::from).toList(), place.getRobots(),
-                place.getRejectionReason(), place.getPublishedAt(), place.getScheduledAt(), place.getCreatedAt(),
+                place.getReviewNote(), place.getPublishedAt(), place.getScheduledAt(), place.getCreatedAt(),
                 likeCount);
     }
 

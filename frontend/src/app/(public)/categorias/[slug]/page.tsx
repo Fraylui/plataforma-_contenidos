@@ -1,27 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  getCategoryBySlug,
-  listPublishedArticles,
-  listPublishedBusinesses,
-  listPublishedEvents,
-  listPublishedGalleries,
-  listPublishedPlaces,
-} from "@/lib/api/client";
-import { ArticleCard } from "@/components/article/article-card";
-import { PlaceCard } from "@/components/place/place-card";
-import { EventCard } from "@/components/event/event-card";
-import { GalleryCard } from "@/components/gallery/gallery-card";
-import { BusinessCard } from "@/components/directory/business-card";
-import { Pagination } from "@/components/ui/pagination";
-import { ListingHeader } from "@/components/layout/listing-header";
-
-const FEATURED_PLACES_SIZE = 4;
-const UPCOMING_EVENTS_SIZE = 3;
-const FEATURED_GALLERIES_SIZE = 3;
-const FEATURED_BUSINESSES_SIZE = 3;
-const ARTICLES_PAGE_SIZE = 24;
+import { getCategoryBySlug } from "@/lib/api/client";
+import { FeedScreen } from "@/components/feed/feed-screen";
 
 export async function generateMetadata(props: PageProps<"/categorias/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -37,119 +17,27 @@ export async function generateMetadata(props: PageProps<"/categorias/[slug]">): 
   };
 }
 
+/**
+ * Tema = el feed del inicio filtrado por tema (incluye sus subtemas), con su
+ * círculo activo y un encabezado con nombre y descripción, como la página
+ * de un hashtag en Instagram. Un subtema marca el círculo de su tema raíz
+ * (los círculos son solo temas raíz).
+ */
 export default async function CategoryPage(props: PageProps<"/categorias/[slug]">) {
   const { slug } = await props.params;
-  const { page: pageParam } = await props.searchParams;
-  const page = typeof pageParam === "string" ? Math.max(0, parseInt(pageParam, 10) || 0) : 0;
-
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
-  const [placesResult, eventsResult, galleriesResult, businessesResult, articlesResult] =
-    await Promise.all([
-      listPublishedPlaces({ categoryId: category.id, size: FEATURED_PLACES_SIZE }),
-      listPublishedEvents({ categoryId: category.id, when: "upcoming", size: UPCOMING_EVENTS_SIZE }),
-      listPublishedGalleries({ categoryId: category.id, size: FEATURED_GALLERIES_SIZE }),
-      listPublishedBusinesses({ categoryId: category.id, size: FEATURED_BUSINESSES_SIZE }),
-      listPublishedArticles({ categoryId: category.id, page, size: ARTICLES_PAGE_SIZE }),
-    ]);
-
-  // Resumen real de lo que hay en el tema ("10 lugares · 3 eventos …"): a la
-  // derecha del título, en la misma franja (ver ListingHeader).
-  const categorySummary = [
-    [articlesResult.totalElements, "publicación", "publicaciones"],
-    [placesResult.totalElements, "lugar", "lugares"],
-    [eventsResult.totalElements, "evento próximo", "eventos próximos"],
-    [galleriesResult.totalElements, "galería", "galerías"],
-    [businessesResult.totalElements, "negocio", "negocios"],
-  ]
-    .filter(([n]) => (n as number) > 0)
-    .map(([n, one, many]) => `${n} ${n === 1 ? one : many}`)
-    .join(" · ");
-
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <nav aria-label="Breadcrumb" className="text-xs text-muted">
-        <ol className="flex flex-wrap items-center gap-1.5">
-          <li>
-            <Link href="/" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-              Inicio
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li className="text-foreground/80" aria-current="page">
-            {category.name}
-          </li>
-        </ol>
-      </nav>
-
-      <div className="mt-3">
-        <ListingHeader title={category.name} description={category.description} count={categorySummary} />
-      </div>
-
-      {placesResult.items.length > 0 && (
-        <section className="mt-12" aria-label="Lugares">
-          <h2 className="text-xl font-semibold text-foreground">Lugares</h2>
-          <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {placesResult.items.map((place) => (
-              <PlaceCard key={place.id} place={place} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {eventsResult.items.length > 0 && (
-        <section className="mt-12" aria-label="Próximos eventos">
-          <h2 className="text-xl font-semibold text-foreground">Próximos eventos</h2>
-          <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {eventsResult.items.map((event) => (
-              <EventCard key={event.id} event={event} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {galleriesResult.items.length > 0 && (
-        <section className="mt-12" aria-label="Galerías">
-          <h2 className="text-xl font-semibold text-foreground">Galerías</h2>
-          <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {galleriesResult.items.map((gallery) => (
-              <GalleryCard key={gallery.id} gallery={gallery} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {businessesResult.items.length > 0 && (
-        <section className="mt-12" aria-label="Directorio">
-          <h2 className="text-xl font-semibold text-foreground">Directorio</h2>
-          <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {businessesResult.items.map((business) => (
-              <BusinessCard key={business.id} business={business} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="mt-12" aria-label="Publicaciones">
-        <h2 className="text-xl font-semibold text-foreground">Publicaciones</h2>
-        {articlesResult.items.length === 0 ? (
-          <p className="mt-4 rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">
-            Todavía no hay publicaciones en esta categoría.
-          </p>
-        ) : (
-          <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {articlesResult.items.map((article) => (
-              <ArticleCard key={article.id} article={article} />
-            ))}
-          </div>
-        )}
-        <Pagination
-          page={articlesResult.page}
-          totalPages={articlesResult.totalPages}
-          buildHref={(p) => `/categorias/${slug}?page=${p}`}
-        />
-      </section>
-    </div>
+    <FeedScreen
+      heading={category.name}
+      intro={{ title: category.name, description: category.description }}
+      filter={{ categoryId: category.id }}
+      // Ningún chip de tipo activo: el filtro de esta pantalla es el tema.
+      activePath={`/categorias/${slug}`}
+      activeCategoryId={category.parentId ?? category.id}
+      adSection="HOME"
+      emptyMessage={`Todavía no hay contenido en ${category.name}.`}
+    />
   );
 }

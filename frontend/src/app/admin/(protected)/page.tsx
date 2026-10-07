@@ -1,23 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  AlertTriangle,
-  Activity,
-  CheckCircle2,
-  Clock,
-  Eye,
-  FileText,
-  FolderTree,
-  History,
-  KeyRound,
-  ListTodo,
-  LogIn,
-  Pencil,
-  Plus,
-  Settings2,
-  Trash2,
-  type LucideIcon,
-} from "lucide-react";
+import type { Icon } from "@phosphor-icons/react";
+import { Warning, Pulse, CheckCircle, Clock, Eye, Article, TreeStructure, ClockCounterClockwise, Key, ListChecks, SignIn, PencilSimple, Plus, SlidersHorizontal, Trash } from "@phosphor-icons/react/dist/ssr";
 import { requireAdminUser } from "@/lib/admin/auth";
 import {
   getAdminStats,
@@ -31,14 +15,16 @@ import {
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { roleLabel } from "@/lib/admin/role-labels";
 import { visibleNavItems } from "@/lib/admin/nav";
-import { articleStatusLabel, articleStatusTone, formatPublishedDate, humanizeAuditAction } from "@/lib/content-labels";
-import { StatCard, StatusPill } from "@/components/admin/ui";
+import { publicationStatusLabel, publicationStatusTone, formatPublishedDate, humanizeAuditAction } from "@/lib/content-labels";
+import { StatCard } from "@/components/admin/ui";
 import { CreateNewMenu } from "@/components/admin/create-new-menu";
 import type { PlatformStats } from "@/lib/api/admin-types";
-import type { ArticleStatus } from "@/lib/api/types";
+import type { PublicationStatus } from "@/lib/api/types";
+import { Badge } from "@/components/ui";
+import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
 export const metadata: Metadata = {
-  title: "Panel administrativo",
+  title: "Panel",
   robots: "noindex,nofollow",
 };
 
@@ -54,12 +40,12 @@ interface ContentItem {
   id: string;
   title: string;
   typeLabel: string;
-  status: ArticleStatus;
+  status: PublicationStatus;
   createdAt: string;
   editHref: string;
 }
 
-function sumStatus(byStatus: Record<ArticleStatus, number>, statuses: ArticleStatus[]): number {
+function sumStatus(byStatus: Record<PublicationStatus, number>, statuses: PublicationStatus[]): number {
   return statuses.reduce((total, status) => total + (byStatus[status] ?? 0), 0);
 }
 
@@ -73,7 +59,7 @@ function summarize(stats: PlatformStats) {
   ];
   const published = allByStatus.reduce((total, byStatus) => total + sumStatus(byStatus, ["PUBLISHED"]), 0);
   const pending = allByStatus.reduce(
-    (total, byStatus) => total + sumStatus(byStatus, ["DRAFT", "IN_REVIEW", "APPROVED"]),
+    (total, byStatus) => total + sumStatus(byStatus, ["DRAFT", "IN_REVIEW", "SCHEDULED"]),
     0,
   );
   return { published, pending };
@@ -82,19 +68,19 @@ function summarize(stats: PlatformStats) {
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 /** Clasificación por palabra clave del texto real de auditoría — no depende de un enum cerrado en el frontend. */
-function auditActionIcon(action: string): { icon: LucideIcon; danger: boolean } {
+function auditActionIcon(action: string): { icon: Icon; danger: boolean } {
   const a = action.toUpperCase();
   if (a.includes("FAIL") || a.includes("INVALID") || a.includes("DENIED") || a.includes("ERROR")) {
-    return { icon: AlertTriangle, danger: true };
+    return { icon: Warning, danger: true };
   }
-  if (a.includes("LOGIN") || a.includes("LOGOUT")) return { icon: LogIn, danger: false };
-  if (a.includes("TOKEN")) return { icon: KeyRound, danger: false };
-  if (a.includes("SETTING")) return { icon: Settings2, danger: false };
-  if (a.includes("DELETE") || a.includes("REMOV")) return { icon: Trash2, danger: false };
+  if (a.includes("LOGIN") || a.includes("LOGOUT")) return { icon: SignIn, danger: false };
+  if (a.includes("TOKEN")) return { icon: Key, danger: false };
+  if (a.includes("SETTING")) return { icon: SlidersHorizontal, danger: false };
+  if (a.includes("DELETE") || a.includes("REMOV")) return { icon: Trash, danger: false };
   if (a.includes("CREATE")) return { icon: Plus, danger: false };
-  if (a.includes("UPDATE")) return { icon: Pencil, danger: false };
-  if (a.includes("PUBLISH")) return { icon: CheckCircle2, danger: false };
-  return { icon: Activity, danger: false };
+  if (a.includes("UPDATE")) return { icon: PencilSimple, danger: false };
+  if (a.includes("PUBLISH")) return { icon: CheckCircle, danger: false };
+  return { icon: Pulse, danger: false };
 }
 
 function auditDayLabel(iso: string): string {
@@ -110,10 +96,10 @@ function auditDayLabel(iso: string): string {
 
 export default async function AdminDashboardPage() {
   const { user, accessToken } = await requireAdminUser();
-  const allowedHrefs = new Set(visibleNavItems(user.role).map((item) => item.href));
+  const allowedHrefs = new Set(visibleNavItems(user).map((item) => item.href));
   const quickCreate = QUICK_CREATE.filter((item) => allowedHrefs.has(item.navHref));
   const canSeeStats = allowedHrefs.has("/admin/estadisticas");
-  const canSeeAudit = allowedHrefs.has("/admin/auditoria");
+  const canSeeAudit = allowedHrefs.has("/admin/actividad");
 
   const [statsResult, contentItems, auditResult] = await Promise.all([
     canSeeStats ? fetchOrAccessDenied(() => getAdminStats(accessToken)) : Promise.resolve(null),
@@ -147,7 +133,7 @@ export default async function AdminDashboardPage() {
           <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
             <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent">{roleLabel(user.role)}</span>
             <span>
-              {new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date())}
+              {new Intl.DateTimeFormat("es-PE", { timeZone: SITE_TIME_ZONE, weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date())}
             </span>
           </p>
         </div>
@@ -157,7 +143,7 @@ export default async function AdminDashboardPage() {
       {pendingReview.length > 0 && (
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3">
           <p className="flex items-center gap-2 text-sm font-medium text-accent">
-            <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+            <Warning className="h-4 w-4" aria-hidden="true" />
             {pendingReview.length} {pendingReview.length === 1 ? "publicación espera" : "publicaciones esperan"} revisión.
           </p>
           <Link
@@ -174,11 +160,11 @@ export default async function AdminDashboardPage() {
           <StatCard
             label="Publicado"
             value={summary.published}
-            icon={FileText}
+            icon={Article}
             trend={{ value: publishedThisWeek, label: "esta semana" }}
           />
           <StatCard label="Pendiente de revisión" value={summary.pending} icon={Clock} accent={summary.pending > 0} />
-          <StatCard label="Categorías activas" value={stats.activeCategories} icon={FolderTree} />
+          <StatCard label="Temas activos" value={stats.activeCategories} icon={TreeStructure} />
           <StatCard
             label="Publicado (30 días)"
             value={stats.articlesPublishedLast30Days}
@@ -197,15 +183,15 @@ export default async function AdminDashboardPage() {
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <FileText className="h-4 w-4 text-muted" aria-hidden="true" />
+            <Article className="h-4 w-4 text-muted" aria-hidden="true" />
             Contenido reciente
           </h2>
           {recentContent.length === 0 ? (
-            <p className="mt-3 rounded-xl border border-border/60 bg-surface px-4 py-6 text-center text-sm text-muted">
+            <p className="mt-3 rounded-card bg-surface shadow-card px-4 py-6 text-center text-sm text-muted">
               Todavía no hay contenido creado.
             </p>
           ) : (
-            <div className="mt-3 overflow-x-auto rounded-xl border border-border/60 bg-surface">
+            <div className="mt-3 overflow-x-auto rounded-card bg-surface shadow-card">
               <table className="w-full min-w-max text-left text-sm">
                 <thead className="border-b border-border/60 text-xs text-muted">
                   <tr>
@@ -225,7 +211,7 @@ export default async function AdminDashboardPage() {
                       </td>
                       <td className="px-4 py-2.5 text-muted">{item.typeLabel}</td>
                       <td className="px-4 py-2.5">
-                        <StatusPill tone={articleStatusTone(item.status)} label={articleStatusLabel(item.status)} />
+                        <Badge tone={publicationStatusTone(item.status)} dot>{publicationStatusLabel(item.status)}</Badge>
                       </td>
                       <td className="px-4 py-2.5 text-muted">{formatPublishedDate(item.createdAt)}</td>
                     </tr>
@@ -238,9 +224,9 @@ export default async function AdminDashboardPage() {
 
         <div className="space-y-6">
           {pendingReview.length > 0 && (
-            <div className="rounded-xl border border-border/60 bg-surface p-4">
+            <div className="rounded-card bg-surface shadow-card p-4">
               <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <ListTodo className="h-4 w-4 text-muted" aria-hidden="true" />
+                <ListChecks className="h-4 w-4 text-muted" aria-hidden="true" />
                 Pendientes de revisión
               </h2>
               <ul className="mt-3 space-y-1.5">
@@ -260,9 +246,9 @@ export default async function AdminDashboardPage() {
           )}
 
           {canSeeAudit && (
-            <div className="rounded-xl border border-border/60 bg-surface p-4">
+            <div className="rounded-card bg-surface shadow-card p-4">
               <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <History className="h-4 w-4 text-muted" aria-hidden="true" />
+                <ClockCounterClockwise className="h-4 w-4 text-muted" aria-hidden="true" />
                 Actividad reciente del sistema
               </h2>
               {auditEvents.length === 0 ? (
@@ -298,7 +284,7 @@ export default async function AdminDashboardPage() {
                   })}
                 </ul>
               )}
-              <Link href="/admin/auditoria" className="mt-3 inline-block text-sm font-medium text-accent hover:underline">
+              <Link href="/admin/actividad" className="mt-3 inline-block text-sm font-medium text-accent hover:underline">
                 Ver auditoría completa →
               </Link>
             </div>

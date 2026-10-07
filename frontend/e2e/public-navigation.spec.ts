@@ -1,23 +1,29 @@
 import { test, expect } from "@playwright/test";
 
+/** Escapa todo lo especial de una expresión regular (CodeQL: escapar solo "/" quedaba incompleto). */
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+}
+
 /**
- * E2E del recorrido público real: home -> listado -> detalle -> me gusta,
- * y las páginas de índice de cada tipo de contenido. Corre contra el stack
+ * E2E del recorrido público real (diseño estilo red social 2026-10-06):
+ * inicio -> sección (feed filtrado) -> post -> me gusta, y las pantallas de
+ * cada tipo de contenido. Corre contra el stack
  * completo (frontend + backend + Postgres + Redis reales), no mocks.
  */
 test.describe("Navegación pública", () => {
-  test("home carga y ofrece navegación a las secciones principales", async ({ page }) => {
+  test("inicio carga con la navegación tipo app (riel o barra inferior) y el feed", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveTitle(/.+/);
-    await expect(page.locator("header")).toBeVisible();
-    await expect(page.locator("footer")).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Principal" }).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.locator("article").first()).toBeVisible();
   });
 
-  test("listado de publicaciones muestra tarjetas y pagina", async ({ page }) => {
+  test("Publicaciones es el feed filtrado: chip activo y posts enlazados", async ({ page }) => {
     await page.goto("/publicaciones");
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    const cards = page.locator("article, a[href^='/publicaciones/']").first();
-    await expect(cards).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await expect(page.getByRole("link", { name: "Publicaciones", exact: true }).and(page.locator("[aria-current='page']")).first()).toBeAttached();
+    await expect(page.locator("a[href^='/publicaciones/']").first()).toBeVisible();
   });
 
   test("desde el listado se navega al detalle de una publicación", async ({ page }) => {
@@ -25,7 +31,7 @@ test.describe("Navegación pública", () => {
     const firstLink = page.locator("a[href^='/publicaciones/']").first();
     const href = await firstLink.getAttribute("href");
     await firstLink.click();
-    await expect(page).toHaveURL(new RegExp(href!.replace(/[/]/g, "\\/")));
+    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(href!)}$`));
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
 
@@ -49,17 +55,24 @@ test.describe("Navegación pública", () => {
 
   for (const [path, label] of [
     ["/lugares", "Lugares"],
-    ["/eventos", "Eventos"],
+    ["/eventos", "Agenda"],
     ["/galerias", "Galerías"],
-    ["/resenas", "Reseñas"],
     ["/directorio", "Directorio"],
+    ["/explorar", "Explorar"],
   ] as const) {
-    test(`índice de ${label} responde 200 y muestra encabezado`, async ({ page }) => {
+    test(`${label} responde 200 con su encabezado y sin patrones de diario`, async ({ page }) => {
       const response = await page.goto(path);
       expect(response?.status()).toBe(200);
-      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+      await expect(page.getByText("Filtrar por tema")).toHaveCount(0);
     });
   }
+
+  test("las URLs viejas con ?page= siguen respondiendo (canonical a la sección)", async ({ page }) => {
+    const response = await page.goto("/lugares?page=2");
+    expect(response?.status()).toBe(200);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/lugares$/);
+  });
 
   test("buscador devuelve resultados relevantes", async ({ page }) => {
     await page.goto("/buscar?q=ayacucho");
@@ -67,11 +80,12 @@ test.describe("Navegación pública", () => {
     await page.waitForLoadState("networkidle");
   });
 
-  test("una categoría real muestra sus publicaciones", async ({ page, request }) => {
+  test("un tema muestra su encabezado y su círculo activo", async ({ page, request }) => {
     const categories = await (await request.get("http://localhost:8080/api/v1/categories")).json();
     const slug = categories[0].slug;
     await page.goto(`/categorias/${slug}`);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.locator(`a[href="/categorias/${slug}"][aria-current="page"]`).first()).toBeAttached();
   });
 
   test("ruta inexistente muestra 404", async ({ page }) => {

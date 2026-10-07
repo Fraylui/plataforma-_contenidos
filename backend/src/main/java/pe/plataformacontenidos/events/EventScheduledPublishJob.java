@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
 /** Publica eventos SCHEDULED cuya fecha ya pasó. Corre cada minuto, igual que PlaceScheduledPublishJob. */
 @Component
@@ -25,9 +26,9 @@ public class EventScheduledPublishJob {
 
     @Scheduled(fixedDelay = 60_000)
     public void publishDueEvents() {
-        List<Event> due = eventRepository.findByStatusAndScheduledAtBefore(EventStatus.SCHEDULED, Instant.now());
+        List<Event> due = eventRepository.findByStatusAndScheduledAtBefore(PublicationStatus.SCHEDULED, Instant.now());
         for (Event event : due) {
-            event.publishFromSchedule();
+            event.publishFromSchedule(Instant.now());
             eventRepository.save(event);
             auditService.record("EVENT_PUBLISHED_FROM_SCHEDULE", AuditResult.SUCCESS, null, null,
                     "event", event.getId().toString(), null);

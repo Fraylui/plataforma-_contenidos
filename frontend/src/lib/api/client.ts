@@ -7,7 +7,6 @@ import { PUBLIC_CONTENT_TAG } from "@/lib/cache-tags";
 import type {
   AdPlacement,
   Article,
-  ArticleNeighbors,
   ArticleSummary,
   Business,
   BusinessSummary,
@@ -18,6 +17,7 @@ import type {
   FeedItem,
   FeedItemType,
   FeedPage,
+  FeedTopic,
   Gallery,
   GallerySummary,
   PageResponse,
@@ -93,11 +93,6 @@ export function getPublishedArticleBySlug(slug: string): Promise<Article> {
   return apiFetch(`/api/v1/articles/${encodeURIComponent(slug)}`, 300);
 }
 
-/** Navegación anterior/siguiente en la vista de lectura — ver ArticlePublicController.getNeighbors. */
-export function getArticleNeighbors(slug: string): Promise<ArticleNeighbors> {
-  return apiFetch(`/api/v1/articles/${encodeURIComponent(slug)}/neighbors`, 300);
-}
-
 const SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en ArticlePublicController
 const SITEMAP_MAX_PAGES = 200; // tope de seguridad: 10 000 artículos
 
@@ -112,7 +107,7 @@ export async function listAllPublishedArticlesForSitemap(): Promise<ArticleSumma
   return items;
 }
 
-export function listPublishedPlaces(params?: {
+function listPublishedPlaces(params?: {
   categoryId?: string;
   page?: number;
   size?: number;
@@ -188,7 +183,7 @@ export async function listAllPublishedEventsForSitemap(): Promise<EventSummary[]
   return items;
 }
 
-export function listPublishedGalleries(params?: {
+function listPublishedGalleries(params?: {
   categoryId?: string;
   page?: number;
   size?: number;
@@ -216,7 +211,7 @@ export async function listAllPublishedGalleriesForSitemap(): Promise<GallerySumm
   return items;
 }
 
-export function listPublishedBusinesses(params?: {
+function listPublishedBusinesses(params?: {
   categoryId?: string;
   businessType?: BusinessType;
   page?: number;
@@ -294,12 +289,28 @@ export function getTopLiked(size = 5): Promise<FeedItem[]> {
   return apiFetch(`/api/v1/feed/top?size=${size}`, 60);
 }
 
-export function getFeed(params: { size?: number; exclude?: string[]; seed?: string }): Promise<FeedPage> {
+export function getFeed(params: {
+  size?: number;
+  exclude?: string[];
+  seed?: string;
+  type?: FeedItemType;
+  categoryId?: string;
+  /** Agenda: con type EVENT, próximos por fecha de inicio. */
+  sort?: "upcoming";
+}): Promise<FeedPage> {
   const query = new URLSearchParams();
   query.set("size", String(params.size ?? 12));
   if (params.seed) query.set("seed", params.seed);
+  if (params.type) query.set("type", params.type);
+  if (params.categoryId) query.set("categoryId", params.categoryId);
+  if (params.sort) query.set("sort", params.sort);
   for (const id of params.exclude ?? []) query.append("exclude", id);
   return apiFetch(`/api/v1/feed?${query.toString()}`, 60);
+}
+
+/** Círculos de temas del feed — ver FeedController.getTopics. Si falla, el feed sigue sin círculos. */
+export function getFeedTopics(): Promise<FeedTopic[]> {
+  return apiFetch("/api/v1/feed/topics", 60);
 }
 
 /**
@@ -307,7 +318,7 @@ export function getFeed(params: { size?: number; exclude?: string[]; seed?: stri
  * `categoryId` viene del propio recurso que la página de detalle ya cargó
  * (no hace falta otra consulta para resolverlo).
  */
-export function getFeedRelated(params: {
+function getFeedRelated(params: {
   excludeType: FeedItemType;
   excludeId: string;
   categoryId: string | null;

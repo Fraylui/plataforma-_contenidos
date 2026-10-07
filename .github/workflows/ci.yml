@@ -144,9 +144,15 @@ jobs:
         working-directory: frontend
         run: npm run lint
 
+      - name: Unused files and exports (knip)
+        working-directory: frontend
+        run: npm run lint:unused
+
       - name: Typecheck
         working-directory: frontend
-        run: npx tsc --noEmit
+        # PageProps/LayoutProps son tipos globales que genera Next; en un clon
+        # limpio no existen hasta generarlos (fallaba desde 2026-09).
+        run: npx next typegen && npx tsc --noEmit
 
       - name: Unit tests
         working-directory: frontend

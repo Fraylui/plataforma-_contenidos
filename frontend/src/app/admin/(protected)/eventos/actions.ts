@@ -1,27 +1,21 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
-  approveEvent,
-  archiveEvent,
   createEvent,
-  publishEvent,
-  rejectEvent,
-  scheduleEvent,
-  submitEvent,
   updateEvent,
 } from "@/lib/api/admin-client";
 import type { EventInput } from "@/lib/api/admin-types";
-import { runAdminMutation, type ActionResult } from "@/lib/admin/action-helpers";
+import { runAdminMutation, type ActionResult, type MutationResult } from "@/lib/admin/action-helpers";
 
 export type { ActionResult };
 
-export async function createEventAction(input: EventInput): Promise<ActionResult> {
+/** Crea el borrador y devuelve su id, sin redirigir (el compositor cambia la URL sin recargar). */
+export async function createEventAction(input: EventInput): Promise<MutationResult<{ id: string }>> {
   const result = await runAdminMutation((token) => createEvent(token, input));
   if (!result.ok) return result;
   revalidatePath("/admin/eventos");
-  redirect(`/admin/eventos/${result.data.id}`);
+  return { ok: true, data: { id: result.data.id } };
 }
 
 export async function updateEventAction(id: string, input: EventInput): Promise<ActionResult> {
@@ -33,38 +27,3 @@ export async function updateEventAction(id: string, input: EventInput): Promise<
   return result;
 }
 
-export async function submitEventAction(id: string): Promise<ActionResult> {
-  return runWorkflowAction(id, submitEvent);
-}
-
-export async function approveEventAction(id: string): Promise<ActionResult> {
-  return runWorkflowAction(id, approveEvent);
-}
-
-export async function rejectEventAction(id: string, reason: string): Promise<ActionResult> {
-  return runWorkflowAction(id, (token) => rejectEvent(token, id, reason));
-}
-
-export async function publishEventAction(id: string): Promise<ActionResult> {
-  return runWorkflowAction(id, publishEvent);
-}
-
-export async function scheduleEventAction(id: string, scheduledAtIso: string): Promise<ActionResult> {
-  return runWorkflowAction(id, (token) => scheduleEvent(token, id, scheduledAtIso));
-}
-
-export async function archiveEventAction(id: string): Promise<ActionResult> {
-  return runWorkflowAction(id, archiveEvent);
-}
-
-async function runWorkflowAction(
-  id: string,
-  call: (token: string, id: string) => Promise<unknown>,
-): Promise<ActionResult> {
-  const result = await runAdminMutation((token) => call(token, id));
-  if (result.ok) {
-    revalidatePath("/admin/eventos");
-    revalidatePath(`/admin/eventos/${id}`);
-  }
-  return result;
-}

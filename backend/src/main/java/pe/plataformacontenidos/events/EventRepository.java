@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.events;
 
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -12,15 +13,15 @@ import org.springframework.data.repository.query.Param;
 
 public interface EventRepository extends JpaRepository<Event, UUID> {
 
-    Optional<Event> findBySlugAndStatus(String slug, EventStatus status);
+    Optional<Event> findBySlugAndStatus(String slug, PublicationStatus status);
 
     boolean existsBySlug(String slug);
 
     List<Event> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 
-    List<Event> findByStatusAndScheduledAtBefore(EventStatus status, Instant threshold);
+    List<Event> findByStatusAndScheduledAtBefore(PublicationStatus status, Instant threshold);
 
-    long countByStatus(EventStatus status);
+    long countByStatus(PublicationStatus status);
 
     /**
      * Eventos próximos (starts_at >= now), del más cercano al más lejano —
@@ -34,7 +35,7 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
             AND (:categoryId IS NULL OR e.categoryId = :categoryId)
             ORDER BY e.startsAt ASC
             """)
-    Page<Event> findUpcoming(@Param("status") EventStatus status, @Param("now") Instant now,
+    Page<Event> findUpcoming(@Param("status") PublicationStatus status, @Param("now") Instant now,
             @Param("categoryId") UUID categoryId, Pageable pageable);
 
     /** Eventos pasados (starts_at < now), del más reciente al más antiguo. */
@@ -43,7 +44,7 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
             AND (:categoryId IS NULL OR e.categoryId = :categoryId)
             ORDER BY e.startsAt DESC
             """)
-    Page<Event> findPast(@Param("status") EventStatus status, @Param("now") Instant now,
+    Page<Event> findPast(@Param("status") PublicationStatus status, @Param("now") Instant now,
             @Param("categoryId") UUID categoryId, Pageable pageable);
 
     /**

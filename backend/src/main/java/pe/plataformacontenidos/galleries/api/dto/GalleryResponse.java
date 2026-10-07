@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import pe.plataformacontenidos.galleries.Gallery;
-import pe.plataformacontenidos.galleries.GalleryStatus;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import pe.plataformacontenidos.shared.ContentImageResponse;
 
 public record GalleryResponse(
@@ -12,7 +12,7 @@ public record GalleryResponse(
         String slug,
         String title,
         String excerpt,
-        GalleryStatus status,
+        PublicationStatus status,
         UUID authorId,
         UUID categoryId,
         List<ContentImageResponse> images,
@@ -21,7 +21,7 @@ public record GalleryResponse(
         String canonicalUrl,
         String ogImageUrl,
         String robots,
-        String rejectionReason,
+        String reviewNote,
         Instant publishedAt,
         Instant scheduledAt,
         Instant createdAt,
@@ -32,7 +32,7 @@ public record GalleryResponse(
                 gallery.getStatus(), gallery.getAuthorId(), gallery.getCategoryId(),
                 gallery.getImages().stream().map(ContentImageResponse::from).toList(), gallery.getSeoTitle(),
                 gallery.getMetaDescription(), gallery.getCanonicalUrl(), gallery.getOgImageUrl(),
-                gallery.getRobots(), gallery.getRejectionReason(), gallery.getPublishedAt(),
+                gallery.getRobots(), gallery.getReviewNote(), gallery.getPublishedAt(),
                 gallery.getScheduledAt(), gallery.getCreatedAt(), likeCount);
     }
 

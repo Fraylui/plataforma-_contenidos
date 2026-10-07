@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["lighthouserc.js", "tests/load/*.js"],
+  "ignoreDependencies": ["postcss", "k6"],
+  "ignoreExportsUsedInFile": true
+}

@@ -2,15 +2,34 @@
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Search } from "lucide-react";
+import {
+  ArrowRight,
+  Buildings,
+  CalendarBlank,
+  CircleNotch,
+  ImagesSquare,
+  MagnifyingGlass,
+  MapPin,
+  Notepad,
+  X,
+  type Icon,
+} from "@phosphor-icons/react";
 import type { SearchResult, SearchResultType } from "@/lib/api/types";
-import { searchResultHref } from "@/lib/content-labels";
+import { searchResultHref, searchResultTypeLabel } from "@/lib/content-labels";
 import { imageUrl } from "@/lib/image-url";
 import { isSearchShortcut } from "@/lib/search-shortcut";
 import { cn } from "@/lib/utils";
 import { Highlighted } from "@/components/ui/highlighted";
 
 const DEBOUNCE_MS = 250;
+
+const TYPE_ICON: Record<SearchResultType, Icon> = {
+  ARTICLE: Notepad,
+  PLACE: MapPin,
+  EVENT: CalendarBlank,
+  GALLERY: ImagesSquare,
+  BUSINESS: Buildings,
+};
 
 const noopSubscribe = () => () => {};
 /** "⌘K" en Apple, "Ctrl K" en el resto; null en el servidor (la pista aparece tras hidratar). */
@@ -23,37 +42,27 @@ function useShortcutLabel(): string | null {
 }
 
 /**
- * Buscador del header con sugerencias en vivo (mismo input para desktop y
- * mobile, variando solo el tamaño): mientras se escribe, pide un adelanto
- * de resultados (debounced, /api/search-suggest) y los muestra en un panel
- * flotante con navegación por teclado — antes el buscador solo enviaba a
- * /buscar sin ningún adelanto, un vacío frente a cualquier buscador de sitio
- * "profesional" actual. Enter sin sugerencia activa, o el enlace final del
- * panel, llevan a la página de resultados completa (con filtros por tipo,
- * paginación) — esto es un atajo, no un reemplazo de esa página.
- */
-export interface SearchScope {
-  value: SearchResultType | "";
-  label: string;
-}
-
-/**
- * `scopes` (solo escritorio): selector "Buscar en" pegado al campo, como el
- * de departamentos de Amazon — acota sugerencias y resultados a un módulo
- * sin tener que ir primero a /buscar a filtrar. La primera opción es "Todo".
+ * Buscador con sugerencias en vivo (diseño 2026-10-06): campo tipo píldora
+ * con lupa, botón para borrar y pista Ctrl K — sin el desplegable "Buscar
+ * en", que se veía anticuado: filtrar por tipo se hace con chips en la
+ * página de resultados. Mientras se escribe pide un adelanto
+ * (/api/search-suggest, con espera de 250 ms) y lo muestra en un panel con
+ * miniatura, título resaltado y tipo con ícono; navegable con flechas.
+ * Enter sin sugerencia activa, o "Ver todos", llevan a /buscar.
  */
 export function SearchBox({
   variant,
   categoryNames,
-  scopes = [],
+  onNavigate,
 }: {
-  variant: "desktop" | "mobile";
+  /** "panel": dentro del panel lateral del riel — campo enfocado al abrir y sugerencias en línea, sin atajo propio. */
+  variant: "desktop" | "mobile" | "panel";
   categoryNames: Record<string, string>;
-  scopes?: SearchScope[];
+  /** Avisa al contenedor (panel lateral) que se navegó, para cerrarse. */
+  onNavigate?: () => void;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [scope, setScope] = useState<SearchResultType | "">("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [totalElements, setTotalElements] = useState(0);
   const [open, setOpen] = useState(false);
@@ -63,6 +72,8 @@ export function SearchBox({
   const inputRef = useRef<HTMLInputElement>(null);
   const listboxId = useId();
   const desktop = variant === "desktop";
+  const panel = variant === "panel";
+  const wide = desktop || panel;
   const shortcutLabel = useShortcutLabel();
 
   // Atajo global (§45.2-C). Solo la variante de escritorio: la móvil se
@@ -85,21 +96,13 @@ export function SearchBox({
 
   useEffect(() => {
     const trimmed = query.trim();
-    // Sin query no hay nada que pedir — no hace falta limpiar resultados acá:
-    // el dropdown ya se oculta por completo cuando `query` está vacío
-    // (ver showDropdown), así que un resultado viejo en memoria no se llega
-    // a mostrar nunca.
-    if (!trimmed) {
-      return;
-    }
+    // Sin texto no se pide nada: el panel se oculta entero (ver showDropdown).
+    if (!trimmed) return;
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
-        const scopeParam = scope ? `&type=${scope}` : "";
-        const res = await fetch(`/api/search-suggest?q=${encodeURIComponent(trimmed)}&size=6${scopeParam}`, {
-          signal: controller.signal,
-        });
+        const res = await fetch(`/api/search-suggest?q=${encodeURIComponent(trimmed)}&size=6`, { signal: controller.signal });
         if (!res.ok) throw new Error("search-suggest failed");
         const data: { items: SearchResult[]; totalElements?: number } = await res.json();
         setResults(data.items);
@@ -115,7 +118,7 @@ export function SearchBox({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [query, scope]);
+  }, [query]);
 
   useEffect(() => {
     if (!open) return;
@@ -130,16 +133,27 @@ export function SearchBox({
     if (!q.trim()) return;
     setOpen(false);
     inputRef.current?.blur();
-    router.push(`/buscar?q=${encodeURIComponent(q.trim())}${scope ? `&type=${scope}` : ""}`);
+    router.push(`/buscar?q=${encodeURIComponent(q.trim())}`);
+    onNavigate?.();
   }
 
   function selectResult(item: SearchResult) {
     setOpen(false);
     router.push(searchResultHref(item.contentType, item.slug));
+    onNavigate?.();
+  }
+
+  function clear() {
+    setQuery("");
+    setResults([]);
+    setActiveIndex(-1);
+    inputRef.current?.focus();
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Escape") {
+      // En el panel, Esc lo cierra (lo maneja el diálogo).
+      if (panel) return;
       setOpen(false);
       inputRef.current?.blur();
       return;
@@ -156,18 +170,15 @@ export function SearchBox({
       setActiveIndex((i) => (i <= 0 ? results.length - 1 : i - 1));
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (activeIndex >= 0 && results[activeIndex]) {
-        selectResult(results[activeIndex]);
-      } else {
-        goToFullResults(query);
-      }
+      if (activeIndex >= 0 && results[activeIndex]) selectResult(results[activeIndex]);
+      else goToFullResults(query);
     }
   }
 
   const showDropdown = open && query.trim().length > 0;
 
   return (
-    <div ref={containerRef} className={cn("relative", desktop ? "hidden w-full sm:block" : "sm:hidden")}>
+    <div ref={containerRef} className={cn("relative", panel ? "w-full" : desktop ? "hidden w-full sm:block" : "sm:hidden")}>
       <form
         role="search"
         onSubmit={(e) => {
@@ -178,29 +189,17 @@ export function SearchBox({
         <label htmlFor={`${listboxId}-input`} className="sr-only">
           Buscar contenido
         </label>
-        {desktop ? (
-          // El anillo lo dibuja este contenedor (focus-within); el campo y el selector anulan
-          // el contorno global de :focus-visible (sin capa, le gana a outline-none) para no duplicarlo.
-          <div className="group flex h-11 w-full items-stretch overflow-hidden rounded-full border border-border bg-background shadow-[0_1px_2px_rgb(0_0_0_/_0.04)] transition-[border-color,box-shadow] focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/15">
-            {scopes.length > 1 && (
-              <>
-                <label htmlFor={`${listboxId}-scope`} className="sr-only">
-                  Buscar en
-                </label>
-                <select
-                  id={`${listboxId}-scope`}
-                  value={scope}
-                  onChange={(e) => setScope(e.target.value as SearchResultType | "")}
-                  className="max-w-36 shrink-0 cursor-pointer border-r border-border bg-canvas pr-2 pl-4 text-[13px] font-medium text-foreground outline-none focus-visible:outline-none! hover:bg-canvas-strong focus-visible:bg-accent-soft"
-                >
-                  {scopes.map((option) => (
-                    <option key={option.value || "all"} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </>
-            )}
+        <div
+          className={cn(
+            "group flex items-center rounded-full border border-transparent bg-canvas-strong transition-[background-color,border-color,box-shadow,width] duration-200",
+            "focus-within:border-accent focus-within:bg-surface focus-within:ring-4 focus-within:ring-accent/15",
+            wide ? "h-11 w-full" : "h-10 w-10 focus-within:w-[min(18rem,calc(100vw-8rem))]",
+          )}
+        >
+          <MagnifyingGlass
+            aria-hidden="true"
+            className={cn("pointer-events-none h-5 w-5 shrink-0 text-muted", wide ? "ml-4" : "ml-2.5")}
+          />
           <input
             id={`${listboxId}-input`}
             ref={inputRef}
@@ -208,8 +207,11 @@ export function SearchBox({
             role="combobox"
             aria-expanded={showDropdown}
             aria-controls={listboxId}
+            aria-autocomplete="list"
             aria-activedescendant={activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
+            aria-keyshortcuts={desktop ? "Control+K Meta+K /" : undefined}
             autoComplete="off"
+            enterKeyHint="search"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -217,53 +219,29 @@ export function SearchBox({
             }}
             onFocus={() => setOpen(true)}
             onKeyDown={onKeyDown}
-            aria-keyshortcuts="Control+K Meta+K /"
-            placeholder="Busca publicaciones, lugares, eventos…"
-            className="min-w-0 flex-1 bg-transparent px-4 text-sm text-foreground placeholder-muted outline-none focus-visible:outline-none! [&::-webkit-search-cancel-button]:hidden"
+            autoFocus={panel}
+            placeholder={wide ? "Buscar lugares, eventos, publicaciones…" : "Buscar…"}
+            className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm text-foreground placeholder-muted outline-none focus-visible:outline-none! [&::-webkit-search-cancel-button]:hidden"
           />
-            {shortcutLabel && !query && (
-              <kbd
-                aria-hidden="true"
-                className="pointer-events-none my-auto hidden shrink-0 rounded border border-border bg-canvas px-1.5 py-0.5 font-sans text-[11px] font-medium text-muted lg:block group-focus-within:hidden"
-              >
-                {shortcutLabel}
-              </kbd>
-            )}
+          {query && (
             <button
-              type="submit"
-              aria-label="Buscar"
-              className="m-1 flex shrink-0 cursor-pointer items-center justify-center rounded-full bg-accent-fill px-4 text-accent-foreground transition-opacity hover:opacity-90"
+              type="button"
+              onClick={clear}
+              aria-label="Borrar búsqueda"
+              className="mr-1.5 flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted hover:bg-canvas hover:text-foreground"
             >
-              <Search className="h-4 w-4" aria-hidden="true" />
+              <X className="h-4 w-4" weight="bold" aria-hidden="true" />
             </button>
-          </div>
-        ) : (
-          <>
-            <input
-              id={`${listboxId}-input`}
-              ref={inputRef}
-              type="search"
-              role="combobox"
-              aria-expanded={showDropdown}
-              aria-controls={listboxId}
-              aria-activedescendant={activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
-              autoComplete="off"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setOpen(true);
-              }}
-              onFocus={() => setOpen(true)}
-              onKeyDown={onKeyDown}
-              placeholder="Buscar…"
-              className="peer h-11 w-11 rounded-md border border-transparent bg-transparent py-2 pr-3 pl-11 text-sm text-foreground outline-none transition-[width,background-color,border-color,color] duration-200 focus:w-64 focus:border-border focus:bg-background focus:pl-9 focus:text-foreground"
-            />
-            <Search
+          )}
+          {desktop && shortcutLabel && !query && (
+            <kbd
               aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-muted transition-[left,transform,color] duration-200 peer-focus:left-3 peer-focus:translate-x-0 peer-focus:text-foreground"
-            />
-          </>
-        )}
+              className="pointer-events-none mr-3 hidden shrink-0 rounded-md border border-border bg-surface px-1.5 py-0.5 font-sans text-[11px] font-medium text-muted lg:block group-focus-within:hidden"
+            >
+              {shortcutLabel}
+            </kbd>
+          )}
+        </div>
       </form>
 
       {showDropdown && (
@@ -272,66 +250,75 @@ export function SearchBox({
           role="listbox"
           aria-label="Sugerencias de búsqueda"
           className={cn(
-            "absolute top-full z-50 mt-2 overflow-hidden rounded-xl border border-border bg-surface shadow-lg",
-            desktop ? "inset-x-0" : "right-0 w-80 max-w-[90vw]",
+            panel
+              ? "mt-3 -mx-2 overflow-hidden"
+              : "absolute top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-surface shadow-xl",
+            !panel && (desktop ? "inset-x-0" : "right-0 w-[min(22rem,calc(100vw-2rem))]"),
           )}
         >
           {loading && results.length === 0 ? (
             <div className="flex items-center gap-2 px-4 py-4 text-sm text-muted">
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              <CircleNotch className="h-4 w-4 animate-spin" aria-hidden="true" />
               Buscando…
             </div>
           ) : results.length === 0 ? (
-            <p className="px-4 py-4 text-sm text-muted">
-              Sin resultados rápidos para «{query.trim()}» — probá otras palabras o revisá todo el contenido.
-            </p>
+            <p className="px-4 py-4 text-sm text-muted">Sin resultados para «{query.trim()}». Prueba con otras palabras.</p>
           ) : (
-            <ul className="max-h-96 overflow-y-auto py-1">
-              {results.map((item, index) => (
-                <li key={`${item.contentType}-${item.id}`} role="presentation">
-                  <button
-                    id={`${listboxId}-option-${index}`}
-                    role="option"
-                    aria-selected={index === activeIndex}
-                    type="button"
-                    onMouseEnter={() => setActiveIndex(index)}
-                    onClick={() => selectResult(item)}
-                    className={cn(
-                      "flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left transition-colors",
-                      index === activeIndex ? "bg-accent-soft" : "hover:bg-accent-soft/60",
-                    )}
-                  >
-                    <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-md bg-canvas-strong">
-                      {item.featuredImageId || item.featuredImageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element -- miniatura chica, sin necesidad de next/image
-                        <img
-                          src={item.featuredImageId ? imageUrl(`/api/v1/images/${item.featuredImageId}/file`) : (item.featuredImageUrl ?? "")}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      ) : null}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-foreground">
-                        <Highlighted text={item.title} query={query} />
-                      </span>
-                      {item.categoryId && categoryNames[item.categoryId] && (
-                        <span className="text-xs text-muted">{categoryNames[item.categoryId]}</span>
+            <ul className={cn("py-1.5", !panel && "max-h-[26rem] overflow-y-auto")}>
+              {results.map((item, index) => {
+                const TypeIcon = TYPE_ICON[item.contentType];
+                const category = item.categoryId ? categoryNames[item.categoryId] : null;
+                return (
+                  <li key={`${item.contentType}-${item.id}`} role="presentation">
+                    <button
+                      id={`${listboxId}-option-${index}`}
+                      role="option"
+                      aria-selected={index === activeIndex}
+                      type="button"
+                      onMouseEnter={() => setActiveIndex(index)}
+                      onClick={() => selectResult(item)}
+                      className={cn(
+                        "flex w-full cursor-pointer items-center gap-3 px-3 py-2 text-left transition-colors",
+                        index === activeIndex ? "bg-canvas" : "hover:bg-canvas/70",
                       )}
-                    </span>
-                  </button>
-                </li>
-              ))}
+                    >
+                      <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-canvas-strong text-muted">
+                        {item.featuredImageId || item.featuredImageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element -- miniatura chica, sin necesidad de next/image
+                          <img
+                            src={item.featuredImageId ? imageUrl(`/api/v1/images/${item.featuredImageId}/file`) : (item.featuredImageUrl ?? "")}
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <TypeIcon className="h-5 w-5" aria-hidden="true" />
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-foreground">
+                          <Highlighted text={item.title} query={query} />
+                        </span>
+                        <span className="flex items-center gap-1 text-xs text-muted">
+                          <TypeIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          {searchResultTypeLabel(item.contentType)}
+                          {category && <> · {category}</>}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           )}
 
-          {query.trim() && (totalElements > results.length || results.length > 0) && (
+          {results.length > 0 && (
             <button
               type="button"
               onClick={() => goToFullResults(query)}
-              className="block w-full cursor-pointer border-t border-border px-4 py-2.5 text-left text-sm font-medium text-accent hover:bg-accent-soft"
+              className="flex w-full cursor-pointer items-center justify-between border-t border-border px-4 py-3 text-left text-sm font-semibold text-accent hover:bg-canvas"
             >
-              Ver todos los resultados{totalElements > 0 ? ` (${totalElements})` : ""} para «{query.trim()}»
+              Ver todos los resultados{totalElements > 0 ? ` (${totalElements})` : ""}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
           )}
         </div>

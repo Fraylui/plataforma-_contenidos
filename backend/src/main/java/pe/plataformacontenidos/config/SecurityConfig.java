@@ -9,6 +9,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import pe.plataformacontenidos.identity.permission.OwnerOnlyPaths;
+import pe.plataformacontenidos.identity.permission.PermissionService;
+import pe.plataformacontenidos.identity.security.AccountStateFilter;
+import pe.plataformacontenidos.identity.security.RefreshTokenService;
 import pe.plataformacontenidos.identity.security.JwtAuthenticationFilter;
 import pe.plataformacontenidos.identity.security.JwtService;
 
@@ -28,7 +32,8 @@ import pe.plataformacontenidos.identity.security.JwtService;
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http, JwtService jwtService) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http, JwtService jwtService, PermissionService permissionService,
+            RefreshTokenService refreshTokenService) throws Exception {
         http
             .csrf(csrf -> csrf.disable()) // API sin estado basada en tokens; se reevalúa si se agregan endpoints basados en cookies/sesión
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -47,34 +52,28 @@ public class SecurityConfig {
                         "/api/v1/events/*/like", "/api/v1/galleries/*/like",
                         "/api/v1/directory/*/like").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/search").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/feed", "/api/v1/feed/related", "/api/v1/feed/top").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/feed", "/api/v1/feed/related", "/api/v1/feed/top",
+                        "/api/v1/feed/topics").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/images/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/platform-settings").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/ad-placements").permitAll()
                 // Publicidad directa: resolución de campaña activa y el redirect de clic los
                 // consume cualquier lector anónimo (ver AdBlock), igual que ad-placements.
                 .requestMatchers(HttpMethod.GET, "/api/v1/ads/campaigns/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/ads/campaigns/*/impression").permitAll()
 
-                .requestMatchers("/api/v1/admin/users/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
-                .requestMatchers("/api/v1/admin/platform-settings/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
-                // Publicidad/monetización (sección 43.2): mismo nivel que platform-settings, no contenido.
-                .requestMatchers("/api/v1/admin/ad-placements/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
-                .requestMatchers("/api/v1/admin/advertisers/**", "/api/v1/admin/campaigns/**")
-                    .hasAnyRole("SUPER_ADMIN", "ADMIN")
-                // Audit log: incluye IPs y acciones de todos los usuarios (incluidos otros
-                // admins) — sección 37, más sensible que un listado de contenido normal.
-                .requestMatchers("/api/v1/admin/audit/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
-                .requestMatchers("/api/v1/admin/categories/**", "/api/v1/admin/stats/**")
-                    .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR")
-                .requestMatchers("/api/v1/admin/articles/**", "/api/v1/admin/images/**", "/api/v1/admin/places/**",
-                        "/api/v1/admin/events/**", "/api/v1/admin/galleries/**",
-                        "/api/v1/admin/directory/**")
-                    .hasAnyRole("SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR")
+                // Panel (spec 2a §4.1): las rutas exclusivas del dueño se exigen por rol;
+                // el resto del panel exige sesión y cada endpoint declara su módulo con
+                // @RequiresModule (ModuleAccessInterceptor, contra la base en cada petición).
+                .requestMatchers(OwnerOnlyPaths.PATTERNS.toArray(String[]::new)).hasRole("OWNER")
+                .requestMatchers("/api/v1/admin/**").authenticated()
 
                 .requestMatchers("/api/v1/users/me", "/api/v1/users/me/**").authenticated()
                 .anyRequest().denyAll()
             )
-            .addFilterBefore(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
+            // Después del token: cuenta desactivada → 401; contraseña temporal → solo puede cambiarla.
+            .addFilterAfter(new AccountStateFilter(permissionService, refreshTokenService), JwtAuthenticationFilter.class);
 
         return http.build();
     }

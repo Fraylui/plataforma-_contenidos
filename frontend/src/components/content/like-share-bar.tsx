@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
-import { Check, Heart, Share2 } from "lucide-react";
+import { useState, useSyncExternalStore, type ReactNode } from "react";
+import { Check, Heart, PaperPlaneTilt } from "@phosphor-icons/react";
 import { getOrCreateVisitorId } from "@/lib/visitor-id";
 
 export type LikeableContentType = "articles" | "places" | "events" | "galleries" | "directory";
@@ -40,8 +40,8 @@ function useLocalStorageFlag(getSnapshot: () => boolean): boolean {
 
 /**
  * Estado y acciones de reacción de un contenido, compartidos entre la barra
- * de la página de detalle (LikeShareBar) y las acciones compactas de las
- * tarjetas del home (CardActions). Solo dos reacciones a propósito — sin
+ * de la vista de post (LikeShareBar) y la barra de la tarjeta del feed
+ * (PostCard). Solo dos reacciones a propósito — sin
  * cuenta de usuario no hay ningún lugar donde mostrarle a alguien su lista
  * de "guardados" después, así que esa tercera reacción no tenía a dónde ir:
  *
@@ -109,7 +109,7 @@ export function useContentReactions({
     await copyLink();
   }
 
-  /** Copia el link sin pasar por navigator.share primero — usado por los botones de red específica de LikeShareBar (el share() genérico de CardActions sí prueba el diálogo nativo primero). */
+  /** Copia el link sin pasar por navigator.share — respaldo de share() cuando el navegador no tiene el diálogo nativo. */
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(resolveShareUrl());
@@ -120,20 +120,32 @@ export function useContentReactions({
     }
   }
 
-  return { liked, likeCount, pending, copied, toggleLike, share, copyLink, resolveShareUrl };
+  return { liked, likeCount, pending, copied, toggleLike, share };
 }
 
-/** Barra de acciones al final del contenido en la página de detalle. */
+/** Píldora de acción del post (Agendar, Cómo llegar, Llamar…): fondo suave, sin borde. */
+export const POST_ACTION_PILL =
+  "inline-flex min-h-10 items-center gap-1.5 rounded-full bg-canvas-strong px-4 text-sm font-semibold text-foreground transition-colors hover:bg-accent-soft hover:text-accent";
+
+/**
+ * Barra de acciones de la vista de post, como la de Instagram: corazón (rojo
+ * relleno al dar me gusta) con su conteo y avión de papel para compartir; a
+ * la derecha, las acciones del tipo que manda la página (`children`). Sin
+ * bordes ni cajas.
+ */
 export function LikeShareBar({
   contentType,
   slug,
   initialLikeCount,
   title,
+  children,
 }: {
   contentType: LikeableContentType;
   slug: string;
   initialLikeCount: number;
   title: string;
+  /** Acciones del tipo (POST_ACTION_PILL), a la derecha de me gusta y compartir. */
+  children?: ReactNode;
 }) {
   const { liked, likeCount, pending, copied, toggleLike, share } = useContentReactions({
     contentType,
@@ -143,31 +155,34 @@ export function LikeShareBar({
   });
 
   return (
-    <div className="my-6 flex flex-wrap items-center gap-2 border-y border-foreground/[0.06] py-4">
+    <div className="flex flex-wrap items-center gap-1 py-2">
       <button
         type="button"
         onClick={toggleLike}
         disabled={pending}
         aria-pressed={liked}
-        className={`inline-flex cursor-pointer items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-          liked
-            ? "border-accent/30 bg-accent-soft text-accent"
-            : "border-foreground/[0.08] text-foreground hover:border-accent/50 hover:text-accent"
-        }`}
+        className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-foreground transition-colors hover:bg-canvas-strong disabled:opacity-60"
       >
-        <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} aria-hidden="true" />
-        <span>{likeCount}</span>
+        <Heart
+          className={`h-7 w-7 transition-transform motion-safe:active:scale-90 ${liked ? "text-red-500" : ""}`}
+          weight={liked ? "fill" : "regular"}
+          aria-hidden="true"
+        />
+        <span className="text-[15px] font-semibold tabular-nums">{likeCount}</span>
+        {" "}
         <span className="sr-only">Me gusta</span>
       </button>
 
       <button
         type="button"
         onClick={share}
-        className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-foreground/[0.08] px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-accent/50 hover:text-accent"
+        className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-foreground transition-colors hover:bg-canvas-strong"
       >
-        {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Share2 className="h-4 w-4" aria-hidden="true" />}
-        {copied ? "Enlace copiado" : "Compartir"}
+        {copied ? <Check className="h-7 w-7 text-accent" aria-hidden="true" /> : <PaperPlaneTilt className="h-7 w-7" aria-hidden="true" />}
+        <span className={copied ? "text-sm font-semibold" : "sr-only"}>{copied ? "Enlace copiado" : "Compartir"}</span>
       </button>
+
+      {children && <div className="ml-auto flex flex-wrap justify-end gap-2">{children}</div>}
     </div>
   );
 }

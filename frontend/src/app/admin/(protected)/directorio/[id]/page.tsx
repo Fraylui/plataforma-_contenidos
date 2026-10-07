@@ -6,11 +6,12 @@ import {
   getAdminBusiness,
   listActiveCategoriesFresh,
   listAdminImages,
-  listAdminPlaces,
+  listPlaceOptions,
 } from "@/lib/api/admin-client";
-import { getCategoryById } from "@/lib/api/client";
-import { computeBusinessPermissions } from "@/lib/admin/business-permissions";
-import { BusinessForm } from "@/components/admin/business-form";
+import { getCategoryById, getPlatformSettings } from "@/lib/api/client";
+import { computePublicationPermissions } from "@/lib/admin/publication";
+import { BusinessComposer } from "@/components/admin/business-composer";
+import { AdminPageHeader } from "@/components/admin/ui";
 import type { Category } from "@/lib/api/types";
 
 export const metadata: Metadata = {
@@ -42,27 +43,25 @@ export default async function EditBusinessPage(props: PageProps<"/admin/director
     throw error;
   }
 
-  const [activeCategories, allImages, places] = await Promise.all([
+  const [activeCategories, allImages, places, settings] = await Promise.all([
     listActiveCategoriesFresh(),
     listAdminImages(accessToken),
-    listAdminPlaces(accessToken),
+    listPlaceOptions(accessToken),
+    getPlatformSettings(),
   ]);
   const categories = await resolveCategories(activeCategories, business.categoryId);
-  const permissions = computeBusinessPermissions(business, user);
+  const permissions = computePublicationPermissions(business, user, "directory");
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-foreground">{business.name}</h1>
-      <div className="mt-6">
-        <BusinessForm
-          mode="edit"
-          business={business}
-          categories={categories}
-          places={places}
-          allImages={allImages}
-          permissions={permissions}
-        />
-      </div>
+    <div className="space-y-6">
+      <AdminPageHeader title={business.name} />
+      <BusinessComposer
+        business={business}
+        categories={categories} places={places}
+        allImages={allImages}
+        permissions={permissions}
+        siteName={settings.name}
+      />
     </div>
   );
 }

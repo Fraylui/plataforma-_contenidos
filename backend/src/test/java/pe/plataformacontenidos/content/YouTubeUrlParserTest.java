@@ -45,11 +45,4 @@ class YouTubeUrlParserTest {
         assertThat(YouTubeUrlParser.extractVideoId("")).isEmpty();
         assertThat(YouTubeUrlParser.extractVideoId(null)).isEmpty();
     }
-
-    @Test
-    void validatesVideoIdFormat() {
-        assertThat(YouTubeUrlParser.isValidVideoId("dQw4w9WgXcQ")).isTrue();
-        assertThat(YouTubeUrlParser.isValidVideoId("demasiado-largo-para-ser-un-id")).isFalse();
-        assertThat(YouTubeUrlParser.isValidVideoId(null)).isFalse();
-    }
 }

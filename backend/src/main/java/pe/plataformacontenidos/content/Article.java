@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.content;
 
+import pe.plataformacontenidos.shared.publishing.PublishableContent;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -30,7 +31,7 @@ import pe.plataformacontenidos.shared.ContentVideo;
  */
 @Entity
 @Table(name = "articles", schema = "content")
-public class Article {
+public class Article extends PublishableContent {
 
     @Id
     @GeneratedValue
@@ -51,10 +52,6 @@ public class Article {
     @Enumerated(EnumType.STRING)
     @Column(name = "article_type", nullable = false)
     private ArticleType articleType;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ArticleStatus status = ArticleStatus.DRAFT;
 
     @Column(name = "author_id", nullable = false)
     private UUID authorId;
@@ -94,20 +91,8 @@ public class Article {
     @Column(nullable = false)
     private String robots = "index,follow";
 
-    @Column(name = "rejection_reason")
-    private String rejectionReason;
-
-    @Column(name = "published_at")
-    private Instant publishedAt;
-
-    @Column(name = "scheduled_at")
-    private Instant scheduledAt;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
-
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt = Instant.now();
 
     protected Article() {
         // JPA
@@ -146,10 +131,6 @@ public class Article {
 
     public ArticleType getArticleType() {
         return articleType;
-    }
-
-    public ArticleStatus getStatus() {
-        return status;
     }
 
     public UUID getAuthorId() {
@@ -193,33 +174,12 @@ public class Article {
         return robots;
     }
 
-    public String getRejectionReason() {
-        return rejectionReason;
-    }
-
-    public Instant getPublishedAt() {
-        return publishedAt;
-    }
-
-    public Instant getScheduledAt() {
-        return scheduledAt;
-    }
-
     public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-
     public boolean isOwnedBy(UUID userId) {
         return authorId.equals(userId);
-    }
-
-    public boolean isEditable() {
-        return status == ArticleStatus.DRAFT || status == ArticleStatus.IN_REVIEW
-                || status == ArticleStatus.APPROVED || status == ArticleStatus.REJECTED;
     }
 
     public void updateContent(String title, String excerpt, String body, ArticleType articleType, UUID categoryId,
@@ -237,48 +197,7 @@ public class Article {
         this.images = new ArrayList<>(images);
         this.videos = new ArrayList<>(videos);
         this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
-        this.updatedAt = Instant.now();
+        touch();
     }
 
-    public void submitForReview() {
-        this.status = ArticleStatus.IN_REVIEW;
-        this.rejectionReason = null;
-        this.updatedAt = Instant.now();
-    }
-
-    public void approve() {
-        this.status = ArticleStatus.APPROVED;
-        this.updatedAt = Instant.now();
-    }
-
-    public void reject(String reason) {
-        this.status = ArticleStatus.REJECTED;
-        this.rejectionReason = reason;
-        this.updatedAt = Instant.now();
-    }
-
-    public void publishNow() {
-        this.status = ArticleStatus.PUBLISHED;
-        this.publishedAt = Instant.now();
-        this.scheduledAt = null;
-        this.updatedAt = Instant.now();
-    }
-
-    public void schedule(Instant when) {
-        this.status = ArticleStatus.SCHEDULED;
-        this.scheduledAt = when;
-        this.updatedAt = Instant.now();
-    }
-
-    /** Usado por el job de publicación programada cuando scheduledAt ya pasó. */
-    void publishFromSchedule() {
-        this.status = ArticleStatus.PUBLISHED;
-        this.publishedAt = Instant.now();
-        this.updatedAt = Instant.now();
-    }
-
-    public void archive() {
-        this.status = ArticleStatus.ARCHIVED;
-        this.updatedAt = Instant.now();
-    }
 }

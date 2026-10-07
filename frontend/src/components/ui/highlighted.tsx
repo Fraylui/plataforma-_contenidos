@@ -12,9 +12,7 @@ function normalize(value: string): string {
 
 /**
  * Resalta la primera coincidencia del término buscado dentro de un texto —
- * usado tanto por las sugerencias en vivo del header (search-box.tsx) como
- * por los resultados de /buscar (search-result-card.tsx), mismo criterio
- * visual en los dos lugares. La comparación ignora acentos (normalize), pero
+ * usado por las sugerencias en vivo del buscador (search-box.tsx). La comparación ignora acentos (normalize), pero
  * el fragmento resaltado se recorta del texto ORIGINAL (con sus tildes), así
  * que "peru" resalta "Perú" tal cual se ve, no una versión sin acentos.
  */

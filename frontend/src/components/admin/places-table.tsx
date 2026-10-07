@@ -6,18 +6,12 @@ import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Place } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
-import { computePlacePermissions } from "@/lib/admin/place-permissions";
-import { articleStatusLabel, articleStatusTone, formatPublishedDate } from "@/lib/content-labels";
-import { StatusPill, DataTable } from "@/components/admin/ui";
+import { computePublicationPermissions } from "@/lib/admin/publication";
+import { publicationStatusLabel, publicationStatusTone, formatPublishedDate } from "@/lib/content-labels";
+import { DataTable } from "@/components/admin/ui";
 import { ContentRowActions } from "@/components/admin/content-row-actions";
 import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
-import {
-  approvePlaceAction,
-  archivePlaceAction,
-  publishPlaceAction,
-  rejectPlaceAction,
-  submitPlaceAction,
-} from "@/app/admin/(protected)/lugares/actions";
+import { Badge } from "@/components/ui";
 
 export function PlacesTable({ places, currentUser }: { places: Place[]; currentUser: AdminUser }) {
   const router = useRouter();
@@ -37,7 +31,7 @@ export function PlacesTable({ places, currentUser }: { places: Place[]; currentU
       {
         accessorKey: "status",
         header: "Estado",
-        cell: ({ row }) => <StatusPill tone={articleStatusTone(row.original.status)} label={articleStatusLabel(row.original.status)} />,
+        cell: ({ row }) => <Badge tone={publicationStatusTone(row.original.status)} dot>{publicationStatusLabel(row.original.status)}</Badge>,
       },
       {
         accessorKey: "createdAt",
@@ -52,15 +46,10 @@ export function PlacesTable({ places, currentUser }: { places: Place[]; currentU
           <ContentRowActions
             id={row.original.id}
             editHref={`/admin/lugares/${row.original.id}`}
-            permissions={computePlacePermissions(row.original, currentUser)}
+            permissions={computePublicationPermissions(row.original, currentUser, "places")}
             itemLabel="este lugar"
-            actions={{
-              submit: submitPlaceAction,
-              approve: approvePlaceAction,
-              reject: rejectPlaceAction,
-              publish: publishPlaceAction,
-              archive: archivePlaceAction,
-            }}
+          kind="places"
+          status={row.original.status}
           />
         ),
       },
@@ -73,10 +62,10 @@ export function PlacesTable({ places, currentUser }: { places: Place[]; currentU
       <ContentBulkActions
         selected={selected}
         permissions={{
-          canPublish: (item) => computePlacePermissions(item, currentUser).canPublish,
-          canArchive: (item) => computePlacePermissions(item, currentUser).canArchive,
+          canPublish: (item) => computePublicationPermissions(item, currentUser, "places").canPublish,
+          canArchive: (item) => computePublicationPermissions(item, currentUser, "places").canArchive,
         }}
-        actions={{ publish: publishPlaceAction, archive: archivePlaceAction }}
+        kind="places"
         onDone={() => router.refresh()}
       />
       <DataTable

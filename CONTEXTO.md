@@ -1826,7 +1826,8 @@ servidor. Regla general: **solo señales reales** (fechas, me gusta, categorías
 | Relacionados del detalle | `FeedService.getRelated` + `getRelatedWithFallback` | Misma categoría: `frescura + 0.3·log1p(likes)`; se completa con el feed general hasta 6, sin repetir. |
 | "Lo más gustado" | `FeedService.getTopLiked` | Me gusta acumulados, desc. Solo contenido con ≥1 me gusta; la lista solo se muestra con ≥3. |
 | Búsqueda | `SearchService` | `tsvector` español sin acentos por módulo **+** contenido de las categorías cuyo nombre coincide (y sus subcategorías). Fusión por fecha. Con <4 resultados: temas parecidos + lo más reciente. |
-| Anuncios en el feed | `InfiniteFeed` | Posición `en-feed` cada 6 celdas de grilla (desde la 12): siempre tras una fila completa en 2 y 3 columnas. |
+| Anuncios en el feed | `InfiniteFeed` | Posición `en-feed` (300×250, ocupa una tarjeta; fila entera en celular) cada 8 celdas de grilla desde la 16: 1 anuncio cada 6 tarjetas, ~14 % de la grilla (tope Better Ads: 30 %). |
+| Entrega de publicidad directa | ver 45.4 | Selección ponderada, sin repetir campaña ni anunciante en la página, tope de frecuencia, impresión visible, clic válido. |
 | Atajo de búsqueda | `SearchBox` + `lib/search-shortcut.ts` | Ctrl+K / ⌘K siempre; "/" solo fuera de campos de texto (no roba la barra al escribir). Solo el buscador de escritorio lo registra; pista "Ctrl K"/"⌘K" en el campo, oculta al enfocar o escribir. |
 
 ## 45.2 Planeado — con condición de activación
@@ -1869,9 +1870,45 @@ Requiere registrar visitas por sesión; hoy no hay analítica propia.
 **F. Puntaje de Wilson (Reddit "best").** Solo tiene sentido con votos
 positivos Y negativos o comentarios; no previsto.
 
+## 45.4 Publicidad directa — cómo se entrega (2026-10-05)
+
+Criterio de los ad servers profesionales (Google Ad Manager, normas IAB/MRC
+y Coalition for Better Ads), sin cookies ni cuentas:
+
+| Regla | Dónde | Detalle |
+|---|---|---|
+| Medida estándar por posición | `ad_placements.width/height` (V46) | 300×250 (feed, lateral, contenido), 728×90 (cabecera de listados, solo escritorio), 320×50 (barra fija). El anunciante entrega su banner diseñado a esa medida (mejor al doble) y se muestra **entero** (`object-contain`), con "Publicidad" fuera de la imagen. El backend rechaza imágenes subidas con otra proporción o más chicas; el panel avisa también para enlaces externos. |
+| Selección ponderada | `WeightedOrder` (Efraimidis–Spirakis) | `clave = −ln(u) / peso`, orden ascendente. Peso 1–10 por campaña (5 por defecto): peso 10 sale primero el doble que peso 5, sin dejar a nadie sin vistas. |
+| Sin repetir en la página | `page-ad-plan.ts` | Cada espacio toma la primera campaña de la rotación que no esté ya en la página y, si se puede, de otro anunciante. Sobrantes → AdSense o vacío. |
+| Tope de frecuencia | `AdDeliveryGuard` (Redis) | Máximo 6 vistas por persona, campaña y día (UTC); luego deja de ofrecérsele. Persona = hash de la IP, vive horas en Redis, nunca en la base. **En local todas las visitas comparten la IP del contenedor de Next: tras 6 vistas propias la campaña desaparece hasta el día siguiente** (borrar `ads:*` en Redis para probar). |
+| Impresión visible | `useViewableImpression` | Se cuenta cuando ≥50 % del anuncio estuvo 1 s seguido en pantalla (pestaña visible), vía `sendBeacon` a `/api/ads/impression`. Pedir la campaña ya no cuenta. |
+| Tráfico inválido | `InvalidTraffic` | Robots, previsualizadores (WhatsApp, Facebook), scripts y pedidos sin user agent no cuentan impresión ni clic. |
+| Antiduplicado | `AdDeliveryGuard` | Impresión: misma persona y campaña, 1 cada 10 s. Clic: 1 cada 30 min (el visitante igual llega al destino). |
+| Conteo atómico | `CampaignRepository` / `campaign_daily_stats` | `UPDATE … + 1` y upsert por día: vistas simultáneas no se pierden. |
+| Segmentación | `CampaignTargeting` (V47) | Por sección (Inicio, Publicaciones, Lugares, Eventos, Galerías, Directorio), por tema (incluye subtemas) y por país/región **del visitante** (cabeceras de Cloudflare `cf-ipcountry`, `cf-region`, `cf-region-code`; requiere "Add visitor location headers", ver DESPLIEGUE §3). Vacío = sin restricción. En una página, las campañas que calzan con más dimensiones van antes que las generales. No usa la geografía del contenido (dada de baja en V38). |
+| Cupo por público | `CampaignService.MAX_COMPETING_CAMPAIGNS` = 5 | Como máximo 5 campañas activas compitiendo por el mismo público: misma posición, segmentación que se cruza en todas las dimensiones (temas: igual o uno contiene al otro) y fechas superpuestas. La sexta da 409 con explicación. Así cada anunciante recibe vistas suficientes. Más campañas nunca agregan anuncios a la página: los espacios son fijos, solo se turnan. |
+| Prioridad frente a AdSense | `AdBlockClient` | Lo vendido directo ocupa solo su espacio y su público; todo lo demás lo llena AdSense (prioridad del negocio mientras el sitio no tiene anunciantes propios). |
+| Presentación por contexto | `AdBlock layout` | `fill`: ocupa el ancho de la columna (lateral, celda del feed), hasta 1,3× su medida. `band`: bloque a todo el ancho **sin marco ni fondo** (el contorno con relleno se veía poco profesional, 2026-10-06). `band` + `count`: "fila patrocinada" de hasta 3 campañas distintas (final de listados) o 2 (final del artículo); con una sola disponible queda centrada; en celular siempre una. Nada de franjas vacías a los costados. |
+| Barra fija | `AnchorAdSlot` | Aparece recién después de responder el aviso de cookies (antes quedaba tapada y contaba vistas que nadie veía). |
+| Reporte | Panel → Anunciantes → campaña | Impresiones visibles, clics, % de clics y gráfico diario de 30 días (UTC). |
+
+**Con AdSense:** Google permite anuncios vendidos directamente en las
+mismas páginas siempre que no imiten a los de Google (por eso: etiqueta
+"Publicidad" propia, sin "Anuncios de Google", creatividades del
+anunciante). En páginas con AdSense, lo que promocionen las campañas
+directas también debe cumplir las políticas de Google (nada de apuestas,
+contenido adulto, armas, etc.). Si se vende la barra fija (`anchor`),
+desactivar los "anuncios fijos" (anchor) en los Auto ads de AdSense para no
+tener dos barras abajo.
+
+Los totales `impression_count` de antes del 2026-10-05 se contaban al pedir
+la campaña (inflados); desde esta fecha son vistas reales.
+
 ## 45.3 Pendientes que no son algoritmos
 
 Del usuario (configuración, no código):
+- Cloudflare: activar "Add visitor location headers" (segmentación de
+  publicidad por país/región).
 - Cloudflare (reglas de caché), swap, firewall y copia de backups a R2: ver
   `infra/DESPLIEGUE.md`.
 - Configuración del panel: correo de contacto (activa "Proponer contenido" y
@@ -1885,6 +1922,306 @@ Decididos para más adelante:
   cambian poco.
 - Selector de país/ciudad (Geografía) como "Enviar a Perú" de Amazon:
   cuando haya suficiente contenido por zona.
+
+---
+
+# 46. Rediseño estilo red social — estado y pendientes (pausa del 2026-10-06)
+
+Documento para retomar sin depender del chat. Diseño acordado con el dueño:
+el sitio y el panel dejan de verse "como un diario/editorial" y pasan a
+sentirse como una **red social moderna (referencia Instagram, también
+Facebook y X)**, pensada para 2027, intuitiva e interactiva. Solo publican
+el dueño y sus trabajadores; los visitantes miran, dan "me gusta",
+comparten y exploran (sin cuentas, sin comentarios, sin firma de autor).
+
+Archivos de trabajo (locales, `docs/` está en `.gitignore`):
+- Diseño: `docs/superpowers/specs/2026-10-06-sitio-publico-estilo-instagram-design.md`
+- Plan por sprints/tareas: `docs/superpowers/plans/2026-10-06-sitio-publico-estilo-instagram.md`
+- Registro de avance y decisiones ("Ruling"): `.superpowers/sdd/2026-10-06-sitio-publico-estilo-instagram/progress.md`
+
+## 46.1 Estado de git al pausar
+
+- **Rama de trabajo: `feat/sitio-red-social`** (sale de `main` en `d3a415e`).
+  9 commits, todos con tests en verde. **No está fusionada a `main`.**
+- **`main` tiene 4 commits sin subir a GitHub** (publicidad profesional):
+  `a717f10`, `6cae3ca`, `b727913`, `d3a415e`. Preguntar al dueño antes de
+  `git push`.
+- Docker local corre la rama (backend + frontend reconstruidos el 2026-10-06).
+- Al retomar: `git switch feat/sitio-red-social` y leer el registro de avance.
+
+## 46.2 Hecho en la rama (Sprint 1 completo + parte del 2)
+
+| Tarea | Qué quedó |
+|---|---|
+| 1 | Feed del backend con los 5 tipos (galerías y directorio incluidos), filtro por tema con subtemas (`categoryId`), Agenda (`type=EVENT&sort=upcoming`), datos de tarjeta: carrusel (`images`, hasta 10), `startsAt`, `latitude/longitude`, `phone`, `website`. |
+| 2 | `GET /api/v1/feed/topics`: círculos de temas raíz con portada automática y `hasNew` (48 h), orden por actividad de la semana (`publicados_7d + 0.5·me_gusta_7d`). |
+| 3 | Tipos/mapeo/proxy del frontend (`HomeItem.images`, tipo `directorio`). |
+| 4 | Navegación tipo app: barra de pestañas abajo en celular (Inicio · Explorar · Buscar · Agenda · Más), riel izquierdo en escritorio, variable CSS `--bottom-bar-h` (anuncio fijo y aviso de cookies se apilan encima). Íconos **Phosphor** (contorno / relleno activo). |
+| 5 | `PostCard`: encabezado de marca, imagen cuadrada 1:1 con carrusel, doble toque = me gusta, acciones por tipo (Agendar, Cómo llegar, Llamar, Sitio web), sin antetítulos. |
+| 5b | Buscador moderno sin desplegable "Buscar en"; `/buscar` con chips de tipo y de tema y campo propio en celular. |
+| 6 | Inicio = feed de una columna + círculos de temas + chips de tipo + columna derecha (≥1280 px: próximos eventos, lo más gustado, anuncio). Riel con secciones y temas (5 + "Ver más"), sin línea al costado. Franja superior: título de la pantalla + flecha "volver" + buscador (estilo X). Sin barras de desplazamiento visibles (utilidad `.no-scrollbar`) y flechas ‹ › en los círculos. |
+| 7 (parcial) | Componentes listos y testeados pero **todavía no usados por las páginas**: `PostView` (variante `visual` y `text`), `GridTile`, `PostHeader` reutilizable. |
+
+## 46.3 Pendiente — en este orden
+
+### A. Tarea 6b — Riel interactivo como redes sociales (pedido explícito, siguiente)
+1. **"Buscar" del riel abre un panel lateral** (Radix Dialog, como Instagram desktop): foco en el campo, `Esc` cierra, reutiliza `SearchBox`. En celular la pestaña sigue yendo a `/buscar`.
+2. **"Más" abre un menú** (Radix Popover, como Instagram/X) con:
+   - **Apariencia**: Sistema / Claro / Oscuro, por visitante → `localStorage["theme-pref"]` + `data-theme` en `<html>`. Para que no parpadee, script en línea en `<head>` de `app/layout.tsx` (CSP ya permite `'unsafe-inline'`) y `suppressHydrationWarning` en `<html>`. Si no eligió nada, manda la configuración del panel (`settings.theme`).
+   - Contacto, Privacidad, Términos (reemplaza los enlaces sueltos del pie del riel).
+3. **Contador en Agenda**: cantidad de eventos de los próximos 7 días (dato del servidor, sin guardar nada).
+4. **Microinteracciones**: hover con fondo de "píldora" e ícono 1.05 (solo `motion-safe`), presión 0.95, tooltips en el modo solo íconos (1024–1279 px).
+5. Tests: `rail-interactions.test.tsx` (panel de búsqueda con foco, menú con radios de apariencia y `data-theme="dark"` guardado, contador "3 eventos esta semana"). Verificar en Docker con capturas.
+
+### B. Tarea 7 — Conectar `PostView` a las 5 páginas de detalle
+En `app/(public)/{publicaciones,lugares,eventos,galerias,directorio}/[slug]/page.tsx`:
+- **Mantener**: `generateMetadata`, todos los JSON-LD (incluido `BreadcrumbList`), `VideoJsonLd`, `notFound`.
+- **Quitar**: `<nav aria-label="Breadcrumb">`, antetítulo en mayúsculas, "min de lectura" (`estimateReadingTime`), `ReadingProgressBar`, entradilla en negrita, `NeighborNav` ("Seguir leyendo"), `DetailSidebar` y las listas "Otras galerías / Lugares en… / Más de…" de galerías.
+- `variant`: `text` para publicaciones; `visual` para el resto.
+- `media`: `ContentImageGallery` + `ContentVideoGallery` existentes.
+- `facts` por tipo: **evento** (fecha y hora absolutas, lugar con enlace, "Agendar": Google + `.ics` con `calendarLinks`), **lugar** (mapa embebido + "Cómo llegar" `mapsDirections`), **directorio** (dirección, teléfono `tel:`, email, web + "Cómo llegar"), publicación y galería sin facts.
+- `actions`: `LikeShareBar` (reestilizar como barra de post: corazón Phosphor, compartir).
+- `ad`: `AdBlock position="article" layout="band" count={2}` con su `section`/`categoryId`.
+- `more`: `getRelatedWithFallback` → `fromFeedItem` (hasta 9 miniaturas).
+- Test e2e `frontend/tests/e2e/seo-urls.spec.ts`: cada detalle conserva `<title>`, canonical y JSON-LD con `BreadcrumbList`. Verificar los 5 tipos en Docker a 390/1366.
+
+### C. Tarea 8 — Explorar y resultados de búsqueda en cuadrícula
+- Página nueva `/explorar` (hoy da 404): `ExploreGrid` (cliente, scroll infinito con `/api/feed`, chips de tipo) usando `GridTile`; metadatos propios.
+- `/buscar`: reemplazar `SearchResultCard` (todavía con antetítulo "ACTUALIDAD") por `GridTile` en cuadrícula de 3.
+
+### D. Tarea 9 — Secciones y temas = feed filtrado
+- `/publicaciones`, `/lugares`, `/galerias`, `/directorio`: `TopicStories` + `FilterChips` (tipo activo) + `Feed filter={{type}}`; sin `ListingHeader` ni `FilterMenu` ("Filtrar por tema").
+- `/eventos` = **Agenda**: `Feed filter={{type:"EVENT", sort:"upcoming"}}`.
+- `/categorias/[slug]`: `Feed filter={{categoryId}}` con su círculo activo.
+- SEO: cada URL conserva título/descripción/canonical y enlaces `?page=` en el HTML inicial para bots.
+- Quitar `AdBlock position="cabecera"` (la franja 728×90 se deja de mostrar).
+
+### E. Tarea 10 — Anuncio "Patrocinado" con forma de post
+`SponsoredPost` envuelve `AdBlockClient position="en-feed"` con encabezado "Patrocinado" (sin marco de color). 1 cada 6 posts. Nada si no hay campaña ni AdSense.
+
+### F. Tarea 11 — Limpieza y guardia anti-diario
+- Borrar (verificar con `grep` que no tengan usos): `home/hero-rotator`, `home/module-strip`, `home/category-showcase`, `home/content-card`, `home/infinite-feed`, `home/home-sidebar`, `layout/listing-header`, `layout/mobile-nav`, `layout/category-menu`, `layout/nav-link`, `layout/site-footer`, `content/detail-sidebar`, `content/card-actions`, `filters/filter-menu`, `ReadingProgressBar`, `NeighborNav`, `SearchResultCard`.
+- Test e2e `no-editorial-patterns.spec.ts`: recorre todas las URLs públicas y falla con "min de lectura", "cubrimos", "editorial", ruta visible o antetítulos en mayúsculas.
+- Lighthouse en inicio y un detalle (LCP < 2,5 s, CLS < 0,1, INP < 200 ms). Actualizar §43 y §45.
+
+### G. Sprint 5 — Algoritmos de red social (pedido explícito)
+12. Velocidad de interacción con decaimiento (Hacker News) en el puntaje del feed.
+13. "En tendencia" (Reddit hot) con activación a ≥ 20 contenidos con me gusta; antes "Lo más gustado".
+14. "Más como esto" por similitud (tema, subtema, tipo, Jaccard de palabras del título/bajada).
+15. "Para ti" en el navegador **solo con consentimiento de cookies** (afinidad por tema, nada sale del navegador).
+16. Visitas anónimas + "quienes vieron esto también vieron" (co-visitas ≥ 5; robots fuera; sin datos personales).
+Detalle de cada uno en el plan.
+
+### H. Cierre del proyecto 1
+Revisión completa de la rama con un revisor nuevo (code review), corregir lo crítico, **preguntar al dueño** y fusionar `feat/sitio-red-social` → `main`; subir a GitHub con su permiso.
+
+### I. Proyecto 2 — Panel de administración moderno + trabajadores
+Acordado con el dueño ("todas las páginas del panel se ven antiguas, estilo editorial"):
+1. **Primero**: crear una cuenta de prueba **solo en la base local** (aprobado: opción A), recorrer y capturar todas las pantallas del panel, y **borrarla al terminar**.
+2. Rediseño moderno e intuitivo de todo el panel (mismo lenguaje visual del sitio, íconos Phosphor, sin desplegables anticuados, sin vacíos ni líneas sobrantes).
+3. **Trabajadores con módulos asignados** (diseño aprobado):
+   - **Dueño** (SUPER_ADMIN): todo; exclusivos: Usuarios, Configuración, Auditoría.
+   - **Trabajador**: módulos que asigna el dueño. Siempre tiene: Inicio del panel, Imágenes, Mi cuenta.
+   - Módulos de contenido (Publicaciones, Lugares, Eventos, Galerías, Directorio) con nivel **Crear** (solo lo suyo, pasa a revisión) o **Publicar** (revisa y publica lo de todos); Categorías, Estadísticas y Publicidad: acceso sí/no.
+   - **Plantillas**: Creador, Publicador, Gestor de eventos, Gestor de directorio, Publicidad.
+   - Migración: el ADMIN actual → trabajador con "Publicador" + Publicidad; se eliminan MODERATOR, COLLABORATOR, USER.
+   - Permisos aplicados **en el servidor** (no solo ocultar botones) y auditados.
+4. Documento de diseño + plan antes de programar (mismo proceso que el proyecto 1).
+5. **2026-10-06:** se divide en **2a (trabajadores y permisos, primero)** y **2b (rediseño visual del panel)**. Spec de 2a: `docs/superpowers/specs/2026-10-06-trabajadores-y-permisos-design.md` (local). Decisiones: roles DUEÑO/TRABAJADOR + tabla `identity.worker_permissions` verificada en cada petición (revocación inmediata), contraseña temporal con cambio obligatorio, desactivar en vez de borrar, sin MFA.
+
+## 46.4 Reglas aprendidas (aplican a todo lo pendiente)
+
+- El dueño revisa con capturas en **Edge**; quiere: nada de vacíos, nada de líneas sobrantes (bordes, barras de desplazamiento visibles), nada que "parezca diario", interacciones como Instagram/Facebook/X, íconos modernos (Phosphor), estándares (WCAG 2.2 AA, Core Web Vitals, SEO, OWASP), metodología Scrum + XP (§41) y verificación en ciclos con Playwright.
+- **Reglas CSS globales sin capa** (`:focus-visible`, `* { scrollbar-width }`) le ganan a las clases de Tailwind (en capa): usar utilidades **sin capa** en `globals.css` (como `.no-scrollbar`) o `!`.
+- Cuando cambia un contrato de la API, **reconstruir backend y frontend juntos** en Docker (`docker compose build backend frontend && docker compose up -d`): un backend viejo rompió el build del inicio.
+- Publicidad en local: todas las visitas comparten la IP del contenedor de Next → el tope de 6 vistas/día oculta campañas; borrar `ads:*` en Redis (clave en `infra/.env`). Los banners de demostración solo existen en la base local.
+- Fechas: eventos/lugares absolutas; publicaciones relativas. Nunca "editorial"/"artículo(s)" en textos visibles.
+
+## 46.5 Pendientes del dueño (configuración, no código)
+
+- Cloudflare: activar "Add visitor location headers" (segmentación de publicidad por país/región) y las reglas de caché (`infra/DESPLIEGUE.md` §3).
+- AdSense: si se vende la barra fija, desactivar los anuncios fijos (anchor) de Auto ads.
+- Panel → Configuración: correo de contacto, descripción del sitio (dice "Sistema de gestión…"), descripción de Turismo, slot de AdSense en-feed.
+- Backups: copia a R2; **corregir `scripts/backup.sh`**: (1) la retención de 14 días borraría el único backup viejo, (2) no respalda las imágenes reales (están en el volumen Docker `media_data`, no en `backend/data/media`).
+
+## 46.6 Inventario de páginas — qué falta transformar
+
+Estado en la rama `feat/sitio-red-social` al 2026-10-06. ✅ hecho · ⚠️ parcial · ❌ falta.
+
+### Sitio público (17 páginas) — actualizado 2026-10-06 (sesión 2)
+
+| Página | Estado | Nota |
+|---|---|---|
+| `/` Inicio | ✅ | `FeedScreen` + anuncio «Patrocinado» con forma de post. |
+| `/buscar` | ✅ | Resultados y sugerencias en cuadrícula `GridTile`. |
+| `/explorar` | ✅ | Cuadrícula de 3 con chips `?tipo=` y scroll infinito. |
+| `/publicaciones` `/lugares` `/galerias` `/directorio` | ✅ | Feed filtrado por tipo (`FeedScreen`); `?page=` viejos responden 200 con canonical a la sección. |
+| `/eventos` | ✅ | **Agenda**: próximos por fecha. |
+| `/categorias/[slug]` | ✅ | Feed del tema, encabezado con nombre y descripción, círculo activo. |
+| 5 detalles `[slug]` | ✅ | `PostView` + `PostFacts` + barra de post + «Más como esto» (9). JSON-LD intacto. |
+| `/contacto` `/privacidad` `/terminos` | ✅ | Pantalla de app: chips de secciones, texto en superficie blanca. |
+| `not-found` (404) y `error` | ✅ | Pantalla de app con Phosphor e Inicio / Explorar / Buscar. |
+| `loading.tsx` | ✅ | Esqueletos de feed, post y cuadrícula. El `app/loading.tsx` raíz queda solo para el panel (proyecto 2). |
+
+### Panel de administración (34 páginas) — todo ❌, proyecto 2 (46.3-I)
+
+| Módulo | Páginas |
+|---|---|
+| Acceso | `login` |
+| Inicio y Estadísticas | `/admin`, `/admin/estadisticas` |
+| Contenido (listado, nuevo, editar) | Publicaciones, Lugares, Eventos, Galerías, Directorio (3 páginas c/u = 15) |
+| Organización | Categorías (3), Medios (1) |
+| Monetización | Publicidad/posiciones (3), Anunciantes (3) + campañas (2) |
+| Administración | Usuarios (2) → pasa a **Trabajadores**, Configuración, Auditoría |
+| **Nuevas** | **Trabajadores**: permisos por módulo y plantillas; **Mi cuenta**: cambiar contraseña (hoy no hay una página propia). |
+
+## 46.6b Avance 2026-10-06 (sesión 2) — commits en `feat/sitio-red-social`
+
+- `76213b2`, `f2c3be9`: riel estilo Facebook/Instagram (secciones con círculos de color, temas con anillo de historia y «Novedades», enlaces legales a la vista, sin el «Más» de rayitas), panel de búsqueda lateral, contador de Agenda, columna derecha pegada al borde, lienzo claro `#f0f2f5` (gris de Facebook, contraste AA). **Sin selector de apariencia**: claro/oscuro según el dispositivo — el panel debe estar en Configuración → Apariencia → «Sistema».
+- `abab37b`: `/explorar` y búsqueda en cuadrícula.
+- `f88ea5d`: los 5 detalles como post; se retiró el endpoint `/articles/{slug}/neighbors` (sin consumidores).
+- `d32b169`: `FeedScreen` para inicio/secciones/Agenda/temas; **knip** (`npm run lint:unused`, también en CI) — 23 archivos huérfanos borrados.
+- `964f962`, `a3408a4`: anuncio «Patrocinado» con forma de post.
+- `d8a60f9`: carga, 404, error y páginas de información con forma de app; e2e `no-editorial-patterns.spec.ts` y `seo-urls.spec.ts`.
+- Seguridad: test `json-ld-escape.test.ts` exige el escape de `<` en todo JSON-LD (se detectó y corrigió una regresión al reescribir Eventos).
+
+**Pendiente del proyecto 1:** verificación en Docker/Edge de todo lo anterior (los builds dependen de la memoria libre del equipo), Lighthouse (LCP/CLS/INP), Sprint 5 (algoritmos, 46.3-G), revisión completa de la rama y fusión a `main` con permiso del dueño.
+
+## 46.6c Marco de trabajo — ITIL 4, COBIT 2019 e ISO aplicados (sin burocracia)
+
+Cada tarea es un ciclo corto (PDCA de ISO 9001): **planificar** (brief del plan) → **hacer** (test que falla primero, luego código) → **verificar** (suite completa + Docker/Edge) → **actuar** (registro en el ledger y en este documento).
+
+| Marco | Práctica / objetivo | Cómo se cumple aquí |
+|---|---|---|
+| ITIL 4 | Habilitación del cambio | Rama propia, commits pequeños con tests en verde, fusión a `main` solo con permiso del dueño. |
+| ITIL 4 | Gestión de liberaciones y despliegue | Build y verificación en Docker antes de mostrar; `infra/DESPLIEGUE.md` para el VPS. |
+| ITIL 4 | Gestión de problemas | Causa raíz anotada en el ledger (`Fix: … causa raíz …`) con test de regresión. |
+| COBIT 2019 | BAI03 (soluciones), BAI06 (cambios), BAI07 (aceptación) | Plan con criterios de aceptación por tarea; CI (lint, knip, tipos, tests, build); revisión del dueño con capturas. |
+| COBIT 2019 | MEA01 (monitoreo del desempeño) | Core Web Vitals (Lighthouse), métricas del panel, auditoría. |
+| ISO/IEC 25010 | Calidad del producto | Definición de "hecho": funcional, usable (WCAG 2.2 AA), eficiente (CWV), mantenible (cero huérfanos con knip), seguro. |
+| ISO/IEC 27001 (A.8.25–A.8.29) | Desarrollo seguro | OWASP (escape de JSON-LD, HTML saneado en backend, CSP), `npm audit` en CI, CodeQL. |
+| WCAG 2.2 AA | Accesibilidad | `vitest-axe` en componentes, objetivos táctiles ≥ 44 px, foco visible, contraste verificado. |
+
+## 46.6d Sprint de calidad (2026-10-06) — seguridad, observabilidad y datos personales
+
+Pedido del dueño: software seguro, mantenible, medible y que no sature el VPS (bots, memoria).
+
+| Tema | Hecho |
+|---|---|
+| Dependencias | Next.js 16.3.3 → **16.3.8** (vulnerabilidad crítica); `npm audit --audit-level=high` del CI vuelve a pasar. Quedan 2 moderadas de `@tailwindcss/typography` (solo al compilar CSS propio) aceptadas como riesgo bajo. |
+| Logs | `RequestIdFilter`: id por petición en cada línea de log y en la cabecera `X-Request-Id` (nginx manda su `$request_id`; ids inseguros se descartan → sin falsificación de logs). Docker/VPS: **JSON ECS**. Rotación 10 MB × 5 por servicio. |
+| Auditoría | `AdminActionAuditInterceptor`: **toda** acción del panel que modifica algo queda registrada (quién, método+ruta, recurso, IP, resultado). Los 5 tipos de contenido, login, usuarios, configuración e imágenes ya tenían eventos propios; el hueco real eran **categorías y publicidad** (anunciantes, campañas, posiciones) y cualquier endpoint futuro. Sin duplicados con los eventos propios. |
+| Retención (Ley 29733) | `AuditRetentionJob` purga a diario la auditoría con más de `AUDIT_RETENTION_DAYS` (365) y deja constancia. |
+| VPS / bots | nginx: tiempos cortos (slowloris), 30 conexiones simultáneas por IP, `server_tokens off`, escáneres (`wp-*`, `.php`, `.env`, `.git`) cortados con 444. Ya existían: límite de peticiones por IP, micro-caché, topes de memoria por contenedor, JVM al 70 %, Redis `maxmemory`, límite de intentos de login y de subidas. |
+| Orden del código | knip en CI (cero archivos/exportaciones sin uso); carpeta `public` versionada (el build en un clon limpio fallaba). |
+| MFA | **No se reactiva** (decisión del dueño, 2026-10-06): riesgo aceptado, compensado con límite de intentos de login y auditoría de accesos. |
+
+**Inventario de datos personales (Ley 29733):**
+
+| Dato | Dónde | Retención |
+|---|---|---|
+| Correo, nombre y contraseña (hash) del personal | `identity.users` | Mientras exista la cuenta |
+| Correo e IP de quien actúa en el panel | `audit.audit_log` | 365 días (`AUDIT_RETENTION_DAYS`) |
+| «Me gusta» | `engagement.content_likes` — UUID aleatorio del navegador, sin datos personales | Indefinida (no identifica) |
+| Frecuencia de anuncios | Redis — hash de la IP | 26 h |
+| Intentos de login | Redis | Ventana de 15 min |
+| Logs de contenedores (IP en nginx) | Archivos JSON rotados | 50 MB por servicio |
+
+Barrido de código muerto del backend: 3 métodos sin uso borrados (`dae0306`); el resto eran falsos positivos (records, `@Scheduled`, getters JPA).
+
+**Lighthouse (2026-10-06, perfil móvil, Docker local, equipo con poca memoria → rendimiento pesimista):**
+
+| Pantalla | Rend. | Accesib. | B. prácticas | SEO | LCP | CLS | TBT |
+|---|---|---|---|---|---|---|---|
+| Inicio | 57 | 96 | 100 | 100 | 8,3 s | 0 | 722 ms |
+| Explorar | 79 | 100 | 100 | 100 | 3,9 s | 0 | 310 ms |
+| Lugares | 71 | 96 | 96 | 100 | 5,4 s | 0 | 376 ms |
+| Detalle evento | 74 | 100 | 100 | 100 | 5,6 s | 0 | 243 ms |
+
+Corregido a partir de la medición: (1) **bug real** — imágenes con 500 en `/_next/image`: las páginas prerenderizadas en el build de Docker quedaban con `localhost:8080`; `serverImageUrl` ahora usa `RUNTIME_BACKEND_INTERNAL_URL`; (2) WCAG 2.5.3: el nombre de «me gusta» incluye el número visible; (3) WCAG 2.5.8: puntos del carrusel con área de toque de 24 px; (4) `fetchpriority="high"` en la foto principal aunque sea un enlace externo. `lighthouserc.js` pasa a perfil móvil con las pantallas nuevas.
+
+Pendiente: el LCP alto se debe en gran parte a las fotos de demostración de `picsum.photos` (JPG de 1400 px por enlace externo, sin optimizar); el contenido real subido por el panel pasa por el optimizador. Volver a medir con contenido real y en el VPS. TBT: un paquete JS de ~1,7 s de ejecución en CPU lenta → analizar el bundle (`next build` con análisis) antes del lanzamiento.
+
+## 46.6e Proyecto 2a — Trabajadores y permisos (rama `feat/trabajadores-permisos`, 2026-10-06)
+
+Hecho en 10 tareas (spec y plan en `docs/superpowers/`, local):
+
+- **Roles:** `OWNER` (dueño, puede todo) y `WORKER` (V50). Lo que puede un trabajador vive en `identity.worker_permissions` (V49): módulo + nivel `CREATE` / `PUBLISH` / `ACCESS`, con CHECK por módulo. Las cuentas viejas conservaron su alcance (ADMIN → Publicador + Publicidad).
+- **Servidor:** cada endpoint del panel declara `@RequiresModule` (un test de arquitectura falla si alguno queda sin declarar); permisos leídos en cada petición → quitar un permiso o desactivar rige al instante. Publicar exige `PUBLISH` (403 `PUBLISH_PERMISSION_REQUIRED`). Solo el dueño: Trabajadores, Configuración, Registro de actividad.
+- **Cuentas:** alta con contraseña temporal de 20 caracteres mostrada una vez; con temporal solo se puede cambiarla (403 `PASSWORD_CHANGE_REQUIRED`); Mi cuenta (12+ caracteres, distinta, cierra las demás sesiones); restablecer y desactivar cierran sesiones; el dueño es intocable (403 `OWNER_MANAGEMENT_DENIED`). Sin MFA (decisión del dueño).
+- **Auditoría:** eventos `WORKER_*` y `PASSWORD_CHANGED` con detalle antes → después (`audit_log.details`).
+- **Panel:** menú y botones por permisos; `/admin/trabajadores` con matriz de permisos (controles segmentados) y plantillas Creador, Publicador, Gestor de eventos, Gestor de directorio, Publicidad; `/admin/cuenta`; `/admin/usuarios` redirige.
+- **Antes de migrar en el VPS:** backup obligatorio (`scripts/backup.sh`); las sesiones abiertas antes de V50 piden volver a iniciar sesión.
+
+- **Cierre (Fase 0 de la hoja de ruta, 2026-10-07):** panel con commit (`34a9d46`), backend 297/297 tests, Docker reconstruido. Unido a `main` **en local, sin push** (`0dce210`), junto con `feat/sitio-red-social`: 2a nació de esa rama, así que no se pueden separar. El rediseño público sigue a medias (se termina en la Fase 10). El e2e de trabajadores requiere `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` con la clave actual del dueño (la de `BOOTSTRAP_ADMIN_PASSWORD` ya no vale).
+- **Decisiones del dueño para la hoja de ruta:** Inter se mantiene; validación con zod + react-hook-form; orden de fases según el plan (F1 → F2 → F3 → F4…). Pendientes: estados simplificados, guardado automático, renombrar Article → Publication.
+
+## 46.6f Fase 1 — Sistema de diseño moderno (rama `feat/sistema-diseno`, 2026-10-07)
+
+Spec y plan en `docs/superpowers/` (local). El panel cambia de aspecto, no solo de orden.
+
+- **Tokens** (`globals.css`): campo (`--field`, `--field-border`, `--ring`), estados `success`/`warning`/`info` con fondo `-soft`, `--danger-ink` (texto rojo legible en oscuro), sombras `shadow-card`/`shadow-pop`/`shadow-overlay`, radios `rounded-control` (10) / `rounded-card` (16) / `rounded-modal` (20), `text-title` y `text-label`, `color-scheme` por tema. El foco global pasó a `@layer base` para que gane el anillo suave de los componentes.
+- **Componentes** en `src/components/ui/` (compartidos; el sitio público los adopta en F10): `Button`/`LinkButton`/`IconButton` (cargando con `aria-busy`), `Field` (etiqueta, ayuda y error conectados por `aria-describedby`/`aria-invalid`; cliente; conecta nativos y controles marcados con `markFieldControl`), `TextInput` (inicio/final, el final acepta botones), `TextArea` (contador), `Select`, `Checkbox`/`Radio`, `DateTimeInput` (lectura absoluta "vie 12 dic, 7:00 p. m."), `Combobox` (rol combobox), `Badge`, `Card`/`CollapsibleCard`.
+- **Borrados:** `AdminButton`, `FormField`/`formInputClass`, `StatusPill`, `SectionCard`; **`lucide-react` desinstalado** (todo Phosphor; menú con ícono relleno en el activo).
+- **Validación:** zod + react-hook-form, piloto en Mi cuenta → cambiar contraseña. `@hookform/resolvers` fijado en `~5.5` (la 5.9 choca en npm por un peer opcional que pide zod 3).
+- **Muestra:** `/admin/muestra`, solo en desarrollo y sin sesión (el proxy la deja pasar fuera de producción; en producción es 404).
+- **Siguiente (prioridad del dueño):** el compositor de publicaciones (F5 flujo + F6) antes de F2–F4.
+
+## 46.6g Simulación de uso real y carga (k6, 2026-10-07)
+
+`frontend/tests/load/k6-simulacion.js`: personas distintas (IP, navegador, visitorId propios) que entran al inicio, bajan por el feed (scroll infinito), abren posts, dan y quitan «me gusta» (también doble toque simultáneo), buscan con sugerencias y ven anuncios — contra el sitio (Next), no solo la API. Perfiles `humo` / `normal` (50) / `pico` (200) / `quiebre` (600); `PAGINAS_EN_CACHE=1` modela la caché de páginas de nginx de producción (solo llega al origen lo que nginx no cachea). Scripts: `npm run test:api` (contrato), `test:load`, `test:peak`, `test:stress`. Antes de correrla: respaldo de `engagement.content_likes` y `advertising.campaign_daily_stats` (las impresiones y me gusta son datos reales) y comparación al terminar.
+
+Resultados en esta PC (6 CPU para Docker; k6 en la misma máquina):
+
+| Escenario | Antes | Después |
+|---|---|---|
+| Día normal, 50 personas | 0 errores de servidor; p95 páginas 196 ms, API 316 ms | — |
+| Feed, una petición | 54 ms (43 consultas con 18 ítems) | 16 ms (candidatos en memoria) |
+| Backend directo, 200 personas | ~86 pet/s, p95 4,1 s | ~191 pet/s, p95 1,2 s |
+| Pico 200 con páginas en caché de nginx | — | 82 pet/s por Next, p95 1,3 s, backend al 75 % de CPU |
+| Quiebre 600 | — | 0 errores 5xx, nada se cayó; 0,72 % de esperas > 60 s en Next |
+
+Arreglado con TDD: **N+1 del feed** (`default_batch_fetch_size`), **«me gusta» con doble toque** daba 500 por la restricción única (borrar-o-insertar atómico con `ON CONFLICT`), **candidatos del feed en memoria** (`FeedCandidateCache`, válidos mientras no cambie la versión del contenido; me gusta y eventos terminados cada 30 s). También: smoke de contrato actualizado (sin Reseñas ni Geografía, ya retirados); `k6-load`/`k6-stress` reemplazados por la simulación.
+
+**Límite actual:** el servidor de Next (un solo proceso Node) hace de intermediario de feed, me gusta, anuncios y sugerencias y es lo primero que se satura (~80 pet/s aquí). Opciones cuando haga falta (no antes): 2+ instancias de Next detrás de nginx según los núcleos del VPS, o que nginx enrute las rutas de solo-paso directo al backend.
+
+## 46.6h Flujo de plataforma y compositor (F5 + F6, 2026-10-07)
+
+Spec: `docs/superpowers/specs/2026-10-07-compositor-y-flujo-design.md` (local).
+
+- **Estados** (los 5 tipos): Borrador → Pendiente de aprobación → Programado → Publicado → Archivado. Sin «Aprobado» ni «Rechazado». Quien publica publica o programa desde Borrador o Pendiente, o **devuelve a borrador con nota** (`POST /{tipo}/{id}/return-to-draft`); quien solo crea **envía para aprobar**. Quien publica edita todo menos lo archivado (antes no podía editar lo publicado ni lo programado).
+- **Backend:** una sola máquina de estados `shared.publishing.PublishableContent` (`@MappedSuperclass`, mismos nombres de campo → los repositorios no cambian). Se borraron 5 enums, 9 excepciones y 10 DTO duplicados. Migración **V52** (`rejection_reason` → `review_note`, CHECK nuevo). Errores en castellano llano («No se puede publicar: está Archivado.»).
+- **Frontend:** una regla de permisos (`lib/admin/publication.ts`), una acción de servidor (`publication-actions.ts`, tipo y paso validados contra lista cerrada), una función del cliente (`runPublicationStep`); se borraron 5 archivos de permisos y 60 funciones/acciones duplicadas. `PublishPanel` compartido (Lugares, Eventos, Galerías, Directorio).
+- **Compositor de Publicaciones** (`article-composer.tsx`, reemplaza `article-form`): fotos y videos primero, título grande, «Descripción corta» y «Texto», panel Publicar fijo (en celular al final del flujo), tema y formato, vista previa en el feed, «Cómo se ve al compartir» (Google y redes, autocompletado; canónica y robots en Avanzado). zod + react-hook-form; guardado automático del borrador cada 10 s (crea el borrador y cambia la URL sin recargar; nunca lo publicado); aviso al salir con cambios. Muestra sin sesión en desarrollo: `/admin/muestra/compositor`.
+- **Pendiente:** compositor completo para Lugar, Evento, Galería y Directorio (hoy con `PublishPanel` dentro del formulario anterior); selector de fotos con arrastrar y soltar (F8).
+
+## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
+
+Ordenadas por prioridad.
+
+### Seguridad (primero)
+1. **Next.js 16.3.3 tiene una vulnerabilidad CRÍTICA** (`npm audit`: rango 16.2.0–16.3.5) → actualizar a **16.3.8** (misma versión mayor). Además `npm audit fix` para `postcss-selector-parser` (moderada) y `source-map-js` (alta). El paso de CI `npm audit --omit=dev --audit-level=high` **falla** mientras no se actualice.
+2. CSP con *nonce* para quitar `'unsafe-inline'` de `script-src` (pendiente anotado en `next.config.ts`).
+3. Permisos de trabajadores aplicados en el servidor (proyecto 2).
+4. MFA quedó retirado por decisión del dueño (2026-09-14); reconsiderar antes de tener trabajadores con acceso al panel.
+
+### Backend
+5. `scripts/backup.sh`: la retención de 14 días borra backups viejos aunque sean los únicos; no respalda las imágenes reales (volumen Docker `media_data`). Respaldar el volumen con `docker compose exec backend tar …` y no borrar el último backup.
+6. Medios en Object Storage (Cloudflare R2): `StorageService` ya es una interfaz; falta la implementación (README "Pendiente para un MVP completo").
+7. Visitas anónimas por contenido (base de "más vistos" y "también vieron", Sprint 5 tarea 16).
+8. Campos sin uso en Configuración (`primaryColor`, `secondaryColor`, `backgroundColor`, `fontFamily`): quitarlos o conectarlos.
+9. Roles `MODERATOR`, `COLLABORATOR`, `USER` sin uso → se eliminan con el proyecto 2; "editorial" aparece solo en comentarios internos de 7 archivos Java (no visible) → limpiar al tocar esos archivos.
+10. CORS y auto-registro público: **no aplican** (no hay cuentas de visitantes; el panel usa Server Actions).
+
+### Frontend
+11. Dependencias: actualizaciones menores de Radix, Tiptap y tipos; `@tanstack/react-table` 9 es versión mayor (evaluar en el proyecto 2).
+12. Pruebas E2E existentes (`e2e/accessibility`, `admin-auth`, `public-navigation`, `visual-regression`): `public-navigation` y las capturas de `visual-regression` **quedarán desactualizadas** con el rediseño → actualizar al cerrar el proyecto 1.
+13. Agregar las E2E del plan: `seo-urls.spec.ts` y `no-editorial-patterns.spec.ts`.
+14. Componentes viejos a retirar (46.3-F) cuando nada los use.
+
+### Infraestructura / lanzamiento
+15. Despliegue real en el VPS (Contabo) con dominio, HTTPS, Cloudflare y el timer de backups instalado (`infra/DESPLIEGUE.md`).
+16. Copia externa de backups a R2 (credenciales y bucket reales).
 
 ---
 
@@ -1914,4 +2251,5 @@ Decididos para más adelante:
 22    WebSockets                         43    Estándar de diseño y frontend
                                           44    Modelo de negocio (en validación)
                                           45    Algoritmos de contenido y pendientes
+                                          46    Rediseño estilo red social (pendientes)
 ```

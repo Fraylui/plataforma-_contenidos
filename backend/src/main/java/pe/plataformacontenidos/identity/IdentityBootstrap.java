@@ -35,7 +35,7 @@ public class IdentityBootstrap implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (userRepository.existsByRole(Role.SUPER_ADMIN)) {
+        if (userRepository.existsByRole(Role.OWNER)) {
             return;
         }
 
@@ -46,7 +46,7 @@ public class IdentityBootstrap implements ApplicationRunner {
         }
 
         User admin = new User(bootstrapEmail, passwordEncoder.encode(bootstrapPassword),
-                "Administrador", "Inicial", Role.SUPER_ADMIN);
+                "Administrador", "Inicial", Role.OWNER);
         userRepository.save(admin);
         log.info("SUPER_ADMIN inicial creado para {}", bootstrapEmail);
     }

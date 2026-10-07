@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
 /** Publica lugares SCHEDULED cuya fecha ya pasó. Corre cada minuto, igual que ScheduledPublishJob (Content). */
 @Component
@@ -25,9 +26,9 @@ public class PlaceScheduledPublishJob {
 
     @Scheduled(fixedDelay = 60_000)
     public void publishDuePlaces() {
-        List<Place> due = placeRepository.findByStatusAndScheduledAtBefore(PlaceStatus.SCHEDULED, Instant.now());
+        List<Place> due = placeRepository.findByStatusAndScheduledAtBefore(PublicationStatus.SCHEDULED, Instant.now());
         for (Place place : due) {
-            place.publishFromSchedule();
+            place.publishFromSchedule(Instant.now());
             placeRepository.save(place);
             auditService.record("PLACE_PUBLISHED_FROM_SCHEDULE", AuditResult.SUCCESS, null, null,
                     "place", place.getId().toString(), null);

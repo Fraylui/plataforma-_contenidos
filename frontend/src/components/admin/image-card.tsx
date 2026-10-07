@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AdminImage } from "@/lib/api/admin-types";
 import { imageUrl } from "@/lib/image-url";
-import { deleteImageAction, updateImageAltTextAction } from "@/app/admin/(protected)/medios/actions";
+import { Button, TextInput } from "@/components/ui";
+import { deleteImageAction, updateImageAltTextAction } from "@/app/admin/(protected)/imagenes/actions";
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -39,7 +40,7 @@ export function ImageCard({ image, canManage }: { image: AdminImage; canManage: 
   }
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-lg border border-border bg-surface">
+    <div className="flex flex-col overflow-hidden rounded-card bg-surface shadow-card">
       <div className="aspect-video bg-border">
         {/* eslint-disable-next-line @next/next/no-img-element -- host propio del backend, no un dominio remoto configurable en next/image sin acoplar el frontend a un entorno fijo */}
         <img src={imageUrl(image.url)} alt={image.altText ?? image.originalFilename} className="h-full w-full object-cover" />
@@ -54,38 +55,29 @@ export function ImageCard({ image, canManage }: { image: AdminImage; canManage: 
 
         {canManage ? (
           <>
-            <input
+            <TextInput
               type="text"
               name="altText"
+              aria-label="Texto alternativo"
               value={altText}
               onChange={(e) => setAltText(e.target.value)}
               placeholder="Texto alternativo"
-              className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground outline-none focus-visible:border-accent"
+              className="h-8 text-xs"
             />
             <div className="mt-1 flex gap-2">
-              <button
-                type="button"
-                disabled={pending}
-                onClick={handleSaveAlt}
-                className="flex-1 rounded-md border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-accent-soft hover:text-accent disabled:opacity-50"
-              >
+              <Button size="sm" variant="secondary" disabled={pending} onClick={handleSaveAlt} className="flex-1">
                 Guardar
-              </button>
-              <button
-                type="button"
-                disabled={pending}
-                onClick={handleDelete}
-                className="rounded-md border border-border px-2 py-1 text-xs font-medium text-danger hover:bg-danger/10 disabled:opacity-50"
-              >
+              </Button>
+              <Button size="sm" variant="ghost" disabled={pending} onClick={handleDelete} className="text-danger-ink hover:bg-danger-soft">
                 Eliminar
-              </button>
+              </Button>
             </div>
           </>
         ) : (
           image.altText && <p className="text-xs text-muted">Alt: {image.altText}</p>
         )}
 
-        {error && <p role="alert" className="text-xs text-danger">{error}</p>}
+        {error && <p role="alert" className="text-xs font-medium text-danger-ink">{error}</p>}
       </div>
     </div>
   );

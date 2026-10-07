@@ -14,7 +14,7 @@ export function DropdownMenuContent({ className, ...props }: ComponentProps<type
         align="end"
         sideOffset={6}
         className={cn(
-          "z-50 min-w-[10rem] overflow-hidden rounded-lg border border-border bg-surface p-1 shadow-lg",
+          "z-50 min-w-[11rem] overflow-hidden rounded-card bg-surface p-1.5 shadow-pop",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           className,
         )}
@@ -32,9 +32,9 @@ export function DropdownMenuItem({
   return (
     <RadixDropdownMenu.Item
       className={cn(
-        "flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-sm outline-none transition-colors",
-        "data-[highlighted]:bg-accent-soft data-[highlighted]:text-accent",
-        variant === "danger" && "text-danger data-[highlighted]:bg-danger/10 data-[highlighted]:text-danger",
+        "flex cursor-pointer items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-sm font-medium outline-none transition-colors [&_svg]:size-4",
+        "data-[highlighted]:bg-field",
+        variant === "danger" && "text-danger-ink data-[highlighted]:bg-danger-soft",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-40",
         className,
       )}
@@ -44,5 +44,5 @@ export function DropdownMenuItem({
 }
 
 export function DropdownMenuSeparator({ className, ...props }: ComponentProps<typeof RadixDropdownMenu.Separator>) {
-  return <RadixDropdownMenu.Separator className={cn("my-1 h-px bg-border", className)} {...props} />;
+  return <RadixDropdownMenu.Separator className={cn("my-1 h-px bg-field-border", className)} {...props} />;
 }

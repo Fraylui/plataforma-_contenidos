@@ -30,7 +30,7 @@ export default async function TermsOfUsePage() {
       title: "Uso permitido",
       content: (
         <p>
-          Podés leer, compartir y enlazar el contenido libremente. No está permitido reproducirlo completo en otro
+          Puedes leer, compartir y enlazar el contenido libremente. No está permitido reproducirlo completo en otro
           sitio sin autorización, extraerlo de forma automatizada y masiva (scraping), ni usar el sitio para
           actividades ilegales.
         </p>

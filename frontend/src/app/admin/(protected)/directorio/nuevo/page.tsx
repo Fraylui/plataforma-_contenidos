@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { listActiveCategoriesFresh, listAdminImages, listAdminPlaces } from "@/lib/api/admin-client";
-import { BusinessForm } from "@/components/admin/business-form";
+import { listActiveCategoriesFresh, listAdminImages, listPlaceOptions } from "@/lib/api/admin-client";
+import { BusinessComposer } from "@/components/admin/business-composer";
+import { AdminPageHeader } from "@/components/admin/ui";
+import { computePublicationPermissions } from "@/lib/admin/publication";
+import { getPlatformSettings } from "@/lib/api/client";
 
 export const metadata: Metadata = {
   title: "Nueva ficha de directorio",
@@ -9,19 +12,21 @@ export const metadata: Metadata = {
 };
 
 export default async function NewBusinessPage() {
-  const { accessToken } = await requireAdminUser();
-  const [categories, allImages, places] = await Promise.all([
+  const { accessToken, user } = await requireAdminUser();
+  const [categories, allImages, places, settings] = await Promise.all([
     listActiveCategoriesFresh(),
     listAdminImages(accessToken),
-    listAdminPlaces(accessToken),
+    listPlaceOptions(accessToken),
+    getPlatformSettings(),
   ]);
 
+  // Lo nuevo es un borrador propio: mismos permisos que tendrá al guardarse.
+  const permissions = computePublicationPermissions({ status: "DRAFT", authorId: user.id }, user, "directory");
+
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-foreground">Nueva ficha de directorio</h1>
-      <div className="mt-6">
-        <BusinessForm mode="create" categories={categories} places={places} allImages={allImages} />
-      </div>
+    <div className="space-y-6">
+      <AdminPageHeader title="Nueva ficha de directorio" />
+      <BusinessComposer categories={categories} places={places} allImages={allImages} permissions={permissions} siteName={settings.name} />
     </div>
   );
 }

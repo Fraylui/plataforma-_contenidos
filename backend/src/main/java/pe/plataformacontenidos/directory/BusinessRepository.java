@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.directory;
 
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -12,21 +13,21 @@ import org.springframework.data.repository.query.Param;
 
 public interface BusinessRepository extends JpaRepository<Business, UUID> {
 
-    Optional<Business> findBySlugAndStatus(String slug, BusinessStatus status);
+    Optional<Business> findBySlugAndStatus(String slug, PublicationStatus status);
 
     boolean existsBySlug(String slug);
 
-    Page<Business> findByStatus(BusinessStatus status, Pageable pageable);
+    Page<Business> findByStatus(PublicationStatus status, Pageable pageable);
 
-    Page<Business> findByStatusAndCategoryId(BusinessStatus status, UUID categoryId, Pageable pageable);
+    Page<Business> findByStatusAndCategoryId(PublicationStatus status, UUID categoryId, Pageable pageable);
 
-    Page<Business> findByStatusAndBusinessType(BusinessStatus status, BusinessType businessType, Pageable pageable);
+    Page<Business> findByStatusAndBusinessType(PublicationStatus status, BusinessType businessType, Pageable pageable);
 
     List<Business> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 
-    List<Business> findByStatusAndScheduledAtBefore(BusinessStatus status, Instant threshold);
+    List<Business> findByStatusAndScheduledAtBefore(PublicationStatus status, Instant threshold);
 
-    long countByStatus(BusinessStatus status);
+    long countByStatus(PublicationStatus status);
 
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre fichas de

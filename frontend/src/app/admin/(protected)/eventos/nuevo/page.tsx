@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { listActiveCategoriesFresh, listAdminImages, listAdminPlaces } from "@/lib/api/admin-client";
-import { EventForm } from "@/components/admin/event-form";
+import { listActiveCategoriesFresh, listAdminImages, listPlaceOptions } from "@/lib/api/admin-client";
+import { EventComposer } from "@/components/admin/event-composer";
+import { AdminPageHeader } from "@/components/admin/ui";
+import { computePublicationPermissions } from "@/lib/admin/publication";
+import { getPlatformSettings } from "@/lib/api/client";
 
 export const metadata: Metadata = {
   title: "Nuevo evento",
@@ -9,19 +12,21 @@ export const metadata: Metadata = {
 };
 
 export default async function NewEventPage() {
-  const { accessToken } = await requireAdminUser();
-  const [categories, allImages, places] = await Promise.all([
+  const { accessToken, user } = await requireAdminUser();
+  const [categories, allImages, places, settings] = await Promise.all([
     listActiveCategoriesFresh(),
     listAdminImages(accessToken),
-    listAdminPlaces(accessToken),
+    listPlaceOptions(accessToken),
+    getPlatformSettings(),
   ]);
 
+  // Lo nuevo es un borrador propio: mismos permisos que tendrá al guardarse.
+  const permissions = computePublicationPermissions({ status: "DRAFT", authorId: user.id }, user, "events");
+
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-foreground">Nuevo evento</h1>
-      <div className="mt-6">
-        <EventForm mode="create" categories={categories} places={places} allImages={allImages} />
-      </div>
+    <div className="space-y-6">
+      <AdminPageHeader title="Nuevo evento" />
+      <EventComposer categories={categories} places={places} allImages={allImages} permissions={permissions} siteName={settings.name} />
     </div>
   );
 }

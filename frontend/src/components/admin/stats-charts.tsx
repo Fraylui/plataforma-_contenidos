@@ -15,22 +15,20 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { ArticleStatus } from "@/lib/api/types";
+import type { PublicationStatus } from "@/lib/api/types";
 import type { DailyCount, PlatformStats, Role } from "@/lib/api/admin-types";
-import { articleStatusLabel } from "@/lib/content-labels";
+import { publicationStatusLabel } from "@/lib/content-labels";
 import { roleLabel } from "@/lib/admin/role-labels";
 
 // Rampa secuencial de un solo tono (verde de marca), clara -> oscura, la
 // última parada calza con --accent (#06752b, ver globals.css) para que
 // "Publicado" se vea igual acá que en cualquier otro badge/botón del sitio.
-const PIPELINE_RAMP: Record<ArticleStatus, string> = {
+const PIPELINE_RAMP: Record<PublicationStatus, string> = {
   DRAFT: "#bbf7d0",
   IN_REVIEW: "#86efac",
-  APPROVED: "#4ade80",
   SCHEDULED: "#22c55e",
   PUBLISHED: "#06752b",
   ARCHIVED: "#d4d4d8",
-  REJECTED: "#d4d4d8",
 };
 
 const TOOLTIP_STYLE = {
@@ -43,12 +41,12 @@ const TOOLTIP_STYLE = {
 
 const AXIS_TICK = { fill: "var(--muted)", fontSize: 12 };
 
-const PIPELINE: ArticleStatus[] = ["DRAFT", "IN_REVIEW", "APPROVED", "SCHEDULED", "PUBLISHED"];
+const PIPELINE: PublicationStatus[] = ["DRAFT", "IN_REVIEW", "SCHEDULED", "PUBLISHED"];
 
 /** Barra horizontal del flujo de publicación, un tramo por estado, clara -> oscura hacia "Publicado". */
 export function PipelineChart({ stats }: { stats: PlatformStats }) {
   const data = PIPELINE.map((status) => ({
-    name: articleStatusLabel(status),
+    name: publicationStatusLabel(status),
     value: stats.articlesByStatus[status] ?? 0,
     status,
   })).filter((row) => row.value > 0);
@@ -130,7 +128,7 @@ export function ContentTypesChart({ stats }: { stats: PlatformStats }) {
   );
 }
 
-const ROLE_ORDER: Role[] = ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR", "MODERATOR", "COLLABORATOR", "USER"];
+const ROLE_ORDER: Role[] = ["OWNER", "WORKER"];
 
 /** Conteo de usuarios por rol — una sola serie, sin necesidad de distinguir identidad por color. */
 export function RoleChart({ usersByRole }: { usersByRole: Record<Role, number> }) {
@@ -161,8 +159,9 @@ export function RoleChart({ usersByRole }: { usersByRole: Record<Role, number> }
   );
 }
 
-const TREND_DATE_FORMAT = new Intl.DateTimeFormat("es-PE", { day: "numeric", month: "short" });
-const TREND_DATE_FORMAT_LONG = new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "numeric", month: "long" });
+// Días UTC del backend (T00:00:00Z): en la zona del navegador cada barra caía en el día anterior.
+const TREND_DATE_FORMAT = new Intl.DateTimeFormat("es-PE", { day: "numeric", month: "short", timeZone: "UTC" });
+const TREND_DATE_FORMAT_LONG = new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
 
 /**
  * Tendencia de publicaciones día a día (últimos 30 días) — el único gráfico

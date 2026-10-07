@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.PublishPermissionRequiredException;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
@@ -23,6 +23,8 @@ import pe.plataformacontenidos.shared.HtmlSanitizer;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
+import pe.plataformacontenidos.shared.publishing.InvalidPublicationTransitionException;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
 /**
  * Orquesta el ciclo de publicación de Lugares (CONTEXTO.md sección 12), mismo
@@ -65,9 +67,9 @@ public class PlaceService {
         return saved;
     }
 
-    public Place update(UUID placeId, PlaceInput input, UUID actingUserId, Role actingRole) {
+    public Place update(UUID placeId, PlaceInput input, UUID actingUserId, boolean canPublish) {
         Place place = getOrThrow(placeId);
-        requireCanEdit(place, actingUserId, actingRole);
+        requireCanEdit(place, actingUserId, canPublish);
 
         if (!place.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
@@ -84,93 +86,55 @@ public class PlaceService {
         return saved;
     }
 
+    /** Quien solo crea lo manda a quien publica (Pendiente de aprobación). */
     public Place submit(UUID placeId, UUID actingUserId) {
         Place place = getOrThrow(placeId);
         if (!place.isOwnedBy(actingUserId)) {
             throw new PlaceAccessDeniedException();
         }
-        if (place.getStatus() != PlaceStatus.DRAFT && place.getStatus() != PlaceStatus.REJECTED) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "enviar a revisión");
-        }
-        place.submitForReview();
-        Place saved = placeRepository.save(place);
-        audit("PLACE_SUBMITTED", saved, actingUserId);
-        return saved;
+        place.submitForApproval();
+        return saveAndAudit(place, "PLACE_SUBMITTED", actingUserId);
     }
 
-    public Place approve(UUID placeId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Place publish(UUID placeId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.IN_REVIEW) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "aprobar");
-        }
-        place.approve();
-        Place saved = placeRepository.save(place);
-        audit("PLACE_APPROVED", saved, actingUserId);
-        return saved;
+        place.publishNow(Instant.now());
+        return saveAndAudit(place, "PLACE_PUBLISHED", actingUserId);
     }
 
-    public Place reject(UUID placeId, String reason, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Place schedule(UUID placeId, Instant when, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.IN_REVIEW) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "rechazar");
-        }
-        place.reject(reason);
-        Place saved = placeRepository.save(place);
-        audit("PLACE_REJECTED", saved, actingUserId);
-        return saved;
+        place.schedule(when, Instant.now());
+        return saveAndAudit(place, "PLACE_SCHEDULED", actingUserId);
     }
 
-    public Place publish(UUID placeId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    /** Devuelve a borrador lo pendiente o programado, con una nota opcional para quien lo creó. */
+    public Place returnToDraft(UUID placeId, String note, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.APPROVED) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "publicar");
-        }
-        place.publishNow();
-        Place saved = placeRepository.save(place);
-        audit("PLACE_PUBLISHED", saved, actingUserId);
-        return saved;
+        place.returnToDraft(note);
+        return saveAndAudit(place, "PLACE_RETURNED_TO_DRAFT", actingUserId);
     }
 
-    public Place schedule(UUID placeId, Instant when, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
-        if (when.isBefore(Instant.now())) {
-            throw new InvalidScheduleException("La fecha de publicación programada debe ser futura");
-        }
+    public Place archive(UUID placeId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.APPROVED) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "programar");
-        }
-        place.schedule(when);
-        Place saved = placeRepository.save(place);
-        audit("PLACE_SCHEDULED", saved, actingUserId);
-        return saved;
-    }
-
-    public Place archive(UUID placeId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
-        Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.PUBLISHED) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "archivar");
-        }
         place.archive();
-        Place saved = placeRepository.save(place);
-        audit("PLACE_ARCHIVED", saved, actingUserId);
-        return saved;
+        return saveAndAudit(place, "PLACE_ARCHIVED", actingUserId);
     }
 
-    public Place getForAdmin(UUID placeId, UUID actingUserId, Role actingRole) {
+    public Place getForAdmin(UUID placeId, UUID actingUserId, boolean canPublish) {
         Place place = getOrThrow(placeId);
-        if (!isEditorOrAbove(actingRole) && !place.isOwnedBy(actingUserId)) {
+        if (!canPublish && !place.isOwnedBy(actingUserId)) {
             throw new PlaceAccessDeniedException();
         }
         return place;
     }
 
-    public List<Place> listForAdmin(UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
+    public List<Place> listForAdmin(UUID actingUserId, boolean canPublish) {
+        if (canPublish) {
             return placeRepository.findAll();
         }
         return placeRepository.findByAuthorIdOrderByCreatedAtDesc(actingUserId);
@@ -182,14 +146,14 @@ public class PlaceService {
     }
 
     public Place getPublishedBySlug(String slug) {
-        return placeRepository.findBySlugAndStatus(slug, PlaceStatus.PUBLISHED)
+        return placeRepository.findBySlugAndStatus(slug, PublicationStatus.PUBLISHED)
                 .orElseThrow(() -> new PlaceNotFoundException(slug));
     }
 
     /** Usado por Events para resolver el nombre/slug de un lugar vinculado (placeId) sin exponer su body completo. */
     public Place getPublishedById(UUID placeId) {
         Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.PUBLISHED) {
+        if (place.getStatus() != PublicationStatus.PUBLISHED) {
             throw new PlaceNotFoundException(placeId);
         }
         return place;
@@ -197,9 +161,9 @@ public class PlaceService {
 
     public Page<Place> listPublished(UUID categoryId, Pageable pageable) {
         if (categoryId != null) {
-            return placeRepository.findByStatusAndCategoryId(PlaceStatus.PUBLISHED, categoryId, pageable);
+            return placeRepository.findByStatusAndCategoryId(PublicationStatus.PUBLISHED, categoryId, pageable);
         }
-        return placeRepository.findByStatus(PlaceStatus.PUBLISHED, pageable);
+        return placeRepository.findByStatus(PublicationStatus.PUBLISHED, pageable);
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que ArticleService.search (query en blanco: página vacía, no error). */
@@ -211,9 +175,9 @@ public class PlaceService {
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
-    public Map<PlaceStatus, Long> countByStatus() {
-        Map<PlaceStatus, Long> counts = new EnumMap<>(PlaceStatus.class);
-        for (PlaceStatus status : PlaceStatus.values()) {
+    public Map<PublicationStatus, Long> countByStatus() {
+        Map<PublicationStatus, Long> counts = new EnumMap<>(PublicationStatus.class);
+        for (PublicationStatus status : PublicationStatus.values()) {
             counts.put(status, placeRepository.countByStatus(status));
         }
         return counts;
@@ -255,30 +219,17 @@ public class PlaceService {
         return result;
     }
 
-    private void requireCanEdit(Place place, UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
-            if (!place.isEditable()) {
-                throw new InvalidPlaceTransitionException(place.getStatus(), "editar");
-            }
-            return;
-        }
-        if (!place.isOwnedBy(actingUserId)) {
+    private void requireCanEdit(Place place, UUID actingUserId, boolean canPublish) {
+        if (!canPublish && !place.isOwnedBy(actingUserId)) {
             throw new PlaceAccessDeniedException();
         }
-        if (place.getStatus() != PlaceStatus.DRAFT && place.getStatus() != PlaceStatus.REJECTED) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "editar");
+        boolean editable = canPublish ? place.isEditableByPublisher() : place.isEditableByCreator();
+        if (!editable) {
+            throw new InvalidPublicationTransitionException(place.getStatus(), "editar");
         }
     }
 
-    private void requireEditorOrAbove(Role role) {
-        if (!isEditorOrAbove(role)) {
-            throw new PlaceAccessDeniedException();
-        }
-    }
 
-    private boolean isEditorOrAbove(Role role) {
-        return role == Role.EDITOR || role == Role.ADMIN || role == Role.SUPER_ADMIN;
-    }
 
     private Place getOrThrow(UUID id) {
         return placeRepository.findById(id).orElseThrow(() -> new PlaceNotFoundException(id));
@@ -294,8 +245,21 @@ public class PlaceService {
         return candidate;
     }
 
+    private Place saveAndAudit(Place place, String action, UUID actingUserId) {
+        Place saved = placeRepository.save(place);
+        audit(action, saved, actingUserId);
+        return saved;
+    }
+
     private void audit(String action, Place place, UUID actingUserId) {
         auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "place", place.getId().toString(),
                 null);
+    }
+
+    /** Publicar, programar, devolver a borrador y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
+    private static void requirePublish(boolean canPublish) {
+        if (!canPublish) {
+            throw new PublishPermissionRequiredException();
+        }
     }
 }

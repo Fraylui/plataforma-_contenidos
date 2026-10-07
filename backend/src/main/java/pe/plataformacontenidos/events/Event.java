@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.events;
 
+import pe.plataformacontenidos.shared.publishing.PublishableContent;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -33,7 +34,7 @@ import pe.plataformacontenidos.shared.ContentVideo;
  */
 @Entity
 @Table(name = "events", schema = "events")
-public class Event {
+public class Event extends PublishableContent {
 
     @Id
     @GeneratedValue
@@ -50,10 +51,6 @@ public class Event {
 
     @Column(nullable = false, columnDefinition = "text")
     private String body;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EventStatus status = EventStatus.DRAFT;
 
     @Column(name = "author_id", nullable = false)
     private UUID authorId;
@@ -99,20 +96,8 @@ public class Event {
     @Column(nullable = false)
     private String robots = "index,follow";
 
-    @Column(name = "rejection_reason")
-    private String rejectionReason;
-
-    @Column(name = "published_at")
-    private Instant publishedAt;
-
-    @Column(name = "scheduled_at")
-    private Instant scheduledAt;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
-
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt = Instant.now();
 
     protected Event() {
         // JPA
@@ -147,10 +132,6 @@ public class Event {
 
     public String getBody() {
         return body;
-    }
-
-    public EventStatus getStatus() {
-        return status;
     }
 
     public UUID getAuthorId() {
@@ -210,29 +191,12 @@ public class Event {
         return robots;
     }
 
-    public String getRejectionReason() {
-        return rejectionReason;
-    }
-
-    public Instant getPublishedAt() {
-        return publishedAt;
-    }
-
-    public Instant getScheduledAt() {
-        return scheduledAt;
-    }
-
     public Instant getCreatedAt() {
         return createdAt;
     }
 
     public boolean isOwnedBy(UUID userId) {
         return authorId.equals(userId);
-    }
-
-    public boolean isEditable() {
-        return status == EventStatus.DRAFT || status == EventStatus.IN_REVIEW
-                || status == EventStatus.APPROVED || status == EventStatus.REJECTED;
     }
 
     public void updateContent(String title, String excerpt, String body, UUID categoryId,
@@ -254,48 +218,7 @@ public class Event {
         this.ogImageUrl = ogImageUrl;
         this.videos = new ArrayList<>(videos);
         this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
-        this.updatedAt = Instant.now();
+        touch();
     }
 
-    public void submitForReview() {
-        this.status = EventStatus.IN_REVIEW;
-        this.rejectionReason = null;
-        this.updatedAt = Instant.now();
-    }
-
-    public void approve() {
-        this.status = EventStatus.APPROVED;
-        this.updatedAt = Instant.now();
-    }
-
-    public void reject(String reason) {
-        this.status = EventStatus.REJECTED;
-        this.rejectionReason = reason;
-        this.updatedAt = Instant.now();
-    }
-
-    public void publishNow() {
-        this.status = EventStatus.PUBLISHED;
-        this.publishedAt = Instant.now();
-        this.scheduledAt = null;
-        this.updatedAt = Instant.now();
-    }
-
-    public void schedule(Instant when) {
-        this.status = EventStatus.SCHEDULED;
-        this.scheduledAt = when;
-        this.updatedAt = Instant.now();
-    }
-
-    /** Usado por el job de publicación programada cuando scheduledAt ya pasó. */
-    void publishFromSchedule() {
-        this.status = EventStatus.PUBLISHED;
-        this.publishedAt = Instant.now();
-        this.updatedAt = Instant.now();
-    }
-
-    public void archive() {
-        this.status = EventStatus.ARCHIVED;
-        this.updatedAt = Instant.now();
-    }
 }

@@ -6,18 +6,12 @@ import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Article } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
-import { computeArticlePermissions } from "@/lib/admin/article-permissions";
-import { articleStatusLabel, articleStatusTone, articleTypeLabel, formatPublishedDate } from "@/lib/content-labels";
-import { StatusPill, DataTable } from "@/components/admin/ui";
+import { computePublicationPermissions } from "@/lib/admin/publication";
+import { publicationStatusLabel, publicationStatusTone, articleTypeLabel, formatPublishedDate } from "@/lib/content-labels";
+import { DataTable } from "@/components/admin/ui";
 import { ContentRowActions } from "@/components/admin/content-row-actions";
 import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
-import {
-  approveArticleAction,
-  archiveArticleAction,
-  publishArticleAction,
-  rejectArticleAction,
-  submitArticleAction,
-} from "@/app/admin/(protected)/publicaciones/actions";
+import { Badge } from "@/components/ui";
 
 export function PublicationsTable({ articles, currentUser }: { articles: Article[]; currentUser: AdminUser }) {
   const router = useRouter();
@@ -42,7 +36,7 @@ export function PublicationsTable({ articles, currentUser }: { articles: Article
       {
         accessorKey: "status",
         header: "Estado",
-        cell: ({ row }) => <StatusPill tone={articleStatusTone(row.original.status)} label={articleStatusLabel(row.original.status)} />,
+        cell: ({ row }) => <Badge tone={publicationStatusTone(row.original.status)} dot>{publicationStatusLabel(row.original.status)}</Badge>,
       },
       {
         accessorKey: "createdAt",
@@ -57,15 +51,10 @@ export function PublicationsTable({ articles, currentUser }: { articles: Article
           <ContentRowActions
             id={row.original.id}
             editHref={`/admin/publicaciones/${row.original.id}`}
-            permissions={computeArticlePermissions(row.original, currentUser)}
+            permissions={computePublicationPermissions(row.original, currentUser, "articles")}
             itemLabel="esta publicación"
-            actions={{
-              submit: submitArticleAction,
-              approve: approveArticleAction,
-              reject: rejectArticleAction,
-              publish: publishArticleAction,
-              archive: archiveArticleAction,
-            }}
+          kind="articles"
+          status={row.original.status}
           />
         ),
       },
@@ -78,10 +67,10 @@ export function PublicationsTable({ articles, currentUser }: { articles: Article
       <ContentBulkActions
         selected={selected}
         permissions={{
-          canPublish: (item) => computeArticlePermissions(item, currentUser).canPublish,
-          canArchive: (item) => computeArticlePermissions(item, currentUser).canArchive,
+          canPublish: (item) => computePublicationPermissions(item, currentUser, "articles").canPublish,
+          canArchive: (item) => computePublicationPermissions(item, currentUser, "articles").canArchive,
         }}
-        actions={{ publish: publishArticleAction, archive: archiveArticleAction }}
+        kind="articles"
         onDone={() => router.refresh()}
       />
       <DataTable

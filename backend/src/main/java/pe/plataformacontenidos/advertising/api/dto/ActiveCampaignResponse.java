@@ -7,13 +7,15 @@ import pe.plataformacontenidos.advertising.Campaign;
  * Forma pública, distinta de {@link CampaignResponse}: nunca expone
  * `linkUrl` crudo — el frontend arma el link de clic con `id`
  * (`/api/v1/ads/campaigns/{id}/click`), así el conteo de clics no se puede
- * evitar copiando el href.
+ * evitar copiando el href. `advertiserId` permite al navegador no mostrar
+ * dos anuncios del mismo anunciante en una página (ver page-ad-plan.ts).
  */
-public record ActiveCampaignResponse(UUID id, UUID imageId, String externalImageUrl, String imageAlt) {
+public record ActiveCampaignResponse(UUID id, UUID advertiserId, UUID imageId, String externalImageUrl,
+        String imageAlt) {
 
     public static ActiveCampaignResponse from(Campaign campaign) {
         var creative = campaign.getCreative();
-        return new ActiveCampaignResponse(campaign.getId(), creative.getImageId(), creative.getExternalUrl(),
+        return new ActiveCampaignResponse(campaign.getId(), campaign.getAdvertiserId(), creative.getImageId(), creative.getExternalUrl(),
                 creative.getTitle());
     }
 }

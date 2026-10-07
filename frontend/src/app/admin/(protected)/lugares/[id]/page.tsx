@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { AdminApiError, getAdminPlace, listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
-import { getCategoryById } from "@/lib/api/client";
-import { computePlacePermissions } from "@/lib/admin/place-permissions";
-import { PlaceForm } from "@/components/admin/place-form";
+import { getCategoryById, getPlatformSettings } from "@/lib/api/client";
+import { computePublicationPermissions } from "@/lib/admin/publication";
+import { PlaceComposer } from "@/components/admin/place-composer";
+import { AdminPageHeader } from "@/components/admin/ui";
 import type { Category } from "@/lib/api/types";
 
 export const metadata: Metadata = {
@@ -36,16 +37,24 @@ export default async function EditPlacePage(props: PageProps<"/admin/lugares/[id
     throw error;
   }
 
-  const [activeCategories, allImages] = await Promise.all([listActiveCategoriesFresh(), listAdminImages(accessToken)]);
+  const [activeCategories, allImages, settings] = await Promise.all([
+    listActiveCategoriesFresh(),
+    listAdminImages(accessToken),
+    getPlatformSettings(),
+  ]);
   const categories = await resolveCategories(activeCategories, place.categoryId);
-  const permissions = computePlacePermissions(place, user);
+  const permissions = computePublicationPermissions(place, user, "places");
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-foreground">{place.name}</h1>
-      <div className="mt-6">
-        <PlaceForm mode="edit" place={place} categories={categories} allImages={allImages} permissions={permissions} />
-      </div>
+    <div className="space-y-6">
+      <AdminPageHeader title={place.name} />
+      <PlaceComposer
+        place={place}
+        categories={categories}
+        allImages={allImages}
+        permissions={permissions}
+        siteName={settings.name}
+      />
     </div>
   );
 }

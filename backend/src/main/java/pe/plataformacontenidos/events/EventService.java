@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.PublishPermissionRequiredException;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.shared.ContentImage;
@@ -25,6 +25,8 @@ import pe.plataformacontenidos.shared.HtmlSanitizer;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
+import pe.plataformacontenidos.shared.publishing.InvalidPublicationTransitionException;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
 /**
  * Orquesta el ciclo de publicación de Eventos (CONTEXTO.md sección 12), mismo
@@ -71,9 +73,9 @@ public class EventService {
         return saved;
     }
 
-    public Event update(UUID eventId, EventInput input, UUID actingUserId, Role actingRole) {
+    public Event update(UUID eventId, EventInput input, UUID actingUserId, boolean canPublish) {
         Event event = getOrThrow(eventId);
-        requireCanEdit(event, actingUserId, actingRole);
+        requireCanEdit(event, actingUserId, canPublish);
 
         if (!event.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
@@ -94,100 +96,62 @@ public class EventService {
         return saved;
     }
 
+    /** Quien solo crea lo manda a quien publica (Pendiente de aprobación). */
     public Event submit(UUID eventId, UUID actingUserId) {
         Event event = getOrThrow(eventId);
         if (!event.isOwnedBy(actingUserId)) {
             throw new EventAccessDeniedException();
         }
-        if (event.getStatus() != EventStatus.DRAFT && event.getStatus() != EventStatus.REJECTED) {
-            throw new InvalidEventTransitionException(event.getStatus(), "enviar a revisión");
-        }
-        event.submitForReview();
-        Event saved = eventRepository.save(event);
-        audit("EVENT_SUBMITTED", saved, actingUserId);
-        return saved;
+        event.submitForApproval();
+        return saveAndAudit(event, "EVENT_SUBMITTED", actingUserId);
     }
 
-    public Event approve(UUID eventId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Event publish(UUID eventId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Event event = getOrThrow(eventId);
-        if (event.getStatus() != EventStatus.IN_REVIEW) {
-            throw new InvalidEventTransitionException(event.getStatus(), "aprobar");
-        }
-        event.approve();
-        Event saved = eventRepository.save(event);
-        audit("EVENT_APPROVED", saved, actingUserId);
-        return saved;
+        event.publishNow(Instant.now());
+        return saveAndAudit(event, "EVENT_PUBLISHED", actingUserId);
     }
 
-    public Event reject(UUID eventId, String reason, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Event schedule(UUID eventId, Instant when, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Event event = getOrThrow(eventId);
-        if (event.getStatus() != EventStatus.IN_REVIEW) {
-            throw new InvalidEventTransitionException(event.getStatus(), "rechazar");
-        }
-        event.reject(reason);
-        Event saved = eventRepository.save(event);
-        audit("EVENT_REJECTED", saved, actingUserId);
-        return saved;
+        event.schedule(when, Instant.now());
+        return saveAndAudit(event, "EVENT_SCHEDULED", actingUserId);
     }
 
-    public Event publish(UUID eventId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    /** Devuelve a borrador lo pendiente o programado, con una nota opcional para quien lo creó. */
+    public Event returnToDraft(UUID eventId, String note, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Event event = getOrThrow(eventId);
-        if (event.getStatus() != EventStatus.APPROVED) {
-            throw new InvalidEventTransitionException(event.getStatus(), "publicar");
-        }
-        event.publishNow();
-        Event saved = eventRepository.save(event);
-        audit("EVENT_PUBLISHED", saved, actingUserId);
-        return saved;
+        event.returnToDraft(note);
+        return saveAndAudit(event, "EVENT_RETURNED_TO_DRAFT", actingUserId);
     }
 
-    public Event schedule(UUID eventId, Instant when, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
-        if (when.isBefore(Instant.now())) {
-            throw new InvalidEventScheduleException("La fecha de publicación programada debe ser futura");
-        }
+    public Event archive(UUID eventId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Event event = getOrThrow(eventId);
-        if (event.getStatus() != EventStatus.APPROVED) {
-            throw new InvalidEventTransitionException(event.getStatus(), "programar");
-        }
-        event.schedule(when);
-        Event saved = eventRepository.save(event);
-        audit("EVENT_SCHEDULED", saved, actingUserId);
-        return saved;
-    }
-
-    public Event archive(UUID eventId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
-        Event event = getOrThrow(eventId);
-        if (event.getStatus() != EventStatus.PUBLISHED) {
-            throw new InvalidEventTransitionException(event.getStatus(), "archivar");
-        }
         event.archive();
-        Event saved = eventRepository.save(event);
-        audit("EVENT_ARCHIVED", saved, actingUserId);
-        return saved;
+        return saveAndAudit(event, "EVENT_ARCHIVED", actingUserId);
     }
 
-    public Event getForAdmin(UUID eventId, UUID actingUserId, Role actingRole) {
+    public Event getForAdmin(UUID eventId, UUID actingUserId, boolean canPublish) {
         Event event = getOrThrow(eventId);
-        if (!isEditorOrAbove(actingRole) && !event.isOwnedBy(actingUserId)) {
+        if (!canPublish && !event.isOwnedBy(actingUserId)) {
             throw new EventAccessDeniedException();
         }
         return event;
     }
 
-    public List<Event> listForAdmin(UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
+    public List<Event> listForAdmin(UUID actingUserId, boolean canPublish) {
+        if (canPublish) {
             return eventRepository.findAll();
         }
         return eventRepository.findByAuthorIdOrderByCreatedAtDesc(actingUserId);
     }
 
     public Event getPublishedBySlug(String slug) {
-        return eventRepository.findBySlugAndStatus(slug, EventStatus.PUBLISHED)
+        return eventRepository.findBySlugAndStatus(slug, PublicationStatus.PUBLISHED)
                 .orElseThrow(() -> new EventNotFoundException(slug));
     }
 
@@ -199,9 +163,9 @@ public class EventService {
     public Page<Event> listPublished(UUID categoryId, boolean upcoming, Pageable pageable) {
         Instant now = Instant.now();
         if (upcoming) {
-            return eventRepository.findUpcoming(EventStatus.PUBLISHED, now, categoryId, pageable);
+            return eventRepository.findUpcoming(PublicationStatus.PUBLISHED, now, categoryId, pageable);
         }
-        return eventRepository.findPast(EventStatus.PUBLISHED, now, categoryId, pageable);
+        return eventRepository.findPast(PublicationStatus.PUBLISHED, now, categoryId, pageable);
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que ArticleService/PlaceService.search (query en blanco: página vacía, no error). */
@@ -213,9 +177,9 @@ public class EventService {
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
-    public Map<EventStatus, Long> countByStatus() {
-        Map<EventStatus, Long> counts = new EnumMap<>(EventStatus.class);
-        for (EventStatus status : EventStatus.values()) {
+    public Map<PublicationStatus, Long> countByStatus() {
+        Map<PublicationStatus, Long> counts = new EnumMap<>(PublicationStatus.class);
+        for (PublicationStatus status : PublicationStatus.values()) {
             counts.put(status, eventRepository.countByStatus(status));
         }
         return counts;
@@ -269,30 +233,17 @@ public class EventService {
         return result;
     }
 
-    private void requireCanEdit(Event event, UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
-            if (!event.isEditable()) {
-                throw new InvalidEventTransitionException(event.getStatus(), "editar");
-            }
-            return;
-        }
-        if (!event.isOwnedBy(actingUserId)) {
+    private void requireCanEdit(Event event, UUID actingUserId, boolean canPublish) {
+        if (!canPublish && !event.isOwnedBy(actingUserId)) {
             throw new EventAccessDeniedException();
         }
-        if (event.getStatus() != EventStatus.DRAFT && event.getStatus() != EventStatus.REJECTED) {
-            throw new InvalidEventTransitionException(event.getStatus(), "editar");
+        boolean editable = canPublish ? event.isEditableByPublisher() : event.isEditableByCreator();
+        if (!editable) {
+            throw new InvalidPublicationTransitionException(event.getStatus(), "editar");
         }
     }
 
-    private void requireEditorOrAbove(Role role) {
-        if (!isEditorOrAbove(role)) {
-            throw new EventAccessDeniedException();
-        }
-    }
 
-    private boolean isEditorOrAbove(Role role) {
-        return role == Role.EDITOR || role == Role.ADMIN || role == Role.SUPER_ADMIN;
-    }
 
     private Event getOrThrow(UUID id) {
         return eventRepository.findById(id).orElseThrow(() -> new EventNotFoundException(id));
@@ -308,8 +259,21 @@ public class EventService {
         return candidate;
     }
 
+    private Event saveAndAudit(Event event, String action, UUID actingUserId) {
+        Event saved = eventRepository.save(event);
+        audit(action, saved, actingUserId);
+        return saved;
+    }
+
     private void audit(String action, Event event, UUID actingUserId) {
         auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "event", event.getId().toString(),
                 null);
+    }
+
+    /** Publicar, programar, devolver a borrador y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
+    private static void requirePublish(boolean canPublish) {
+        if (!canPublish) {
+            throw new PublishPermissionRequiredException();
+        }
     }
 }

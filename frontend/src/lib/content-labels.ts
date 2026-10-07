@@ -1,50 +1,43 @@
-import type { ArticleStatus, ArticleType, BusinessType, SearchResultType } from "@/lib/api/types";
+import type { ArticleType, BusinessType, SearchResultType, PublicationStatus } from "@/lib/api/types";
+import type { BadgeTone } from "@/components/ui";
+import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
 const ARTICLE_TYPE_LABELS: Record<ArticleType, string> = {
-  ARTICULO: "General",
-  NOTICIA: "Noticia",
-  REPORTAJE: "Reportaje",
-  CRONICA: "Crónica",
+  GENERAL: "General",
   GUIA: "Guía",
-  ENTREVISTA: "Entrevista",
-  HISTORIA: "Historia",
-  RANKING: "Ranking",
+  LISTA: "Lista",
   TUTORIAL: "Tutorial",
-  OPINION: "Opinión",
+  HISTORIA: "Historia",
+  ENTREVISTA: "Entrevista",
 };
 
 export function articleTypeLabel(type: ArticleType): string {
   return ARTICLE_TYPE_LABELS[type];
 }
 
-const ARTICLE_STATUS_LABELS: Record<ArticleStatus, string> = {
+const PUBLICATION_STATUS_LABELS: Record<PublicationStatus, string> = {
   DRAFT: "Borrador",
-  IN_REVIEW: "En revisión",
-  APPROVED: "Aprobado",
+  IN_REVIEW: "Pendiente de aprobación",
   SCHEDULED: "Programado",
   PUBLISHED: "Publicado",
   ARCHIVED: "Archivado",
-  REJECTED: "Rechazado",
 };
 
-export function articleStatusLabel(status: ArticleStatus): string {
-  return ARTICLE_STATUS_LABELS[status];
+export function publicationStatusLabel(status: PublicationStatus): string {
+  return PUBLICATION_STATUS_LABELS[status];
 }
 
-// Tono del badge de estado en el panel admin — ver ArticleStatus (backend:
-// ArticleStatus.java, sección 12 de CONTEXTO.md).
-const ARTICLE_STATUS_TONE: Record<ArticleStatus, "neutral" | "warning" | "success" | "danger"> = {
+// Color de la etiqueta de estado (Badge) — backend: shared.publishing.PublicationStatus.
+const PUBLICATION_STATUS_TONE: Record<PublicationStatus, BadgeTone> = {
   DRAFT: "neutral",
-  IN_REVIEW: "warning",
-  APPROVED: "warning",
+  IN_REVIEW: "info",
   SCHEDULED: "warning",
   PUBLISHED: "success",
   ARCHIVED: "neutral",
-  REJECTED: "danger",
 };
 
-export function articleStatusTone(status: ArticleStatus): "neutral" | "warning" | "success" | "danger" {
-  return ARTICLE_STATUS_TONE[status];
+export function publicationStatusTone(status: PublicationStatus): BadgeTone {
+  return PUBLICATION_STATUS_TONE[status];
 }
 
 const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
@@ -68,6 +61,7 @@ export function humanizeAuditAction(action: string): string {
 export function formatPublishedDate(iso: string | null): string {
   if (!iso) return "";
   return new Intl.DateTimeFormat("es-PE", {
+    timeZone: SITE_TIME_ZONE,
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -111,6 +105,7 @@ export function formatArticleDate(iso: string | null): string {
 export function formatShortDate(iso: string | null): string {
   if (!iso) return "";
   return new Intl.DateTimeFormat("es-PE", {
+    timeZone: SITE_TIME_ZONE,
     weekday: "short",
     day: "numeric",
     month: "short",
@@ -128,6 +123,7 @@ export function formatShortDate(iso: string | null): string {
  */
 export function formatEventDateTime(iso: string): string {
   return new Intl.DateTimeFormat("es-PE", {
+    timeZone: SITE_TIME_ZONE,
     weekday: "short",
     day: "numeric",
     month: "short",
@@ -138,8 +134,7 @@ export function formatEventDateTime(iso: string): string {
 
 /** Un evento se considera finalizado cuando pasó endsAt (o startsAt si no tiene hora de fin). */
 // Ver SearchResultResponse.java (CONTEXTO.md sección 16) — un solo lugar para
-// la etiqueta y la ruta de cada tipo buscable, en vez de repetir el mapa en
-// SearchResultCard y en el buscador con sugerencias en vivo del header.
+// la etiqueta y la ruta de cada tipo buscable (buscador con sugerencias en vivo).
 const SEARCH_RESULT_TYPE_LABEL: Record<SearchResultType, string> = {
   ARTICLE: "Publicación",
   PLACE: "Lugar",
@@ -162,19 +157,6 @@ const SEARCH_RESULT_TYPE_PATH: Record<SearchResultType, string> = {
 
 export function searchResultHref(type: SearchResultType, slug: string): string {
   return `/${SEARCH_RESULT_TYPE_PATH[type]}/${slug}`;
-}
-
-/**
- * Tiempo de lectura estimado del cuerpo de una Publicación (200 palabras/min,
- * promedio estándar en español) — se calcula sobre el HTML ya sanitizado,
- * sin depender de un campo aparte en el backend. Redondea siempre hacia
- * arriba y nunca baja de 1 min, para no mostrar "0 min" en textos cortos.
- */
-export function estimateReadingTime(html: string): string {
-  const text = html.replace(/<[^>]+>/g, " ");
-  const words = text.split(/\s+/).filter(Boolean).length;
-  const minutes = Math.max(1, Math.round(words / 200));
-  return `${minutes} min de lectura`;
 }
 
 export function isEventFinished(event: { startsAt: string; endsAt: string | null }): boolean {

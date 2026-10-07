@@ -1,5 +1,10 @@
 import { defineConfig } from "vitest/config";
 
+// Las pruebas corren en UTC, como GitHub Actions y el servidor (Docker): así
+// una fecha que depende de la zona de la máquina falla aquí y no en producción
+// (pasó el 2026-10-07: los eventos se veían en UTC, un día después).
+process.env.TZ = "UTC";
+
 // Dos proyectos con entornos distintos (CONTEXTO.md sección 27):
 //  - unit: lógica pura (permisos, árboles, formateo) en Node, sin DOM. Son
 //    los *.test.ts.
@@ -14,6 +19,9 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
+    // En la laptop, 2 procesos en paralelo: la suite entera saturaba la CPU y
+    // la recalentaba (2026-10-07). En CI (GitHub) va a toda velocidad.
+    maxWorkers: process.env.CI ? undefined : 2,
     projects: [
       {
         extends: true,

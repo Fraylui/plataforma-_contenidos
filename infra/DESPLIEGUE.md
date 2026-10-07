@@ -118,6 +118,10 @@ se pierde todo.
    *Eligible for cache*, Edge TTL: respetar origen (Spring manda 30 días).
 6. **Caching → Tiered Cache**: activar (gratis; un nodo regional llena a los demás).
 7. **Security → Bots**: activar *Bot Fight Mode* (gratis).
+8. **Rules → Settings → Managed Transforms**: activar **Add visitor location
+   headers** (gratis). Manda el país y la región del visitante; sin esto, las
+   campañas de publicidad segmentadas por país o región nunca se muestran
+   (CONTEXTO §45.4).
 
 Por defecto Cloudflare **no** guarda HTML: sin la regla del paso 4 todas las
 páginas llegarían al VPS.

@@ -1,27 +1,24 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
-  approveArticle,
-  archiveArticle,
   createArticle,
-  publishArticle,
-  rejectArticle,
-  scheduleArticle,
-  submitArticle,
   updateArticle,
 } from "@/lib/api/admin-client";
 import type { ArticleInput } from "@/lib/api/admin-types";
-import { runAdminMutation, type ActionResult } from "@/lib/admin/action-helpers";
+import { runAdminMutation, type ActionResult, type MutationResult } from "@/lib/admin/action-helpers";
 
 export type { ActionResult };
 
-export async function createArticleAction(input: ArticleInput): Promise<ActionResult> {
+/**
+ * Crea el borrador y devuelve su id, sin redirigir: el compositor lo crea
+ * con el guardado automático mientras se escribe y solo cambia la URL.
+ */
+export async function createArticleAction(input: ArticleInput): Promise<MutationResult<{ id: string }>> {
   const result = await runAdminMutation((token) => createArticle(token, input));
   if (!result.ok) return result;
   revalidatePath("/admin/publicaciones");
-  redirect(`/admin/publicaciones/${result.data.id}`);
+  return { ok: true, data: { id: result.data.id } };
 }
 
 export async function updateArticleAction(id: string, input: ArticleInput): Promise<ActionResult> {
@@ -33,38 +30,3 @@ export async function updateArticleAction(id: string, input: ArticleInput): Prom
   return result;
 }
 
-export async function submitArticleAction(id: string): Promise<ActionResult> {
-  return runWorkflowAction(id, submitArticle);
-}
-
-export async function approveArticleAction(id: string): Promise<ActionResult> {
-  return runWorkflowAction(id, approveArticle);
-}
-
-export async function rejectArticleAction(id: string, reason: string): Promise<ActionResult> {
-  return runWorkflowAction(id, (token) => rejectArticle(token, id, reason));
-}
-
-export async function publishArticleAction(id: string): Promise<ActionResult> {
-  return runWorkflowAction(id, publishArticle);
-}
-
-export async function scheduleArticleAction(id: string, scheduledAtIso: string): Promise<ActionResult> {
-  return runWorkflowAction(id, (token) => scheduleArticle(token, id, scheduledAtIso));
-}
-
-export async function archiveArticleAction(id: string): Promise<ActionResult> {
-  return runWorkflowAction(id, archiveArticle);
-}
-
-async function runWorkflowAction(
-  id: string,
-  call: (token: string, id: string) => Promise<unknown>,
-): Promise<ActionResult> {
-  const result = await runAdminMutation((token) => call(token, id));
-  if (result.ok) {
-    revalidatePath("/admin/publicaciones");
-    revalidatePath(`/admin/publicaciones/${id}`);
-  }
-  return result;
-}

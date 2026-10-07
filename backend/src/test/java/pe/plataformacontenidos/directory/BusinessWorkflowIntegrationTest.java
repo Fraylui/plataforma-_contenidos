@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.directory;
 
+import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -17,7 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.LegacyRole;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
@@ -40,12 +41,15 @@ class BusinessWorkflowIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private WorkerPermissionRepository workerPermissions;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Test
     void fullContentLifecycleFromDraftToPublishedWithLinkedPlace() throws Exception {
-        String editorToken = createUserAndLogin("directory-editor@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("directory-author@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("directory-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("directory-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Directorio Gastronómico Test");
         String placeId = createAndPublishPlace(authorToken, editorToken, categoryId, "Plaza Mayor de Huamanga");
 
@@ -60,15 +64,10 @@ class BusinessWorkflowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_REVIEW"));
 
-        // El autor no puede aprobar su propia ficha
-        mockMvc.perform(post("/api/v1/admin/directory/" + businessId + "/approve")
+        // El autor no puede publicar su propia ficha
+        mockMvc.perform(post("/api/v1/admin/directory/" + businessId + "/publish")
                         .header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isForbidden());
-
-        mockMvc.perform(post("/api/v1/admin/directory/" + businessId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("APPROVED"));
 
         mockMvc.perform(post("/api/v1/admin/directory/" + businessId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))
@@ -103,8 +102,8 @@ class BusinessWorkflowIntegrationTest {
 
     @Test
     void createsBusinessWithFreeTextAddressWhenNoPlaceExists() throws Exception {
-        String authorToken = createUserAndLogin("directory-author-2@plataforma-contenidos.test", Role.AUTHOR);
-        String editorToken = createUserAndLogin("directory-editor-2@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("directory-author-2@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String editorToken = createUserAndLogin("directory-editor-2@plataforma-contenidos.test", LegacyRole.EDITOR);
         String categoryId = createCategory(editorToken, "Categoría Dirección Libre Test");
 
         String businessId = createDraftBusiness(authorToken, categoryId, "Hostal Los Andes", "HOTEL", null,
@@ -119,8 +118,8 @@ class BusinessWorkflowIntegrationTest {
 
     @Test
     void rejectsMissingBusinessType() throws Exception {
-        String authorToken = createUserAndLogin("directory-author-3@plataforma-contenidos.test", Role.AUTHOR);
-        String editorToken = createUserAndLogin("directory-editor-3@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("directory-author-3@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String editorToken = createUserAndLogin("directory-editor-3@plataforma-contenidos.test", LegacyRole.EDITOR);
         String categoryId = createCategory(editorToken, "Categoría Sin Tipo Test");
 
         mockMvc.perform(post("/api/v1/admin/directory")
@@ -134,8 +133,8 @@ class BusinessWorkflowIntegrationTest {
     /** Regresión del hallazgo de la auditoría (2026-08-27): faltaban límites de rango en latitud/longitud. */
     @Test
     void rejectsCoordinatesOutOfRange() throws Exception {
-        String authorToken = createUserAndLogin("directory-author-4@plataforma-contenidos.test", Role.AUTHOR);
-        String editorToken = createUserAndLogin("directory-editor-4@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("directory-author-4@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String editorToken = createUserAndLogin("directory-editor-4@plataforma-contenidos.test", LegacyRole.EDITOR);
         String categoryId = createCategory(editorToken, "Categoría Coordenadas Test");
 
         mockMvc.perform(post("/api/v1/admin/directory")
@@ -149,8 +148,8 @@ class BusinessWorkflowIntegrationTest {
 
     @Test
     void rejectsUnknownPlaceId() throws Exception {
-        String authorToken = createUserAndLogin("directory-author-5@plataforma-contenidos.test", Role.AUTHOR);
-        String editorToken = createUserAndLogin("directory-editor-5@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("directory-author-5@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String editorToken = createUserAndLogin("directory-editor-5@plataforma-contenidos.test", LegacyRole.EDITOR);
         String categoryId = createCategory(editorToken, "Categoría Lugar Inexistente Test");
 
         mockMvc.perform(post("/api/v1/admin/directory")
@@ -164,9 +163,9 @@ class BusinessWorkflowIntegrationTest {
 
     @Test
     void authorCannotEditSomeoneElsesBusiness() throws Exception {
-        String editorToken = createUserAndLogin("directory-editor-6@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("directory-author-6@plataforma-contenidos.test", Role.AUTHOR);
-        String otherAuthorToken = createUserAndLogin("directory-author-7@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("directory-editor-6@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("directory-author-6@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String otherAuthorToken = createUserAndLogin("directory-author-7@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Categoría Ficha Ajena Test");
 
         String businessId = createDraftBusiness(authorToken, categoryId, "Tienda cualquiera", "SHOP", null,
@@ -189,9 +188,6 @@ class BusinessWorkflowIntegrationTest {
         String placeId = textField(result, "id");
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
                         .header("Authorization", "Bearer " + authorToken))
-                .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/approve")
-                        .header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
                         .header("Authorization", "Bearer " + editorToken))
@@ -233,10 +229,10 @@ class BusinessWorkflowIntegrationTest {
         return json.get(field).asText();
     }
 
-    private String createUserAndLogin(String email, Role role) throws Exception {
+    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
         String password = "SomeStrongPassword123!";
-        userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
-
+        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
+        role.grant(workerPermissions, created.getId());
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))

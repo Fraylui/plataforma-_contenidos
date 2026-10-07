@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { CaretRight } from "@phosphor-icons/react";
 import { AdminNavLink } from "./admin-nav-link";
 import type { AdminNavGroup } from "@/lib/admin/nav";
 
@@ -11,6 +11,7 @@ interface NavItemData {
   href: string;
   label: string;
   icon: ReactNode;
+  activeIcon: ReactNode;
 }
 
 interface NavGroupData {
@@ -52,7 +53,7 @@ export function AdminNav({ groups }: { groups: NavGroupData[] }) {
             <ul key={group} className="space-y-0.5">
               {items.map((item) => (
                 <li key={item.href}>
-                  <AdminNavLink href={item.href} label={item.label} icon={item.icon} />
+                  <AdminNavLink href={item.href} label={item.label} icon={item.icon} activeIcon={item.activeIcon} />
                 </li>
               ))}
             </ul>
@@ -69,7 +70,7 @@ export function AdminNav({ groups }: { groups: NavGroupData[] }) {
               className="flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-1 text-[11px] font-semibold tracking-wider text-muted uppercase transition-colors hover:text-foreground"
             >
               {label}
-              <ChevronRight className={`h-3.5 w-3.5 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`} aria-hidden="true" />
+              <CaretRight className={`h-3.5 w-3.5 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`} aria-hidden="true" />
             </button>
             <AnimatePresence initial={false}>
               {isOpen && (
@@ -83,7 +84,7 @@ export function AdminNav({ groups }: { groups: NavGroupData[] }) {
                   <ul className="space-y-0.5 pt-0.5">
                     {items.map((item) => (
                       <li key={item.href}>
-                        <AdminNavLink href={item.href} label={item.label} icon={item.icon} />
+                        <AdminNavLink href={item.href} label={item.label} icon={item.icon} activeIcon={item.activeIcon} />
                       </li>
                     ))}
                   </ul>

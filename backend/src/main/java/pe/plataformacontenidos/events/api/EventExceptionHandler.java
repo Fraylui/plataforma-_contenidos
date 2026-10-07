@@ -10,8 +10,6 @@ import pe.plataformacontenidos.events.EventNotFoundException;
 import pe.plataformacontenidos.events.EventPlaceNotFoundException;
 import pe.plataformacontenidos.events.InvalidEventDateRangeException;
 import pe.plataformacontenidos.events.InvalidEventImageException;
-import pe.plataformacontenidos.events.InvalidEventScheduleException;
-import pe.plataformacontenidos.events.InvalidEventTransitionException;
 import pe.plataformacontenidos.events.InvalidEventYouTubeUrlException;
 
 @RestControllerAdvice
@@ -32,15 +30,7 @@ public class EventExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiError(Instant.now(), 403, ex.getMessage()));
     }
 
-    @ExceptionHandler(InvalidEventTransitionException.class)
-    public ResponseEntity<ApiError> handleInvalidTransition(InvalidEventTransitionException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError(Instant.now(), 409, ex.getMessage()));
-    }
 
-    @ExceptionHandler(InvalidEventScheduleException.class)
-    public ResponseEntity<ApiError> handleInvalidSchedule(InvalidEventScheduleException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
-    }
 
     @ExceptionHandler(InvalidEventYouTubeUrlException.class)
     public ResponseEntity<ApiError> handleInvalidYouTubeUrl(InvalidEventYouTubeUrlException ex) {

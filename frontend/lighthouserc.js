@@ -7,13 +7,19 @@
 module.exports = {
   ci: {
     collect: {
+      // Rediseño 2026-10-06: las pantallas de la plataforma (feed, cuadrícula
+      // y una vista de post). LHCI_DETAIL_URL permite medir otro detalle en
+      // otra base (el slug de ejemplo existe en la base local).
       url: [
         "http://localhost:3000/",
-        "http://localhost:3000/publicaciones",
+        "http://localhost:3000/explorar",
         "http://localhost:3000/lugares",
+        process.env.LHCI_DETAIL_URL ?? "http://localhost:3000/eventos/concierto-de-jazz-en-el-jardin-botanico",
       ],
       numberOfRuns: 3,
-      settings: { preset: "desktop" },
+      // Sin preset = perfil móvil de Lighthouse (celular de gama media, red
+      // 4G lenta): la mayoría de las visitas son de celular, y es el perfil
+      // que Google usa para el ranking.
     },
     assert: {
       assertions: {
@@ -26,6 +32,8 @@ module.exports = {
         "categories:best-practices": ["warn", { minScore: 0.9 }],
         "largest-contentful-paint": ["error", { maxNumericValue: 2500 }],
         "cumulative-layout-shift": ["error", { maxNumericValue: 0.1 }],
+        // INP no se mide en laboratorio (necesita interacciones reales); el
+        // TBT es su indicador en Lighthouse. INP real: Search Console / CrUX.
         "total-blocking-time": ["warn", { maxNumericValue: 300 }],
       },
     },

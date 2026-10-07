@@ -1,6 +1,6 @@
 import "server-only";
-import type { ArticleSummary, EventSummary, FeedItem, GallerySummary, PlaceSummary } from "@/lib/api/types";
-import { formatArticleDate, formatEventDateTime, formatShortDate } from "@/lib/content-labels";
+import type { FeedItem, SearchResult } from "@/lib/api/types";
+import { formatEventDateTime } from "@/lib/content-labels";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { KIND_LABEL, type HomeItemKind } from "@/lib/content-kind";
 
@@ -25,12 +25,32 @@ export interface HomeItem {
   /** true = enlace externo pegado por quien redacta (host arbitrario, nunca pasa por next/image); false/undefined = imagen subida a Medios. */
   imageIsExternal: boolean;
   categoryId: string;
-  /** Etiqueta del tipo que va sobre la imagen ("Crónica", "Lugar", "Galería"…). */
+  /** Etiqueta del tipo ("Publicación", "Lugar", "Galería"…). */
   typeLabel: string;
   /** ISO usado para ordenar "Lo nuevo" (publishedAt, o startsAt en Evento). */
   sortDate: string;
   /** Texto de fecha ya formateado según la regla de cada tipo (ver content-labels.ts). */
   dateLabel: string;
+  /** Carrusel de la tarjeta tipo post; la primera es la portada. Vacío si no hay imágenes. */
+  images: HomeImage[];
+  /** Tiene video (ícono en la cuadrícula de Explorar). */
+  hasVideo?: boolean;
+  /** Acciones por tipo (Agendar, Cómo llegar, Llamar, Sitio web); null si no aplican. */
+  startsAt?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  phone?: string | null;
+  website?: string | null;
+}
+
+export interface HomeImage {
+  url: string;
+  isExternal: boolean;
+}
+
+/** La portada como carrusel de una sola imagen (listados que no traen la galería completa). */
+function coverAsImages(cover: { url: string | null; isExternal: boolean }): HomeImage[] {
+  return cover.url ? [{ url: cover.url, isExternal: cover.isExternal }] : [];
 }
 
 function image(id: string | null | undefined): string | null {
@@ -48,86 +68,12 @@ function coverImage(imageId: string | null, imageUrl: string | null): { url: str
   return imageId ? { url: image(imageId), isExternal: false } : { url: imageUrl, isExternal: imageUrl != null };
 }
 
-export function fromArticle(a: ArticleSummary): HomeItem {
-  const cover = coverImage(a.coverImageId, a.coverImageUrl);
-  return {
-    id: a.id,
-    kind: "publicacion",
-    slug: a.slug,
-    likeCount: a.likeCount,
-    href: `/publicaciones/${a.slug}`,
-    title: a.title,
-    excerpt: a.excerpt,
-    imageUrl: cover.url,
-    imageIsExternal: cover.isExternal,
-    categoryId: a.categoryId,
-    typeLabel: KIND_LABEL.publicacion,
-    sortDate: a.publishedAt ?? "",
-    dateLabel: formatArticleDate(a.publishedAt),
-  };
-}
-
-export function fromPlace(p: PlaceSummary): HomeItem {
-  const cover = coverImage(p.coverImageId, p.coverImageUrl);
-  return {
-    id: p.id,
-    kind: "lugar",
-    slug: p.slug,
-    likeCount: p.likeCount,
-    href: `/lugares/${p.slug}`,
-    title: p.name,
-    excerpt: p.excerpt,
-    imageUrl: cover.url,
-    imageIsExternal: cover.isExternal,
-    categoryId: p.categoryId,
-    typeLabel: KIND_LABEL.lugar,
-    sortDate: p.publishedAt ?? "",
-    dateLabel: formatShortDate(p.publishedAt),
-  };
-}
-
-export function fromEvent(e: EventSummary): HomeItem {
-  const cover = coverImage(e.coverImageId, e.coverImageUrl);
-  return {
-    id: e.id,
-    kind: "evento",
-    slug: e.slug,
-    likeCount: e.likeCount,
-    href: `/eventos/${e.slug}`,
-    title: e.title,
-    excerpt: e.excerpt,
-    imageUrl: cover.url,
-    imageIsExternal: cover.isExternal,
-    categoryId: e.categoryId,
-    typeLabel: KIND_LABEL.evento,
-    sortDate: e.startsAt,
-    dateLabel: formatEventDateTime(e.startsAt),
-  };
-}
-
-export function fromGallery(g: GallerySummary): HomeItem {
-  const cover = coverImage(g.images[0]?.imageId ?? null, g.images[0]?.externalUrl ?? null);
-  return {
-    id: g.id,
-    kind: "galeria",
-    slug: g.slug,
-    likeCount: g.likeCount,
-    href: `/galerias/${g.slug}`,
-    title: g.title,
-    excerpt: g.excerpt,
-    imageUrl: cover.url,
-    imageIsExternal: cover.isExternal,
-    categoryId: g.categoryId,
-    typeLabel: KIND_LABEL.galeria,
-    sortDate: g.publishedAt ?? "",
-    dateLabel: formatShortDate(g.publishedAt),
-  };
-}
-
 const FEED_KIND: Record<FeedItem["type"], HomeItemKind> = {
   ARTICLE: "publicacion",
   PLACE: "lugar",
   EVENT: "evento",
+  GALLERY: "galeria",
+  BUSINESS: "directorio",
 };
 
 const FEED_HREF_PREFIX: Record<HomeItemKind, string> = {
@@ -135,6 +81,7 @@ const FEED_HREF_PREFIX: Record<HomeItemKind, string> = {
   lugar: "/lugares",
   evento: "/eventos",
   galeria: "/galerias",
+  directorio: "/directorio",
 };
 
 /**
@@ -148,6 +95,7 @@ const FEED_HREF_PREFIX: Record<HomeItemKind, string> = {
 export function fromFeedItem(item: FeedItem): HomeItem {
   const kind = FEED_KIND[item.type];
   const cover = coverImage(item.coverImageId, item.coverImageUrl);
+  const images = (item.images ?? []).flatMap((i) => coverAsImages(coverImage(i.imageId, i.externalUrl)));
   return {
     id: item.id,
     kind,
@@ -160,12 +108,44 @@ export function fromFeedItem(item: FeedItem): HomeItem {
     imageIsExternal: cover.isExternal,
     categoryId: item.categoryId ?? "",
     typeLabel: KIND_LABEL[kind],
-    sortDate: item.publishedAt ?? "",
-    dateLabel: "",
+    // En la agenda importa cuándo es el evento, no cuándo se publicó.
+    sortDate: (item.type === "EVENT" ? item.startsAt : item.publishedAt) ?? "",
+    dateLabel: item.type === "EVENT" && item.startsAt ? formatEventDateTime(item.startsAt) : "",
+    images: images.length > 0 ? images : coverAsImages(cover),
+    hasVideo: item.hasVideo,
+    startsAt: item.startsAt,
+    latitude: item.latitude,
+    longitude: item.longitude,
+    phone: item.phone,
+    website: item.website,
   };
 }
 
-/** Más nuevo primero; los que no tienen fecha van al final. */
-export function sortNewestFirst(items: HomeItem[]): HomeItem[] {
-  return [...items].sort((a, b) => (b.sortDate || "").localeCompare(a.sortDate || ""));
+/**
+ * Resultado de búsqueda como miniatura de cuadrícula (GridTile), igual que
+ * Explorar. La búsqueda no trae "me gusta": likeCount 0 (GridTile no muestra
+ * el conteo en 0).
+ */
+export function fromSearchResult(r: SearchResult): HomeItem {
+  const kind = FEED_KIND[r.contentType];
+  const cover = coverImage(r.featuredImageId, r.featuredImageUrl);
+  return {
+    id: r.id,
+    kind,
+    slug: r.slug,
+    href: `${FEED_HREF_PREFIX[kind]}/${r.slug}`,
+    likeCount: 0,
+    title: r.title,
+    excerpt: r.excerpt,
+    imageUrl: cover.url,
+    imageIsExternal: cover.isExternal,
+    categoryId: r.categoryId ?? "",
+    typeLabel: KIND_LABEL[kind],
+    sortDate: (r.contentType === "EVENT" ? r.eventStartsAt : r.publishedAt) ?? "",
+    dateLabel: r.contentType === "EVENT" && r.eventStartsAt ? formatEventDateTime(r.eventStartsAt) : "",
+    images: coverAsImages(cover),
+    hasVideo: r.hasVideo,
+    startsAt: r.eventStartsAt,
+  };
 }
+

@@ -25,6 +25,23 @@ describe("VideoJsonLd", () => {
     expect(data.uploadDate).toBe("2026-09-01T10:00:00Z");
   });
 
+  // CodeQL (2026-10-07): el escape usaba "<" en una cadena JS, que ES "<":
+  // no escapaba nada y un título con </script> salía del bloque (XSS guardado).
+  it("un título con </script> no puede cerrar el bloque ni inyectar HTML", () => {
+    const { container } = render(
+      <VideoJsonLd
+        videos={[{ videoId: "abc123XYZ00", title: "</script><img src=x onerror=alert(1)>", caption: null }]}
+        fallbackTitle="Publicación"
+        description={null}
+        uploadDate="2026-09-01T10:00:00Z"
+      />,
+    );
+    const script = container.querySelector('script[type="application/ld+json"]')!;
+    expect(script.innerHTML).not.toContain("<");
+    expect(container.querySelector("img")).toBeNull();
+    expect(jsonLdOf(container).name).toBe("</script><img src=x onerror=alert(1)>");
+  });
+
   it("no renderiza nada sin videos o sin fecha de publicación", () => {
     const { container: noVideos } = render(
       <VideoJsonLd videos={[]} fallbackTitle="X" description={null} uploadDate="2026-09-01T10:00:00Z" />,

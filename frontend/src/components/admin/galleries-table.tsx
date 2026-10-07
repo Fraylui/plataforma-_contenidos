@@ -6,18 +6,12 @@ import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Gallery } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
-import { computeGalleryPermissions } from "@/lib/admin/gallery-permissions";
-import { articleStatusLabel, articleStatusTone, formatPublishedDate } from "@/lib/content-labels";
-import { StatusPill, DataTable } from "@/components/admin/ui";
+import { computePublicationPermissions } from "@/lib/admin/publication";
+import { publicationStatusLabel, publicationStatusTone, formatPublishedDate } from "@/lib/content-labels";
+import { DataTable } from "@/components/admin/ui";
 import { ContentRowActions } from "@/components/admin/content-row-actions";
 import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
-import {
-  approveGalleryAction,
-  archiveGalleryAction,
-  publishGalleryAction,
-  rejectGalleryAction,
-  submitGalleryAction,
-} from "@/app/admin/(protected)/galerias/actions";
+import { Badge } from "@/components/ui";
 
 export function GalleriesTable({ galleries, currentUser }: { galleries: Gallery[]; currentUser: AdminUser }) {
   const router = useRouter();
@@ -43,7 +37,7 @@ export function GalleriesTable({ galleries, currentUser }: { galleries: Gallery[
       {
         accessorKey: "status",
         header: "Estado",
-        cell: ({ row }) => <StatusPill tone={articleStatusTone(row.original.status)} label={articleStatusLabel(row.original.status)} />,
+        cell: ({ row }) => <Badge tone={publicationStatusTone(row.original.status)} dot>{publicationStatusLabel(row.original.status)}</Badge>,
       },
       {
         accessorKey: "createdAt",
@@ -58,15 +52,10 @@ export function GalleriesTable({ galleries, currentUser }: { galleries: Gallery[
           <ContentRowActions
             id={row.original.id}
             editHref={`/admin/galerias/${row.original.id}`}
-            permissions={computeGalleryPermissions(row.original, currentUser)}
+            permissions={computePublicationPermissions(row.original, currentUser, "galleries")}
             itemLabel="esta galería"
-            actions={{
-              submit: submitGalleryAction,
-              approve: approveGalleryAction,
-              reject: rejectGalleryAction,
-              publish: publishGalleryAction,
-              archive: archiveGalleryAction,
-            }}
+          kind="galleries"
+          status={row.original.status}
           />
         ),
       },
@@ -79,10 +68,10 @@ export function GalleriesTable({ galleries, currentUser }: { galleries: Gallery[
       <ContentBulkActions
         selected={selected}
         permissions={{
-          canPublish: (item) => computeGalleryPermissions(item, currentUser).canPublish,
-          canArchive: (item) => computeGalleryPermissions(item, currentUser).canArchive,
+          canPublish: (item) => computePublicationPermissions(item, currentUser, "galleries").canPublish,
+          canArchive: (item) => computePublicationPermissions(item, currentUser, "galleries").canArchive,
         }}
-        actions={{ publish: publishGalleryAction, archive: archiveGalleryAction }}
+        kind="galleries"
         onDone={() => router.refresh()}
       />
       <DataTable

@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.media;
 
+import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -25,7 +26,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.LegacyRole;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
@@ -47,11 +48,14 @@ class MediaFlowIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private WorkerPermissionRepository workerPermissions;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Test
     void authorUploadsValidPngAndItIsPubliclyServable() throws Exception {
-        String authorToken = createUserAndLogin("media-author@plataforma-contenidos.test", Role.AUTHOR);
+        String authorToken = createUserAndLogin("media-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
         byte[] png = generatePng(40, 30);
 
         MvcResult uploadResult = mockMvc.perform(multipart("/api/v1/admin/images")
@@ -80,7 +84,7 @@ class MediaFlowIntegrationTest {
 
     @Test
     void garbageBytesAreRejectedAsInvalidImage() throws Exception {
-        String authorToken = createUserAndLogin("media-author-2@plataforma-contenidos.test", Role.AUTHOR);
+        String authorToken = createUserAndLogin("media-author-2@plataforma-contenidos.test", LegacyRole.AUTHOR);
 
         mockMvc.perform(multipart("/api/v1/admin/images")
                         .file(new MockMultipartFile("file", "no-es-imagen.png", "image/png",
@@ -91,9 +95,9 @@ class MediaFlowIntegrationTest {
 
     @Test
     void onlyOwnerOrEditorCanChangeAltTextOrDelete() throws Exception {
-        String authorToken = createUserAndLogin("media-author-3@plataforma-contenidos.test", Role.AUTHOR);
-        String otherAuthorToken = createUserAndLogin("media-author-4@plataforma-contenidos.test", Role.AUTHOR);
-        String editorToken = createUserAndLogin("media-editor@plataforma-contenidos.test", Role.EDITOR);
+        String authorToken = createUserAndLogin("media-author-3@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String otherAuthorToken = createUserAndLogin("media-author-4@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String editorToken = createUserAndLogin("media-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
 
         String imageId = uploadPng(authorToken, 20, 20);
 
@@ -144,10 +148,10 @@ class MediaFlowIntegrationTest {
         return out.toByteArray();
     }
 
-    private String createUserAndLogin(String email, Role role) throws Exception {
+    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
         String password = "SomeStrongPassword123!";
-        userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
-
+        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
+        role.grant(workerPermissions, created.getId());
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))
