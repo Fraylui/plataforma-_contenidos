@@ -6,18 +6,11 @@ import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Event } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
-import { computeEventPermissions } from "@/lib/admin/event-permissions";
-import { articleStatusLabel, articleStatusTone, formatEventDateTime } from "@/lib/content-labels";
+import { computePublicationPermissions } from "@/lib/admin/publication";
+import { publicationStatusLabel, publicationStatusTone, formatEventDateTime } from "@/lib/content-labels";
 import { DataTable } from "@/components/admin/ui";
 import { ContentRowActions } from "@/components/admin/content-row-actions";
 import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
-import {
-  approveEventAction,
-  archiveEventAction,
-  publishEventAction,
-  rejectEventAction,
-  submitEventAction,
-} from "@/app/admin/(protected)/eventos/actions";
 import { Badge } from "@/components/ui";
 
 export function EventsTable({ events, currentUser }: { events: Event[]; currentUser: AdminUser }) {
@@ -43,7 +36,7 @@ export function EventsTable({ events, currentUser }: { events: Event[]; currentU
       {
         accessorKey: "status",
         header: "Estado",
-        cell: ({ row }) => <Badge tone={articleStatusTone(row.original.status)} dot>{articleStatusLabel(row.original.status)}</Badge>,
+        cell: ({ row }) => <Badge tone={publicationStatusTone(row.original.status)} dot>{publicationStatusLabel(row.original.status)}</Badge>,
       },
       {
         id: "actions",
@@ -53,15 +46,10 @@ export function EventsTable({ events, currentUser }: { events: Event[]; currentU
           <ContentRowActions
             id={row.original.id}
             editHref={`/admin/eventos/${row.original.id}`}
-            permissions={computeEventPermissions(row.original, currentUser)}
+            permissions={computePublicationPermissions(row.original, currentUser, "events")}
             itemLabel="este evento"
-            actions={{
-              submit: submitEventAction,
-              approve: approveEventAction,
-              reject: rejectEventAction,
-              publish: publishEventAction,
-              archive: archiveEventAction,
-            }}
+          kind="events"
+          status={row.original.status}
           />
         ),
       },
@@ -74,10 +62,10 @@ export function EventsTable({ events, currentUser }: { events: Event[]; currentU
       <ContentBulkActions
         selected={selected}
         permissions={{
-          canPublish: (item) => computeEventPermissions(item, currentUser).canPublish,
-          canArchive: (item) => computeEventPermissions(item, currentUser).canArchive,
+          canPublish: (item) => computePublicationPermissions(item, currentUser, "events").canPublish,
+          canArchive: (item) => computePublicationPermissions(item, currentUser, "events").canArchive,
         }}
-        actions={{ publish: publishEventAction, archive: archiveEventAction }}
+        kind="events"
         onDone={() => router.refresh()}
       />
       <DataTable

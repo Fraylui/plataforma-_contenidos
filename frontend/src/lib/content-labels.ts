@@ -1,4 +1,5 @@
-import type { ArticleStatus, ArticleType, BusinessType, SearchResultType } from "@/lib/api/types";
+import type { ArticleType, BusinessType, SearchResultType, PublicationStatus } from "@/lib/api/types";
+import type { BadgeTone } from "@/components/ui";
 
 const ARTICLE_TYPE_LABELS: Record<ArticleType, string> = {
   GENERAL: "General",
@@ -13,34 +14,29 @@ export function articleTypeLabel(type: ArticleType): string {
   return ARTICLE_TYPE_LABELS[type];
 }
 
-const ARTICLE_STATUS_LABELS: Record<ArticleStatus, string> = {
+const PUBLICATION_STATUS_LABELS: Record<PublicationStatus, string> = {
   DRAFT: "Borrador",
-  IN_REVIEW: "En revisión",
-  APPROVED: "Aprobado",
+  IN_REVIEW: "Pendiente de aprobación",
   SCHEDULED: "Programado",
   PUBLISHED: "Publicado",
   ARCHIVED: "Archivado",
-  REJECTED: "Rechazado",
 };
 
-export function articleStatusLabel(status: ArticleStatus): string {
-  return ARTICLE_STATUS_LABELS[status];
+export function publicationStatusLabel(status: PublicationStatus): string {
+  return PUBLICATION_STATUS_LABELS[status];
 }
 
-// Tono del badge de estado en el panel admin — ver ArticleStatus (backend:
-// ArticleStatus.java, sección 12 de CONTEXTO.md).
-const ARTICLE_STATUS_TONE: Record<ArticleStatus, "neutral" | "warning" | "success" | "danger"> = {
+// Color de la etiqueta de estado (Badge) — backend: shared.publishing.PublicationStatus.
+const PUBLICATION_STATUS_TONE: Record<PublicationStatus, BadgeTone> = {
   DRAFT: "neutral",
-  IN_REVIEW: "warning",
-  APPROVED: "warning",
+  IN_REVIEW: "info",
   SCHEDULED: "warning",
   PUBLISHED: "success",
   ARCHIVED: "neutral",
-  REJECTED: "danger",
 };
 
-export function articleStatusTone(status: ArticleStatus): "neutral" | "warning" | "success" | "danger" {
-  return ARTICLE_STATUS_TONE[status];
+export function publicationStatusTone(status: PublicationStatus): BadgeTone {
+  return PUBLICATION_STATUS_TONE[status];
 }
 
 const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {

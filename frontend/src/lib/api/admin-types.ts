@@ -1,7 +1,7 @@
 import type { AdSection } from "@/lib/ads/ad-context";
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
-import type { ArticleStatus, ArticleType, BusinessType, ContentImage } from "./types";
+import type { PublicationStatus, ArticleType, BusinessType, ContentImage } from "./types";
 
 /** Cuerpo de un video en ArticleInput/PlaceInput/EventInput — ver ContentVideoInput.java. */
 export interface ContentVideoInput {
@@ -279,13 +279,13 @@ export interface DailyCount {
 }
 
 export interface PlatformStats {
-  articlesByStatus: Record<ArticleStatus, number>;
+  articlesByStatus: Record<PublicationStatus, number>;
   articlesPublishedLast30Days: number;
   publishedTrendLast30Days: DailyCount[];
-  placesByStatus: Record<ArticleStatus, number>;
-  eventsByStatus: Record<ArticleStatus, number>;
-  galleriesByStatus: Record<ArticleStatus, number>;
-  businessesByStatus: Record<ArticleStatus, number>;
+  placesByStatus: Record<PublicationStatus, number>;
+  eventsByStatus: Record<PublicationStatus, number>;
+  galleriesByStatus: Record<PublicationStatus, number>;
+  businessesByStatus: Record<PublicationStatus, number>;
   totalCategories: number;
   activeCategories: number;
   usersByRole: Record<Role, number>;

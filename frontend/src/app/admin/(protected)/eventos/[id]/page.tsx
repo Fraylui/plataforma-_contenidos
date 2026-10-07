@@ -9,7 +9,7 @@ import {
   listPlaceOptions,
 } from "@/lib/api/admin-client";
 import { getCategoryById } from "@/lib/api/client";
-import { computeEventPermissions } from "@/lib/admin/event-permissions";
+import { computePublicationPermissions } from "@/lib/admin/publication";
 import { EventForm } from "@/components/admin/event-form";
 import type { Category } from "@/lib/api/types";
 
@@ -48,7 +48,7 @@ export default async function EditEventPage(props: PageProps<"/admin/eventos/[id
     listPlaceOptions(accessToken),
   ]);
   const categories = await resolveCategories(activeCategories, event.categoryId);
-  const permissions = computeEventPermissions(event, user);
+  const permissions = computePublicationPermissions(event, user, "events");
 
   return (
     <div>

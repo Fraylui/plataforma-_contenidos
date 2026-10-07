@@ -5,19 +5,13 @@ import { toast } from "sonner";
 import { useState } from "react";
 import type { AdminImage, GalleryInput } from "@/lib/api/admin-types";
 import type { Category, ContentImage, Gallery } from "@/lib/api/types";
-import type { GalleryPermissions } from "@/lib/admin/gallery-permissions";
-import { articleStatusLabel } from "@/lib/content-labels";
-import { ArchiveButton, FormError } from "@/components/admin/ui";
-import { Button, Card, CollapsibleCard, Combobox, DateTimeInput, Field, TextArea, TextInput } from "@/components/ui";
+import type { PublicationPermissions } from "@/lib/admin/publication";
+import { PublishPanel } from "@/components/admin/publish-panel";
+import { FormError } from "@/components/admin/ui";
+import { Button, Card, CollapsibleCard, Combobox, Field, TextArea, TextInput } from "@/components/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import {
-  approveGalleryAction,
-  archiveGalleryAction,
   createGalleryAction,
-  publishGalleryAction,
-  rejectGalleryAction,
-  scheduleGalleryAction,
-  submitGalleryAction,
   updateGalleryAction,
   type ActionResult,
 } from "@/app/admin/(protected)/galerias/actions";
@@ -29,7 +23,7 @@ interface GalleryFormProps {
   allImages: AdminImage[];
   mode: "create" | "edit";
   gallery?: Gallery;
-  permissions?: GalleryPermissions;
+  permissions?: PublicationPermissions;
 }
 
 export function GalleryForm({
@@ -54,8 +48,6 @@ export function GalleryForm({
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
-  const [scheduleAt, setScheduleAt] = useState("");
 
   function buildInput(): GalleryInput {
     return {
@@ -90,24 +82,27 @@ export function GalleryForm({
     router.refresh();
   }
 
-  async function runWorkflow(action: () => Promise<ActionResult>, successMessage: string) {
+  /** Guardado que usa PublishPanel antes de publicar o enviar: devuelve el id, o null si falló. */
+  async function save(): Promise<string | null> {
+    if (!gallery) return null;
     setPending(true);
     setError(null);
-    const result = await action();
-    applyResult(result, successMessage);
+    const result = await updateGalleryAction(gallery.id, buildInput());
+    setPending(false);
+    if (!result.ok) {
+      setError(result.error);
+      toast.error(result.error);
+      return null;
+    }
+    router.refresh();
+    return gallery.id;
   }
 
   return (
     <div className="max-w-6xl space-y-6">
-      {gallery && (
-        <div className="flex flex-wrap items-center gap-3 rounded-card bg-surface px-4 py-3 text-sm shadow-card">
-          <span className="font-medium text-foreground">Estado: {articleStatusLabel(gallery.status)}</span>
-          {gallery.rejectionReason && <span className="text-muted">Motivo de rechazo: {gallery.rejectionReason}</span>}
-        </div>
-      )}
 
       {readOnly && (
-        <p className="rounded-md border border-border bg-accent-soft px-4 py-3 text-sm text-accent">
+        <p className="rounded-control bg-info-soft px-4 py-3 text-sm text-foreground">
           Esta galería no se puede editar en su estado/rol actual. Puedes seguir viendo el contenido.
         </p>
       )}
@@ -157,94 +152,23 @@ export function GalleryForm({
 
         {/* Barra lateral: publicar + metadata — visible sin scrollear todo el formulario */}
         <div className="space-y-6">
-          <Card title="Publicar">
-            {error && <FormError message={error} />}
-            {!readOnly && (
-              <Button type="submit" disabled={pending || !title || !categoryId || images.length === 0} onClick={handleSubmit} className="w-full">
-                {pending ? "Guardando…" : mode === "create" ? "Crear borrador" : "Guardar cambios"}
+          {error && <FormError message={error} />}
+          {mode === "edit" && gallery && permissions ? (
+            <PublishPanel
+              kind="galleries"
+              item={gallery}
+              permissions={permissions}
+              dirty={permissions.canEdit}
+              saving={pending}
+              onSave={save}
+            />
+          ) : (
+            <Card title="Publicar">
+              <Button type="submit" size="lg" loading={pending} disabled={!title || !categoryId || images.length === 0} onClick={handleSubmit} className="w-full">
+                Crear borrador
               </Button>
-            )}
-
-            {mode === "edit" && gallery && permissions && (
-              <div className="space-y-3 border-t border-border pt-4">
-                <div className="flex flex-wrap gap-2">
-                  {permissions.canSubmit && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending}
-                      onClick={() => runWorkflow(() => submitGalleryAction(gallery.id), "Enviada a revisión.")}
-                    >
-                      Enviar a revisión
-                    </Button>
-                  )}
-                  {permissions.canApprove && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending}
-                      onClick={() => runWorkflow(() => approveGalleryAction(gallery.id), "Galería aprobada.")}
-                    >
-                      Aprobar
-                    </Button>
-                  )}
-                  {permissions.canPublish && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending}
-                      onClick={() => runWorkflow(() => publishGalleryAction(gallery.id), "Galería publicada.")}
-                    >
-                      Publicar ahora
-                    </Button>
-                  )}
-                  {permissions.canArchive && (
-                    <ArchiveButton
-                      itemLabel="esta galería"
-                      disabled={pending}
-                      onConfirm={() => runWorkflow(() => archiveGalleryAction(gallery.id), "Galería archivada.")}
-                    />
-                  )}
-                </div>
-
-                {permissions.canReject && (
-                  <div className="space-y-2">
-                    <Field label="Motivo de rechazo" name="rejectReason">
-                      <TextInput type="text" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
-                    </Field>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending || !rejectReason.trim()}
-                      onClick={() => runWorkflow(() => rejectGalleryAction(gallery.id, rejectReason), "Galería rechazada.")}
-                      className="w-full"
-                    >
-                      Rechazar
-                    </Button>
-                  </div>
-                )}
-
-                {permissions.canSchedule && (
-                  <div className="space-y-2">
-                    <Field label="Programar publicación para" name="scheduleAt">
-                      <DateTimeInput value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} />
-                    </Field>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending || !scheduleAt}
-                      onClick={() =>
-                        runWorkflow(() => scheduleGalleryAction(gallery.id, new Date(scheduleAt).toISOString()), "Publicación programada.")
-                      }
-                      className="w-full"
-                    >
-                      Programar
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </Card>
+            </Card>
+          )}
 
           <Card title="Organización">
             <Field label="Tema" name="categoryId">

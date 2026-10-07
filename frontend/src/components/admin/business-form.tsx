@@ -6,10 +6,11 @@ import { toast } from "sonner";
 import { useState } from "react";
 import type { AdminImage, BusinessInput, ContentVideoInput, PlaceOption } from "@/lib/api/admin-types";
 import type { Business, BusinessType, Category, ContentImage } from "@/lib/api/types";
-import type { BusinessPermissions } from "@/lib/admin/business-permissions";
-import { articleStatusLabel, businessTypeLabel } from "@/lib/content-labels";
-import { ArchiveButton, FormError } from "@/components/admin/ui";
-import { Button, Card, CollapsibleCard, Combobox, DateTimeInput, Field, TextArea, TextInput } from "@/components/ui";
+import type { PublicationPermissions } from "@/lib/admin/publication";
+import { PublishPanel } from "@/components/admin/publish-panel";
+import { businessTypeLabel } from "@/lib/content-labels";
+import { FormError } from "@/components/admin/ui";
+import { Button, Card, CollapsibleCard, Combobox, Field, TextArea, TextInput } from "@/components/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import { VideoLinksEditor } from "./video-links-editor";
 import { RichTextEditor } from "./rich-text-editor";
@@ -18,13 +19,7 @@ import { RichTextEditor } from "./rich-text-editor";
 // solo-cliente de este formulario.
 const LocationPicker = dynamic(() => import("./location-picker").then((m) => m.LocationPicker), { ssr: false });
 import {
-  approveBusinessAction,
-  archiveBusinessAction,
   createBusinessAction,
-  publishBusinessAction,
-  rejectBusinessAction,
-  scheduleBusinessAction,
-  submitBusinessAction,
   updateBusinessAction,
   type ActionResult,
 } from "@/app/admin/(protected)/directorio/actions";
@@ -38,7 +33,7 @@ interface BusinessFormProps {
   allImages: AdminImage[];
   mode: "create" | "edit";
   business?: Business;
-  permissions?: BusinessPermissions;
+  permissions?: PublicationPermissions;
 }
 
 export function BusinessForm({
@@ -80,8 +75,6 @@ export function BusinessForm({
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
-  const [scheduleAt, setScheduleAt] = useState("");
 
   function buildInput(): BusinessInput {
     return {
@@ -128,26 +121,27 @@ export function BusinessForm({
     router.refresh();
   }
 
-  async function runWorkflow(action: () => Promise<ActionResult>, successMessage: string) {
+  /** Guardado que usa PublishPanel antes de publicar o enviar: devuelve el id, o null si falló. */
+  async function save(): Promise<string | null> {
+    if (!business) return null;
     setPending(true);
     setError(null);
-    const result = await action();
-    applyResult(result, successMessage);
+    const result = await updateBusinessAction(business.id, buildInput());
+    setPending(false);
+    if (!result.ok) {
+      setError(result.error);
+      toast.error(result.error);
+      return null;
+    }
+    router.refresh();
+    return business.id;
   }
 
   return (
     <div className="max-w-6xl space-y-6">
-      {business && (
-        <div className="flex flex-wrap items-center gap-3 rounded-card bg-surface px-4 py-3 text-sm shadow-card">
-          <span className="font-medium text-foreground">Estado: {articleStatusLabel(business.status)}</span>
-          {business.rejectionReason && (
-            <span className="text-muted">Motivo de rechazo: {business.rejectionReason}</span>
-          )}
-        </div>
-      )}
 
       {readOnly && (
-        <p className="rounded-md border border-border bg-accent-soft px-4 py-3 text-sm text-accent">
+        <p className="rounded-control bg-info-soft px-4 py-3 text-sm text-foreground">
           Esta ficha no se puede editar en su estado/rol actual. Puedes seguir viendo el contenido.
         </p>
       )}
@@ -267,94 +261,23 @@ export function BusinessForm({
 
         {/* Barra lateral: publicar + metadata — visible sin scrollear todo el formulario */}
         <div className="space-y-6">
-          <Card title="Publicar">
-            {error && <FormError message={error} />}
-            {!readOnly && (
-              <Button type="submit" disabled={pending || !name || !body || !categoryId} onClick={handleSubmit} className="w-full">
-                {pending ? "Guardando…" : mode === "create" ? "Crear borrador" : "Guardar cambios"}
+          {error && <FormError message={error} />}
+          {mode === "edit" && business && permissions ? (
+            <PublishPanel
+              kind="directory"
+              item={business}
+              permissions={permissions}
+              dirty={permissions.canEdit}
+              saving={pending}
+              onSave={save}
+            />
+          ) : (
+            <Card title="Publicar">
+              <Button type="submit" size="lg" loading={pending} disabled={!name || !body || !categoryId} onClick={handleSubmit} className="w-full">
+                Crear borrador
               </Button>
-            )}
-
-            {mode === "edit" && business && permissions && (
-              <div className="space-y-3 border-t border-border pt-4">
-                <div className="flex flex-wrap gap-2">
-                  {permissions.canSubmit && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending}
-                      onClick={() => runWorkflow(() => submitBusinessAction(business.id), "Enviada a revisión.")}
-                    >
-                      Enviar a revisión
-                    </Button>
-                  )}
-                  {permissions.canApprove && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending}
-                      onClick={() => runWorkflow(() => approveBusinessAction(business.id), "Ficha aprobada.")}
-                    >
-                      Aprobar
-                    </Button>
-                  )}
-                  {permissions.canPublish && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending}
-                      onClick={() => runWorkflow(() => publishBusinessAction(business.id), "Ficha publicada.")}
-                    >
-                      Publicar ahora
-                    </Button>
-                  )}
-                  {permissions.canArchive && (
-                    <ArchiveButton
-                      itemLabel="esta ficha"
-                      disabled={pending}
-                      onConfirm={() => runWorkflow(() => archiveBusinessAction(business.id), "Ficha archivada.")}
-                    />
-                  )}
-                </div>
-
-                {permissions.canReject && (
-                  <div className="space-y-2">
-                    <Field label="Motivo de rechazo" name="rejectReason">
-                      <TextInput type="text" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
-                    </Field>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending || !rejectReason.trim()}
-                      onClick={() => runWorkflow(() => rejectBusinessAction(business.id, rejectReason), "Ficha rechazada.")}
-                      className="w-full"
-                    >
-                      Rechazar
-                    </Button>
-                  </div>
-                )}
-
-                {permissions.canSchedule && (
-                  <div className="space-y-2">
-                    <Field label="Programar publicación para" name="scheduleAt">
-                      <DateTimeInput value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} />
-                    </Field>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending || !scheduleAt}
-                      onClick={() =>
-                        runWorkflow(() => scheduleBusinessAction(business.id, new Date(scheduleAt).toISOString()), "Publicación programada.")
-                      }
-                      className="w-full"
-                    >
-                      Programar
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </Card>
+            </Card>
+          )}
 
           <Card title="Organización">
             <Field label="Tipo de negocio" name="businessType">

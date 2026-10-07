@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { AdminApiError, getAdminPlace, listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
 import { getCategoryById } from "@/lib/api/client";
-import { computePlacePermissions } from "@/lib/admin/place-permissions";
+import { computePublicationPermissions } from "@/lib/admin/publication";
 import { PlaceForm } from "@/components/admin/place-form";
 import type { Category } from "@/lib/api/types";
 
@@ -38,7 +38,7 @@ export default async function EditPlacePage(props: PageProps<"/admin/lugares/[id
 
   const [activeCategories, allImages] = await Promise.all([listActiveCategoriesFresh(), listAdminImages(accessToken)]);
   const categories = await resolveCategories(activeCategories, place.categoryId);
-  const permissions = computePlacePermissions(place, user);
+  const permissions = computePublicationPermissions(place, user, "places");
 
   return (
     <div>

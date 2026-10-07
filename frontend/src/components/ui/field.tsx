@@ -31,6 +31,7 @@ export function Field({
   hint,
   error,
   required = false,
+  hideLabel = false,
   className,
   children,
 }: {
@@ -39,6 +40,8 @@ export function Field({
   hint?: ReactNode;
   error?: string | null;
   required?: boolean;
+  /** La etiqueta no se ve (p. ej. el título grande del compositor) pero sigue nombrando el control. */
+  hideLabel?: boolean;
   className?: string;
   children: ReactNode;
 }) {
@@ -73,7 +76,7 @@ export function Field({
 
   return (
     <div className={className}>
-      <label htmlFor={controlId} className="mb-1.5 block text-label font-medium text-foreground">
+      <label htmlFor={controlId} className={hideLabel ? "sr-only" : "mb-1.5 block text-label font-medium text-foreground"}>
         {labelText}
       </label>
       {cloneElement(child, {

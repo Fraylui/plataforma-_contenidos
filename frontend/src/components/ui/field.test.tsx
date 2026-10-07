@@ -40,6 +40,16 @@ describe("Field", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
+  it("hideLabel: la etiqueta sigue nombrando el control aunque no se vea", () => {
+    render(
+      <Field label="Título" name="title" hideLabel>
+        <TextInput />
+      </Field>,
+    );
+    expect(screen.getByLabelText("Título")).toBeInTheDocument();
+    expect(screen.getByText("Título")).toHaveClass("sr-only");
+  });
+
   it("obligatorio: el control es required", () => {
     render(
       <Field label="Nombre" name="name" required>

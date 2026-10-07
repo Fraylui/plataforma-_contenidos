@@ -9,7 +9,7 @@ import {
   listPlaceOptions,
 } from "@/lib/api/admin-client";
 import { getCategoryById } from "@/lib/api/client";
-import { computeBusinessPermissions } from "@/lib/admin/business-permissions";
+import { computePublicationPermissions } from "@/lib/admin/publication";
 import { BusinessForm } from "@/components/admin/business-form";
 import type { Category } from "@/lib/api/types";
 
@@ -48,7 +48,7 @@ export default async function EditBusinessPage(props: PageProps<"/admin/director
     listPlaceOptions(accessToken),
   ]);
   const categories = await resolveCategories(activeCategories, business.categoryId);
-  const permissions = computeBusinessPermissions(business, user);
+  const permissions = computePublicationPermissions(business, user, "directory");
 
   return (
     <div>

@@ -5,21 +5,15 @@ import { toast } from "sonner";
 import { useState } from "react";
 import type { AdminImage, ContentVideoInput, EventInput, PlaceOption } from "@/lib/api/admin-types";
 import type { Category, ContentImage, Event } from "@/lib/api/types";
-import type { EventPermissions } from "@/lib/admin/event-permissions";
-import { articleStatusLabel } from "@/lib/content-labels";
-import { ArchiveButton, FormError } from "@/components/admin/ui";
+import type { PublicationPermissions } from "@/lib/admin/publication";
+import { PublishPanel } from "@/components/admin/publish-panel";
+import { FormError } from "@/components/admin/ui";
 import { Button, Card, CollapsibleCard, Combobox, DateTimeInput, Field, TextArea, TextInput } from "@/components/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import { VideoLinksEditor } from "./video-links-editor";
 import { RichTextEditor } from "./rich-text-editor";
 import {
-  approveEventAction,
-  archiveEventAction,
   createEventAction,
-  publishEventAction,
-  rejectEventAction,
-  scheduleEventAction,
-  submitEventAction,
   updateEventAction,
   type ActionResult,
 } from "@/app/admin/(protected)/eventos/actions";
@@ -32,7 +26,7 @@ interface EventFormProps {
   allImages: AdminImage[];
   mode: "create" | "edit";
   event?: Event;
-  permissions?: EventPermissions;
+  permissions?: PublicationPermissions;
 }
 
 /** ISO (UTC) -> valor local para <input type="datetime-local">. */
@@ -77,8 +71,6 @@ export function EventForm({
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
-  const [scheduleAt, setScheduleAt] = useState("");
 
   function buildInput(): EventInput {
     return {
@@ -119,24 +111,27 @@ export function EventForm({
     router.refresh();
   }
 
-  async function runWorkflow(action: () => Promise<ActionResult>, successMessage: string) {
+  /** Guardado que usa PublishPanel antes de publicar o enviar: devuelve el id, o null si falló. */
+  async function save(): Promise<string | null> {
+    if (!event) return null;
     setPending(true);
     setError(null);
-    const result = await action();
-    applyResult(result, successMessage);
+    const result = await updateEventAction(event.id, buildInput());
+    setPending(false);
+    if (!result.ok) {
+      setError(result.error);
+      toast.error(result.error);
+      return null;
+    }
+    router.refresh();
+    return event.id;
   }
 
   return (
     <div className="max-w-6xl space-y-6">
-      {event && (
-        <div className="flex flex-wrap items-center gap-3 rounded-card bg-surface px-4 py-3 text-sm shadow-card">
-          <span className="font-medium text-foreground">Estado: {articleStatusLabel(event.status)}</span>
-          {event.rejectionReason && <span className="text-muted">Motivo de rechazo: {event.rejectionReason}</span>}
-        </div>
-      )}
 
       {readOnly && (
-        <p className="rounded-md border border-border bg-accent-soft px-4 py-3 text-sm text-accent">
+        <p className="rounded-control bg-info-soft px-4 py-3 text-sm text-foreground">
           Este evento no se puede editar en su estado/rol actual. Puedes seguir viendo el contenido.
         </p>
       )}
@@ -229,94 +224,23 @@ export function EventForm({
 
         {/* Barra lateral: publicar + metadata — visible sin scrollear todo el formulario */}
         <div className="space-y-6">
-          <Card title="Publicar">
-            {error && <FormError message={error} />}
-            {!readOnly && (
-              <Button type="submit" disabled={pending || !title || !body || !categoryId || !startsAt} onClick={handleSubmit} className="w-full">
-                {pending ? "Guardando…" : mode === "create" ? "Crear borrador" : "Guardar cambios"}
+          {error && <FormError message={error} />}
+          {mode === "edit" && event && permissions ? (
+            <PublishPanel
+              kind="events"
+              item={event}
+              permissions={permissions}
+              dirty={permissions.canEdit}
+              saving={pending}
+              onSave={save}
+            />
+          ) : (
+            <Card title="Publicar">
+              <Button type="submit" size="lg" loading={pending} disabled={!title || !body || !categoryId || !startsAt} onClick={handleSubmit} className="w-full">
+                Crear borrador
               </Button>
-            )}
-
-            {mode === "edit" && event && permissions && (
-              <div className="space-y-3 border-t border-border pt-4">
-                <div className="flex flex-wrap gap-2">
-                  {permissions.canSubmit && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending}
-                      onClick={() => runWorkflow(() => submitEventAction(event.id), "Enviado a revisión.")}
-                    >
-                      Enviar a revisión
-                    </Button>
-                  )}
-                  {permissions.canApprove && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending}
-                      onClick={() => runWorkflow(() => approveEventAction(event.id), "Evento aprobado.")}
-                    >
-                      Aprobar
-                    </Button>
-                  )}
-                  {permissions.canPublish && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending}
-                      onClick={() => runWorkflow(() => publishEventAction(event.id), "Evento publicado.")}
-                    >
-                      Publicar ahora
-                    </Button>
-                  )}
-                  {permissions.canArchive && (
-                    <ArchiveButton
-                      itemLabel="este evento"
-                      disabled={pending}
-                      onConfirm={() => runWorkflow(() => archiveEventAction(event.id), "Evento archivado.")}
-                    />
-                  )}
-                </div>
-
-                {permissions.canReject && (
-                  <div className="space-y-2">
-                    <Field label="Motivo de rechazo" name="rejectReason">
-                      <TextInput type="text" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
-                    </Field>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending || !rejectReason.trim()}
-                      onClick={() => runWorkflow(() => rejectEventAction(event.id, rejectReason), "Evento rechazado.")}
-                      className="w-full"
-                    >
-                      Rechazar
-                    </Button>
-                  </div>
-                )}
-
-                {permissions.canSchedule && (
-                  <div className="space-y-2">
-                    <Field label="Programar publicación para" name="scheduleAt">
-                      <DateTimeInput value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} />
-                    </Field>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending || !scheduleAt}
-                      onClick={() =>
-                        runWorkflow(() => scheduleEventAction(event.id, new Date(scheduleAt).toISOString()), "Publicación programada.")
-                      }
-                      className="w-full"
-                    >
-                      Programar
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </Card>
+            </Card>
+          )}
 
           <Card title="Organización">
             <Field label="Tema" name="categoryId">

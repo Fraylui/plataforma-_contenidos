@@ -3,13 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
-  approveGallery,
-  archiveGallery,
   createGallery,
-  publishGallery,
-  rejectGallery,
-  scheduleGallery,
-  submitGallery,
   updateGallery,
 } from "@/lib/api/admin-client";
 import type { GalleryInput } from "@/lib/api/admin-types";
@@ -33,38 +27,3 @@ export async function updateGalleryAction(id: string, input: GalleryInput): Prom
   return result;
 }
 
-export async function submitGalleryAction(id: string): Promise<ActionResult> {
-  return runWorkflowAction(id, submitGallery);
-}
-
-export async function approveGalleryAction(id: string): Promise<ActionResult> {
-  return runWorkflowAction(id, approveGallery);
-}
-
-export async function rejectGalleryAction(id: string, reason: string): Promise<ActionResult> {
-  return runWorkflowAction(id, (token) => rejectGallery(token, id, reason));
-}
-
-export async function publishGalleryAction(id: string): Promise<ActionResult> {
-  return runWorkflowAction(id, publishGallery);
-}
-
-export async function scheduleGalleryAction(id: string, scheduledAtIso: string): Promise<ActionResult> {
-  return runWorkflowAction(id, (token) => scheduleGallery(token, id, scheduledAtIso));
-}
-
-export async function archiveGalleryAction(id: string): Promise<ActionResult> {
-  return runWorkflowAction(id, archiveGallery);
-}
-
-async function runWorkflowAction(
-  id: string,
-  call: (token: string, id: string) => Promise<unknown>,
-): Promise<ActionResult> {
-  const result = await runAdminMutation((token) => call(token, id));
-  if (result.ok) {
-    revalidatePath("/admin/galerias");
-    revalidatePath(`/admin/galerias/${id}`);
-  }
-  return result;
-}

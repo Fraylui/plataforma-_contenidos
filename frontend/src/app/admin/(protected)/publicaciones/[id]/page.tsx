@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { AdminApiError, getAdminArticle, listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
-import { getCategoryById } from "@/lib/api/client";
-import { computeArticlePermissions } from "@/lib/admin/article-permissions";
-import { ArticleForm } from "@/components/admin/article-form";
+import { getCategoryById, getPlatformSettings } from "@/lib/api/client";
+import { computePublicationPermissions } from "@/lib/admin/publication";
+import { ArticleComposer } from "@/components/admin/article-composer";
+import { AdminPageHeader } from "@/components/admin/ui";
 import type { Category } from "@/lib/api/types";
 
 export const metadata: Metadata = {
@@ -38,25 +39,24 @@ export default async function EditArticlePage(props: PageProps<"/admin/publicaci
     throw error;
   }
 
-  const [activeCategories, allImages] = await Promise.all([
+  const [activeCategories, allImages, settings] = await Promise.all([
     listActiveCategoriesFresh(),
     listAdminImages(accessToken),
+    getPlatformSettings(),
   ]);
   const categories = await resolveCategories(activeCategories, article.categoryId);
-  const permissions = computeArticlePermissions(article, user);
+  const permissions = computePublicationPermissions(article, user, "articles");
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-foreground">{article.title}</h1>
-      <div className="mt-6">
-        <ArticleForm
-          mode="edit"
-          article={article}
-          categories={categories}
-          allImages={allImages}
-          permissions={permissions}
-        />
-      </div>
+    <div className="space-y-6">
+      <AdminPageHeader title={article.title} />
+      <ArticleComposer
+        article={article}
+        categories={categories}
+        allImages={allImages}
+        permissions={permissions}
+        siteName={settings.name}
+      />
     </div>
   );
 }

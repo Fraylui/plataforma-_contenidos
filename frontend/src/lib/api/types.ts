@@ -6,7 +6,8 @@
 /** Formato de publicación (plataforma de contenido, no géneros periodísticos — ver V48 en el backend). */
 export type ArticleType = "GENERAL" | "GUIA" | "LISTA" | "TUTORIAL" | "HISTORIA" | "ENTREVISTA";
 
-export type ArticleStatus = "DRAFT" | "IN_REVIEW" | "APPROVED" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED" | "REJECTED";
+/** Estado de cualquier contenido — shared.publishing.PublicationStatus (spec 2026-10-07 §1). */
+export type PublicationStatus = "DRAFT" | "IN_REVIEW" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED";
 
 /** Ver ContentImageResponse.java — una imagen subida (imageId) o por enlace externo (externalUrl), nunca ambas. */
 export interface ContentImage {
@@ -44,7 +45,7 @@ export interface Article {
   excerpt: string | null;
   body: string;
   articleType: ArticleType;
-  status: ArticleStatus;
+  status: PublicationStatus;
   authorId: string;
   categoryId: string;
   seoTitle: string | null;
@@ -54,7 +55,8 @@ export interface Article {
   images: ContentImage[];
   videos: ContentVideo[];
   robots: string;
-  rejectionReason: string | null;
+  /** Nota de quien devolvió el contenido a borrador. */
+  reviewNote: string | null;
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;
@@ -98,9 +100,6 @@ export interface Category {
   sortOrder: number;
 }
 
-/** Mismos valores que ArticleStatus (CONTEXTO.md sección 12) — PlaceStatus es un enum propio en el backend (sección 38), pero el frontend no tiene esa restricción de bounded context. */
-export type PlaceStatus = ArticleStatus;
-
 export interface PlaceSummary {
   id: string;
   slug: string;
@@ -122,7 +121,7 @@ export interface Place {
   name: string;
   excerpt: string | null;
   body: string;
-  status: PlaceStatus;
+  status: PublicationStatus;
   authorId: string;
   categoryId: string;
   latitude: number | null;
@@ -134,15 +133,13 @@ export interface Place {
   ogImageUrl: string | null;
   videos: ContentVideo[];
   robots: string;
-  rejectionReason: string | null;
+  /** Nota de quien devolvió el contenido a borrador. */
+  reviewNote: string | null;
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;
   likeCount: number;
 }
-
-/** Mismos valores que ArticleStatus/PlaceStatus (CONTEXTO.md sección 12) — EventStatus es un enum propio en el backend (sección 38). */
-export type EventStatus = ArticleStatus;
 
 export interface EventSummary {
   id: string;
@@ -166,7 +163,7 @@ export interface Event {
   title: string;
   excerpt: string | null;
   body: string;
-  status: EventStatus;
+  status: PublicationStatus;
   authorId: string;
   categoryId: string;
   placeId: string | null;
@@ -180,15 +177,13 @@ export interface Event {
   ogImageUrl: string | null;
   videos: ContentVideo[];
   robots: string;
-  rejectionReason: string | null;
+  /** Nota de quien devolvió el contenido a borrador. */
+  reviewNote: string | null;
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;
   likeCount: number;
 }
-
-/** Mismos valores que ArticleStatus/PlaceStatus/EventStatus (CONTEXTO.md sección 12) — GalleryStatus es un enum propio en el backend (sección 38). */
-export type GalleryStatus = ArticleStatus;
 
 export interface GallerySummary {
   id: string;
@@ -206,7 +201,7 @@ export interface Gallery {
   slug: string;
   title: string;
   excerpt: string | null;
-  status: GalleryStatus;
+  status: PublicationStatus;
   authorId: string;
   categoryId: string;
   images: ContentImage[];
@@ -215,15 +210,13 @@ export interface Gallery {
   canonicalUrl: string | null;
   ogImageUrl: string | null;
   robots: string;
-  rejectionReason: string | null;
+  /** Nota de quien devolvió el contenido a borrador. */
+  reviewNote: string | null;
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;
   likeCount: number;
 }
-
-/** Mismos valores que ArticleStatus/PlaceStatus/EventStatus/GalleryStatus (CONTEXTO.md sección 12) — BusinessStatus es un enum propio en el backend (sección 38). */
-export type BusinessStatus = ArticleStatus;
 
 /** Ver BusinessType.java (CONTEXTO.md sección 6) — eje de filtrado del Directorio, distinto de la categoría de contenido. */
 export type BusinessType = "RESTAURANT" | "HOTEL" | "SERVICE" | "SHOP" | "OTHER";
@@ -249,7 +242,7 @@ export interface Business {
   name: string;
   excerpt: string | null;
   body: string;
-  status: BusinessStatus;
+  status: PublicationStatus;
   businessType: BusinessType;
   authorId: string;
   categoryId: string;
@@ -267,7 +260,8 @@ export interface Business {
   ogImageUrl: string | null;
   videos: ContentVideo[];
   robots: string;
-  rejectionReason: string | null;
+  /** Nota de quien devolvió el contenido a borrador. */
+  reviewNote: string | null;
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;

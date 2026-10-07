@@ -15,11 +15,11 @@ import {
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { roleLabel } from "@/lib/admin/role-labels";
 import { visibleNavItems } from "@/lib/admin/nav";
-import { articleStatusLabel, articleStatusTone, formatPublishedDate, humanizeAuditAction } from "@/lib/content-labels";
+import { publicationStatusLabel, publicationStatusTone, formatPublishedDate, humanizeAuditAction } from "@/lib/content-labels";
 import { StatCard } from "@/components/admin/ui";
 import { CreateNewMenu } from "@/components/admin/create-new-menu";
 import type { PlatformStats } from "@/lib/api/admin-types";
-import type { ArticleStatus } from "@/lib/api/types";
+import type { PublicationStatus } from "@/lib/api/types";
 import { Badge } from "@/components/ui";
 
 export const metadata: Metadata = {
@@ -39,12 +39,12 @@ interface ContentItem {
   id: string;
   title: string;
   typeLabel: string;
-  status: ArticleStatus;
+  status: PublicationStatus;
   createdAt: string;
   editHref: string;
 }
 
-function sumStatus(byStatus: Record<ArticleStatus, number>, statuses: ArticleStatus[]): number {
+function sumStatus(byStatus: Record<PublicationStatus, number>, statuses: PublicationStatus[]): number {
   return statuses.reduce((total, status) => total + (byStatus[status] ?? 0), 0);
 }
 
@@ -58,7 +58,7 @@ function summarize(stats: PlatformStats) {
   ];
   const published = allByStatus.reduce((total, byStatus) => total + sumStatus(byStatus, ["PUBLISHED"]), 0);
   const pending = allByStatus.reduce(
-    (total, byStatus) => total + sumStatus(byStatus, ["DRAFT", "IN_REVIEW", "APPROVED"]),
+    (total, byStatus) => total + sumStatus(byStatus, ["DRAFT", "IN_REVIEW", "SCHEDULED"]),
     0,
   );
   return { published, pending };
@@ -210,7 +210,7 @@ export default async function AdminDashboardPage() {
                       </td>
                       <td className="px-4 py-2.5 text-muted">{item.typeLabel}</td>
                       <td className="px-4 py-2.5">
-                        <Badge tone={articleStatusTone(item.status)} dot>{articleStatusLabel(item.status)}</Badge>
+                        <Badge tone={publicationStatusTone(item.status)} dot>{publicationStatusLabel(item.status)}</Badge>
                       </td>
                       <td className="px-4 py-2.5 text-muted">{formatPublishedDate(item.createdAt)}</td>
                     </tr>

@@ -1,7 +1,7 @@
 import { Compass, GitBranch, SquaresFour, TrendUp, UsersThree } from "@phosphor-icons/react/dist/ssr";
 import type { PlatformStats } from "@/lib/api/admin-types";
-import type { ArticleStatus } from "@/lib/api/types";
-import { articleStatusLabel } from "@/lib/content-labels";
+import type { PublicationStatus } from "@/lib/api/types";
+import { publicationStatusLabel } from "@/lib/content-labels";
 import { AdminPageHeader } from "@/components/admin/ui";
 import { ContentTypesChart, PipelineChart, PublishTrendChart, RoleChart, TotalDistributionDonut } from "@/components/admin/stats-charts";
 
@@ -9,11 +9,11 @@ const CARD_CLASS = "rounded-card bg-surface shadow-card p-5 transition-colors ho
 const SECTION_TITLE_CLASS = "flex items-center gap-2 text-xs font-semibold tracking-wide text-muted uppercase";
 
 // Orden real del flujo de publicación (CONTEXTO.md sección 12) — la "línea de
-// producción". ARCHIVED/REJECTED son estados terminales fuera de la línea
-// activa, no un paso más: se muestran aparte para no romper la proporción
+// producción". ARCHIVED es el estado terminal, fuera de la línea activa:
+// se muestra aparte para no romper la proporción
 // de la barra con contenido que ya salió de circulación.
-const PIPELINE: ArticleStatus[] = ["DRAFT", "IN_REVIEW", "APPROVED", "SCHEDULED", "PUBLISHED"];
-const OFF_LINE: ArticleStatus[] = ["ARCHIVED", "REJECTED"];
+const PIPELINE: PublicationStatus[] = ["DRAFT", "IN_REVIEW", "SCHEDULED", "PUBLISHED"];
+const OFF_LINE: PublicationStatus[] = ["ARCHIVED"];
 
 function todayDateline(): string {
   return new Intl.DateTimeFormat("es-PE", {
@@ -72,9 +72,9 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
           <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted">
             {OFF_LINE.map((status) => (
               <span key={status}>
-                {articleStatusLabel(status)}{" "}
+                {publicationStatusLabel(status)}{" "}
                 <span
-                  className={`tabular-nums font-medium ${status === "REJECTED" ? "text-danger" : "text-foreground"}`}
+                  className="tabular-nums font-medium text-foreground"
                 >
                   {stats.articlesByStatus[status] ?? 0}
                 </span>

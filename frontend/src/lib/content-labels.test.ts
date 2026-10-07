@@ -1,18 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { articleStatusLabel, articleStatusTone, articleTypeLabel, formatPublishedDate } from "./content-labels";
-import type { ArticleStatus, ArticleType } from "@/lib/api/types";
+import { articleTypeLabel, formatPublishedDate, publicationStatusLabel, publicationStatusTone } from "./content-labels";
+import type { ArticleType, PublicationStatus } from "@/lib/api/types";
 
 const ALL_ARTICLE_TYPES: ArticleType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA", "ENTREVISTA"];
 
-const ALL_ARTICLE_STATUSES: ArticleStatus[] = [
-  "DRAFT",
-  "IN_REVIEW",
-  "APPROVED",
-  "SCHEDULED",
-  "PUBLISHED",
-  "ARCHIVED",
-  "REJECTED",
-];
+const ALL_STATUSES: PublicationStatus[] = ["DRAFT", "IN_REVIEW", "SCHEDULED", "PUBLISHED", "ARCHIVED"];
 
 // Sobre todo para que un nuevo valor del enum (backend) que se olvide
 // agregar acá explote en un test en vez de mostrar `undefined` en la UI.
@@ -25,19 +17,18 @@ describe("mapas de etiquetas", () => {
     expect(ALL_ARTICLE_TYPES.map(articleTypeLabel)).toEqual(["General", "Guía", "Lista", "Tutorial", "Historia", "Entrevista"]);
   });
 
-  it.each(ALL_ARTICLE_STATUSES)("articleStatusLabel(%s) y articleStatusTone(%s) están definidos", (status) => {
-    expect(articleStatusLabel(status)).toBeTruthy();
-    expect(["neutral", "warning", "success", "danger"]).toContain(articleStatusTone(status));
+  it("estados de plataforma, sin pasos de redacción", () => {
+    expect(ALL_STATUSES.map(publicationStatusLabel)).toEqual([
+      "Borrador",
+      "Pendiente de aprobación",
+      "Programado",
+      "Publicado",
+      "Archivado",
+    ]);
   });
 
-  it("PUBLISHED es el único estado con tono success", () => {
-    const successStatuses = ALL_ARTICLE_STATUSES.filter((s) => articleStatusTone(s) === "success");
-    expect(successStatuses).toEqual(["PUBLISHED"]);
-  });
-
-  it("REJECTED es el único estado con tono danger", () => {
-    const dangerStatuses = ALL_ARTICLE_STATUSES.filter((s) => articleStatusTone(s) === "danger");
-    expect(dangerStatuses).toEqual(["REJECTED"]);
+  it("cada estado tiene su color y solo lo publicado es verde de éxito", () => {
+    expect(ALL_STATUSES.map(publicationStatusTone)).toEqual(["neutral", "info", "warning", "success", "neutral"]);
   });
 });
 

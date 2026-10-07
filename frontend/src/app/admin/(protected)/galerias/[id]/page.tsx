@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { AdminApiError, getAdminGallery, listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
 import { getCategoryById } from "@/lib/api/client";
-import { computeGalleryPermissions } from "@/lib/admin/gallery-permissions";
+import { computePublicationPermissions } from "@/lib/admin/publication";
 import { GalleryForm } from "@/components/admin/gallery-form";
 import type { Category } from "@/lib/api/types";
 
@@ -38,7 +38,7 @@ export default async function EditGalleryPage(props: PageProps<"/admin/galerias/
 
   const [activeCategories, allImages] = await Promise.all([listActiveCategoriesFresh(), listAdminImages(accessToken)]);
   const categories = await resolveCategories(activeCategories, gallery.categoryId);
-  const permissions = computeGalleryPermissions(gallery, user);
+  const permissions = computePublicationPermissions(gallery, user, "galleries");
 
   return (
     <div>

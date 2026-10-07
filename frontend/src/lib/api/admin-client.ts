@@ -5,6 +5,7 @@
 // Components, proxy.ts) — ver src/lib/admin/session.ts para el porqué.
 import "server-only";
 import { headers } from "next/headers";
+import type { PublicationKind, PublicationStep } from "@/lib/admin/publication";
 import type {
   AdminImage,
   AdminUser,
@@ -174,38 +175,6 @@ export function updateArticle(accessToken: string, id: string, input: ArticleInp
   });
 }
 
-export function submitArticle(accessToken: string, id: string): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
-}
-
-export function approveArticle(accessToken: string, id: string): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
-}
-
-export function rejectArticle(accessToken: string, id: string, reason: string): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}/reject`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason }),
-  });
-}
-
-export function publishArticle(accessToken: string, id: string): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
-}
-
-export function scheduleArticle(accessToken: string, id: string, scheduledAt: string): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}/schedule`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ scheduledAt }),
-  });
-}
-
-export function archiveArticle(accessToken: string, id: string): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
-}
-
 // --- Places module: lugares (PlaceAdminController, rutas /admin/places) — CONTEXTO.md sección 6 ---
 
 export function listAdminPlaces(accessToken: string): Promise<Place[]> {
@@ -230,38 +199,6 @@ export function updatePlace(accessToken: string, id: string, input: PlaceInput):
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
-}
-
-export function submitPlace(accessToken: string, id: string): Promise<Place> {
-  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
-}
-
-export function approvePlace(accessToken: string, id: string): Promise<Place> {
-  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
-}
-
-export function rejectPlace(accessToken: string, id: string, reason: string): Promise<Place> {
-  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/reject`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason }),
-  });
-}
-
-export function publishPlace(accessToken: string, id: string): Promise<Place> {
-  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
-}
-
-export function schedulePlace(accessToken: string, id: string, scheduledAt: string): Promise<Place> {
-  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/schedule`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ scheduledAt }),
-  });
-}
-
-export function archivePlace(accessToken: string, id: string): Promise<Place> {
-  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
 }
 
 // --- Events module: eventos (EventAdminController, rutas /admin/events) ---
@@ -290,38 +227,6 @@ export function updateEvent(accessToken: string, id: string, input: EventInput):
   });
 }
 
-export function submitEvent(accessToken: string, id: string): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
-}
-
-export function approveEvent(accessToken: string, id: string): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
-}
-
-export function rejectEvent(accessToken: string, id: string, reason: string): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/reject`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason }),
-  });
-}
-
-export function publishEvent(accessToken: string, id: string): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
-}
-
-export function scheduleEvent(accessToken: string, id: string, scheduledAt: string): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/schedule`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ scheduledAt }),
-  });
-}
-
-export function archiveEvent(accessToken: string, id: string): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
-}
-
 // --- Galleries module: galerías (GalleryAdminController, rutas /admin/galleries) ---
 
 export function listAdminGalleries(accessToken: string): Promise<Gallery[]> {
@@ -348,38 +253,6 @@ export function updateGallery(accessToken: string, id: string, input: GalleryInp
   });
 }
 
-export function submitGallery(accessToken: string, id: string): Promise<Gallery> {
-  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
-}
-
-export function approveGallery(accessToken: string, id: string): Promise<Gallery> {
-  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
-}
-
-export function rejectGallery(accessToken: string, id: string, reason: string): Promise<Gallery> {
-  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/reject`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason }),
-  });
-}
-
-export function publishGallery(accessToken: string, id: string): Promise<Gallery> {
-  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
-}
-
-export function scheduleGallery(accessToken: string, id: string, scheduledAt: string): Promise<Gallery> {
-  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/schedule`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ scheduledAt }),
-  });
-}
-
-export function archiveGallery(accessToken: string, id: string): Promise<Gallery> {
-  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
-}
-
 // --- Directory module: fichas de directorio (BusinessAdminController, rutas /admin/directory) ---
 
 export function listAdminBusinesses(accessToken: string): Promise<Business[]> {
@@ -404,38 +277,6 @@ export function updateBusiness(accessToken: string, id: string, input: BusinessI
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
-}
-
-export function submitBusiness(accessToken: string, id: string): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
-}
-
-export function approveBusiness(accessToken: string, id: string): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
-}
-
-export function rejectBusiness(accessToken: string, id: string, reason: string): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/reject`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason }),
-  });
-}
-
-export function publishBusiness(accessToken: string, id: string): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
-}
-
-export function scheduleBusiness(accessToken: string, id: string, scheduledAt: string): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/schedule`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ scheduledAt }),
-  });
-}
-
-export function archiveBusiness(accessToken: string, id: string): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
 }
 
 // --- Taxonomy module: categorías (CategoryController, rutas /admin/categories) ---
@@ -721,4 +562,22 @@ export function changeOwnPassword(accessToken: string, currentPassword: string, 
 /** Lugares para elegir en Eventos y Directorio (no exige el módulo Lugares). */
 export function listPlaceOptions(accessToken: string): Promise<PlaceOption[]> {
   return authedJson("/api/v1/admin/place-options", accessToken);
+}
+
+/**
+ * Un paso del flujo de publicación, igual para los 5 tipos de contenido
+ * (POST /api/v1/admin/{tipo}/{id}/{paso}). `scheduledAt` para programar,
+ * `note` para devolver a borrador.
+ */
+export function runPublicationStep(
+  accessToken: string,
+  kind: PublicationKind,
+  id: string,
+  step: PublicationStep,
+  body?: { scheduledAt?: string; note?: string },
+): Promise<unknown> {
+  return authedJson(`/api/v1/admin/${kind}/${encodeURIComponent(id)}/${step}`, accessToken, {
+    method: "POST",
+    ...(body ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {}),
+  });
 }

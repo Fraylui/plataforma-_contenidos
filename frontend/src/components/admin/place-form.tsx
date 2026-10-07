@@ -7,23 +7,17 @@ import { useState } from "react";
 import type { AdminImage } from "@/lib/api/admin-types";
 import type { Category, ContentImage, Place } from "@/lib/api/types";
 import type { ContentVideoInput, PlaceInput } from "@/lib/api/admin-types";
-import type { PlacePermissions } from "@/lib/admin/place-permissions";
-import { articleStatusLabel } from "@/lib/content-labels";
-import { ArchiveButton, FormError } from "@/components/admin/ui";
-import { Button, Card, CollapsibleCard, Combobox, DateTimeInput, Field, TextArea, TextInput } from "@/components/ui";
+import type { PublicationPermissions } from "@/lib/admin/publication";
+import { PublishPanel } from "@/components/admin/publish-panel";
+import { FormError } from "@/components/admin/ui";
+import { Button, Card, CollapsibleCard, Combobox, Field, TextArea, TextInput } from "@/components/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import { VideoLinksEditor } from "./video-links-editor";
 import { RichTextEditor } from "./rich-text-editor";
 
 const LocationPicker = dynamic(() => import("./location-picker").then((m) => m.LocationPicker), { ssr: false });
 import {
-  approvePlaceAction,
-  archivePlaceAction,
   createPlaceAction,
-  publishPlaceAction,
-  rejectPlaceAction,
-  schedulePlaceAction,
-  submitPlaceAction,
   updatePlaceAction,
   type ActionResult,
 } from "@/app/admin/(protected)/lugares/actions";
@@ -35,7 +29,7 @@ interface PlaceFormProps {
   allImages: AdminImage[];
   mode: "create" | "edit";
   place?: Place;
-  permissions?: PlacePermissions;
+  permissions?: PublicationPermissions;
 }
 
 export function PlaceForm({ categories, allImages, mode, place, permissions }: PlaceFormProps) {
@@ -64,8 +58,6 @@ export function PlaceForm({ categories, allImages, mode, place, permissions }: P
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
-  const [scheduleAt, setScheduleAt] = useState("");
 
   function buildInput(): PlaceInput {
     return {
@@ -103,24 +95,27 @@ export function PlaceForm({ categories, allImages, mode, place, permissions }: P
     router.refresh();
   }
 
-  async function runWorkflow(action: () => Promise<ActionResult>, successMessage: string) {
+  /** Guardado que usa PublishPanel antes de publicar o enviar: devuelve el id, o null si falló. */
+  async function save(): Promise<string | null> {
+    if (!place) return null;
     setPending(true);
     setError(null);
-    const result = await action();
-    applyResult(result, successMessage);
+    const result = await updatePlaceAction(place.id, buildInput());
+    setPending(false);
+    if (!result.ok) {
+      setError(result.error);
+      toast.error(result.error);
+      return null;
+    }
+    router.refresh();
+    return place.id;
   }
 
   return (
     <div className="max-w-6xl space-y-6">
-      {place && (
-        <div className="flex flex-wrap items-center gap-3 rounded-card bg-surface px-4 py-3 text-sm shadow-card">
-          <span className="font-medium text-foreground">Estado: {articleStatusLabel(place.status)}</span>
-          {place.rejectionReason && <span className="text-muted">Motivo de rechazo: {place.rejectionReason}</span>}
-        </div>
-      )}
 
       {readOnly && (
-        <p className="rounded-md border border-border bg-accent-soft px-4 py-3 text-sm text-accent">
+        <p className="rounded-control bg-info-soft px-4 py-3 text-sm text-foreground">
           Este lugar no se puede editar en su estado/rol actual. Puedes seguir viendo el contenido.
         </p>
       )}
@@ -170,94 +165,23 @@ export function PlaceForm({ categories, allImages, mode, place, permissions }: P
 
         {/* Barra lateral: publicar + metadata — visible sin scrollear todo el formulario */}
         <div className="space-y-6">
-          <Card title="Publicar">
-            {error && <FormError message={error} />}
-            {!readOnly && (
-              <Button type="submit" disabled={pending || !name || !body || !categoryId} onClick={handleSubmit} className="w-full">
-                {pending ? "Guardando…" : mode === "create" ? "Crear borrador" : "Guardar cambios"}
+          {error && <FormError message={error} />}
+          {mode === "edit" && place && permissions ? (
+            <PublishPanel
+              kind="places"
+              item={place}
+              permissions={permissions}
+              dirty={permissions.canEdit}
+              saving={pending}
+              onSave={save}
+            />
+          ) : (
+            <Card title="Publicar">
+              <Button type="submit" size="lg" loading={pending} disabled={!name || !body || !categoryId} onClick={handleSubmit} className="w-full">
+                Crear borrador
               </Button>
-            )}
-
-            {mode === "edit" && place && permissions && (
-              <div className="space-y-3 border-t border-border pt-4">
-                <div className="flex flex-wrap gap-2">
-                  {permissions.canSubmit && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending}
-                      onClick={() => runWorkflow(() => submitPlaceAction(place.id), "Enviado a revisión.")}
-                    >
-                      Enviar a revisión
-                    </Button>
-                  )}
-                  {permissions.canApprove && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending}
-                      onClick={() => runWorkflow(() => approvePlaceAction(place.id), "Lugar aprobado.")}
-                    >
-                      Aprobar
-                    </Button>
-                  )}
-                  {permissions.canPublish && (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending}
-                      onClick={() => runWorkflow(() => publishPlaceAction(place.id), "Lugar publicado.")}
-                    >
-                      Publicar ahora
-                    </Button>
-                  )}
-                  {permissions.canArchive && (
-                    <ArchiveButton
-                      itemLabel="este lugar"
-                      disabled={pending}
-                      onConfirm={() => runWorkflow(() => archivePlaceAction(place.id), "Lugar archivado.")}
-                    />
-                  )}
-                </div>
-
-                {permissions.canReject && (
-                  <div className="space-y-2">
-                    <Field label="Motivo de rechazo" name="rejectReason">
-                      <TextInput type="text" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
-                    </Field>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending || !rejectReason.trim()}
-                      onClick={() => runWorkflow(() => rejectPlaceAction(place.id, rejectReason), "Lugar rechazado.")}
-                      className="w-full"
-                    >
-                      Rechazar
-                    </Button>
-                  </div>
-                )}
-
-                {permissions.canSchedule && (
-                  <div className="space-y-2">
-                    <Field label="Programar publicación para" name="scheduleAt">
-                      <DateTimeInput value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} />
-                    </Field>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={pending || !scheduleAt}
-                      onClick={() =>
-                        runWorkflow(() => schedulePlaceAction(place.id, new Date(scheduleAt).toISOString()), "Publicación programada.")
-                      }
-                      className="w-full"
-                    >
-                      Programar
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </Card>
+            </Card>
+          )}
 
           <Card title="Ubicación">
             <Field label="Tema" name="categoryId">

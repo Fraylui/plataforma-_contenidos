@@ -2,104 +2,105 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Archive, CheckCircle, DotsThree, PencilSimple, PaperPlaneTilt, ArrowCounterClockwise, XCircle } from "@phosphor-icons/react";
-import type { ActionResult } from "@/lib/admin/action-helpers";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle, AlertDialogTrigger, Dialog, DialogContent, DialogDescription, DialogTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/admin/ui";
-import { Button, TextArea } from "@/components/ui";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Archive, ChatCircleText, DotsThree, PaperPlaneTilt, PencilSimple } from "@phosphor-icons/react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/admin/ui";
+import { Button, Field, IconButton, TextArea } from "@/components/ui";
+import { publicationStepAction } from "@/app/admin/(protected)/publication-actions";
+import type { PublicationKind, PublicationPermissions, PublicationStep } from "@/lib/admin/publication";
+import type { PublicationStatus } from "@/lib/api/types";
 
-export interface ContentPermissions {
-  canSubmit: boolean;
-  canApprove: boolean;
-  canReject: boolean;
-  canPublish: boolean;
-  canArchive: boolean;
-}
-
-export interface ContentActions {
-  submit: (id: string) => Promise<ActionResult>;
-  approve: (id: string) => Promise<ActionResult>;
-  reject: (id: string, reason: string) => Promise<ActionResult>;
-  publish: (id: string) => Promise<ActionResult>;
-  archive: (id: string) => Promise<ActionResult>;
-}
+const ICON_LINK =
+  "flex size-8 items-center justify-center rounded-full text-muted outline-none transition-colors hover:bg-field hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring";
 
 /**
- * Acciones rápidas de flujo de publicación desde un listado — genérico para
- * Publicaciones/Lugares/Eventos/Galerías/Directorio, que comparten
- * el mismo ciclo (ver ArticleStatus/PlaceStatus/etc. en el backend, todos
- * idénticos). Un solo componente en vez de 6 copias casi iguales.
+ * Acciones rápidas del flujo desde un listado, iguales para los 5 tipos de
+ * contenido: editar y, en el menú, enviar para aprobar, publicar, devolver
+ * a borrador (con nota) y archivar — según permiso y estado.
  */
 export function ContentRowActions({
+  kind,
   id,
+  status,
   editHref,
   permissions,
-  actions,
   itemLabel,
 }: {
+  kind: PublicationKind;
   id: string;
+  status: PublicationStatus;
   editHref: string;
-  permissions: ContentPermissions;
-  actions: ContentActions;
+  permissions: PublicationPermissions;
   itemLabel: string;
 }) {
+  const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [rejectOpen, setRejectOpen] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
+  const [returnOpen, setReturnOpen] = useState(false);
+  const [note, setNote] = useState("");
 
-  async function run(action: () => Promise<ActionResult>) {
+  async function run(step: PublicationStep, body?: { note?: string }) {
     setPending(true);
-    setError(null);
-    const result = await action();
+    const result = await publicationStepAction(kind, id, step, body);
     setPending(false);
-    if (!result.ok) setError(result.error);
+    if (!result.ok) {
+      toast.error(result.error);
+      return false;
+    }
+    router.refresh();
+    return true;
   }
 
-  const hasAnyAction = permissions.canSubmit || permissions.canApprove || permissions.canReject || permissions.canPublish || permissions.canArchive;
+  const canReturnWithNote = permissions.canReturnToDraft && status === "IN_REVIEW";
+  const hasAnyAction = permissions.canSubmit || permissions.canPublish || canReturnWithNote || permissions.canArchive;
 
   return (
     <div className="flex items-center justify-end gap-1">
-      {error && <span className="text-xs text-danger">{error}</span>}
-      <Link href={editHref} className="rounded-md p-1.5 text-muted transition-colors hover:bg-accent-soft hover:text-accent" title="Editar">
-        <PencilSimple className="h-4 w-4" aria-hidden="true" />
+      <Link href={editHref} className={ICON_LINK} title="Editar">
+        <PencilSimple className="size-4" aria-hidden="true" />
         <span className="sr-only">Editar</span>
       </Link>
 
       {hasAnyAction && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              disabled={pending}
-              className="rounded-md p-1.5 text-muted transition-colors hover:bg-accent-soft hover:text-accent disabled:opacity-40"
-            >
-              <DotsThree className="h-4 w-4" aria-hidden="true" />
-              <span className="sr-only">Más acciones</span>
-            </button>
+            <IconButton label="Más acciones" size="sm" disabled={pending} icon={<DotsThree weight="bold" aria-hidden="true" />} />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             {permissions.canSubmit && (
-              <DropdownMenuItem onSelect={() => run(() => actions.submit(id))}>
-                <PaperPlaneTilt className="h-4 w-4" aria-hidden="true" />
-                Enviar a revisión
-              </DropdownMenuItem>
-            )}
-            {permissions.canApprove && (
-              <DropdownMenuItem onSelect={() => run(() => actions.approve(id))}>
-                <CheckCircle className="h-4 w-4" aria-hidden="true" />
-                Aprobar
+              <DropdownMenuItem onSelect={() => run("submit")}>
+                <PaperPlaneTilt aria-hidden="true" />
+                Enviar para aprobar
               </DropdownMenuItem>
             )}
             {permissions.canPublish && (
-              <DropdownMenuItem onSelect={() => run(() => actions.publish(id))}>
-                <ArrowCounterClockwise className="h-4 w-4 rotate-180" aria-hidden="true" />
+              <DropdownMenuItem onSelect={() => run("publish")}>
+                <PaperPlaneTilt weight="fill" aria-hidden="true" />
                 Publicar ahora
               </DropdownMenuItem>
             )}
-            {permissions.canReject && (
-              <DropdownMenuItem onSelect={() => setRejectOpen(true)}>
-                <XCircle className="h-4 w-4" aria-hidden="true" />
-                Rechazar
+            {canReturnWithNote && (
+              <DropdownMenuItem onSelect={() => setReturnOpen(true)}>
+                <ChatCircleText aria-hidden="true" />
+                Devolver a borrador
               </DropdownMenuItem>
             )}
             {permissions.canArchive && (
@@ -108,23 +109,19 @@ export function ContentRowActions({
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <DropdownMenuItem variant="danger" onSelect={(e) => e.preventDefault()}>
-                      <Archive className="h-4 w-4" aria-hidden="true" />
+                      <Archive aria-hidden="true" />
                       Archivar
                     </DropdownMenuItem>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogTitle>¿Archivar {itemLabel}?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Dejará de aparecer en el sitio público. No se puede deshacer desde acá.
-                    </AlertDialogDescription>
+                    <AlertDialogDescription>Dejará de aparecer en el sitio público. No se puede deshacer desde acá.</AlertDialogDescription>
                     <AlertDialogFooter>
                       <AlertDialogCancel asChild>
-                        <Button type="button" variant="secondary">
-                          Cancelar
-                        </Button>
+                        <Button variant="secondary">Cancelar</Button>
                       </AlertDialogCancel>
                       <AlertDialogAction asChild>
-                        <Button type="button" variant="danger" onClick={() => run(() => actions.archive(id))}>
+                        <Button variant="danger" onClick={() => run("archive")}>
                           Archivar
                         </Button>
                       </AlertDialogAction>
@@ -137,33 +134,27 @@ export function ContentRowActions({
         </DropdownMenu>
       )}
 
-      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
+      <Dialog open={returnOpen} onOpenChange={setReturnOpen}>
         <DialogContent>
-          <DialogTitle>Rechazar {itemLabel}</DialogTitle>
-          <DialogDescription>Explica brevemente el motivo — el autor lo verá para corregirlo.</DialogDescription>
-          <TextArea
-            aria-label="Motivo de rechazo"
-            value={rejectReason}
-            onChange={(e) => setRejectReason(e.target.value)}
-            rows={3}
-            className="mt-4"
-            placeholder="Motivo de rechazo"
-          />
+          <DialogTitle>Devolver a borrador</DialogTitle>
+          <DialogDescription>Quien creó {itemLabel} podrá corregirlo y volver a enviarlo.</DialogDescription>
+          <Field label="Nota para quien lo creó (opcional)" name={`return-note-${id}`} className="mt-4">
+            <TextArea value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={1000} />
+          </Field>
           <div className="mt-4 flex justify-end gap-2">
-            <Button type="button" variant="secondary" onClick={() => setRejectOpen(false)}>
+            <Button variant="secondary" onClick={() => setReturnOpen(false)}>
               Cancelar
             </Button>
             <Button
-              type="button"
-              variant="danger"
-              disabled={!rejectReason.trim() || pending}
+              loading={pending}
               onClick={async () => {
-                await run(() => actions.reject(id, rejectReason));
-                setRejectOpen(false);
-                setRejectReason("");
+                if (await run("return-to-draft", { note: note.trim() || undefined })) {
+                  setReturnOpen(false);
+                  setNote("");
+                }
               }}
             >
-              Rechazar
+              Devolver
             </Button>
           </div>
         </DialogContent>
