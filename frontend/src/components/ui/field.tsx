@@ -47,7 +47,7 @@ export function Field({
     <>
       {label}
       {required && (
-        <span aria-hidden="true" className="ml-0.5 text-danger">
+        <span aria-hidden="true" className="ml-0.5 text-danger-ink">
           *
         </span>
       )}
@@ -97,7 +97,7 @@ function FieldMessages({ hint, hintId, error, errorId }: { hint?: ReactNode; hin
         </p>
       )}
       {error && (
-        <p id={errorId} className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-danger">
+        <p id={errorId} className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-danger-ink">
           <WarningCircle weight="fill" aria-hidden="true" className="size-3.5 shrink-0" />
           {error}
         </p>

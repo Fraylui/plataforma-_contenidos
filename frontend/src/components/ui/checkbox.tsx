@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 type ChoiceProps = Omit<ComponentProps<"input">, "type"> & { label: ReactNode; description?: ReactNode };
 
 const BOX =
-  "peer relative size-[18px] shrink-0 cursor-pointer appearance-none border border-field-border bg-field " +
+  "peer relative size-[18px] shrink-0 cursor-pointer appearance-none border-[1.5px] border-muted/60 bg-surface " +
   "outline-none transition-[background-color,border-color,box-shadow] duration-150 " +
   "hover:border-accent focus-visible:ring-[3px] focus-visible:ring-ring " +
   "checked:border-accent-fill checked:bg-accent-fill disabled:cursor-not-allowed disabled:opacity-50";

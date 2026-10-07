@@ -33,7 +33,7 @@ export function DesignShowcase() {
   const [topic, setTopic] = useState<string | null>("cultura");
 
   return (
-    <div className="grid gap-6 xl:grid-cols-2">
+    <div className="grid items-start gap-6 xl:grid-cols-2">
       <Card title="Botones" description="Variantes, tamaños y estados.">
         <div className="flex flex-wrap items-center gap-3">
           <Button icon={<PaperPlaneTilt weight="bold" aria-hidden="true" />}>Publicar</Button>

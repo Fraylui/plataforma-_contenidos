@@ -9,7 +9,7 @@ const TONES: Record<BadgeTone, string> = {
   success: "bg-success-soft text-success",
   warning: "bg-warning-soft text-warning",
   info: "bg-info-soft text-info",
-  danger: "bg-danger-soft text-danger",
+  danger: "bg-danger-soft text-danger-ink",
 };
 
 /** Etiqueta de estado con fondo tintado (estilo Linear/GitHub). */
