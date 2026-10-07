@@ -4,6 +4,7 @@ import type { PublicationStatus } from "@/lib/api/types";
 import { publicationStatusLabel } from "@/lib/content-labels";
 import { AdminPageHeader } from "@/components/admin/ui";
 import { ContentTypesChart, PipelineChart, PublishTrendChart, RoleChart, TotalDistributionDonut } from "@/components/admin/stats-charts";
+import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
 const CARD_CLASS = "rounded-card bg-surface shadow-card p-5 transition-colors hover:border-accent/40";
 const SECTION_TITLE_CLASS = "flex items-center gap-2 text-xs font-semibold tracking-wide text-muted uppercase";
@@ -17,6 +18,7 @@ const OFF_LINE: PublicationStatus[] = ["ARCHIVED"];
 
 function todayDateline(): string {
   return new Intl.DateTimeFormat("es-PE", {
+    timeZone: SITE_TIME_ZONE,
     weekday: "long",
     day: "numeric",
     month: "long",

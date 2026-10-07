@@ -2,19 +2,29 @@
 
 import { useState, type ComponentProps } from "react";
 import { CalendarBlank } from "@phosphor-icons/react";
-import { formatEventDateTime, formatShortDate } from "@/lib/content-labels";
 import { cn } from "@/lib/utils";
 import { fieldClass, markFieldControl } from "./field-styles";
 
 type DateKind = "datetime-local" | "date";
 
+// La lectura repite la hora tal como se escribió en el campo (hora de pared):
+// se formatea en UTC a propósito para que ninguna zona la corra.
+const READING_DATE_TIME = new Intl.DateTimeFormat("es-PE", {
+  timeZone: "UTC",
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  hour: "numeric",
+  minute: "2-digit",
+});
+const READING_DATE = new Intl.DateTimeFormat("es-PE", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short", year: "numeric" });
+
 /** Lectura absoluta del valor de un input de fecha ("vie 12 dic, 7:00 p. m."), o null si está vacío o no es válido. */
 export function formatDateTimeReading(value: string, type: DateKind): string | null {
   if (!value) return null;
-  // "2026-12-12" sin hora se interpretaría en UTC y en Lima se leería un día antes.
-  const local = type === "date" ? `${value}T00:00` : value;
-  if (Number.isNaN(new Date(local).getTime())) return null;
-  return type === "date" ? formatShortDate(local) : formatEventDateTime(local);
+  const wallClock = new Date(type === "date" ? `${value}T00:00:00Z` : `${value}:00Z`);
+  if (Number.isNaN(wallClock.getTime())) return null;
+  return (type === "date" ? READING_DATE : READING_DATE_TIME).format(wallClock);
 }
 
 type DateTimeInputProps = Omit<ComponentProps<"input">, "type"> & { type?: DateKind; invalid?: boolean };

@@ -10,6 +10,7 @@ import { publicationStepAction } from "@/app/admin/(protected)/publication-actio
 import { formatEventDateTime, publicationStatusLabel, publicationStatusTone } from "@/lib/content-labels";
 import { PUBLICATION_KINDS, type PublicationKind, type PublicationPermissions, type PublicationStep } from "@/lib/admin/publication";
 import type { PublicationStatus } from "@/lib/api/types";
+import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
 export interface PublishPanelItem {
   id: string;
@@ -39,7 +40,7 @@ const SUCCESS: Record<PublicationStep, string> = {
   archive: "Archivado",
 };
 
-const TIME = new Intl.DateTimeFormat("es-PE", { hour: "numeric", minute: "2-digit" });
+const TIME = new Intl.DateTimeFormat("es-PE", { timeZone: SITE_TIME_ZONE, hour: "numeric", minute: "2-digit" });
 
 /**
  * Panel "Publicar" de los 5 tipos de contenido: una acción principal según

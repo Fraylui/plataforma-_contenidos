@@ -159,8 +159,9 @@ export function RoleChart({ usersByRole }: { usersByRole: Record<Role, number> }
   );
 }
 
-const TREND_DATE_FORMAT = new Intl.DateTimeFormat("es-PE", { day: "numeric", month: "short" });
-const TREND_DATE_FORMAT_LONG = new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "numeric", month: "long" });
+// Días UTC del backend (T00:00:00Z): en la zona del navegador cada barra caía en el día anterior.
+const TREND_DATE_FORMAT = new Intl.DateTimeFormat("es-PE", { day: "numeric", month: "short", timeZone: "UTC" });
+const TREND_DATE_FORMAT_LONG = new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
 
 /**
  * Tendencia de publicaciones día a día (últimos 30 días) — el único gráfico

@@ -6,6 +6,7 @@ import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdminPageHeader } from "@/components/admin/ui";
 import { Badge, type BadgeTone, Button, DateTimeInput, Field, LinkButton, Select, TextInput } from "@/components/ui";
+import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
 export const metadata: Metadata = {
   title: "Registro de actividad",
@@ -31,6 +32,7 @@ const RESOURCE_TYPES = ["article", "place", "image", "user", "platform_settings"
 
 function formatDateTime(iso: string): string {
   return new Intl.DateTimeFormat("es-PE", {
+    timeZone: SITE_TIME_ZONE,
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(iso));

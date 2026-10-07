@@ -7,6 +7,7 @@ import { serverImageUrl } from "@/lib/server-image-url";
 import { SkeletonImage } from "@/components/ui/skeleton-image";
 import { AdBlock } from "@/components/legal/ad-block";
 import type { AdSection } from "@/lib/ads/ad-context";
+import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
 /** Fila de la columna: píldora de fondo al pasar el mouse, sin bordes ni líneas (como Facebook). */
 const ROW = "group -mx-2 flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-surface";
@@ -28,8 +29,8 @@ function SectionHeader({ id, title, href }: { id: string; title: string; href?: 
 
 function EventRow({ event, categoryName }: { event: EventSummary; categoryName?: string }) {
   const start = new Date(event.startsAt);
-  const day = new Intl.DateTimeFormat("es-PE", { day: "numeric" }).format(start);
-  const month = new Intl.DateTimeFormat("es-PE", { month: "short" }).format(start).replace(".", "");
+  const day = new Intl.DateTimeFormat("es-PE", { timeZone: SITE_TIME_ZONE, day: "numeric" }).format(start);
+  const month = new Intl.DateTimeFormat("es-PE", { timeZone: SITE_TIME_ZONE, month: "short" }).format(start).replace(".", "");
   const where = event.venueName ?? categoryName;
 
   return (

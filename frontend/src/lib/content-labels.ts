@@ -1,5 +1,6 @@
 import type { ArticleType, BusinessType, SearchResultType, PublicationStatus } from "@/lib/api/types";
 import type { BadgeTone } from "@/components/ui";
+import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
 const ARTICLE_TYPE_LABELS: Record<ArticleType, string> = {
   GENERAL: "General",
@@ -60,6 +61,7 @@ export function humanizeAuditAction(action: string): string {
 export function formatPublishedDate(iso: string | null): string {
   if (!iso) return "";
   return new Intl.DateTimeFormat("es-PE", {
+    timeZone: SITE_TIME_ZONE,
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -103,6 +105,7 @@ export function formatArticleDate(iso: string | null): string {
 export function formatShortDate(iso: string | null): string {
   if (!iso) return "";
   return new Intl.DateTimeFormat("es-PE", {
+    timeZone: SITE_TIME_ZONE,
     weekday: "short",
     day: "numeric",
     month: "short",
@@ -120,6 +123,7 @@ export function formatShortDate(iso: string | null): string {
  */
 export function formatEventDateTime(iso: string): string {
   return new Intl.DateTimeFormat("es-PE", {
+    timeZone: SITE_TIME_ZONE,
     weekday: "short",
     day: "numeric",
     month: "short",

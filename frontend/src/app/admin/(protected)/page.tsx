@@ -21,6 +21,7 @@ import { CreateNewMenu } from "@/components/admin/create-new-menu";
 import type { PlatformStats } from "@/lib/api/admin-types";
 import type { PublicationStatus } from "@/lib/api/types";
 import { Badge } from "@/components/ui";
+import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
 export const metadata: Metadata = {
   title: "Panel",
@@ -132,7 +133,7 @@ export default async function AdminDashboardPage() {
           <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
             <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent">{roleLabel(user.role)}</span>
             <span>
-              {new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date())}
+              {new Intl.DateTimeFormat("es-PE", { timeZone: SITE_TIME_ZONE, weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date())}
             </span>
           </p>
         </div>

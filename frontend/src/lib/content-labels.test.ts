@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { articleTypeLabel, formatPublishedDate, publicationStatusLabel, publicationStatusTone } from "./content-labels";
+import { articleTypeLabel, formatEventDateTime, formatPublishedDate, formatShortDate, publicationStatusLabel, publicationStatusTone } from "./content-labels";
 import type { ArticleType, PublicationStatus } from "@/lib/api/types";
 
 const ALL_ARTICLE_TYPES: ArticleType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA", "ENTREVISTA"];
@@ -41,5 +41,19 @@ describe("formatPublishedDate", () => {
     // Mediodía UTC, no medianoche: evita que el resultado cambie de día
     // según la zona horaria local de quien corre el test.
     expect(formatPublishedDate("2026-03-15T12:00:00Z")).toBe("15 de marzo de 2026");
+  });
+});
+
+// Las pruebas corren en UTC (vitest.config.mts), como el servidor: las fechas se
+// leen en la zona del sitio (America/Lima por defecto), no en la de la máquina.
+describe("fechas en la zona del sitio", () => {
+  it("un evento a las 11 p. m. de Lima no pasa al día siguiente en un servidor UTC", () => {
+    const label = formatEventDateTime("2026-10-18T23:00:00-05:00");
+    expect(label).toMatch(/18 oct/);
+    expect(label).toMatch(/11:00\sp\.\s?m\./);
+  });
+
+  it("la fecha corta tampoco cambia de día", () => {
+    expect(formatShortDate("2026-10-18T23:30:00-05:00")).toMatch(/18 oct/);
   });
 });
