@@ -14,6 +14,9 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
+    // En la laptop, 2 procesos en paralelo: la suite entera saturaba la CPU y
+    // la recalentaba (2026-10-07). En CI (GitHub) va a toda velocidad.
+    maxWorkers: process.env.CI ? undefined : 2,
     projects: [
       {
         extends: true,
