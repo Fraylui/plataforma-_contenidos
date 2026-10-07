@@ -7,7 +7,8 @@ import type { Article, ArticleType, Category, ContentImage } from "@/lib/api/typ
 import type { AdminImage, ArticleInput, ContentVideoInput } from "@/lib/api/admin-types";
 import type { ArticlePermissions } from "@/lib/admin/article-permissions";
 import { articleTypeLabel, articleStatusLabel } from "@/lib/content-labels";
-import { AdminButton, ArchiveButton, CollapsibleSection, Combobox, FormError, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
+import { AdminButton, ArchiveButton, CollapsibleSection, FormError, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
+import { Combobox } from "@/components/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import { VideoLinksEditor } from "./video-links-editor";
 import { RichTextEditor } from "./rich-text-editor";

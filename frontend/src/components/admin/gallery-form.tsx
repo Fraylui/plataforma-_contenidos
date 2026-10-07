@@ -7,7 +7,8 @@ import type { AdminImage, GalleryInput } from "@/lib/api/admin-types";
 import type { Category, ContentImage, Gallery } from "@/lib/api/types";
 import type { GalleryPermissions } from "@/lib/admin/gallery-permissions";
 import { articleStatusLabel } from "@/lib/content-labels";
-import { AdminButton, ArchiveButton, CollapsibleSection, Combobox, FormError, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
+import { AdminButton, ArchiveButton, CollapsibleSection, FormError, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
+import { Combobox } from "@/components/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import {
   approveGalleryAction,

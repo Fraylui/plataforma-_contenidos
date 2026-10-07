@@ -4,7 +4,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import type { Category } from "@/lib/api/types";
 import { createCategoryAction, updateCategoryAction, type ActionResult } from "@/app/admin/(protected)/temas/actions";
-import { AdminButton, Combobox, FormError, FormField, formInputClass } from "@/components/admin/ui";
+import { AdminButton, FormError, FormField, formInputClass } from "@/components/admin/ui";
+import { Combobox } from "@/components/ui";
 
 interface CategoryFormProps {
   mode: "create" | "edit";

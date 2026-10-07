@@ -19,5 +19,4 @@ export {
 } from "./alert-dialog";
 export { DataTable } from "./data-table";
 export { StatCard } from "./stat-card";
-export { Combobox, type ComboboxOption } from "./combobox";
 export { SectionCard, CollapsibleSection } from "./section-card";

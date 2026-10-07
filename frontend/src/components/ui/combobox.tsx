@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import { Command } from "cmdk";
-import { Check, ChevronDown, Search } from "lucide-react";
+import { CaretUpDown, Check, MagnifyingGlass } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
+import { fieldClass, markFieldControl } from "./field-styles";
 
 export interface ComboboxOption {
   id: string;
@@ -16,7 +17,7 @@ export interface ComboboxOption {
  * cuando la lista puede crecer lo suficiente como para que escribir sea más
  * rápido que desplazarse.
  */
-export function Combobox({
+export const Combobox = markFieldControl(function Combobox({
   options,
   value,
   onSelect,
@@ -25,6 +26,9 @@ export function Combobox({
   emptyMessage = "Sin resultados.",
   disabled,
   className,
+  id,
+  "aria-describedby": ariaDescribedBy,
+  "aria-invalid": ariaInvalid,
 }: {
   options: ComboboxOption[];
   value: string | null;
@@ -33,10 +37,15 @@ export function Combobox({
   searchPlaceholder?: string;
   emptyMessage?: string;
   disabled?: boolean;
-  /** Por defecto ocupa el ancho completo, igual que formInputClass — pasar solo para achicarlo a propósito (p. ej. junto a otro control en una misma fila). */
+  /** Por defecto ocupa el ancho completo como el resto de campos — pasar solo para achicarlo a propósito (p. ej. junto a otro control en una misma fila). */
   className?: string;
+  /** Los pone `Field` para conectar etiqueta, ayuda y error. */
+  id?: string;
+  "aria-describedby"?: string;
+  "aria-invalid"?: boolean | "true" | "false";
 }) {
   const [open, setOpen] = useState(false);
+  const listId = useId();
   const [query, setQuery] = useState("");
   const selected = options.find((o) => o.id === value) ?? null;
 
@@ -45,35 +54,38 @@ export function Combobox({
       <Popover.Trigger asChild>
         <button
           type="button"
+          role="combobox"
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          aria-controls={listId}
+          id={id}
           disabled={disabled}
-          className={cn(
-            "mt-1 flex h-9 w-full min-w-[10rem] items-center justify-between gap-2 rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none transition-colors",
-            "focus-visible:border-accent disabled:opacity-60",
-            className,
-          )}
+          aria-describedby={ariaDescribedBy}
+          aria-invalid={ariaInvalid || undefined}
+          className={cn(fieldClass, "flex min-w-[10rem] cursor-pointer items-center justify-between gap-2 text-left", className)}
         >
           <span className={cn("truncate", !selected && "text-muted")}>{selected?.label ?? placeholder}</span>
-          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted" aria-hidden="true" />
+          <CaretUpDown className="size-4 shrink-0 text-muted" aria-hidden="true" />
         </button>
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
           align="start"
           sideOffset={6}
-          className="z-50 w-64 overflow-hidden rounded-lg border border-border bg-surface shadow-lg"
+          className="z-50 w-[max(16rem,var(--radix-popover-trigger-width))] overflow-hidden rounded-card bg-surface shadow-pop data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
         >
           <Command shouldFilter={true} className="flex flex-col">
-            <div className="flex items-center gap-2 border-b border-border px-2.5">
-              <Search className="h-3.5 w-3.5 shrink-0 text-muted" aria-hidden="true" />
+            <div className="flex items-center gap-2 border-b border-field-border px-3">
+              <MagnifyingGlass className="size-4 shrink-0 text-muted" aria-hidden="true" />
               <Command.Input
                 name="comboboxSearch"
                 value={query}
                 onValueChange={setQuery}
                 placeholder={searchPlaceholder}
-                className="h-9 w-full bg-transparent text-sm text-foreground outline-none placeholder-muted"
+                className="h-10 w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted"
               />
             </div>
-            <Command.List className="max-h-56 overflow-y-auto p-1">
+            <Command.List id={listId} className="max-h-64 overflow-y-auto p-1.5">
               <Command.Empty className="px-2.5 py-4 text-center text-sm text-muted">{emptyMessage}</Command.Empty>
               {options.map((option) => (
                 <Command.Item
@@ -84,9 +96,9 @@ export function Combobox({
                     setOpen(false);
                     setQuery("");
                   }}
-                  className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-sm text-foreground outline-none data-[selected=true]:bg-accent-soft data-[selected=true]:text-accent"
+                  className="flex cursor-pointer items-center gap-2 rounded-[8px] px-2.5 py-2 text-sm text-foreground outline-none transition-colors data-[selected=true]:bg-field"
                 >
-                  <Check className={cn("h-3.5 w-3.5 shrink-0", option.id === value ? "opacity-100 text-accent" : "opacity-0")} aria-hidden="true" />
+                  <Check weight="bold" className={cn("size-4 shrink-0", option.id === value ? "text-accent opacity-100" : "opacity-0")} aria-hidden="true" />
                   <span className="truncate">{option.label}</span>
                 </Command.Item>
               ))}
@@ -96,4 +108,4 @@ export function Combobox({
       </Popover.Portal>
     </Popover.Root>
   );
-}
+});

@@ -57,3 +57,8 @@ if (!("IntersectionObserver" in window)) {
     }
   };
 }
+
+// cmdk (Combobox) desplaza la opción activa con scrollIntoView, que jsdom no implementa.
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {};
+}

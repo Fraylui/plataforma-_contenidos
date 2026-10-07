@@ -7,7 +7,8 @@ import type { AdminImage, ContentVideoInput, EventInput, PlaceOption } from "@/l
 import type { Category, ContentImage, Event } from "@/lib/api/types";
 import type { EventPermissions } from "@/lib/admin/event-permissions";
 import { articleStatusLabel } from "@/lib/content-labels";
-import { AdminButton, ArchiveButton, CollapsibleSection, Combobox, FormError, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
+import { AdminButton, ArchiveButton, CollapsibleSection, FormError, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
+import { Combobox } from "@/components/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import { VideoLinksEditor } from "./video-links-editor";
 import { RichTextEditor } from "./rich-text-editor";

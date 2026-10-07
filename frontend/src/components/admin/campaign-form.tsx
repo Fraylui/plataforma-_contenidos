@@ -12,7 +12,8 @@ import {
   updateCampaignAction,
   type ActionResult,
 } from "@/app/admin/(protected)/anunciantes/actions";
-import { AdminButton, Combobox, FormError, FormField, formInputClass } from "@/components/admin/ui";
+import { AdminButton, FormError, FormField, formInputClass } from "@/components/admin/ui";
+import { Combobox } from "@/components/ui";
 import { CampaignCreativePicker } from "@/components/admin/campaign-creative-picker";
 
 /** ISO (UTC) -> valor local para <input type="datetime-local"> — mismo helper que EventForm. */
