@@ -8,9 +8,10 @@ import {
   listAdminImages,
   listPlaceOptions,
 } from "@/lib/api/admin-client";
-import { getCategoryById } from "@/lib/api/client";
+import { getCategoryById, getPlatformSettings } from "@/lib/api/client";
 import { computePublicationPermissions } from "@/lib/admin/publication";
-import { EventForm } from "@/components/admin/event-form";
+import { EventComposer } from "@/components/admin/event-composer";
+import { AdminPageHeader } from "@/components/admin/ui";
 import type { Category } from "@/lib/api/types";
 
 export const metadata: Metadata = {
@@ -42,27 +43,25 @@ export default async function EditEventPage(props: PageProps<"/admin/eventos/[id
     throw error;
   }
 
-  const [activeCategories, allImages, places] = await Promise.all([
+  const [activeCategories, allImages, places, settings] = await Promise.all([
     listActiveCategoriesFresh(),
     listAdminImages(accessToken),
     listPlaceOptions(accessToken),
+    getPlatformSettings(),
   ]);
   const categories = await resolveCategories(activeCategories, event.categoryId);
   const permissions = computePublicationPermissions(event, user, "events");
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-foreground">{event.title}</h1>
-      <div className="mt-6">
-        <EventForm
-          mode="edit"
-          event={event}
-          categories={categories}
-          places={places}
-          allImages={allImages}
-          permissions={permissions}
-        />
-      </div>
+    <div className="space-y-6">
+      <AdminPageHeader title={event.title} />
+      <EventComposer
+        event={event}
+        categories={categories} places={places}
+        allImages={allImages}
+        permissions={permissions}
+        siteName={settings.name}
+      />
     </div>
   );
 }
