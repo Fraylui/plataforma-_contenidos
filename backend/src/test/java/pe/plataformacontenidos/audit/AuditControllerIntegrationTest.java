@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.audit;
 
+import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -16,7 +17,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.LegacyRole;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
@@ -39,6 +40,9 @@ class AuditControllerIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private WorkerPermissionRepository workerPermissions;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -46,7 +50,7 @@ class AuditControllerIntegrationTest {
 
     @Test
     void adminCanFilterAuditLogByResourceTypeAndResult() throws Exception {
-        String adminToken = createUserAndLogin("audit-admin@plataforma-contenidos.test", Role.ADMIN);
+        String adminToken = createUserAndLogin("audit-admin@plataforma-contenidos.test", LegacyRole.SUPER_ADMIN);
 
         auditService.record("TEST_ACTION_A", AuditResult.SUCCESS, null, "someone@test", "widget", "1", "127.0.0.1");
         auditService.record("TEST_ACTION_B", AuditResult.FAILURE, null, "someone@test", "gadget", "2", "127.0.0.1");
@@ -62,8 +66,8 @@ class AuditControllerIntegrationTest {
 
     @Test
     void loginSuccessIsRecordedAndVisibleToAdmin() throws Exception {
-        String adminToken = createUserAndLogin("audit-admin-2@plataforma-contenidos.test", Role.ADMIN);
-        createUserAndLogin("audit-target@plataforma-contenidos.test", Role.AUTHOR);
+        String adminToken = createUserAndLogin("audit-admin-2@plataforma-contenidos.test", LegacyRole.SUPER_ADMIN);
+        createUserAndLogin("audit-target@plataforma-contenidos.test", LegacyRole.AUTHOR);
 
         mockMvc.perform(get("/api/v1/admin/audit")
                         .header("Authorization", "Bearer " + adminToken)
@@ -75,8 +79,27 @@ class AuditControllerIntegrationTest {
     }
 
     @Test
+    void panelActionsAreAuditedAutomatically() throws Exception {
+        String adminToken = createUserAndLogin("audit-admin-3@plataforma-contenidos.test", LegacyRole.SUPER_ADMIN);
+
+        mockMvc.perform(post("/api/v1/admin/categories")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Tema auditado\"}"))
+                .andExpect(status().is2xxSuccessful());
+
+        mockMvc.perform(get("/api/v1/admin/audit")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .param("actorEmail", "audit-admin-3@plataforma-contenidos.test")
+                        .param("action", "POST /admin/categories"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].result").value("SUCCESS"))
+                .andExpect(jsonPath("$.items[0].resourceType").value("categories"));
+    }
+
+    @Test
     void editorCannotAccessAuditLog() throws Exception {
-        String editorToken = createUserAndLogin("audit-editor@plataforma-contenidos.test", Role.EDITOR);
+        String editorToken = createUserAndLogin("audit-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
 
         mockMvc.perform(get("/api/v1/admin/audit").header("Authorization", "Bearer " + editorToken))
                 .andExpect(status().isForbidden());
@@ -92,10 +115,10 @@ class AuditControllerIntegrationTest {
         return json.get(field).asText();
     }
 
-    private String createUserAndLogin(String email, Role role) throws Exception {
+    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
         String password = "SomeStrongPassword123!";
-        userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
-
+        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
+        role.grant(workerPermissions, created.getId());
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))

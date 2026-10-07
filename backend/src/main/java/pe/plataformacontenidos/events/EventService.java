@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.PublishPermissionRequiredException;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.shared.ContentImage;
@@ -71,9 +71,9 @@ public class EventService {
         return saved;
     }
 
-    public Event update(UUID eventId, EventInput input, UUID actingUserId, Role actingRole) {
+    public Event update(UUID eventId, EventInput input, UUID actingUserId, boolean canPublish) {
         Event event = getOrThrow(eventId);
-        requireCanEdit(event, actingUserId, actingRole);
+        requireCanEdit(event, actingUserId, canPublish);
 
         if (!event.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
@@ -108,8 +108,8 @@ public class EventService {
         return saved;
     }
 
-    public Event approve(UUID eventId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Event approve(UUID eventId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Event event = getOrThrow(eventId);
         if (event.getStatus() != EventStatus.IN_REVIEW) {
             throw new InvalidEventTransitionException(event.getStatus(), "aprobar");
@@ -120,8 +120,8 @@ public class EventService {
         return saved;
     }
 
-    public Event reject(UUID eventId, String reason, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Event reject(UUID eventId, String reason, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Event event = getOrThrow(eventId);
         if (event.getStatus() != EventStatus.IN_REVIEW) {
             throw new InvalidEventTransitionException(event.getStatus(), "rechazar");
@@ -132,8 +132,8 @@ public class EventService {
         return saved;
     }
 
-    public Event publish(UUID eventId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Event publish(UUID eventId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Event event = getOrThrow(eventId);
         if (event.getStatus() != EventStatus.APPROVED) {
             throw new InvalidEventTransitionException(event.getStatus(), "publicar");
@@ -144,8 +144,8 @@ public class EventService {
         return saved;
     }
 
-    public Event schedule(UUID eventId, Instant when, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Event schedule(UUID eventId, Instant when, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         if (when.isBefore(Instant.now())) {
             throw new InvalidEventScheduleException("La fecha de publicación programada debe ser futura");
         }
@@ -159,8 +159,8 @@ public class EventService {
         return saved;
     }
 
-    public Event archive(UUID eventId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Event archive(UUID eventId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Event event = getOrThrow(eventId);
         if (event.getStatus() != EventStatus.PUBLISHED) {
             throw new InvalidEventTransitionException(event.getStatus(), "archivar");
@@ -171,16 +171,16 @@ public class EventService {
         return saved;
     }
 
-    public Event getForAdmin(UUID eventId, UUID actingUserId, Role actingRole) {
+    public Event getForAdmin(UUID eventId, UUID actingUserId, boolean canPublish) {
         Event event = getOrThrow(eventId);
-        if (!isEditorOrAbove(actingRole) && !event.isOwnedBy(actingUserId)) {
+        if (!canPublish && !event.isOwnedBy(actingUserId)) {
             throw new EventAccessDeniedException();
         }
         return event;
     }
 
-    public List<Event> listForAdmin(UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
+    public List<Event> listForAdmin(UUID actingUserId, boolean canPublish) {
+        if (canPublish) {
             return eventRepository.findAll();
         }
         return eventRepository.findByAuthorIdOrderByCreatedAtDesc(actingUserId);
@@ -269,8 +269,8 @@ public class EventService {
         return result;
     }
 
-    private void requireCanEdit(Event event, UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
+    private void requireCanEdit(Event event, UUID actingUserId, boolean canPublish) {
+        if (canPublish) {
             if (!event.isEditable()) {
                 throw new InvalidEventTransitionException(event.getStatus(), "editar");
             }
@@ -284,15 +284,7 @@ public class EventService {
         }
     }
 
-    private void requireEditorOrAbove(Role role) {
-        if (!isEditorOrAbove(role)) {
-            throw new EventAccessDeniedException();
-        }
-    }
 
-    private boolean isEditorOrAbove(Role role) {
-        return role == Role.EDITOR || role == Role.ADMIN || role == Role.SUPER_ADMIN;
-    }
 
     private Event getOrThrow(UUID id) {
         return eventRepository.findById(id).orElseThrow(() -> new EventNotFoundException(id));
@@ -311,5 +303,12 @@ public class EventService {
     private void audit(String action, Event event, UUID actingUserId) {
         auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "event", event.getId().toString(),
                 null);
+    }
+
+    /** Aprobar, rechazar, publicar, programar y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
+    private static void requirePublish(boolean canPublish) {
+        if (!canPublish) {
+            throw new PublishPermissionRequiredException();
+        }
     }
 }

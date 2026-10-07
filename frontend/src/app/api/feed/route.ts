@@ -5,8 +5,9 @@ import type { FeedItem } from "@/lib/api/types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const MAX_SIZE = 30; // = MAX_PAGE_SIZE en FeedController
-// Pestañas del home: solo los tipos que el feed incluye (FeedService.FEED_TYPES).
-const FEED_TYPES = new Set(["ARTICLE", "PLACE", "EVENT"]);
+// Filtros del feed: solo los tipos que el feed incluye (FeedService.FEED_TYPES).
+const FEED_TYPES = new Set(["ARTICLE", "PLACE", "EVENT", "GALLERY", "BUSINESS"]);
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Proxy de GET /api/v1/feed (público, sin autenticación) para el scroll
@@ -34,6 +35,9 @@ export async function GET(request: NextRequest) {
   if (seed) query.set("seed", seed);
   const type = params.get("type");
   if (type && FEED_TYPES.has(type)) query.set("type", type);
+  const categoryId = params.get("categoryId");
+  if (categoryId && UUID.test(categoryId)) query.set("categoryId", categoryId);
+  if (params.get("sort") === "upcoming") query.set("sort", "upcoming");
   for (const id of exclude) query.append("exclude", id);
 
   const res = await fetch(`${BACKEND_API_URL}/api/v1/feed?${query.toString()}`, { cache: "no-store" });

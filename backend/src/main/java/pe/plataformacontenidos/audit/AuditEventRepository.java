@@ -3,7 +3,11 @@ package pe.plataformacontenidos.audit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.time.Instant;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.Repository;
 
 /**
@@ -15,6 +19,9 @@ import org.springframework.data.repository.Repository;
  * Specification; Spring Data lo declara con métodos exclusivamente de
  * lectura (findOne/findAll/count/exists), así que sumarlo no reintroduce
  * update/delete.
+ *
+ * Única excepción, explícita: purgeOlderThan, la política de retención
+ * (AuditRetentionJob). Borra solo por antigüedad, nunca un evento puntual.
  */
 public interface AuditEventRepository
         extends Repository<AuditEvent, UUID>, JpaSpecificationExecutor<AuditEvent> {
@@ -24,4 +31,8 @@ public interface AuditEventRepository
     Optional<AuditEvent> findById(UUID id);
 
     List<AuditEvent> findAll();
+
+    @Modifying
+    @Query("DELETE FROM AuditEvent e WHERE e.occurredAt < :cutoff")
+    int purgeOlderThan(@Param("cutoff") Instant cutoff);
 }

@@ -130,7 +130,7 @@ export function ContentTypesChart({ stats }: { stats: PlatformStats }) {
   );
 }
 
-const ROLE_ORDER: Role[] = ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR", "MODERATOR", "COLLABORATOR", "USER"];
+const ROLE_ORDER: Role[] = ["OWNER", "WORKER"];
 
 /** Conteo de usuarios por rol — una sola serie, sin necesidad de distinguir identidad por color. */
 export function RoleChart({ usersByRole }: { usersByRole: Record<Role, number> }) {

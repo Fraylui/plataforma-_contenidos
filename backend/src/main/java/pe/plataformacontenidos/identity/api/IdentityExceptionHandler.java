@@ -7,10 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import pe.plataformacontenidos.identity.CannotModifyOwnAccountException;
 import pe.plataformacontenidos.identity.EmailAlreadyExistsException;
 import pe.plataformacontenidos.identity.InvalidCredentialsException;
-import pe.plataformacontenidos.identity.SuperAdminManagementDeniedException;
+import pe.plataformacontenidos.identity.WeakPasswordException;
+import pe.plataformacontenidos.identity.WrongCurrentPasswordException;
 import pe.plataformacontenidos.identity.TooManyAttemptsException;
 import pe.plataformacontenidos.identity.UserNotFoundException;
 
@@ -37,14 +37,11 @@ public class IdentityExceptionHandler {
         return error(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-    @ExceptionHandler(SuperAdminManagementDeniedException.class)
-    public ResponseEntity<ApiError> handleSuperAdminManagementDenied(SuperAdminManagementDeniedException ex) {
-        return error(HttpStatus.FORBIDDEN, ex.getMessage());
-    }
 
-    @ExceptionHandler(CannotModifyOwnAccountException.class)
-    public ResponseEntity<ApiError> handleCannotModifyOwnAccount(CannotModifyOwnAccountException ex) {
-        return error(HttpStatus.CONFLICT, ex.getMessage());
+
+    @ExceptionHandler({ WeakPasswordException.class, WrongCurrentPasswordException.class })
+    public ResponseEntity<ApiError> handlePasswordRejected(RuntimeException ex) {
+        return error(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -1,5 +1,5 @@
-import { DetailSkeleton } from "@/components/ui/detail-skeleton";
+import { PostSkeleton } from "@/components/ui/post-skeleton";
 
 export default function Loading() {
-  return <DetailSkeleton />;
+  return <PostSkeleton />;
 }

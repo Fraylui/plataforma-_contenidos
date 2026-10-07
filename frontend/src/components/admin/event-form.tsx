@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
-import type { AdminImage, ContentVideoInput, EventInput } from "@/lib/api/admin-types";
-import type { Category, ContentImage, Event, Place } from "@/lib/api/types";
+import type { AdminImage, ContentVideoInput, EventInput, PlaceOption } from "@/lib/api/admin-types";
+import type { Category, ContentImage, Event } from "@/lib/api/types";
 import type { EventPermissions } from "@/lib/admin/event-permissions";
 import { articleStatusLabel } from "@/lib/content-labels";
 import { AdminButton, ArchiveButton, CollapsibleSection, Combobox, FormError, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
@@ -27,7 +27,7 @@ const ROBOTS_OPTIONS = ["index,follow", "noindex,follow", "index,nofollow", "noi
 
 interface EventFormProps {
   categories: Category[];
-  places: Place[];
+  places: PlaceOption[];
   allImages: AdminImage[];
   mode: "create" | "edit";
   event?: Event;
@@ -321,7 +321,7 @@ export function EventForm({
           </SectionCard>
 
           <SectionCard title="Organización">
-            <FormField label="Categoría" name="categoryId">
+            <FormField label="Tema" name="categoryId">
               <Combobox
                 options={categories.map((category) => ({ id: category.id, label: category.name }))}
                 value={categoryId}
@@ -331,7 +331,7 @@ export function EventForm({
             </FormField>
           </SectionCard>
 
-          <SectionCard title="Medios">
+          <SectionCard title="Fotos y videos">
             <FormField label="Fotografías (opcional — la primera es la portada de tarjeta/feed)" name="images">
               <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
             </FormField>

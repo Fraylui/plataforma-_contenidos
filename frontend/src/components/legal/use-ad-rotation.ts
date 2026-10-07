@@ -33,7 +33,7 @@ function fetchRotation(placement: string, pathname: string, contextQuery: string
  * navegador (ver app/api/ads/campaign/route.ts por qué no al renderizar).
  * `undefined` mientras carga, `null` si no hay ninguna que pueda ver.
  */
-export function useAdRotation(placement: string, context: AdContext = {}): ResolvedRotation | null | undefined {
+function useAdRotation(placement: string, context: AdContext = {}): ResolvedRotation | null | undefined {
   const pathname = usePathname();
   const [result, setResult] = useState<{ key: string; rotation: ResolvedRotation | null } | null>(null);
   const contextQuery = adContextQuery(context);

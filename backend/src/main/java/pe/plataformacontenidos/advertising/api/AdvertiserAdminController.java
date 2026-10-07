@@ -1,5 +1,8 @@
 package pe.plataformacontenidos.advertising.api;
 
+import pe.plataformacontenidos.identity.permission.AccessLevel;
+import pe.plataformacontenidos.identity.permission.Module;
+import pe.plataformacontenidos.identity.permission.RequiresModule;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +22,7 @@ import pe.plataformacontenidos.advertising.api.dto.AdvertiserResponse;
 
 /** Solo admin (SecurityConfig): datos de contacto de negocios que compran publicidad directa. */
 @RestController
+@RequiresModule(value = Module.ADVERTISING, level = AccessLevel.ACCESS)
 @RequestMapping("/api/v1/admin/advertisers")
 public class AdvertiserAdminController {
 

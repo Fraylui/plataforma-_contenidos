@@ -8,6 +8,10 @@ import { headers } from "next/headers";
 import type {
   AdminImage,
   AdminUser,
+  CreateWorkerInput,
+  PlaceOption,
+  ModulePermissions,
+  Worker,
   AdPlacementCreateInput,
   AdPlacementUpdateInput,
   Advertiser,
@@ -21,7 +25,6 @@ import type {
   CampaignInput,
   CategoryCreateInput,
   CategoryUpdateInput,
-  CreateUserInput,
   EventInput,
   GalleryInput,
   PlaceInput,
@@ -633,26 +636,6 @@ export function deleteImage(accessToken: string, id: string): Promise<void> {
 
 // --- Identity module: usuarios (UserAdminController) ---
 
-export function listAdminUsers(accessToken: string): Promise<AdminUser[]> {
-  return authedJson("/api/v1/admin/users", accessToken);
-}
-
-export function createUser(accessToken: string, input: CreateUserInput): Promise<AdminUser> {
-  return authedJson("/api/v1/admin/users", accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-}
-
-export function activateUser(accessToken: string, id: string): Promise<AdminUser> {
-  return authedJson(`/api/v1/admin/users/${encodeURIComponent(id)}/activate`, accessToken, { method: "POST" });
-}
-
-export function deactivateUser(accessToken: string, id: string): Promise<AdminUser> {
-  return authedJson(`/api/v1/admin/users/${encodeURIComponent(id)}`, accessToken, { method: "DELETE" });
-}
-
 // --- Configuration module: identidad de plataforma (PlatformSettingsAdminController) ---
 
 export function getAdminPlatformSettings(accessToken: string): Promise<PlatformSettings> {
@@ -692,4 +675,50 @@ export function listAdminAuditLog(
   params.set("page", String(filters.page ?? 0));
   params.set("size", String(filters.size ?? 20));
   return authedJson(`/api/v1/admin/audit?${params.toString()}`, accessToken);
+}
+
+// --- Trabajadores (solo el dueño; spec 2a §5) ---
+
+export function listWorkers(accessToken: string): Promise<Worker[]> {
+  return authedJson("/api/v1/admin/workers", accessToken);
+}
+
+export function createWorker(accessToken: string, input: CreateWorkerInput): Promise<{ worker: Worker; temporaryPassword: string }> {
+  return authedJson("/api/v1/admin/workers", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateWorkerPermissions(accessToken: string, id: string, permissions: ModulePermissions): Promise<Worker> {
+  return authedJson(`/api/v1/admin/workers/${encodeURIComponent(id)}/permissions`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ permissions }),
+  });
+}
+
+export function resetWorkerPassword(accessToken: string, id: string): Promise<{ temporaryPassword: string }> {
+  return authedJson(`/api/v1/admin/workers/${encodeURIComponent(id)}/reset-password`, accessToken, { method: "POST" });
+}
+
+export function setWorkerActive(accessToken: string, id: string, active: boolean): Promise<Worker> {
+  return authedJson(`/api/v1/admin/workers/${encodeURIComponent(id)}/${active ? "activate" : "deactivate"}`, accessToken, {
+    method: "POST",
+  });
+}
+
+/** Mi cuenta: cambio de la contraseña propia. Devuelve una sesión nueva (las anteriores quedan invalidadas). */
+export function changeOwnPassword(accessToken: string, currentPassword: string, newPassword: string): Promise<TokenResponse> {
+  return authedJson<TokenResponse>("/api/v1/users/me/password", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+}
+
+/** Lugares para elegir en Eventos y Directorio (no exige el módulo Lugares). */
+export function listPlaceOptions(accessToken: string): Promise<PlaceOption[]> {
+  return authedJson("/api/v1/admin/place-options", accessToken);
 }

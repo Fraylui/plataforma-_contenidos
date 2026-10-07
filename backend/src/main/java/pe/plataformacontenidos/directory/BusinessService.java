@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.PublishPermissionRequiredException;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.shared.ContentImage;
@@ -71,9 +71,9 @@ public class BusinessService {
         return saved;
     }
 
-    public Business update(UUID businessId, BusinessInput input, UUID actingUserId, Role actingRole) {
+    public Business update(UUID businessId, BusinessInput input, UUID actingUserId, boolean canPublish) {
         Business business = getOrThrow(businessId);
-        requireCanEdit(business, actingUserId, actingRole);
+        requireCanEdit(business, actingUserId, canPublish);
 
         if (!business.getCategoryId().equals(input.categoryId())
                 && !categoryService.existsActive(input.categoryId())) {
@@ -109,8 +109,8 @@ public class BusinessService {
         return saved;
     }
 
-    public Business approve(UUID businessId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Business approve(UUID businessId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Business business = getOrThrow(businessId);
         if (business.getStatus() != BusinessStatus.IN_REVIEW) {
             throw new InvalidBusinessTransitionException(business.getStatus(), "aprobar");
@@ -121,8 +121,8 @@ public class BusinessService {
         return saved;
     }
 
-    public Business reject(UUID businessId, String reason, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Business reject(UUID businessId, String reason, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Business business = getOrThrow(businessId);
         if (business.getStatus() != BusinessStatus.IN_REVIEW) {
             throw new InvalidBusinessTransitionException(business.getStatus(), "rechazar");
@@ -133,8 +133,8 @@ public class BusinessService {
         return saved;
     }
 
-    public Business publish(UUID businessId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Business publish(UUID businessId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Business business = getOrThrow(businessId);
         if (business.getStatus() != BusinessStatus.APPROVED) {
             throw new InvalidBusinessTransitionException(business.getStatus(), "publicar");
@@ -145,8 +145,8 @@ public class BusinessService {
         return saved;
     }
 
-    public Business schedule(UUID businessId, Instant when, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Business schedule(UUID businessId, Instant when, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         if (when.isBefore(Instant.now())) {
             throw new InvalidBusinessScheduleException("La fecha de publicación programada debe ser futura");
         }
@@ -160,8 +160,8 @@ public class BusinessService {
         return saved;
     }
 
-    public Business archive(UUID businessId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Business archive(UUID businessId, UUID actingUserId, boolean canPublish) {
+        requirePublish(canPublish);
         Business business = getOrThrow(businessId);
         if (business.getStatus() != BusinessStatus.PUBLISHED) {
             throw new InvalidBusinessTransitionException(business.getStatus(), "archivar");
@@ -172,16 +172,16 @@ public class BusinessService {
         return saved;
     }
 
-    public Business getForAdmin(UUID businessId, UUID actingUserId, Role actingRole) {
+    public Business getForAdmin(UUID businessId, UUID actingUserId, boolean canPublish) {
         Business business = getOrThrow(businessId);
-        if (!isEditorOrAbove(actingRole) && !business.isOwnedBy(actingUserId)) {
+        if (!canPublish && !business.isOwnedBy(actingUserId)) {
             throw new BusinessAccessDeniedException();
         }
         return business;
     }
 
-    public List<Business> listForAdmin(UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
+    public List<Business> listForAdmin(UUID actingUserId, boolean canPublish) {
+        if (canPublish) {
             return businessRepository.findAll();
         }
         return businessRepository.findByAuthorIdOrderByCreatedAtDesc(actingUserId);
@@ -261,8 +261,8 @@ public class BusinessService {
         return result;
     }
 
-    private void requireCanEdit(Business business, UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
+    private void requireCanEdit(Business business, UUID actingUserId, boolean canPublish) {
+        if (canPublish) {
             if (!business.isEditable()) {
                 throw new InvalidBusinessTransitionException(business.getStatus(), "editar");
             }
@@ -276,15 +276,7 @@ public class BusinessService {
         }
     }
 
-    private void requireEditorOrAbove(Role role) {
-        if (!isEditorOrAbove(role)) {
-            throw new BusinessAccessDeniedException();
-        }
-    }
 
-    private boolean isEditorOrAbove(Role role) {
-        return role == Role.EDITOR || role == Role.ADMIN || role == Role.SUPER_ADMIN;
-    }
 
     private Business getOrThrow(UUID id) {
         return businessRepository.findById(id).orElseThrow(() -> new BusinessNotFoundException(id));
@@ -303,5 +295,12 @@ public class BusinessService {
     private void audit(String action, Business business, UUID actingUserId) {
         auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "business", business.getId().toString(),
                 null);
+    }
+
+    /** Aprobar, rechazar, publicar, programar y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
+    private static void requirePublish(boolean canPublish) {
+        if (!canPublish) {
+            throw new PublishPermissionRequiredException();
+        }
     }
 }

@@ -1,3 +1,4 @@
+import { canPublish } from "./permissions";
 import type { Business, BusinessStatus } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
 
@@ -16,11 +17,10 @@ export interface BusinessPermissions {
   canArchive: boolean;
 }
 
-const EDITOR_OR_ABOVE: Array<AdminUser["role"]> = ["SUPER_ADMIN", "ADMIN", "EDITOR"];
 const EDITABLE_STATUSES: BusinessStatus[] = ["DRAFT", "IN_REVIEW", "APPROVED", "REJECTED"];
 
 export function computeBusinessPermissions(business: Business, user: AdminUser): BusinessPermissions {
-  const isEditorOrAbove = EDITOR_OR_ABOVE.includes(user.role);
+  const isEditorOrAbove = canPublish(user, "DIRECTORY");
   const isOwner = business.authorId === user.id;
 
   const canEdit = isEditorOrAbove

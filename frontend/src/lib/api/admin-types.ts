@@ -10,7 +10,16 @@ export interface ContentVideoInput {
   caption: string | null;
 }
 
-export type Role = "SUPER_ADMIN" | "ADMIN" | "EDITOR" | "AUTHOR" | "MODERATOR" | "COLLABORATOR" | "USER";
+/** Roles del panel (spec 2a): el dueño puede todo; el trabajador, lo que digan sus permisos. */
+export type Role = "OWNER" | "WORKER";
+
+/** Módulos que se asignan a un trabajador (espejo de Module.java). */
+export type Module = "ARTICLES" | "PLACES" | "EVENTS" | "GALLERIES" | "DIRECTORY" | "CATEGORIES" | "STATS" | "ADVERTISING";
+
+/** CREATE: lo propio a revisión · PUBLISH: publica lo de todos · ACCESS: módulos que no son de contenido. */
+export type AccessLevel = "CREATE" | "PUBLISH" | "ACCESS";
+
+export type ModulePermissions = Partial<Record<Module, AccessLevel>>;
 
 export interface TokenResponse {
   accessToken: string;
@@ -18,15 +27,40 @@ export interface TokenResponse {
   tokenType: string;
 }
 
+/** Lugar para elegir en Eventos y Directorio — PlaceOptionsController (acceso a Lugares, Eventos o Directorio). */
+export interface PlaceOption {
+  id: string;
+  name: string;
+}
+
+/** Trabajador del panel — WorkerAdminController.WorkerResponse. */
+export interface Worker {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  status: "ACTIVE" | "DISABLED";
+  mustChangePassword: boolean;
+  lastLoginAt: string | null;
+  permissions: ModulePermissions;
+}
+
+export interface CreateWorkerInput {
+  email: string;
+  firstName: string;
+  lastName: string;
+  permissions: ModulePermissions;
+}
+
+/** Sesión actual del panel — GET /api/v1/users/me (MeResponse.java). */
 export interface AdminUser {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
   role: Role;
-  status: string;
-  createdAt: string;
-  lastLoginAt: string | null;
+  mustChangePassword: boolean;
+  permissions: ModulePermissions;
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/articles — ver ArticleRequest.java. */
@@ -130,13 +164,6 @@ export interface CategoryUpdateInput extends CategoryCreateInput {
 }
 
 /** Cuerpo de POST /api/v1/admin/users — ver CreateUserRequest.java. */
-export interface CreateUserInput {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  role: Role;
-}
 
 /** Cuerpo de PUT /api/v1/admin/platform-settings — ver UpdatePlatformSettingsRequest.java. */
 export interface PlatformSettingsInput {

@@ -162,7 +162,7 @@ const NAV_ITEMS = [
   { id: "apariencia", label: "Apariencia" },
   { id: "seo", label: "SEO por defecto" },
   { id: "contacto", label: "Contacto" },
-  { id: "monetizacion", label: "Monetización" },
+  { id: "publicidad", label: "Publicidad y AdSense" },
 ] as const;
 
 /** Misma tarjeta que el resto del panel (article-form.tsx, place-form.tsx, ...): border-border/60 bg-surface, sin shadow. */
@@ -297,7 +297,7 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
           />
         </Section>
 
-        <Section id="monetizacion" title="Monetización">
+        <Section id="publicidad" title="Publicidad y AdSense">
           <label className="flex items-center gap-2 text-sm font-medium text-foreground">
             <input
               type="checkbox"
@@ -317,7 +317,7 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
           <TextField label="Analytics ID" name="analyticsId" value={state.analyticsId} onChange={(v) => set("analyticsId", v)} />
           <p className="text-xs text-muted">
             Las posiciones/slots de anuncio se gestionan en{" "}
-            <Link href="/admin/publicidad" className="underline underline-offset-2 hover:text-accent">
+            <Link href="/admin/espacios" className="underline underline-offset-2 hover:text-accent">
               Publicidad
             </Link>
             .

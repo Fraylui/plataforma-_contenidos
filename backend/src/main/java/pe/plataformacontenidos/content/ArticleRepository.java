@@ -44,10 +44,6 @@ public interface ArticleRepository extends JpaRepository<Article, UUID> {
         Long getCnt();
     }
 
-    /** Navegación anterior/siguiente en la vista de detalle — orden de lectura por publishedAt, igual que el listado público. */
-    Optional<Article> findFirstByStatusAndPublishedAtLessThanOrderByPublishedAtDesc(ArticleStatus status, Instant publishedAt);
-
-    Optional<Article> findFirstByStatusAndPublishedAtGreaterThanOrderByPublishedAtAsc(ArticleStatus status, Instant publishedAt);
 
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre artículos

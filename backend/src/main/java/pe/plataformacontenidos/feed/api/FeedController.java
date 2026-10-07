@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.engagement.ContentType;
 import pe.plataformacontenidos.feed.FeedService;
 import pe.plataformacontenidos.feed.api.dto.FeedItemResponse;
+import pe.plataformacontenidos.feed.api.dto.FeedTopicResponse;
 import pe.plataformacontenidos.feed.api.dto.FeedPageResponse;
 
 /**
@@ -42,9 +43,17 @@ public class FeedController {
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(required = false) List<UUID> exclude,
             @RequestParam(required = false) String seed,
-            @RequestParam(required = false) ContentType type) {
+            @RequestParam(required = false) ContentType type,
+            @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false) String sort) {
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
-        return feedService.getFeed(safeSize, exclude, seed, type);
+        return feedService.getFeed(safeSize, exclude, seed, type, categoryId, "upcoming".equals(sort));
+    }
+
+    /** Círculos de temas del feed — ver FeedService.getTopics. */
+    @GetMapping("/topics")
+    public List<FeedTopicResponse> getTopics() {
+        return feedService.getTopics();
     }
 
     /** "Lo más gustado" del home — ver FeedService.getTopLiked. */

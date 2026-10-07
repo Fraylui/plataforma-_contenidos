@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.content;
 
+import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -19,7 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.LegacyRole;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.ObjectMapper;
@@ -41,6 +42,9 @@ class ArticleWorkflowIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private WorkerPermissionRepository workerPermissions;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -48,8 +52,8 @@ class ArticleWorkflowIntegrationTest {
 
     @Test
     void fullContentLifecycleFromDraftToPublishedToArchived() throws Exception {
-        String editorToken = createUserAndLogin("wf-editor@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("wf-author@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("wf-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("wf-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Actualidad");
 
         String articleId = createDraftArticle(authorToken, categoryId, "Un título de prueba para el artículo");
@@ -101,8 +105,8 @@ class ArticleWorkflowIntegrationTest {
 
     @Test
     void rejectionFlowAllowsAuthorToReviseAndResubmit() throws Exception {
-        String editorToken = createUserAndLogin("wf-editor-2@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("wf-author-2@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("wf-editor-2@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("wf-author-2@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Historia");
 
         String articleId = createDraftArticle(authorToken, categoryId, "Artículo que será rechazado");
@@ -128,9 +132,9 @@ class ArticleWorkflowIntegrationTest {
 
     @Test
     void authorCannotEditSomeoneElsesArticle() throws Exception {
-        String editorToken = createUserAndLogin("wf-editor-3@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("wf-author-3@plataforma-contenidos.test", Role.AUTHOR);
-        String otherAuthorToken = createUserAndLogin("wf-author-4@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("wf-editor-3@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("wf-author-3@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String otherAuthorToken = createUserAndLogin("wf-author-4@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Gastronomía");
 
         String articleId = createDraftArticle(authorToken, categoryId, "Receta ancestral de la región");
@@ -144,8 +148,8 @@ class ArticleWorkflowIntegrationTest {
 
     @Test
     void scheduledArticleIsPublishedOnceDueDateArrivesAndJobRuns() throws Exception {
-        String editorToken = createUserAndLogin("wf-editor-5@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("wf-author-5@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("wf-editor-5@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("wf-author-5@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Eventos");
 
         String articleId = createDraftArticle(authorToken, categoryId, "Feria programada para el fin de semana");
@@ -177,8 +181,8 @@ class ArticleWorkflowIntegrationTest {
 
     @Test
     void articleStoresYoutubeVideoIdParsedFromUrlAndRejectsInvalidUrl() throws Exception {
-        String editorToken = createUserAndLogin("wf-editor-7@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("wf-author-7@plataforma-contenidos.test", Role.AUTHOR);
+        String editorToken = createUserAndLogin("wf-editor-7@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("wf-author-7@plataforma-contenidos.test", LegacyRole.AUTHOR);
         String categoryId = createCategory(editorToken, "Entretenimiento Test");
 
         mockMvc.perform(post("/api/v1/admin/articles")
@@ -209,7 +213,7 @@ class ArticleWorkflowIntegrationTest {
                 + "\"title\":\"" + title + "\","
                 + "\"excerpt\":\"Resumen breve\","
                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
-                + "\"articleType\":\"ARTICULO\","
+                + "\"articleType\":\"GENERAL\","
                 + "\"categoryId\":\"" + categoryId + "\","
                 + "\"videos\":[{\"url\":\"" + youtubeUrl + "\"}]"
                 + "}";
@@ -231,7 +235,7 @@ class ArticleWorkflowIntegrationTest {
                 + "\"title\":\"" + title + "\","
                 + "\"excerpt\":\"Resumen breve\","
                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
-                + "\"articleType\":\"ARTICULO\","
+                + "\"articleType\":\"GENERAL\","
                 + "\"categoryId\":\"" + categoryId + "\""
                 + "}";
     }
@@ -253,10 +257,10 @@ class ArticleWorkflowIntegrationTest {
         return json.get(field).asText();
     }
 
-    private String createUserAndLogin(String email, Role role) throws Exception {
+    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
         String password = "SomeStrongPassword123!";
-        userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
-
+        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
+        role.grant(workerPermissions, created.getId());
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))

@@ -1,5 +1,9 @@
 package pe.plataformacontenidos.content.api;
 
+import pe.plataformacontenidos.identity.permission.PermissionService;
+import pe.plataformacontenidos.identity.permission.AccessLevel;
+import pe.plataformacontenidos.identity.permission.Module;
+import pe.plataformacontenidos.identity.permission.RequiresModule;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -26,24 +30,27 @@ import pe.plataformacontenidos.identity.security.UserPrincipal;
  * no aquí — este controller solo traduce HTTP ↔ dominio.
  */
 @RestController
+@RequiresModule(value = Module.ARTICLES)
 @RequestMapping("/api/v1/admin/articles")
 public class ArticleAdminController {
 
     private final ArticleService articleService;
+    private final PermissionService permissionService;
 
-    public ArticleAdminController(ArticleService articleService) {
+    public ArticleAdminController(ArticleService articleService, PermissionService permissionService) {
+        this.permissionService = permissionService;
         this.articleService = articleService;
     }
 
     @GetMapping
     public List<ArticleResponse> list(@AuthenticationPrincipal UserPrincipal principal) {
-        return articleService.listForAdmin(principal.userId(), principal.role()).stream()
+        return articleService.listForAdmin(principal.userId(), canPublish(principal)).stream()
                 .map(ArticleResponse::from).toList();
     }
 
     @GetMapping("/{id}")
     public ArticleResponse get(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return ArticleResponse.from(articleService.getForAdmin(id, principal.userId(), principal.role()));
+        return ArticleResponse.from(articleService.getForAdmin(id, principal.userId(), canPublish(principal)));
     }
 
     @PostMapping
@@ -57,7 +64,7 @@ public class ArticleAdminController {
     public ArticleResponse update(@PathVariable UUID id, @Valid @RequestBody ArticleRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return ArticleResponse.from(
-                articleService.update(id, request.toInput(), principal.userId(), principal.role()));
+                articleService.update(id, request.toInput(), principal.userId(), canPublish(principal)));
     }
 
     @PostMapping("/{id}/submit")
@@ -67,30 +74,35 @@ public class ArticleAdminController {
 
     @PostMapping("/{id}/approve")
     public ArticleResponse approve(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return ArticleResponse.from(articleService.approve(id, principal.userId(), principal.role()));
+        return ArticleResponse.from(articleService.approve(id, principal.userId(), canPublish(principal)));
     }
 
     @PostMapping("/{id}/reject")
     public ArticleResponse reject(@PathVariable UUID id, @Valid @RequestBody RejectArticleRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return ArticleResponse.from(
-                articleService.reject(id, request.reason(), principal.userId(), principal.role()));
+                articleService.reject(id, request.reason(), principal.userId(), canPublish(principal)));
     }
 
     @PostMapping("/{id}/publish")
     public ArticleResponse publish(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return ArticleResponse.from(articleService.publish(id, principal.userId(), principal.role()));
+        return ArticleResponse.from(articleService.publish(id, principal.userId(), canPublish(principal)));
     }
 
     @PostMapping("/{id}/schedule")
     public ArticleResponse schedule(@PathVariable UUID id, @Valid @RequestBody ScheduleArticleRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return ArticleResponse.from(
-                articleService.schedule(id, request.scheduledAt(), principal.userId(), principal.role()));
+                articleService.schedule(id, request.scheduledAt(), principal.userId(), canPublish(principal)));
     }
 
     @PostMapping("/{id}/archive")
     public ArticleResponse archive(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return ArticleResponse.from(articleService.archive(id, principal.userId(), principal.role()));
+        return ArticleResponse.from(articleService.archive(id, principal.userId(), canPublish(principal)));
+    }
+
+    private boolean canPublish(UserPrincipal principal) {
+        var permissions = permissionService.forUser(principal.userId());
+        return permissions.canPublish(Module.ARTICLES);
     }
 }

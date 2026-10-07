@@ -3,17 +3,8 @@
 // Mantener sincronizados a mano por ahora; si esto crece, considerar
 // generarlos desde una spec OpenAPI.
 
-export type ArticleType =
-  | "ARTICULO"
-  | "NOTICIA"
-  | "REPORTAJE"
-  | "CRONICA"
-  | "GUIA"
-  | "ENTREVISTA"
-  | "HISTORIA"
-  | "RANKING"
-  | "TUTORIAL"
-  | "OPINION";
+/** Formato de publicación (plataforma de contenido, no géneros periodísticos — ver V48 en el backend). */
+export type ArticleType = "GENERAL" | "GUIA" | "LISTA" | "TUTORIAL" | "HISTORIA" | "ENTREVISTA";
 
 export type ArticleStatus = "DRAFT" | "IN_REVIEW" | "APPROVED" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED" | "REJECTED";
 
@@ -44,11 +35,6 @@ export interface ArticleSummary {
   hasVideo: boolean;
   publishedAt: string | null;
   likeCount: number;
-}
-
-export interface ArticleNeighbors {
-  previous: ArticleSummary | null;
-  next: ArticleSummary | null;
 }
 
 export interface Article {
@@ -359,7 +345,13 @@ export interface ResolvedRotation {
 }
 
 /** Ver FeedItemResponse.java — feed unificado del home y "relacionados" de la vista de detalle. */
-export type FeedItemType = "ARTICLE" | "PLACE" | "EVENT";
+export type FeedItemType = "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS";
+
+/** Una imagen del carrusel de un ítem del feed: subida (`imageId`) o por enlace externo, nunca ambas. */
+export interface FeedImage {
+  imageId: string | null;
+  externalUrl: string | null;
+}
 
 export interface FeedItem {
   type: FeedItemType;
@@ -374,6 +366,26 @@ export interface FeedItem {
   hasVideo: boolean;
   publishedAt: string | null;
   likeCount: number;
+  /** Carrusel (hasta 10). */
+  images: FeedImage[];
+  /** Solo eventos. */
+  startsAt: string | null;
+  /** Lugares y directorio. */
+  latitude: number | null;
+  longitude: number | null;
+  /** Solo directorio. */
+  phone: string | null;
+  website: string | null;
+}
+
+/** Ver FeedTopicResponse.java — un círculo de la fila de temas. */
+export interface FeedTopic {
+  categoryId: string;
+  name: string;
+  slug: string;
+  coverImageId: string | null;
+  coverImageUrl: string | null;
+  hasNew: boolean;
 }
 
 /** Ver FeedPageResponse.java. `hasMore` indica si queda contenido sin mostrar dado lo ya excluido. */

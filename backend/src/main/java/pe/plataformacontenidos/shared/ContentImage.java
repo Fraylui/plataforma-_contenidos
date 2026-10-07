@@ -61,8 +61,4 @@ public class ContentImage {
     public String getCaption() {
         return caption;
     }
-
-    public boolean isUploaded() {
-        return imageId != null;
-    }
 }

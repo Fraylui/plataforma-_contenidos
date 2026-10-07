@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computeArticlePermissions } from "./article-permissions";
 import type { Article, ArticleStatus } from "@/lib/api/types";
-import type { AdminUser, Role } from "@/lib/api/admin-types";
+import type { AdminUser } from "@/lib/api/admin-types";
 
 function makeArticle(overrides: Partial<Article> = {}): Article {
   return {
@@ -10,7 +10,7 @@ function makeArticle(overrides: Partial<Article> = {}): Article {
     title: "Artículo de prueba",
     excerpt: null,
     body: "Cuerpo",
-    articleType: "ARTICULO",
+    articleType: "GENERAL",
     status: "DRAFT",
     authorId: "author-1",
     categoryId: "cat-1",
@@ -37,10 +37,9 @@ function makeUser(overrides: Partial<AdminUser> = {}): AdminUser {
     email: "user@test.local",
     firstName: "Usuario",
     lastName: "de prueba",
-    role: "AUTHOR",
-    status: "ACTIVE",
-    createdAt: "2026-01-01T00:00:00Z",
-    lastLoginAt: null,
+    role: "WORKER",
+    mustChangePassword: false,
+    permissions: { ARTICLES: "CREATE" },
     ...overrides,
   };
 }
@@ -84,51 +83,54 @@ describe("computeArticlePermissions", () => {
     });
   });
 
-  describe.each<Role>(["EDITOR", "ADMIN", "SUPER_ADMIN"])("%s (EDITOR o superior)", (role) => {
+  describe.each<Partial<AdminUser>>([
+    { role: "WORKER", permissions: { ARTICLES: "PUBLISH" } },
+    { role: "OWNER", permissions: {} },
+  ])("con permiso de publicar ($role)", (publisher) => {
     it("puede editar en cualquier estado editable, sea o no el dueño", () => {
       const article = makeArticle({ status: "IN_REVIEW", authorId: "otro-author" });
-      const permissions = computeArticlePermissions(article, makeUser({ role, id: "reviewer-1" }));
+      const permissions = computeArticlePermissions(article, makeUser({ ...publisher, id: "reviewer-1" }));
       expect(permissions.canEdit).toBe(true);
     });
 
     it("no puede editar un artículo PUBLISHED ni ARCHIVED", () => {
       for (const status of ["PUBLISHED", "ARCHIVED"] as const) {
-        const permissions = computeArticlePermissions(makeArticle({ status }), makeUser({ role }));
+        const permissions = computeArticlePermissions(makeArticle({ status }), makeUser(publisher));
         expect(permissions.canEdit).toBe(false);
       }
     });
 
     it("aprueba/rechaza solo en IN_REVIEW", () => {
-      const inReview = computeArticlePermissions(makeArticle({ status: "IN_REVIEW" }), makeUser({ role }));
+      const inReview = computeArticlePermissions(makeArticle({ status: "IN_REVIEW" }), makeUser(publisher));
       expect(inReview.canApprove).toBe(true);
       expect(inReview.canReject).toBe(true);
 
-      const draft = computeArticlePermissions(makeArticle({ status: "DRAFT" }), makeUser({ role }));
+      const draft = computeArticlePermissions(makeArticle({ status: "DRAFT" }), makeUser(publisher));
       expect(draft.canApprove).toBe(false);
       expect(draft.canReject).toBe(false);
     });
 
     it("publica/programa solo en APPROVED", () => {
-      const approved = computeArticlePermissions(makeArticle({ status: "APPROVED" }), makeUser({ role }));
+      const approved = computeArticlePermissions(makeArticle({ status: "APPROVED" }), makeUser(publisher));
       expect(approved.canPublish).toBe(true);
       expect(approved.canSchedule).toBe(true);
 
-      const inReview = computeArticlePermissions(makeArticle({ status: "IN_REVIEW" }), makeUser({ role }));
+      const inReview = computeArticlePermissions(makeArticle({ status: "IN_REVIEW" }), makeUser(publisher));
       expect(inReview.canPublish).toBe(false);
       expect(inReview.canSchedule).toBe(false);
     });
 
     it("archiva solo en PUBLISHED", () => {
-      const published = computeArticlePermissions(makeArticle({ status: "PUBLISHED" }), makeUser({ role }));
+      const published = computeArticlePermissions(makeArticle({ status: "PUBLISHED" }), makeUser(publisher));
       expect(published.canArchive).toBe(true);
 
-      const approved = computeArticlePermissions(makeArticle({ status: "APPROVED" }), makeUser({ role }));
+      const approved = computeArticlePermissions(makeArticle({ status: "APPROVED" }), makeUser(publisher));
       expect(approved.canArchive).toBe(false);
     });
 
     it("no puede enviar a revisión (submit es solo del dueño, incluso para EDITOR+)", () => {
       const article = makeArticle({ status: "DRAFT", authorId: "otro-author" });
-      const permissions = computeArticlePermissions(article, makeUser({ role, id: "reviewer-1" }));
+      const permissions = computeArticlePermissions(article, makeUser({ ...publisher, id: "reviewer-1" }));
       expect(permissions.canSubmit).toBe(false);
     });
   });

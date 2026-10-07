@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { axe } from "vitest-axe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LikeShareBar } from "./like-share-bar";
-import { CardActions } from "./card-actions";
 
 const props = { contentType: "articles" as const, slug: "mi-articulo", initialLikeCount: 7, title: "Mi publicación" };
 
@@ -21,6 +20,16 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
     expect(screen.getByRole("button", { name: /7\s*Me gusta/ })).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByRole("button", { name: "Compartir" })).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("barra de post (Instagram): sin bordes ni cajas y con las acciones del tipo al lado", () => {
+    const { container } = render(
+      <LikeShareBar {...props}>
+        <a href="https://maps.example">Cómo llegar</a>
+      </LikeShareBar>,
+    );
+    expect(container.querySelector("[class*='border']")).toBeNull();
+    expect(screen.getByRole("link", { name: "Cómo llegar" })).toBeInTheDocument();
   });
 
   it("Me gusta llama al endpoint con el visitorId, actualiza el conteo y recuerda el estado", async () => {
@@ -76,24 +85,5 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
 
     expect(writeText).toHaveBeenCalledWith(window.location.href);
     expect(await screen.findByText("Enlace copiado")).toBeInTheDocument();
-  });
-});
-
-describe("CardActions (versión compacta: sí usa Web Share API cuando existe)", () => {
-  const cardProps = { ...props, path: "/publicaciones/mi-articulo" };
-
-  it("con Web Share API usa el diálogo nativo", async () => {
-    const user = userEvent.setup();
-    const share = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, "share", { value: share, configurable: true });
-    render(<CardActions {...cardProps} />);
-
-    await user.click(screen.getByRole("button", { name: "Compartir" }));
-
-    expect(share).toHaveBeenCalledWith({
-      title: "Mi publicación",
-      url: new URL("/publicaciones/mi-articulo", window.location.origin).toString(),
-    });
-    Object.defineProperty(navigator, "share", { value: undefined, configurable: true });
   });
 });

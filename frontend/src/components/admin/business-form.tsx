@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import { useState } from "react";
-import type { AdminImage, BusinessInput, ContentVideoInput } from "@/lib/api/admin-types";
-import type { Business, BusinessType, Category, ContentImage, Place } from "@/lib/api/types";
+import type { AdminImage, BusinessInput, ContentVideoInput, PlaceOption } from "@/lib/api/admin-types";
+import type { Business, BusinessType, Category, ContentImage } from "@/lib/api/types";
 import type { BusinessPermissions } from "@/lib/admin/business-permissions";
 import { articleStatusLabel, businessTypeLabel } from "@/lib/content-labels";
 import { AdminButton, ArchiveButton, CollapsibleSection, Combobox, FormError, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
@@ -33,7 +33,7 @@ const BUSINESS_TYPES: BusinessType[] = ["RESTAURANT", "HOTEL", "SERVICE", "SHOP"
 
 interface BusinessFormProps {
   categories: Category[];
-  places: Place[];
+  places: PlaceOption[];
   allImages: AdminImage[];
   mode: "create" | "edit";
   business?: Business;
@@ -368,7 +368,7 @@ export function BusinessForm({
               />
             </FormField>
 
-            <FormField label="Categoría" name="categoryId">
+            <FormField label="Tema" name="categoryId">
               <Combobox
                 options={categories.map((category) => ({ id: category.id, label: category.name }))}
                 value={categoryId}
@@ -378,7 +378,7 @@ export function BusinessForm({
             </FormField>
           </SectionCard>
 
-          <SectionCard title="Medios">
+          <SectionCard title="Fotos y videos">
             <FormField label="Fotografías (opcional)" name="images">
               <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
             </FormField>

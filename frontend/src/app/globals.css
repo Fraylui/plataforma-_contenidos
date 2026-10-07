@@ -29,6 +29,20 @@
  * criterio aplicado aquí. --danger se mantiene en rojo aparte para no
  * perder la señal de "esto es peligroso".
  */
+/*
+ * Alto de la barra de pestañas inferior (BottomTabBar, < 1024 px), incluida
+ * la zona segura del iPhone. Lo usan el `main`, el anuncio fijo y el aviso
+ * de cookies para apilarse encima en vez de quedar tapados.
+ */
+:root {
+  --bottom-bar-h: calc(4rem + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  :root {
+    --bottom-bar-h: 0px;
+  }
+}
+
 :root {
   /* slate-50/blanco puro: distinción sutil (no cero, no exagerada) entre
      el lienzo y las tarjetas, sin recurrir a tintar el neutro con verde. */
@@ -66,14 +80,16 @@
   --accent-soft: color-mix(in srgb, var(--accent) 15%, var(--surface));
   --danger: #991b1b;
   --danger-foreground: #ffffff;
-  /* Lienzo del sitio público: tinte verde muy claro en vez de blanco plano
-     (a pedido: "que no haya mucho blanco, tampoco oscuro"). El blanco puro
-     queda solo dentro de las tarjetas (--surface), así resaltan. Esto es
-     intencional y distinto de --background: el lienzo público sí lleva
-     personalidad de marca, los neutros base del panel no. */
-  --canvas: #e9f4ec;
-  --canvas-strong: #dcebe0;
-  --canvas-border: #cfe3d5;
+  /* Lienzo del sitio público: gris neutro de Facebook (#f0f2f5) en vez de
+     blanco plano ("que no haya mucho blanco") y en vez del tinte verde de
+     2026-09, que teñía todo y se veía apagado ("en modo claro se ve feo",
+     2026-10-06). El blanco puro queda en tarjetas y menús (--surface) y el
+     verde solo en marca y acciones. Contraste WCAG: foreground 15.9,
+     muted 6.76, accent 5.22 sobre el lienzo; 4.69 del accent sobre
+     --canvas-strong. */
+  --canvas: #f0f2f5;
+  --canvas-strong: #e4e6eb;
+  --canvas-border: #dadde1;
 }
 
 /*
@@ -193,6 +209,16 @@ body {
   background-color: var(--muted);
 }
 
+/* Filas deslizables (historias de temas, chips, menú lateral): sin barra
+   visible, como Instagram/Facebook. Va SIN capa y después de la regla
+   global `*` de arriba: una clase de Tailwind (en capa) nunca le ganaría. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Foco visible siempre, también con mouse (accesibilidad — no solo :focus-visible por si algún navegador viejo no lo soporta bien) */
 :focus-visible {
   outline: 2px solid var(--accent);
@@ -260,4 +286,14 @@ body {
   --tw-prose-pre-bg: var(--canvas-strong, var(--surface));
   --tw-prose-th-borders: var(--border);
   --tw-prose-td-borders: var(--border);
+}
+
+/* Corazón del doble toque (PostMedia): aparece, crece y se desvanece. Solo
+   con motion-safe — si el sistema pide menos movimiento no se anima. */
+@keyframes heart-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+  25% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  45% { transform: translate(-50%, -50%) scale(0.95); }
+  80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
 }

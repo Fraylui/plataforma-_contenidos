@@ -1,6 +1,7 @@
 package pe.plataformacontenidos.taxonomy;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -86,6 +87,25 @@ public class CategoryService {
         return lineage;
     }
 
+    /** La categoría y todas sus subcategorías (a cualquier profundidad): filtrar por un tema incluye sus subtemas. */
+    public Set<UUID> descendants(UUID id) {
+        Map<UUID, UUID> parentOf = new HashMap<>();
+        for (Category category : categoryRepository.findAll()) {
+            parentOf.put(category.getId(), category.getParentId());
+        }
+        Set<UUID> result = new LinkedHashSet<>();
+        for (UUID candidate : parentOf.keySet()) {
+            Set<UUID> seen = new HashSet<>();
+            for (UUID current = candidate; current != null && seen.add(current); current = parentOf.get(current)) {
+                if (current.equals(id)) {
+                    result.add(candidate);
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
     public boolean existsActive(UUID id) {
         return categoryRepository.findById(id).map(Category::isActive).orElse(false);
     }
@@ -95,13 +115,13 @@ public class CategoryService {
             return;
         }
         if (parentId.equals(selfId)) {
-            throw new InvalidCategoryHierarchyException("Una categoría no puede ser su propio padre");
+            throw new InvalidCategoryHierarchyException("Un tema no puede ser su propio tema principal");
         }
         if (!categoryRepository.existsById(parentId)) {
             throw new CategoryNotFoundException(parentId);
         }
         if (selfId != null && createsCycle(parentId, selfId)) {
-            throw new InvalidCategoryHierarchyException("La jerarquía de categorías no puede formar un ciclo");
+            throw new InvalidCategoryHierarchyException("Los temas no pueden formar un ciclo (un tema dentro de sí mismo)");
         }
     }
 

@@ -1,3 +1,4 @@
+import { canPublish } from "./permissions";
 import type { Gallery, GalleryStatus } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
 
@@ -16,11 +17,10 @@ export interface GalleryPermissions {
   canArchive: boolean;
 }
 
-const EDITOR_OR_ABOVE: Array<AdminUser["role"]> = ["SUPER_ADMIN", "ADMIN", "EDITOR"];
 const EDITABLE_STATUSES: GalleryStatus[] = ["DRAFT", "IN_REVIEW", "APPROVED", "REJECTED"];
 
 export function computeGalleryPermissions(gallery: Gallery, user: AdminUser): GalleryPermissions {
-  const isEditorOrAbove = EDITOR_OR_ABOVE.includes(user.role);
+  const isEditorOrAbove = canPublish(user, "GALLERIES");
   const isOwner = gallery.authorId === user.id;
 
   const canEdit = isEditorOrAbove

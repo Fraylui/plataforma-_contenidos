@@ -1,5 +1,8 @@
 package pe.plataformacontenidos.advertising.api;
 
+import pe.plataformacontenidos.identity.permission.AccessLevel;
+import pe.plataformacontenidos.identity.permission.Module;
+import pe.plataformacontenidos.identity.permission.RequiresModule;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -39,16 +42,19 @@ public class AdPlacementController {
         return adPlacementService.listEnabled().stream().map(AdPlacementResponse::from).toList();
     }
 
+    @RequiresModule(value = Module.ADVERTISING, level = AccessLevel.ACCESS)
     @GetMapping("/admin/ad-placements")
     public List<AdPlacementResponse> listAll() {
         return adPlacementService.listAll().stream().map(AdPlacementResponse::from).toList();
     }
 
+    @RequiresModule(value = Module.ADVERTISING, level = AccessLevel.ACCESS)
     @GetMapping("/admin/ad-placements/{id}")
     public AdPlacementResponse getById(@PathVariable UUID id) {
         return AdPlacementResponse.from(adPlacementService.getOrThrow(id));
     }
 
+    @RequiresModule(value = Module.ADVERTISING, level = AccessLevel.ACCESS)
     @PostMapping("/admin/ad-placements")
     @ResponseStatus(HttpStatus.CREATED)
     public AdPlacementResponse create(@Valid @RequestBody CreateAdPlacementRequest request) {
@@ -57,6 +63,7 @@ public class AdPlacementController {
         return AdPlacementResponse.from(placement);
     }
 
+    @RequiresModule(value = Module.ADVERTISING, level = AccessLevel.ACCESS)
     @PutMapping("/admin/ad-placements/{id}")
     public AdPlacementResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateAdPlacementRequest request) {
         var placement = adPlacementService.update(id, request.label(), request.adsenseSlotId(), request.width(),
@@ -64,16 +71,19 @@ public class AdPlacementController {
         return AdPlacementResponse.from(placement);
     }
 
+    @RequiresModule(value = Module.ADVERTISING, level = AccessLevel.ACCESS)
     @PostMapping("/admin/ad-placements/{id}/activate")
     public void activate(@PathVariable UUID id) {
         adPlacementService.setEnabled(id, true);
     }
 
+    @RequiresModule(value = Module.ADVERTISING, level = AccessLevel.ACCESS)
     @PostMapping("/admin/ad-placements/{id}/deactivate")
     public void deactivate(@PathVariable UUID id) {
         adPlacementService.setEnabled(id, false);
     }
 
+    @RequiresModule(value = Module.ADVERTISING, level = AccessLevel.ACCESS)
     @DeleteMapping("/admin/ad-placements/{id}")
     public void delete(@PathVariable UUID id) {
         adPlacementService.delete(id);

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { listActiveCategoriesFresh, listAdminImages, listAdminPlaces } from "@/lib/api/admin-client";
+import { listActiveCategoriesFresh, listAdminImages, listPlaceOptions } from "@/lib/api/admin-client";
 import { EventForm } from "@/components/admin/event-form";
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export default async function NewEventPage() {
   const [categories, allImages, places] = await Promise.all([
     listActiveCategoriesFresh(),
     listAdminImages(accessToken),
-    listAdminPlaces(accessToken),
+    listPlaceOptions(accessToken),
   ]);
 
   return (

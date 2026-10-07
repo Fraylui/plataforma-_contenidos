@@ -7,7 +7,7 @@ import {
   createAdPlacementAction,
   updateAdPlacementAction,
   type ActionResult,
-} from "@/app/admin/(protected)/publicidad/actions";
+} from "@/app/admin/(protected)/espacios/actions";
 import { AdminButton, FormError, FormField, formInputClass } from "@/components/admin/ui";
 import { IAB_FORMATS, formatSize } from "@/lib/ads/ad-formats";
 

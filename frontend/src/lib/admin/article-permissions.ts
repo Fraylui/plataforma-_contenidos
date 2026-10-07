@@ -1,3 +1,4 @@
+import { canPublish } from "./permissions";
 import type { Article, ArticleStatus } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
 
@@ -17,11 +18,10 @@ export interface ArticlePermissions {
   canArchive: boolean;
 }
 
-const EDITOR_OR_ABOVE: Array<AdminUser["role"]> = ["SUPER_ADMIN", "ADMIN", "EDITOR"];
 const EDITABLE_STATUSES: ArticleStatus[] = ["DRAFT", "IN_REVIEW", "APPROVED", "REJECTED"];
 
 export function computeArticlePermissions(article: Article, user: AdminUser): ArticlePermissions {
-  const isEditorOrAbove = EDITOR_OR_ABOVE.includes(user.role);
+  const isEditorOrAbove = canPublish(user, "ARTICLES");
   const isOwner = article.authorId === user.id;
 
   const canEdit = isEditorOrAbove

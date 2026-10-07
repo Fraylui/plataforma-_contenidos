@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.advertising;
 
+import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -24,7 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.LegacyRole;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
@@ -50,6 +51,9 @@ class CampaignWorkflowIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private WorkerPermissionRepository workerPermissions;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -395,8 +399,8 @@ class CampaignWorkflowIntegrationTest {
 
     private String createUserAndLogin(String email) throws Exception {
         String password = "SomeStrongPassword123!";
-        userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "Admin", Role.ADMIN));
-
+        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "Admin", LegacyRole.ADMIN.toRole()));
+        LegacyRole.ADMIN.grant(workerPermissions, created.getId());
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))
