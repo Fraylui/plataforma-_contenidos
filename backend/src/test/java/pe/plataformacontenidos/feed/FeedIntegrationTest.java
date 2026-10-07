@@ -111,6 +111,40 @@ class FeedIntegrationTest {
         assertThat(queries).as("consultas de una página del feed").isLessThan(30);
     }
 
+    /**
+     * Simulación de carga (2026-10-07): sin N+1, el feed mixto seguía costando
+     * ~54 ms porque reconstruía en cada petición el mismo conjunto de
+     * candidatos para todos los visitantes. Mientras el contenido no cambia,
+     * se reutiliza: solo se consulta la versión del contenido.
+     */
+    @Test
+    void feedReusesCandidatesWhileContentUnchanged() throws Exception {
+        mockMvc.perform(get("/api/v1/feed").param("size", "12").param("seed", "a")).andExpect(status().isOk());
+
+        Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
+        statistics.setStatisticsEnabled(true);
+        statistics.clear();
+        mockMvc.perform(get("/api/v1/feed").param("size", "12").param("seed", "b")).andExpect(status().isOk());
+        long queries = statistics.getPrepareStatementCount();
+        statistics.setStatisticsEnabled(false);
+
+        assertThat(queries).as("consultas con candidatos reutilizados").isLessThanOrEqualTo(2);
+    }
+
+    @Test
+    void feedShowsContentPublishedAfterCandidatesWereCached() throws Exception {
+        String editorToken = createUserAndLogin("feed-cache-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
+        String authorToken = createUserAndLogin("feed-cache-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String categoryId = createCategory(editorToken, "Feed Cache");
+        mockMvc.perform(get("/api/v1/feed").param("size", "100").param("type", "ARTICLE")).andExpect(status().isOk());
+
+        String articleId = publishArticle(authorToken, editorToken, categoryId, "Feed: recién publicada " + UUID.randomUUID());
+
+        mockMvc.perform(get("/api/v1/feed").param("size", "100").param("type", "ARTICLE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].id", hasItem(articleId)));
+    }
+
     @Test
     void feedExcludesIdsAlreadySeenByClient() throws Exception {
         String editorToken = createUserAndLogin("feed-exclude-editor@plataforma-contenidos.test", LegacyRole.EDITOR);

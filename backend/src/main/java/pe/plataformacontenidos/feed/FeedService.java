@@ -68,10 +68,11 @@ public class FeedService {
     private final BusinessService businessService;
     private final CategoryService categoryService;
     private final ContentLikeService contentLikeService;
+    private final FeedCandidateCache candidateCache;
 
     public FeedService(ArticleService articleService, PlaceService placeService, EventService eventService,
             GalleryService galleryService, BusinessService businessService, CategoryService categoryService,
-            ContentLikeService contentLikeService) {
+            ContentLikeService contentLikeService, FeedCandidateCache candidateCache) {
         this.articleService = articleService;
         this.placeService = placeService;
         this.eventService = eventService;
@@ -79,6 +80,7 @@ public class FeedService {
         this.businessService = businessService;
         this.categoryService = categoryService;
         this.contentLikeService = contentLikeService;
+        this.candidateCache = candidateCache;
     }
 
     /** Tipos que forman parte del feed (las pestañas del home solo pueden pedir uno de estos). */
@@ -101,32 +103,9 @@ public class FeedService {
             throw new InvalidFeedTypeException(type);
         }
         Set<UUID> excluded = boundedExcludeSet(excludeIds);
-        Pageable pageable = PageRequest.of(0, CANDIDATE_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
-
-        List<Article> articles = includes(type, ContentType.ARTICLE)
-                ? articleService.listPublished(null, pageable).getContent().stream()
-                        .filter(a -> !excluded.contains(a.getId())).toList()
-                : List.of();
-        List<Place> places = includes(type, ContentType.PLACE)
-                ? placeService.listPublished(null, pageable).getContent().stream()
-                        .filter(p -> !excluded.contains(p.getId())).toList()
-                : List.of();
-        // Solo próximos: un feed de descubrimiento no debe recomendar eventos que ya pasaron.
-        List<Event> events = includes(type, ContentType.EVENT)
-                ? eventService.listPublished(null, true, pageable).getContent().stream()
-                        .filter(e -> !excluded.contains(e.getId())).toList()
-                : List.of();
-
-        List<Gallery> galleries = includes(type, ContentType.GALLERY)
-                ? galleryService.listPublished(null, pageable).getContent().stream()
-                        .filter(g -> !excluded.contains(g.getId())).toList()
-                : List.of();
-        List<Business> businesses = includes(type, ContentType.BUSINESS)
-                ? businessService.listPublished(null, null, pageable).getContent().stream()
-                        .filter(b -> !excluded.contains(b.getId())).toList()
-                : List.of();
-
-        List<FeedItemResponse> pool = buildPool(articles, places, events, galleries, businesses);
+        List<FeedItemResponse> pool = candidateCache.candidates(type, () -> buildCandidates(type)).stream()
+                .filter(item -> !excluded.contains(item.id()))
+                .toList();
         if (categoryId != null) {
             Set<UUID> topic = categoryService.descendants(categoryId);
             pool = pool.stream().filter(item -> topic.contains(item.categoryId())).toList();
@@ -139,6 +118,28 @@ public class FeedService {
         List<FeedItemResponse> page = ordered.stream().limit(size).toList();
         boolean hasMore = ordered.size() > page.size();
         return new FeedPageResponse(page, hasMore);
+    }
+
+    /** Candidatos de un tipo (o de todos) sin filtrar: los mismos para cualquier visitante (ver FeedCandidateCache). */
+    private List<FeedItemResponse> buildCandidates(ContentType type) {
+        Pageable pageable = PageRequest.of(0, CANDIDATE_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
+        List<Article> articles = includes(type, ContentType.ARTICLE)
+                ? articleService.listPublished(null, pageable).getContent()
+                : List.of();
+        List<Place> places = includes(type, ContentType.PLACE)
+                ? placeService.listPublished(null, pageable).getContent()
+                : List.of();
+        // Solo próximos: un feed de descubrimiento no debe recomendar eventos que ya pasaron.
+        List<Event> events = includes(type, ContentType.EVENT)
+                ? eventService.listPublished(null, true, pageable).getContent()
+                : List.of();
+        List<Gallery> galleries = includes(type, ContentType.GALLERY)
+                ? galleryService.listPublished(null, pageable).getContent()
+                : List.of();
+        List<Business> businesses = includes(type, ContentType.BUSINESS)
+                ? businessService.listPublished(null, null, pageable).getContent()
+                : List.of();
+        return buildPool(articles, places, events, galleries, businesses);
     }
 
     private static boolean includes(ContentType requested, ContentType candidate) {
