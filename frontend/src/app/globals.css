@@ -90,6 +90,25 @@
   --canvas: #f0f2f5;
   --canvas-strong: #e4e6eb;
   --canvas-border: #dadde1;
+
+  /* Sistema de diseño (Fase 1, 2026-10-07) — campos, foco, estados y
+     profundidad. Campo = un tono bajo la tarjeta y borde translúcido, sin
+     línea dura; foco = anillo suave del verde de marca. Estados medidos
+     WCAG AA como texto sobre su propio fondo tintado (-soft). */
+  --field: #f1f5f9;
+  --field-hover: #e8edf4;
+  --field-border: rgb(15 23 42 / 0.08);
+  --ring: color-mix(in srgb, var(--accent-fill) 38%, transparent);
+  --success: #047857;
+  --warning: #92400e;
+  --info: #1d4ed8;
+  --success-soft: color-mix(in srgb, var(--success) 12%, var(--surface));
+  --warning-soft: color-mix(in srgb, #f59e0b 18%, var(--surface));
+  --info-soft: color-mix(in srgb, var(--info) 10%, var(--surface));
+  --danger-soft: color-mix(in srgb, var(--danger) 10%, var(--surface));
+  --elev-card: 0 1px 2px rgb(15 23 42 / 0.05), 0 1px 3px rgb(15 23 42 / 0.07);
+  --elev-pop: 0 10px 24px -6px rgb(15 23 42 / 0.16), 0 2px 6px -2px rgb(15 23 42 / 0.08);
+  --elev-overlay: 0 24px 48px -12px rgb(15 23 42 / 0.3);
 }
 
 /*
@@ -131,6 +150,20 @@
   --canvas: color-mix(in srgb, #0bda51 6%, #0f172a);
   --canvas-strong: color-mix(in srgb, #0bda51 8%, #1e293b);
   --canvas-border: color-mix(in srgb, #0bda51 10%, #334155);
+  --field: #0f172a;
+  --field-hover: #131d33;
+  --field-border: rgb(255 255 255 / 0.08);
+  --ring: color-mix(in srgb, var(--accent-fill) 40%, transparent);
+  --success: #34d399;
+  --warning: #fbbf24;
+  --info: #60a5fa;
+  --success-soft: color-mix(in srgb, var(--success) 16%, var(--surface));
+  --warning-soft: color-mix(in srgb, var(--warning) 16%, var(--surface));
+  --info-soft: color-mix(in srgb, var(--info) 16%, var(--surface));
+  --danger-soft: color-mix(in srgb, var(--danger) 18%, var(--surface));
+  --elev-card: 0 1px 2px rgb(0 0 0 / 0.35), inset 0 0 0 1px rgb(255 255 255 / 0.04);
+  --elev-pop: 0 12px 28px -6px rgb(0 0 0 / 0.55), inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  --elev-overlay: 0 24px 56px -12px rgb(0 0 0 / 0.7), inset 0 0 0 1px rgb(255 255 255 / 0.06);
 }
 
 /* "Auto": sin elección explícita, sigue el sistema operativo del visitante. */
@@ -152,6 +185,20 @@
     --canvas: color-mix(in srgb, #0bda51 6%, #0f172a);
     --canvas-strong: color-mix(in srgb, #0bda51 8%, #1e293b);
     --canvas-border: color-mix(in srgb, #0bda51 10%, #334155);
+    --field: #0f172a;
+    --field-hover: #131d33;
+    --field-border: rgb(255 255 255 / 0.08);
+    --ring: color-mix(in srgb, var(--accent-fill) 40%, transparent);
+    --success: #34d399;
+    --warning: #fbbf24;
+    --info: #60a5fa;
+    --success-soft: color-mix(in srgb, var(--success) 16%, var(--surface));
+    --warning-soft: color-mix(in srgb, var(--warning) 16%, var(--surface));
+    --info-soft: color-mix(in srgb, var(--info) 16%, var(--surface));
+    --danger-soft: color-mix(in srgb, var(--danger) 18%, var(--surface));
+    --elev-card: 0 1px 2px rgb(0 0 0 / 0.35), inset 0 0 0 1px rgb(255 255 255 / 0.04);
+    --elev-pop: 0 12px 28px -6px rgb(0 0 0 / 0.55), inset 0 0 0 1px rgb(255 255 255 / 0.06);
+    --elev-overlay: 0 24px 56px -12px rgb(0 0 0 / 0.7), inset 0 0 0 1px rgb(255 255 255 / 0.06);
   }
 }
 
@@ -170,6 +217,28 @@
   --color-canvas: var(--canvas);
   --color-canvas-strong: var(--canvas-strong);
   --color-canvas-border: var(--canvas-border);
+  --color-field: var(--field);
+  --color-field-hover: var(--field-hover);
+  --color-field-border: var(--field-border);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-danger-soft: var(--danger-soft);
+  --radius-control: 10px;
+  --radius-card: 16px;
+  --radius-modal: 20px;
+  --shadow-card: var(--elev-card);
+  --shadow-pop: var(--elev-pop);
+  --shadow-overlay: var(--elev-overlay);
+  --text-title: 1.875rem;
+  --text-title--line-height: 2.25rem;
+  --text-title--letter-spacing: -0.02em;
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.25rem;
 
   --font-sans: var(--font-sans);
 }
