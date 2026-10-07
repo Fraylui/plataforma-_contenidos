@@ -2153,6 +2153,9 @@ Hecho en 10 tareas (spec y plan en `docs/superpowers/`, local):
 - **Panel:** menú y botones por permisos; `/admin/trabajadores` con matriz de permisos (controles segmentados) y plantillas Creador, Publicador, Gestor de eventos, Gestor de directorio, Publicidad; `/admin/cuenta`; `/admin/usuarios` redirige.
 - **Antes de migrar en el VPS:** backup obligatorio (`scripts/backup.sh`); las sesiones abiertas antes de V50 piden volver a iniciar sesión.
 
+- **Cierre (Fase 0 de la hoja de ruta, 2026-10-07):** panel con commit (`34a9d46`), backend 297/297 tests, Docker reconstruido. Unido a `main` **en local, sin push** (`0dce210`), junto con `feat/sitio-red-social`: 2a nació de esa rama, así que no se pueden separar. El rediseño público sigue a medias (se termina en la Fase 10). El e2e de trabajadores requiere `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` con la clave actual del dueño (la de `BOOTSTRAP_ADMIN_PASSWORD` ya no vale).
+- **Decisiones del dueño para la hoja de ruta:** Inter se mantiene; validación con zod + react-hook-form; orden de fases según el plan (F1 → F2 → F3 → F4…). Pendientes: estados simplificados, guardado automático, renombrar Article → Publication.
+
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
 Ordenadas por prioridad.
