@@ -1,21 +1,5 @@
-import {
-  BarChart3,
-  Building2,
-  CalendarDays,
-  FileText,
-  FolderTree,
-  Home,
-  Image as ImageIcon,
-  Images,
-  MapPin,
-  Megaphone,
-  Settings,
-  ShieldCheck,
-  Store,
-  UserCircle,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
+import type { Icon } from "@phosphor-icons/react";
+import { ChartBar, Buildings, CalendarDots, Article, TreeStructure, House, Image as ImageIcon, Images, MapPin, Megaphone, GearSix, ShieldCheck, Storefront, UserCircle, Users } from "@phosphor-icons/react/dist/ssr";
 import type { AdminUser, Module } from "@/lib/api/admin-types";
 import { canAccess, isOwner } from "./permissions";
 
@@ -25,7 +9,7 @@ export interface AdminNavItem {
   href: string;
   label: string;
   group: AdminNavGroup;
-  icon: LucideIcon;
+  icon: Icon;
   /** Módulo que exige (ver @RequiresModule en el backend). Sin módulo ni ownerOnly → cualquier usuario del panel. */
   module?: Module;
   /** Solo el dueño (OwnerOnlyPaths en el backend). */
@@ -42,19 +26,19 @@ export const ADMIN_NAV_GROUP_LABELS: Record<AdminNavGroup, string | null> = {
 // Menú del panel con lenguaje de plataforma de contenido (2026-10-06): sin
 // términos de redacción ("Medios", "Monetización", "Administración").
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
-  { href: "/admin", label: "Inicio", group: "principal", icon: Home },
+  { href: "/admin", label: "Inicio", group: "principal", icon: House },
   {
     href: "/admin/estadisticas",
     label: "Estadísticas",
     group: "principal",
-    icon: BarChart3,
+    icon: ChartBar,
     module: "STATS",
   },
   {
     href: "/admin/publicaciones",
     label: "Publicaciones",
     group: "contenido",
-    icon: FileText,
+    icon: Article,
     module: "ARTICLES",
   },
   {
@@ -68,7 +52,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/eventos",
     label: "Eventos",
     group: "contenido",
-    icon: CalendarDays,
+    icon: CalendarDots,
     module: "EVENTS",
   },
   {
@@ -82,14 +66,14 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/directorio",
     label: "Directorio",
     group: "contenido",
-    icon: Store,
+    icon: Storefront,
     module: "DIRECTORY",
   },
   {
     href: "/admin/temas",
     label: "Temas",
     group: "contenido",
-    icon: FolderTree,
+    icon: TreeStructure,
     module: "CATEGORIES",
   },
   {
@@ -109,7 +93,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/configuracion",
     label: "Configuración",
     group: "equipo",
-    icon: Settings,
+    icon: GearSix,
     ownerOnly: true,
   },
   {
@@ -123,7 +107,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/anunciantes",
     label: "Anunciantes",
     group: "publicidad",
-    icon: Building2,
+    icon: Buildings,
     module: "ADVERTISING",
   },
   {

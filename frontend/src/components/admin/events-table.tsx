@@ -8,7 +8,7 @@ import type { Event } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
 import { computeEventPermissions } from "@/lib/admin/event-permissions";
 import { articleStatusLabel, articleStatusTone, formatEventDateTime } from "@/lib/content-labels";
-import { StatusPill, DataTable } from "@/components/admin/ui";
+import { DataTable } from "@/components/admin/ui";
 import { ContentRowActions } from "@/components/admin/content-row-actions";
 import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
 import {
@@ -18,6 +18,7 @@ import {
   rejectEventAction,
   submitEventAction,
 } from "@/app/admin/(protected)/eventos/actions";
+import { Badge, type BadgeTone } from "@/components/ui";
 
 export function EventsTable({ events, currentUser }: { events: Event[]; currentUser: AdminUser }) {
   const router = useRouter();
@@ -42,7 +43,7 @@ export function EventsTable({ events, currentUser }: { events: Event[]; currentU
       {
         accessorKey: "status",
         header: "Estado",
-        cell: ({ row }) => <StatusPill tone={articleStatusTone(row.original.status)} label={articleStatusLabel(row.original.status)} />,
+        cell: ({ row }) => <Badge tone={articleStatusTone(row.original.status)} dot>{articleStatusLabel(row.original.status)}</Badge>,
       },
       {
         id: "actions",

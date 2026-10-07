@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { AdminButton } from "@/components/admin/ui";
 import type { ActionResult } from "@/lib/admin/action-helpers";
+import { Button } from "@/components/ui";
 
 export interface BulkPermissionCheck<T> {
   canPublish: (item: T) => boolean;
@@ -71,22 +71,22 @@ export function ContentBulkActions<T extends { id: string }>({
       <span className="font-medium text-foreground">
         {selected.length} seleccionado{selected.length === 1 ? "" : "s"}
       </span>
-      <AdminButton
+      <Button
         type="button"
         variant="secondary"
         disabled={publishable.length === 0 || pending !== null}
         onClick={() => run("publish", publishable, actions.publish)}
       >
         {pending === "publish" ? "Publicando…" : `Publicar (${publishable.length})`}
-      </AdminButton>
-      <AdminButton
+      </Button>
+      <Button
         type="button"
         variant="secondary"
         disabled={archivable.length === 0 || pending !== null}
         onClick={() => run("archive", archivable, actions.archive)}
       >
         {pending === "archive" ? "Archivando…" : `Archivar (${archivable.length})`}
-      </AdminButton>
+      </Button>
     </div>
   );
 }

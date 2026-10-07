@@ -1,4 +1,4 @@
-import { Compass, GitBranch, LayoutGrid, TrendingUp, Users2 } from "lucide-react";
+import { Compass, GitBranch, SquaresFour, TrendUp, UsersThree } from "@phosphor-icons/react/dist/ssr";
 import type { PlatformStats } from "@/lib/api/admin-types";
 import type { ArticleStatus } from "@/lib/api/types";
 import { articleStatusLabel } from "@/lib/content-labels";
@@ -44,7 +44,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
       {/* Único gráfico con eje temporal real del panel — el resto es "estado actual". */}
       <section className={`mt-8 ${CARD_CLASS}`}>
         <h2 className={SECTION_TITLE_CLASS}>
-          <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
+          <TrendUp className="h-3.5 w-3.5" aria-hidden="true" />
           Publicaciones día a día · últimos 30 días
         </h2>
         <div className="mt-2">
@@ -85,7 +85,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
 
         <section className={`${CARD_CLASS} lg:col-span-2`}>
           <h2 className={SECTION_TITLE_CLASS}>
-            <LayoutGrid className="h-3.5 w-3.5" aria-hidden="true" />
+            <SquaresFour className="h-3.5 w-3.5" aria-hidden="true" />
             Distribución total
           </h2>
           <TotalDistributionDonut stats={stats} />
@@ -95,7 +95,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
       {/* Los otros 5 tipos de contenido — sin esto, Estadísticas parecía la de un blog de solo artículos. */}
       <section className={`mt-6 ${CARD_CLASS}`}>
         <h2 className={SECTION_TITLE_CLASS}>
-          <LayoutGrid className="h-3.5 w-3.5" aria-hidden="true" />
+          <SquaresFour className="h-3.5 w-3.5" aria-hidden="true" />
           Otros formatos
         </h2>
         <ContentTypesChart stats={stats} />
@@ -114,7 +114,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
 
         <section className={CARD_CLASS}>
           <h2 className={SECTION_TITLE_CLASS}>
-            <Users2 className="h-3.5 w-3.5" aria-hidden="true" />
+            <UsersThree className="h-3.5 w-3.5" aria-hidden="true" />
             Equipo
           </h2>
           <RoleChart usersByRole={stats.usersByRole} />

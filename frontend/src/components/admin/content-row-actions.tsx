@@ -2,28 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Archive, CheckCircle2, MoreHorizontal, Pencil, Send, Undo2, XCircle } from "lucide-react";
+import { Archive, CheckCircle, DotsThree, PencilSimple, PaperPlaneTilt, ArrowCounterClockwise, XCircle } from "@phosphor-icons/react";
 import type { ActionResult } from "@/lib/admin/action-helpers";
-import {
-  AdminButton,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/admin/ui";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogTitle, AlertDialogTrigger, Dialog, DialogContent, DialogDescription, DialogTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/admin/ui";
+import { Button } from "@/components/ui";
 
 export interface ContentPermissions {
   canSubmit: boolean;
@@ -79,7 +61,7 @@ export function ContentRowActions({
     <div className="flex items-center justify-end gap-1">
       {error && <span className="text-xs text-danger">{error}</span>}
       <Link href={editHref} className="rounded-md p-1.5 text-muted transition-colors hover:bg-accent-soft hover:text-accent" title="Editar">
-        <Pencil className="h-4 w-4" aria-hidden="true" />
+        <PencilSimple className="h-4 w-4" aria-hidden="true" />
         <span className="sr-only">Editar</span>
       </Link>
 
@@ -91,26 +73,26 @@ export function ContentRowActions({
               disabled={pending}
               className="rounded-md p-1.5 text-muted transition-colors hover:bg-accent-soft hover:text-accent disabled:opacity-40"
             >
-              <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+              <DotsThree className="h-4 w-4" aria-hidden="true" />
               <span className="sr-only">Más acciones</span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             {permissions.canSubmit && (
               <DropdownMenuItem onSelect={() => run(() => actions.submit(id))}>
-                <Send className="h-4 w-4" aria-hidden="true" />
+                <PaperPlaneTilt className="h-4 w-4" aria-hidden="true" />
                 Enviar a revisión
               </DropdownMenuItem>
             )}
             {permissions.canApprove && (
               <DropdownMenuItem onSelect={() => run(() => actions.approve(id))}>
-                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                <CheckCircle className="h-4 w-4" aria-hidden="true" />
                 Aprobar
               </DropdownMenuItem>
             )}
             {permissions.canPublish && (
               <DropdownMenuItem onSelect={() => run(() => actions.publish(id))}>
-                <Undo2 className="h-4 w-4 rotate-180" aria-hidden="true" />
+                <ArrowCounterClockwise className="h-4 w-4 rotate-180" aria-hidden="true" />
                 Publicar ahora
               </DropdownMenuItem>
             )}
@@ -137,14 +119,14 @@ export function ContentRowActions({
                     </AlertDialogDescription>
                     <AlertDialogFooter>
                       <AlertDialogCancel asChild>
-                        <AdminButton type="button" variant="secondary">
+                        <Button type="button" variant="secondary">
                           Cancelar
-                        </AdminButton>
+                        </Button>
                       </AlertDialogCancel>
                       <AlertDialogAction asChild>
-                        <AdminButton type="button" variant="danger" onClick={() => run(() => actions.archive(id))}>
+                        <Button type="button" variant="danger" onClick={() => run(() => actions.archive(id))}>
                           Archivar
-                        </AdminButton>
+                        </Button>
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -167,10 +149,10 @@ export function ContentRowActions({
             placeholder="Motivo de rechazo"
           />
           <div className="mt-4 flex justify-end gap-2">
-            <AdminButton type="button" variant="secondary" onClick={() => setRejectOpen(false)}>
+            <Button type="button" variant="secondary" onClick={() => setRejectOpen(false)}>
               Cancelar
-            </AdminButton>
-            <AdminButton
+            </Button>
+            <Button
               type="button"
               variant="danger"
               disabled={!rejectReason.trim() || pending}
@@ -181,7 +163,7 @@ export function ContentRowActions({
               }}
             >
               Rechazar
-            </AdminButton>
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

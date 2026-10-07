@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CaretLeft, CaretRight } from "@phosphor-icons/react/dist/ssr";
 
 /**
  * Paginación server-rendered (links normales, sin JS) — mismo patrón ya
@@ -28,12 +28,12 @@ export function Pagination({
     <div className="mt-10 flex items-center justify-between gap-4">
       {page > 0 ? (
         <Link href={buildHref(page - 1)} className={BTN}>
-          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          <CaretLeft className="h-4 w-4" aria-hidden="true" />
           Anterior
         </Link>
       ) : (
         <span aria-hidden="true" className={BTN_DISABLED}>
-          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          <CaretLeft className="h-4 w-4" aria-hidden="true" />
           Anterior
         </span>
       )}
@@ -45,12 +45,12 @@ export function Pagination({
       {page + 1 < totalPages ? (
         <Link href={buildHref(page + 1)} className={BTN}>
           Siguiente
-          <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          <CaretRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       ) : (
         <span aria-hidden="true" className={BTN_DISABLED}>
           Siguiente
-          <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          <CaretRight className="h-4 w-4" aria-hidden="true" />
         </span>
       )}
     </div>

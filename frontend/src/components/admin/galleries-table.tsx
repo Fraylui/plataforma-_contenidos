@@ -8,7 +8,7 @@ import type { Gallery } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
 import { computeGalleryPermissions } from "@/lib/admin/gallery-permissions";
 import { articleStatusLabel, articleStatusTone, formatPublishedDate } from "@/lib/content-labels";
-import { StatusPill, DataTable } from "@/components/admin/ui";
+import { DataTable } from "@/components/admin/ui";
 import { ContentRowActions } from "@/components/admin/content-row-actions";
 import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
 import {
@@ -18,6 +18,7 @@ import {
   rejectGalleryAction,
   submitGalleryAction,
 } from "@/app/admin/(protected)/galerias/actions";
+import { Badge, type BadgeTone } from "@/components/ui";
 
 export function GalleriesTable({ galleries, currentUser }: { galleries: Gallery[]; currentUser: AdminUser }) {
   const router = useRouter();
@@ -43,7 +44,7 @@ export function GalleriesTable({ galleries, currentUser }: { galleries: Gallery[
       {
         accessorKey: "status",
         header: "Estado",
-        cell: ({ row }) => <StatusPill tone={articleStatusTone(row.original.status)} label={articleStatusLabel(row.original.status)} />,
+        cell: ({ row }) => <Badge tone={articleStatusTone(row.original.status)} dot>{articleStatusLabel(row.original.status)}</Badge>,
       },
       {
         accessorKey: "createdAt",

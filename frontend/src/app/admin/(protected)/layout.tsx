@@ -63,6 +63,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
                 href: item.href,
                 label: item.label,
                 icon: <item.icon aria-hidden="true" />,
+                activeIcon: <item.icon weight="fill" aria-hidden="true" />,
               })),
             }))}
           />

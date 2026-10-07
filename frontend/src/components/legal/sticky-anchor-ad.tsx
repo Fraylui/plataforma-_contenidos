@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { X } from "@phosphor-icons/react";
 import { useMounted } from "@/lib/use-mounted";
 
 const DISMISS_KEY = "anchor-ad-dismissed";

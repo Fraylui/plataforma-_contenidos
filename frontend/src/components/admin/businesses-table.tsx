@@ -8,7 +8,7 @@ import type { Business } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
 import { computeBusinessPermissions } from "@/lib/admin/business-permissions";
 import { articleStatusLabel, articleStatusTone, businessTypeLabel, formatPublishedDate } from "@/lib/content-labels";
-import { StatusPill, DataTable } from "@/components/admin/ui";
+import { DataTable } from "@/components/admin/ui";
 import { ContentRowActions } from "@/components/admin/content-row-actions";
 import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
 import {
@@ -18,6 +18,7 @@ import {
   rejectBusinessAction,
   submitBusinessAction,
 } from "@/app/admin/(protected)/directorio/actions";
+import { Badge, type BadgeTone } from "@/components/ui";
 
 export function BusinessesTable({ businesses, currentUser }: { businesses: Business[]; currentUser: AdminUser }) {
   const router = useRouter();
@@ -42,7 +43,7 @@ export function BusinessesTable({ businesses, currentUser }: { businesses: Busin
       {
         accessorKey: "status",
         header: "Estado",
-        cell: ({ row }) => <StatusPill tone={articleStatusTone(row.original.status)} label={articleStatusLabel(row.original.status)} />,
+        cell: ({ row }) => <Badge tone={articleStatusTone(row.original.status)} dot>{articleStatusLabel(row.original.status)}</Badge>,
       },
       {
         accessorKey: "createdAt",
