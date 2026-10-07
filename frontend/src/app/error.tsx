@@ -6,10 +6,10 @@ import { ArrowClockwise, House, WarningCircle } from "@phosphor-icons/react";
 
 export default function Error({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   useEffect(() => {
     // Observabilidad mínima en cliente mientras no hay un colector de errores (sección 28, progresivo)
@@ -28,7 +28,7 @@ export default function Error({
       <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
         <button
           type="button"
-          onClick={reset}
+          onClick={() => retry()}
           className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-accent-fill px-5 text-sm font-semibold text-accent-foreground transition-colors hover:opacity-90"
         >
           <ArrowClockwise className="h-4 w-4" weight="bold" aria-hidden="true" />

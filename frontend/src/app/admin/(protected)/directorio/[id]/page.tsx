@@ -54,7 +54,7 @@ export default async function EditBusinessPage(props: PageProps<"/admin/director
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title={business.name} />
+      <AdminPageHeader title={business.name} back={{ href: "/admin/directorio", label: "Directorio" }} />
       <BusinessComposer
         business={business}
         categories={categories} places={places}

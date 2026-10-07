@@ -10,7 +10,23 @@ import type { ReactNode } from "react";
 // a un Client Component — RSC solo serializa elementos ya renderizados. Por
 // eso llegan las dos versiones: contorno y rellena para el activo (como
 // Instagram).
-export function AdminNavLink({ href, label, icon, activeIcon }: { href: string; label: string; icon: ReactNode; activeIcon: ReactNode }) {
+export function AdminNavLink({
+  href,
+  label,
+  icon,
+  activeIcon,
+  compact = false,
+  onNavigate,
+}: {
+  href: string;
+  label: string;
+  icon: ReactNode;
+  activeIcon: ReactNode;
+  /** Menú plegado: solo el ícono; el nombre queda para lectores de pantalla y como tooltip. */
+  compact?: boolean;
+  /** Al tocar (p. ej. cerrar el cajón del celular). */
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   const isActive = href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
 
@@ -18,7 +34,9 @@ export function AdminNavLink({ href, label, icon, activeIcon }: { href: string; 
     <Link
       href={href}
       aria-current={isActive ? "page" : undefined}
-      className={`relative flex h-9 items-center gap-3 rounded-control px-3 text-sm transition-colors ${
+      title={compact ? label : undefined}
+      onClick={onNavigate}
+      className={`relative flex h-10 items-center gap-3 rounded-control text-sm transition-colors ${compact ? "justify-center px-0" : "px-3"} ${
         isActive ? "font-semibold text-foreground" : "font-medium text-muted hover:bg-field hover:text-foreground"
       }`}
     >
@@ -35,7 +53,7 @@ export function AdminNavLink({ href, label, icon, activeIcon }: { href: string; 
         />
       )}
       <span className={`relative shrink-0 [&>svg]:size-5 ${isActive ? "text-accent" : ""}`}>{isActive ? activeIcon : icon}</span>
-      <span className="relative truncate">{label}</span>
+      <span className={compact ? "sr-only" : "relative truncate"}>{label}</span>
     </Link>
   );
 }

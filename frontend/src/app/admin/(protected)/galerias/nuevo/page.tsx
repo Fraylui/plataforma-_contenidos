@@ -24,7 +24,7 @@ export default async function NewGalleryPage() {
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title="Nueva galería" />
+      <AdminPageHeader title="Nueva galería" back={{ href: "/admin/galerias", label: "Galerías" }} />
       <GalleryComposer categories={categories} allImages={allImages} permissions={permissions} siteName={settings.name} />
     </div>
   );

@@ -17,7 +17,6 @@ import { roleLabel } from "@/lib/admin/role-labels";
 import { visibleNavItems } from "@/lib/admin/nav";
 import { publicationStatusLabel, publicationStatusTone, formatPublishedDate, humanizeAuditAction } from "@/lib/content-labels";
 import { StatCard } from "@/components/admin/ui";
-import { CreateNewMenu } from "@/components/admin/create-new-menu";
 import type { PlatformStats } from "@/lib/api/admin-types";
 import type { PublicationStatus } from "@/lib/api/types";
 import { Badge } from "@/components/ui";
@@ -27,14 +26,6 @@ export const metadata: Metadata = {
   title: "Panel",
   robots: "noindex,nofollow",
 };
-
-const QUICK_CREATE: { label: string; href: string; navHref: string }[] = [
-  { label: "Publicación", href: "/admin/publicaciones/nuevo", navHref: "/admin/publicaciones" },
-  { label: "Lugar", href: "/admin/lugares/nuevo", navHref: "/admin/lugares" },
-  { label: "Evento", href: "/admin/eventos/nuevo", navHref: "/admin/eventos" },
-  { label: "Galería", href: "/admin/galerias/nuevo", navHref: "/admin/galerias" },
-  { label: "Ficha de directorio", href: "/admin/directorio/nuevo", navHref: "/admin/directorio" },
-];
 
 interface ContentItem {
   id: string;
@@ -97,7 +88,6 @@ function auditDayLabel(iso: string): string {
 export default async function AdminDashboardPage() {
   const { user, accessToken } = await requireAdminUser();
   const allowedHrefs = new Set(visibleNavItems(user).map((item) => item.href));
-  const quickCreate = QUICK_CREATE.filter((item) => allowedHrefs.has(item.navHref));
   const canSeeStats = allowedHrefs.has("/admin/estadisticas");
   const canSeeAudit = allowedHrefs.has("/admin/actividad");
 
@@ -127,8 +117,8 @@ export default async function AdminDashboardPage() {
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">
-            Bienvenido, {user.firstName} {user.lastName}
+          <h1 className="text-title font-bold text-foreground">
+            Hola, {user.firstName}
           </h1>
           <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
             <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent">{roleLabel(user.role)}</span>
@@ -137,7 +127,6 @@ export default async function AdminDashboardPage() {
             </span>
           </p>
         </div>
-        <CreateNewMenu items={quickCreate} />
       </div>
 
       {pendingReview.length > 0 && (

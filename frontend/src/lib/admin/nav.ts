@@ -133,3 +133,23 @@ export function groupedNavItems(user: AdminUser): Array<{ group: AdminNavGroup; 
     .map((group) => ({ group, items: items.filter((item) => item.group === group) }))
     .filter((entry) => entry.items.length > 0);
 }
+
+export interface CreateItem {
+  label: string;
+  href: string;
+}
+
+/** Lo que se puede crear, uno por tipo de contenido (en el orden del menú). */
+const CREATE_ITEMS: Array<CreateItem & { navHref: string }> = [
+  { label: "Publicación", href: "/admin/publicaciones/nuevo", navHref: "/admin/publicaciones" },
+  { label: "Lugar", href: "/admin/lugares/nuevo", navHref: "/admin/lugares" },
+  { label: "Evento", href: "/admin/eventos/nuevo", navHref: "/admin/eventos" },
+  { label: "Galería", href: "/admin/galerias/nuevo", navHref: "/admin/galerias" },
+  { label: "Ficha de directorio", href: "/admin/directorio/nuevo", navHref: "/admin/directorio" },
+];
+
+/** Qué puede crear esta persona: un tipo por cada módulo de contenido al que accede. Lo usan Crear, la paleta y la barra del celular. */
+export function createItems(user: AdminUser): CreateItem[] {
+  const allowed = new Set(visibleNavItems(user).map((item) => item.href));
+  return CREATE_ITEMS.filter((item) => allowed.has(item.navHref)).map(({ label, href }) => ({ label, href }));
+}

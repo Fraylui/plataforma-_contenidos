@@ -25,7 +25,7 @@ export default async function NewBusinessPage() {
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title="Nueva ficha de directorio" />
+      <AdminPageHeader title="Nueva ficha de directorio" back={{ href: "/admin/directorio", label: "Directorio" }} />
       <BusinessComposer categories={categories} places={places} allImages={allImages} permissions={permissions} siteName={settings.name} />
     </div>
   );

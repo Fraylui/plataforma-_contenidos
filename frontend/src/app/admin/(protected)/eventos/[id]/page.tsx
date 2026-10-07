@@ -54,7 +54,7 @@ export default async function EditEventPage(props: PageProps<"/admin/eventos/[id
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title={event.title} />
+      <AdminPageHeader title={event.title} back={{ href: "/admin/eventos", label: "Eventos" }} />
       <EventComposer
         event={event}
         categories={categories} places={places}

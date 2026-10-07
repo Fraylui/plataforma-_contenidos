@@ -3,21 +3,20 @@
 import Link from "next/link";
 import { Plus } from "@phosphor-icons/react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/admin/ui";
+import { Button } from "@/components/ui";
+import type { CreateItem } from "@/lib/admin/nav";
 
-export function CreateNewMenu({ items }: { items: { label: string; href: string }[] }) {
+/** Botón «Crear» de la barra superior: los tipos que la persona puede crear. */
+export function CreateMenu({ items, className }: { items: CreateItem[]; className?: string }) {
   if (items.length === 0) return null;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 rounded-md bg-accent-fill px-4 py-2 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
-        >
-          <Plus className="h-4 w-4" aria-hidden="true" />
-          Crear nuevo
-        </button>
+        <Button size="lg" icon={<Plus weight="bold" aria-hidden="true" />} className={className}>
+          Crear
+        </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent align="end">
         {items.map((item) => (
           <DropdownMenuItem key={item.href} asChild>
             <Link href={item.href}>{item.label}</Link>

@@ -47,7 +47,7 @@ export default async function EditPlacePage(props: PageProps<"/admin/lugares/[id
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title={place.name} />
+      <AdminPageHeader title={place.name} back={{ href: "/admin/lugares", label: "Lugares" }} />
       <PlaceComposer
         place={place}
         categories={categories}

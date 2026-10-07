@@ -47,7 +47,7 @@ export default async function EditGalleryPage(props: PageProps<"/admin/galerias/
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title={gallery.title} />
+      <AdminPageHeader title={gallery.title} back={{ href: "/admin/galerias", label: "Galerías" }} />
       <GalleryComposer
         gallery={gallery}
         categories={categories}

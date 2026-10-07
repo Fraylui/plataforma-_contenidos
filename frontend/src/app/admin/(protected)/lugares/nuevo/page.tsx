@@ -24,7 +24,7 @@ export default async function NewPlacePage() {
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title="Nuevo lugar" />
+      <AdminPageHeader title="Nuevo lugar" back={{ href: "/admin/lugares", label: "Lugares" }} />
       <PlaceComposer categories={categories} allImages={allImages} permissions={permissions} siteName={settings.name} />
     </div>
   );

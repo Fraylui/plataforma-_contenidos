@@ -2203,6 +2203,16 @@ Spec: `docs/superpowers/specs/2026-10-07-compositor-y-flujo-design.md` (local).
 - **Zona horaria**: las fechas salían en la zona de la máquina; el servidor (Docker) está en UTC → un evento de las 11 p. m. de Lima se veía al día siguiente. `SITE_TIME_ZONE` (`NEXT_PUBLIC_SITE_TIME_ZONE`, por defecto `America/Lima`) en todas las fechas; las estadísticas (días UTC) caían en el día anterior en Lima. Las pruebas corren en UTC como el CI.
 - **Vercel** está vinculado al repositorio y arma vistas previas que fallan (no es el despliegue real, que es el VPS): decisión del dueño si se desconecta.
 
+## 46.6j Fase 2 — Estructura del panel (2026-10-07)
+
+- `components/admin/shell/AdminShell` (lo usa el layout del panel y la muestra `/admin/muestra/panel`, solo desarrollo).
+- **Escritorio:** menú lateral plegable a solo íconos (cookie `admin_sidebar`, path `/admin`: el servidor lo dibuja ya plegado), acordeón con el grupo actual abierto; barra superior con **«Buscar o ir a… Ctrl K»**, **Crear** (según permisos, `createItems()` en `lib/admin/nav.ts`) y la **cuenta** (Mi cuenta, Ver el sitio, Cerrar sesión).
+- **Paleta de comandos** (cmdk, Ctrl/⌘+K o «/»): ir a cualquier sección permitida o crear; filtra al escribir, Enter abre.
+- **Celular:** barra inferior con nombre en cada acción (Inicio, primera sección de contenido, Crear, Buscar, Menú) y cajón con todas las secciones abiertas.
+- `loading.tsx` (esqueleto), `error.tsx` (Next 16: `retry`, sin mensaje técnico, con código) y `not-found.tsx` del panel; el error público también usa `retry`.
+- Crear/editar de los 5 tipos con «← Lista» sobre el título (un nivel, sin migas de pan).
+- **Pendiente para F3:** contador de pendientes en el menú (necesita el endpoint liviano del inicio; contarlos hoy cargaría todas las listas). El e2e de trabajadores esperaba todos los ítems visibles en el menú; con el acordeón solo se ve el grupo actual — revisar al poder correrlo con credenciales.
+
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
 Ordenadas por prioridad.

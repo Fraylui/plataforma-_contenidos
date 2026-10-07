@@ -49,7 +49,7 @@ export default async function EditArticlePage(props: PageProps<"/admin/publicaci
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title={article.title} />
+      <AdminPageHeader title={article.title} back={{ href: "/admin/publicaciones", label: "Publicaciones" }} />
       <ArticleComposer
         article={article}
         categories={categories}

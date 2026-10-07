@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AdminUser } from "@/lib/api/admin-types";
-import { ADMIN_NAV_GROUP_LABELS, groupedNavItems, visibleNavItems } from "./nav";
+import { ADMIN_NAV_GROUP_LABELS, createItems, groupedNavItems, visibleNavItems } from "./nav";
 
 function user(overrides: Partial<AdminUser> = {}): AdminUser {
   return {
@@ -44,5 +44,27 @@ describe("lenguaje de plataforma (no de redacción)", () => {
       ["Publicidad", ["Espacios publicitarios", "Anunciantes"]],
       ["Equipo y ajustes", ["Trabajadores", "Configuración", "Registro de actividad", "Mi cuenta"]],
     ]);
+  });
+});
+
+describe("qué puede crear cada persona (botón Crear, paleta y barra del celular)", () => {
+  it("solo los tipos de contenido de sus módulos", () => {
+    const items = createItems(user({ permissions: { EVENTS: "CREATE", PLACES: "PUBLISH" } }));
+    expect(items.map((i) => i.label)).toEqual(["Lugar", "Evento"]);
+    expect(items.map((i) => i.href)).toEqual(["/admin/lugares/nuevo", "/admin/eventos/nuevo"]);
+  });
+
+  it("el dueño crea los 5 tipos, en el orden del menú", () => {
+    expect(createItems(user({ role: "OWNER" })).map((i) => i.label)).toEqual([
+      "Publicación",
+      "Lugar",
+      "Evento",
+      "Galería",
+      "Ficha de directorio",
+    ]);
+  });
+
+  it("sin módulos de contenido no hay nada que crear", () => {
+    expect(createItems(user({ permissions: { ADVERTISING: "ACCESS" } }))).toEqual([]);
   });
 });
