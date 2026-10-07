@@ -5,8 +5,9 @@ import { listAdminCategories } from "@/lib/api/admin-client";
 import { sortCategoriesHierarchically } from "@/lib/admin/category-tree";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
-import { AdminPageHeader, EmptyState, StatusPill } from "@/components/admin/ui";
+import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
 import { setCategoryActiveAction } from "./actions";
+import { Badge } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Temas",
@@ -46,7 +47,7 @@ export default async function AdminCategoriesPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <StatusPill tone={category.active ? "success" : "neutral"} label={category.active ? "Activa" : "Inactiva"} />
+                    <Badge tone={category.active ? "success" : "neutral"} dot>{category.active ? "Activa" : "Inactiva"}</Badge>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <form action={setCategoryActiveAction.bind(null, category.id, !category.active)}>

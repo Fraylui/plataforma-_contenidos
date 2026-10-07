@@ -7,8 +7,8 @@ import type { AdminImage, ContentVideoInput, EventInput, PlaceOption } from "@/l
 import type { Category, ContentImage, Event } from "@/lib/api/types";
 import type { EventPermissions } from "@/lib/admin/event-permissions";
 import { articleStatusLabel } from "@/lib/content-labels";
-import { AdminButton, ArchiveButton, CollapsibleSection, FormError, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
-import { Combobox } from "@/components/ui";
+import { ArchiveButton, FormError } from "@/components/admin/ui";
+import { Button, Card, CollapsibleCard, Combobox, DateTimeInput, Field, TextArea, TextInput } from "@/components/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import { VideoLinksEditor } from "./video-links-editor";
 import { RichTextEditor } from "./rich-text-editor";
@@ -144,22 +144,22 @@ export function EventForm({
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
         {/* Columna principal: lo que se escribe */}
         <div className="space-y-6">
-          <SectionCard title="Contenido">
-            <FormField label="Título" name="title">
-              <input type="text" value={title} disabled={readOnly} onChange={(e) => setTitle(e.target.value)} className={formInputClass} />
-            </FormField>
+          <Card title="Contenido">
+            <Field label="Título" name="title">
+              <TextInput type="text" value={title} disabled={readOnly} onChange={(e) => setTitle(e.target.value)} />
+            </Field>
 
-            <FormField label="Descripción breve (opcional)" name="excerpt">
-              <textarea value={excerpt} disabled={readOnly} onChange={(e) => setExcerpt(e.target.value)} rows={2} className={formInputClass} />
-            </FormField>
+            <Field label="Descripción breve (opcional)" name="excerpt">
+              <TextArea value={excerpt} disabled={readOnly} onChange={(e) => setExcerpt(e.target.value)} rows={2} />
+            </Field>
 
-            <FormField label="Descripción completa" name="body">
+            <Field label="Descripción completa" name="body">
               <RichTextEditor value={body} onChange={setBody} disabled={readOnly} allImages={allImages} />
-            </FormField>
-          </SectionCard>
+            </Field>
+          </Card>
 
-          <SectionCard title="Lugar y horario">
-            <FormField label="Lugar (opcional, si ya existe en Lugares)" name="placeId">
+          <Card title="Lugar y horario">
+            <Field label="Lugar (opcional, si ya existe en Lugares)" name="placeId">
               <Combobox
                 options={places.map((place) => ({ id: place.id, label: place.name }))}
                 value={placeId || null}
@@ -167,111 +167,108 @@ export function EventForm({
                 placeholder="Sin lugar (especificar nombre abajo)"
                 onSelect={(id) => setPlaceId(id ?? "")}
               />
-            </FormField>
+            </Field>
 
             {!placeId && (
-              <FormField label="Nombre del lugar (opcional, texto libre)" name="venueName">
-                <input
+              <Field label="Nombre del lugar (opcional, texto libre)" name="venueName">
+                <TextInput
                   type="text"
                   value={venueName}
                   disabled={readOnly}
                   onChange={(e) => setVenueName(e.target.value)}
                   placeholder="Ej. Plaza Mayor de Huamanga"
-                  className={formInputClass}
                 />
-              </FormField>
+              </Field>
             )}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField label="Fecha y hora de inicio" name="startsAt">
-                <input
-                  type="datetime-local"
+              <Field label="Fecha y hora de inicio" name="startsAt">
+                <DateTimeInput
+                 
                   value={startsAt}
                   disabled={readOnly}
                   onChange={(e) => setStartsAt(e.target.value)}
-                  className={formInputClass}
                 />
-              </FormField>
-              <FormField label="Fecha y hora de fin (opcional)" name="endsAt">
-                <input
-                  type="datetime-local"
+              </Field>
+              <Field label="Fecha y hora de fin (opcional)" name="endsAt">
+                <DateTimeInput
+                 
                   value={endsAt}
                   disabled={readOnly}
                   onChange={(e) => setEndsAt(e.target.value)}
-                  className={formInputClass}
                 />
-              </FormField>
+              </Field>
             </div>
-          </SectionCard>
+          </Card>
 
-          <CollapsibleSection title="SEO">
-            <FormField label="Título SEO (opcional, si no se define usa el título)" name="seoTitle">
-              <input type="text" value={seoTitle} disabled={readOnly} onChange={(e) => setSeoTitle(e.target.value)} className={formInputClass} />
-            </FormField>
-            <FormField label="Meta descripción (opcional)" name="metaDescription">
-              <textarea value={metaDescription} disabled={readOnly} onChange={(e) => setMetaDescription(e.target.value)} rows={2} className={formInputClass} />
-            </FormField>
+          <CollapsibleCard title="SEO">
+            <Field label="Título SEO (opcional, si no se define usa el título)" name="seoTitle">
+              <TextInput type="text" value={seoTitle} disabled={readOnly} onChange={(e) => setSeoTitle(e.target.value)} />
+            </Field>
+            <Field label="Meta descripción (opcional)" name="metaDescription">
+              <TextArea value={metaDescription} disabled={readOnly} onChange={(e) => setMetaDescription(e.target.value)} rows={2} />
+            </Field>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField label="URL canónica (opcional)" name="canonicalUrl">
-                <input type="text" value={canonicalUrl} disabled={readOnly} onChange={(e) => setCanonicalUrl(e.target.value)} className={formInputClass} />
-              </FormField>
-              <FormField label="Imagen para Open Graph (URL, opcional)" name="ogImageUrl">
-                <input type="text" value={ogImageUrl} disabled={readOnly} onChange={(e) => setOgImageUrl(e.target.value)} className={formInputClass} />
-              </FormField>
+              <Field label="URL canónica (opcional)" name="canonicalUrl">
+                <TextInput type="text" value={canonicalUrl} disabled={readOnly} onChange={(e) => setCanonicalUrl(e.target.value)} />
+              </Field>
+              <Field label="Imagen para Open Graph (URL, opcional)" name="ogImageUrl">
+                <TextInput type="text" value={ogImageUrl} disabled={readOnly} onChange={(e) => setOgImageUrl(e.target.value)} />
+              </Field>
             </div>
-            <FormField label="Robots" name="robots">
+            <Field label="Robots" name="robots">
               <Combobox
                 options={ROBOTS_OPTIONS.map((option) => ({ id: option, label: option }))}
                 value={robots}
                 disabled={readOnly}
                 onSelect={(id) => id && setRobots(id)}
               />
-            </FormField>
-          </CollapsibleSection>
+            </Field>
+          </CollapsibleCard>
         </div>
 
         {/* Barra lateral: publicar + metadata — visible sin scrollear todo el formulario */}
         <div className="space-y-6">
-          <SectionCard title="Publicar">
+          <Card title="Publicar">
             {error && <FormError message={error} />}
             {!readOnly && (
-              <AdminButton disabled={pending || !title || !body || !categoryId || !startsAt} onClick={handleSubmit} className="w-full">
+              <Button type="submit" disabled={pending || !title || !body || !categoryId || !startsAt} onClick={handleSubmit} className="w-full">
                 {pending ? "Guardando…" : mode === "create" ? "Crear borrador" : "Guardar cambios"}
-              </AdminButton>
+              </Button>
             )}
 
             {mode === "edit" && event && permissions && (
               <div className="space-y-3 border-t border-border pt-4">
                 <div className="flex flex-wrap gap-2">
                   {permissions.canSubmit && (
-                    <AdminButton
+                    <Button
                       type="button"
                       variant="secondary"
                       disabled={pending}
                       onClick={() => runWorkflow(() => submitEventAction(event.id), "Enviado a revisión.")}
                     >
                       Enviar a revisión
-                    </AdminButton>
+                    </Button>
                   )}
                   {permissions.canApprove && (
-                    <AdminButton
+                    <Button
                       type="button"
                       variant="secondary"
                       disabled={pending}
                       onClick={() => runWorkflow(() => approveEventAction(event.id), "Evento aprobado.")}
                     >
                       Aprobar
-                    </AdminButton>
+                    </Button>
                   )}
                   {permissions.canPublish && (
-                    <AdminButton
+                    <Button
                       type="button"
                       variant="secondary"
                       disabled={pending}
                       onClick={() => runWorkflow(() => publishEventAction(event.id), "Evento publicado.")}
                     >
                       Publicar ahora
-                    </AdminButton>
+                    </Button>
                   )}
                   {permissions.canArchive && (
                     <ArchiveButton
@@ -284,10 +281,10 @@ export function EventForm({
 
                 {permissions.canReject && (
                   <div className="space-y-2">
-                    <FormField label="Motivo de rechazo" name="rejectReason">
-                      <input type="text" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} className={formInputClass} />
-                    </FormField>
-                    <AdminButton
+                    <Field label="Motivo de rechazo" name="rejectReason">
+                      <TextInput type="text" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
+                    </Field>
+                    <Button
                       type="button"
                       variant="secondary"
                       disabled={pending || !rejectReason.trim()}
@@ -295,16 +292,16 @@ export function EventForm({
                       className="w-full"
                     >
                       Rechazar
-                    </AdminButton>
+                    </Button>
                   </div>
                 )}
 
                 {permissions.canSchedule && (
                   <div className="space-y-2">
-                    <FormField label="Programar publicación para" name="scheduleAt">
-                      <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} className={formInputClass} />
-                    </FormField>
-                    <AdminButton
+                    <Field label="Programar publicación para" name="scheduleAt">
+                      <DateTimeInput value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} />
+                    </Field>
+                    <Button
                       type="button"
                       variant="secondary"
                       disabled={pending || !scheduleAt}
@@ -314,33 +311,33 @@ export function EventForm({
                       className="w-full"
                     >
                       Programar
-                    </AdminButton>
+                    </Button>
                   </div>
                 )}
               </div>
             )}
-          </SectionCard>
+          </Card>
 
-          <SectionCard title="Organización">
-            <FormField label="Tema" name="categoryId">
+          <Card title="Organización">
+            <Field label="Tema" name="categoryId">
               <Combobox
                 options={categories.map((category) => ({ id: category.id, label: category.name }))}
                 value={categoryId}
                 disabled={readOnly}
                 onSelect={(id) => id && setCategoryId(id)}
               />
-            </FormField>
-          </SectionCard>
+            </Field>
+          </Card>
 
-          <SectionCard title="Fotos y videos">
-            <FormField label="Fotografías (opcional — la primera es la portada de tarjeta/feed)" name="images">
+          <Card title="Fotos y videos">
+            <Field label="Fotografías (opcional — la primera es la portada de tarjeta/feed)" name="images">
               <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
-            </FormField>
+            </Field>
 
-            <FormField label="Videos de YouTube (opcional)" name="videos">
+            <Field label="Videos de YouTube (opcional)" name="videos">
               <VideoLinksEditor value={videos} onChange={setVideos} disabled={readOnly} />
-            </FormField>
-          </SectionCard>
+            </Field>
+          </Card>
         </div>
       </div>
     </div>

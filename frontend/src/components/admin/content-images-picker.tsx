@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Link as LinkIcon } from "lucide-react";
+import { LinkSimple as LinkIcon } from "@phosphor-icons/react";
 import type { AdminImage } from "@/lib/api/admin-types";
 import type { ContentImage } from "@/lib/api/types";
 import { imageUrl } from "@/lib/image-url";
-import { formInputClass } from "@/components/admin/ui";
 import { InlineImageUpload } from "./inline-image-upload";
 import { ContentMediaItemFields } from "./content-media-item-fields";
+import { TextInput } from "@/components/ui";
 
 /**
  * Selector de imágenes de contenido (Publicaciones/Lugares/Eventos): mismo
@@ -73,14 +73,13 @@ export function ContentImagesPicker({
           <label className="mb-1 block text-xs font-medium text-muted" htmlFor="content-image-external-url">
             Agregar imagen por enlace externo (lo más común)
           </label>
-          <input
+          <TextInput
             id="content-image-external-url"
             type="text"
             value={externalUrlDraft}
             disabled={disabled}
             onChange={(e) => setExternalUrlDraft(e.target.value)}
             placeholder="https://…"
-            className={formInputClass}
           />
         </div>
         <button

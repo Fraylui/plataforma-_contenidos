@@ -3,7 +3,8 @@
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { uploadImageAction } from "@/app/admin/(protected)/imagenes/actions";
-import { AdminButton, FormError } from "@/components/admin/ui";
+import { FormError } from "@/components/admin/ui";
+import { Button } from "@/components/ui";
 
 export function ImageUploadForm() {
   const router = useRouter();
@@ -50,9 +51,9 @@ export function ImageUploadForm() {
           className="mt-1 w-56 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
         />
       </label>
-      <AdminButton type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending}>
         {pending ? "Subiendo…" : "Subir imagen"}
-      </AdminButton>
+      </Button>
       {error && <FormError message={error} className="w-full" />}
     </form>
   );

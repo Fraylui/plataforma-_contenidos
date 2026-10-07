@@ -7,8 +7,8 @@ import type { Article, ArticleType, Category, ContentImage } from "@/lib/api/typ
 import type { AdminImage, ArticleInput, ContentVideoInput } from "@/lib/api/admin-types";
 import type { ArticlePermissions } from "@/lib/admin/article-permissions";
 import { articleTypeLabel, articleStatusLabel } from "@/lib/content-labels";
-import { AdminButton, ArchiveButton, CollapsibleSection, FormError, FormField, SectionCard, formInputClass } from "@/components/admin/ui";
-import { Combobox } from "@/components/ui";
+import { ArchiveButton, FormError } from "@/components/admin/ui";
+import { Button, Card, CollapsibleCard, Combobox, DateTimeInput, Field, TextArea, TextInput } from "@/components/ui";
 import { ContentImagesPicker } from "./content-images-picker";
 import { VideoLinksEditor } from "./video-links-editor";
 import { RichTextEditor } from "./rich-text-editor";
@@ -132,104 +132,103 @@ export function ArticleForm({
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
         {/* Columna principal: lo que se escribe */}
         <div className="space-y-6">
-          <SectionCard title="Contenido">
-            <FormField label="Título" name="title">
-              <input
+          <Card title="Contenido">
+            <Field label="Título" name="title">
+              <TextInput
                 type="text"
                 value={title}
                 disabled={readOnly}
                 onChange={(e) => setTitle(e.target.value)}
-                className={formInputClass}
               />
-            </FormField>
+            </Field>
 
-            <FormField label="Extracto (resumen corto, opcional)" name="excerpt">
-              <textarea
+            <Field label="Extracto (resumen corto, opcional)" name="excerpt">
+              <TextArea
                 value={excerpt}
                 disabled={readOnly}
                 onChange={(e) => setExcerpt(e.target.value)}
                 rows={2}
-                className={formInputClass}
               />
-            </FormField>
+            </Field>
 
-            <FormField label="Cuerpo" name="body">
+            <Field label="Cuerpo" name="body">
               <RichTextEditor value={body} onChange={setBody} disabled={readOnly} allImages={allImages} />
-            </FormField>
-          </SectionCard>
+            </Field>
+          </Card>
 
-          <CollapsibleSection title="SEO">
-            <FormField label="Título SEO (opcional, si no se define usa el título)" name="seoTitle">
-              <input type="text" value={seoTitle} disabled={readOnly} onChange={(e) => setSeoTitle(e.target.value)} className={formInputClass} />
-            </FormField>
-            <FormField label="Meta descripción (opcional)" name="metaDescription">
-              <textarea value={metaDescription} disabled={readOnly} onChange={(e) => setMetaDescription(e.target.value)} rows={2} className={formInputClass} />
-            </FormField>
+          <CollapsibleCard title="SEO">
+            <Field label="Título SEO (opcional, si no se define usa el título)" name="seoTitle">
+              <TextInput type="text" value={seoTitle} disabled={readOnly} onChange={(e) => setSeoTitle(e.target.value)} />
+            </Field>
+            <Field label="Meta descripción (opcional)" name="metaDescription">
+              <TextArea value={metaDescription} disabled={readOnly} onChange={(e) => setMetaDescription(e.target.value)} rows={2} />
+            </Field>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField label="URL canónica (opcional)" name="canonicalUrl">
-                <input type="text" value={canonicalUrl} disabled={readOnly} onChange={(e) => setCanonicalUrl(e.target.value)} className={formInputClass} />
-              </FormField>
-              <FormField label="Imagen para Open Graph (URL, opcional)" name="ogImageUrl">
-                <input type="text" value={ogImageUrl} disabled={readOnly} onChange={(e) => setOgImageUrl(e.target.value)} className={formInputClass} />
-              </FormField>
+              <Field label="URL canónica (opcional)" name="canonicalUrl">
+                <TextInput type="text" value={canonicalUrl} disabled={readOnly} onChange={(e) => setCanonicalUrl(e.target.value)} />
+              </Field>
+              <Field label="Imagen para Open Graph (URL, opcional)" name="ogImageUrl">
+                <TextInput type="text" value={ogImageUrl} disabled={readOnly} onChange={(e) => setOgImageUrl(e.target.value)} />
+              </Field>
             </div>
-            <FormField label="Robots" name="robots">
+            <Field label="Robots" name="robots">
               <Combobox
                 options={ROBOTS_OPTIONS.map((option) => ({ id: option, label: option }))}
                 value={robots}
                 disabled={readOnly}
                 onSelect={(id) => id && setRobots(id)}
               />
-            </FormField>
-          </CollapsibleSection>
+            </Field>
+          </CollapsibleCard>
         </div>
 
         {/* Barra lateral: publicar + metadata — visible sin scrollear todo el formulario */}
         <div className="space-y-6">
-          <SectionCard title="Publicar">
+          <Card title="Publicar">
             {error && <FormError message={error} />}
             {!readOnly && (
-              <AdminButton
+              <Button
+                type="submit"
                 disabled={pending || !title || !body || !categoryId}
                 onClick={handleSubmit}
                 className="w-full"
               >
                 {pending ? "Guardando…" : mode === "create" ? "Crear borrador" : "Guardar cambios"}
-              </AdminButton>
+              </Button>
             )}
 
             {mode === "edit" && article && permissions && (
               <div className="space-y-3 border-t border-border pt-4">
                 <div className="flex flex-wrap gap-2">
                   {permissions.canSubmit && (
-                    <AdminButton
+                    <Button
                       type="button"
                       variant="secondary"
                       disabled={pending}
                       onClick={() => runWorkflow(() => submitArticleAction(article.id), "Enviado a revisión.")}
                     >
                       Enviar a revisión
-                    </AdminButton>
+                    </Button>
                   )}
                   {permissions.canApprove && (
-                    <AdminButton
+                    <Button
                       type="button"
                       variant="secondary"
                       disabled={pending}
                       onClick={() => runWorkflow(() => approveArticleAction(article.id), "Publicación aprobada.")}
                     >
                       Aprobar
-                    </AdminButton>
+                    </Button>
                   )}
                   {permissions.canPublish && (
-                    <AdminButton
+                    <Button
                       type="button"
                       variant="secondary"
                       disabled={pending}
                       onClick={() => runWorkflow(() => publishArticleAction(article.id), "Publicación publicada.")}
                     >
                       Publicar ahora
-                    </AdminButton>
+                    </Button>
                   )}
                   {permissions.canArchive && (
                     <ArchiveButton
@@ -242,15 +241,14 @@ export function ArticleForm({
 
                 {permissions.canReject && (
                   <div className="space-y-2">
-                    <FormField label="Motivo de rechazo" name="rejectReason">
-                      <input
+                    <Field label="Motivo de rechazo" name="rejectReason">
+                      <TextInput
                         type="text"
                         value={rejectReason}
                         onChange={(e) => setRejectReason(e.target.value)}
-                        className={formInputClass}
                       />
-                    </FormField>
-                    <AdminButton
+                    </Field>
+                    <Button
                       type="button"
                       variant="secondary"
                       disabled={pending || !rejectReason.trim()}
@@ -258,21 +256,20 @@ export function ArticleForm({
                       className="w-full"
                     >
                       Rechazar
-                    </AdminButton>
+                    </Button>
                   </div>
                 )}
 
                 {permissions.canSchedule && (
                   <div className="space-y-2">
-                    <FormField label="Programar publicación para" name="scheduleAt">
-                      <input
-                        type="datetime-local"
+                    <Field label="Programar publicación para" name="scheduleAt">
+                      <DateTimeInput
+                       
                         value={scheduleAt}
                         onChange={(e) => setScheduleAt(e.target.value)}
-                        className={formInputClass}
                       />
-                    </FormField>
-                    <AdminButton
+                    </Field>
+                    <Button
                       type="button"
                       variant="secondary"
                       disabled={pending || !scheduleAt}
@@ -285,15 +282,15 @@ export function ArticleForm({
                       className="w-full"
                     >
                       Programar
-                    </AdminButton>
+                    </Button>
                   </div>
                 )}
               </div>
             )}
-          </SectionCard>
+          </Card>
 
-          <SectionCard title="Organización">
-            <FormField label="Tipo" name="articleType">
+          <Card title="Organización">
+            <Field label="Tipo" name="articleType">
               <Combobox
                 options={ARTICLE_TYPES.map((type) => ({ id: type, label: articleTypeLabel(type) }))}
                 value={articleType}
@@ -302,27 +299,27 @@ export function ArticleForm({
                 // debe quedar un tipo seleccionado.
                 onSelect={(id) => id && setArticleType(id as ArticleType)}
               />
-            </FormField>
+            </Field>
 
-            <FormField label="Tema" name="categoryId">
+            <Field label="Tema" name="categoryId">
               <Combobox
                 options={categories.map((category) => ({ id: category.id, label: category.name }))}
                 value={categoryId}
                 disabled={readOnly}
                 onSelect={(id) => id && setCategoryId(id)}
               />
-            </FormField>
-          </SectionCard>
+            </Field>
+          </Card>
 
-          <SectionCard title="Fotos y videos">
-            <FormField label="Imágenes (opcional — la primera es la portada de tarjeta/feed)" name="images">
+          <Card title="Fotos y videos">
+            <Field label="Imágenes (opcional — la primera es la portada de tarjeta/feed)" name="images">
               <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
-            </FormField>
+            </Field>
 
-            <FormField label="Videos de YouTube (opcional)" name="videos">
+            <Field label="Videos de YouTube (opcional)" name="videos">
               <VideoLinksEditor value={videos} onChange={setVideos} disabled={readOnly} />
-            </FormField>
-          </SectionCard>
+            </Field>
+          </Card>
         </div>
       </div>
     </div>

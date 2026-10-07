@@ -5,19 +5,8 @@ import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import TiptapImage from "@tiptap/extension-image";
-import {
-  Bold,
-  Italic,
-  Heading2,
-  Heading3,
-  List,
-  ListOrdered,
-  Quote,
-  Link as LinkIcon,
-  Unlink,
-  Image as ImageIcon,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { TextB, TextItalic, TextHTwo, TextHThree, ListBullets, ListNumbers, Quotes, LinkSimple as LinkIcon, LinkBreak, Image as ImageIcon } from "@phosphor-icons/react";
+import { type Icon } from "@phosphor-icons/react";
 import type { AdminImage } from "@/lib/api/admin-types";
 import { ImageInsertDialog } from "./image-insert-dialog";
 import { LinkInsertDialog } from "./link-insert-dialog";
@@ -73,45 +62,45 @@ function Toolbar({ editor, allImages }: { editor: Editor; allImages: AdminImage[
   return (
     <div className="flex flex-wrap items-center gap-1 border-b border-border bg-surface px-2 py-1.5">
       <ToolbarButton
-        icon={Bold}
+        icon={TextB}
         label="Negrita"
         active={editor.isActive("bold")}
         onClick={() => editor.chain().focus().toggleBold().run()}
       />
       <ToolbarButton
-        icon={Italic}
+        icon={TextItalic}
         label="Cursiva"
         active={editor.isActive("italic")}
         onClick={() => editor.chain().focus().toggleItalic().run()}
       />
       <ToolbarDivider />
       <ToolbarButton
-        icon={Heading2}
+        icon={TextHTwo}
         label="Título 2"
         active={editor.isActive("heading", { level: 2 })}
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
       />
       <ToolbarButton
-        icon={Heading3}
+        icon={TextHThree}
         label="Título 3"
         active={editor.isActive("heading", { level: 3 })}
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
       />
       <ToolbarDivider />
       <ToolbarButton
-        icon={List}
+        icon={ListBullets}
         label="Lista"
         active={editor.isActive("bulletList")}
         onClick={() => editor.chain().focus().toggleBulletList().run()}
       />
       <ToolbarButton
-        icon={ListOrdered}
+        icon={ListNumbers}
         label="Lista numerada"
         active={editor.isActive("orderedList")}
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
       />
       <ToolbarButton
-        icon={Quote}
+        icon={Quotes}
         label="Cita"
         active={editor.isActive("blockquote")}
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
@@ -124,7 +113,7 @@ function Toolbar({ editor, allImages }: { editor: Editor; allImages: AdminImage[
         onClick={() => setLinkDialogOpen(true)}
       />
       <ToolbarButton
-        icon={Unlink}
+        icon={LinkBreak}
         label="Quitar enlace"
         active={false}
         disabled={!editor.isActive("link")}
@@ -161,7 +150,7 @@ function ToolbarButton({
   disabled,
   onClick,
 }: {
-  icon: LucideIcon;
+  icon: Icon;
   label: string;
   active: boolean;
   disabled?: boolean;
