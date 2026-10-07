@@ -24,6 +24,11 @@ import { Counter, Trend } from "k6/metrics";
 const WEB = __ENV.WEB_URL || "http://localhost:3000";
 const API = __ENV.API_URL || "http://localhost:8080";
 const PERFIL = __ENV.PERFIL || "normal";
+// En producción nginx sirve las páginas desde su caché (60 s, ver
+// infra/nginx/templates/default.conf.template): con PAGINAS_EN_CACHE=1 las
+// páginas no llegan al servidor y solo se mide lo que nginx no cachea
+// (feed, me gusta, anuncios, sugerencias), que es la carga real del origen.
+const PAGINAS_EN_CACHE = __ENV.PAGINAS_EN_CACHE === "1";
 
 const STAGES = {
   humo: [{ duration: "30s", target: 5 }],
@@ -113,6 +118,7 @@ function track(res, trend, name) {
 }
 
 function page(path, name) {
+  if (PAGINAS_EN_CACHE) return null;
   const res = http.get(`${WEB}${path}`, { headers: headers(), tags: { name } });
   track(res, paginaSsr, name);
   check(res, { [`${name}: 200`]: (r) => r.status === 200 });

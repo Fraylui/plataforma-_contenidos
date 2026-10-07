@@ -2167,6 +2167,24 @@ Spec y plan en `docs/superpowers/` (local). El panel cambia de aspecto, no solo 
 - **Muestra:** `/admin/muestra`, solo en desarrollo y sin sesión (el proxy la deja pasar fuera de producción; en producción es 404).
 - **Siguiente (prioridad del dueño):** el compositor de publicaciones (F5 flujo + F6) antes de F2–F4.
 
+## 46.6g Simulación de uso real y carga (k6, 2026-10-07)
+
+`frontend/tests/load/k6-simulacion.js`: personas distintas (IP, navegador, visitorId propios) que entran al inicio, bajan por el feed (scroll infinito), abren posts, dan y quitan «me gusta» (también doble toque simultáneo), buscan con sugerencias y ven anuncios — contra el sitio (Next), no solo la API. Perfiles `humo` / `normal` (50) / `pico` (200) / `quiebre` (600); `PAGINAS_EN_CACHE=1` modela la caché de páginas de nginx de producción (solo llega al origen lo que nginx no cachea). Scripts: `npm run test:api` (contrato), `test:load`, `test:peak`, `test:stress`. Antes de correrla: respaldo de `engagement.content_likes` y `advertising.campaign_daily_stats` (las impresiones y me gusta son datos reales) y comparación al terminar.
+
+Resultados en esta PC (6 CPU para Docker; k6 en la misma máquina):
+
+| Escenario | Antes | Después |
+|---|---|---|
+| Día normal, 50 personas | 0 errores de servidor; p95 páginas 196 ms, API 316 ms | — |
+| Feed, una petición | 54 ms (43 consultas con 18 ítems) | 16 ms (candidatos en memoria) |
+| Backend directo, 200 personas | ~86 pet/s, p95 4,1 s | ~191 pet/s, p95 1,2 s |
+| Pico 200 con páginas en caché de nginx | — | 82 pet/s por Next, p95 1,3 s, backend al 75 % de CPU |
+| Quiebre 600 | — | 0 errores 5xx, nada se cayó; 0,72 % de esperas > 60 s en Next |
+
+Arreglado con TDD: **N+1 del feed** (`default_batch_fetch_size`), **«me gusta» con doble toque** daba 500 por la restricción única (borrar-o-insertar atómico con `ON CONFLICT`), **candidatos del feed en memoria** (`FeedCandidateCache`, válidos mientras no cambie la versión del contenido; me gusta y eventos terminados cada 30 s). También: smoke de contrato actualizado (sin Reseñas ni Geografía, ya retirados); `k6-load`/`k6-stress` reemplazados por la simulación.
+
+**Límite actual:** el servidor de Next (un solo proceso Node) hace de intermediario de feed, me gusta, anuncios y sugerencias y es lo primero que se satura (~80 pet/s aquí). Opciones cuando haga falta (no antes): 2+ instancias de Next detrás de nginx según los núcleos del VPS, o que nginx enrute las rutas de solo-paso directo al backend.
+
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
 Ordenadas por prioridad.

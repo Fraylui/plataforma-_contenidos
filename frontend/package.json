@@ -15,9 +15,10 @@
     "test:a11y": "playwright test accessibility.spec.ts",
     "test:visual": "playwright test visual-regression.spec.ts",
     "test:perf": "lhci autorun",
-    "test:api": "docker run --rm -i --network host -e BASE_URL=http://localhost:8080 grafana/k6 run - < tests/load/k6-smoke.js",
-    "test:load": "docker run --rm -i --network host -e BASE_URL=http://localhost:8080 grafana/k6 run - < tests/load/k6-load.js",
-    "test:stress": "docker run --rm -i --network host -e BASE_URL=http://localhost:8080 grafana/k6 run - < tests/load/k6-stress.js",
+    "test:api": "docker run --rm -i --add-host=host.docker.internal:host-gateway -e BASE_URL=http://host.docker.internal:8080 grafana/k6 run - < tests/load/k6-smoke.js",
+    "test:load": "docker run --rm -i --add-host=host.docker.internal:host-gateway -e PERFIL=normal -e WEB_URL=http://host.docker.internal:3000 -e API_URL=http://host.docker.internal:8080 grafana/k6 run - < tests/load/k6-simulacion.js",
+    "test:peak": "docker run --rm -i --add-host=host.docker.internal:host-gateway -e PERFIL=pico -e WEB_URL=http://host.docker.internal:3000 -e API_URL=http://host.docker.internal:8080 grafana/k6 run - < tests/load/k6-simulacion.js",
+    "test:stress": "docker run --rm -i --add-host=host.docker.internal:host-gateway -e PERFIL=quiebre -e PAGINAS_EN_CACHE=1 -e WEB_URL=http://host.docker.internal:3000 -e API_URL=http://host.docker.internal:8080 grafana/k6 run - < tests/load/k6-simulacion.js",
     "lint:unused": "knip"
   },
   "dependencies": {

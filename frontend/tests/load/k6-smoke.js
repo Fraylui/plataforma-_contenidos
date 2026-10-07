@@ -2,7 +2,7 @@
 // Distinto de los tests de integración de Maven: éste corre contra un
 // binario ya desplegado (Docker/staging/producción), sin Testcontainers,
 // como lo haría un chequeo de salud post-deploy. 1 usuario virtual, sin
-// carga — ver k6-load.js y k6-stress.js para el volumen.
+// carga — ver k6-simulacion.js para el volumen.
 //
 // Uso: docker run --rm -i --network host grafana/k6 run - < k6-smoke.js
 // (o `npm run test:api` que fija BASE_URL a localhost:8080)
@@ -33,7 +33,7 @@ export default function () {
   });
 
   group("listados públicos devuelven 200 y forma esperada", () => {
-    for (const collection of ["articles", "places", "events", "galleries", "reviews", "directory"]) {
+    for (const collection of ["articles", "places", "events", "galleries", "directory"]) {
       const res = http.get(`${BASE_URL}/api/v1/${collection}?size=5`);
       check(res, {
         [`${collection}: status 200`]: (r) => r.status === 200,
@@ -43,9 +43,8 @@ export default function () {
     }
   });
 
-  group("categorías y geografía públicas responden", () => {
+  group("categorías públicas responden", () => {
     check(http.get(`${BASE_URL}/api/v1/categories`), { "categories: 200": (r) => r.status === 200 });
-    check(http.get(`${BASE_URL}/api/v1/geography`), { "geography: 200": (r) => r.status === 200 });
   });
 
   group("autenticación: credenciales inválidas -> 401, endpoints admin sin token -> 403", () => {
