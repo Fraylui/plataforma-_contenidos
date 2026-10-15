@@ -7,6 +7,7 @@ describe("describeAuditAction", () => {
     expect(describeAuditAction("ARTICLE_RETURNED_TO_DRAFT")).toBe("Devolvió a borrador una publicación");
     expect(describeAuditAction("WORKER_DEACTIVATED")).toBe("Desactivó a un trabajador");
     expect(describeAuditAction("LOGIN_FAILURE")).toBe("Intento de inicio de sesión fallido");
+    expect(describeAuditAction("ACCESS_DENIED")).toBe("Intentó entrar a algo sin permiso");
     expect(describeAuditAction("GALLERY_PUBLISHED_FROM_SCHEDULE")).toBe("Publicó una galería a la hora programada");
   });
 

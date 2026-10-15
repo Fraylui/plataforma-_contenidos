@@ -9,6 +9,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import pe.plataformacontenidos.identity.UserRepository;
+import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.identity.permission.OwnerOnlyPaths;
 import pe.plataformacontenidos.identity.permission.PermissionService;
 import pe.plataformacontenidos.identity.security.AccountStateFilter;
@@ -33,7 +35,8 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, JwtService jwtService, PermissionService permissionService,
-            RefreshTokenService refreshTokenService) throws Exception {
+            RefreshTokenService refreshTokenService, AuditService auditService, UserRepository userRepository)
+            throws Exception {
         http
             .csrf(csrf -> csrf.disable()) // API sin estado basada en tokens; se reevalúa si se agregan endpoints basados en cookies/sesión
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -73,6 +76,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/users/me", "/api/v1/users/me/**").authenticated()
                 .anyRequest().denyAll()
             )
+            .exceptionHandling(e -> e.accessDeniedHandler(new AuditingAccessDeniedHandler(auditService, userRepository)))
             .addFilterBefore(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
             // Después del token: cuenta desactivada → 401; contraseña temporal → solo puede cambiarla.
             .addFilterAfter(new AccountStateFilter(permissionService, refreshTokenService), JwtAuthenticationFilter.class);

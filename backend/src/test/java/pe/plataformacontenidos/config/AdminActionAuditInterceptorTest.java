@@ -25,11 +25,14 @@ class AdminActionAuditInterceptorTest {
     }
 
     private final List<Recorded> recorded = new ArrayList<>();
+    private final List<String> details = new ArrayList<>();
     private final AuditService audit = new AuditService(null) {
+        // La versión sin detalle delega en esta, así que aquí se capturan las dos.
         @Override
         public void record(String action, AuditResult result, UUID actorUserId, String actorEmail,
-                String resourceType, String resourceId, String ipAddress) {
+                String resourceType, String resourceId, String ipAddress, String detail) {
             recorded.add(new Recorded(action, result, actorUserId, actorEmail, resourceType, resourceId, ipAddress));
+            details.add(detail);
         }
     };
     private final UUID adminId = UUID.randomUUID();
@@ -94,6 +97,19 @@ class AdminActionAuditInterceptorTest {
                 new MockHttpServletResponse(), new Object(), null);
 
         assertThat(recorded).isEmpty();
+    }
+
+    @Test
+    void recordsReadsDeniedByPermissions() throws Exception {
+        signIn();
+        var response = new MockHttpServletResponse();
+        response.setStatus(403);
+        interceptor.afterCompletion(adminRequest("GET", "/api/v1/admin/workers", "/api/v1/admin/workers", Map.of()),
+                response, new Object(), null);
+
+        assertThat(recorded).containsExactly(new Recorded(AdminActionAuditInterceptor.ACCESS_DENIED, AuditResult.FAILURE,
+                adminId, "dueno@ejemplo.com", "workers", null, "190.12.34.56"));
+        assertThat(details).containsExactly("GET /admin/workers");
     }
 
     @Test

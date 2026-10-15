@@ -28,6 +28,9 @@ import pe.plataformacontenidos.identity.security.UserPrincipal;
  * servicio: cualquier endpoint nuevo del panel queda auditado sin tocar
  * código.
  *
+ * Las lecturas rechazadas por permisos (403) se registran como
+ * ACCESS_DENIED (ISO 27001 A.8.16, monitoreo de intentos de acceso).
+ *
  * Las acciones que ya registran un evento propio más preciso (login,
  * usuarios, configuración, imágenes) marcan la petición
  * (AuditService.RECORDED_ATTRIBUTE) y acá no se duplican.
@@ -35,6 +38,8 @@ import pe.plataformacontenidos.identity.security.UserPrincipal;
 public class AdminActionAuditInterceptor implements HandlerInterceptor {
 
     private static final String API_PREFIX = "/api/v1";
+    /** Mismo código que AuditingAccessDeniedHandler (rutas exclusivas del dueño). */
+    public static final String ACCESS_DENIED = "ACCESS_DENIED";
     private static final Set<String> MUTATING = Set.of("POST", "PUT", "PATCH", "DELETE");
 
     private final AuditService auditService;
@@ -48,14 +53,21 @@ public class AdminActionAuditInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
         UUID actor = currentActor();
-        if (actor == null || !MUTATING.contains(request.getMethod())
-                || request.getAttribute(AuditService.RECORDED_ATTRIBUTE) != null) {
+        boolean denied = response.getStatus() == HttpServletResponse.SC_FORBIDDEN;
+        if (actor == null || request.getAttribute(AuditService.RECORDED_ATTRIBUTE) != null
+                || !(MUTATING.contains(request.getMethod()) || denied)) {
             return;
         }
         Object pattern = request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         String path = pattern instanceof String p ? p : request.getRequestURI();
         String route = path.startsWith(API_PREFIX) ? path.substring(API_PREFIX.length()) : path;
         String resourceType = route.replaceFirst("^/(admin/)?", "").split("/", 2)[0];
+        if (!MUTATING.contains(request.getMethod())) {
+            // Lectura rechazada por permisos (ej. abrir un módulo que no tiene): también queda registrada.
+            auditService.record(ACCESS_DENIED, AuditResult.FAILURE, actor, emailOf.apply(actor).orElse(null),
+                    resourceType, resourceId(request), request.getRemoteAddr(), request.getMethod() + " " + route);
+            return;
+        }
         AuditResult result = ex == null && response.getStatus() < 400 ? AuditResult.SUCCESS : AuditResult.FAILURE;
 
         auditService.record(request.getMethod() + " " + route, result, actor,

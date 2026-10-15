@@ -13,6 +13,7 @@ export const RESOURCE_LABELS: Record<string, string> = {
   user: "Cuenta",
   platform_settings: "Configuración",
   refresh_token: "Sesión",
+  owner_only: "Solo del dueño",
 };
 
 const SUBJECTS: Record<string, string> = {
@@ -51,6 +52,7 @@ const FIXED: Record<string, string> = {
   WORKER_PERMISSIONS_CHANGED: "Cambió los permisos de un trabajador",
   WORKER_PASSWORD_RESET: "Restableció la contraseña de un trabajador",
   AUDIT_RETENTION_PURGED: "Limpieza automática del registro antiguo",
+  ACCESS_DENIED: "Intentó entrar a algo sin permiso",
 };
 
 const METHOD_VERBS: Record<string, string> = { POST: "Acción", PUT: "Cambio", PATCH: "Cambio", DELETE: "Borrado" };
