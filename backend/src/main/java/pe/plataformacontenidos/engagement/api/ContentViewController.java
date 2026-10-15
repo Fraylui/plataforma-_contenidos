@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +34,12 @@ public class ContentViewController {
     public ResponseEntity<Void> record(@Valid @RequestBody ViewRequest body, HttpServletRequest request) {
         counter.record(body.type(), body.id(), request.getRemoteAddr(), request.getHeader(HttpHeaders.USER_AGENT));
         return ResponseEntity.noContent().build();
+    }
+
+    /** Cuerpo ilegible o tipo inexistente: 400 directo (el reenvío a /error lo convertiría en 403, ver FeedExceptionHandler). */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Void> unreadable() {
+        return ResponseEntity.badRequest().build();
     }
 
     public record ViewRequest(@NotNull ContentType type, @NotNull UUID id) {
