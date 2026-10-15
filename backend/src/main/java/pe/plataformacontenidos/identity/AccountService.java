@@ -56,7 +56,7 @@ public class AccountService {
         if (loginRateLimiter.isBlocked(attemptsKey)) {
             throw new TooManyAttemptsException();
         }
-        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+        if (!PasswordPolicy.fitsHashLimit(currentPassword) || !passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
             loginRateLimiter.recordFailedAttempt(attemptsKey);
             auditService.record("PASSWORD_CHANGE_FAILED", AuditResult.FAILURE, userId, user.getEmail(), "user", userId.toString(), ipAddress);
             throw new WrongCurrentPasswordException();

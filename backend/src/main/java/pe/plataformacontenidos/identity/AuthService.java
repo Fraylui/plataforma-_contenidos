@@ -42,6 +42,7 @@ public class AuthService {
         Optional<User> maybeUser = userRepository.findByEmailIgnoreCase(email);
         boolean validPassword = maybeUser.isPresent()
                 && maybeUser.get().isActive()
+                && PasswordPolicy.fitsHashLimit(rawPassword)
                 && passwordEncoder.matches(rawPassword, maybeUser.get().getPasswordHash());
 
         if (!validPassword) {
