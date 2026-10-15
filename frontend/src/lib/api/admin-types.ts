@@ -305,6 +305,17 @@ export interface AdminContentPage<T> {
   engagement: Record<string, EngagementCounts>;
 }
 
+/** Programar o editar una transmisión en vivo (LiveDtos.LiveRequest). */
+export interface LiveInput {
+  videoUrl: string;
+  title: string;
+  description?: string;
+  categoryId: string;
+  seriesId?: string | null;
+  /** ISO; vacío = "muy pronto", sin hora. */
+  scheduledStart?: string | null;
+}
+
 /** Serie en el panel (SeriesDtos.SeriesResponse): incluye el estado de la sincronización con YouTube. */
 export interface AdminSeries {
   id: string;

@@ -423,3 +423,21 @@ export interface EpisodeView {
   older: Episode | null;
   likeCount: number;
 }
+
+/** Transmisión en vivo de YouTube (LiveDtos.LiveResponse). El estado lo marca el equipo en el panel. */
+export type LiveStatus = "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+
+export interface LiveStream {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  youtubeVideoId: string;
+  categoryId: string;
+  seriesId: string | null;
+  status: LiveStatus;
+  scheduledStart: string | null;
+  startedAt: string | null;
+  endedAt: string | null;
+  createdAt: string;
+}

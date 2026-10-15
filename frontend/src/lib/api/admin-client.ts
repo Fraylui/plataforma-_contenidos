@@ -33,6 +33,7 @@ import type {
   DashboardRange,
   DashboardSummary,
   EventInput,
+  LiveInput,
   GalleryInput,
   PlaceInput,
   PlatformSettingsInput,
@@ -47,6 +48,7 @@ import type {
   Business,
   Category,
   Episode,
+  LiveStream,
   Event,
   Gallery,
   PageResponse,
@@ -511,6 +513,38 @@ export function getAdminStats(accessToken: string): Promise<PlatformStats> {
 
 export function getAdminDashboard(accessToken: string, range: DashboardRange): Promise<DashboardSummary> {
   return authedJson(`/api/v1/admin/dashboard?range=${range}`, accessToken);
+}
+
+// --- En vivo (LiveAdminController) ---
+
+export function listAdminLive(accessToken: string, page = 0): Promise<PageResponse<LiveStream>> {
+  return authedJson(`/api/v1/admin/live?page=${page}&size=30`, accessToken);
+}
+
+export function getAdminLive(accessToken: string, id: string): Promise<LiveStream> {
+  return authedJson(`/api/v1/admin/live/${encodeURIComponent(id)}`, accessToken);
+}
+
+export function createLive(accessToken: string, input: LiveInput): Promise<LiveStream> {
+  return authedJson("/api/v1/admin/live", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateLive(accessToken: string, id: string, input: LiveInput): Promise<LiveStream> {
+  return authedJson(`/api/v1/admin/live/${encodeURIComponent(id)}`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export type LiveStep = "start" | "end" | "cancel";
+
+export function runLiveStep(accessToken: string, id: string, step: LiveStep): Promise<LiveStream> {
+  return authedJson(`/api/v1/admin/live/${encodeURIComponent(id)}/${step}`, accessToken, { method: "POST" });
 }
 
 // --- Series (SeriesAdminController) ---

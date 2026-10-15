@@ -20,6 +20,7 @@ import type {
   FeedItemType,
   FeedPage,
   FeedTopic,
+  LiveStream,
   Gallery,
   GallerySummary,
   PageResponse,
@@ -201,6 +202,30 @@ function listPublishedGalleries(params?: {
 
 export function getPublishedGalleryBySlug(slug: string): Promise<Gallery> {
   return apiFetch(`/api/v1/galleries/${encodeURIComponent(slug)}`, 300);
+}
+
+// --- En vivo (transmisiones de YouTube) ---
+
+/**
+ * La transmisión en vivo ahora, o null. Revalida cada 30 s: cuando el
+ * equipo toca "Estamos en vivo", el aviso del inicio aparece en menos de un
+ * minuto sin que cada visita consulte al backend.
+ */
+export async function getLiveNow(): Promise<LiveStream | null> {
+  const res = await fetch(`${BACKEND_API_URL}/api/v1/live/now`, {
+    next: { revalidate: 30, tags: [PUBLIC_CONTENT_TAG] },
+  });
+  if (res.status === 204) return null;
+  if (!res.ok) throw new Error(`Error del backend (${res.status}) en /api/v1/live/now`);
+  return (await res.json()) as LiveStream;
+}
+
+export function listUpcomingLive(): Promise<LiveStream[]> {
+  return apiFetch("/api/v1/live/upcoming", 60);
+}
+
+export function getLiveBySlug(slug: string): Promise<LiveStream> {
+  return apiFetch(`/api/v1/live/${encodeURIComponent(slug)}`, 30);
 }
 
 // --- Series (programas de YouTube) ---

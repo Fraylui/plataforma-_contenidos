@@ -1,6 +1,7 @@
 import {
   getFeed,
   getFeedTopics,
+  getLiveNow,
   getPlatformSettings,
   getPrimaryNavVisibility,
   getTopLiked,
@@ -11,6 +12,7 @@ import {
 import type { AdSection } from "@/lib/ads/ad-context";
 import { fromFeedItem } from "@/lib/home-items";
 import { imageUrl } from "@/lib/image-url";
+import { LiveBanner } from "@/components/live/live-banner";
 import { TopicStories, type TopicStory } from "./topic-stories";
 import { FilterChips } from "./filter-chips";
 import { typeChipOptions } from "./type-chips";
@@ -60,7 +62,7 @@ export async function FeedScreen({
 }) {
   const seed = `${activePath}${filter.categoryId ?? ""}-${new Date().toISOString().slice(0, 13)}`;
   const agenda = filter.sort === "upcoming";
-  const [settings, categories, topics, feedPage, events, visibility, placements, topLikedRaw] = await Promise.all([
+  const [settings, categories, topics, feedPage, events, visibility, placements, topLikedRaw, liveNow] = await Promise.all([
     getPlatformSettings(),
     listActiveCategories(),
     getFeedTopics().catch(() => []),
@@ -70,6 +72,8 @@ export async function FeedScreen({
     getPrimaryNavVisibility(),
     listActiveAdPlacements(),
     getTopLiked(5).catch(() => []),
+    // Si el backend de En vivo falla, el feed sigue: solo no se muestra el aviso.
+    getLiveNow().catch(() => null),
   ]);
 
   const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
@@ -99,6 +103,7 @@ export async function FeedScreen({
             <h1 className="sr-only">{heading}</h1>
           )}
           <div className="px-4 sm:px-0">
+            {liveNow && <LiveBanner stream={liveNow} />}
             <TopicStories topics={stories} activeCategoryId={activeCategoryId} />
             <FilterChips label="Tipo de contenido" options={typeChipOptions(visibility, activePath)} className="mt-2 mb-3" />
           </div>
