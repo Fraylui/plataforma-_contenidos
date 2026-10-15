@@ -84,7 +84,7 @@ export function PlaceComposer({ categories, allImages, place, permissions, siteN
         publish={
           <PublishPanel
             kind="places"
-            item={{ id, status, scheduledAt: place?.scheduledAt ?? null, reviewNote: place?.reviewNote ?? null }}
+            item={{ id, status, scheduledAt: place?.scheduledAt ?? null }}
             permissions={permissions}
             dirty={form.formState.isDirty}
             saving={saving}

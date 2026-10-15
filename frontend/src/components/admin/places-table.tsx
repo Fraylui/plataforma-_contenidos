@@ -55,7 +55,6 @@ export function PlacesTable({ page, currentUser }: { page: AdminContentPage<Plac
             permissions={computePublicationPermissions(row.original, currentUser, "places")}
             itemLabel="este lugar"
           kind="places"
-          status={row.original.status}
           />
         ),
       },

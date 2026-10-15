@@ -1,4 +1,4 @@
-import { canPublishAnyContent } from "@/lib/admin/permissions";
+import { hasAnyContentModule } from "@/lib/admin/permissions";
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { listAdminImages } from "@/lib/api/admin-client";
@@ -19,7 +19,7 @@ export default async function AdminMediaPage() {
   const result = await fetchOrAccessDenied(() => listAdminImages(accessToken));
   if ("denied" in result) return <AccessDenied />;
   const sorted = [...result.data].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  const isEditorOrAbove = canPublishAnyContent(user);
+  const canManageAll = hasAnyContentModule(user);
 
   return (
     <div>
@@ -37,7 +37,7 @@ export default async function AdminMediaPage() {
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sorted.map((image) => (
-            <ImageCard key={image.id} image={image} canManage={isEditorOrAbove || image.uploadedBy === user.id} />
+            <ImageCard key={image.id} image={image} canManage={canManageAll || image.uploadedBy === user.id} />
           ))}
         </div>
       )}

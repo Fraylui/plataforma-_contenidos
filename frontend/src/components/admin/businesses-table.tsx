@@ -60,7 +60,6 @@ export function BusinessesTable({ page, currentUser }: { page: AdminContentPage<
             permissions={computePublicationPermissions(row.original, currentUser, "directory")}
             itemLabel="esta ficha"
           kind="directory"
-          status={row.original.status}
           />
         ),
       },

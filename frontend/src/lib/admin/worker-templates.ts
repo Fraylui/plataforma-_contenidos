@@ -10,15 +10,9 @@ export interface WorkerTemplate {
 /** Plantillas de trabajador: deben coincidir con Templates.java (spec 2a §3.4). Solo precargan la matriz. */
 export const WORKER_TEMPLATES: WorkerTemplate[] = [
   {
-    id: "CREADOR",
-    label: "Creador",
-    description: "Crea en todo y lo envía a revisión",
-    permissions: { ARTICLES: "CREATE", PLACES: "CREATE", EVENTS: "CREATE", GALLERIES: "CREATE", DIRECTORY: "CREATE" },
-  },
-  {
     id: "PUBLICADOR",
     label: "Publicador",
-    description: "Revisa y publica todo; temas y estadísticas",
+    description: "Publica en todo; temas y estadísticas",
     permissions: {
       ARTICLES: "PUBLISH",
       PLACES: "PUBLISH",

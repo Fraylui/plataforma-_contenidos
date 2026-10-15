@@ -14,7 +14,6 @@ vi.mock("@/app/admin/(protected)/publication-actions", () => ({
 
 const NONE: PublicationPermissions = {
   canEdit: false,
-  canSubmit: false,
   canPublish: false,
   canSchedule: false,
   canReturnToDraft: false,
@@ -30,7 +29,7 @@ function renderPanel(
   const utils = render(
     <PublishPanel
       kind="articles"
-      item={{ id: "item-1", status, scheduledAt: null, reviewNote: null }}
+      item={{ id: "item-1", status, scheduledAt: null}}
       permissions={{ ...NONE, ...permissions }}
       dirty={false}
       saving={false}
@@ -42,30 +41,14 @@ function renderPanel(
 }
 
 describe("PublishPanel", () => {
-  it("quien crea: «Enviar para aprobar» y guardar, sin publicar", async () => {
-    const { container } = renderPanel("DRAFT", { canEdit: true, canSubmit: true });
-    expect(screen.getByRole("button", { name: "Enviar para aprobar" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Guardar borrador" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Publicar" })).not.toBeInTheDocument();
-    expect(screen.getByText("Borrador")).toBeInTheDocument();
-    expect(await axe(container)).toHaveNoViolations();
-  });
-
-  it("quien publica: «Publicar» como acción principal, con programar y guardar", () => {
-    renderPanel("DRAFT", { canEdit: true, canPublish: true, canSchedule: true });
+  it("con el módulo: «Publicar» como acción principal, con programar y guardar", async () => {
+    const { container } = renderPanel("DRAFT", { canEdit: true, canPublish: true, canSchedule: true });
     expect(screen.getByRole("button", { name: "Publicar" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Programar" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Guardar borrador" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Enviar para aprobar" })).not.toBeInTheDocument();
-  });
-
-  it("pendiente para quien publica: publicar o devolver con nota", async () => {
-    renderPanel("IN_REVIEW", { canEdit: true, canPublish: true, canSchedule: true, canReturnToDraft: true });
-    expect(screen.getByText("Pendiente de aprobación")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Devolver a borrador" }));
-    await userEvent.type(screen.getByLabelText("Nota para quien lo creó (opcional)"), "Falta la portada");
-    await userEvent.click(screen.getByRole("button", { name: "Devolver" }));
-    expect(publicationStepAction).toHaveBeenCalledWith("articles", "item-1", "return-to-draft", { note: "Falta la portada" });
+    expect(screen.queryByText(/aprobar/i)).not.toBeInTheDocument();
+    expect(screen.getByText("Borrador")).toBeInTheDocument();
+    expect(await axe(container)).toHaveNoViolations();
   });
 
   it("programado: muestra la fecha absoluta, publicar ahora o quitar la programación", async () => {
@@ -73,7 +56,7 @@ describe("PublishPanel", () => {
     renderPanel(
       "SCHEDULED",
       { canEdit: true, canPublish: true, canSchedule: true, canReturnToDraft: true },
-      { item: { id: "item-1", status: "SCHEDULED", scheduledAt: when, reviewNote: null } },
+      { item: { id: "item-1", status: "SCHEDULED", scheduledAt: when} },
     );
     expect(screen.getByText(`Se publicará ${formatEventDateTime(when)}`)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Publicar ahora" })).toBeInTheDocument();
@@ -87,13 +70,6 @@ describe("PublishPanel", () => {
     expect(screen.getByRole("button", { name: "Archivar" })).toBeInTheDocument();
   });
 
-  it("la nota de devolución se ve en el borrador", () => {
-    renderPanel("DRAFT", { canEdit: true, canSubmit: true }, {
-      item: { id: "item-1", status: "DRAFT", scheduledAt: null, reviewNote: "Agrega una foto de portada" },
-    });
-    expect(screen.getByRole("note")).toHaveTextContent("Agrega una foto de portada");
-  });
-
   it("con cambios sin guardar, publicar guarda primero y publica lo guardado", async () => {
     const { onSave } = renderPanel("DRAFT", { canEdit: true, canPublish: true, canSchedule: true }, { dirty: true });
     await userEvent.click(screen.getByRole("button", { name: "Publicar" }));
@@ -104,7 +80,7 @@ describe("PublishPanel", () => {
   it("algo nuevo aún sin guardar: publicar lo crea primero aunque no haya cambios", async () => {
     const onSave = vi.fn().mockResolvedValue("nuevo-1");
     renderPanel("DRAFT", { canEdit: true, canPublish: true }, {
-      item: { id: "", status: "DRAFT", scheduledAt: null, reviewNote: null },
+      item: { id: "", status: "DRAFT", scheduledAt: null},
       onSave,
     });
     await userEvent.click(screen.getByRole("button", { name: "Publicar" }));

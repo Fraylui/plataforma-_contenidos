@@ -9,7 +9,7 @@ export interface AdminListParams {
   page: number;
 }
 
-const STATUSES: readonly PublicationStatus[] = ["DRAFT", "IN_REVIEW", "SCHEDULED", "PUBLISHED", "ARCHIVED"];
+const STATUSES: readonly PublicationStatus[] = ["DRAFT", "SCHEDULED", "PUBLISHED", "ARCHIVED"];
 
 function first(value: string | string[] | undefined): string | undefined {
   const v = Array.isArray(value) ? value[0] : value;
@@ -43,7 +43,6 @@ export function adminListQuery(params: AdminListParams, size = 20): string {
 /** Opciones del filtro de estado, en el orden del flujo. */
 export const STATUS_FILTER_OPTIONS: { value: PublicationStatus; label: string }[] = [
   { value: "DRAFT", label: "Borradores" },
-  { value: "IN_REVIEW", label: "Para aprobar" },
   { value: "SCHEDULED", label: "Programados" },
   { value: "PUBLISHED", label: "Publicados" },
   { value: "ARCHIVED", label: "Archivados" },

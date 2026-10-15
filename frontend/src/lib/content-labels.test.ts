@@ -4,7 +4,7 @@ import type { ArticleType, PublicationStatus } from "@/lib/api/types";
 
 const ALL_ARTICLE_TYPES: ArticleType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA", "ENTREVISTA"];
 
-const ALL_STATUSES: PublicationStatus[] = ["DRAFT", "IN_REVIEW", "SCHEDULED", "PUBLISHED", "ARCHIVED"];
+const ALL_STATUSES: PublicationStatus[] = ["DRAFT", "SCHEDULED", "PUBLISHED", "ARCHIVED"];
 
 // Sobre todo para que un nuevo valor del enum (backend) que se olvide
 // agregar acá explote en un test en vez de mostrar `undefined` en la UI.
@@ -20,7 +20,6 @@ describe("mapas de etiquetas", () => {
   it("estados de plataforma, sin pasos de redacción", () => {
     expect(ALL_STATUSES.map(publicationStatusLabel)).toEqual([
       "Borrador",
-      "Pendiente de aprobación",
       "Programado",
       "Publicado",
       "Archivado",
@@ -28,7 +27,7 @@ describe("mapas de etiquetas", () => {
   });
 
   it("cada estado tiene su color y solo lo publicado es verde de éxito", () => {
-    expect(ALL_STATUSES.map(publicationStatusTone)).toEqual(["neutral", "info", "warning", "success", "neutral"]);
+    expect(ALL_STATUSES.map(publicationStatusTone)).toEqual(["neutral", "warning", "success", "neutral"]);
   });
 });
 

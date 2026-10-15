@@ -17,7 +17,6 @@ export function articleTypeLabel(type: ArticleType): string {
 
 const PUBLICATION_STATUS_LABELS: Record<PublicationStatus, string> = {
   DRAFT: "Borrador",
-  IN_REVIEW: "Pendiente de aprobación",
   SCHEDULED: "Programado",
   PUBLISHED: "Publicado",
   ARCHIVED: "Archivado",
@@ -30,7 +29,6 @@ export function publicationStatusLabel(status: PublicationStatus): string {
 // Color de la etiqueta de estado (Badge) — backend: shared.publishing.PublicationStatus.
 const PUBLICATION_STATUS_TONE: Record<PublicationStatus, BadgeTone> = {
   DRAFT: "neutral",
-  IN_REVIEW: "info",
   SCHEDULED: "warning",
   PUBLISHED: "success",
   ARCHIVED: "neutral",

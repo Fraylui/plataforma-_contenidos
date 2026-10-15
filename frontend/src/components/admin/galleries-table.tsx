@@ -61,7 +61,6 @@ export function GalleriesTable({ page, currentUser }: { page: AdminContentPage<G
             permissions={computePublicationPermissions(row.original, currentUser, "galleries")}
             itemLabel="esta galería"
           kind="galleries"
-          status={row.original.status}
           />
         ),
       },

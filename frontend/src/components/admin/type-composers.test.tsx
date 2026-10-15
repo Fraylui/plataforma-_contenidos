@@ -32,7 +32,6 @@ vi.mock("next/dynamic", () => ({ default: () => () => null }));
 const CATEGORIES = [{ id: "cat-1", name: "Viajes", slug: "viajes", description: null, parentId: null, active: true, sortOrder: 0 }] as Category[];
 const PUBLISHER: PublicationPermissions = {
   canEdit: true,
-  canSubmit: false,
   canPublish: true,
   canSchedule: true,
   canReturnToDraft: false,

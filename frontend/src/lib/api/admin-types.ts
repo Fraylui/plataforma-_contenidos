@@ -16,8 +16,8 @@ export type Role = "OWNER" | "WORKER";
 /** Módulos que se asignan a un trabajador (espejo de Module.java). */
 export type Module = "ARTICLES" | "PLACES" | "EVENTS" | "GALLERIES" | "DIRECTORY" | "CATEGORIES" | "STATS" | "ADVERTISING";
 
-/** CREATE: lo propio a revisión · PUBLISH: publica lo de todos · ACCESS: módulos que no son de contenido. */
-export type AccessLevel = "CREATE" | "PUBLISH" | "ACCESS";
+/** PUBLISH: módulo de contenido (crea y publica directo) · ACCESS: módulos que no son de contenido. */
+export type AccessLevel = "PUBLISH" | "ACCESS";
 
 export type ModulePermissions = Partial<Record<Module, AccessLevel>>;
 
@@ -320,8 +320,6 @@ export interface DashboardSummary {
   series: { day: string; views: number; likes: number; published: number }[];
   topViewed: { type: FeedItemType; id: string; title: string; slug: string; views: number }[];
   byTypeAndStatus: Partial<Record<FeedItemType, Partial<Record<PublicationStatus, number>>>>;
-  pendingCount: number;
-  pending: DashboardContentRow[];
   recent: DashboardContentRow[];
   /** null si el usuario no tiene el módulo de publicidad. */
   ads: { impressions: number; clicks: number; previousImpressions: number; previousClicks: number } | null;

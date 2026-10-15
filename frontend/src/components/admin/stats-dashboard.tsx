@@ -13,7 +13,7 @@ const SECTION_TITLE_CLASS = "flex items-center gap-2 text-xs font-semibold track
 // producción". ARCHIVED es el estado terminal, fuera de la línea activa:
 // se muestra aparte para no romper la proporción
 // de la barra con contenido que ya salió de circulación.
-const PIPELINE: PublicationStatus[] = ["DRAFT", "IN_REVIEW", "SCHEDULED", "PUBLISHED"];
+const PIPELINE: PublicationStatus[] = ["DRAFT", "SCHEDULED", "PUBLISHED"];
 const OFF_LINE: PublicationStatus[] = ["ARCHIVED"];
 
 function todayDateline(): string {

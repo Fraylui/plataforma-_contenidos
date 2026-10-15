@@ -20,7 +20,7 @@ export default async function NewPlacePage() {
   ]);
 
   // Lo nuevo es un borrador propio: mismos permisos que tendrá al guardarse.
-  const permissions = computePublicationPermissions({ status: "DRAFT", authorId: user.id }, user, "places");
+  const permissions = computePublicationPermissions({ status: "DRAFT" }, user, "places");
 
   return (
     <div className="space-y-6">

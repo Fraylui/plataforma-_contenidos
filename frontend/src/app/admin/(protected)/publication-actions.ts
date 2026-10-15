@@ -20,7 +20,7 @@ export async function publicationStepAction(
   kind: PublicationKind,
   id: string,
   step: PublicationStep,
-  body?: { scheduledAt?: string; note?: string },
+  body?: { scheduledAt?: string },
 ): Promise<ActionResult> {
   if (!isPublicationKind(kind) || !PUBLICATION_STEPS.includes(step)) {
     return { ok: false, error: "Acción no válida." };

@@ -88,7 +88,7 @@ export function EventComposer({ categories, places, allImages, event, permission
         publish={
           <PublishPanel
             kind="events"
-            item={{ id, status, scheduledAt: event?.scheduledAt ?? null, reviewNote: event?.reviewNote ?? null }}
+            item={{ id, status, scheduledAt: event?.scheduledAt ?? null }}
             permissions={permissions}
             dirty={form.formState.isDirty}
             saving={saving}

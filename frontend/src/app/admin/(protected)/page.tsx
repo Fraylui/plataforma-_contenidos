@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { Icon } from "@phosphor-icons/react";
 import {
-  Warning,
+  Globe,
   Eye,
   Heart,
   Article,
   ClockCounterClockwise,
-  ListChecks,
   TrendUp,
   TrendDown,
   Megaphone,
@@ -87,20 +86,6 @@ export default async function AdminDashboardPage(props: PageProps<"/admin">) {
         )}
       </div>
 
-      {dashboard && dashboard.pending[0] && (
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3">
-          <p className="flex items-center gap-2 text-sm font-medium text-accent">
-            <Warning className="h-4 w-4" aria-hidden="true" />
-            {dashboard.pendingCount} {dashboard.pendingCount === 1 ? "contenido espera" : "contenidos esperan"} aprobación.
-          </p>
-          <Link
-            href={`${CONTENT_TYPE_INFO[dashboard.pending[0].type].adminPath}/${dashboard.pending[0].id}`}
-            className="rounded-md bg-accent-fill px-3 py-1.5 text-xs font-semibold text-accent-foreground transition-opacity hover:opacity-90"
-          >
-            Revisar ahora
-          </Link>
-        </div>
-      )}
 
       {dashboard && <DashboardBody dashboard={dashboard} canSeeStats={canSeeStats} />}
 
@@ -108,27 +93,6 @@ export default async function AdminDashboardPage(props: PageProps<"/admin">) {
         <div className="lg:col-span-2">{dashboard && <RecentContent dashboard={dashboard} />}</div>
 
         <div className="space-y-6">
-          {dashboard && dashboard.pending.length > 0 && (
-            <div className="rounded-card bg-surface shadow-card p-4">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <ListChecks className="h-4 w-4 text-muted" aria-hidden="true" />
-                Para aprobar
-              </h2>
-              <ul className="mt-3 space-y-1.5">
-                {dashboard.pending.slice(0, 6).map((item) => (
-                  <li key={`${item.type}-${item.id}`}>
-                    <Link
-                      href={`${CONTENT_TYPE_INFO[item.type].adminPath}/${item.id}`}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-transparent px-2.5 py-2 text-sm transition-colors hover:border-border hover:bg-background"
-                    >
-                      <span className="min-w-0 truncate font-medium text-foreground">{item.title}</span>
-                      <span className="shrink-0 text-xs text-muted">{CONTENT_TYPE_INFO[item.type].label}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
 
           {canSeeAudit && (
             <div className="rounded-card bg-surface shadow-card p-4">
@@ -203,6 +167,11 @@ function KpiCard({ label, icon, kpi, values, rangeDays }: {
   );
 }
 
+/** Contenido publicado en este momento, sumando los tipos que la persona puede ver. */
+function publishedNow(dashboard: DashboardSummary): number {
+  return Object.values(dashboard.byTypeAndStatus).reduce((total, byStatus) => total + (byStatus?.PUBLISHED ?? 0), 0);
+}
+
 function DashboardBody({ dashboard, canSeeStats }: { dashboard: DashboardSummary; canSeeStats: boolean }) {
   const { series, rangeDays, ads } = dashboard;
   const impressionsChange = ads ? kpiChange({ current: ads.impressions, previous: ads.previousImpressions }) : null;
@@ -228,11 +197,11 @@ function DashboardBody({ dashboard, canSeeStats }: { dashboard: DashboardSummary
           </div>
         ) : (
           <div className={CARD}>
-            <CardHeader label="Para aprobar" icon={ListChecks} />
-            <p className={`mt-3 text-3xl font-bold tracking-tight tabular-nums ${dashboard.pendingCount > 0 ? "text-accent" : "text-foreground"}`}>
-              {NUMBER.format(dashboard.pendingCount)}
+            <CardHeader label="En el sitio" icon={Globe} />
+            <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-foreground">
+              {NUMBER.format(publishedNow(dashboard))}
             </p>
-            <p className="mt-1 text-xs text-muted">Contenido enviado que espera publicarse</p>
+            <p className="mt-1 text-xs text-muted">Contenido publicado ahora</p>
           </div>
         )}
       </div>

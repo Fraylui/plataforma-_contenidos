@@ -57,7 +57,7 @@ export function GalleryComposer({ categories, allImages, gallery, permissions, s
         publish={
           <PublishPanel
             kind="galleries"
-            item={{ id, status, scheduledAt: gallery?.scheduledAt ?? null, reviewNote: gallery?.reviewNote ?? null }}
+            item={{ id, status, scheduledAt: gallery?.scheduledAt ?? null }}
             permissions={permissions}
             dirty={form.formState.isDirty}
             saving={saving}

@@ -574,15 +574,14 @@ export function listPlaceOptions(accessToken: string): Promise<PlaceOption[]> {
 
 /**
  * Un paso del flujo de publicación, igual para los 5 tipos de contenido
- * (POST /api/v1/admin/{tipo}/{id}/{paso}). `scheduledAt` para programar,
- * `note` para devolver a borrador.
+ * (POST /api/v1/admin/{tipo}/{id}/{paso}). `scheduledAt` para programar.
  */
 export function runPublicationStep(
   accessToken: string,
   kind: PublicationKind,
   id: string,
   step: PublicationStep,
-  body?: { scheduledAt?: string; note?: string },
+  body?: { scheduledAt?: string },
 ): Promise<unknown> {
   return authedJson(`/api/v1/admin/${kind}/${encodeURIComponent(id)}/${step}`, accessToken, {
     method: "POST",

@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { CalendarCheck, ChatCircleText, FloppyDisk, PaperPlaneTilt, X } from "@phosphor-icons/react";
-import { ArchiveButton, Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/admin/ui";
-import { Badge, Button, DateTimeInput, Field, TextArea } from "@/components/ui";
+import { CalendarCheck, FloppyDisk, PaperPlaneTilt, X } from "@phosphor-icons/react";
+import { ArchiveButton } from "@/components/admin/ui";
+import { Badge, Button, DateTimeInput, Field } from "@/components/ui";
 import { publicationStepAction } from "@/app/admin/(protected)/publication-actions";
 import { formatEventDateTime, publicationStatusLabel, publicationStatusTone } from "@/lib/content-labels";
 import { PUBLICATION_KINDS, type PublicationKind, type PublicationPermissions, type PublicationStep } from "@/lib/admin/publication";
@@ -16,14 +16,13 @@ export interface PublishPanelItem {
   id: string;
   status: PublicationStatus;
   scheduledAt: string | null;
-  reviewNote: string | null;
 }
 
 interface PublishPanelProps {
   kind: PublicationKind;
   item: PublishPanelItem;
   permissions: PublicationPermissions;
-  /** Hay cambios del formulario sin guardar: publicar o enviar guarda primero. */
+  /** Hay cambios del formulario sin guardar: publicar guarda primero. */
   dirty: boolean;
   saving: boolean;
   /** Guarda el formulario; devuelve el id guardado, o null si no se pudo (el formulario muestra el error). */
@@ -33,7 +32,6 @@ interface PublishPanelProps {
 }
 
 const SUCCESS: Record<PublicationStep, string> = {
-  submit: "Enviado para aprobar",
   publish: "Publicado",
   schedule: "Programado",
   "return-to-draft": "Volvió a borrador",
@@ -43,26 +41,24 @@ const SUCCESS: Record<PublicationStep, string> = {
 const TIME = new Intl.DateTimeFormat("es-PE", { timeZone: SITE_TIME_ZONE, hour: "numeric", minute: "2-digit" });
 
 /**
- * Panel "Publicar" de los 5 tipos de contenido: una acción principal según
- * el permiso y el estado (spec 2026-10-07 §2). Quien publica ve «Publicar»;
- * quien solo crea, «Enviar para aprobar». Sin pasos de redacción.
+ * Panel "Publicar" de los 5 tipos de contenido: quien tiene el módulo publica
+ * directo, sin paso de aprobación (decisión del dueño 2026-10-15). Publicar,
+ * guardar, programar, quitar la programación y archivar.
  */
 export function PublishPanel({ kind, item, permissions, dirty, saving, onSave, savedAt }: PublishPanelProps) {
   const router = useRouter();
   const [busy, setBusy] = useState<PublicationStep | null>(null);
   const [scheduling, setScheduling] = useState(false);
   const [scheduleAt, setScheduleAt] = useState("");
-  const [returning, setReturning] = useState(false);
-  const [note, setNote] = useState("");
 
   const isScheduled = item.status === "SCHEDULED";
   const working = saving || busy !== null;
 
-  async function run(step: PublicationStep, body?: { scheduledAt?: string; note?: string }) {
+  async function run(step: PublicationStep, body?: { scheduledAt?: string }) {
     setBusy(step);
     try {
       let id: string | null = item.id;
-      // Sin id = aún no existe (compositor nuevo): se crea antes de publicar o enviar.
+      // Sin id = aún no existe (compositor nuevo): se crea antes de publicar.
       if ((dirty || !id) && step !== "archive" && step !== "return-to-draft") {
         id = await onSave();
         if (!id) return;
@@ -74,8 +70,6 @@ export function PublishPanel({ kind, item, permissions, dirty, saving, onSave, s
       }
       toast.success(SUCCESS[step]);
       setScheduling(false);
-      setReturning(false);
-      setNote("");
       router.refresh();
     } finally {
       setBusy(null);
@@ -88,7 +82,7 @@ export function PublishPanel({ kind, item, permissions, dirty, saving, onSave, s
   }
 
   const saveLabel = item.status === "DRAFT" ? "Guardar borrador" : "Guardar cambios";
-  const primaryIsSave = !permissions.canPublish && !permissions.canSubmit;
+  const primaryIsSave = !permissions.canPublish;
 
   return (
     <section aria-label="Publicar" className="space-y-4 rounded-card bg-surface p-5 shadow-card">
@@ -99,12 +93,6 @@ export function PublishPanel({ kind, item, permissions, dirty, saving, onSave, s
         </Badge>
       </header>
 
-      {item.status === "DRAFT" && item.reviewNote && (
-        <p role="note" className="flex gap-2 rounded-control bg-info-soft px-3 py-2.5 text-sm text-foreground">
-          <ChatCircleText weight="fill" aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-info" />
-          <span>{item.reviewNote}</span>
-        </p>
-      )}
 
       {isScheduled && item.scheduledAt && (
         <p className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -117,11 +105,6 @@ export function PublishPanel({ kind, item, permissions, dirty, saving, onSave, s
         {permissions.canPublish && (
           <Button size="lg" icon={<PaperPlaneTilt weight="fill" aria-hidden="true" />} loading={busy === "publish"} disabled={working} onClick={() => run("publish")}>
             {isScheduled ? "Publicar ahora" : "Publicar"}
-          </Button>
-        )}
-        {permissions.canSubmit && (
-          <Button size="lg" icon={<PaperPlaneTilt weight="fill" aria-hidden="true" />} loading={busy === "submit"} disabled={working} onClick={() => run("submit")}>
-            Enviar para aprobar
           </Button>
         )}
         {permissions.canEdit && (
@@ -166,12 +149,7 @@ export function PublishPanel({ kind, item, permissions, dirty, saving, onSave, s
 
       {(permissions.canReturnToDraft || permissions.canArchive) && (
         <div className="flex flex-wrap gap-2 border-t border-field-border pt-4">
-          {permissions.canReturnToDraft && item.status === "IN_REVIEW" && (
-            <Button size="sm" variant="ghost" icon={<ChatCircleText aria-hidden="true" />} disabled={working} onClick={() => setReturning(true)}>
-              Devolver a borrador
-            </Button>
-          )}
-          {permissions.canReturnToDraft && isScheduled && (
+          {permissions.canReturnToDraft && (
             <Button size="sm" variant="ghost" icon={<X aria-hidden="true" />} disabled={working} onClick={() => run("return-to-draft")}>
               Quitar programación
             </Button>
@@ -188,23 +166,6 @@ export function PublishPanel({ kind, item, permissions, dirty, saving, onSave, s
         </p>
       )}
 
-      <Dialog open={returning} onOpenChange={setReturning}>
-        <DialogContent>
-          <DialogTitle>Devolver a borrador</DialogTitle>
-          <DialogDescription>Quien lo creó podrá corregirlo y volver a enviarlo.</DialogDescription>
-          <Field label="Nota para quien lo creó (opcional)" name="return-note" className="mt-4">
-            <TextArea value={note} onChange={(e) => setNote(e.target.value)} rows={3} maxLength={1000} />
-          </Field>
-          <div className="mt-4 flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setReturning(false)}>
-              Cancelar
-            </Button>
-            <Button loading={busy === "return-to-draft"} onClick={() => run("return-to-draft", { note: note.trim() || undefined })}>
-              Devolver
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </section>
   );
 }

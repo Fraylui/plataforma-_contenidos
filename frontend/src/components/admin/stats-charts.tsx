@@ -25,7 +25,6 @@ import { roleLabel } from "@/lib/admin/role-labels";
 // "Publicado" se vea igual acá que en cualquier otro badge/botón del sitio.
 const PIPELINE_RAMP: Record<PublicationStatus, string> = {
   DRAFT: "#bbf7d0",
-  IN_REVIEW: "#86efac",
   SCHEDULED: "#22c55e",
   PUBLISHED: "#06752b",
   ARCHIVED: "#d4d4d8",
@@ -41,7 +40,7 @@ const TOOLTIP_STYLE = {
 
 const AXIS_TICK = { fill: "var(--muted)", fontSize: 12 };
 
-const PIPELINE: PublicationStatus[] = ["DRAFT", "IN_REVIEW", "SCHEDULED", "PUBLISHED"];
+const PIPELINE: PublicationStatus[] = ["DRAFT", "SCHEDULED", "PUBLISHED"];
 
 /** Barra horizontal del flujo de publicación, un tramo por estado, clara -> oscura hacia "Publicado". */
 export function PipelineChart({ stats }: { stats: PlatformStats }) {

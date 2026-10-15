@@ -1,4 +1,4 @@
-import { canPublish } from "./permissions";
+import { canAccess } from "./permissions";
 import type { PublicationStatus } from "@/lib/api/types";
 import type { AdminUser, Module } from "@/lib/api/admin-types";
 
@@ -6,9 +6,9 @@ import type { AdminUser, Module } from "@/lib/api/admin-types";
 export type PublicationKind = "articles" | "places" | "events" | "galleries" | "directory";
 
 /** Pasos del flujo; cada uno es POST /api/v1/admin/{tipo}/{id}/{paso}. */
-export type PublicationStep = "submit" | "publish" | "schedule" | "return-to-draft" | "archive";
+export type PublicationStep = "publish" | "schedule" | "return-to-draft" | "archive";
 
-export const PUBLICATION_STEPS: readonly PublicationStep[] = ["submit", "publish", "schedule", "return-to-draft", "archive"];
+export const PUBLICATION_STEPS: readonly PublicationStep[] = ["publish", "schedule", "return-to-draft", "archive"];
 
 export const PUBLICATION_KINDS: Record<PublicationKind, { adminPath: string; module: Module; noun: string }> = {
   articles: { adminPath: "/admin/publicaciones", module: "ARTICLES", noun: "publicación" },
@@ -24,33 +24,30 @@ export function isPublicationKind(value: string): value is PublicationKind {
 
 export interface PublicationPermissions {
   canEdit: boolean;
-  canSubmit: boolean;
   canPublish: boolean;
   canSchedule: boolean;
   canReturnToDraft: boolean;
   canArchive: boolean;
 }
 
-const PUBLISHABLE: PublicationStatus[] = ["DRAFT", "IN_REVIEW", "SCHEDULED"];
+const PUBLISHABLE: PublicationStatus[] = ["DRAFT", "SCHEDULED"];
 
 /**
  * Qué botones mostrar. Espeja PublishableContent y los servicios del backend,
  * que son la autoridad (rechazan con 403/409 lo que no corresponde).
  */
 export function computePublicationPermissions(
-  item: { status: PublicationStatus; authorId: string },
+  item: { status: PublicationStatus },
   user: AdminUser,
   kind: PublicationKind,
 ): PublicationPermissions {
-  const publisher = canPublish(user, PUBLICATION_KINDS[kind].module);
-  const mine = item.authorId === user.id;
+  // Tener el módulo es publicar en él: sin paso de aprobación (V54).
+  const member = canAccess(user, PUBLICATION_KINDS[kind].module);
   return {
-    canEdit: publisher ? item.status !== "ARCHIVED" : mine && item.status === "DRAFT",
-    // Quien publica no "envía para aprobar": publica directo.
-    canSubmit: !publisher && mine && item.status === "DRAFT",
-    canPublish: publisher && PUBLISHABLE.includes(item.status),
-    canSchedule: publisher && PUBLISHABLE.includes(item.status),
-    canReturnToDraft: publisher && (item.status === "IN_REVIEW" || item.status === "SCHEDULED"),
-    canArchive: publisher && item.status === "PUBLISHED",
+    canEdit: member && item.status !== "ARCHIVED",
+    canPublish: member && PUBLISHABLE.includes(item.status),
+    canSchedule: member && PUBLISHABLE.includes(item.status),
+    canReturnToDraft: member && item.status === "SCHEDULED",
+    canArchive: member && item.status === "PUBLISHED",
   };
 }

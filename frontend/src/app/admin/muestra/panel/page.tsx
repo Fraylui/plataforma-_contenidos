@@ -45,13 +45,13 @@ export default function PanelShowcasePage() {
     >
       <div className="space-y-6">
         <AdminPageHeader title="Publicaciones" description="Todo lo que se publica en el sitio." action={{ href: "/admin/publicaciones/nuevo", label: "Nueva publicación" }} />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {["Publicado", "Pendiente de aprobación", "Programado", "Borrador"].map((label, i) => (
+        <div className="grid gap-4 sm:grid-cols-3">
+          {["Publicado", "Programado", "Borrador"].map((label, i) => (
             <Card key={label}>
-              <Badge tone={(["success", "info", "warning", "neutral"] as const)[i]} dot>
+              <Badge tone={(["success", "warning", "neutral"] as const)[i]} dot>
                 {label}
               </Badge>
-              <p className="text-3xl font-bold tabular-nums text-foreground">{[22, 3, 1, 5][i]}</p>
+              <p className="text-3xl font-bold tabular-nums text-foreground">{[22, 1, 5][i]}</p>
             </Card>
           ))}
         </div>

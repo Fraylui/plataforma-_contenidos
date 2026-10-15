@@ -90,7 +90,7 @@ export function WorkerForm({ worker }: { worker?: Worker }) {
 
       <section className="rounded-card bg-surface shadow-card p-5 sm:p-6">
         <h2 className="text-base font-bold text-foreground">Permisos</h2>
-        <p className="mt-1 text-sm text-muted">Parte de una plantilla y ajusta lo que necesites. «Crear»: lo suyo, a revisión. «Publicar»: revisa y publica lo de todos.</p>
+        <p className="mt-1 text-sm text-muted">Parte de una plantilla y ajusta lo que necesites. En los módulos de contenido, quien los tiene crea y publica directo.</p>
         <div className="mt-4">
           <TemplateChips onPick={setPermissions} />
         </div>

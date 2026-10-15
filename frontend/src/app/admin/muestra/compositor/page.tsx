@@ -24,7 +24,7 @@ export default function ComposerShowcasePage() {
         categories={CATEGORIES}
         allImages={[]}
         siteName="Ecos del Camino"
-        permissions={{ canEdit: true, canSubmit: false, canPublish: true, canSchedule: true, canReturnToDraft: false, canArchive: false }}
+        permissions={{ canEdit: true, canPublish: true, canSchedule: true, canReturnToDraft: false, canArchive: false }}
       />
     </main>
   );

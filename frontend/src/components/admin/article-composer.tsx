@@ -70,7 +70,7 @@ export function ArticleComposer({ categories, allImages, article, permissions, s
         publish={
           <PublishPanel
             kind="articles"
-            item={{ id, status, scheduledAt: article?.scheduledAt ?? null, reviewNote: article?.reviewNote ?? null }}
+            item={{ id, status, scheduledAt: article?.scheduledAt ?? null }}
             permissions={permissions}
             dirty={form.formState.isDirty}
             saving={saving}

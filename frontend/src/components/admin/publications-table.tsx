@@ -60,7 +60,6 @@ export function PublicationsTable({ page, currentUser }: { page: AdminContentPag
             permissions={computePublicationPermissions(row.original, currentUser, "articles")}
             itemLabel="esta publicación"
           kind="articles"
-          status={row.original.status}
           />
         ),
       },

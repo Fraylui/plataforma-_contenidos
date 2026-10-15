@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils";
 
 type Choice = { value: AccessLevel | null; label: string };
 
+// Tener un módulo de contenido es publicar en él (sin paso de aprobación).
 const CONTENT_CHOICES: Choice[] = [
   { value: null, label: "No" },
-  { value: "CREATE", label: "Crear" },
-  { value: "PUBLISH", label: "Publicar" },
+  { value: "PUBLISH", label: "Publica" },
 ];
 const ACCESS_CHOICES: Choice[] = [
   { value: null, label: "No" },
@@ -63,8 +63,8 @@ function Row({
 
 /**
  * Matriz de permisos del trabajador (spec 2a §6): una fila por módulo con
- * control segmentado — contenido «No / Crear / Publicar», el resto
- * «No / Sí». Sin desplegables.
+ * control segmentado — contenido «No / Publica», el resto «No / Sí».
+ * Sin desplegables.
  */
 export function PermissionMatrix({ value, onChange }: { value: ModulePermissions; onChange: (next: ModulePermissions) => void }) {
   function pick(module: Module, level: AccessLevel | null) {

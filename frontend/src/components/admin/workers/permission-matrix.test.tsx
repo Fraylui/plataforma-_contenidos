@@ -6,22 +6,22 @@ import { PermissionMatrix } from "./permission-matrix";
 import { TemplateChips } from "./template-chips";
 
 describe("PermissionMatrix", () => {
-  it("cada módulo de contenido ofrece No / Crear / Publicar y avisa el cambio", async () => {
+  it("cada módulo de contenido ofrece No / Publica y avisa el cambio", async () => {
     const onChange = vi.fn();
     render(<PermissionMatrix value={{}} onChange={onChange} />);
     const eventos = screen.getByRole("radiogroup", { name: "Eventos" });
-    expect(within(eventos).getAllByRole("radio").map((r) => r.getAttribute("aria-label") ?? r.textContent)).toEqual(["No", "Crear", "Publicar"]);
-    await userEvent.click(within(eventos).getByRole("radio", { name: "Publicar" }));
+    expect(within(eventos).getAllByRole("radio").map((r) => r.getAttribute("aria-label") ?? r.textContent)).toEqual(["No", "Publica"]);
+    await userEvent.click(within(eventos).getByRole("radio", { name: "Publica" }));
     expect(onChange).toHaveBeenCalledWith({ EVENTS: "PUBLISH" });
   });
 
   it("Temas, Estadísticas y Publicidad solo ofrecen No / Sí", async () => {
     const onChange = vi.fn();
-    render(<PermissionMatrix value={{ EVENTS: "CREATE" }} onChange={onChange} />);
+    render(<PermissionMatrix value={{ EVENTS: "PUBLISH" }} onChange={onChange} />);
     const temas = screen.getByRole("radiogroup", { name: "Temas" });
     expect(within(temas).getAllByRole("radio")).toHaveLength(2);
     await userEvent.click(within(temas).getByRole("radio", { name: "Sí" }));
-    expect(onChange).toHaveBeenCalledWith({ EVENTS: "CREATE", CATEGORIES: "ACCESS" });
+    expect(onChange).toHaveBeenCalledWith({ EVENTS: "PUBLISH", CATEGORIES: "ACCESS" });
     await userEvent.click(within(screen.getByRole("radiogroup", { name: "Eventos" })).getByRole("radio", { name: "No" }));
     expect(onChange).toHaveBeenLastCalledWith({});
   });

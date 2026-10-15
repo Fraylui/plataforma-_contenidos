@@ -21,7 +21,7 @@ export default async function NewBusinessPage() {
   ]);
 
   // Lo nuevo es un borrador propio: mismos permisos que tendrá al guardarse.
-  const permissions = computePublicationPermissions({ status: "DRAFT", authorId: user.id }, user, "directory");
+  const permissions = computePublicationPermissions({ status: "DRAFT" }, user, "directory");
 
   return (
     <div className="space-y-6">

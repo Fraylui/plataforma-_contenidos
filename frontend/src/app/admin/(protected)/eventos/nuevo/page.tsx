@@ -21,7 +21,7 @@ export default async function NewEventPage() {
   ]);
 
   // Lo nuevo es un borrador propio: mismos permisos que tendrá al guardarse.
-  const permissions = computePublicationPermissions({ status: "DRAFT", authorId: user.id }, user, "events");
+  const permissions = computePublicationPermissions({ status: "DRAFT" }, user, "events");
 
   return (
     <div className="space-y-6">

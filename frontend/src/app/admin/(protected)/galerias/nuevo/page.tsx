@@ -20,7 +20,7 @@ export default async function NewGalleryPage() {
   ]);
 
   // Lo nuevo es un borrador propio: mismos permisos que tendrá al guardarse.
-  const permissions = computePublicationPermissions({ status: "DRAFT", authorId: user.id }, user, "galleries");
+  const permissions = computePublicationPermissions({ status: "DRAFT" }, user, "galleries");
 
   return (
     <div className="space-y-6">

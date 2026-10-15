@@ -7,7 +7,7 @@
 export type ArticleType = "GENERAL" | "GUIA" | "LISTA" | "TUTORIAL" | "HISTORIA" | "ENTREVISTA";
 
 /** Estado de cualquier contenido — shared.publishing.PublicationStatus (spec 2026-10-07 §1). */
-export type PublicationStatus = "DRAFT" | "IN_REVIEW" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED";
+export type PublicationStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED";
 
 /** Ver ContentImageResponse.java — una imagen subida (imageId) o por enlace externo (externalUrl), nunca ambas. */
 export interface ContentImage {
@@ -55,8 +55,6 @@ export interface Article {
   images: ContentImage[];
   videos: ContentVideo[];
   robots: string;
-  /** Nota de quien devolvió el contenido a borrador. */
-  reviewNote: string | null;
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;
@@ -133,8 +131,6 @@ export interface Place {
   ogImageUrl: string | null;
   videos: ContentVideo[];
   robots: string;
-  /** Nota de quien devolvió el contenido a borrador. */
-  reviewNote: string | null;
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;
@@ -177,8 +173,6 @@ export interface Event {
   ogImageUrl: string | null;
   videos: ContentVideo[];
   robots: string;
-  /** Nota de quien devolvió el contenido a borrador. */
-  reviewNote: string | null;
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;
@@ -210,8 +204,6 @@ export interface Gallery {
   canonicalUrl: string | null;
   ogImageUrl: string | null;
   robots: string;
-  /** Nota de quien devolvió el contenido a borrador. */
-  reviewNote: string | null;
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;
@@ -260,8 +252,6 @@ export interface Business {
   ogImageUrl: string | null;
   videos: ContentVideo[];
   robots: string;
-  /** Nota de quien devolvió el contenido a borrador. */
-  reviewNote: string | null;
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;

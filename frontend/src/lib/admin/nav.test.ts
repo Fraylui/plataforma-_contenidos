@@ -17,7 +17,7 @@ function user(overrides: Partial<AdminUser> = {}): AdminUser {
 
 describe("menú del panel según permisos (espejo del servidor)", () => {
   it("un trabajador solo con Eventos ve Inicio, Eventos, Imágenes y Mi cuenta", () => {
-    const labels = visibleNavItems(user({ permissions: { EVENTS: "CREATE" } })).map((i) => i.label);
+    const labels = visibleNavItems(user({ permissions: { EVENTS: "PUBLISH" } })).map((i) => i.label);
     expect(labels).toEqual(["Inicio", "Eventos", "Imágenes", "Mi cuenta"]);
   });
 
@@ -49,7 +49,7 @@ describe("lenguaje de plataforma (no de redacción)", () => {
 
 describe("qué puede crear cada persona (botón Crear, paleta y barra del celular)", () => {
   it("solo los tipos de contenido de sus módulos", () => {
-    const items = createItems(user({ permissions: { EVENTS: "CREATE", PLACES: "PUBLISH" } }));
+    const items = createItems(user({ permissions: { EVENTS: "PUBLISH", PLACES: "PUBLISH" } }));
     expect(items.map((i) => i.label)).toEqual(["Lugar", "Evento"]);
     expect(items.map((i) => i.href)).toEqual(["/admin/lugares/nuevo", "/admin/eventos/nuevo"]);
   });

@@ -55,7 +55,6 @@ export function EventsTable({ page, currentUser }: { page: AdminContentPage<Even
             permissions={computePublicationPermissions(row.original, currentUser, "events")}
             itemLabel="este evento"
           kind="events"
-          status={row.original.status}
           />
         ),
       },

@@ -109,7 +109,7 @@ export function BusinessComposer({ categories, places, allImages, business, perm
         publish={
           <PublishPanel
             kind="directory"
-            item={{ id, status, scheduledAt: business?.scheduledAt ?? null, reviewNote: business?.reviewNote ?? null }}
+            item={{ id, status, scheduledAt: business?.scheduledAt ?? null }}
             permissions={permissions}
             dirty={form.formState.isDirty}
             saving={saving}

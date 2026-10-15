@@ -26,7 +26,6 @@ vi.mock("./rich-text-editor", () => ({
 const CATEGORIES: Category[] = [{ id: "cat-1", name: "Viajes", slug: "viajes", parentId: null, active: true } as Category];
 const PUBLISHER: PublicationPermissions = {
   canEdit: true,
-  canSubmit: false,
   canPublish: true,
   canSchedule: true,
   canReturnToDraft: false,
@@ -91,7 +90,6 @@ describe("ArticleComposer", () => {
       images: [],
       videos: [],
       robots: "index,follow",
-      reviewNote: null,
       publishedAt: "2026-10-01T10:00:00Z",
       scheduledAt: null,
       createdAt: "2026-10-01T10:00:00Z",
