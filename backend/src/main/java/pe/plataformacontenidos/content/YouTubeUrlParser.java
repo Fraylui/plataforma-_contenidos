@@ -17,6 +17,8 @@ public final class YouTubeUrlParser {
             Pattern.compile("(?:youtu\\.be/)([a-zA-Z0-9_-]{11})"),
             Pattern.compile("(?:youtube\\.com/embed/)([a-zA-Z0-9_-]{11})"),
             Pattern.compile("(?:youtube\\.com/shorts/)([a-zA-Z0-9_-]{11})"),
+            // Transmisiones en vivo: youtube.com/live/{id}
+            Pattern.compile("(?:youtube\\.com/live/)([a-zA-Z0-9_-]{11})"),
     };
 
     private YouTubeUrlParser() {

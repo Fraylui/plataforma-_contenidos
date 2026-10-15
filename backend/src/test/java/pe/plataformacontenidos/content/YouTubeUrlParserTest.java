@@ -24,6 +24,12 @@ class YouTubeUrlParserTest {
     }
 
     @Test
+    void extractsIdFromLiveUrl() {
+        assertThat(YouTubeUrlParser.extractVideoId("https://www.youtube.com/live/dQw4w9WgXcQ?si=abc"))
+                .contains("dQw4w9WgXcQ");
+    }
+
+    @Test
     void extractsIdFromShortsUrl() {
         assertThat(YouTubeUrlParser.extractVideoId("https://www.youtube.com/shorts/dQw4w9WgXcQ"))
                 .contains("dQw4w9WgXcQ");
