@@ -50,6 +50,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/events", "/api/v1/events/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/galleries", "/api/v1/galleries/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/directory", "/api/v1/directory/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/series", "/api/v1/series/**").permitAll()
                 // "Me gusta" anónimo de lector (visitorId generado en el navegador, no requiere cuenta) — ver ContentLike, un solo mecanismo para los tipos de contenido.
                 .requestMatchers(HttpMethod.POST, "/api/v1/articles/*/like", "/api/v1/places/*/like",
                         "/api/v1/events/*/like", "/api/v1/galleries/*/like",

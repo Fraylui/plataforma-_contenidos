@@ -15,7 +15,7 @@ class TemplatesTest {
     void templatesMatchTheSpec() {
         assertThat(Templates.of("PUBLICADOR")).isEqualTo(Map.of(
                 ARTICLES, PUBLISH, PLACES, PUBLISH, EVENTS, PUBLISH, GALLERIES, PUBLISH, DIRECTORY, PUBLISH,
-                CATEGORIES, ACCESS, STATS, ACCESS));
+                SERIES, PUBLISH, CATEGORIES, ACCESS, STATS, ACCESS));
         assertThat(Templates.of("GESTOR_EVENTOS")).isEqualTo(Map.of(EVENTS, PUBLISH, PLACES, PUBLISH));
         assertThat(Templates.of("GESTOR_DIRECTORIO")).isEqualTo(Map.of(DIRECTORY, PUBLISH, PLACES, PUBLISH));
         assertThat(Templates.of("PUBLICIDAD")).isEqualTo(Map.of(ADVERTISING, ACCESS, STATS, ACCESS));
@@ -33,6 +33,6 @@ class TemplatesTest {
     @Test
     void contentModulesAreTheFiveContentTypes() {
         assertThat(Module.values()).filteredOn(Module::isContent)
-                .containsExactly(ARTICLES, PLACES, EVENTS, GALLERIES, DIRECTORY);
+                .containsExactly(ARTICLES, PLACES, EVENTS, GALLERIES, DIRECTORY, SERIES);
     }
 }
