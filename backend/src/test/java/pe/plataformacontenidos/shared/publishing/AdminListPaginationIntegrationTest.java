@@ -77,17 +77,20 @@ class AdminListPaginationIntegrationTest {
                 .andExpect(jsonPath("$.items[0].title").value("Dos " + tag));
     }
 
+    /** Sin "solo lo suyo" (V54): quien tiene el módulo ve el contenido de todo el equipo; sin el módulo, nada. */
     @Test
-    void creatorOnlySeesOwnContent() throws Exception {
-        Login creator = login(TestProfile.SOLO_CONTENIDO);
-        String tag = "own" + UUID.randomUUID().toString().substring(0, 8);
-        gallery(creator.userId(), "Mía " + tag, "DRAFT");
-        gallery(UUID.randomUUID(), "Ajena " + tag, "DRAFT");
+    void workerSeesTheWholeTeamsContentInTheirModule() throws Exception {
+        Login worker = login(TestProfile.SOLO_CONTENIDO);
+        Login outsider = login(TestProfile.SIN_PERMISOS);
+        String tag = "equipo" + UUID.randomUUID().toString().substring(0, 8);
+        gallery(worker.userId(), "Mía " + tag, "DRAFT");
+        gallery(UUID.randomUUID(), "De un compañero " + tag, "DRAFT");
 
-        mockMvc.perform(get("/api/v1/admin/galleries").param("q", tag).header("Authorization", creator.bearer()))
+        mockMvc.perform(get("/api/v1/admin/galleries").param("q", tag).header("Authorization", worker.bearer()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.items[0].title").value("Mía " + tag));
+                .andExpect(jsonPath("$.totalElements").value(2));
+        mockMvc.perform(get("/api/v1/admin/galleries").param("q", tag).header("Authorization", outsider.bearer()))
+                .andExpect(status().isForbidden());
     }
 
     @Test
