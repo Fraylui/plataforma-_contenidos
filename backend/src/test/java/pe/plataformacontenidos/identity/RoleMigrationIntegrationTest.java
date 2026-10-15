@@ -67,9 +67,10 @@ class RoleMigrationIntegrationTest {
     @Test
     void adminBecomesAWorkerWithPublisherAndAdvertising() {
         assertThat(roleOf("admin@legacy.test")).isEqualTo("WORKER");
+        // V57 suma Series a quien ya publicaba en los 5 tipos.
         assertThat(permissionsOf("admin@legacy.test")).isEqualTo(Map.of(
                 "ARTICLES", "PUBLISH", "PLACES", "PUBLISH", "EVENTS", "PUBLISH", "GALLERIES", "PUBLISH", "DIRECTORY", "PUBLISH",
-                "CATEGORIES", "ACCESS", "STATS", "ACCESS", "ADVERTISING", "ACCESS"));
+                "SERIES", "PUBLISH", "CATEGORIES", "ACCESS", "STATS", "ACCESS", "ADVERTISING", "ACCESS"));
     }
 
     @Test
