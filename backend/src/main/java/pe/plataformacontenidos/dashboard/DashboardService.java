@@ -54,15 +54,29 @@ public class DashboardService {
     private static final int MAX_CACHED = 500;
 
     /** Tabla, columna de título y módulo de cada tipo; valores fijos, nunca vienen del usuario. */
-    private record Source(String table, String titleColumn, Module module) {
+    private record Source(String table, String titleColumn, Module module, String select) {
+
+        Source(String table, String titleColumn, Module module) {
+            this(table, titleColumn, module, null);
+        }
     }
+
+    /**
+     * Episodios: su slug público es "serie/episodio" (/series/{serie}/{episodio}),
+     * así "Lo más visto" puede enlazarlos. Llegan solos desde YouTube, por eso no
+     * entran a "Contenido reciente" (lo llenarían).
+     */
+    private static final String EPISODE_SELECT = "SELECT 'EPISODE'::text AS type, e.id, e.title AS title,"
+            + " s.slug || '/' || e.slug AS slug, e.status, e.created_at, e.published_at"
+            + " FROM series.episodes e JOIN series.series s ON s.id = e.series_id";
 
     private static final Map<ContentType, Source> SOURCES = new EnumMap<>(Map.of(
             ContentType.ARTICLE, new Source("content.articles", "title", Module.ARTICLES),
             ContentType.PLACE, new Source("places.places", "name", Module.PLACES),
             ContentType.EVENT, new Source("events.events", "title", Module.EVENTS),
             ContentType.GALLERY, new Source("galleries.galleries", "title", Module.GALLERIES),
-            ContentType.BUSINESS, new Source("directory.businesses", "name", Module.DIRECTORY)));
+            ContentType.BUSINESS, new Source("directory.businesses", "name", Module.DIRECTORY),
+            ContentType.EPISODE, new Source("series.episodes", "title", Module.SERIES, EPISODE_SELECT)));
 
     private record CacheEntry(Instant builtAt, DashboardSummary summary) {
     }
@@ -146,7 +160,8 @@ public class DashboardService {
                         .put(rs.getString(2), rs.getLong(3));
             });
             recent = rows(cte + """
-                    SELECT type, id, title, status, created_at FROM scoped ORDER BY created_at DESC LIMIT 8
+                    SELECT type, id, title, status, created_at FROM scoped WHERE type <> 'EPISODE'
+                     ORDER BY created_at DESC LIMIT 8
                     """);
         }
 
@@ -224,8 +239,9 @@ public class DashboardService {
             StringJoiner union = new StringJoiner(" UNION ALL ", "WITH scoped AS (", ") ");
             for (ContentType type : types) {
                 Source source = SOURCES.get(type);
-                union.add("SELECT '" + type + "'::text AS type, id, " + source.titleColumn() + " AS title, slug, status,"
-                        + " created_at, published_at FROM " + source.table());
+                union.add(source.select() != null ? source.select()
+                        : "SELECT '" + type + "'::text AS type, id, " + source.titleColumn() + " AS title, slug, status,"
+                                + " created_at, published_at FROM " + source.table());
             }
             return union.toString();
         }

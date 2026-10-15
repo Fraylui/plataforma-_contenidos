@@ -35,6 +35,19 @@ public interface EpisodeRepository extends JpaRepository<Episode, UUID> {
                                      where x.seriesId = e.seriesId and x.status = 'PUBLISHED')""")
     List<Episode> findLatestPublished(@Param("ids") Collection<UUID> ids);
 
+    /**
+     * Episodios publicados de series publicadas, con su serie, del más nuevo
+     * al más antiguo (feed del inicio). {@code categoryIds} vacío = todos los temas.
+     */
+    @Query("""
+            select e, s from Episode e, Series s
+             where s.id = e.seriesId and e.status = 'PUBLISHED'
+               and s.status = pe.plataformacontenidos.shared.publishing.PublicationStatus.PUBLISHED
+               and (:allTopics = true or s.categoryId in :categoryIds)
+             order by e.publishedAt desc""")
+    List<Object[]> findPublishedForFeed(@Param("allTopics") boolean allTopics,
+            @Param("categoryIds") Collection<UUID> categoryIds, Pageable pageable);
+
     /** Siguiente episodio (más nuevo) y anterior (más viejo) de uno dado. */
     Optional<Episode> findFirstBySeriesIdAndStatusAndPublishedAtGreaterThanOrderByPublishedAtAsc(UUID seriesId,
             Episode.Status status, java.time.Instant publishedAt);

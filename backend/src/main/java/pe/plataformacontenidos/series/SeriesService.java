@@ -226,6 +226,18 @@ public class SeriesService {
     public record EpisodeView(Series series, Episode episode, Episode newer, Episode older) {
     }
 
+    /** Episodio visible en el sitio (publicado y de una serie publicada), por id: para "me gusta". */
+    @Transactional(readOnly = true)
+    public Episode getPublishedEpisode(UUID episodeId) {
+        Episode episode = episodeRepository.findById(episodeId)
+                .filter(e -> e.getStatus() == Episode.Status.PUBLISHED)
+                .orElseThrow(() -> new EpisodeNotFoundException(episodeId));
+        seriesRepository.findById(episode.getSeriesId())
+                .filter(s -> s.getStatus() == PublicationStatus.PUBLISHED)
+                .orElseThrow(() -> new EpisodeNotFoundException(episodeId));
+        return episode;
+    }
+
     @Transactional(readOnly = true)
     public EpisodeView publishedEpisode(String seriesSlug, String episodeSlug) {
         Series series = getPublishedBySlug(seriesSlug);
@@ -236,6 +248,19 @@ public class SeriesService {
         Episode older = episodeRepository.findFirstBySeriesIdAndStatusAndPublishedAtLessThanOrderByPublishedAtDesc(
                 series.getId(), Episode.Status.PUBLISHED, episode.getPublishedAt()).orElse(null);
         return new EpisodeView(series, episode, newer, older);
+    }
+
+    /** Un episodio con su serie, para el feed y los relacionados. */
+    public record FeedEpisode(Episode episode, Series series) {
+    }
+
+    /** Episodios publicados (de series publicadas) para el feed; {@code categoryId} null = todos los temas. */
+    @Transactional(readOnly = true)
+    public List<FeedEpisode> listPublishedForFeed(UUID categoryId, Pageable pageable) {
+        List<UUID> topics = categoryId == null ? List.of(new UUID(0, 0)) : List.of(categoryId);
+        return episodeRepository.findPublishedForFeed(categoryId == null, topics, pageable).stream()
+                .map(row -> new FeedEpisode((Episode) row[0], (Series) row[1]))
+                .toList();
     }
 
     // ---------- ayudas ----------

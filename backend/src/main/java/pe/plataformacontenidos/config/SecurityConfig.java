@@ -54,7 +54,7 @@ public class SecurityConfig {
                 // "Me gusta" anónimo de lector (visitorId generado en el navegador, no requiere cuenta) — ver ContentLike, un solo mecanismo para los tipos de contenido.
                 .requestMatchers(HttpMethod.POST, "/api/v1/articles/*/like", "/api/v1/places/*/like",
                         "/api/v1/events/*/like", "/api/v1/galleries/*/like",
-                        "/api/v1/directory/*/like").permitAll()
+                        "/api/v1/directory/*/like", "/api/v1/series/episodes/*/like").permitAll()
                 // Visitas anónimas (sin cookies ni IP guardada) — ver ContentViewCounter.
                 .requestMatchers(HttpMethod.POST, "/api/v1/views").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/search").permitAll()

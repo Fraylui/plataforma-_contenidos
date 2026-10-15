@@ -81,11 +81,11 @@ public final class SeriesDtos {
 
     /** Página de un episodio: con la serie y los vecinos para "siguiente / anterior". */
     public record EpisodeViewResponse(PublicSeriesResponse series, EpisodeResponse episode, EpisodeResponse newer,
-            EpisodeResponse older) {
+            EpisodeResponse older, long likeCount) {
 
-        static EpisodeViewResponse from(SeriesService.EpisodeView view) {
+        static EpisodeViewResponse from(SeriesService.EpisodeView view, long likeCount) {
             return new EpisodeViewResponse(PublicSeriesResponse.from(view.series()), EpisodeResponse.from(view.episode()),
-                    EpisodeResponse.from(view.newer()), EpisodeResponse.from(view.older()));
+                    EpisodeResponse.from(view.newer()), EpisodeResponse.from(view.older()), likeCount);
         }
     }
 

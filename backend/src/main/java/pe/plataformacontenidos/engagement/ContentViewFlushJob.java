@@ -43,7 +43,8 @@ public class ContentViewFlushJob {
             ContentType.PLACE, "places.places",
             ContentType.EVENT, "events.events",
             ContentType.GALLERY, "galleries.galleries",
-            ContentType.BUSINESS, "directory.businesses"));
+            ContentType.BUSINESS, "directory.businesses",
+            ContentType.EPISODE, "series.episodes"));
 
     private final StringRedisTemplate redis;
     private final JdbcTemplate jdbc;

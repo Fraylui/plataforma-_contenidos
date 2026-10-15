@@ -94,6 +94,35 @@ class SeriesIntegrationTest {
                 .andExpect(jsonPath("$.items[?(@.series.slug == '" + slug + "')].episodeCount").value(2));
     }
 
+    /** Fase 2: los episodios son contenido de la plataforma — entran al feed y reciben "me gusta". */
+    @Test
+    void publishedEpisodesJoinTheFeedAndReceiveLikes() throws Exception {
+        JsonNode series = createSeries();
+        String id = series.get("id").asText();
+        String slug = series.get("slug").asText();
+        mockMvc.perform(post("/api/v1/admin/series/" + id + "/publish").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/feed").param("type", "EPISODE").param("size", "50"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.seriesSlug == '" + slug + "')].youtubeVideoId", org.hamcrest.Matchers.hasItem("aaaaaaaaaa1")));
+
+        String episodeId = objectMapper.readTree(mockMvc.perform(get("/api/v1/series/" + slug + "/episodes/episodio-1-nazca"))
+                .andReturn().getResponse().getContentAsString()).get("episode").get("id").asText();
+        String visitor = UUID.randomUUID().toString();
+        mockMvc.perform(post("/api/v1/series/episodes/" + episodeId + "/like").param("visitorId", visitor))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.liked").value(true))
+                .andExpect(jsonPath("$.likeCount").value(1));
+        mockMvc.perform(get("/api/v1/series/" + slug + "/episodes/episodio-1-nazca"))
+                .andExpect(jsonPath("$.likeCount").value(1));
+
+        // Un episodio de una serie en borrador no se puede "gustar"
+        mockMvc.perform(post("/api/v1/admin/series/" + id + "/archive").header("Authorization", "Bearer " + token));
+        mockMvc.perform(post("/api/v1/series/episodes/" + episodeId + "/like").param("visitorId", visitor))
+                .andExpect(status().isNotFound());
+    }
+
     @Test
     void syncAddsOnlyNewVideosAndRecordsYouTubeFailures() throws Exception {
         String id = createSeries().get("id").asText();
