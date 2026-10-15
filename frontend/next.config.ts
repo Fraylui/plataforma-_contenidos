@@ -34,7 +34,10 @@ const CSP = [
   // producción, así que no debilita la CSP servida a usuarios reales.
   `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV !== "production" ? " 'unsafe-eval'" : ""} https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net`,
   "connect-src 'self' https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net",
-  "frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com",
+  // youtube-nocookie.com: el reproductor de los videos y episodios
+  // (youtube-embed.tsx); www.youtube.com: el chat de las transmisiones en
+  // vivo (/en-vivo). Sin esto el navegador bloqueaba el reproductor al tocar.
+  "frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://www.youtube-nocookie.com https://www.youtube.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
