@@ -6,6 +6,7 @@
 import "server-only";
 import { headers } from "next/headers";
 import type { PublicationKind, PublicationStep } from "@/lib/admin/publication";
+import { adminListQuery, type AdminListParams } from "@/lib/admin/list-params";
 import type {
   AdminImage,
   AdminUser,
@@ -153,8 +154,8 @@ export function getCurrentUser(accessToken: string): Promise<AdminUser> {
 
 // --- Content module: artículos (ArticleAdminController) ---
 
-export function listAdminArticles(accessToken: string): Promise<Article[]> {
-  return authedJson("/api/v1/admin/articles", accessToken);
+export function listAdminArticles(accessToken: string, params: AdminListParams): Promise<PageResponse<Article>> {
+  return authedJson(`/api/v1/admin/articles?${adminListQuery(params)}`, accessToken);
 }
 
 export function getAdminArticle(accessToken: string, id: string): Promise<Article> {
@@ -179,8 +180,8 @@ export function updateArticle(accessToken: string, id: string, input: ArticleInp
 
 // --- Places module: lugares (PlaceAdminController, rutas /admin/places) — CONTEXTO.md sección 6 ---
 
-export function listAdminPlaces(accessToken: string): Promise<Place[]> {
-  return authedJson("/api/v1/admin/places", accessToken);
+export function listAdminPlaces(accessToken: string, params: AdminListParams): Promise<PageResponse<Place>> {
+  return authedJson(`/api/v1/admin/places?${adminListQuery(params)}`, accessToken);
 }
 
 export function getAdminPlace(accessToken: string, id: string): Promise<Place> {
@@ -205,8 +206,8 @@ export function updatePlace(accessToken: string, id: string, input: PlaceInput):
 
 // --- Events module: eventos (EventAdminController, rutas /admin/events) ---
 
-export function listAdminEvents(accessToken: string): Promise<Event[]> {
-  return authedJson("/api/v1/admin/events", accessToken);
+export function listAdminEvents(accessToken: string, params: AdminListParams): Promise<PageResponse<Event>> {
+  return authedJson(`/api/v1/admin/events?${adminListQuery(params)}`, accessToken);
 }
 
 export function getAdminEvent(accessToken: string, id: string): Promise<Event> {
@@ -231,8 +232,8 @@ export function updateEvent(accessToken: string, id: string, input: EventInput):
 
 // --- Galleries module: galerías (GalleryAdminController, rutas /admin/galleries) ---
 
-export function listAdminGalleries(accessToken: string): Promise<Gallery[]> {
-  return authedJson("/api/v1/admin/galleries", accessToken);
+export function listAdminGalleries(accessToken: string, params: AdminListParams): Promise<PageResponse<Gallery>> {
+  return authedJson(`/api/v1/admin/galleries?${adminListQuery(params)}`, accessToken);
 }
 
 export function getAdminGallery(accessToken: string, id: string): Promise<Gallery> {
@@ -257,8 +258,8 @@ export function updateGallery(accessToken: string, id: string, input: GalleryInp
 
 // --- Directory module: fichas de directorio (BusinessAdminController, rutas /admin/directory) ---
 
-export function listAdminBusinesses(accessToken: string): Promise<Business[]> {
-  return authedJson("/api/v1/admin/directory", accessToken);
+export function listAdminBusinesses(accessToken: string, params: AdminListParams): Promise<PageResponse<Business>> {
+  return authedJson(`/api/v1/admin/directory?${adminListQuery(params)}`, accessToken);
 }
 
 export function getAdminBusiness(accessToken: string, id: string): Promise<Business> {

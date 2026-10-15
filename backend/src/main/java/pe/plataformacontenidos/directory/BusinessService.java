@@ -23,6 +23,7 @@ import pe.plataformacontenidos.shared.ContentVideo;
 import pe.plataformacontenidos.shared.ContentVideoInput;
 import pe.plataformacontenidos.shared.HtmlSanitizer;
 import pe.plataformacontenidos.shared.Slugify;
+import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
 import pe.plataformacontenidos.shared.publishing.InvalidPublicationTransitionException;
@@ -144,11 +145,10 @@ public class BusinessService {
         return business;
     }
 
-    public List<Business> listForAdmin(UUID actingUserId, boolean canPublish) {
-        if (canPublish) {
-            return businessRepository.findAll();
-        }
-        return businessRepository.findByAuthorIdOrderByCreatedAtDesc(actingUserId);
+    /** Página del listado del panel: quien publica ve todo; quien solo crea, lo suyo (ver AdminListQuery). */
+    public Page<Business> listForAdmin(UUID actingUserId, boolean canPublish, AdminListQuery query) {
+        return businessRepository.findAll(query.specification("name", canPublish ? null : actingUserId),
+                query.pageable("name"));
     }
 
     public Business getPublishedBySlug(String slug) {

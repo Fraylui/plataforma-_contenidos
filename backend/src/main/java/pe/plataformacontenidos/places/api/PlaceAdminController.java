@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.places.api;
 
+import org.springframework.web.bind.annotation.RequestParam;
 import pe.plataformacontenidos.identity.permission.PermissionService;
 import pe.plataformacontenidos.identity.permission.AccessLevel;
 import pe.plataformacontenidos.identity.permission.Module;
@@ -21,6 +22,9 @@ import pe.plataformacontenidos.identity.security.UserPrincipal;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.places.api.dto.PlaceRequest;
 import pe.plataformacontenidos.places.api.dto.PlaceResponse;
+import pe.plataformacontenidos.shared.PageResponse;
+import pe.plataformacontenidos.shared.publishing.AdminListQuery;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import pe.plataformacontenidos.shared.publishing.api.ReturnToDraftRequest;
 import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;
 
@@ -41,10 +45,16 @@ public class PlaceAdminController {
         this.placeService = placeService;
     }
 
+    /** Paginado en el servidor: búsqueda por título, estado, orden y página (ver AdminListQuery). */
     @GetMapping
-    public List<PlaceResponse> list(@AuthenticationPrincipal UserPrincipal principal) {
-        return placeService.listForAdmin(principal.userId(), canPublish(principal)).stream()
-                .map(PlaceResponse::fromAdmin).toList();
+    public PageResponse<PlaceResponse> list(@RequestParam(required = false) String q,
+            @RequestParam(required = false) PublicationStatus status,
+            @RequestParam(required = false) String sort,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        AdminListQuery query = new AdminListQuery(q, status, sort, page, size);
+        return PageResponse.from(placeService.listForAdmin(principal.userId(), canPublish(principal), query), PlaceResponse::fromAdmin);
     }
 
     @GetMapping("/{id}")

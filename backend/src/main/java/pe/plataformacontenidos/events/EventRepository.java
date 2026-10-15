@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.events;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import java.time.Instant;
 import java.util.List;
@@ -11,13 +12,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface EventRepository extends JpaRepository<Event, UUID> {
+public interface EventRepository extends JpaRepository<Event, UUID>, JpaSpecificationExecutor<Event> {
 
     Optional<Event> findBySlugAndStatus(String slug, PublicationStatus status);
 
     boolean existsBySlug(String slug);
 
-    List<Event> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 
     List<Event> findByStatusAndScheduledAtBefore(PublicationStatus status, Instant threshold);
 

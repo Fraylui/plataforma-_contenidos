@@ -11,7 +11,7 @@ import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.audit.AuditService.AuditSearchCriteria;
 import pe.plataformacontenidos.audit.api.dto.AuditEventResponse;
-import pe.plataformacontenidos.audit.api.dto.PageResponse;
+import pe.plataformacontenidos.shared.PageResponse;
 
 /**
  * Consulta del audit log (CONTEXTO.md secciones 18, 35.3 fase 1 y 37).

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Place } from "@/lib/api/types";
+import type { Place, PageResponse } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
 import { computePublicationPermissions } from "@/lib/admin/publication";
 import { publicationStatusLabel, publicationStatusTone, formatPublishedDate } from "@/lib/content-labels";
@@ -13,7 +13,10 @@ import { ContentRowActions } from "@/components/admin/content-row-actions";
 import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
 import { Badge } from "@/components/ui";
 
-export function PlacesTable({ places, currentUser }: { places: Place[]; currentUser: AdminUser }) {
+/** Columna → campo de orden del backend (AdminListQuery). */
+const SORT_KEYS: Record<string, string> = { name: "title", status: "status", createdAt: "createdAt" };
+
+export function PlacesTable({ page, currentUser }: { page: PageResponse<Place>; currentUser: AdminUser }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Place[]>([]);
 
@@ -70,7 +73,9 @@ export function PlacesTable({ places, currentUser }: { places: Place[]; currentU
       />
       <DataTable
         columns={columns}
-        data={places}
+        data={page.items}
+        serverPage={page}
+        sortKeys={SORT_KEYS}
         searchPlaceholder="Buscar lugares…"
         emptyMessage="Ningún lugar coincide con la búsqueda."
         getRowId={(row) => row.id}

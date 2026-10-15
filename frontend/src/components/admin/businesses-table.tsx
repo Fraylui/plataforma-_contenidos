@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Business } from "@/lib/api/types";
+import type { Business, PageResponse } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
 import { computePublicationPermissions } from "@/lib/admin/publication";
 import { publicationStatusLabel, publicationStatusTone, businessTypeLabel, formatPublishedDate } from "@/lib/content-labels";
@@ -13,7 +13,10 @@ import { ContentRowActions } from "@/components/admin/content-row-actions";
 import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
 import { Badge } from "@/components/ui";
 
-export function BusinessesTable({ businesses, currentUser }: { businesses: Business[]; currentUser: AdminUser }) {
+/** Columna → campo de orden del backend (AdminListQuery). */
+const SORT_KEYS: Record<string, string> = { name: "title", status: "status", createdAt: "createdAt" };
+
+export function BusinessesTable({ page, currentUser }: { page: PageResponse<Business>; currentUser: AdminUser }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Business[]>([]);
 
@@ -75,7 +78,9 @@ export function BusinessesTable({ businesses, currentUser }: { businesses: Busin
       />
       <DataTable
         columns={columns}
-        data={businesses}
+        data={page.items}
+        serverPage={page}
+        sortKeys={SORT_KEYS}
         searchPlaceholder="Buscar en el directorio…"
         emptyMessage="Ninguna ficha coincide con la búsqueda."
         getRowId={(row) => row.id}

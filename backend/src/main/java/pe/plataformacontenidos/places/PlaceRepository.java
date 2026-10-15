@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.places;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import java.time.Instant;
 import java.util.List;
@@ -11,7 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface PlaceRepository extends JpaRepository<Place, UUID> {
+public interface PlaceRepository extends JpaRepository<Place, UUID>, JpaSpecificationExecutor<Place> {
 
     Optional<Place> findBySlugAndStatus(String slug, PublicationStatus status);
 
@@ -21,7 +22,6 @@ public interface PlaceRepository extends JpaRepository<Place, UUID> {
 
     Page<Place> findByStatusAndCategoryId(PublicationStatus status, UUID categoryId, Pageable pageable);
 
-    List<Place> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 
     List<Place> findByStatusAndScheduledAtBefore(PublicationStatus status, Instant threshold);
 

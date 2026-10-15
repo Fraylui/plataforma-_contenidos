@@ -17,6 +17,7 @@ import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
 import pe.plataformacontenidos.shared.Slugify;
+import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
 import pe.plataformacontenidos.shared.publishing.InvalidPublicationTransitionException;
@@ -123,11 +124,10 @@ public class GalleryService {
         return gallery;
     }
 
-    public List<Gallery> listForAdmin(UUID actingUserId, boolean canPublish) {
-        if (canPublish) {
-            return galleryRepository.findAll();
-        }
-        return galleryRepository.findByAuthorIdOrderByCreatedAtDesc(actingUserId);
+    /** Página del listado del panel: quien publica ve todo; quien solo crea, lo suyo (ver AdminListQuery). */
+    public Page<Gallery> listForAdmin(UUID actingUserId, boolean canPublish, AdminListQuery query) {
+        return galleryRepository.findAll(query.specification("title", canPublish ? null : actingUserId),
+                query.pageable("title"));
     }
 
     public Gallery getPublishedBySlug(String slug) {

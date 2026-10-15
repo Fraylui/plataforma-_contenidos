@@ -21,6 +21,7 @@ import pe.plataformacontenidos.shared.ContentVideo;
 import pe.plataformacontenidos.shared.ContentVideoInput;
 import pe.plataformacontenidos.shared.HtmlSanitizer;
 import pe.plataformacontenidos.shared.Slugify;
+import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
 import pe.plataformacontenidos.shared.publishing.InvalidPublicationTransitionException;
@@ -133,11 +134,10 @@ public class PlaceService {
         return place;
     }
 
-    public List<Place> listForAdmin(UUID actingUserId, boolean canPublish) {
-        if (canPublish) {
-            return placeRepository.findAll();
-        }
-        return placeRepository.findByAuthorIdOrderByCreatedAtDesc(actingUserId);
+    /** Página del listado del panel: quien publica ve todo; quien solo crea, lo suyo (ver AdminListQuery). */
+    public Page<Place> listForAdmin(UUID actingUserId, boolean canPublish, AdminListQuery query) {
+        return placeRepository.findAll(query.specification("name", canPublish ? null : actingUserId),
+                query.pageable("name"));
     }
 
     /** Usado por otros módulos (ej. Events) para validar un placeId sin exponer el objeto Place completo (sección 38). */

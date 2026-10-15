@@ -1,68 +1,132 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   type ColumnDef,
   type RowSelectionState,
   type SortingState,
+  type Updater,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { CaretDown, CaretLeft, CaretRight, CaretUp, CaretUpDown, MagnifyingGlass } from "@phosphor-icons/react";
 import { Button, TextInput } from "@/components/ui";
+import { STATUS_FILTER_OPTIONS } from "@/lib/admin/list-params";
+
+/** Metadatos de la página que devolvió el backend (PageResponse). */
+export interface ServerPage {
+  page: number;
+  totalPages: number;
+  totalElements: number;
+}
 
 interface DataTableProps<TData> {
   columns: ColumnDef<TData, unknown>[];
+  /** Solo las filas de la página actual. */
   data: TData[];
+  serverPage: ServerPage;
+  /** id de columna → campo de orden del backend (AdminListQuery). Las columnas que no estén aquí no se ordenan. */
+  sortKeys?: Record<string, string>;
   searchPlaceholder?: string;
   emptyMessage?: string;
   /**
    * Selección de filas (casilla en cada una + "seleccionar todo" en el
    * encabezado) — opcional, solo se activa si se pasan ambas props. Usado
-   * por las 6 tablas de contenido para las acciones en lote (publicar/
+   * por las tablas de contenido para las acciones en lote (publicar/
    * archivar varios a la vez, ver content-bulk-actions.tsx).
    */
   getRowId?: (row: TData) => string;
   onSelectionChange?: (selected: TData[]) => void;
 }
 
-/** Tabla interactiva genérica: orden por columna, búsqueda en vivo (todas las columnas), paginación, selección opcional. Reutilizable en cualquier listado admin. */
+const SEARCH_DEBOUNCE_MS = 300;
+
+/**
+ * Tabla de los listados del panel, paginada en el servidor (hoja de ruta F3):
+ * búsqueda, estado, orden y página viven en la URL (?q&status&sort&page) y
+ * los resuelve el backend — con miles de piezas el navegador solo recibe 20.
+ * La URL se puede compartir y el botón atrás vuelve al filtro anterior.
+ */
 export function DataTable<TData>({
   columns,
   data,
+  serverPage,
+  sortKeys = {},
   searchPlaceholder = "Buscar…",
   emptyMessage = "Sin resultados.",
   getRowId,
   onSelectionChange,
 }: DataTableProps<TData>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const selectable = Boolean(getRowId && onSelectionChange);
 
-  const effectiveColumns = useMemo<ColumnDef<TData, unknown>[]>(
-    () => (selectable ? [selectionColumn<TData>(), ...columns] : columns),
-    [columns, selectable],
-  );
+  const urlQ = searchParams.get("q") ?? "";
+  const urlStatus = searchParams.get("status") ?? "";
+  const urlSort = searchParams.get("sort") ?? "";
+  const [search, setSearch] = useState(urlQ);
+
+  function navigate(patch: Record<string, string | undefined>) {
+    const params = new URLSearchParams(searchParams.toString());
+    for (const [key, value] of Object.entries(patch)) {
+      if (value) params.set(key, value);
+      else params.delete(key);
+    }
+    // Cambiar búsqueda, filtro u orden vuelve a la primera página.
+    if (!("page" in patch)) params.delete("page");
+    const query = params.toString();
+    startTransition(() => router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false }));
+  }
+
+  useEffect(() => {
+    if (search.trim() === urlQ) return;
+    const timer = setTimeout(() => navigate({ q: search.trim() || undefined }), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+    // navigate cambia en cada render; solo importa el texto escrito.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, urlQ]);
+
+  // Al cambiar de página o de filtro, la selección anterior ya no está a la vista.
+  useEffect(() => setRowSelection({}), [searchParams]);
+
+  const sorting = useMemo<SortingState>(() => {
+    const [key, direction] = urlSort.split(",");
+    const columnId = Object.keys(sortKeys).find((id) => sortKeys[id] === key);
+    return columnId ? [{ id: columnId, desc: direction !== "asc" }] : [];
+  }, [urlSort, sortKeys]);
+
+  function onSortingChange(updater: Updater<SortingState>) {
+    const next = typeof updater === "function" ? updater(sorting) : updater;
+    const first = next[0];
+    navigate({ sort: first ? `${sortKeys[first.id]},${first.desc ? "desc" : "asc"}` : undefined });
+  }
+
+  const effectiveColumns = useMemo<ColumnDef<TData, unknown>[]>(() => {
+    const withSorting = columns.map((column) => {
+      const id = column.id ?? ("accessorKey" in column ? String(column.accessorKey) : "");
+      return { ...column, enableSorting: id in sortKeys };
+    });
+    return selectable ? [selectionColumn<TData>(), ...withSorting] : withSorting;
+  }, [columns, selectable, sortKeys]);
 
   const table = useReactTable({
     data,
     columns: effectiveColumns,
-    state: { sorting, globalFilter, rowSelection },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
+    state: { sorting, rowSelection },
+    onSortingChange,
     onRowSelectionChange: setRowSelection,
     getRowId: getRowId ? (row) => getRowId(row) : undefined,
     enableRowSelection: selectable,
+    enableSortingRemoval: true,
+    manualSorting: true,
+    manualPagination: true,
+    pageCount: serverPage.totalPages,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 20 } },
   });
 
   // Notifica al padre con los objetos completos (no solo los IDs) cada vez
@@ -76,20 +140,45 @@ export function DataTable<TData>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rowSelection, onSelectionChange]);
 
+  const currentPage = serverPage.page + 1;
+
   return (
     <div>
-      <TextInput
-        type="search"
-        name="tableSearch"
-        aria-label={searchPlaceholder}
-        value={globalFilter}
-        onChange={(e) => setGlobalFilter(e.target.value)}
-        placeholder={searchPlaceholder}
-        leading={<MagnifyingGlass aria-hidden="true" />}
-        className="max-w-xs sm:max-w-sm"
-      />
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <TextInput
+          type="search"
+          name="tableSearch"
+          aria-label={searchPlaceholder}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={searchPlaceholder}
+          leading={<MagnifyingGlass aria-hidden="true" />}
+          className="max-w-xs sm:max-w-sm"
+        />
+        <div role="group" aria-label="Filtrar por estado" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 lg:pb-0">
+          {[{ value: "", label: "Todos" }, ...STATUS_FILTER_OPTIONS].map((option) => {
+            const active = urlStatus === option.value;
+            return (
+              <button
+                key={option.value || "all"}
+                type="button"
+                aria-pressed={active}
+                onClick={() => navigate({ status: option.value || undefined })}
+                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  active ? "bg-accent-fill text-accent-foreground" : "bg-field text-muted hover:text-foreground"
+                }`}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-      <div className="mt-4 overflow-x-auto rounded-card bg-surface shadow-card">
+      <div
+        className={`mt-4 overflow-x-auto rounded-card bg-surface shadow-card transition-opacity ${isPending ? "opacity-60" : ""}`}
+        aria-busy={isPending}
+      >
         <table className="w-full min-w-max text-left text-sm">
           <thead className="border-b border-field-border bg-field/50">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -98,7 +187,11 @@ export function DataTable<TData>({
                   const sortable = header.column.getCanSort();
                   const sortDirection = header.column.getIsSorted();
                   return (
-                    <th key={header.id} className="px-4 py-3 font-medium text-muted">
+                    <th
+                      key={header.id}
+                      className="px-4 py-3 font-medium text-muted"
+                      aria-sort={sortDirection === "asc" ? "ascending" : sortDirection === "desc" ? "descending" : undefined}
+                    >
                       {header.isPlaceholder ? null : sortable ? (
                         <button
                           type="button"
@@ -145,22 +238,34 @@ export function DataTable<TData>({
         </table>
       </div>
 
-      {table.getPageCount() > 1 && (
-        <div className="mt-3 flex items-center justify-between text-sm text-muted">
-          <span>
-            Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()} · {table.getFilteredRowModel().rows.length} resultados
-          </span>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-muted">
+        <span>
+          {serverPage.totalElements} {serverPage.totalElements === 1 ? "resultado" : "resultados"}
+          {serverPage.totalPages > 1 && ` · página ${currentPage} de ${serverPage.totalPages}`}
+        </span>
+        {serverPage.totalPages > 1 && (
           <div className="flex gap-1">
-            <Button size="sm" variant="secondary" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} icon={<CaretLeft aria-hidden="true" />}>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => navigate({ page: currentPage - 1 > 1 ? String(currentPage - 1) : undefined })}
+              disabled={currentPage <= 1 || isPending}
+              icon={<CaretLeft aria-hidden="true" />}
+            >
               Anterior
             </Button>
-            <Button size="sm" variant="secondary" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => navigate({ page: String(currentPage + 1) })}
+              disabled={currentPage >= serverPage.totalPages || isPending}
+            >
               Siguiente
               <CaretRight aria-hidden="true" />
             </Button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

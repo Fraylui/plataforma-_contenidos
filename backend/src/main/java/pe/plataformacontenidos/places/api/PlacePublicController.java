@@ -14,7 +14,7 @@ import pe.plataformacontenidos.engagement.ContentType;
 import pe.plataformacontenidos.engagement.LikeResponse;
 import pe.plataformacontenidos.places.Place;
 import pe.plataformacontenidos.places.PlaceService;
-import pe.plataformacontenidos.places.api.dto.PageResponse;
+import pe.plataformacontenidos.shared.PageResponse;
 import pe.plataformacontenidos.places.api.dto.PlaceResponse;
 import pe.plataformacontenidos.places.api.dto.PlaceSummaryResponse;
 

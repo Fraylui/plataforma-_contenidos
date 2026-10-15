@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.directory;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import java.time.Instant;
 import java.util.List;
@@ -11,7 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface BusinessRepository extends JpaRepository<Business, UUID> {
+public interface BusinessRepository extends JpaRepository<Business, UUID>, JpaSpecificationExecutor<Business> {
 
     Optional<Business> findBySlugAndStatus(String slug, PublicationStatus status);
 
@@ -23,7 +24,6 @@ public interface BusinessRepository extends JpaRepository<Business, UUID> {
 
     Page<Business> findByStatusAndBusinessType(PublicationStatus status, BusinessType businessType, Pageable pageable);
 
-    List<Business> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 
     List<Business> findByStatusAndScheduledAtBefore(PublicationStatus status, Instant threshold);
 

@@ -14,7 +14,7 @@ import pe.plataformacontenidos.directory.BusinessService;
 import pe.plataformacontenidos.directory.BusinessType;
 import pe.plataformacontenidos.directory.api.dto.BusinessResponse;
 import pe.plataformacontenidos.directory.api.dto.BusinessSummaryResponse;
-import pe.plataformacontenidos.directory.api.dto.PageResponse;
+import pe.plataformacontenidos.shared.PageResponse;
 import pe.plataformacontenidos.engagement.ContentLikeService;
 import pe.plataformacontenidos.engagement.ContentType;
 import pe.plataformacontenidos.engagement.LikeResponse;

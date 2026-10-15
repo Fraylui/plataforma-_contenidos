@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.galleries;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import java.time.Instant;
 import java.util.List;
@@ -11,7 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface GalleryRepository extends JpaRepository<Gallery, UUID> {
+public interface GalleryRepository extends JpaRepository<Gallery, UUID>, JpaSpecificationExecutor<Gallery> {
 
     Optional<Gallery> findBySlugAndStatus(String slug, PublicationStatus status);
 
@@ -21,7 +22,6 @@ public interface GalleryRepository extends JpaRepository<Gallery, UUID> {
 
     Page<Gallery> findByStatusAndCategoryId(PublicationStatus status, UUID categoryId, Pageable pageable);
 
-    List<Gallery> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 
     List<Gallery> findByStatusAndScheduledAtBefore(PublicationStatus status, Instant threshold);
 

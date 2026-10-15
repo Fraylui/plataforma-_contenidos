@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Article } from "@/lib/api/types";
+import type { Article, PageResponse } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
 import { computePublicationPermissions } from "@/lib/admin/publication";
 import { publicationStatusLabel, publicationStatusTone, articleTypeLabel, formatPublishedDate } from "@/lib/content-labels";
@@ -13,7 +13,10 @@ import { ContentRowActions } from "@/components/admin/content-row-actions";
 import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
 import { Badge } from "@/components/ui";
 
-export function PublicationsTable({ articles, currentUser }: { articles: Article[]; currentUser: AdminUser }) {
+/** Columna → campo de orden del backend (AdminListQuery). */
+const SORT_KEYS: Record<string, string> = { title: "title", status: "status", createdAt: "createdAt" };
+
+export function PublicationsTable({ page, currentUser }: { page: PageResponse<Article>; currentUser: AdminUser }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Article[]>([]);
 
@@ -75,9 +78,11 @@ export function PublicationsTable({ articles, currentUser }: { articles: Article
       />
       <DataTable
         columns={columns}
-        data={articles}
+        data={page.items}
+        serverPage={page}
+        sortKeys={SORT_KEYS}
         searchPlaceholder="Buscar publicaciones…"
-        emptyMessage="Ninguna publicación coincide con la búsqueda."
+        emptyMessage="Ninguna publicación coincide con la búsqueda o el filtro."
         getRowId={(row) => row.id}
         onSelectionChange={setSelected}
       />

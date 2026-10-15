@@ -13,7 +13,7 @@ import pe.plataformacontenidos.content.Article;
 import pe.plataformacontenidos.content.ArticleService;
 import pe.plataformacontenidos.content.api.dto.ArticleResponse;
 import pe.plataformacontenidos.content.api.dto.ArticleSummaryResponse;
-import pe.plataformacontenidos.content.api.dto.PageResponse;
+import pe.plataformacontenidos.shared.PageResponse;
 import pe.plataformacontenidos.engagement.ContentLikeService;
 import pe.plataformacontenidos.engagement.ContentType;
 import pe.plataformacontenidos.engagement.LikeResponse;

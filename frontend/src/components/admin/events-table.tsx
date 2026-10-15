@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Event } from "@/lib/api/types";
+import type { Event, PageResponse } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
 import { computePublicationPermissions } from "@/lib/admin/publication";
 import { publicationStatusLabel, publicationStatusTone, formatEventDateTime } from "@/lib/content-labels";
@@ -13,7 +13,10 @@ import { ContentRowActions } from "@/components/admin/content-row-actions";
 import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
 import { Badge } from "@/components/ui";
 
-export function EventsTable({ events, currentUser }: { events: Event[]; currentUser: AdminUser }) {
+/** Columna → campo de orden del backend (AdminListQuery). */
+const SORT_KEYS: Record<string, string> = { title: "title", status: "status", startsAt: "startsAt" };
+
+export function EventsTable({ page, currentUser }: { page: PageResponse<Event>; currentUser: AdminUser }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Event[]>([]);
 
@@ -70,7 +73,9 @@ export function EventsTable({ events, currentUser }: { events: Event[]; currentU
       />
       <DataTable
         columns={columns}
-        data={events}
+        data={page.items}
+        serverPage={page}
+        sortKeys={SORT_KEYS}
         searchPlaceholder="Buscar eventos…"
         emptyMessage="Ningún evento coincide con la búsqueda."
         getRowId={(row) => row.id}

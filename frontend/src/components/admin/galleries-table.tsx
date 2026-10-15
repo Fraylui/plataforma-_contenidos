@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Gallery } from "@/lib/api/types";
+import type { Gallery, PageResponse } from "@/lib/api/types";
 import type { AdminUser } from "@/lib/api/admin-types";
 import { computePublicationPermissions } from "@/lib/admin/publication";
 import { publicationStatusLabel, publicationStatusTone, formatPublishedDate } from "@/lib/content-labels";
@@ -13,7 +13,10 @@ import { ContentRowActions } from "@/components/admin/content-row-actions";
 import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
 import { Badge } from "@/components/ui";
 
-export function GalleriesTable({ galleries, currentUser }: { galleries: Gallery[]; currentUser: AdminUser }) {
+/** Columna → campo de orden del backend (AdminListQuery). */
+const SORT_KEYS: Record<string, string> = { title: "title", status: "status", createdAt: "createdAt" };
+
+export function GalleriesTable({ page, currentUser }: { page: PageResponse<Gallery>; currentUser: AdminUser }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Gallery[]>([]);
 
@@ -76,7 +79,9 @@ export function GalleriesTable({ galleries, currentUser }: { galleries: Gallery[
       />
       <DataTable
         columns={columns}
-        data={galleries}
+        data={page.items}
+        serverPage={page}
+        sortKeys={SORT_KEYS}
         searchPlaceholder="Buscar galerías…"
         emptyMessage="Ninguna galería coincide con la búsqueda."
         getRowId={(row) => row.id}

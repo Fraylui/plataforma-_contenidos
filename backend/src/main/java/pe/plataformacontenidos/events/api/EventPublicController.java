@@ -15,7 +15,7 @@ import pe.plataformacontenidos.events.Event;
 import pe.plataformacontenidos.events.EventService;
 import pe.plataformacontenidos.events.api.dto.EventResponse;
 import pe.plataformacontenidos.events.api.dto.EventSummaryResponse;
-import pe.plataformacontenidos.events.api.dto.PageResponse;
+import pe.plataformacontenidos.shared.PageResponse;
 
 /**
  * Solo contenido PUBLISHED — nada de estados intermedios visibles

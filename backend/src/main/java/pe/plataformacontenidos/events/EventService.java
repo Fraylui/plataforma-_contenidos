@@ -23,6 +23,7 @@ import pe.plataformacontenidos.shared.ContentVideo;
 import pe.plataformacontenidos.shared.ContentVideoInput;
 import pe.plataformacontenidos.shared.HtmlSanitizer;
 import pe.plataformacontenidos.shared.Slugify;
+import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
 import pe.plataformacontenidos.shared.publishing.InvalidPublicationTransitionException;
@@ -143,11 +144,10 @@ public class EventService {
         return event;
     }
 
-    public List<Event> listForAdmin(UUID actingUserId, boolean canPublish) {
-        if (canPublish) {
-            return eventRepository.findAll();
-        }
-        return eventRepository.findByAuthorIdOrderByCreatedAtDesc(actingUserId);
+    /** Página del listado del panel: quien publica ve todo; quien solo crea, lo suyo (ver AdminListQuery). */
+    public Page<Event> listForAdmin(UUID actingUserId, boolean canPublish, AdminListQuery query) {
+        return eventRepository.findAll(query.specification("title", canPublish ? null : actingUserId),
+                query.pageable("title", "startsAt"));
     }
 
     public Event getPublishedBySlug(String slug) {

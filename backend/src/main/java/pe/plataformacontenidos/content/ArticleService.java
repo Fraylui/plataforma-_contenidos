@@ -22,6 +22,7 @@ import pe.plataformacontenidos.shared.ContentImageInput;
 import pe.plataformacontenidos.shared.ContentVideo;
 import pe.plataformacontenidos.shared.ContentVideoInput;
 import pe.plataformacontenidos.shared.HtmlSanitizer;
+import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.shared.publishing.InvalidPublicationTransitionException;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import pe.plataformacontenidos.shared.Slugify;
@@ -135,11 +136,10 @@ public class ArticleService {
         return article;
     }
 
-    public List<Article> listForAdmin(UUID actingUserId, boolean canPublish) {
-        if (canPublish) {
-            return articleRepository.findAll();
-        }
-        return articleRepository.findByAuthorIdOrderByCreatedAtDesc(actingUserId);
+    /** Página del listado del panel: quien publica ve todo; quien solo crea, lo suyo (ver AdminListQuery). */
+    public Page<Article> listForAdmin(UUID actingUserId, boolean canPublish, AdminListQuery query) {
+        return articleRepository.findAll(query.specification("title", canPublish ? null : actingUserId),
+                query.pageable("title"));
     }
 
     public Article getPublishedBySlug(String slug) {
