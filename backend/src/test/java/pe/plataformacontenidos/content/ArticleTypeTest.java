@@ -15,6 +15,6 @@ class ArticleTypeTest {
     @Test
     void onlyPlatformFormatsExist() {
         assertThat(Arrays.stream(ArticleType.values()).map(Enum::name))
-                .containsExactly("GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA", "ENTREVISTA");
+                .containsExactly("GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA");
     }
 }

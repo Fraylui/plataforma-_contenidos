@@ -8,7 +8,6 @@ const ARTICLE_TYPE_LABELS: Record<ArticleType, string> = {
   LISTA: "Lista",
   TUTORIAL: "Tutorial",
   HISTORIA: "Historia",
-  ENTREVISTA: "Entrevista",
 };
 
 export function articleTypeLabel(type: ArticleType): string {

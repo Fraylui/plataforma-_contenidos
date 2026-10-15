@@ -15,7 +15,7 @@ import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
 import { baseDefaults, baseFields, baseInput, bodyField, videosField, videosFromContent } from "./composer/schema";
 
-const ARTICLE_TYPES: ArticleType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA", "ENTREVISTA"];
+const ARTICLE_TYPES: ArticleType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA"];
 
 const schema = z.object({
   ...baseFields,

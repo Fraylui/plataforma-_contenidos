@@ -4,7 +4,7 @@
 // generarlos desde una spec OpenAPI.
 
 /** Formato de publicación (plataforma de contenido, no géneros periodísticos — ver V48 en el backend). */
-export type ArticleType = "GENERAL" | "GUIA" | "LISTA" | "TUTORIAL" | "HISTORIA" | "ENTREVISTA";
+export type ArticleType = "GENERAL" | "GUIA" | "LISTA" | "TUTORIAL" | "HISTORIA";
 
 /** Estado de cualquier contenido — shared.publishing.PublicationStatus (spec 2026-10-07 §1). */
 export type PublicationStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED";

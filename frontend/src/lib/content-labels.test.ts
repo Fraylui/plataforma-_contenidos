@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { articleTypeLabel, formatEventDateTime, formatPublishedDate, formatShortDate, publicationStatusLabel, publicationStatusTone } from "./content-labels";
 import type { ArticleType, PublicationStatus } from "@/lib/api/types";
 
-const ALL_ARTICLE_TYPES: ArticleType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA", "ENTREVISTA"];
+const ALL_ARTICLE_TYPES: ArticleType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA"];
 
 const ALL_STATUSES: PublicationStatus[] = ["DRAFT", "SCHEDULED", "PUBLISHED", "ARCHIVED"];
 
@@ -14,7 +14,7 @@ describe("mapas de etiquetas", () => {
   });
 
   it("formatos de plataforma, sin géneros periodísticos", () => {
-    expect(ALL_ARTICLE_TYPES.map(articleTypeLabel)).toEqual(["General", "Guía", "Lista", "Tutorial", "Historia", "Entrevista"]);
+    expect(ALL_ARTICLE_TYPES.map(articleTypeLabel)).toEqual(["General", "Guía", "Lista", "Tutorial", "Historia"]);
   });
 
   it("estados de plataforma, sin pasos de redacción", () => {
