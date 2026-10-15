@@ -278,6 +278,22 @@ export interface DailyCount {
   count: number;
 }
 
+/** Me gusta y visitas totales de una fila de listado (ContentEngagementService.Counts). */
+export interface EngagementCounts {
+  likes: number;
+  views: number;
+}
+
+/** Página de un listado de contenido del panel (AdminContentPage.java): PageResponse + engagement por id. */
+export interface AdminContentPage<T> {
+  items: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  engagement: Record<string, EngagementCounts>;
+}
+
 /** Resumen del inicio del panel (GET /api/v1/admin/dashboard, ver DashboardService). */
 export type DashboardRange = 7 | 30 | 90;
 

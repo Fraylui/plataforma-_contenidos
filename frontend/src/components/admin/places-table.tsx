@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Place, PageResponse } from "@/lib/api/types";
-import type { AdminUser } from "@/lib/api/admin-types";
+import type { Place } from "@/lib/api/types";
+import type { AdminContentPage, AdminUser } from "@/lib/api/admin-types";
+import { EngagementCell, TitleCell } from "@/components/admin/content-cells";
 import { computePublicationPermissions } from "@/lib/admin/publication";
 import { publicationStatusLabel, publicationStatusTone, formatPublishedDate } from "@/lib/content-labels";
 import { DataTable } from "@/components/admin/ui";
@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui";
 /** Columna → campo de orden del backend (AdminListQuery). */
 const SORT_KEYS: Record<string, string> = { name: "title", status: "status", createdAt: "createdAt" };
 
-export function PlacesTable({ page, currentUser }: { page: PageResponse<Place>; currentUser: AdminUser }) {
+export function PlacesTable({ page, currentUser }: { page: AdminContentPage<Place>; currentUser: AdminUser }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Place[]>([]);
 
@@ -26,9 +26,7 @@ export function PlacesTable({ page, currentUser }: { page: PageResponse<Place>; 
         accessorKey: "name",
         header: "Nombre",
         cell: ({ row }) => (
-          <Link href={`/admin/lugares/${row.original.id}`} className="font-medium text-foreground hover:text-accent hover:underline">
-            {row.original.name}
-          </Link>
+          <TitleCell href={`/admin/lugares/${row.original.id}`} title={row.original.name} images={row.original.images} />
         ),
       },
       {
@@ -40,6 +38,11 @@ export function PlacesTable({ page, currentUser }: { page: PageResponse<Place>; 
         accessorKey: "createdAt",
         header: "Creado",
         cell: ({ row }) => <span className="text-muted">{formatPublishedDate(row.original.createdAt)}</span>,
+      },
+      {
+        id: "engagement",
+        header: "Interacción",
+        cell: ({ row }) => <EngagementCell counts={page.engagement[row.original.id]} />,
       },
       {
         id: "actions",
@@ -57,7 +60,7 @@ export function PlacesTable({ page, currentUser }: { page: PageResponse<Place>; 
         ),
       },
     ],
-    [currentUser],
+    [currentUser, page.engagement],
   );
 
   return (

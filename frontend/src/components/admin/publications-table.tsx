@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Article, PageResponse } from "@/lib/api/types";
-import type { AdminUser } from "@/lib/api/admin-types";
+import type { Article } from "@/lib/api/types";
+import type { AdminContentPage, AdminUser } from "@/lib/api/admin-types";
+import { EngagementCell, TitleCell } from "@/components/admin/content-cells";
 import { computePublicationPermissions } from "@/lib/admin/publication";
 import { publicationStatusLabel, publicationStatusTone, articleTypeLabel, formatPublishedDate } from "@/lib/content-labels";
 import { DataTable } from "@/components/admin/ui";
@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui";
 /** Columna → campo de orden del backend (AdminListQuery). */
 const SORT_KEYS: Record<string, string> = { title: "title", status: "status", createdAt: "createdAt" };
 
-export function PublicationsTable({ page, currentUser }: { page: PageResponse<Article>; currentUser: AdminUser }) {
+export function PublicationsTable({ page, currentUser }: { page: AdminContentPage<Article>; currentUser: AdminUser }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Article[]>([]);
 
@@ -26,9 +26,7 @@ export function PublicationsTable({ page, currentUser }: { page: PageResponse<Ar
         accessorKey: "title",
         header: "Título",
         cell: ({ row }) => (
-          <Link href={`/admin/publicaciones/${row.original.id}`} className="font-medium text-foreground hover:text-accent hover:underline">
-            {row.original.title}
-          </Link>
+          <TitleCell href={`/admin/publicaciones/${row.original.id}`} title={row.original.title} images={row.original.images} />
         ),
       },
       {
@@ -47,6 +45,11 @@ export function PublicationsTable({ page, currentUser }: { page: PageResponse<Ar
         cell: ({ row }) => <span className="text-muted">{formatPublishedDate(row.original.createdAt)}</span>,
       },
       {
+        id: "engagement",
+        header: "Interacción",
+        cell: ({ row }) => <EngagementCell counts={page.engagement[row.original.id]} />,
+      },
+      {
         id: "actions",
         header: "",
         enableSorting: false,
@@ -62,7 +65,7 @@ export function PublicationsTable({ page, currentUser }: { page: PageResponse<Ar
         ),
       },
     ],
-    [currentUser],
+    [currentUser, page.engagement],
   );
 
   return (

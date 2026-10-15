@@ -24,7 +24,7 @@ export default async function AdminArticlesPage(props: PageProps<"/admin/publica
       <AdminPageHeader title="Publicaciones" action={{ href: "/admin/publicaciones/nuevo", label: "Nueva publicación" }} />
 
       {isEmpty ? (
-        <EmptyState title="Todavía no hay publicaciones" description="Crea el primero para empezar." />
+        <EmptyState title="Todavía no hay publicaciones" description="Crea el primero para empezar." action={{ href: "/admin/publicaciones/nuevo", label: "Crear publicación" }} />
       ) : (
         <div className="mt-6">
           <PublicationsTable page={result.data} currentUser={user} />

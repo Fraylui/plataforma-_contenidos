@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Event, PageResponse } from "@/lib/api/types";
-import type { AdminUser } from "@/lib/api/admin-types";
+import type { Event } from "@/lib/api/types";
+import type { AdminContentPage, AdminUser } from "@/lib/api/admin-types";
+import { EngagementCell, TitleCell } from "@/components/admin/content-cells";
 import { computePublicationPermissions } from "@/lib/admin/publication";
 import { publicationStatusLabel, publicationStatusTone, formatEventDateTime } from "@/lib/content-labels";
 import { DataTable } from "@/components/admin/ui";
@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui";
 /** Columna → campo de orden del backend (AdminListQuery). */
 const SORT_KEYS: Record<string, string> = { title: "title", status: "status", startsAt: "startsAt" };
 
-export function EventsTable({ page, currentUser }: { page: PageResponse<Event>; currentUser: AdminUser }) {
+export function EventsTable({ page, currentUser }: { page: AdminContentPage<Event>; currentUser: AdminUser }) {
   const router = useRouter();
   const [selected, setSelected] = useState<Event[]>([]);
 
@@ -26,9 +26,7 @@ export function EventsTable({ page, currentUser }: { page: PageResponse<Event>; 
         accessorKey: "title",
         header: "Título",
         cell: ({ row }) => (
-          <Link href={`/admin/eventos/${row.original.id}`} className="font-medium text-foreground hover:text-accent hover:underline">
-            {row.original.title}
-          </Link>
+          <TitleCell href={`/admin/eventos/${row.original.id}`} title={row.original.title} images={row.original.images} />
         ),
       },
       {
@@ -40,6 +38,11 @@ export function EventsTable({ page, currentUser }: { page: PageResponse<Event>; 
         accessorKey: "status",
         header: "Estado",
         cell: ({ row }) => <Badge tone={publicationStatusTone(row.original.status)} dot>{publicationStatusLabel(row.original.status)}</Badge>,
+      },
+      {
+        id: "engagement",
+        header: "Interacción",
+        cell: ({ row }) => <EngagementCell counts={page.engagement[row.original.id]} />,
       },
       {
         id: "actions",
@@ -57,7 +60,7 @@ export function EventsTable({ page, currentUser }: { page: PageResponse<Event>; 
         ),
       },
     ],
-    [currentUser],
+    [currentUser, page.engagement],
   );
 
   return (

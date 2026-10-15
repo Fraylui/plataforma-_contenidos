@@ -24,7 +24,7 @@ export default async function AdminGalleriesPage(props: PageProps<"/admin/galeri
       <AdminPageHeader title="Galerías" action={{ href: "/admin/galerias/nuevo", label: "Nueva galería" }} />
 
       {isEmpty ? (
-        <EmptyState title="Todavía no hay galerías" description="Crea la primera para empezar." />
+        <EmptyState title="Todavía no hay galerías" description="Crea la primera para empezar." action={{ href: "/admin/galerias/nuevo", label: "Crear galería" }} />
       ) : (
         <div className="mt-6">
           <GalleriesTable page={result.data} currentUser={user} />

@@ -1,6 +1,10 @@
 package pe.plataformacontenidos.content.api;
 
 import org.springframework.web.bind.annotation.RequestParam;
+import pe.plataformacontenidos.content.Article;
+import pe.plataformacontenidos.engagement.AdminContentPage;
+import pe.plataformacontenidos.engagement.ContentEngagementService;
+import pe.plataformacontenidos.engagement.ContentType;
 import pe.plataformacontenidos.identity.permission.PermissionService;
 import pe.plataformacontenidos.identity.permission.AccessLevel;
 import pe.plataformacontenidos.identity.permission.Module;
@@ -21,7 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.content.ArticleService;
 import pe.plataformacontenidos.content.api.dto.ArticleRequest;
 import pe.plataformacontenidos.content.api.dto.ArticleResponse;
-import pe.plataformacontenidos.shared.PageResponse;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import pe.plataformacontenidos.shared.publishing.api.ReturnToDraftRequest;
@@ -38,24 +41,29 @@ import pe.plataformacontenidos.identity.security.UserPrincipal;
 @RequestMapping("/api/v1/admin/articles")
 public class ArticleAdminController {
 
+    private final ContentEngagementService engagementService;
+
     private final ArticleService articleService;
     private final PermissionService permissionService;
 
-    public ArticleAdminController(ArticleService articleService, PermissionService permissionService) {
+    public ArticleAdminController(ArticleService articleService, PermissionService permissionService,
+            ContentEngagementService engagementService) {
+        this.engagementService = engagementService;
         this.permissionService = permissionService;
         this.articleService = articleService;
     }
 
     /** Paginado en el servidor: búsqueda por título, estado, orden y página (ver AdminListQuery). */
     @GetMapping
-    public PageResponse<ArticleResponse> list(@RequestParam(required = false) String q,
+    public AdminContentPage<ArticleResponse> list(@RequestParam(required = false) String q,
             @RequestParam(required = false) PublicationStatus status,
             @RequestParam(required = false) String sort,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal UserPrincipal principal) {
         AdminListQuery query = new AdminListQuery(q, status, sort, page, size);
-        return PageResponse.from(articleService.listForAdmin(principal.userId(), canPublish(principal), query), ArticleResponse::from);
+        return AdminContentPage.from(articleService.listForAdmin(principal.userId(), canPublish(principal), query),
+                ArticleResponse::from, Article::getId, ContentType.ARTICLE, engagementService);
     }
 
     @GetMapping("/{id}")

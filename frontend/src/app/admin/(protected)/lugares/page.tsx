@@ -24,7 +24,7 @@ export default async function AdminPlacesPage(props: PageProps<"/admin/lugares">
       <AdminPageHeader title="Lugares" action={{ href: "/admin/lugares/nuevo", label: "Nuevo lugar" }} />
 
       {isEmpty ? (
-        <EmptyState title="Todavía no hay lugares" description="Crea el primero para empezar." />
+        <EmptyState title="Todavía no hay lugares" description="Crea el primero para empezar." action={{ href: "/admin/lugares/nuevo", label: "Crear lugar" }} />
       ) : (
         <div className="mt-6">
           <PlacesTable page={result.data} currentUser={user} />

@@ -24,7 +24,7 @@ export default async function AdminDirectoryPage(props: PageProps<"/admin/direct
       <AdminPageHeader title="Directorio" action={{ href: "/admin/directorio/nuevo", label: "Nueva ficha" }} />
 
       {isEmpty ? (
-        <EmptyState title="Todavía no hay fichas de directorio" description="Crea la primera para empezar." />
+        <EmptyState title="Todavía no hay fichas de directorio" description="Crea la primera para empezar." action={{ href: "/admin/directorio/nuevo", label: "Crear ficha" }} />
       ) : (
         <div className="mt-6">
           <BusinessesTable page={result.data} currentUser={user} />

@@ -53,7 +53,9 @@ class AdminListPaginationIntegrationTest {
         Login publisher = login(LegacyRole.EDITOR);
         String tag = "pag" + UUID.randomUUID().toString().substring(0, 8);
         gallery(UUID.randomUUID(), "Uno " + tag, "DRAFT");
-        gallery(UUID.randomUUID(), "Dos " + tag, "IN_REVIEW");
+        UUID second = gallery(UUID.randomUUID(), "Dos " + tag, "IN_REVIEW");
+        jdbc.update("INSERT INTO engagement.content_views_daily (day, content_type, content_id, views)"
+                + " VALUES (CURRENT_DATE, 'GALLERY', ?, 7)", second);
         gallery(UUID.randomUUID(), "Tres " + tag.toUpperCase(), "PUBLISHED");
 
         mockMvc.perform(get("/api/v1/admin/galleries").param("q", tag).param("size", "2")
@@ -66,7 +68,9 @@ class AdminListPaginationIntegrationTest {
         mockMvc.perform(get("/api/v1/admin/galleries").param("q", tag).param("status", "IN_REVIEW")
                         .header("Authorization", publisher.bearer()))
                 .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.items[0].title").value("Dos " + tag));
+                .andExpect(jsonPath("$.items[0].title").value("Dos " + tag))
+                .andExpect(jsonPath("$.engagement['" + second + "'].views").value(7))
+                .andExpect(jsonPath("$.engagement['" + second + "'].likes").value(0));
 
         mockMvc.perform(get("/api/v1/admin/galleries").param("q", tag).param("sort", "title,asc")
                         .header("Authorization", publisher.bearer()))
@@ -97,12 +101,13 @@ class AdminListPaginationIntegrationTest {
                 .andExpect(jsonPath("$.size").value(AdminListQuery.MAX_SIZE));
     }
 
-    private void gallery(UUID author, String title, String status) {
+    private UUID gallery(UUID author, String title, String status) {
         UUID id = UUID.randomUUID();
         jdbc.update("""
                 INSERT INTO galleries.galleries (id, slug, title, status, author_id, category_id)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """, id, "galeria-lista-" + id, title, status, author, UUID.randomUUID());
+        return id;
     }
 
     private record Login(UUID userId, String token) {

@@ -24,7 +24,7 @@ export default async function AdminEventsPage(props: PageProps<"/admin/eventos">
       <AdminPageHeader title="Eventos" action={{ href: "/admin/eventos/nuevo", label: "Nuevo evento" }} />
 
       {isEmpty ? (
-        <EmptyState title="Todavía no hay eventos" description="Crea el primero para empezar." />
+        <EmptyState title="Todavía no hay eventos" description="Crea el primero para empezar." action={{ href: "/admin/eventos/nuevo", label: "Crear evento" }} />
       ) : (
         <div className="mt-6">
           <EventsTable page={result.data} currentUser={user} />

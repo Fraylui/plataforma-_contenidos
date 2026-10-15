@@ -8,6 +8,7 @@ import { headers } from "next/headers";
 import type { PublicationKind, PublicationStep } from "@/lib/admin/publication";
 import { adminListQuery, type AdminListParams } from "@/lib/admin/list-params";
 import type {
+  AdminContentPage,
   AdminImage,
   AdminUser,
   CreateWorkerInput,
@@ -154,7 +155,7 @@ export function getCurrentUser(accessToken: string): Promise<AdminUser> {
 
 // --- Content module: artículos (ArticleAdminController) ---
 
-export function listAdminArticles(accessToken: string, params: AdminListParams): Promise<PageResponse<Article>> {
+export function listAdminArticles(accessToken: string, params: AdminListParams): Promise<AdminContentPage<Article>> {
   return authedJson(`/api/v1/admin/articles?${adminListQuery(params)}`, accessToken);
 }
 
@@ -180,7 +181,7 @@ export function updateArticle(accessToken: string, id: string, input: ArticleInp
 
 // --- Places module: lugares (PlaceAdminController, rutas /admin/places) — CONTEXTO.md sección 6 ---
 
-export function listAdminPlaces(accessToken: string, params: AdminListParams): Promise<PageResponse<Place>> {
+export function listAdminPlaces(accessToken: string, params: AdminListParams): Promise<AdminContentPage<Place>> {
   return authedJson(`/api/v1/admin/places?${adminListQuery(params)}`, accessToken);
 }
 
@@ -206,7 +207,7 @@ export function updatePlace(accessToken: string, id: string, input: PlaceInput):
 
 // --- Events module: eventos (EventAdminController, rutas /admin/events) ---
 
-export function listAdminEvents(accessToken: string, params: AdminListParams): Promise<PageResponse<Event>> {
+export function listAdminEvents(accessToken: string, params: AdminListParams): Promise<AdminContentPage<Event>> {
   return authedJson(`/api/v1/admin/events?${adminListQuery(params)}`, accessToken);
 }
 
@@ -232,7 +233,7 @@ export function updateEvent(accessToken: string, id: string, input: EventInput):
 
 // --- Galleries module: galerías (GalleryAdminController, rutas /admin/galleries) ---
 
-export function listAdminGalleries(accessToken: string, params: AdminListParams): Promise<PageResponse<Gallery>> {
+export function listAdminGalleries(accessToken: string, params: AdminListParams): Promise<AdminContentPage<Gallery>> {
   return authedJson(`/api/v1/admin/galleries?${adminListQuery(params)}`, accessToken);
 }
 
@@ -258,7 +259,7 @@ export function updateGallery(accessToken: string, id: string, input: GalleryInp
 
 // --- Directory module: fichas de directorio (BusinessAdminController, rutas /admin/directory) ---
 
-export function listAdminBusinesses(accessToken: string, params: AdminListParams): Promise<PageResponse<Business>> {
+export function listAdminBusinesses(accessToken: string, params: AdminListParams): Promise<AdminContentPage<Business>> {
   return authedJson(`/api/v1/admin/directory?${adminListQuery(params)}`, accessToken);
 }
 
