@@ -62,41 +62,40 @@ class DashboardIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    /**
+     * Quien tiene un módulo ve todo lo de ese módulo (no solo lo suyo) y nada de
+     * los otros. La base de pruebas es compartida entre clases: las cifras se
+     * comprueban como "al menos", con un volumen de visitas que ninguna otra
+     * prueba alcanza para que el contenido de esta encabece "Lo más visto".
+     */
     @Test
-    void creatorSeesOnlyOwnContentWithRealTotalsAndPreviousPeriod() {
+    void workerSeesEverythingInTheirModulesWithRealTotalsAndPreviousPeriod() {
         UUID worker = UUID.randomUUID();
-        UUID published = gallery(worker, "PUBLISHED");
-        gallery(worker, "IN_REVIEW");
-        UUID someoneElses = gallery(UUID.randomUUID(), "PUBLISHED");
-        views(published, TODAY, 5);
-        views(published, TODAY.minusDays(10), 3);
-        views(someoneElses, TODAY, 9);
+        UUID mine = gallery(worker, "PUBLISHED");
+        UUID teammates = gallery(UUID.randomUUID(), "PUBLISHED");
+        views(mine, TODAY, 1_000_000);
+        views(teammates, TODAY, 900_000);
+        views(mine, TODAY.minusDays(10), 3);
         jdbc.update("INSERT INTO engagement.content_likes (content_type, content_id, visitor_id) VALUES ('GALLERY', ?, ?)",
-                published, UUID.randomUUID());
+                mine, UUID.randomUUID());
 
         DashboardSummary summary = dashboardService.summary(
-                new Permissions(worker, false, true, false, Map.of(Module.GALLERIES, AccessLevel.CREATE)), 7);
+                new Permissions(worker, false, true, false, Map.of(Module.GALLERIES, AccessLevel.PUBLISH)), 7);
 
         assertThat(summary.series()).hasSize(7);
-        assertThat(summary.views().current()).isEqualTo(5);
-        assertThat(summary.views().previous()).isEqualTo(3);
-        assertThat(summary.likes().current()).isEqualTo(1);
-        assertThat(summary.published().current()).isEqualTo(1);
-        assertThat(summary.topViewed()).singleElement().satisfies(row -> {
-            assertThat(row.id()).isEqualTo(published);
-            assertThat(row.views()).isEqualTo(5);
-        });
-        assertThat(summary.byTypeAndStatus().get(ContentType.GALLERY))
-                .containsEntry("PUBLISHED", 1L).containsEntry("IN_REVIEW", 1L);
-        assertThat(summary.pendingCount()).isEqualTo(1);
-        assertThat(summary.recent()).hasSize(2);
+        assertThat(summary.views().current()).isGreaterThanOrEqualTo(1_900_000);
+        assertThat(summary.views().previous()).isGreaterThanOrEqualTo(3);
+        assertThat(summary.likes().current()).isGreaterThanOrEqualTo(1);
+        assertThat(summary.published().current()).isGreaterThanOrEqualTo(2);
+        assertThat(summary.topViewed()).extracting(DashboardSummary.TopRow::id).startsWith(mine, teammates);
+        assertThat(summary.byTypeAndStatus()).containsOnlyKeys(ContentType.GALLERY);
+        assertThat(summary.recent()).isNotEmpty();
         assertThat(summary.ads()).as("sin módulo de publicidad").isNull();
-        assertThat(summary.byTypeAndStatus()).doesNotContainKey(ContentType.ARTICLE);
     }
 
     @Test
     void rejectsUnknownRangeAndAnonymousCallers() throws Exception {
-        String token = login(TestProfile.CREADOR);
+        String token = login(TestProfile.SOLO_CONTENIDO);
 
         mockMvc.perform(get("/api/v1/admin/dashboard?range=7").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())

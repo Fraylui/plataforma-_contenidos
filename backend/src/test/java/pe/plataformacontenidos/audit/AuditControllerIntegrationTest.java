@@ -67,7 +67,7 @@ class AuditControllerIntegrationTest {
     @Test
     void loginSuccessIsRecordedAndVisibleToAdmin() throws Exception {
         String adminToken = createUserAndLogin("audit-admin-2@plataforma-contenidos.test", TestProfile.DUENO);
-        createUserAndLogin("audit-target@plataforma-contenidos.test", TestProfile.CREADOR);
+        createUserAndLogin("audit-target@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
 
         mockMvc.perform(get("/api/v1/admin/audit")
                         .header("Authorization", "Bearer " + adminToken)

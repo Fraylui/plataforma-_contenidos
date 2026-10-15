@@ -5,7 +5,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import pe.plataformacontenidos.events.EventAccessDeniedException;
 import pe.plataformacontenidos.events.EventNotFoundException;
 import pe.plataformacontenidos.events.EventPlaceNotFoundException;
 import pe.plataformacontenidos.events.InvalidEventDateRangeException;
@@ -24,13 +23,6 @@ public class EventExceptionHandler {
     public ResponseEntity<ApiError> handlePlaceNotFound(EventPlaceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError(Instant.now(), 404, ex.getMessage()));
     }
-
-    @ExceptionHandler(EventAccessDeniedException.class)
-    public ResponseEntity<ApiError> handleAccessDenied(EventAccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiError(Instant.now(), 403, ex.getMessage()));
-    }
-
-
 
     @ExceptionHandler(InvalidEventYouTubeUrlException.class)
     public ResponseEntity<ApiError> handleInvalidYouTubeUrl(InvalidEventYouTubeUrlException ex) {

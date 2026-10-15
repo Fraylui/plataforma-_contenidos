@@ -69,7 +69,7 @@ class FeedIntegrationTest {
     @Test
     void feedMixesArticlesPlacesAndEvents() throws Exception {
         String publisherToken = createUserAndLogin("feed-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("feed-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Mix");
 
         publishArticle(creatorToken, publisherToken, categoryId, "Feed: publicación de prueba " + UUID.randomUUID());
@@ -92,7 +92,7 @@ class FeedIntegrationTest {
     @Test
     void feedQueryCountDoesNotGrowWithContent() throws Exception {
         String publisherToken = createUserAndLogin("feed-n1-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("feed-n1-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-n1-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed N+1");
         for (int i = 0; i < 12; i++) {
             publishArticle(creatorToken, publisherToken, categoryId, "Feed N+1: publicación " + i + " " + UUID.randomUUID());
@@ -134,7 +134,7 @@ class FeedIntegrationTest {
     @Test
     void feedShowsContentPublishedAfterCandidatesWereCached() throws Exception {
         String publisherToken = createUserAndLogin("feed-cache-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("feed-cache-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-cache-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Cache");
         mockMvc.perform(get("/api/v1/feed").param("size", "100").param("type", "ARTICLE")).andExpect(status().isOk());
 
@@ -148,7 +148,7 @@ class FeedIntegrationTest {
     @Test
     void feedExcludesIdsAlreadySeenByClient() throws Exception {
         String publisherToken = createUserAndLogin("feed-exclude-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("feed-exclude-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-exclude-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Exclude");
 
         String articleId = publishArticle(creatorToken, publisherToken, categoryId,
@@ -165,7 +165,7 @@ class FeedIntegrationTest {
         // (los más recientes), no los primeros — el cliente reenvía la lista
         // completa de "ya visto" en orden de aparición en cada scroll.
         String publisherToken = createUserAndLogin("feed-exclude-bound-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("feed-exclude-bound-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-exclude-bound-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Exclude Bound");
 
         String articleId = publishArticle(creatorToken, publisherToken, categoryId,
@@ -184,7 +184,7 @@ class FeedIntegrationTest {
 
     @Test
     void feedNeverReturnsUnpublishedContent() throws Exception {
-        String creatorToken = createUserAndLogin("feed-draft-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-draft-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("feed-draft-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Feed Draft");
         String draftTitle = "Feed: borrador que no debe salir " + UUID.randomUUID();
@@ -210,7 +210,7 @@ class FeedIntegrationTest {
     @Test
     void relatedReturnsItemsSharingCategoryAndExcludesSelf() throws Exception {
         String publisherToken = createUserAndLogin("feed-related-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("feed-related-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-related-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Related");
         String otherCategoryId = createCategory(publisherToken, "Feed Related Otra");
 
@@ -244,7 +244,7 @@ class FeedIntegrationTest {
     @Test
     void feedFiltersByContentTypeForTabs() throws Exception {
         String publisherToken = createUserAndLogin("feed-tab-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("feed-tab-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-tab-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Tabs");
 
         publishArticle(creatorToken, publisherToken, categoryId, "Feed tab: publicación " + UUID.randomUUID());
@@ -265,7 +265,7 @@ class FeedIntegrationTest {
     @Test
     void feedIncludesGalleriesAndBusinesses() throws Exception {
         String publisherToken = createUserAndLogin("feed-five-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("feed-five-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-five-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Cinco");
 
         publishGallery(creatorToken, publisherToken, categoryId, "Feed: galería " + UUID.randomUUID());
@@ -284,7 +284,7 @@ class FeedIntegrationTest {
     @Test
     void feedFiltersByCategoryIncludingSubcategories() throws Exception {
         String publisherToken = createUserAndLogin("feed-cat-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("feed-cat-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-cat-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String parentId = createCategory(publisherToken, "Feed Padre");
         String childId = createSubcategory(publisherToken, "Feed Hija", parentId);
         String otherId = createCategory(publisherToken, "Feed Otro");
@@ -301,7 +301,7 @@ class FeedIntegrationTest {
     @Test
     void itemCarriesImagesAndLocationForTheCard() throws Exception {
         String publisherToken = createUserAndLogin("feed-img-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("feed-img-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-img-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Imágenes");
 
         MvcResult created = mockMvc.perform(post("/api/v1/admin/places")
@@ -328,7 +328,7 @@ class FeedIntegrationTest {
     @Test
     void upcomingAgendaIsOrderedByStartDate() throws Exception {
         String publisherToken = createUserAndLogin("feed-agenda-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("feed-agenda-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-agenda-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Agenda");
 
         String later = publishEventAt(creatorToken, publisherToken, categoryId, "Agenda tarde " + UUID.randomUUID(),
@@ -347,7 +347,7 @@ class FeedIntegrationTest {
     @Test
     void topLikedListsMostLikedFirstAndSkipsContentWithoutLikes() throws Exception {
         String publisherToken = createUserAndLogin("feed-top-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("feed-top-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-top-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Top");
 
         String popularId = publishArticle(creatorToken, publisherToken, categoryId, "Feed top: popular " + UUID.randomUUID());
@@ -428,7 +428,7 @@ class FeedIntegrationTest {
     @Test
     void topicsListOnlyRootTopicsWithContentIncludingSubtopics() throws Exception {
         String publisherToken = createUserAndLogin("feed-topics-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("feed-topics-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-topics-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String rootId = createCategory(publisherToken, "Tema Raíz");
         String childId = createSubcategory(publisherToken, "Tema Hijo", rootId);
         String emptyId = createCategory(publisherToken, "Tema Vacío");
@@ -444,7 +444,7 @@ class FeedIntegrationTest {
     @Test
     void topicIsMarkedNewOnlyWithin48Hours() throws Exception {
         String publisherToken = createUserAndLogin("feed-new-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("feed-new-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-new-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String freshId = createCategory(publisherToken, "Tema Fresco");
         String oldId = createCategory(publisherToken, "Tema Viejo");
         publishArticle(creatorToken, publisherToken, freshId, "Fresco " + UUID.randomUUID());
@@ -459,7 +459,7 @@ class FeedIntegrationTest {
     @Test
     void topicCoverIsTheLatestContentThatHasAnImage() throws Exception {
         String publisherToken = createUserAndLogin("feed-cover-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("feed-cover-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("feed-cover-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String topicId = createCategory(publisherToken, "Tema Portada");
         String gallery = publishGallery(creatorToken, publisherToken, topicId, "Portada " + UUID.randomUUID());
         jdbcTemplate.update("UPDATE galleries.galleries SET published_at = now() - interval '1 day' WHERE id = ?::uuid", gallery);
@@ -531,8 +531,6 @@ class FeedIntegrationTest {
     }
 
     private void runWorkflow(String basePath, String creatorToken, String publisherToken) throws Exception {
-        mockMvc.perform(post(basePath + "/submit").header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isOk());
         mockMvc.perform(post(basePath + "/publish").header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());
     }

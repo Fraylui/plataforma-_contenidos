@@ -5,7 +5,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import pe.plataformacontenidos.directory.BusinessAccessDeniedException;
 import pe.plataformacontenidos.directory.BusinessNotFoundException;
 import pe.plataformacontenidos.directory.BusinessPlaceNotFoundException;
 import pe.plataformacontenidos.directory.InvalidBusinessImageException;
@@ -23,13 +22,6 @@ public class BusinessExceptionHandler {
     public ResponseEntity<ApiError> handlePlaceNotFound(BusinessPlaceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError(Instant.now(), 404, ex.getMessage()));
     }
-
-    @ExceptionHandler(BusinessAccessDeniedException.class)
-    public ResponseEntity<ApiError> handleAccessDenied(BusinessAccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiError(Instant.now(), 403, ex.getMessage()));
-    }
-
-
 
     @ExceptionHandler(InvalidBusinessYouTubeUrlException.class)
     public ResponseEntity<ApiError> handleInvalidYouTubeUrl(InvalidBusinessYouTubeUrlException ex) {

@@ -59,7 +59,7 @@ class AuthorizationMatrixIntegrationTest {
     @BeforeAll
     void createUsers() throws Exception {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
-        creatorToken = createUserAndLogin("matrix-creador-" + suffix + "@plataforma-contenidos.test", TestProfile.CREADOR);
+        creatorToken = createUserAndLogin("matrix-creador-" + suffix + "@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         publisherToken = createUserAndLogin("matrix-publicador-" + suffix + "@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         adminToken = createUserAndLogin("matrix-admin-" + suffix + "@plataforma-contenidos.test", TestProfile.PUBLICADOR_CON_PUBLICIDAD);
         ownerToken = createUserAndLogin("matrix-owner-" + suffix + "@plataforma-contenidos.test", TestProfile.DUENO);

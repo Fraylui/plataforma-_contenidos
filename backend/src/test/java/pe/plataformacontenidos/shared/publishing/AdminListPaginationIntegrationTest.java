@@ -53,7 +53,7 @@ class AdminListPaginationIntegrationTest {
         Login publisher = login(TestProfile.PUBLICADOR);
         String tag = "pag" + UUID.randomUUID().toString().substring(0, 8);
         gallery(UUID.randomUUID(), "Uno " + tag, "DRAFT");
-        UUID second = gallery(UUID.randomUUID(), "Dos " + tag, "IN_REVIEW");
+        UUID second = gallery(UUID.randomUUID(), "Dos " + tag, "SCHEDULED");
         jdbc.update("INSERT INTO engagement.content_views_daily (day, content_type, content_id, views)"
                 + " VALUES (CURRENT_DATE, 'GALLERY', ?, 7)", second);
         gallery(UUID.randomUUID(), "Tres " + tag.toUpperCase(), "PUBLISHED");
@@ -65,7 +65,7 @@ class AdminListPaginationIntegrationTest {
                 .andExpect(jsonPath("$.totalElements").value(3))
                 .andExpect(jsonPath("$.totalPages").value(2));
 
-        mockMvc.perform(get("/api/v1/admin/galleries").param("q", tag).param("status", "IN_REVIEW")
+        mockMvc.perform(get("/api/v1/admin/galleries").param("q", tag).param("status", "SCHEDULED")
                         .header("Authorization", publisher.bearer()))
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.items[0].title").value("Dos " + tag))
@@ -79,7 +79,7 @@ class AdminListPaginationIntegrationTest {
 
     @Test
     void creatorOnlySeesOwnContent() throws Exception {
-        Login creator = login(TestProfile.CREADOR);
+        Login creator = login(TestProfile.SOLO_CONTENIDO);
         String tag = "own" + UUID.randomUUID().toString().substring(0, 8);
         gallery(creator.userId(), "Mía " + tag, "DRAFT");
         gallery(UUID.randomUUID(), "Ajena " + tag, "DRAFT");

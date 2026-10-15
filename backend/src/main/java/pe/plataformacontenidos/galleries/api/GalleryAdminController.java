@@ -5,7 +5,6 @@ import pe.plataformacontenidos.engagement.AdminContentPage;
 import pe.plataformacontenidos.engagement.ContentEngagementService;
 import pe.plataformacontenidos.engagement.ContentType;
 import pe.plataformacontenidos.galleries.Gallery;
-import pe.plataformacontenidos.identity.permission.PermissionService;
 import pe.plataformacontenidos.identity.permission.AccessLevel;
 import pe.plataformacontenidos.identity.permission.Module;
 import pe.plataformacontenidos.identity.permission.RequiresModule;
@@ -28,7 +27,6 @@ import pe.plataformacontenidos.galleries.api.dto.GalleryResponse;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
-import pe.plataformacontenidos.shared.publishing.api.ReturnToDraftRequest;
 import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;
 
 /**
@@ -43,12 +41,10 @@ public class GalleryAdminController {
     private final ContentEngagementService engagementService;
 
     private final GalleryService galleryService;
-    private final PermissionService permissionService;
 
-    public GalleryAdminController(GalleryService galleryService, PermissionService permissionService,
+    public GalleryAdminController(GalleryService galleryService,
             ContentEngagementService engagementService) {
         this.engagementService = engagementService;
-        this.permissionService = permissionService;
         this.galleryService = galleryService;
     }
 
@@ -61,13 +57,13 @@ public class GalleryAdminController {
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal UserPrincipal principal) {
         AdminListQuery query = new AdminListQuery(q, status, sort, page, size);
-        return AdminContentPage.from(galleryService.listForAdmin(principal.userId(), canPublish(principal), query),
+        return AdminContentPage.from(galleryService.listForAdmin(query),
                 GalleryResponse::from, Gallery::getId, ContentType.GALLERY, engagementService);
     }
 
     @GetMapping("/{id}")
     public GalleryResponse get(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return GalleryResponse.from(galleryService.getForAdmin(id, principal.userId(), canPublish(principal)));
+        return GalleryResponse.from(galleryService.getForAdmin(id));
     }
 
     @PostMapping
@@ -81,41 +77,29 @@ public class GalleryAdminController {
     public GalleryResponse update(@PathVariable UUID id, @Valid @RequestBody GalleryRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return GalleryResponse.from(
-                galleryService.update(id, request.toInput(), principal.userId(), canPublish(principal)));
-    }
-
-    @PostMapping("/{id}/submit")
-    public GalleryResponse submit(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return GalleryResponse.from(galleryService.submit(id, principal.userId()));
+                galleryService.update(id, request.toInput(), principal.userId()));
     }
 
     @PostMapping("/{id}/return-to-draft")
-    public GalleryResponse returnToDraft(@PathVariable UUID id,
-            @Valid @RequestBody(required = false) ReturnToDraftRequest request,
-            @AuthenticationPrincipal UserPrincipal principal) {
-        String note = request == null ? null : request.note();
-        return GalleryResponse.from(galleryService.returnToDraft(id, note, principal.userId(), canPublish(principal)));
+    public GalleryResponse returnToDraft(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
+        return GalleryResponse.from(galleryService.returnToDraft(id, principal.userId()));
     }
 
     @PostMapping("/{id}/publish")
     public GalleryResponse publish(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return GalleryResponse.from(galleryService.publish(id, principal.userId(), canPublish(principal)));
+        return GalleryResponse.from(galleryService.publish(id, principal.userId()));
     }
 
     @PostMapping("/{id}/schedule")
     public GalleryResponse schedule(@PathVariable UUID id, @Valid @RequestBody ScheduleRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return GalleryResponse.from(
-                galleryService.schedule(id, request.scheduledAt(), principal.userId(), canPublish(principal)));
+                galleryService.schedule(id, request.scheduledAt(), principal.userId()));
     }
 
     @PostMapping("/{id}/archive")
     public GalleryResponse archive(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return GalleryResponse.from(galleryService.archive(id, principal.userId(), canPublish(principal)));
+        return GalleryResponse.from(galleryService.archive(id, principal.userId()));
     }
 
-    private boolean canPublish(UserPrincipal principal) {
-        var permissions = permissionService.forUser(principal.userId());
-        return permissions.canPublish(Module.GALLERIES);
-    }
 }

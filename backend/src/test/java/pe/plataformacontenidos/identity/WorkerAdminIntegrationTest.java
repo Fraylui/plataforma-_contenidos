@@ -117,7 +117,7 @@ class WorkerAdminIntegrationTest {
 
     @Test
     void resetGivesANewTemporaryPasswordAndClosesSessions() throws Exception {
-        JsonNode created = createWorker("{\"EVENTS\":\"CREATE\"}");
+        JsonNode created = createWorker("{\"EVENTS\":\"PUBLISH\"}");
         String id = created.get("worker").get("id").asText();
         String email = created.get("worker").get("email").asText();
         String oldRefresh = login(email, created.get("temporaryPassword").asText()).get("refreshToken").asText();
@@ -134,7 +134,7 @@ class WorkerAdminIntegrationTest {
 
     @Test
     void deactivateAndActivate() throws Exception {
-        JsonNode created = createWorker("{\"EVENTS\":\"CREATE\"}");
+        JsonNode created = createWorker("{\"EVENTS\":\"PUBLISH\"}");
         String id = created.get("worker").get("id").asText();
         String email = created.get("worker").get("email").asText();
         String password = created.get("temporaryPassword").asText();

@@ -8,13 +8,14 @@ import pe.plataformacontenidos.identity.Role;
 /**
  * Perfiles de prueba con los mismos permisos que las cuentas reales de la
  * plataforma: el dueño (sin filas, puede todo) y trabajadores con las
- * plantillas del panel (Publicador, Creador) o sin permisos.
+ * plantillas del panel (Publicador), solo los 5 módulos de contenido o sin
+ * permisos. Todos los que tienen un módulo de contenido publican directo (V54).
  */
 public enum TestProfile {
     DUENO,
     PUBLICADOR_CON_PUBLICIDAD,
     PUBLICADOR,
-    CREADOR,
+    SOLO_CONTENIDO,
     SIN_PERMISOS;
 
     public Role toRole() {
@@ -29,7 +30,13 @@ public enum TestProfile {
                 levels.put(Module.ADVERTISING, AccessLevel.ACCESS);
             }
             case PUBLICADOR -> levels.putAll(Templates.of("PUBLICADOR"));
-            case CREADOR -> levels.putAll(Templates.of("CREADOR"));
+            case SOLO_CONTENIDO -> {
+                for (Module module : Module.values()) {
+                    if (module.isContent()) {
+                        levels.put(module, AccessLevel.PUBLISH);
+                    }
+                }
+            }
             default -> {
                 // Dueño: no necesita filas. Sin permisos: ninguna.
             }

@@ -31,10 +31,4 @@ public class PermissionExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new PermissionError(Instant.now(), 400, "INVALID_PERMISSION", ex.getMessage()));
     }
-
-    @ExceptionHandler(PublishPermissionRequiredException.class)
-    public ResponseEntity<PermissionError> handlePublishRequired(PublishPermissionRequiredException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(new PermissionError(Instant.now(), 403, "PUBLISH_PERMISSION_REQUIRED", ex.getMessage()));
-    }
 }

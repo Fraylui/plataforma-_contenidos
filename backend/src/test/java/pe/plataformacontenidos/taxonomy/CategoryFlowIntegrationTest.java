@@ -47,7 +47,7 @@ class CategoryFlowIntegrationTest {
     @Test
     void publisherCanCreateCategoryCreatorCannotAndPublicSeesOnlyActive() throws Exception {
         String publisherToken = createUserAndLogin("cat-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("cat-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("cat-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
 
         mockMvc.perform(post("/api/v1/admin/categories")
                         .header("Authorization", "Bearer " + creatorToken)

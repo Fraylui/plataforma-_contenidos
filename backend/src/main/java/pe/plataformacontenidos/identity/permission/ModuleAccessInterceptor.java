@@ -30,7 +30,7 @@ public class ModuleAccessInterceptor implements HandlerInterceptor {
         RequiresAnyModule anyOf = method.getMethodAnnotation(RequiresAnyModule.class);
         if (anyOf != null) {
             Permissions permissions = currentPermissions();
-            if (permissions == null || java.util.Arrays.stream(anyOf.value()).noneMatch(m -> permissions.can(m, AccessLevel.CREATE))) {
+            if (permissions == null || java.util.Arrays.stream(anyOf.value()).noneMatch(m -> permissions.can(m, AccessLevel.PUBLISH))) {
                 throw new ModuleAccessDeniedException();
             }
             return true;

@@ -2,13 +2,12 @@ package pe.plataformacontenidos.shared.publishing;
 
 /**
  * Estados de cualquier contenido (Publicación, Lugar, Evento, Galería,
- * Directorio). Flujo de plataforma, no de redacción: sin "aprobado" ni
- * "rechazado" (spec 2026-10-07 §1). El texto para la persona está en
+ * Directorio). Flujo de plataforma: quien tiene el módulo publica directo,
+ * sin paso de aprobación (decisión del dueño 2026-10-15, V54). El texto para la persona está en
  * {@link #label()}.
  */
 public enum PublicationStatus {
     DRAFT("Borrador"),
-    IN_REVIEW("Pendiente de aprobación"),
     SCHEDULED("Programado"),
     PUBLISHED("Publicado"),
     ARCHIVED("Archivado");

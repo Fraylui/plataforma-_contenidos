@@ -49,7 +49,7 @@ class BusinessWorkflowIntegrationTest {
     @Test
     void fullContentLifecycleFromDraftToPublishedWithLinkedPlace() throws Exception {
         String publisherToken = createUserAndLogin("directory-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("directory-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("directory-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Directorio Gastronómico Test");
         String placeId = createAndPublishPlace(creatorToken, publisherToken, categoryId, "Plaza Mayor de Huamanga");
 
@@ -58,16 +58,6 @@ class BusinessWorkflowIntegrationTest {
 
         // No visible públicamente en DRAFT
         mockMvc.perform(get("/api/v1/directory/restaurante-wamanripa")).andExpect(status().isNotFound());
-
-        mockMvc.perform(post("/api/v1/admin/directory/" + businessId + "/submit")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("IN_REVIEW"));
-
-        // El autor no puede publicar su propia ficha
-        mockMvc.perform(post("/api/v1/admin/directory/" + businessId + "/publish")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/v1/admin/directory/" + businessId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
@@ -102,7 +92,7 @@ class BusinessWorkflowIntegrationTest {
 
     @Test
     void createsBusinessWithFreeTextAddressWhenNoPlaceExists() throws Exception {
-        String creatorToken = createUserAndLogin("directory-creador-2@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("directory-creador-2@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("directory-publicador-2@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Dirección Libre Test");
 
@@ -118,7 +108,7 @@ class BusinessWorkflowIntegrationTest {
 
     @Test
     void rejectsMissingBusinessType() throws Exception {
-        String creatorToken = createUserAndLogin("directory-creador-3@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("directory-creador-3@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("directory-publicador-3@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Sin Tipo Test");
 
@@ -133,7 +123,7 @@ class BusinessWorkflowIntegrationTest {
     /** Regresión del hallazgo de la auditoría (2026-08-27): faltaban límites de rango en latitud/longitud. */
     @Test
     void rejectsCoordinatesOutOfRange() throws Exception {
-        String creatorToken = createUserAndLogin("directory-creador-4@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("directory-creador-4@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("directory-publicador-4@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Coordenadas Test");
 
@@ -148,7 +138,7 @@ class BusinessWorkflowIntegrationTest {
 
     @Test
     void rejectsUnknownPlaceId() throws Exception {
-        String creatorToken = createUserAndLogin("directory-creador-5@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("directory-creador-5@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("directory-publicador-5@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Lugar Inexistente Test");
 
@@ -162,18 +152,18 @@ class BusinessWorkflowIntegrationTest {
     }
 
     @Test
-    void creatorCannotEditSomeoneElsesBusiness() throws Exception {
+    void teammateCanPublishSomeoneElsesBusiness() throws Exception {
         String publisherToken = createUserAndLogin("directory-publicador-6@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("directory-creador-6@plataforma-contenidos.test", TestProfile.CREADOR);
-        String otherCreatorToken = createUserAndLogin("directory-creador-7@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("directory-creador-6@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
+        String otherCreatorToken = createUserAndLogin("directory-creador-7@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Categoría Ficha Ajena Test");
 
         String businessId = createDraftBusiness(creatorToken, categoryId, "Tienda cualquiera", "SHOP", null,
                 "Sin dirección todavía");
 
-        mockMvc.perform(post("/api/v1/admin/directory/" + businessId + "/submit")
+        mockMvc.perform(post("/api/v1/admin/directory/" + businessId + "/publish")
                         .header("Authorization", "Bearer " + otherCreatorToken))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     private String createAndPublishPlace(String creatorToken, String publisherToken, String categoryId, String name)
@@ -186,9 +176,6 @@ class BusinessWorkflowIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn();
         String placeId = textField(result, "id");
-        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());

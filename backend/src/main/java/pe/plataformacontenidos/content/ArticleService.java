@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
-import pe.plataformacontenidos.identity.permission.PublishPermissionRequiredException;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
@@ -70,9 +69,9 @@ public class ArticleService {
         return saved;
     }
 
-    public Article update(UUID articleId, ArticleInput input, UUID actingUserId, boolean canPublish) {
+    public Article update(UUID articleId, ArticleInput input, UUID actingUserId) {
         Article article = getOrThrow(articleId);
-        requireCanEdit(article, actingUserId, canPublish);
+        requireEditable(article);
 
         if (!article.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
@@ -89,56 +88,38 @@ public class ArticleService {
         return saved;
     }
 
-    /** Quien solo crea lo manda a quien publica (Pendiente de aprobación). */
-    public Article submit(UUID articleId, UUID actingUserId) {
-        Article article = getOrThrow(articleId);
-        if (!article.isOwnedBy(actingUserId)) {
-            throw new ArticleAccessDeniedException();
-        }
-        article.submitForApproval();
-        return saveAndAudit(article, "ARTICLE_SUBMITTED", actingUserId);
-    }
-
-    public Article publish(UUID articleId, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    public Article publish(UUID articleId, UUID actingUserId) {
         Article article = getOrThrow(articleId);
         article.publishNow(Instant.now());
         return saveAndAudit(article, "ARTICLE_PUBLISHED", actingUserId);
     }
 
-    public Article schedule(UUID articleId, Instant when, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    public Article schedule(UUID articleId, Instant when, UUID actingUserId) {
         Article article = getOrThrow(articleId);
         article.schedule(when, Instant.now());
         return saveAndAudit(article, "ARTICLE_SCHEDULED", actingUserId);
     }
 
-    /** Devuelve a borrador lo pendiente o programado, con una nota opcional para quien lo creó. */
-    public Article returnToDraft(UUID articleId, String note, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    /** Cancela la programación: vuelve a borrador. */
+    public Article returnToDraft(UUID articleId, UUID actingUserId) {
         Article article = getOrThrow(articleId);
-        article.returnToDraft(note);
+        article.returnToDraft();
         return saveAndAudit(article, "ARTICLE_RETURNED_TO_DRAFT", actingUserId);
     }
 
-    public Article archive(UUID articleId, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    public Article archive(UUID articleId, UUID actingUserId) {
         Article article = getOrThrow(articleId);
         article.archive();
         return saveAndAudit(article, "ARTICLE_ARCHIVED", actingUserId);
     }
 
-    public Article getForAdmin(UUID articleId, UUID actingUserId, boolean canPublish) {
-        Article article = getOrThrow(articleId);
-        if (!canPublish && !article.isOwnedBy(actingUserId)) {
-            throw new ArticleAccessDeniedException();
-        }
-        return article;
+    public Article getForAdmin(UUID articleId) {
+        return getOrThrow(articleId);
     }
 
-    /** Página del listado del panel: quien publica ve todo; quien solo crea, lo suyo (ver AdminListQuery). */
-    public Page<Article> listForAdmin(UUID actingUserId, boolean canPublish, AdminListQuery query) {
-        return articleRepository.findAll(query.specification("title", canPublish ? null : actingUserId),
+    /** Página del listado del panel (ver AdminListQuery). */
+    public Page<Article> listForAdmin(AdminListQuery query) {
+        return articleRepository.findAll(query.specification("title"),
                 query.pageable("title"));
     }
 
@@ -223,17 +204,11 @@ public class ArticleService {
         return result;
     }
 
-    private void requireCanEdit(Article article, UUID actingUserId, boolean canPublish) {
-        if (!canPublish && !article.isOwnedBy(actingUserId)) {
-            throw new ArticleAccessDeniedException();
-        }
-        boolean editable = canPublish ? article.isEditableByPublisher() : article.isEditableByCreator();
-        if (!editable) {
+    private void requireEditable(Article article) {
+        if (!article.isEditable()) {
             throw new InvalidPublicationTransitionException(article.getStatus(), "editar");
         }
     }
-
-
 
     private Article getOrThrow(UUID id) {
         return articleRepository.findById(id).orElseThrow(() -> new ArticleNotFoundException(id));
@@ -260,10 +235,4 @@ public class ArticleService {
                 null);
     }
 
-    /** Publicar, programar, devolver a borrador y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
-    private static void requirePublish(boolean canPublish) {
-        if (!canPublish) {
-            throw new PublishPermissionRequiredException();
-        }
-    }
 }

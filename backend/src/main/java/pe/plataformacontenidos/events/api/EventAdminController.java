@@ -5,7 +5,6 @@ import pe.plataformacontenidos.engagement.AdminContentPage;
 import pe.plataformacontenidos.engagement.ContentEngagementService;
 import pe.plataformacontenidos.engagement.ContentType;
 import pe.plataformacontenidos.events.Event;
-import pe.plataformacontenidos.identity.permission.PermissionService;
 import pe.plataformacontenidos.identity.permission.AccessLevel;
 import pe.plataformacontenidos.identity.permission.Module;
 import pe.plataformacontenidos.identity.permission.RequiresModule;
@@ -28,7 +27,6 @@ import pe.plataformacontenidos.events.api.dto.EventResponse;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
-import pe.plataformacontenidos.shared.publishing.api.ReturnToDraftRequest;
 import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;
 
 /**
@@ -43,12 +41,10 @@ public class EventAdminController {
     private final ContentEngagementService engagementService;
 
     private final EventService eventService;
-    private final PermissionService permissionService;
 
-    public EventAdminController(EventService eventService, PermissionService permissionService,
+    public EventAdminController(EventService eventService,
             ContentEngagementService engagementService) {
         this.engagementService = engagementService;
-        this.permissionService = permissionService;
         this.eventService = eventService;
     }
 
@@ -61,13 +57,13 @@ public class EventAdminController {
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal UserPrincipal principal) {
         AdminListQuery query = new AdminListQuery(q, status, sort, page, size);
-        return AdminContentPage.from(eventService.listForAdmin(principal.userId(), canPublish(principal), query),
+        return AdminContentPage.from(eventService.listForAdmin(query),
                 EventResponse::from, Event::getId, ContentType.EVENT, engagementService);
     }
 
     @GetMapping("/{id}")
     public EventResponse get(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return EventResponse.from(eventService.getForAdmin(id, principal.userId(), canPublish(principal)));
+        return EventResponse.from(eventService.getForAdmin(id));
     }
 
     @PostMapping
@@ -81,41 +77,29 @@ public class EventAdminController {
     public EventResponse update(@PathVariable UUID id, @Valid @RequestBody EventRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return EventResponse.from(
-                eventService.update(id, request.toInput(), principal.userId(), canPublish(principal)));
-    }
-
-    @PostMapping("/{id}/submit")
-    public EventResponse submit(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return EventResponse.from(eventService.submit(id, principal.userId()));
+                eventService.update(id, request.toInput(), principal.userId()));
     }
 
     @PostMapping("/{id}/return-to-draft")
-    public EventResponse returnToDraft(@PathVariable UUID id,
-            @Valid @RequestBody(required = false) ReturnToDraftRequest request,
-            @AuthenticationPrincipal UserPrincipal principal) {
-        String note = request == null ? null : request.note();
-        return EventResponse.from(eventService.returnToDraft(id, note, principal.userId(), canPublish(principal)));
+    public EventResponse returnToDraft(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
+        return EventResponse.from(eventService.returnToDraft(id, principal.userId()));
     }
 
     @PostMapping("/{id}/publish")
     public EventResponse publish(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return EventResponse.from(eventService.publish(id, principal.userId(), canPublish(principal)));
+        return EventResponse.from(eventService.publish(id, principal.userId()));
     }
 
     @PostMapping("/{id}/schedule")
     public EventResponse schedule(@PathVariable UUID id, @Valid @RequestBody ScheduleRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return EventResponse.from(
-                eventService.schedule(id, request.scheduledAt(), principal.userId(), canPublish(principal)));
+                eventService.schedule(id, request.scheduledAt(), principal.userId()));
     }
 
     @PostMapping("/{id}/archive")
     public EventResponse archive(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return EventResponse.from(eventService.archive(id, principal.userId(), canPublish(principal)));
+        return EventResponse.from(eventService.archive(id, principal.userId()));
     }
 
-    private boolean canPublish(UserPrincipal principal) {
-        var permissions = permissionService.forUser(principal.userId());
-        return permissions.canPublish(Module.EVENTS);
-    }
 }

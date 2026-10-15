@@ -55,7 +55,7 @@ class MediaFlowIntegrationTest {
 
     @Test
     void creatorUploadsValidPngAndItIsPubliclyServable() throws Exception {
-        String creatorToken = createUserAndLogin("media-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("media-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         byte[] png = generatePng(40, 30);
 
         MvcResult uploadResult = mockMvc.perform(multipart("/api/v1/admin/images")
@@ -84,7 +84,7 @@ class MediaFlowIntegrationTest {
 
     @Test
     void garbageBytesAreRejectedAsInvalidImage() throws Exception {
-        String creatorToken = createUserAndLogin("media-creador-2@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("media-creador-2@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
 
         mockMvc.perform(multipart("/api/v1/admin/images")
                         .file(new MockMultipartFile("file", "no-es-imagen.png", "image/png",
@@ -94,9 +94,10 @@ class MediaFlowIntegrationTest {
     }
 
     @Test
-    void onlyOwnerOrPublisherCanChangeAltTextOrDelete() throws Exception {
-        String creatorToken = createUserAndLogin("media-creador-3@plataforma-contenidos.test", TestProfile.CREADOR);
-        String otherCreatorToken = createUserAndLogin("media-creador-4@plataforma-contenidos.test", TestProfile.CREADOR);
+    void onlyUploaderOrSomeoneWithAContentModuleCanChangeAltTextOrDelete() throws Exception {
+        // Sin módulos de contenido: sube sus imágenes pero no toca las ajenas.
+        String creatorToken = createUserAndLogin("media-creador-3@plataforma-contenidos.test", TestProfile.SIN_PERMISOS);
+        String otherCreatorToken = createUserAndLogin("media-creador-4@plataforma-contenidos.test", TestProfile.SIN_PERMISOS);
         String publisherToken = createUserAndLogin("media-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
 
         String imageId = uploadPng(creatorToken, 20, 20);

@@ -20,8 +20,7 @@ public record GalleryResponse(
         String metaDescription,
         String canonicalUrl,
         String ogImageUrl,
-        String robots,
-        String reviewNote,
+        String robots,
         Instant publishedAt,
         Instant scheduledAt,
         Instant createdAt,
@@ -32,7 +31,7 @@ public record GalleryResponse(
                 gallery.getStatus(), gallery.getAuthorId(), gallery.getCategoryId(),
                 gallery.getImages().stream().map(ContentImageResponse::from).toList(), gallery.getSeoTitle(),
                 gallery.getMetaDescription(), gallery.getCanonicalUrl(), gallery.getOgImageUrl(),
-                gallery.getRobots(), gallery.getReviewNote(), gallery.getPublishedAt(),
+                gallery.getRobots(), gallery.getPublishedAt(),
                 gallery.getScheduledAt(), gallery.getCreatedAt(), likeCount);
     }
 

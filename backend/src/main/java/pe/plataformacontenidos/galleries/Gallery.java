@@ -144,10 +144,6 @@ public class Gallery extends PublishableContent {
         return createdAt;
     }
 
-    public boolean isOwnedBy(UUID userId) {
-        return authorId.equals(userId);
-    }
-
     public void updateContent(String title, String excerpt, UUID categoryId, List<ContentImage> images,
             String seoTitle, String metaDescription, String canonicalUrl, String ogImageUrl, String robots) {
         this.title = title;

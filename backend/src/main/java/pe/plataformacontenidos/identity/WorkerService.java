@@ -148,7 +148,7 @@ public class WorkerService {
     private static void validate(Map<Module, AccessLevel> permissions) {
         permissions.forEach((module, level) -> {
             boolean valid = module.isContent()
-                    ? level == AccessLevel.CREATE || level == AccessLevel.PUBLISH
+                    ? level == AccessLevel.PUBLISH
                     : level == AccessLevel.ACCESS;
             if (!valid) {
                 throw new InvalidPermissionException(module, level);

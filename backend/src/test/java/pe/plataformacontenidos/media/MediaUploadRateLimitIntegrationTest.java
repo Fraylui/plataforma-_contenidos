@@ -50,7 +50,7 @@ class MediaUploadRateLimitIntegrationTest {
 
     @Test
     void blocksUploadsAfterConfiguredLimit() throws Exception {
-        String token = createUserAndLogin("media-rate-limit@plataforma-contenidos.test", TestProfile.CREADOR);
+        String token = createUserAndLogin("media-rate-limit@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         byte[] png = generatePng();
 
         for (int i = 0; i < 2; i++) {

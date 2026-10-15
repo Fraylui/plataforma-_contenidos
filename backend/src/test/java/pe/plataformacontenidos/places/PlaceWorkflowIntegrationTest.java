@@ -49,23 +49,13 @@ class PlaceWorkflowIntegrationTest {
     @Test
     void fullContentLifecycleFromDraftToPublished() throws Exception {
         String publisherToken = createUserAndLogin("places-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("places-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("places-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Lugares Turísticos Test");
 
         String placeId = createDraftPlace(creatorToken, categoryId, "Pampa de la Quinua");
 
         // No visible públicamente en DRAFT
         mockMvc.perform(get("/api/v1/places/pampa-de-la-quinua")).andExpect(status().isNotFound());
-
-        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("IN_REVIEW"));
-
-        // El autor no puede publicar su propio lugar
-        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
@@ -92,7 +82,7 @@ class PlaceWorkflowIntegrationTest {
 
     @Test
     void rejectsUnknownImageIdInGallery() throws Exception {
-        String creatorToken = createUserAndLogin("places-creador-2@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("places-creador-2@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("places-publicador-2@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Imagen Test");
 
@@ -106,22 +96,22 @@ class PlaceWorkflowIntegrationTest {
     }
 
     @Test
-    void creatorCannotEditSomeoneElsesPlace() throws Exception {
+    void teammateCanPublishSomeoneElsesPlace() throws Exception {
         String publisherToken = createUserAndLogin("places-publicador-3@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("places-creador-3@plataforma-contenidos.test", TestProfile.CREADOR);
-        String otherCreatorToken = createUserAndLogin("places-creador-4@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("places-creador-3@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
+        String otherCreatorToken = createUserAndLogin("places-creador-4@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Categoría Ajena Test");
 
         String placeId = createDraftPlace(creatorToken, categoryId, "Mirador secreto");
 
-        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
+        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
                         .header("Authorization", "Bearer " + otherCreatorToken))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     @Test
     void rejectsInvalidCoordinates() throws Exception {
-        String creatorToken = createUserAndLogin("places-creador-5@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("places-creador-5@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("places-publicador-5@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Coordenadas Test");
 

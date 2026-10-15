@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -62,13 +61,9 @@ public record AdminListQuery(String q, PublicationStatus status, String sort, in
         return PageRequest.of(page, size, order);
     }
 
-    /** {@code authorId} null = todo el contenido (quien publica); si no, solo lo de esa persona. */
-    public <T extends PublishableContent> Specification<T> specification(String titleField, UUID authorId) {
+    public <T extends PublishableContent> Specification<T> specification(String titleField) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            if (authorId != null) {
-                predicates.add(cb.equal(root.get("authorId"), authorId));
-            }
             if (status != null) {
                 predicates.add(cb.equal(root.get("status"), status));
             }

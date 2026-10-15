@@ -62,7 +62,7 @@ class SearchIntegrationTest {
     @Test
     void findsPublishedArticleByTitleWordAndNotUnrelatedMatches() throws Exception {
         String publisherToken = createUserAndLogin("search-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("search-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("search-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Turismo Búsqueda Test");
 
         // Palabra distintiva (no "turismo"/"andino" sueltos: la suite completa
@@ -85,13 +85,10 @@ class SearchIntegrationTest {
     @Test
     void findsPublishedPlace() throws Exception {
         String publisherToken = createUserAndLogin("search-place-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("search-place-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("search-place-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Categoría Lugar Búsqueda Test");
 
         String placeId = createPlace(creatorToken, categoryId, "Templo colonial de Huamanguilla");
-        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());
@@ -105,7 +102,7 @@ class SearchIntegrationTest {
     @Test
     void typeParamFiltersOutTheOtherContentTypeEvenIfItMatches() throws Exception {
         String publisherToken = createUserAndLogin("search-type-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("search-type-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("search-type-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Categoría Filtro Tipo Test");
 
         // Misma palabra distintiva en un artículo y en un lugar, para probar
@@ -114,9 +111,6 @@ class SearchIntegrationTest {
         publishArticle(creatorToken, publisherToken, categoryId,
                 "Wamanripa: guía completa", "Todo sobre wamanripa en la región.");
         String placeId = createPlace(creatorToken, categoryId, "Mirador Wamanripa");
-        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());
@@ -137,13 +131,10 @@ class SearchIntegrationTest {
     @Test
     void findsPublishedEvent() throws Exception {
         String publisherToken = createUserAndLogin("search-event-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("search-event-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("search-event-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Categoría Evento Búsqueda Test");
 
         String eventId = createEvent(creatorToken, categoryId, "Festival Puyllay de Quinua");
-        mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/submit")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());
@@ -157,14 +148,11 @@ class SearchIntegrationTest {
     @Test
     void findsPublishedGallery() throws Exception {
         String publisherToken = createUserAndLogin("search-gallery-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("search-gallery-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("search-gallery-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Categoría Galería Búsqueda Test");
         String imageId = uploadImage(creatorToken);
 
         String galleryId = createGallery(creatorToken, categoryId, "Carnaval de Ayacucho en fotos", imageId);
-        mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/submit")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());
@@ -177,7 +165,7 @@ class SearchIntegrationTest {
 
     @Test
     void doesNotReturnDraftArticles() throws Exception {
-        String creatorToken = createUserAndLogin("search-creador-2@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("search-creador-2@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("search-publicador-2@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Draft Test");
 
@@ -202,7 +190,7 @@ class SearchIntegrationTest {
     @Test
     void findsContentByItsCategoryNameEvenIfTheTextNeverMentionsIt() throws Exception {
         String publisherToken = createUserAndLogin("search-cat-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("search-cat-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("search-cat-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         // Nombre con tilde: la búsqueda debe encontrarlo escrito sin tilde y en minúsculas.
         String categoryId = createCategory(publisherToken, "Kunturwási Temático");
 
@@ -224,7 +212,7 @@ class SearchIntegrationTest {
     @Test
     void contentMatchingByTextAndByCategoryAppearsOnlyOnce() throws Exception {
         String publisherToken = createUserAndLogin("search-dup-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("search-dup-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("search-dup-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Wiñaypachaq");
 
         publishArticle(creatorToken, publisherToken, categoryId, "Guía de Wiñaypachaq para principiantes",
@@ -238,9 +226,6 @@ class SearchIntegrationTest {
     private void publishPlaceInCategory(String creatorToken, String publisherToken, String categoryId, String name)
             throws Exception {
         String placeId = createPlace(creatorToken, categoryId, name);
-        mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());
@@ -256,9 +241,6 @@ class SearchIntegrationTest {
                 .andReturn();
         String articleId = textField(result, "id");
 
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/submit")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());

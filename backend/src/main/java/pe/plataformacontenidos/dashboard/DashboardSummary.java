@@ -21,8 +21,6 @@ public record DashboardSummary(
         List<DailyPoint> series,
         List<TopRow> topViewed,
         Map<ContentType, Map<String, Long>> byTypeAndStatus,
-        long pendingCount,
-        List<ContentRow> pending,
         List<ContentRow> recent,
         AdTotals ads) {
 

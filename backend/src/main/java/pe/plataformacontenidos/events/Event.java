@@ -195,10 +195,6 @@ public class Event extends PublishableContent {
         return createdAt;
     }
 
-    public boolean isOwnedBy(UUID userId) {
-        return authorId.equals(userId);
-    }
-
     public void updateContent(String title, String excerpt, String body, UUID categoryId,
             UUID placeId, String venueName, Instant startsAt, Instant endsAt, List<ContentImage> images,
             String seoTitle, String metaDescription, String canonicalUrl, String ogImageUrl,

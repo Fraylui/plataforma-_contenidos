@@ -32,8 +32,7 @@ public record BusinessResponse(
         String canonicalUrl,
         String ogImageUrl,
         List<ContentVideoResponse> videos,
-        String robots,
-        String reviewNote,
+        String robots,
         Instant publishedAt,
         Instant scheduledAt,
         Instant createdAt,
@@ -47,7 +46,7 @@ public record BusinessResponse(
                 business.getLongitude(), business.getImages().stream().map(ContentImageResponse::from).toList(),
                 business.getSeoTitle(), business.getMetaDescription(), business.getCanonicalUrl(),
                 business.getOgImageUrl(), business.getVideos().stream().map(ContentVideoResponse::from).toList(),
-                business.getRobots(), business.getReviewNote(), business.getPublishedAt(),
+                business.getRobots(), business.getPublishedAt(),
                 business.getScheduledAt(), business.getCreatedAt(), likeCount);
     }
 

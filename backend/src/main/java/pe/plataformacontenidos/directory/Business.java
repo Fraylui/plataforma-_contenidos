@@ -213,10 +213,6 @@ public class Business extends PublishableContent {
         return createdAt;
     }
 
-    public boolean isOwnedBy(UUID userId) {
-        return authorId.equals(userId);
-    }
-
     public void updateContent(String name, String excerpt, String body, UUID categoryId,
             BusinessType businessType, UUID placeId, String address, String phone, String email, String website,
             Double latitude, Double longitude, List<ContentImage> images, String seoTitle, String metaDescription,

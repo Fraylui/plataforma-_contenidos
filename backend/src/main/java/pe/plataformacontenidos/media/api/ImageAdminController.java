@@ -40,7 +40,7 @@ public class ImageAdminController {
 
     @GetMapping
     public List<ImageResponse> list(@AuthenticationPrincipal UserPrincipal principal) {
-        return imageService.listForAdmin(principal.userId(), canPublish(principal)).stream()
+        return imageService.listForAdmin(principal.userId(), canManageAll(principal)).stream()
                 .map(ImageResponse::from).toList();
     }
 
@@ -65,17 +65,17 @@ public class ImageAdminController {
     @PutMapping("/{id}")
     public ImageResponse updateAltText(@PathVariable UUID id, @Valid @RequestBody UpdateAltTextRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
-        var image = imageService.updateAltText(id, request.altText(), principal.userId(), canPublish(principal));
+        var image = imageService.updateAltText(id, request.altText(), principal.userId(), canManageAll(principal));
         return ImageResponse.from(image);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        imageService.delete(id, principal.userId(), canPublish(principal));
+        imageService.delete(id, principal.userId(), canManageAll(principal));
     }
 
-    private boolean canPublish(UserPrincipal principal) {
+    private boolean canManageAll(UserPrincipal principal) {
         var permissions = permissionService.forUser(principal.userId());
-        return permissions.canPublishAnyContent();
+        return permissions.hasAnyContentModule();
     }
 }

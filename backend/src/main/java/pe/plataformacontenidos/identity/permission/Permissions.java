@@ -25,17 +25,13 @@ public record Permissions(UUID userId, boolean owner, boolean active, boolean mu
         if (granted == null) {
             return false;
         }
-        return granted == needed || (granted == AccessLevel.PUBLISH && needed == AccessLevel.CREATE);
+        return granted == needed;
     }
 
-    public boolean canPublish(Module module) {
-        return can(module, AccessLevel.PUBLISH);
-    }
-
-    /** Imágenes: editar o borrar las de otros exige publicar en algún módulo de contenido. */
-    public boolean canPublishAnyContent() {
+    /** Imágenes: editar o borrar las de otros exige algún módulo de contenido. */
+    public boolean hasAnyContentModule() {
         for (Module module : Module.values()) {
-            if (module.isContent() && canPublish(module)) {
+            if (module.isContent() && can(module, AccessLevel.PUBLISH)) {
                 return true;
             }
         }

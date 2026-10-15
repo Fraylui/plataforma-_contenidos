@@ -4,7 +4,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import pe.plataformacontenidos.engagement.AdminContentPage;
 import pe.plataformacontenidos.engagement.ContentEngagementService;
 import pe.plataformacontenidos.engagement.ContentType;
-import pe.plataformacontenidos.identity.permission.PermissionService;
 import pe.plataformacontenidos.identity.permission.AccessLevel;
 import pe.plataformacontenidos.identity.permission.Module;
 import pe.plataformacontenidos.identity.permission.RequiresModule;
@@ -28,7 +27,6 @@ import pe.plataformacontenidos.places.api.dto.PlaceRequest;
 import pe.plataformacontenidos.places.api.dto.PlaceResponse;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
-import pe.plataformacontenidos.shared.publishing.api.ReturnToDraftRequest;
 import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;
 
 /**
@@ -43,12 +41,10 @@ public class PlaceAdminController {
     private final ContentEngagementService engagementService;
 
     private final PlaceService placeService;
-    private final PermissionService permissionService;
 
-    public PlaceAdminController(PlaceService placeService, PermissionService permissionService,
+    public PlaceAdminController(PlaceService placeService,
             ContentEngagementService engagementService) {
         this.engagementService = engagementService;
-        this.permissionService = permissionService;
         this.placeService = placeService;
     }
 
@@ -61,13 +57,13 @@ public class PlaceAdminController {
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal UserPrincipal principal) {
         AdminListQuery query = new AdminListQuery(q, status, sort, page, size);
-        return AdminContentPage.from(placeService.listForAdmin(principal.userId(), canPublish(principal), query),
+        return AdminContentPage.from(placeService.listForAdmin(query),
                 PlaceResponse::fromAdmin, Place::getId, ContentType.PLACE, engagementService);
     }
 
     @GetMapping("/{id}")
     public PlaceResponse get(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return PlaceResponse.fromAdmin(placeService.getForAdmin(id, principal.userId(), canPublish(principal)));
+        return PlaceResponse.fromAdmin(placeService.getForAdmin(id));
     }
 
     @PostMapping
@@ -81,41 +77,29 @@ public class PlaceAdminController {
     public PlaceResponse update(@PathVariable UUID id, @Valid @RequestBody PlaceRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return PlaceResponse.fromAdmin(
-                placeService.update(id, request.toInput(), principal.userId(), canPublish(principal)));
-    }
-
-    @PostMapping("/{id}/submit")
-    public PlaceResponse submit(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return PlaceResponse.fromAdmin(placeService.submit(id, principal.userId()));
+                placeService.update(id, request.toInput(), principal.userId()));
     }
 
     @PostMapping("/{id}/return-to-draft")
-    public PlaceResponse returnToDraft(@PathVariable UUID id,
-            @Valid @RequestBody(required = false) ReturnToDraftRequest request,
-            @AuthenticationPrincipal UserPrincipal principal) {
-        String note = request == null ? null : request.note();
-        return PlaceResponse.fromAdmin(placeService.returnToDraft(id, note, principal.userId(), canPublish(principal)));
+    public PlaceResponse returnToDraft(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
+        return PlaceResponse.fromAdmin(placeService.returnToDraft(id, principal.userId()));
     }
 
     @PostMapping("/{id}/publish")
     public PlaceResponse publish(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return PlaceResponse.fromAdmin(placeService.publish(id, principal.userId(), canPublish(principal)));
+        return PlaceResponse.fromAdmin(placeService.publish(id, principal.userId()));
     }
 
     @PostMapping("/{id}/schedule")
     public PlaceResponse schedule(@PathVariable UUID id, @Valid @RequestBody ScheduleRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return PlaceResponse.fromAdmin(
-                placeService.schedule(id, request.scheduledAt(), principal.userId(), canPublish(principal)));
+                placeService.schedule(id, request.scheduledAt(), principal.userId()));
     }
 
     @PostMapping("/{id}/archive")
     public PlaceResponse archive(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return PlaceResponse.fromAdmin(placeService.archive(id, principal.userId(), canPublish(principal)));
+        return PlaceResponse.fromAdmin(placeService.archive(id, principal.userId()));
     }
 
-    private boolean canPublish(UserPrincipal principal) {
-        var permissions = permissionService.forUser(principal.userId());
-        return permissions.canPublish(Module.PLACES);
-    }
 }

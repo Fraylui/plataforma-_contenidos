@@ -54,7 +54,7 @@ class GalleryWorkflowIntegrationTest {
     @Test
     void fullContentLifecycleFromDraftToPublished() throws Exception {
         String publisherToken = createUserAndLogin("galleries-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("galleries-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("galleries-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Galerías Culturales Test");
         String imageId = uploadImage(creatorToken);
 
@@ -62,16 +62,6 @@ class GalleryWorkflowIntegrationTest {
 
         // No visible públicamente en DRAFT
         mockMvc.perform(get("/api/v1/galleries/fiesta-patronal-de-quinua")).andExpect(status().isNotFound());
-
-        mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/submit")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("IN_REVIEW"));
-
-        // El autor no puede publicar su propia galería
-        mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/publish")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
@@ -98,7 +88,7 @@ class GalleryWorkflowIntegrationTest {
 
     @Test
     void rejectsGalleryWithoutAnyImage() throws Exception {
-        String creatorToken = createUserAndLogin("galleries-creador-2@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("galleries-creador-2@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("galleries-publicador-2@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Sin Fotos Test");
 
@@ -111,7 +101,7 @@ class GalleryWorkflowIntegrationTest {
 
     @Test
     void rejectsUnknownImageIdInGallery() throws Exception {
-        String creatorToken = createUserAndLogin("galleries-creador-3@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("galleries-creador-3@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("galleries-publicador-3@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Imagen Inexistente Test");
 
@@ -124,18 +114,18 @@ class GalleryWorkflowIntegrationTest {
     }
 
     @Test
-    void creatorCannotEditSomeoneElsesGallery() throws Exception {
+    void teammateCanPublishSomeoneElsesGallery() throws Exception {
         String publisherToken = createUserAndLogin("galleries-publicador-4@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("galleries-creador-4@plataforma-contenidos.test", TestProfile.CREADOR);
-        String otherCreatorToken = createUserAndLogin("galleries-creador-5@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("galleries-creador-4@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
+        String otherCreatorToken = createUserAndLogin("galleries-creador-5@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Categoría Galería Ajena Test");
         String imageId = uploadImage(creatorToken);
 
         String galleryId = createDraftGallery(creatorToken, categoryId, "Coleccion privada", imageId);
 
-        mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/submit")
+        mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/publish")
                         .header("Authorization", "Bearer " + otherCreatorToken))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     private String uploadImage(String creatorToken) throws Exception {

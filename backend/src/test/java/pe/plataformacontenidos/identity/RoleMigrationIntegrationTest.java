@@ -77,7 +77,8 @@ class RoleMigrationIntegrationTest {
         assertThat(roleOf("editor@legacy.test")).isEqualTo("WORKER");
         assertThat(permissionsOf("editor@legacy.test")).containsEntry("EVENTS", "PUBLISH").doesNotContainKey("ADVERTISING");
         assertThat(roleOf("author@legacy.test")).isEqualTo("WORKER");
-        assertThat(permissionsOf("author@legacy.test")).containsEntry("ARTICLES", "CREATE").hasSize(5);
+        // V54: ya no existe "solo crear" — quien tenía los 5 módulos de contenido ahora publica en ellos.
+        assertThat(permissionsOf("author@legacy.test")).containsEntry("ARTICLES", "PUBLISH").hasSize(5);
     }
 
     @Test

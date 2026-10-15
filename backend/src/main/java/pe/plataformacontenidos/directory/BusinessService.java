@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
-import pe.plataformacontenidos.identity.permission.PublishPermissionRequiredException;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.shared.ContentImage;
@@ -74,9 +73,9 @@ public class BusinessService {
         return saved;
     }
 
-    public Business update(UUID businessId, BusinessInput input, UUID actingUserId, boolean canPublish) {
+    public Business update(UUID businessId, BusinessInput input, UUID actingUserId) {
         Business business = getOrThrow(businessId);
-        requireCanEdit(business, actingUserId, canPublish);
+        requireEditable(business);
 
         if (!business.getCategoryId().equals(input.categoryId())
                 && !categoryService.existsActive(input.categoryId())) {
@@ -98,56 +97,38 @@ public class BusinessService {
         return saved;
     }
 
-    /** Quien solo crea lo manda a quien publica (Pendiente de aprobación). */
-    public Business submit(UUID businessId, UUID actingUserId) {
-        Business business = getOrThrow(businessId);
-        if (!business.isOwnedBy(actingUserId)) {
-            throw new BusinessAccessDeniedException();
-        }
-        business.submitForApproval();
-        return saveAndAudit(business, "BUSINESS_SUBMITTED", actingUserId);
-    }
-
-    public Business publish(UUID businessId, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    public Business publish(UUID businessId, UUID actingUserId) {
         Business business = getOrThrow(businessId);
         business.publishNow(Instant.now());
         return saveAndAudit(business, "BUSINESS_PUBLISHED", actingUserId);
     }
 
-    public Business schedule(UUID businessId, Instant when, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    public Business schedule(UUID businessId, Instant when, UUID actingUserId) {
         Business business = getOrThrow(businessId);
         business.schedule(when, Instant.now());
         return saveAndAudit(business, "BUSINESS_SCHEDULED", actingUserId);
     }
 
-    /** Devuelve a borrador lo pendiente o programado, con una nota opcional para quien lo creó. */
-    public Business returnToDraft(UUID businessId, String note, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    /** Cancela la programación: vuelve a borrador. */
+    public Business returnToDraft(UUID businessId, UUID actingUserId) {
         Business business = getOrThrow(businessId);
-        business.returnToDraft(note);
+        business.returnToDraft();
         return saveAndAudit(business, "BUSINESS_RETURNED_TO_DRAFT", actingUserId);
     }
 
-    public Business archive(UUID businessId, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    public Business archive(UUID businessId, UUID actingUserId) {
         Business business = getOrThrow(businessId);
         business.archive();
         return saveAndAudit(business, "BUSINESS_ARCHIVED", actingUserId);
     }
 
-    public Business getForAdmin(UUID businessId, UUID actingUserId, boolean canPublish) {
-        Business business = getOrThrow(businessId);
-        if (!canPublish && !business.isOwnedBy(actingUserId)) {
-            throw new BusinessAccessDeniedException();
-        }
-        return business;
+    public Business getForAdmin(UUID businessId) {
+        return getOrThrow(businessId);
     }
 
-    /** Página del listado del panel: quien publica ve todo; quien solo crea, lo suyo (ver AdminListQuery). */
-    public Page<Business> listForAdmin(UUID actingUserId, boolean canPublish, AdminListQuery query) {
-        return businessRepository.findAll(query.specification("name", canPublish ? null : actingUserId),
+    /** Página del listado del panel (ver AdminListQuery). */
+    public Page<Business> listForAdmin(AdminListQuery query) {
+        return businessRepository.findAll(query.specification("name"),
                 query.pageable("name"));
     }
 
@@ -225,17 +206,11 @@ public class BusinessService {
         return result;
     }
 
-    private void requireCanEdit(Business business, UUID actingUserId, boolean canPublish) {
-        if (!canPublish && !business.isOwnedBy(actingUserId)) {
-            throw new BusinessAccessDeniedException();
-        }
-        boolean editable = canPublish ? business.isEditableByPublisher() : business.isEditableByCreator();
-        if (!editable) {
+    private void requireEditable(Business business) {
+        if (!business.isEditable()) {
             throw new InvalidPublicationTransitionException(business.getStatus(), "editar");
         }
     }
-
-
 
     private Business getOrThrow(UUID id) {
         return businessRepository.findById(id).orElseThrow(() -> new BusinessNotFoundException(id));
@@ -262,10 +237,4 @@ public class BusinessService {
                 null);
     }
 
-    /** Publicar, programar, devolver a borrador y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
-    private static void requirePublish(boolean canPublish) {
-        if (!canPublish) {
-            throw new PublishPermissionRequiredException();
-        }
-    }
 }

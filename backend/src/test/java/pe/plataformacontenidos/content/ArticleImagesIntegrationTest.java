@@ -57,7 +57,7 @@ class ArticleImagesIntegrationTest {
 
     @Test
     void rejectsUnknownUploadedImageId() throws Exception {
-        String creatorToken = createUserAndLogin("images-creador-1@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("images-creador-1@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("images-publicador-1@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Imagen Inexistente Test");
 
@@ -75,7 +75,7 @@ class ArticleImagesIntegrationTest {
 
     @Test
     void rejectsImageWithBothSourcesOrNeither() throws Exception {
-        String creatorToken = createUserAndLogin("images-creador-shape@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("images-creador-shape@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("images-publicador-shape@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Imagen Forma Inválida Test");
 
@@ -93,7 +93,7 @@ class ArticleImagesIntegrationTest {
 
     @Test
     void acceptsUploadedAndExternalImagesAndReturnsThemInOrder() throws Exception {
-        String creatorToken = createUserAndLogin("images-creador-2@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("images-creador-2@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("images-publicador-2@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Imágenes Reales Test");
 
@@ -122,9 +122,6 @@ class ArticleImagesIntegrationTest {
                 .andReturn();
         String articleId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asText();
 
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/submit")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());

@@ -49,23 +49,13 @@ class EventWorkflowIntegrationTest {
     @Test
     void fullContentLifecycleFromDraftToPublished() throws Exception {
         String publisherToken = createUserAndLogin("events-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("events-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("events-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Eventos Culturales Test");
 
         String eventId = createDraftEvent(creatorToken, categoryId, "Festival de la Wamanripa", "2030-06-14T19:00:00Z");
 
         // No visible públicamente en DRAFT
         mockMvc.perform(get("/api/v1/events/festival-de-la-wamanripa")).andExpect(status().isNotFound());
-
-        mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/submit")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("IN_REVIEW"));
-
-        // El autor no puede publicar su propio evento
-        mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/publish")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
@@ -97,7 +87,7 @@ class EventWorkflowIntegrationTest {
     @Test
     void separatesUpcomingFromPastEvents() throws Exception {
         String publisherToken = createUserAndLogin("events-publicador-2@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("events-creador-2@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("events-creador-2@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Categoría Próximos Pasados Test");
 
         publishEvent(creatorToken, publisherToken, categoryId, "Feria Kimsapampa Próxima", "2031-03-01T10:00:00Z");
@@ -119,7 +109,7 @@ class EventWorkflowIntegrationTest {
 
     @Test
     void rejectsEndsAtBeforeStartsAt() throws Exception {
-        String creatorToken = createUserAndLogin("events-creador-3@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("events-creador-3@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("events-publicador-3@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Fechas Test");
 
@@ -134,7 +124,7 @@ class EventWorkflowIntegrationTest {
 
     @Test
     void rejectsUnknownPlaceId() throws Exception {
-        String creatorToken = createUserAndLogin("events-creador-4@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("events-creador-4@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("events-publicador-4@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Lugar Inexistente Test");
 
@@ -149,25 +139,22 @@ class EventWorkflowIntegrationTest {
     }
 
     @Test
-    void creatorCannotEditSomeoneElsesEvent() throws Exception {
+    void teammateCanPublishSomeoneElsesEvent() throws Exception {
         String publisherToken = createUserAndLogin("events-publicador-5@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("events-creador-5@plataforma-contenidos.test", TestProfile.CREADOR);
-        String otherCreatorToken = createUserAndLogin("events-creador-6@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("events-creador-5@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
+        String otherCreatorToken = createUserAndLogin("events-creador-6@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Categoría Evento Ajeno Test");
 
         String eventId = createDraftEvent(creatorToken, categoryId, "Concierto privado", "2030-06-14T19:00:00Z");
 
-        mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/submit")
+        mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/publish")
                         .header("Authorization", "Bearer " + otherCreatorToken))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk());
     }
 
     private String publishEvent(String creatorToken, String publisherToken, String categoryId, String title,
             String startsAt) throws Exception {
         String eventId = createDraftEvent(creatorToken, categoryId, title, startsAt);
-        mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/submit")
-                        .header("Authorization", "Bearer " + creatorToken))
-                .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());

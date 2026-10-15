@@ -16,5 +16,5 @@ public @interface RequiresModule {
 
     Module value();
 
-    AccessLevel level() default AccessLevel.CREATE;
+    AccessLevel level() default AccessLevel.PUBLISH;
 }

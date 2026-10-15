@@ -37,11 +37,11 @@ class ModuleAccessIntegrationTest {
 
     @ParameterizedTest(name = "{0} {1}")
     @CsvSource({
-        "ARTICLES, /api/v1/admin/articles, CREATE",
-        "PLACES, /api/v1/admin/places, CREATE",
-        "EVENTS, /api/v1/admin/events, CREATE",
-        "GALLERIES, /api/v1/admin/galleries, CREATE",
-        "DIRECTORY, /api/v1/admin/directory, CREATE",
+        "ARTICLES, /api/v1/admin/articles, PUBLISH",
+        "PLACES, /api/v1/admin/places, PUBLISH",
+        "EVENTS, /api/v1/admin/events, PUBLISH",
+        "GALLERIES, /api/v1/admin/galleries, PUBLISH",
+        "DIRECTORY, /api/v1/admin/directory, PUBLISH",
         "CATEGORIES, /api/v1/admin/categories, ACCESS",
         "STATS, /api/v1/admin/stats, ACCESS",
         "ADVERTISING, /api/v1/admin/advertisers, ACCESS",

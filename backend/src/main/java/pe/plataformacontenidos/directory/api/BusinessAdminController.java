@@ -5,7 +5,6 @@ import pe.plataformacontenidos.directory.Business;
 import pe.plataformacontenidos.engagement.AdminContentPage;
 import pe.plataformacontenidos.engagement.ContentEngagementService;
 import pe.plataformacontenidos.engagement.ContentType;
-import pe.plataformacontenidos.identity.permission.PermissionService;
 import pe.plataformacontenidos.identity.permission.AccessLevel;
 import pe.plataformacontenidos.identity.permission.Module;
 import pe.plataformacontenidos.identity.permission.RequiresModule;
@@ -28,7 +27,6 @@ import pe.plataformacontenidos.directory.api.dto.BusinessResponse;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
-import pe.plataformacontenidos.shared.publishing.api.ReturnToDraftRequest;
 import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;
 
 /**
@@ -44,12 +42,10 @@ public class BusinessAdminController {
     private final ContentEngagementService engagementService;
 
     private final BusinessService businessService;
-    private final PermissionService permissionService;
 
-    public BusinessAdminController(BusinessService businessService, PermissionService permissionService,
+    public BusinessAdminController(BusinessService businessService,
             ContentEngagementService engagementService) {
         this.engagementService = engagementService;
-        this.permissionService = permissionService;
         this.businessService = businessService;
     }
 
@@ -62,13 +58,13 @@ public class BusinessAdminController {
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal UserPrincipal principal) {
         AdminListQuery query = new AdminListQuery(q, status, sort, page, size);
-        return AdminContentPage.from(businessService.listForAdmin(principal.userId(), canPublish(principal), query),
+        return AdminContentPage.from(businessService.listForAdmin(query),
                 BusinessResponse::from, Business::getId, ContentType.BUSINESS, engagementService);
     }
 
     @GetMapping("/{id}")
     public BusinessResponse get(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return BusinessResponse.from(businessService.getForAdmin(id, principal.userId(), canPublish(principal)));
+        return BusinessResponse.from(businessService.getForAdmin(id));
     }
 
     @PostMapping
@@ -82,41 +78,29 @@ public class BusinessAdminController {
     public BusinessResponse update(@PathVariable UUID id, @Valid @RequestBody BusinessRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return BusinessResponse.from(
-                businessService.update(id, request.toInput(), principal.userId(), canPublish(principal)));
-    }
-
-    @PostMapping("/{id}/submit")
-    public BusinessResponse submit(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return BusinessResponse.from(businessService.submit(id, principal.userId()));
+                businessService.update(id, request.toInput(), principal.userId()));
     }
 
     @PostMapping("/{id}/return-to-draft")
-    public BusinessResponse returnToDraft(@PathVariable UUID id,
-            @Valid @RequestBody(required = false) ReturnToDraftRequest request,
-            @AuthenticationPrincipal UserPrincipal principal) {
-        String note = request == null ? null : request.note();
-        return BusinessResponse.from(businessService.returnToDraft(id, note, principal.userId(), canPublish(principal)));
+    public BusinessResponse returnToDraft(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
+        return BusinessResponse.from(businessService.returnToDraft(id, principal.userId()));
     }
 
     @PostMapping("/{id}/publish")
     public BusinessResponse publish(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return BusinessResponse.from(businessService.publish(id, principal.userId(), canPublish(principal)));
+        return BusinessResponse.from(businessService.publish(id, principal.userId()));
     }
 
     @PostMapping("/{id}/schedule")
     public BusinessResponse schedule(@PathVariable UUID id, @Valid @RequestBody ScheduleRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
         return BusinessResponse.from(
-                businessService.schedule(id, request.scheduledAt(), principal.userId(), canPublish(principal)));
+                businessService.schedule(id, request.scheduledAt(), principal.userId()));
     }
 
     @PostMapping("/{id}/archive")
     public BusinessResponse archive(@PathVariable UUID id, @AuthenticationPrincipal UserPrincipal principal) {
-        return BusinessResponse.from(businessService.archive(id, principal.userId(), canPublish(principal)));
+        return BusinessResponse.from(businessService.archive(id, principal.userId()));
     }
 
-    private boolean canPublish(UserPrincipal principal) {
-        var permissions = permissionService.forUser(principal.userId());
-        return permissions.canPublish(Module.DIRECTORY);
-    }
 }

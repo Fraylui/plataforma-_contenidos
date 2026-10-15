@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
-/** Máquina de estados compartida por los 5 tipos de contenido (spec 2026-10-07 §1). */
+/** Máquina de estados compartida por los 5 tipos de contenido: se publica directo, sin aprobación (V54). */
 class PublishableContentTest {
 
     private static final Instant NOW = Instant.parse("2026-10-07T15:00:00Z");
@@ -18,7 +18,6 @@ class PublishableContentTest {
         Content content = new Content();
         switch (status) {
             case DRAFT -> { }
-            case IN_REVIEW -> content.submitForApproval();
             case SCHEDULED -> content.schedule(NOW.plusSeconds(3600), NOW);
             case PUBLISHED -> content.publishNow(NOW);
             case ARCHIVED -> {
@@ -35,26 +34,8 @@ class PublishableContentTest {
     }
 
     @Test
-    void submitOnlyFromDraftAndClearsTheNote() {
-        Content content = inStatus(PublicationStatus.IN_REVIEW);
-        content.returnToDraft("Falta la foto de portada");
-        assertThat(content.getReviewNote()).isEqualTo("Falta la foto de portada");
-
-        content.submitForApproval();
-        assertThat(content.getStatus()).isEqualTo(PublicationStatus.IN_REVIEW);
-        assertThat(content.getReviewNote()).isNull();
-
-        for (PublicationStatus from : new PublicationStatus[] {PublicationStatus.IN_REVIEW, PublicationStatus.SCHEDULED,
-                PublicationStatus.PUBLISHED, PublicationStatus.ARCHIVED}) {
-            assertThatThrownBy(() -> inStatus(from).submitForApproval())
-                    .isInstanceOf(InvalidPublicationTransitionException.class);
-        }
-    }
-
-    @Test
-    void publishFromDraftReviewOrScheduled() {
-        for (PublicationStatus from : new PublicationStatus[] {PublicationStatus.DRAFT, PublicationStatus.IN_REVIEW,
-                PublicationStatus.SCHEDULED}) {
+    void publishFromDraftOrScheduled() {
+        for (PublicationStatus from : new PublicationStatus[] {PublicationStatus.DRAFT, PublicationStatus.SCHEDULED}) {
             Content content = inStatus(from);
             content.publishNow(NOW);
             assertThat(content.getStatus()).isEqualTo(PublicationStatus.PUBLISHED);
@@ -84,21 +65,15 @@ class PublishableContentTest {
     }
 
     @Test
-    void returnToDraftFromReviewOrScheduledKeepsTheNote() {
-        Content reviewed = inStatus(PublicationStatus.IN_REVIEW);
-        reviewed.returnToDraft("  Revisa el título  ");
-        assertThat(reviewed.getStatus()).isEqualTo(PublicationStatus.DRAFT);
-        assertThat(reviewed.getReviewNote()).isEqualTo("Revisa el título");
-
+    void returnToDraftCancelsTheSchedule() {
         Content scheduled = inStatus(PublicationStatus.SCHEDULED);
-        scheduled.returnToDraft(" ");
+        scheduled.returnToDraft();
         assertThat(scheduled.getStatus()).isEqualTo(PublicationStatus.DRAFT);
         assertThat(scheduled.getScheduledAt()).isNull();
-        assertThat(scheduled.getReviewNote()).isNull();
 
-        assertThatThrownBy(() -> inStatus(PublicationStatus.DRAFT).returnToDraft(null))
+        assertThatThrownBy(() -> inStatus(PublicationStatus.DRAFT).returnToDraft())
                 .isInstanceOf(InvalidPublicationTransitionException.class);
-        assertThatThrownBy(() -> inStatus(PublicationStatus.PUBLISHED).returnToDraft(null))
+        assertThatThrownBy(() -> inStatus(PublicationStatus.PUBLISHED).returnToDraft())
                 .isInstanceOf(InvalidPublicationTransitionException.class);
     }
 
@@ -122,12 +97,9 @@ class PublishableContentTest {
     }
 
     @Test
-    void whoCanEditWhat() {
-        assertThat(inStatus(PublicationStatus.DRAFT).isEditableByCreator()).isTrue();
-        assertThat(inStatus(PublicationStatus.IN_REVIEW).isEditableByCreator()).isFalse();
-        assertThat(inStatus(PublicationStatus.PUBLISHED).isEditableByCreator()).isFalse();
+    void everythingButArchivedIsEditable() {
         for (PublicationStatus status : PublicationStatus.values()) {
-            assertThat(inStatus(status).isEditableByPublisher()).isEqualTo(status != PublicationStatus.ARCHIVED);
+            assertThat(inStatus(status).isEditable()).isEqualTo(status != PublicationStatus.ARCHIVED);
         }
     }
 
@@ -135,7 +107,7 @@ class PublishableContentTest {
     void everyTransitionTouchesUpdatedAt() {
         Content content = new Content();
         Instant before = content.getUpdatedAt();
-        content.submitForApproval();
+        content.publishNow(NOW);
         assertThat(content.getUpdatedAt()).isAfterOrEqualTo(before);
     }
 

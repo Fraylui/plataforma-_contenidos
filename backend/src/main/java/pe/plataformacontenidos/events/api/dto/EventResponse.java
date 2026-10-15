@@ -27,8 +27,7 @@ public record EventResponse(
         String canonicalUrl,
         String ogImageUrl,
         List<ContentVideoResponse> videos,
-        String robots,
-        String reviewNote,
+        String robots,
         Instant publishedAt,
         Instant scheduledAt,
         Instant createdAt,
@@ -41,7 +40,7 @@ public record EventResponse(
                 event.getEndsAt(), event.getImages().stream().map(ContentImageResponse::from).toList(),
                 event.getSeoTitle(), event.getMetaDescription(), event.getCanonicalUrl(), event.getOgImageUrl(),
                 event.getVideos().stream().map(ContentVideoResponse::from).toList(), event.getRobots(),
-                event.getReviewNote(), event.getPublishedAt(), event.getScheduledAt(), event.getCreatedAt(),
+                event.getPublishedAt(), event.getScheduledAt(), event.getCreatedAt(),
                 likeCount);
     }
 

@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -40,9 +41,9 @@ import pe.plataformacontenidos.identity.permission.Permissions;
  * las tablas de los 5 tipos en modo lectura, nunca escribe en ellas.
  *
  * <p>Respeta los permisos: cada tipo entra solo si el usuario tiene ese
- * módulo; quien solo crea ve lo suyo, quien publica ve todo. Anuncios, solo
- * con el módulo de publicidad. Se guarda {@link #TTL} por usuario, período
- * y permisos (si cambian los permisos, cambia la clave).
+ * módulo (y entonces ve todo lo del módulo). Anuncios, solo con el módulo de
+ * publicidad. Se guarda {@link #TTL} por período y combinación de módulos:
+ * dos personas con los mismos módulos comparten el resultado.
  */
 @Service
 public class DashboardService {
@@ -87,7 +88,7 @@ public class DashboardService {
             throw new InvalidDashboardRangeException(rangeDays);
         }
         Scope scope = Scope.of(permissions);
-        String key = permissions.userId() + "|" + rangeDays + "|" + scope.signature();
+        String key = rangeDays + "|" + scope.signature();
         CacheEntry cached = cache.get(key);
         Instant now = clock.instant();
         if (cached != null && cached.builtAt().plus(TTL).isAfter(now)) {
@@ -112,7 +113,6 @@ public class DashboardService {
         Map<LocalDate, Long> published = Map.of();
         List<TopRow> topViewed = List.of();
         Map<ContentType, Map<String, Long>> byTypeAndStatus = new EnumMap<>(ContentType.class);
-        List<ContentRow> pending = List.of();
         List<ContentRow> recent = List.of();
 
         if (!scope.types().isEmpty()) {
@@ -121,16 +121,16 @@ public class DashboardService {
                     SELECT v.day, SUM(v.views) FROM engagement.content_views_daily v
                       JOIN scoped s ON s.type = v.content_type AND s.id = v.content_id
                      WHERE v.day >= ? GROUP BY v.day
-                    """, scope.params(Date.valueOf(previousFrom)));
+                    """, Date.valueOf(previousFrom));
             likes = daily(cte + """
                     SELECT (l.created_at AT TIME ZONE ?)::date AS d, COUNT(*) FROM engagement.content_likes l
                       JOIN scoped s ON s.type = l.content_type AND s.id = l.content_id
                      WHERE l.created_at >= ? GROUP BY d
-                    """, scope.params(siteZone.getId(), previousFromInstant));
+                    """, siteZone.getId(), previousFromInstant);
             published = daily(cte + """
                     SELECT (published_at AT TIME ZONE ?)::date AS d, COUNT(*) FROM scoped
                      WHERE status = 'PUBLISHED' AND published_at >= ? GROUP BY d
-                    """, scope.params(siteZone.getId(), previousFromInstant));
+                    """, siteZone.getId(), previousFromInstant);
             topViewed = jdbc.query(cte + """
                     SELECT s.type, s.id, s.title, s.slug, SUM(v.views) AS total
                       FROM engagement.content_views_daily v
@@ -140,18 +140,14 @@ public class DashboardService {
                      ORDER BY total DESC, s.title
                      LIMIT 10
                     """, (rs, i) -> new TopRow(ContentType.valueOf(rs.getString(1)), rs.getObject(2, UUID.class),
-                    rs.getString(3), rs.getString(4), rs.getLong(5)), scope.params(Date.valueOf(from)));
+                    rs.getString(3), rs.getString(4), rs.getLong(5)), Date.valueOf(from));
             jdbc.query(cte + "SELECT type, status, COUNT(*) FROM scoped GROUP BY type, status", rs -> {
                 byTypeAndStatus.computeIfAbsent(ContentType.valueOf(rs.getString(1)), t -> new LinkedHashMap<>())
                         .put(rs.getString(2), rs.getLong(3));
-            }, scope.params());
-            pending = rows(cte + """
-                    SELECT type, id, title, status, created_at FROM scoped
-                     WHERE status = 'IN_REVIEW' ORDER BY created_at DESC LIMIT 10
-                    """, scope.params());
+            });
             recent = rows(cte + """
                     SELECT type, id, title, status, created_at FROM scoped ORDER BY created_at DESC LIMIT 8
-                    """, scope.params());
+                    """);
         }
 
         AdTotals ads = scope.ads() ? adTotals(from, previousFrom) : null;
@@ -161,10 +157,9 @@ public class DashboardService {
             series.add(new DailyPoint(day.toString(), views.getOrDefault(day, 0L), likes.getOrDefault(day, 0L),
                     published.getOrDefault(day, 0L)));
         }
-        long pendingCount = byTypeAndStatus.values().stream().mapToLong(s -> s.getOrDefault("IN_REVIEW", 0L)).sum();
         return new DashboardSummary(rangeDays, from.toString(), today.toString(),
                 kpi(views, from, previousFrom), kpi(likes, from, previousFrom), kpi(published, from, previousFrom),
-                series, topViewed, byTypeAndStatus, pendingCount, pending, recent, ads);
+                series, topViewed, byTypeAndStatus, recent, ads);
     }
 
     private AdTotals adTotals(LocalDate from, LocalDate previousFrom) {
@@ -181,7 +176,7 @@ public class DashboardService {
         return new AdTotals(totals[0], totals[1], totals[2], totals[3]);
     }
 
-    private Map<LocalDate, Long> daily(String sql, Object[] params) {
+    private Map<LocalDate, Long> daily(String sql, Object... params) {
         Map<LocalDate, Long> result = new HashMap<>();
         jdbc.query(sql, rs -> {
             result.put(rs.getDate(1).toLocalDate(), rs.getLong(2));
@@ -189,7 +184,7 @@ public class DashboardService {
         return result;
     }
 
-    private List<ContentRow> rows(String sql, Object[] params) {
+    private List<ContentRow> rows(String sql, Object... params) {
         return jdbc.query(sql, (rs, i) -> new ContentRow(ContentType.valueOf(rs.getString(1)),
                 rs.getObject(2, UUID.class), rs.getString(3), rs.getString(4),
                 rs.getTimestamp(5).toInstant()), params);
@@ -208,45 +203,31 @@ public class DashboardService {
         return new Kpi(current, previous);
     }
 
-    /** Tipos visibles y cómo filtrar cada uno; arma la CTE "scoped" con los parámetros en orden. */
-    private record Scope(UUID userId, Map<ContentType, Boolean> types, boolean ads) {
+    /** Tipos visibles (un módulo de contenido = todo su contenido); arma la CTE "scoped". */
+    private record Scope(Set<ContentType> types, boolean ads) {
 
         static Scope of(Permissions permissions) {
-            Map<ContentType, Boolean> types = new EnumMap<>(ContentType.class);
+            Set<ContentType> types = EnumSet.noneOf(ContentType.class);
             SOURCES.forEach((type, source) -> {
-                if (permissions.can(source.module(), AccessLevel.CREATE)) {
-                    types.put(type, permissions.canPublish(source.module()));
+                if (permissions.can(source.module(), AccessLevel.PUBLISH)) {
+                    types.add(type);
                 }
             });
-            return new Scope(permissions.userId(), types, permissions.can(Module.ADVERTISING, AccessLevel.ACCESS));
+            return new Scope(types, permissions.can(Module.ADVERTISING, AccessLevel.ACCESS));
         }
 
         String signature() {
-            StringJoiner joiner = new StringJoiner(",");
-            types.forEach((type, all) -> joiner.add(type + (all ? "*" : "")));
-            return joiner + (ads ? "|ads" : "");
+            return types + (ads ? "|ads" : "");
         }
 
         String cte() {
             StringJoiner union = new StringJoiner(" UNION ALL ", "WITH scoped AS (", ") ");
-            types.forEach((type, all) -> {
+            for (ContentType type : types) {
                 Source source = SOURCES.get(type);
                 union.add("SELECT '" + type + "'::text AS type, id, " + source.titleColumn() + " AS title, slug, status,"
-                        + " created_at, published_at FROM " + source.table() + (all ? "" : " WHERE author_id = ?"));
-            });
+                        + " created_at, published_at FROM " + source.table());
+            }
             return union.toString();
-        }
-
-        /** Primero los ids de autor que pide la CTE, luego los de la consulta. */
-        Object[] params(Object... queryParams) {
-            List<Object> params = new ArrayList<>();
-            types.values().forEach(all -> {
-                if (!all) {
-                    params.add(userId);
-                }
-            });
-            params.addAll(List.of(queryParams));
-            return params.toArray();
         }
     }
 }

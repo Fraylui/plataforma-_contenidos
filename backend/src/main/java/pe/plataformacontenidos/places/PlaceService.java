@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
-import pe.plataformacontenidos.identity.permission.PublishPermissionRequiredException;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
@@ -68,9 +67,9 @@ public class PlaceService {
         return saved;
     }
 
-    public Place update(UUID placeId, PlaceInput input, UUID actingUserId, boolean canPublish) {
+    public Place update(UUID placeId, PlaceInput input, UUID actingUserId) {
         Place place = getOrThrow(placeId);
-        requireCanEdit(place, actingUserId, canPublish);
+        requireEditable(place);
 
         if (!place.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
@@ -87,56 +86,38 @@ public class PlaceService {
         return saved;
     }
 
-    /** Quien solo crea lo manda a quien publica (Pendiente de aprobación). */
-    public Place submit(UUID placeId, UUID actingUserId) {
-        Place place = getOrThrow(placeId);
-        if (!place.isOwnedBy(actingUserId)) {
-            throw new PlaceAccessDeniedException();
-        }
-        place.submitForApproval();
-        return saveAndAudit(place, "PLACE_SUBMITTED", actingUserId);
-    }
-
-    public Place publish(UUID placeId, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    public Place publish(UUID placeId, UUID actingUserId) {
         Place place = getOrThrow(placeId);
         place.publishNow(Instant.now());
         return saveAndAudit(place, "PLACE_PUBLISHED", actingUserId);
     }
 
-    public Place schedule(UUID placeId, Instant when, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    public Place schedule(UUID placeId, Instant when, UUID actingUserId) {
         Place place = getOrThrow(placeId);
         place.schedule(when, Instant.now());
         return saveAndAudit(place, "PLACE_SCHEDULED", actingUserId);
     }
 
-    /** Devuelve a borrador lo pendiente o programado, con una nota opcional para quien lo creó. */
-    public Place returnToDraft(UUID placeId, String note, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    /** Cancela la programación: vuelve a borrador. */
+    public Place returnToDraft(UUID placeId, UUID actingUserId) {
         Place place = getOrThrow(placeId);
-        place.returnToDraft(note);
+        place.returnToDraft();
         return saveAndAudit(place, "PLACE_RETURNED_TO_DRAFT", actingUserId);
     }
 
-    public Place archive(UUID placeId, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    public Place archive(UUID placeId, UUID actingUserId) {
         Place place = getOrThrow(placeId);
         place.archive();
         return saveAndAudit(place, "PLACE_ARCHIVED", actingUserId);
     }
 
-    public Place getForAdmin(UUID placeId, UUID actingUserId, boolean canPublish) {
-        Place place = getOrThrow(placeId);
-        if (!canPublish && !place.isOwnedBy(actingUserId)) {
-            throw new PlaceAccessDeniedException();
-        }
-        return place;
+    public Place getForAdmin(UUID placeId) {
+        return getOrThrow(placeId);
     }
 
-    /** Página del listado del panel: quien publica ve todo; quien solo crea, lo suyo (ver AdminListQuery). */
-    public Page<Place> listForAdmin(UUID actingUserId, boolean canPublish, AdminListQuery query) {
-        return placeRepository.findAll(query.specification("name", canPublish ? null : actingUserId),
+    /** Página del listado del panel (ver AdminListQuery). */
+    public Page<Place> listForAdmin(AdminListQuery query) {
+        return placeRepository.findAll(query.specification("name"),
                 query.pageable("name"));
     }
 
@@ -219,17 +200,11 @@ public class PlaceService {
         return result;
     }
 
-    private void requireCanEdit(Place place, UUID actingUserId, boolean canPublish) {
-        if (!canPublish && !place.isOwnedBy(actingUserId)) {
-            throw new PlaceAccessDeniedException();
-        }
-        boolean editable = canPublish ? place.isEditableByPublisher() : place.isEditableByCreator();
-        if (!editable) {
+    private void requireEditable(Place place) {
+        if (!place.isEditable()) {
             throw new InvalidPublicationTransitionException(place.getStatus(), "editar");
         }
     }
-
-
 
     private Place getOrThrow(UUID id) {
         return placeRepository.findById(id).orElseThrow(() -> new PlaceNotFoundException(id));
@@ -256,10 +231,4 @@ public class PlaceService {
                 null);
     }
 
-    /** Publicar, programar, devolver a borrador y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
-    private static void requirePublish(boolean canPublish) {
-        if (!canPublish) {
-            throw new PublishPermissionRequiredException();
-        }
-    }
 }

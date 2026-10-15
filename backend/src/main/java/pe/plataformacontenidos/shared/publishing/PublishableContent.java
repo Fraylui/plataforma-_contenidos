@@ -19,15 +19,11 @@ import java.util.Set;
 public abstract class PublishableContent {
 
     private static final Set<PublicationStatus> PUBLISHABLE =
-            EnumSet.of(PublicationStatus.DRAFT, PublicationStatus.IN_REVIEW, PublicationStatus.SCHEDULED);
+            EnumSet.of(PublicationStatus.DRAFT, PublicationStatus.SCHEDULED);
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PublicationStatus status = PublicationStatus.DRAFT;
-
-    /** Nota de quien devolvió el contenido a borrador; se borra al volver a enviarlo. */
-    @Column(name = "review_note")
-    private String reviewNote;
 
     @Column(name = "published_at")
     private Instant publishedAt;
@@ -42,10 +38,6 @@ public abstract class PublishableContent {
         return status;
     }
 
-    public String getReviewNote() {
-        return reviewNote;
-    }
-
     public Instant getPublishedAt() {
         return publishedAt;
     }
@@ -58,21 +50,9 @@ public abstract class PublishableContent {
         return updatedAt;
     }
 
-    /** Quien solo crea edita lo suyo mientras es borrador. */
-    public boolean isEditableByCreator() {
-        return status == PublicationStatus.DRAFT;
-    }
-
-    /** Quien publica edita todo menos lo archivado. */
-    public boolean isEditableByPublisher() {
+    /** Todo se puede editar menos lo archivado. */
+    public boolean isEditable() {
         return status != PublicationStatus.ARCHIVED;
-    }
-
-    public void submitForApproval() {
-        require(status == PublicationStatus.DRAFT, "enviar para aprobar");
-        status = PublicationStatus.IN_REVIEW;
-        reviewNote = null;
-        touch();
     }
 
     public void publishNow(Instant now) {
@@ -93,12 +73,11 @@ public abstract class PublishableContent {
         touch();
     }
 
-    /** Devolver a borrador (desde pendiente o programado), con una nota opcional para quien lo creó. */
-    public void returnToDraft(String note) {
-        require(status == PublicationStatus.IN_REVIEW || status == PublicationStatus.SCHEDULED, "devolver a borrador");
+    /** Cancela la programación: el contenido vuelve a borrador. */
+    public void returnToDraft() {
+        require(status == PublicationStatus.SCHEDULED, "volver a borrador");
         status = PublicationStatus.DRAFT;
         scheduledAt = null;
-        reviewNote = note == null || note.isBlank() ? null : note.strip();
         touch();
     }
 

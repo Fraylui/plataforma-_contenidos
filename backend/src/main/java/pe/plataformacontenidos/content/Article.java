@@ -178,10 +178,6 @@ public class Article extends PublishableContent {
         return createdAt;
     }
 
-    public boolean isOwnedBy(UUID userId) {
-        return authorId.equals(userId);
-    }
-
     public void updateContent(String title, String excerpt, String body, ArticleType articleType, UUID categoryId,
             String seoTitle, String metaDescription, String canonicalUrl,
             String ogImageUrl, List<ContentImage> images, List<ContentVideo> videos, String robots) {

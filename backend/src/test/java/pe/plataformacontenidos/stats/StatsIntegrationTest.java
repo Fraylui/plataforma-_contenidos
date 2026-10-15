@@ -48,7 +48,7 @@ class StatsIntegrationTest {
     @Test
     void reflectsCreatedCategoryAndArticleCounts() throws Exception {
         String publisherToken = createUserAndLogin("stats-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("stats-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("stats-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
 
         MvcResult categoryResult = mockMvc.perform(post("/api/v1/admin/categories")
                         .header("Authorization", "Bearer " + publisherToken)
@@ -76,7 +76,7 @@ class StatsIntegrationTest {
 
     @Test
     void creatorCannotAccessStats() throws Exception {
-        String creatorToken = createUserAndLogin("stats-creador-2@plataforma-contenidos.test", TestProfile.CREADOR);
+        String creatorToken = createUserAndLogin("stats-creador-2@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
 
         mockMvc.perform(get("/api/v1/admin/stats").header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isForbidden());

@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
-import pe.plataformacontenidos.identity.permission.PublishPermissionRequiredException;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.shared.ContentImage;
@@ -74,9 +73,9 @@ public class EventService {
         return saved;
     }
 
-    public Event update(UUID eventId, EventInput input, UUID actingUserId, boolean canPublish) {
+    public Event update(UUID eventId, EventInput input, UUID actingUserId) {
         Event event = getOrThrow(eventId);
-        requireCanEdit(event, actingUserId, canPublish);
+        requireEditable(event);
 
         if (!event.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
@@ -97,56 +96,38 @@ public class EventService {
         return saved;
     }
 
-    /** Quien solo crea lo manda a quien publica (Pendiente de aprobación). */
-    public Event submit(UUID eventId, UUID actingUserId) {
-        Event event = getOrThrow(eventId);
-        if (!event.isOwnedBy(actingUserId)) {
-            throw new EventAccessDeniedException();
-        }
-        event.submitForApproval();
-        return saveAndAudit(event, "EVENT_SUBMITTED", actingUserId);
-    }
-
-    public Event publish(UUID eventId, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    public Event publish(UUID eventId, UUID actingUserId) {
         Event event = getOrThrow(eventId);
         event.publishNow(Instant.now());
         return saveAndAudit(event, "EVENT_PUBLISHED", actingUserId);
     }
 
-    public Event schedule(UUID eventId, Instant when, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    public Event schedule(UUID eventId, Instant when, UUID actingUserId) {
         Event event = getOrThrow(eventId);
         event.schedule(when, Instant.now());
         return saveAndAudit(event, "EVENT_SCHEDULED", actingUserId);
     }
 
-    /** Devuelve a borrador lo pendiente o programado, con una nota opcional para quien lo creó. */
-    public Event returnToDraft(UUID eventId, String note, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    /** Cancela la programación: vuelve a borrador. */
+    public Event returnToDraft(UUID eventId, UUID actingUserId) {
         Event event = getOrThrow(eventId);
-        event.returnToDraft(note);
+        event.returnToDraft();
         return saveAndAudit(event, "EVENT_RETURNED_TO_DRAFT", actingUserId);
     }
 
-    public Event archive(UUID eventId, UUID actingUserId, boolean canPublish) {
-        requirePublish(canPublish);
+    public Event archive(UUID eventId, UUID actingUserId) {
         Event event = getOrThrow(eventId);
         event.archive();
         return saveAndAudit(event, "EVENT_ARCHIVED", actingUserId);
     }
 
-    public Event getForAdmin(UUID eventId, UUID actingUserId, boolean canPublish) {
-        Event event = getOrThrow(eventId);
-        if (!canPublish && !event.isOwnedBy(actingUserId)) {
-            throw new EventAccessDeniedException();
-        }
-        return event;
+    public Event getForAdmin(UUID eventId) {
+        return getOrThrow(eventId);
     }
 
-    /** Página del listado del panel: quien publica ve todo; quien solo crea, lo suyo (ver AdminListQuery). */
-    public Page<Event> listForAdmin(UUID actingUserId, boolean canPublish, AdminListQuery query) {
-        return eventRepository.findAll(query.specification("title", canPublish ? null : actingUserId),
+    /** Página del listado del panel (ver AdminListQuery). */
+    public Page<Event> listForAdmin(AdminListQuery query) {
+        return eventRepository.findAll(query.specification("title"),
                 query.pageable("title", "startsAt"));
     }
 
@@ -233,17 +214,11 @@ public class EventService {
         return result;
     }
 
-    private void requireCanEdit(Event event, UUID actingUserId, boolean canPublish) {
-        if (!canPublish && !event.isOwnedBy(actingUserId)) {
-            throw new EventAccessDeniedException();
-        }
-        boolean editable = canPublish ? event.isEditableByPublisher() : event.isEditableByCreator();
-        if (!editable) {
+    private void requireEditable(Event event) {
+        if (!event.isEditable()) {
             throw new InvalidPublicationTransitionException(event.getStatus(), "editar");
         }
     }
-
-
 
     private Event getOrThrow(UUID id) {
         return eventRepository.findById(id).orElseThrow(() -> new EventNotFoundException(id));
@@ -270,10 +245,4 @@ public class EventService {
                 null);
     }
 
-    /** Publicar, programar, devolver a borrador y archivar exigen nivel PUBLISH en el módulo (spec 2a §4.2). */
-    private static void requirePublish(boolean canPublish) {
-        if (!canPublish) {
-            throw new PublishPermissionRequiredException();
-        }
-    }
 }

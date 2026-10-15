@@ -1,7 +1,6 @@
 package pe.plataformacontenidos.identity.permission;
 
 import static pe.plataformacontenidos.identity.permission.AccessLevel.ACCESS;
-import static pe.plataformacontenidos.identity.permission.AccessLevel.CREATE;
 import static pe.plataformacontenidos.identity.permission.AccessLevel.PUBLISH;
 import static pe.plataformacontenidos.identity.permission.Module.*;
 
@@ -15,7 +14,6 @@ import java.util.Map;
 public final class Templates {
 
     private static final Map<String, Map<Module, AccessLevel>> TEMPLATES = Map.of(
-            "CREADOR", Map.of(ARTICLES, CREATE, PLACES, CREATE, EVENTS, CREATE, GALLERIES, CREATE, DIRECTORY, CREATE),
             "PUBLICADOR", Map.of(ARTICLES, PUBLISH, PLACES, PUBLISH, EVENTS, PUBLISH, GALLERIES, PUBLISH, DIRECTORY, PUBLISH,
                     CATEGORIES, ACCESS, STATS, ACCESS),
             "GESTOR_EVENTOS", Map.of(EVENTS, PUBLISH, PLACES, PUBLISH),

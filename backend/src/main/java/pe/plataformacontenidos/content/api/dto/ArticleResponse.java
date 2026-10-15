@@ -25,8 +25,7 @@ public record ArticleResponse(
         String ogImageUrl,
         List<ContentImageResponse> images,
         List<ContentVideoResponse> videos,
-        String robots,
-        String reviewNote,
+        String robots,
         Instant publishedAt,
         Instant scheduledAt,
         Instant createdAt,
@@ -40,7 +39,7 @@ public record ArticleResponse(
                 article.getMetaDescription(), article.getCanonicalUrl(), article.getOgImageUrl(),
                 article.getImages().stream().map(ContentImageResponse::from).toList(),
                 article.getVideos().stream().map(ContentVideoResponse::from).toList(), article.getRobots(),
-                article.getReviewNote(), article.getPublishedAt(), article.getScheduledAt(),
+                article.getPublishedAt(), article.getScheduledAt(),
                 article.getCreatedAt(), article.getUpdatedAt(), likeCount);
     }
 
