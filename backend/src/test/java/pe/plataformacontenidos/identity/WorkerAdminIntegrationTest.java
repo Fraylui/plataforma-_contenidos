@@ -175,4 +175,29 @@ class WorkerAdminIntegrationTest {
 
         as(token, get("/api/v1/admin/workers")).andExpect(status().isForbidden());
     }
+
+    /** Administrador (plantilla ADMINISTRADOR): todo lo del dueño menos la auditoría, y nunca la cuenta del dueño. */
+    @Test
+    void administratorRunsThePlatformButNotTheAuditNorTheOwner() throws Exception {
+        JsonNode created = createWorker("""
+                {"ARTICLES":"PUBLISH","PLACES":"PUBLISH","EVENTS":"PUBLISH","GALLERIES":"PUBLISH","DIRECTORY":"PUBLISH",
+                 "CATEGORIES":"ACCESS","STATS":"ACCESS","ADVERTISING":"ACCESS","WORKERS":"ACCESS","SETTINGS":"ACCESS"}""");
+        String email = created.get("worker").get("email").asText();
+        String token = login(email, created.get("temporaryPassword").asText()).get("accessToken").asText();
+        mockMvc.perform(post("/api/v1/users/me/password").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"" + created.get("temporaryPassword").asText() + "\",\"newPassword\":\"ClaveDeAdmin2026!\"}"))
+                .andExpect(status().isOk());
+
+        as(token, get("/api/v1/admin/workers")).andExpect(status().isOk());
+        as(token, post("/api/v1/admin/workers").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + UUID.randomUUID() + "@worker.test\",\"firstName\":\"Luz\",\"lastName\":\"Rojas\","
+                                + "\"permissions\":{\"EVENTS\":\"PUBLISH\"}}"))
+                .andExpect(status().isCreated());
+        as(token, get("/api/v1/admin/platform-settings")).andExpect(status().isOk());
+
+        as(token, get("/api/v1/admin/audit")).andExpect(status().isForbidden());
+        as(token, post("/api/v1/admin/workers/" + owner.getId() + "/deactivate"))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("OWNER_MANAGEMENT_DENIED"));
+    }
 }

@@ -18,7 +18,11 @@ public final class Templates {
                     CATEGORIES, ACCESS, STATS, ACCESS),
             "GESTOR_EVENTOS", Map.of(EVENTS, PUBLISH, PLACES, PUBLISH),
             "GESTOR_DIRECTORIO", Map.of(DIRECTORY, PUBLISH, PLACES, PUBLISH),
-            "PUBLICIDAD", Map.of(ADVERTISING, ACCESS, STATS, ACCESS));
+            "PUBLICIDAD", Map.of(ADVERTISING, ACCESS, STATS, ACCESS),
+            // Igual que el dueño en todo menos la auditoría (Actividad), que sigue siendo solo del dueño.
+            "ADMINISTRADOR", Map.of(ARTICLES, PUBLISH, PLACES, PUBLISH, EVENTS, PUBLISH, GALLERIES, PUBLISH,
+                    DIRECTORY, PUBLISH, CATEGORIES, ACCESS, STATS, ACCESS, ADVERTISING, ACCESS, WORKERS, ACCESS,
+                    SETTINGS, ACCESS));
 
     private Templates() {
     }

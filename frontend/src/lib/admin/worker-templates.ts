@@ -10,6 +10,23 @@ export interface WorkerTemplate {
 /** Plantillas de trabajador: deben coincidir con Templates.java (spec 2a §3.4). Solo precargan la matriz. */
 export const WORKER_TEMPLATES: WorkerTemplate[] = [
   {
+    id: "ADMINISTRADOR",
+    label: "Administrador",
+    description: "Todo, como el dueño, menos el registro de actividad",
+    permissions: {
+      ARTICLES: "PUBLISH",
+      PLACES: "PUBLISH",
+      EVENTS: "PUBLISH",
+      GALLERIES: "PUBLISH",
+      DIRECTORY: "PUBLISH",
+      CATEGORIES: "ACCESS",
+      STATS: "ACCESS",
+      ADVERTISING: "ACCESS",
+      WORKERS: "ACCESS",
+      SETTINGS: "ACCESS",
+    },
+  },
+  {
     id: "PUBLICADOR",
     label: "Publicador",
     description: "Publica en todo; temas y estadísticas",
@@ -48,7 +65,9 @@ export const MODULE_LABELS: Record<Module, string> = {
   CATEGORIES: "Temas",
   STATS: "Estadísticas",
   ADVERTISING: "Publicidad",
+  WORKERS: "Trabajadores",
+  SETTINGS: "Configuración",
 };
 
 export const CONTENT_MODULES: Module[] = ["ARTICLES", "PLACES", "EVENTS", "GALLERIES", "DIRECTORY"];
-export const ACCESS_MODULES: Module[] = ["CATEGORIES", "STATS", "ADVERTISING"];
+export const ACCESS_MODULES: Module[] = ["CATEGORIES", "STATS", "ADVERTISING", "WORKERS", "SETTINGS"];

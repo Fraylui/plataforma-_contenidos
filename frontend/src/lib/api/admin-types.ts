@@ -14,7 +14,17 @@ export interface ContentVideoInput {
 export type Role = "OWNER" | "WORKER";
 
 /** Módulos que se asignan a un trabajador (espejo de Module.java). */
-export type Module = "ARTICLES" | "PLACES" | "EVENTS" | "GALLERIES" | "DIRECTORY" | "CATEGORIES" | "STATS" | "ADVERTISING";
+export type Module =
+  | "ARTICLES"
+  | "PLACES"
+  | "EVENTS"
+  | "GALLERIES"
+  | "DIRECTORY"
+  | "CATEGORIES"
+  | "STATS"
+  | "ADVERTISING"
+  | "WORKERS"
+  | "SETTINGS";
 
 /** PUBLISH: módulo de contenido (crea y publica directo) · ACCESS: módulos que no son de contenido. */
 export type AccessLevel = "PUBLISH" | "ACCESS";

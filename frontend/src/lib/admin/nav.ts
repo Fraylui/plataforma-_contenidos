@@ -87,14 +87,14 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     label: "Trabajadores",
     group: "equipo",
     icon: Users,
-    ownerOnly: true,
+    module: "WORKERS",
   },
   {
     href: "/admin/configuracion",
     label: "Configuración",
     group: "equipo",
     icon: GearSix,
-    ownerOnly: true,
+    module: "SETTINGS",
   },
   {
     href: "/admin/espacios",

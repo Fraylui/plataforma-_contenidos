@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.identity.api;
 
+import pe.plataformacontenidos.identity.permission.RequiresModule;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -27,11 +28,13 @@ import pe.plataformacontenidos.identity.permission.Module;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
 
 /**
- * Trabajadores del panel (spec 2a §5). Solo el dueño (OwnerOnlyPaths en
- * SecurityConfig). La contraseña temporal viaja una sola vez, en la
+ * Trabajadores del panel (spec 2a §5). Módulo Trabajadores: el dueño y quien
+ * él designe (p. ej. un Administrador); la cuenta del dueño nunca se toca
+ * desde aquí (OwnerManagementDeniedException). La contraseña temporal viaja una sola vez, en la
  * respuesta del alta o del restablecimiento; nunca en el listado.
  */
 @RestController
+@RequiresModule(value = Module.WORKERS, level = AccessLevel.ACCESS)
 @RequestMapping("/api/v1/admin/workers")
 public class WorkerAdminController {
 

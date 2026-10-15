@@ -9,7 +9,11 @@ public enum Module {
     DIRECTORY(true),
     CATEGORIES(false),
     STATS(false),
-    ADVERTISING(false);
+    ADVERTISING(false),
+    /** Crear y administrar trabajadores (nunca la cuenta del dueño). */
+    WORKERS(false),
+    /** Configuración del sitio (nombre, logo, redes). */
+    SETTINGS(false);
 
     private final boolean content;
 

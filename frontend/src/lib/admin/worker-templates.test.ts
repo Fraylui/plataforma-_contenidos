@@ -5,6 +5,10 @@ import { WORKER_TEMPLATES, detectTemplate } from "./worker-templates";
 describe("plantillas de trabajador", () => {
   it("mismos permisos que el backend", () => {
     expect(Object.fromEntries(WORKER_TEMPLATES.map((t) => [t.id, t.permissions]))).toEqual({
+      ADMINISTRADOR: {
+        ARTICLES: "PUBLISH", PLACES: "PUBLISH", EVENTS: "PUBLISH", GALLERIES: "PUBLISH", DIRECTORY: "PUBLISH",
+        CATEGORIES: "ACCESS", STATS: "ACCESS", ADVERTISING: "ACCESS", WORKERS: "ACCESS", SETTINGS: "ACCESS",
+      },
       PUBLICADOR: {
         ARTICLES: "PUBLISH", PLACES: "PUBLISH", EVENTS: "PUBLISH", GALLERIES: "PUBLISH", DIRECTORY: "PUBLISH",
         CATEGORIES: "ACCESS", STATS: "ACCESS",
@@ -13,7 +17,7 @@ describe("plantillas de trabajador", () => {
       GESTOR_DIRECTORIO: { DIRECTORY: "PUBLISH", PLACES: "PUBLISH" },
       PUBLICIDAD: { ADVERTISING: "ACCESS", STATS: "ACCESS" },
     });
-    expect(WORKER_TEMPLATES.map((t) => t.label)).toEqual(["Publicador", "Gestor de eventos", "Gestor de directorio", "Publicidad"]);
+    expect(WORKER_TEMPLATES.map((t) => t.label)).toEqual(["Administrador", "Publicador", "Gestor de eventos", "Gestor de directorio", "Publicidad"]);
   });
 
   it("reconoce la plantilla de un conjunto de permisos, o «Personalizado»", () => {
