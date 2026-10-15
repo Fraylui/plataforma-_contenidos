@@ -2213,12 +2213,74 @@ Spec: `docs/superpowers/specs/2026-10-07-compositor-y-flujo-design.md` (local).
 - Crear/editar de los 5 tipos con «← Lista» sobre el título (un nivel, sin migas de pan).
 - **Pendiente para F3:** contador de pendientes en el menú (necesita el endpoint liviano del inicio; contarlos hoy cargaría todas las listas). El e2e de trabajadores esperaba todos los ítems visibles en el menú; con el acordeón solo se ve el grupo actual — revisar al poder correrlo con credenciales.
 
+## 46.6k Sesión 2026-10-15 — plataforma de contenidos moderna (pausa para continuar)
+
+**Estado al pausar:** rama `feat/sistema-diseno`, PR borrador #22, **todo subido y CI en verde** (último commit `b5d19f1`, backend + frontend). Nada local sin subir. Docker apagado (la laptop se recalienta: lo pesado corre en GitHub Actions; en local solo lint, tipos, pruebas de lo tocado y `mvnw test-compile`).
+
+**Visión del dueño (manda sobre todo lo demás):** startup de contenidos moderna — no una redacción ni periodismo («eso es del pasado»). Referencias: Luisito Comunica, Manolo (TV Perú), Mr Beast, Animal Planet, National Geographic, Reddit, Instagram, X. Todos los temas (tecnología, historia, animales, curiosidades, lugares…). Video y podcast **viven en YouTube** y se ven en el sitio; el VPS nunca aloja video. Monetización: AdSense + publicidad directa. Personas: **1 Dueño** (super admin), **trabajadores** (plantilla **Administrador** = todo menos Actividad), visitantes anónimos.
+
+### Hecho en la sesión (en orden)
+| Área | Qué | Commits |
+|---|---|---|
+| Visitas | Conteo anónimo sin cookies ni IP (Redis → `engagement.content_views_daily`, V53) + `ViewBeacon` en cada contenido | 5d52d50 |
+| Inicio CRM | `GET /api/v1/admin/dashboard` (una llamada, por permisos, caché 60 s) + inicio con 7/30/90 días, indicadores, visitas por día, lo más visto | 2b6def5, 2bb0439 |
+| Listados | Paginación en servidor de los 5 tipos (`AdminListQuery`), estado en la URL, filtro por estado, miniatura + visitas + me gusta por fila, vacíos con acción | 961d823, af8ddad |
+| Imágenes | Subida múltiple arrastrando | 633cb5e |
+| Actividad | Línea de tiempo en español con «antes → después»; filtro de fechas en día de Lima; accesos denegados auditados | b6483bc, 877ad0a, f1d3186 |
+| Seguridad | Contraseñas > 72 bytes (BCrypt) ya no dan 500; **CSP permitía cero iframes de YouTube** (todos los videos se bloqueaban al tocar) | 2727f7c, 05bff93 |
+| Sin redacción | Roles editor/autor fuera de código y pruebas (`TestProfile`); **todos publican directo** (sin IN_REVIEW ni «Creador», V54); formato Entrevista retirado (V56) | c13c147, fe1dbe5, 212b2e8, cb94a1e |
+| Equipo | Plantilla **Administrador**: módulos Trabajadores y Configuración asignables (V55); solo Actividad es del dueño | 3cdfe67 |
+| Series | Serie = lista de reproducción de YouTube; episodios llegan solos cada 30 min (feed RSS público, sin clave, XXE bloqueado); notas propias por episodio; módulo SERIES (V57) | e8a88ad, 5fb6a14 |
+| Series fase 2 | Episodios en el feed, me gusta (por id), visitas, inicio del panel; portada fija por serie (V58) | 2c540f5, 5dd5429, ae1194a |
+| En vivo | Transmisión de YouTube dentro del sitio (+ chat en escritorio); «Estamos en vivo» / «Terminar» en el panel; aviso «En vivo ahora» en el inicio; se apaga sola a las 12 h (V59) | 4311e7b, b5d19f1 |
+
+### Pendiente — en este orden recomendado
+**A. Verificar a la vista (primero, nada de esto se ha visto en el navegador)**
+1. Reconstruir Docker (`infra`: `docker compose build frontend backend && docker compose up -d`) y revisar en Edge, en celular y escritorio, claro y oscuro: inicio CRM del panel, listados con filtros, Actividad, Imágenes (arrastrar), Series (panel y sitio), En vivo (panel, aviso del inicio, `/en-vivo` con chat), y que **el reproductor de YouTube ya carga al tocar** (corrección CSP 05bff93).
+2. Probar con una lista de reproducción real del dueño: crear serie, «Sincronizar ahora», escribir notas de un episodio, portada.
+3. Probar una transmisión real: programar, «Estamos en vivo», ver el aviso en el inicio, «Terminar».
+
+**B. Historias tipo Instagram (lo único que falta del plan de Series)**
+4. Diseñar con el dueño antes de construir: qué es una historia (foto o video corto de YouTube Shorts), duración (¿24 h como Instagram o fija?), quién la publica (módulo), dónde se ve (círculos arriba del feed — hoy esos círculos son los **temas**; decidir si conviven o se reemplazan).
+
+**C. Coherencia del backend (F9, autorizado por el dueño: «todo lo editorial sacarlo»)**
+5. Renombrar en el código `Article` → `Publication` (clases, tablas `content.articles`, rutas `/api/v1/articles` y `/api/v1/admin/articles`, tipos del frontend, ~140 archivos). Hacerlo en un paso propio con CI verde antes y después.
+6. Errores uniformes RFC 9457 (Problem Details) con códigos estables en español.
+7. Un solo dueño garantizado en la base (índice único parcial sobre `role = 'OWNER'`): **antes** cambiar las ~8 clases de prueba que crean su propio dueño en la base compartida a un dueño único de fixture.
+8. Guardado de permisos en lote (hallazgo menor 2a).
+
+**D. Series y En vivo — mejoras siguientes**
+9. Sección de anuncios propia (`AdSection` SERIES) — hoy las páginas de Series/En vivo usan la de Inicio.
+10. Episodios en el buscador (Ctrl+K y `/buscar`), hoy no aparecen.
+11. Etiqueta «Administrador» en el menú de cuenta (hoy muestra «Trabajador» aunque tenga la plantilla).
+12. Duración de episodios: el feed de YouTube no la trae; solo con clave de la API de datos (decisión del dueño: por ahora no).
+
+**E. Pantallas y listados (F7/F8)**
+13. Vista en cuadrícula para Galerías en el panel.
+14. Revisar Trabajadores, Mi cuenta, Configuración y Login contra el sistema de diseño (los formularios ya lo usan; falta una pasada visual).
+15. Reporte de campaña con los gráficos nuevos.
+
+**F. Sitio público (F10)**
+16. Retomar el rediseño estilo red social (rama `feat/sitio-red-social`, §46.3), con Series y En vivo ya integrados al menú lateral.
+
+**G. Calidad y cierre (F11)**
+17. E2E: necesita `E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD` del dueño; `workers.spec` debe ajustarse al menú en acordeón y al modelo sin aprobación.
+18. axe por pantalla, Lighthouse en CI, tabla de cumplimiento (ISO 25010, OWASP ASVS, ISO 27001, Ley 29733).
+
+### Decisiones pendientes del dueño
+- ¿Unir el PR #22 a `main`? (nada va al VPS todavía).
+- ¿Desconectar Vercel?
+- Descartar el falso positivo de CodeQL (CSRF).
+- Credenciales para las E2E.
+- La cuenta trabajadora «Fray Luis» en la base local parece de prueba: ¿se queda?
+- Comunidad tipo Reddit (comentarios/votos) requeriría cuentas de lectores, que se descartaron antes: ¿se reabre?
+
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
 Ordenadas por prioridad.
 
 ### Seguridad (primero)
-1. **Next.js 16.3.3 tiene una vulnerabilidad CRÍTICA** (`npm audit`: rango 16.2.0–16.3.5) → actualizar a **16.3.8** (misma versión mayor). Además `npm audit fix` para `postcss-selector-parser` (moderada) y `source-map-js` (alta). El paso de CI `npm audit --omit=dev --audit-level=high` **falla** mientras no se actualice.
+1. ~~Next.js 16.3.3 con vulnerabilidad crítica~~ — **hecho**: el proyecto ya usa **16.3.8** y el `npm audit` del CI pasa (ver §46.6d).
 2. CSP con *nonce* para quitar `'unsafe-inline'` de `script-src` (pendiente anotado en `next.config.ts`).
 3. Permisos de trabajadores aplicados en el servidor (proyecto 2).
 4. MFA quedó retirado por decisión del dueño (2026-09-14); reconsiderar antes de tener trabajadores con acceso al panel.
@@ -2226,7 +2288,7 @@ Ordenadas por prioridad.
 ### Backend
 5. `scripts/backup.sh`: la retención de 14 días borra backups viejos aunque sean los únicos; no respalda las imágenes reales (volumen Docker `media_data`). Respaldar el volumen con `docker compose exec backend tar …` y no borrar el último backup.
 6. Medios en Object Storage (Cloudflare R2): `StorageService` ya es una interfaz; falta la implementación (README "Pendiente para un MVP completo").
-7. Visitas anónimas por contenido (base de "más vistos" y "también vieron", Sprint 5 tarea 16).
+7. ~~Visitas anónimas por contenido~~ — **hecho** 2026-10-15 (§46.6k); falta "también vieron".
 8. Campos sin uso en Configuración (`primaryColor`, `secondaryColor`, `backgroundColor`, `fontFamily`): quitarlos o conectarlos.
 9. Roles `MODERATOR`, `COLLABORATOR`, `USER` sin uso → se eliminan con el proyecto 2; "editorial" aparece solo en comentarios internos de 7 archivos Java (no visible) → limpiar al tocar esos archivos.
 10. CORS y auto-registro público: **no aplican** (no hay cuentas de visitantes; el panel usa Server Actions).
