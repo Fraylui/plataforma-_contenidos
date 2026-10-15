@@ -26,7 +26,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.permission.LegacyRole;
+import pe.plataformacontenidos.identity.permission.TestProfile;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
@@ -54,14 +54,14 @@ class MediaFlowIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void authorUploadsValidPngAndItIsPubliclyServable() throws Exception {
-        String authorToken = createUserAndLogin("media-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
+    void creatorUploadsValidPngAndItIsPubliclyServable() throws Exception {
+        String creatorToken = createUserAndLogin("media-creador@plataforma-contenidos.test", TestProfile.CREADOR);
         byte[] png = generatePng(40, 30);
 
         MvcResult uploadResult = mockMvc.perform(multipart("/api/v1/admin/images")
                         .file(new MockMultipartFile("file", "foto.png", "image/png", png))
                         .param("altText", "Plaza principal de Quinua")
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.width").value(40))
                 .andExpect(jsonPath("$.height").value(30))
@@ -84,42 +84,42 @@ class MediaFlowIntegrationTest {
 
     @Test
     void garbageBytesAreRejectedAsInvalidImage() throws Exception {
-        String authorToken = createUserAndLogin("media-author-2@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String creatorToken = createUserAndLogin("media-creador-2@plataforma-contenidos.test", TestProfile.CREADOR);
 
         mockMvc.perform(multipart("/api/v1/admin/images")
                         .file(new MockMultipartFile("file", "no-es-imagen.png", "image/png",
                                 "esto no es una imagen".getBytes()))
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void onlyOwnerOrEditorCanChangeAltTextOrDelete() throws Exception {
-        String authorToken = createUserAndLogin("media-author-3@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String otherAuthorToken = createUserAndLogin("media-author-4@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String editorToken = createUserAndLogin("media-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
+    void onlyOwnerOrPublisherCanChangeAltTextOrDelete() throws Exception {
+        String creatorToken = createUserAndLogin("media-creador-3@plataforma-contenidos.test", TestProfile.CREADOR);
+        String otherCreatorToken = createUserAndLogin("media-creador-4@plataforma-contenidos.test", TestProfile.CREADOR);
+        String publisherToken = createUserAndLogin("media-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
 
-        String imageId = uploadPng(authorToken, 20, 20);
+        String imageId = uploadPng(creatorToken, 20, 20);
 
         mockMvc.perform(put("/api/v1/admin/images/" + imageId)
-                        .header("Authorization", "Bearer " + otherAuthorToken)
+                        .header("Authorization", "Bearer " + otherCreatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"altText\":\"intento ajeno\"}"))
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(put("/api/v1/admin/images/" + imageId)
-                        .header("Authorization", "Bearer " + editorToken)
+                        .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"altText\":\"corregido por editor\"}"))
+                        .content("{\"altText\":\"corregido por quien publica\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.altText").value("corregido por editor"));
+                .andExpect(jsonPath("$.altText").value("corregido por quien publica"));
 
         mockMvc.perform(delete("/api/v1/admin/images/" + imageId)
-                        .header("Authorization", "Bearer " + otherAuthorToken))
+                        .header("Authorization", "Bearer " + otherCreatorToken))
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(delete("/api/v1/admin/images/" + imageId)
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/v1/images/" + imageId + "/file"))
@@ -148,7 +148,7 @@ class MediaFlowIntegrationTest {
         return out.toByteArray();
     }
 
-    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
+    private String createUserAndLogin(String email, TestProfile role) throws Exception {
         String password = "SomeStrongPassword123!";
         User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
         role.grant(workerPermissions, created.getId());

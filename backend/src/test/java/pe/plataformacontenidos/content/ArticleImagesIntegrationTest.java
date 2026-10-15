@@ -23,7 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.permission.LegacyRole;
+import pe.plataformacontenidos.identity.permission.TestProfile;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
@@ -57,12 +57,12 @@ class ArticleImagesIntegrationTest {
 
     @Test
     void rejectsUnknownUploadedImageId() throws Exception {
-        String authorToken = createUserAndLogin("images-author-1@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String editorToken = createUserAndLogin("images-editor-1@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String categoryId = createCategory(editorToken, "Categoría Imagen Inexistente Test");
+        String creatorToken = createUserAndLogin("images-creador-1@plataforma-contenidos.test", TestProfile.CREADOR);
+        String publisherToken = createUserAndLogin("images-publicador-1@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String categoryId = createCategory(publisherToken, "Categoría Imagen Inexistente Test");
 
         mockMvc.perform(post("/api/v1/admin/articles")
-                        .header("Authorization", "Bearer " + authorToken)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Publicación con imagen inexistente\","
                                 + "\"excerpt\":\"Resumen breve\","
@@ -75,12 +75,12 @@ class ArticleImagesIntegrationTest {
 
     @Test
     void rejectsImageWithBothSourcesOrNeither() throws Exception {
-        String authorToken = createUserAndLogin("images-author-shape@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String editorToken = createUserAndLogin("images-editor-shape@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String categoryId = createCategory(editorToken, "Categoría Imagen Forma Inválida Test");
+        String creatorToken = createUserAndLogin("images-creador-shape@plataforma-contenidos.test", TestProfile.CREADOR);
+        String publisherToken = createUserAndLogin("images-publicador-shape@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String categoryId = createCategory(publisherToken, "Categoría Imagen Forma Inválida Test");
 
         mockMvc.perform(post("/api/v1/admin/articles")
-                        .header("Authorization", "Bearer " + authorToken)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Publicación con imagen sin fuente\","
                                 + "\"excerpt\":\"Resumen breve\","
@@ -93,20 +93,20 @@ class ArticleImagesIntegrationTest {
 
     @Test
     void acceptsUploadedAndExternalImagesAndReturnsThemInOrder() throws Exception {
-        String authorToken = createUserAndLogin("images-author-2@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String editorToken = createUserAndLogin("images-editor-2@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String categoryId = createCategory(editorToken, "Categoría Imágenes Reales Test");
+        String creatorToken = createUserAndLogin("images-creador-2@plataforma-contenidos.test", TestProfile.CREADOR);
+        String publisherToken = createUserAndLogin("images-publicador-2@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String categoryId = createCategory(publisherToken, "Categoría Imágenes Reales Test");
 
         byte[] png = generatePng(40, 30);
         MvcResult uploadResult = mockMvc.perform(multipart("/api/v1/admin/images")
                         .file(new MockMultipartFile("file", "foto.png", "image/png", png))
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isCreated())
                 .andReturn();
         String imageId = objectMapper.readTree(uploadResult.getResponse().getContentAsString()).get("id").asText();
 
         MvcResult createResult = mockMvc.perform(post("/api/v1/admin/articles")
-                        .header("Authorization", "Bearer " + authorToken)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Publicación con varias imágenes\","
                                 + "\"excerpt\":\"Resumen breve\","
@@ -123,10 +123,10 @@ class ArticleImagesIntegrationTest {
         String articleId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asText();
 
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/submit")
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
-                        .header("Authorization", "Bearer " + editorToken))
+                        .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());
 
         // La portada del listado público (usado por las tarjetas) es la primera imagen de la lista.
@@ -142,11 +142,11 @@ class ArticleImagesIntegrationTest {
         return out.toByteArray();
     }
 
-    private String createCategory(String editorToken, String name) throws Exception {
+    private String createCategory(String publisherToken, String name) throws Exception {
         // Sufijo único: la BD de Testcontainers se comparte entre clases de test y el nombre de categoría es único (ignore-case).
         name = name + " " + UUID.randomUUID().toString().substring(0, 8);
         MvcResult result = mockMvc.perform(post("/api/v1/admin/categories")
-                        .header("Authorization", "Bearer " + editorToken)
+                        .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"" + name + "\"}"))
                 .andExpect(status().isCreated())
@@ -159,7 +159,7 @@ class ArticleImagesIntegrationTest {
         return json.get(field).asText();
     }
 
-    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
+    private String createUserAndLogin(String email, TestProfile role) throws Exception {
         String password = "SomeStrongPassword123!";
         User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
         role.grant(workerPermissions, created.getId());

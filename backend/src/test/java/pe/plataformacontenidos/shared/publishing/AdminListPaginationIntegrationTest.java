@@ -19,7 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import pe.plataformacontenidos.TestcontainersConfiguration;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
-import pe.plataformacontenidos.identity.permission.LegacyRole;
+import pe.plataformacontenidos.identity.permission.TestProfile;
 import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import tools.jackson.databind.ObjectMapper;
 
@@ -50,7 +50,7 @@ class AdminListPaginationIntegrationTest {
 
     @Test
     void publisherPagesSearchesAndFiltersByStatus() throws Exception {
-        Login publisher = login(LegacyRole.EDITOR);
+        Login publisher = login(TestProfile.PUBLICADOR);
         String tag = "pag" + UUID.randomUUID().toString().substring(0, 8);
         gallery(UUID.randomUUID(), "Uno " + tag, "DRAFT");
         UUID second = gallery(UUID.randomUUID(), "Dos " + tag, "IN_REVIEW");
@@ -79,7 +79,7 @@ class AdminListPaginationIntegrationTest {
 
     @Test
     void creatorOnlySeesOwnContent() throws Exception {
-        Login creator = login(LegacyRole.AUTHOR);
+        Login creator = login(TestProfile.CREADOR);
         String tag = "own" + UUID.randomUUID().toString().substring(0, 8);
         gallery(creator.userId(), "Mía " + tag, "DRAFT");
         gallery(UUID.randomUUID(), "Ajena " + tag, "DRAFT");
@@ -92,7 +92,7 @@ class AdminListPaginationIntegrationTest {
 
     @Test
     void unknownStatusIsBadRequestAndSizeIsCapped() throws Exception {
-        Login publisher = login(LegacyRole.EDITOR);
+        Login publisher = login(TestProfile.PUBLICADOR);
 
         mockMvc.perform(get("/api/v1/admin/galleries").param("status", "FOO").header("Authorization", publisher.bearer()))
                 .andExpect(status().isBadRequest());
@@ -101,12 +101,12 @@ class AdminListPaginationIntegrationTest {
                 .andExpect(jsonPath("$.size").value(AdminListQuery.MAX_SIZE));
     }
 
-    private UUID gallery(UUID author, String title, String status) {
+    private UUID gallery(UUID creator, String title, String status) {
         UUID id = UUID.randomUUID();
         jdbc.update("""
                 INSERT INTO galleries.galleries (id, slug, title, status, author_id, category_id)
                 VALUES (?, ?, ?, ?, ?, ?)
-                """, id, "galeria-lista-" + id, title, status, author, UUID.randomUUID());
+                """, id, "galeria-lista-" + id, title, status, creator, UUID.randomUUID());
         return id;
     }
 
@@ -116,7 +116,7 @@ class AdminListPaginationIntegrationTest {
         }
     }
 
-    private Login login(LegacyRole role) throws Exception {
+    private Login login(TestProfile role) throws Exception {
         String email = "lista-" + UUID.randomUUID() + "@plataforma-contenidos.test";
         String password = "SomeStrongPassword123!";
         User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));

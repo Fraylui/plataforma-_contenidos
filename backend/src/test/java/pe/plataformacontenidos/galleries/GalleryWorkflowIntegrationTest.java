@@ -23,7 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.permission.LegacyRole;
+import pe.plataformacontenidos.identity.permission.TestProfile;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
@@ -53,28 +53,28 @@ class GalleryWorkflowIntegrationTest {
 
     @Test
     void fullContentLifecycleFromDraftToPublished() throws Exception {
-        String editorToken = createUserAndLogin("galleries-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String authorToken = createUserAndLogin("galleries-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String categoryId = createCategory(editorToken, "Galerías Culturales Test");
-        String imageId = uploadImage(authorToken);
+        String publisherToken = createUserAndLogin("galleries-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String creatorToken = createUserAndLogin("galleries-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String categoryId = createCategory(publisherToken, "Galerías Culturales Test");
+        String imageId = uploadImage(creatorToken);
 
-        String galleryId = createDraftGallery(authorToken, categoryId, "Fiesta Patronal de Quinua", imageId);
+        String galleryId = createDraftGallery(creatorToken, categoryId, "Fiesta Patronal de Quinua", imageId);
 
         // No visible públicamente en DRAFT
         mockMvc.perform(get("/api/v1/galleries/fiesta-patronal-de-quinua")).andExpect(status().isNotFound());
 
         mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/submit")
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_REVIEW"));
 
         // El autor no puede publicar su propia galería
         mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/publish")
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/publish")
-                        .header("Authorization", "Bearer " + editorToken))
+                        .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PUBLISHED"));
 
@@ -89,7 +89,7 @@ class GalleryWorkflowIntegrationTest {
 
         // Archivar lo retira de la vista pública
         mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/archive")
-                        .header("Authorization", "Bearer " + editorToken))
+                        .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ARCHIVED"));
 
@@ -98,12 +98,12 @@ class GalleryWorkflowIntegrationTest {
 
     @Test
     void rejectsGalleryWithoutAnyImage() throws Exception {
-        String authorToken = createUserAndLogin("galleries-author-2@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String editorToken = createUserAndLogin("galleries-editor-2@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String categoryId = createCategory(editorToken, "Categoría Sin Fotos Test");
+        String creatorToken = createUserAndLogin("galleries-creador-2@plataforma-contenidos.test", TestProfile.CREADOR);
+        String publisherToken = createUserAndLogin("galleries-publicador-2@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String categoryId = createCategory(publisherToken, "Categoría Sin Fotos Test");
 
         mockMvc.perform(post("/api/v1/admin/galleries")
-                        .header("Authorization", "Bearer " + authorToken)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Galeria vacia\",\"categoryId\":\"" + categoryId + "\",\"images\":[]}"))
                 .andExpect(status().isBadRequest());
@@ -111,12 +111,12 @@ class GalleryWorkflowIntegrationTest {
 
     @Test
     void rejectsUnknownImageIdInGallery() throws Exception {
-        String authorToken = createUserAndLogin("galleries-author-3@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String editorToken = createUserAndLogin("galleries-editor-3@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String categoryId = createCategory(editorToken, "Categoría Imagen Inexistente Test");
+        String creatorToken = createUserAndLogin("galleries-creador-3@plataforma-contenidos.test", TestProfile.CREADOR);
+        String publisherToken = createUserAndLogin("galleries-publicador-3@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String categoryId = createCategory(publisherToken, "Categoría Imagen Inexistente Test");
 
         mockMvc.perform(post("/api/v1/admin/galleries")
-                        .header("Authorization", "Bearer " + authorToken)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Galeria con imagen inexistente\",\"categoryId\":\"" + categoryId + "\","
                                 + "\"images\":[{\"imageId\":\"00000000-0000-0000-0000-000000000000\"}]}"))
@@ -124,24 +124,24 @@ class GalleryWorkflowIntegrationTest {
     }
 
     @Test
-    void authorCannotEditSomeoneElsesGallery() throws Exception {
-        String editorToken = createUserAndLogin("galleries-editor-4@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String authorToken = createUserAndLogin("galleries-author-4@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String otherAuthorToken = createUserAndLogin("galleries-author-5@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String categoryId = createCategory(editorToken, "Categoría Galería Ajena Test");
-        String imageId = uploadImage(authorToken);
+    void creatorCannotEditSomeoneElsesGallery() throws Exception {
+        String publisherToken = createUserAndLogin("galleries-publicador-4@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String creatorToken = createUserAndLogin("galleries-creador-4@plataforma-contenidos.test", TestProfile.CREADOR);
+        String otherCreatorToken = createUserAndLogin("galleries-creador-5@plataforma-contenidos.test", TestProfile.CREADOR);
+        String categoryId = createCategory(publisherToken, "Categoría Galería Ajena Test");
+        String imageId = uploadImage(creatorToken);
 
-        String galleryId = createDraftGallery(authorToken, categoryId, "Coleccion privada", imageId);
+        String galleryId = createDraftGallery(creatorToken, categoryId, "Coleccion privada", imageId);
 
         mockMvc.perform(post("/api/v1/admin/galleries/" + galleryId + "/submit")
-                        .header("Authorization", "Bearer " + otherAuthorToken))
+                        .header("Authorization", "Bearer " + otherCreatorToken))
                 .andExpect(status().isForbidden());
     }
 
-    private String uploadImage(String authorToken) throws Exception {
+    private String uploadImage(String creatorToken) throws Exception {
         MockMultipartFile file = new MockMultipartFile("file", "gallery-test.png", "image/png", generatePng(40, 30));
         MvcResult result = mockMvc.perform(multipart("/api/v1/admin/images").file(file)
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isCreated())
                 .andReturn();
         return textField(result, "id");
@@ -154,10 +154,10 @@ class GalleryWorkflowIntegrationTest {
         return out.toByteArray();
     }
 
-    private String createDraftGallery(String authorToken, String categoryId, String title, String imageId)
+    private String createDraftGallery(String creatorToken, String categoryId, String title, String imageId)
             throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v1/admin/galleries")
-                        .header("Authorization", "Bearer " + authorToken)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"" + title + "\",\"excerpt\":\"Resumen breve\","
                                 + "\"categoryId\":\"" + categoryId + "\",\"images\":[{\"imageId\":\"" + imageId + "\"}]}"))
@@ -167,11 +167,11 @@ class GalleryWorkflowIntegrationTest {
         return textField(result, "id");
     }
 
-    private String createCategory(String editorToken, String name) throws Exception {
+    private String createCategory(String publisherToken, String name) throws Exception {
         // Sufijo único: la BD de Testcontainers se comparte entre clases de test y el nombre de categoría es único (ignore-case).
         name = name + " " + UUID.randomUUID().toString().substring(0, 8);
         MvcResult result = mockMvc.perform(post("/api/v1/admin/categories")
-                        .header("Authorization", "Bearer " + editorToken)
+                        .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"" + name + "\"}"))
                 .andExpect(status().isCreated())
@@ -184,7 +184,7 @@ class GalleryWorkflowIntegrationTest {
         return json.get(field).asText();
     }
 
-    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
+    private String createUserAndLogin(String email, TestProfile role) throws Exception {
         String password = "SomeStrongPassword123!";
         User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
         role.grant(workerPermissions, created.getId());

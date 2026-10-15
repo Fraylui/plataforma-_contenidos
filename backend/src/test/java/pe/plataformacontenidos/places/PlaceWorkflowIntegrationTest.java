@@ -18,7 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.permission.LegacyRole;
+import pe.plataformacontenidos.identity.permission.TestProfile;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
@@ -48,27 +48,27 @@ class PlaceWorkflowIntegrationTest {
 
     @Test
     void fullContentLifecycleFromDraftToPublished() throws Exception {
-        String editorToken = createUserAndLogin("places-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String authorToken = createUserAndLogin("places-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String categoryId = createCategory(editorToken, "Lugares Turísticos Test");
+        String publisherToken = createUserAndLogin("places-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String creatorToken = createUserAndLogin("places-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String categoryId = createCategory(publisherToken, "Lugares Turísticos Test");
 
-        String placeId = createDraftPlace(authorToken, categoryId, "Pampa de la Quinua");
+        String placeId = createDraftPlace(creatorToken, categoryId, "Pampa de la Quinua");
 
         // No visible públicamente en DRAFT
         mockMvc.perform(get("/api/v1/places/pampa-de-la-quinua")).andExpect(status().isNotFound());
 
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_REVIEW"));
 
         // El autor no puede publicar su propio lugar
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
-                        .header("Authorization", "Bearer " + editorToken))
+                        .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PUBLISHED"));
 
@@ -83,7 +83,7 @@ class PlaceWorkflowIntegrationTest {
 
         // Archivar lo retira de la vista pública
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/archive")
-                        .header("Authorization", "Bearer " + editorToken))
+                        .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ARCHIVED"));
 
@@ -92,12 +92,12 @@ class PlaceWorkflowIntegrationTest {
 
     @Test
     void rejectsUnknownImageIdInGallery() throws Exception {
-        String authorToken = createUserAndLogin("places-author-2@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String editorToken = createUserAndLogin("places-editor-2@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String categoryId = createCategory(editorToken, "Categoría Imagen Test");
+        String creatorToken = createUserAndLogin("places-creador-2@plataforma-contenidos.test", TestProfile.CREADOR);
+        String publisherToken = createUserAndLogin("places-publicador-2@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String categoryId = createCategory(publisherToken, "Categoría Imagen Test");
 
         mockMvc.perform(post("/api/v1/admin/places")
-                        .header("Authorization", "Bearer " + authorToken)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Lugar con imagen inexistente\",\"body\":\"Historia del lugar.\","
                                 + "\"categoryId\":\"" + categoryId + "\","
@@ -106,36 +106,36 @@ class PlaceWorkflowIntegrationTest {
     }
 
     @Test
-    void authorCannotEditSomeoneElsesPlace() throws Exception {
-        String editorToken = createUserAndLogin("places-editor-3@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String authorToken = createUserAndLogin("places-author-3@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String otherAuthorToken = createUserAndLogin("places-author-4@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String categoryId = createCategory(editorToken, "Categoría Ajena Test");
+    void creatorCannotEditSomeoneElsesPlace() throws Exception {
+        String publisherToken = createUserAndLogin("places-publicador-3@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String creatorToken = createUserAndLogin("places-creador-3@plataforma-contenidos.test", TestProfile.CREADOR);
+        String otherCreatorToken = createUserAndLogin("places-creador-4@plataforma-contenidos.test", TestProfile.CREADOR);
+        String categoryId = createCategory(publisherToken, "Categoría Ajena Test");
 
-        String placeId = createDraftPlace(authorToken, categoryId, "Mirador secreto");
+        String placeId = createDraftPlace(creatorToken, categoryId, "Mirador secreto");
 
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/submit")
-                        .header("Authorization", "Bearer " + otherAuthorToken))
+                        .header("Authorization", "Bearer " + otherCreatorToken))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void rejectsInvalidCoordinates() throws Exception {
-        String authorToken = createUserAndLogin("places-author-5@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String editorToken = createUserAndLogin("places-editor-5@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String categoryId = createCategory(editorToken, "Categoría Coordenadas Test");
+        String creatorToken = createUserAndLogin("places-creador-5@plataforma-contenidos.test", TestProfile.CREADOR);
+        String publisherToken = createUserAndLogin("places-publicador-5@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String categoryId = createCategory(publisherToken, "Categoría Coordenadas Test");
 
         mockMvc.perform(post("/api/v1/admin/places")
-                        .header("Authorization", "Bearer " + authorToken)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Lugar con coordenadas inválidas\",\"body\":\"Historia.\","
                                 + "\"categoryId\":\"" + categoryId + "\",\"latitude\":200,\"longitude\":0}"))
                 .andExpect(status().isBadRequest());
     }
 
-    private String createDraftPlace(String authorToken, String categoryId, String name) throws Exception {
+    private String createDraftPlace(String creatorToken, String categoryId, String name) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v1/admin/places")
-                        .header("Authorization", "Bearer " + authorToken)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"" + name + "\",\"excerpt\":\"Resumen breve\","
                                 + "\"body\":\"Historia completa del lugar, con suficiente contenido.\","
@@ -146,11 +146,11 @@ class PlaceWorkflowIntegrationTest {
         return textField(result, "id");
     }
 
-    private String createCategory(String editorToken, String name) throws Exception {
+    private String createCategory(String publisherToken, String name) throws Exception {
         // Sufijo único: la BD de Testcontainers se comparte entre clases de test y el nombre de categoría es único (ignore-case).
         name = name + " " + UUID.randomUUID().toString().substring(0, 8);
         MvcResult result = mockMvc.perform(post("/api/v1/admin/categories")
-                        .header("Authorization", "Bearer " + editorToken)
+                        .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"" + name + "\"}"))
                 .andExpect(status().isCreated())
@@ -163,7 +163,7 @@ class PlaceWorkflowIntegrationTest {
         return json.get(field).asText();
     }
 
-    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
+    private String createUserAndLogin(String email, TestProfile role) throws Exception {
         String password = "SomeStrongPassword123!";
         User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
         role.grant(workerPermissions, created.getId());

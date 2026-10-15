@@ -21,7 +21,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.permission.LegacyRole;
+import pe.plataformacontenidos.identity.permission.TestProfile;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.ObjectMapper;
@@ -50,7 +50,7 @@ class MediaUploadRateLimitIntegrationTest {
 
     @Test
     void blocksUploadsAfterConfiguredLimit() throws Exception {
-        String token = createUserAndLogin("media-rate-limit@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String token = createUserAndLogin("media-rate-limit@plataforma-contenidos.test", TestProfile.CREADOR);
         byte[] png = generatePng();
 
         for (int i = 0; i < 2; i++) {
@@ -73,7 +73,7 @@ class MediaUploadRateLimitIntegrationTest {
         return out.toByteArray();
     }
 
-    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
+    private String createUserAndLogin(String email, TestProfile role) throws Exception {
         String password = "SomeStrongPassword123!";
         User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
         role.grant(workerPermissions, created.getId());

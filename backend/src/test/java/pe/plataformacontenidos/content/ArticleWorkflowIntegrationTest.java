@@ -20,7 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.permission.LegacyRole;
+import pe.plataformacontenidos.identity.permission.TestProfile;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.ObjectMapper;
@@ -52,11 +52,11 @@ class ArticleWorkflowIntegrationTest {
 
     @Test
     void fullContentLifecycleFromDraftToPublishedToArchived() throws Exception {
-        String editorToken = createUserAndLogin("wf-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String authorToken = createUserAndLogin("wf-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String categoryId = createCategory(editorToken, "Actualidad");
+        String publisherToken = createUserAndLogin("wf-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String creatorToken = createUserAndLogin("wf-creador@plataforma-contenidos.test", TestProfile.CREADOR);
+        String categoryId = createCategory(publisherToken, "Actualidad");
 
-        String articleId = createDraftArticle(authorToken, categoryId, "Un título de prueba para el artículo");
+        String articleId = createDraftArticle(creatorToken, categoryId, "Un título de prueba para el artículo");
 
         // No visible públicamente en DRAFT
         mockMvc.perform(get("/api/v1/articles/un-titulo-de-prueba-para-el-articulo"))
@@ -64,17 +64,17 @@ class ArticleWorkflowIntegrationTest {
 
         // El autor lo envía a revisión
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/submit")
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_REVIEW"));
 
         // El autor no puede publicar su propio artículo
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
-                        .header("Authorization", "Bearer " + editorToken))
+                        .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PUBLISHED"));
 
@@ -89,7 +89,7 @@ class ArticleWorkflowIntegrationTest {
 
         // Archivar lo retira de la vista pública
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/archive")
-                        .header("Authorization", "Bearer " + editorToken))
+                        .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ARCHIVED"));
 
@@ -99,23 +99,23 @@ class ArticleWorkflowIntegrationTest {
 
     @Test
     void returnToDraftWithNoteLetsCreatorReviseAndResubmit() throws Exception {
-        String editorToken = createUserAndLogin("wf-editor-2@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String authorToken = createUserAndLogin("wf-author-2@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String categoryId = createCategory(editorToken, "Historia");
+        String publisherToken = createUserAndLogin("wf-publicador-2@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String creatorToken = createUserAndLogin("wf-creador-2@plataforma-contenidos.test", TestProfile.CREADOR);
+        String categoryId = createCategory(publisherToken, "Historia");
 
-        String articleId = createDraftArticle(authorToken, categoryId, "Publicación que vuelve a borrador");
+        String articleId = createDraftArticle(creatorToken, categoryId, "Publicación que vuelve a borrador");
 
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/submit")
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isOk());
 
         // Quien solo crea no puede devolver (es una acción de quien publica)
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/return-to-draft")
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/return-to-draft")
-                        .header("Authorization", "Bearer " + editorToken)
+                        .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"note\":\"Agrega una foto de portada\"}"))
                 .andExpect(status().isOk())
@@ -124,13 +124,13 @@ class ArticleWorkflowIntegrationTest {
 
         // De nuevo en borrador: quien lo creó puede editarlo y volver a enviarlo (la nota se borra)
         mockMvc.perform(put("/api/v1/admin/articles/" + articleId)
-                        .header("Authorization", "Bearer " + authorToken)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(articleJson(categoryId, "Publicación que vuelve a borrador, corregida")))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/submit")
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_REVIEW"))
                 .andExpect(jsonPath("$.reviewNote").doesNotExist());
@@ -138,35 +138,35 @@ class ArticleWorkflowIntegrationTest {
 
     @Test
     void publisherCanPublishStraightFromDraftButNotArchivedContent() throws Exception {
-        String editorToken = createUserAndLogin("wf-editor-6@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String categoryId = createCategory(editorToken, "Directo");
+        String publisherToken = createUserAndLogin("wf-publicador-6@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String categoryId = createCategory(publisherToken, "Directo");
 
-        String articleId = createDraftArticle(editorToken, categoryId, "Publicada directo desde borrador");
+        String articleId = createDraftArticle(publisherToken, categoryId, "Publicada directo desde borrador");
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
-                        .header("Authorization", "Bearer " + editorToken))
+                        .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PUBLISHED"));
 
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/archive")
-                        .header("Authorization", "Bearer " + editorToken))
+                        .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
-                        .header("Authorization", "Bearer " + editorToken))
+                        .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("No se puede publicar: está Archivado."));
     }
 
     @Test
-    void authorCannotEditSomeoneElsesArticle() throws Exception {
-        String editorToken = createUserAndLogin("wf-editor-3@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String authorToken = createUserAndLogin("wf-author-3@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String otherAuthorToken = createUserAndLogin("wf-author-4@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String categoryId = createCategory(editorToken, "Gastronomía");
+    void creatorCannotEditSomeoneElsesArticle() throws Exception {
+        String publisherToken = createUserAndLogin("wf-publicador-3@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String creatorToken = createUserAndLogin("wf-creador-3@plataforma-contenidos.test", TestProfile.CREADOR);
+        String otherCreatorToken = createUserAndLogin("wf-creador-4@plataforma-contenidos.test", TestProfile.CREADOR);
+        String categoryId = createCategory(publisherToken, "Gastronomía");
 
-        String articleId = createDraftArticle(authorToken, categoryId, "Receta ancestral de la región");
+        String articleId = createDraftArticle(creatorToken, categoryId, "Receta ancestral de la región");
 
         mockMvc.perform(put("/api/v1/admin/articles/" + articleId)
-                        .header("Authorization", "Bearer " + otherAuthorToken)
+                        .header("Authorization", "Bearer " + otherCreatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(articleJson(categoryId, "Intento de secuestro de contenido")))
                 .andExpect(status().isForbidden());
@@ -174,19 +174,19 @@ class ArticleWorkflowIntegrationTest {
 
     @Test
     void scheduledArticleIsPublishedOnceDueDateArrivesAndJobRuns() throws Exception {
-        String editorToken = createUserAndLogin("wf-editor-5@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String authorToken = createUserAndLogin("wf-author-5@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String categoryId = createCategory(editorToken, "Eventos");
+        String publisherToken = createUserAndLogin("wf-publicador-5@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String creatorToken = createUserAndLogin("wf-creador-5@plataforma-contenidos.test", TestProfile.CREADOR);
+        String categoryId = createCategory(publisherToken, "Eventos");
 
-        String articleId = createDraftArticle(authorToken, categoryId, "Feria programada para el fin de semana");
+        String articleId = createDraftArticle(creatorToken, categoryId, "Feria programada para el fin de semana");
 
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/submit")
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isOk());
 
         Instant scheduledAt = Instant.now().plusSeconds(2);
         mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/schedule")
-                        .header("Authorization", "Bearer " + editorToken)
+                        .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"scheduledAt\":\"" + scheduledAt + "\"}"))
                 .andExpect(status().isOk())
@@ -204,19 +204,19 @@ class ArticleWorkflowIntegrationTest {
 
     @Test
     void articleStoresYoutubeVideoIdParsedFromUrlAndRejectsInvalidUrl() throws Exception {
-        String editorToken = createUserAndLogin("wf-editor-7@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String authorToken = createUserAndLogin("wf-author-7@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        String categoryId = createCategory(editorToken, "Entretenimiento Test");
+        String publisherToken = createUserAndLogin("wf-publicador-7@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String creatorToken = createUserAndLogin("wf-creador-7@plataforma-contenidos.test", TestProfile.CREADOR);
+        String categoryId = createCategory(publisherToken, "Entretenimiento Test");
 
         mockMvc.perform(post("/api/v1/admin/articles")
-                        .header("Authorization", "Bearer " + authorToken)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(articleJsonWithYoutube(categoryId, "https://vimeo.com/12345678",
                                 "Artículo con URL de video inválida")))
                 .andExpect(status().isBadRequest());
 
         MvcResult result = mockMvc.perform(post("/api/v1/admin/articles")
-                        .header("Authorization", "Bearer " + authorToken)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(articleJsonWithYoutube(categoryId,
                                 "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10s", "Artículo con video de YouTube")))
@@ -226,7 +226,7 @@ class ArticleWorkflowIntegrationTest {
 
         String articleId = textField(result, "id");
         mockMvc.perform(get("/api/v1/admin/articles/" + articleId)
-                        .header("Authorization", "Bearer " + authorToken))
+                        .header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.videos[0].videoId").value("dQw4w9WgXcQ"));
     }
@@ -242,9 +242,9 @@ class ArticleWorkflowIntegrationTest {
                 + "}";
     }
 
-    private String createDraftArticle(String authorToken, String categoryId, String title) throws Exception {
+    private String createDraftArticle(String creatorToken, String categoryId, String title) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/v1/admin/articles")
-                        .header("Authorization", "Bearer " + authorToken)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(articleJson(categoryId, title)))
                 .andExpect(status().isCreated())
@@ -263,11 +263,11 @@ class ArticleWorkflowIntegrationTest {
                 + "}";
     }
 
-    private String createCategory(String editorToken, String name) throws Exception {
+    private String createCategory(String publisherToken, String name) throws Exception {
         // Sufijo único: la BD de Testcontainers se comparte entre clases de test y el nombre de categoría es único (ignore-case).
         name = name + " " + UUID.randomUUID().toString().substring(0, 8);
         MvcResult result = mockMvc.perform(post("/api/v1/admin/categories")
-                        .header("Authorization", "Bearer " + editorToken)
+                        .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"" + name + "\"}"))
                 .andExpect(status().isCreated())
@@ -280,7 +280,7 @@ class ArticleWorkflowIntegrationTest {
         return json.get(field).asText();
     }
 
-    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
+    private String createUserAndLogin(String email, TestProfile role) throws Exception {
         String password = "SomeStrongPassword123!";
         User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
         role.grant(workerPermissions, created.getId());

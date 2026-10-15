@@ -291,11 +291,11 @@ export function listAdminCategories(accessToken: string): Promise<Category[]> {
 
 /**
  * GET /categories (activas, público) sin caché — para selectores dentro de
- * formularios admin (ej. categoría de un artículo). A diferencia de
+ * formularios del panel (ej. tema de una publicación). A diferencia de
  * listActiveCategories() en src/lib/api/client.ts (sitio público, cacheada
  * 300s), acá una categoría recién creada debe poder elegirse de inmediato;
- * además AUTHOR no tiene acceso a /admin/categories (SecurityConfig), así
- * que no puede usarse listAdminCategories() para el formulario de artículo.
+ * además quien solo crea no tiene el módulo Temas, así
+ * que no puede usarse listAdminCategories() para el compositor.
  */
 export async function listActiveCategoriesFresh(): Promise<Category[]> {
   const res = await fetch(`${BACKEND_API_URL}/api/v1/categories`, { cache: "no-store" });

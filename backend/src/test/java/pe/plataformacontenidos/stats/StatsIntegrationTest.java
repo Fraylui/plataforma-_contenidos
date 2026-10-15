@@ -17,7 +17,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.permission.LegacyRole;
+import pe.plataformacontenidos.identity.permission.TestProfile;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
@@ -47,11 +47,11 @@ class StatsIntegrationTest {
 
     @Test
     void reflectsCreatedCategoryAndArticleCounts() throws Exception {
-        String editorToken = createUserAndLogin("stats-editor@plataforma-contenidos.test", LegacyRole.EDITOR);
-        String authorToken = createUserAndLogin("stats-author@plataforma-contenidos.test", LegacyRole.AUTHOR);
+        String publisherToken = createUserAndLogin("stats-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String creatorToken = createUserAndLogin("stats-creador@plataforma-contenidos.test", TestProfile.CREADOR);
 
         MvcResult categoryResult = mockMvc.perform(post("/api/v1/admin/categories")
-                        .header("Authorization", "Bearer " + editorToken)
+                        .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Categoría Stats Test\"}"))
                 .andExpect(status().isCreated())
@@ -59,14 +59,14 @@ class StatsIntegrationTest {
         String categoryId = textField(categoryResult, "id");
 
         mockMvc.perform(post("/api/v1/admin/articles")
-                        .header("Authorization", "Bearer " + authorToken)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Artículo para estadísticas\",\"excerpt\":\"Resumen\","
                                 + "\"body\":\"Cuerpo suficientemente largo.\",\"articleType\":\"GENERAL\","
                                 + "\"categoryId\":\"" + categoryId + "\"}"))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(get("/api/v1/admin/stats").header("Authorization", "Bearer " + editorToken))
+        mockMvc.perform(get("/api/v1/admin/stats").header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.articlesByStatus.DRAFT").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
                 .andExpect(jsonPath("$.totalCategories").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
@@ -75,10 +75,10 @@ class StatsIntegrationTest {
     }
 
     @Test
-    void authorCannotAccessStats() throws Exception {
-        String authorToken = createUserAndLogin("stats-author-2@plataforma-contenidos.test", LegacyRole.AUTHOR);
+    void creatorCannotAccessStats() throws Exception {
+        String creatorToken = createUserAndLogin("stats-creador-2@plataforma-contenidos.test", TestProfile.CREADOR);
 
-        mockMvc.perform(get("/api/v1/admin/stats").header("Authorization", "Bearer " + authorToken))
+        mockMvc.perform(get("/api/v1/admin/stats").header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isForbidden());
     }
 
@@ -92,7 +92,7 @@ class StatsIntegrationTest {
         return json.get(field).asText();
     }
 
-    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
+    private String createUserAndLogin(String email, TestProfile role) throws Exception {
         String password = "SomeStrongPassword123!";
         User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
         role.grant(workerPermissions, created.getId());

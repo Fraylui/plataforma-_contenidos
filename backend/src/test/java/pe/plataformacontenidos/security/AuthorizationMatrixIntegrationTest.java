@@ -24,7 +24,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.permission.LegacyRole;
+import pe.plataformacontenidos.identity.permission.TestProfile;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.ObjectMapper;
@@ -51,18 +51,18 @@ class AuthorizationMatrixIntegrationTest {
     @Autowired private WorkerPermissionRepository workerPermissions;
     @Autowired private PasswordEncoder passwordEncoder;
 
-    private String authorToken;
-    private String editorToken;
+    private String creatorToken;
+    private String publisherToken;
     private String adminToken;
     private String ownerToken;
 
     @BeforeAll
     void createUsers() throws Exception {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
-        authorToken = createUserAndLogin("matrix-author-" + suffix + "@plataforma-contenidos.test", LegacyRole.AUTHOR);
-        editorToken = createUserAndLogin("matrix-editor-" + suffix + "@plataforma-contenidos.test", LegacyRole.EDITOR);
-        adminToken = createUserAndLogin("matrix-admin-" + suffix + "@plataforma-contenidos.test", LegacyRole.ADMIN);
-        ownerToken = createUserAndLogin("matrix-owner-" + suffix + "@plataforma-contenidos.test", LegacyRole.SUPER_ADMIN);
+        creatorToken = createUserAndLogin("matrix-creador-" + suffix + "@plataforma-contenidos.test", TestProfile.CREADOR);
+        publisherToken = createUserAndLogin("matrix-publicador-" + suffix + "@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        adminToken = createUserAndLogin("matrix-admin-" + suffix + "@plataforma-contenidos.test", TestProfile.PUBLICADOR_CON_PUBLICIDAD);
+        ownerToken = createUserAndLogin("matrix-owner-" + suffix + "@plataforma-contenidos.test", TestProfile.DUENO);
     }
 
     /** Endpoints exclusivos del dueño (spec 2a: usuarios/trabajadores, configuración, auditoría). */
@@ -70,19 +70,19 @@ class AuthorizationMatrixIntegrationTest {
         return Stream.of("/api/v1/admin/workers", "/api/v1/admin/audit", "/api/v1/admin/platform-settings");
     }
 
-    /** Endpoints de gestión que requieren al menos EDITOR (no AUTHOR). */
-    static Stream<String> editorEndpoints() {
+    /** Endpoints de gestión que exigen un módulo de gestión (Publicador sí, Creador no). */
+    static Stream<String> publisherEndpoints() {
         return Stream.of("/api/v1/admin/categories", "/api/v1/admin/stats");
     }
 
-    /** Endpoints de contenido a los que llega cualquier miembro del equipo (AUTHOR incluido). */
-    static Stream<String> authorEndpoints() {
+    /** Endpoints de contenido a los que llega cualquier miembro del equipo (Creador incluido). */
+    static Stream<String> creatorEndpoints() {
         return Stream.of("/api/v1/admin/articles", "/api/v1/admin/images", "/api/v1/admin/places",
                 "/api/v1/admin/events", "/api/v1/admin/galleries", "/api/v1/admin/directory");
     }
 
     static Stream<Arguments> everyAdminEndpoint() {
-        return Stream.concat(Stream.concat(adminOnlyEndpoints(), editorEndpoints()), authorEndpoints()).map(Arguments::of);
+        return Stream.concat(Stream.concat(adminOnlyEndpoints(), publisherEndpoints()), creatorEndpoints()).map(Arguments::of);
     }
 
     static Stream<String> unknownPaths() {
@@ -111,34 +111,34 @@ class AuthorizationMatrixIntegrationTest {
         mockMvc.perform(get(path).header("Authorization", "Bearer not.a.jwt")).andExpect(status().isForbidden());
     }
 
-    @ParameterizedTest(name = "AUTHOR -> {0} = 403")
+    @ParameterizedTest(name = "CREADOR -> {0} = 403")
     @MethodSource("adminOnlyEndpoints")
-    void authorCannotReachAdminOnlyEndpoints(String path) throws Exception {
-        mockMvc.perform(withToken(get(path), authorToken)).andExpect(status().isForbidden());
+    void creatorCannotReachAdminOnlyEndpoints(String path) throws Exception {
+        mockMvc.perform(withToken(get(path), creatorToken)).andExpect(status().isForbidden());
     }
 
-    @ParameterizedTest(name = "EDITOR -> {0} = 403")
+    @ParameterizedTest(name = "PUBLICADOR -> {0} = 403")
     @MethodSource("adminOnlyEndpoints")
-    void editorCannotReachAdminOnlyEndpoints(String path) throws Exception {
-        mockMvc.perform(withToken(get(path), editorToken)).andExpect(status().isForbidden());
+    void publisherCannotReachAdminOnlyEndpoints(String path) throws Exception {
+        mockMvc.perform(withToken(get(path), publisherToken)).andExpect(status().isForbidden());
     }
 
-    @ParameterizedTest(name = "AUTHOR -> {0} = 403")
-    @MethodSource("editorEndpoints")
-    void authorCannotReachEditorEndpoints(String path) throws Exception {
-        mockMvc.perform(withToken(get(path), authorToken)).andExpect(status().isForbidden());
+    @ParameterizedTest(name = "CREADOR -> {0} = 403")
+    @MethodSource("publisherEndpoints")
+    void creatorCannotReachPublisherEndpoints(String path) throws Exception {
+        mockMvc.perform(withToken(get(path), creatorToken)).andExpect(status().isForbidden());
     }
 
-    @ParameterizedTest(name = "EDITOR -> {0} pasa la puerta")
-    @MethodSource("editorEndpoints")
-    void editorPassesEditorEndpoints(String path) throws Exception {
-        mockMvc.perform(withToken(get(path), editorToken)).andExpect(passedAuthorization());
+    @ParameterizedTest(name = "PUBLICADOR -> {0} pasa la puerta")
+    @MethodSource("publisherEndpoints")
+    void publisherPassesPublisherEndpoints(String path) throws Exception {
+        mockMvc.perform(withToken(get(path), publisherToken)).andExpect(passedAuthorization());
     }
 
-    @ParameterizedTest(name = "AUTHOR -> {0} pasa la puerta")
-    @MethodSource("authorEndpoints")
-    void authorPassesContentEndpoints(String path) throws Exception {
-        mockMvc.perform(withToken(get(path), authorToken)).andExpect(passedAuthorization());
+    @ParameterizedTest(name = "CREADOR -> {0} pasa la puerta")
+    @MethodSource("creatorEndpoints")
+    void creatorPassesContentEndpoints(String path) throws Exception {
+        mockMvc.perform(withToken(get(path), creatorToken)).andExpect(passedAuthorization());
     }
 
     @ParameterizedTest(name = "ADMIN (trabajador) -> {0} = 403")
@@ -182,7 +182,7 @@ class AuthorizationMatrixIntegrationTest {
         };
     }
 
-    private String createUserAndLogin(String email, LegacyRole role) throws Exception {
+    private String createUserAndLogin(String email, TestProfile role) throws Exception {
         User created = userRepository.save(new User(email, passwordEncoder.encode(PASSWORD), "Matrix", "Test", role.toRole()));
         role.grant(workerPermissions, created.getId());
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")

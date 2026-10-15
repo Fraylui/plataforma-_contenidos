@@ -26,7 +26,7 @@ import pe.plataformacontenidos.engagement.ContentType;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import pe.plataformacontenidos.identity.permission.AccessLevel;
-import pe.plataformacontenidos.identity.permission.LegacyRole;
+import pe.plataformacontenidos.identity.permission.TestProfile;
 import pe.plataformacontenidos.identity.permission.Module;
 import pe.plataformacontenidos.identity.permission.Permissions;
 import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
@@ -96,7 +96,7 @@ class DashboardIntegrationTest {
 
     @Test
     void rejectsUnknownRangeAndAnonymousCallers() throws Exception {
-        String token = login(LegacyRole.AUTHOR);
+        String token = login(TestProfile.CREADOR);
 
         mockMvc.perform(get("/api/v1/admin/dashboard?range=7").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -109,18 +109,18 @@ class DashboardIntegrationTest {
 
     @Test
     void workerWithoutContentModulesIsDenied() throws Exception {
-        String token = login(LegacyRole.USER);
+        String token = login(TestProfile.SIN_PERMISOS);
 
         mockMvc.perform(get("/api/v1/admin/dashboard").header("Authorization", "Bearer " + token))
                 .andExpect(status().isForbidden());
     }
 
-    private UUID gallery(UUID author, String status) {
+    private UUID gallery(UUID creator, String status) {
         UUID id = UUID.randomUUID();
         jdbc.update("""
                 INSERT INTO galleries.galleries (id, slug, title, status, author_id, category_id, published_at)
                 VALUES (?, ?, 'Galería inicio', ?, ?, ?, CASE WHEN ?::text = 'PUBLISHED' THEN now() END)
-                """, id, "galeria-inicio-" + id, status, author, UUID.randomUUID(), status);
+                """, id, "galeria-inicio-" + id, status, creator, UUID.randomUUID(), status);
         return id;
     }
 
@@ -129,7 +129,7 @@ class DashboardIntegrationTest {
                 Date.valueOf(day), gallery, count);
     }
 
-    private String login(LegacyRole role) throws Exception {
+    private String login(TestProfile role) throws Exception {
         String email = "dashboard-" + UUID.randomUUID() + "@plataforma-contenidos.test";
         String password = "SomeStrongPassword123!";
         User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));

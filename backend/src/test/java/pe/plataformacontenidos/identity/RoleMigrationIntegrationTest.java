@@ -73,7 +73,7 @@ class RoleMigrationIntegrationTest {
     }
 
     @Test
-    void editorAndAuthorKeepTheirReach() {
+    void publisherAndCreatorKeepTheirReach() {
         assertThat(roleOf("editor@legacy.test")).isEqualTo("WORKER");
         assertThat(permissionsOf("editor@legacy.test")).containsEntry("EVENTS", "PUBLISH").doesNotContainKey("ADVERTISING");
         assertThat(roleOf("author@legacy.test")).isEqualTo("WORKER");
