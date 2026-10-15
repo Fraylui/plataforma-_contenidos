@@ -20,6 +20,7 @@ export type Module =
   | "EVENTS"
   | "GALLERIES"
   | "DIRECTORY"
+  | "SERIES"
   | "CATEGORIES"
   | "STATS"
   | "ADVERTISING"
@@ -302,6 +303,42 @@ export interface AdminContentPage<T> {
   totalElements: number;
   totalPages: number;
   engagement: Record<string, EngagementCounts>;
+}
+
+/** Serie en el panel (SeriesDtos.SeriesResponse): incluye el estado de la sincronización con YouTube. */
+export interface AdminSeries {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  categoryId: string;
+  youtubePlaylistId: string;
+  status: PublicationStatus;
+  publishedAt: string | null;
+  scheduledAt: string | null;
+  lastSyncedAt: string | null;
+  lastSyncError: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSeriesInput {
+  playlistUrl: string;
+  title?: string;
+  description?: string;
+  categoryId: string;
+}
+
+export interface UpdateSeriesInput {
+  title?: string;
+  description?: string;
+  categoryId: string;
+}
+
+export interface SeriesSyncResult {
+  added: number;
+  lastSyncedAt: string | null;
+  lastSyncError: string | null;
 }
 
 /** Resumen del inicio del panel (GET /api/v1/admin/dashboard, ver DashboardService). */

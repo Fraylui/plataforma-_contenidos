@@ -6,18 +6,31 @@ import {
   listAllPublishedEventsForSitemap,
   listAllPublishedGalleriesForSitemap,
   listAllPublishedPlacesForSitemap,
+  listAllSeriesWithEpisodesForSitemap,
 } from "@/lib/api/client";
 import { SITE_URL } from "@/lib/site-url";
 import { isEventFinished } from "@/lib/content-labels";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [articles, places, events, galleries, businesses, categories] = await Promise.all([
+  const [articles, places, events, galleries, businesses, categories, series] = await Promise.all([
     listAllPublishedArticlesForSitemap(),
     listAllPublishedPlacesForSitemap(),
     listAllPublishedEventsForSitemap(),
     listAllPublishedGalleriesForSitemap(),
     listAllPublishedBusinessesForSitemap(),
     listActiveCategories(),
+    listAllSeriesWithEpisodesForSitemap(),
+  ]);
+
+  // Series y episodios: cada episodio es una página propia con su video (VideoObject).
+  const seriesEntries: MetadataRoute.Sitemap = series.flatMap(({ series: s, episodes }) => [
+    { url: `${SITE_URL}/series/${s.slug}`, changeFrequency: "weekly" as const, priority: 0.6 },
+    ...episodes.map((episode) => ({
+      url: `${SITE_URL}/series/${s.slug}/${episode.slug}`,
+      lastModified: episode.publishedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
   ]);
 
   const articleEntries: MetadataRoute.Sitemap = articles.map((article) => ({
@@ -88,6 +101,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     {
+      url: `${SITE_URL}/series`,
+      changeFrequency: "daily",
+      priority: 0.6,
+    },
+    {
       url: `${SITE_URL}/directorio`,
       changeFrequency: "weekly",
       priority: 0.5,
@@ -98,6 +116,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...galleryEntries,
     ...businessEntries,
     ...categoryEntries,
+    ...seriesEntries,
     {
       url: `${SITE_URL}/privacidad`,
       changeFrequency: "yearly",

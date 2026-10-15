@@ -12,6 +12,8 @@ import type {
   BusinessSummary,
   BusinessType,
   Category,
+  Episode,
+  EpisodeView,
   Event,
   EventSummary,
   FeedItem,
@@ -26,6 +28,8 @@ import type {
   PlatformSettings,
   SearchResult,
   SearchResultType,
+  SeriesCard,
+  SeriesSummary,
 } from "./types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
@@ -199,6 +203,47 @@ export function getPublishedGalleryBySlug(slug: string): Promise<Gallery> {
   return apiFetch(`/api/v1/galleries/${encodeURIComponent(slug)}`, 300);
 }
 
+// --- Series (programas de YouTube) ---
+
+export function listPublishedSeries(params?: { page?: number; size?: number }): Promise<PageResponse<SeriesCard>> {
+  const query = new URLSearchParams({ page: String(params?.page ?? 0), size: String(params?.size ?? 24) });
+  return apiFetch(`/api/v1/series?${query.toString()}`, 60);
+}
+
+export function getPublishedSeriesBySlug(slug: string): Promise<SeriesSummary> {
+  return apiFetch(`/api/v1/series/${encodeURIComponent(slug)}`, 300);
+}
+
+export function listSeriesEpisodes(slug: string, params?: { page?: number; size?: number }): Promise<PageResponse<Episode>> {
+  const query = new URLSearchParams({ page: String(params?.page ?? 0), size: String(params?.size ?? 24) });
+  return apiFetch(`/api/v1/series/${encodeURIComponent(slug)}/episodes?${query.toString()}`, 60);
+}
+
+export function getPublishedEpisode(seriesSlug: string, episodeSlug: string): Promise<EpisodeView> {
+  return apiFetch(`/api/v1/series/${encodeURIComponent(seriesSlug)}/episodes/${encodeURIComponent(episodeSlug)}`, 300);
+}
+
+/** Series y sus episodios para sitemap.xml (MAX = 48 por página en SeriesPublicController). */
+export async function listAllSeriesWithEpisodesForSitemap(): Promise<{ series: SeriesSummary; episodes: Episode[] }[]> {
+  const cards: SeriesCard[] = [];
+  for (let page = 0; ; page++) {
+    const result = await listPublishedSeries({ page, size: 48 });
+    cards.push(...result.items);
+    if (page + 1 >= result.totalPages) break;
+  }
+  return Promise.all(
+    cards.map(async ({ series }) => {
+      const episodes: Episode[] = [];
+      for (let page = 0; ; page++) {
+        const result = await listSeriesEpisodes(series.slug, { page, size: 48 });
+        episodes.push(...result.items);
+        if (page + 1 >= result.totalPages) break;
+      }
+      return { series, episodes };
+    }),
+  );
+}
+
 const GALLERIES_SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en GalleryPublicController
 
 export async function listAllPublishedGalleriesForSitemap(): Promise<GallerySummary[]> {
@@ -252,6 +297,7 @@ const NAV_PRESENCE_CHECKS: { href: string; checks: () => Promise<PageResponse<un
   },
   { href: "/galerias", checks: () => [listPublishedGalleries({ size: 1 })] },
   { href: "/directorio", checks: () => [listPublishedBusinesses({ size: 1 })] },
+  { href: "/series", checks: () => [listPublishedSeries({ size: 1 })] },
 ];
 
 /**

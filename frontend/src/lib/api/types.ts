@@ -377,3 +377,42 @@ export interface FeedPage {
   items: FeedItem[];
   hasMore: boolean;
 }
+
+/** Serie pública (SeriesDtos.PublicSeriesResponse): un programa que se transmite en YouTube. */
+export interface SeriesSummary {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  categoryId: string;
+  youtubePlaylistId: string;
+  publishedAt: string | null;
+}
+
+/** Episodio (SeriesDtos.EpisodeResponse): un video de YouTube, solo su id. */
+export interface Episode {
+  id: string;
+  slug: string;
+  youtubeVideoId: string;
+  title: string;
+  description: string | null;
+  /** Texto propio del equipo (HTML saneado en el backend). */
+  notes: string | null;
+  publishedAt: string;
+  status: "PUBLISHED" | "ARCHIVED";
+}
+
+/** Portada del listado de series: cuántos episodios y el último (su miniatura es la portada). */
+export interface SeriesCard {
+  series: SeriesSummary;
+  episodeCount: number;
+  latestEpisode: Episode | null;
+}
+
+/** Página de un episodio, con sus vecinos para "siguiente / anterior". */
+export interface EpisodeView {
+  series: SeriesSummary;
+  episode: Episode;
+  newer: Episode | null;
+  older: Episode | null;
+}

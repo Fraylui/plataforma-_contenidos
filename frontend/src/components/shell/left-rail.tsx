@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Buildings, CaretDown, ImagesSquare, MapPin, Notepad, type Icon } from "@phosphor-icons/react";
+import { Buildings, CaretDown, ImagesSquare, MapPin, Notepad, Television, type Icon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import type { TopicStory } from "@/components/feed/topic-stories";
 import { InfoMenu } from "./info-menu";
@@ -24,6 +24,7 @@ export interface ShellBrand {
 const SECTIONS: { href: string; label: string; icon: Icon; tile: string }[] = [
   { href: "/publicaciones", label: "Publicaciones", icon: Notepad, tile: "bg-linear-to-br from-sky-500 to-blue-600" },
   { href: "/lugares", label: "Lugares", icon: MapPin, tile: "bg-linear-to-br from-emerald-500 to-teal-600" },
+  { href: "/series", label: "Series", icon: Television, tile: "bg-linear-to-br from-rose-500 to-red-600" },
   { href: "/galerias", label: "Galerías", icon: ImagesSquare, tile: "bg-linear-to-br from-fuchsia-500 to-pink-600" },
   { href: "/directorio", label: "Directorio", icon: Buildings, tile: "bg-linear-to-br from-amber-500 to-orange-600" },
 ];

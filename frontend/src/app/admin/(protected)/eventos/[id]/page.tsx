@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { AccessDenied } from "@/components/admin/access-denied";
 import { requireAdminUser } from "@/lib/admin/auth";
 import {
   AdminApiError,
@@ -38,7 +39,7 @@ export default async function EditEventPage(props: PageProps<"/admin/eventos/[id
       notFound();
     }
     if (error instanceof AdminApiError && error.status === 403) {
-      return <p className="text-sm text-muted">No tienes acceso para ver este evento (pertenece a otro autor).</p>;
+      return <AccessDenied />;
     }
     throw error;
   }

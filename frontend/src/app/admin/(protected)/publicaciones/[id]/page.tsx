@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { AccessDenied } from "@/components/admin/access-denied";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { AdminApiError, getAdminArticle, listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
 import { getCategoryById, getPlatformSettings } from "@/lib/api/client";
@@ -32,9 +33,7 @@ export default async function EditArticlePage(props: PageProps<"/admin/publicaci
       notFound();
     }
     if (error instanceof AdminApiError && error.status === 403) {
-      return (
-        <p className="text-sm text-muted">No tienes acceso para ver esta publicación (pertenece a otro autor).</p>
-      );
+      return <AccessDenied />;
     }
     throw error;
   }

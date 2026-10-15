@@ -7,6 +7,7 @@ const TOP_LEVEL: Record<string, string> = {
   "/lugares": "Lugares",
   "/galerias": "Galerías",
   "/directorio": "Directorio",
+  "/series": "Series",
 };
 
 const DETAIL: Record<string, string> = {
@@ -15,6 +16,7 @@ const DETAIL: Record<string, string> = {
   "/eventos": "Evento",
   "/galerias": "Galería",
   "/directorio": "Directorio",
+  "/series": "Serie",
   "/categorias": "Tema",
 };
 

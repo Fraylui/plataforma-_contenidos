@@ -10,6 +10,7 @@ import { adminListQuery, type AdminListParams } from "@/lib/admin/list-params";
 import type {
   AdminContentPage,
   AdminImage,
+  AdminSeries,
   AdminUser,
   CreateWorkerInput,
   PlaceOption,
@@ -28,6 +29,7 @@ import type {
   CampaignInput,
   CategoryCreateInput,
   CategoryUpdateInput,
+  CreateSeriesInput,
   DashboardRange,
   DashboardSummary,
   EventInput,
@@ -35,13 +37,16 @@ import type {
   PlaceInput,
   PlatformSettingsInput,
   PlatformStats,
+  SeriesSyncResult,
   TokenResponse,
+  UpdateSeriesInput,
 } from "./admin-types";
 import type {
   AdPlacement,
   Article,
   Business,
   Category,
+  Episode,
   Event,
   Gallery,
   PageResponse,
@@ -506,6 +511,70 @@ export function getAdminStats(accessToken: string): Promise<PlatformStats> {
 
 export function getAdminDashboard(accessToken: string, range: DashboardRange): Promise<DashboardSummary> {
   return authedJson(`/api/v1/admin/dashboard?range=${range}`, accessToken);
+}
+
+// --- Series (SeriesAdminController) ---
+
+export function listAdminSeries(accessToken: string, params: AdminListParams): Promise<PageResponse<AdminSeries>> {
+  return authedJson(`/api/v1/admin/series?${adminListQuery(params)}`, accessToken);
+}
+
+export function getAdminSeries(accessToken: string, id: string): Promise<AdminSeries> {
+  return authedJson(`/api/v1/admin/series/${encodeURIComponent(id)}`, accessToken);
+}
+
+export function createSeries(accessToken: string, input: CreateSeriesInput): Promise<AdminSeries> {
+  return authedJson("/api/v1/admin/series", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateSeries(accessToken: string, id: string, input: UpdateSeriesInput): Promise<AdminSeries> {
+  return authedJson(`/api/v1/admin/series/${encodeURIComponent(id)}`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function syncSeries(accessToken: string, id: string): Promise<SeriesSyncResult> {
+  return authedJson(`/api/v1/admin/series/${encodeURIComponent(id)}/sync`, accessToken, { method: "POST" });
+}
+
+export function listAdminEpisodes(accessToken: string, id: string, page = 0): Promise<PageResponse<Episode>> {
+  return authedJson(`/api/v1/admin/series/${encodeURIComponent(id)}/episodes?page=${page}&size=30`, accessToken);
+}
+
+export function addEpisode(accessToken: string, id: string, input: { videoUrl: string; title?: string }): Promise<Episode> {
+  return authedJson(`/api/v1/admin/series/${encodeURIComponent(id)}/episodes`, accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateEpisode(
+  accessToken: string,
+  id: string,
+  episodeId: string,
+  input: { title?: string; notes?: string },
+): Promise<Episode> {
+  return authedJson(`/api/v1/admin/series/${encodeURIComponent(id)}/episodes/${encodeURIComponent(episodeId)}`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function setEpisodeArchived(accessToken: string, id: string, episodeId: string, archived: boolean): Promise<Episode> {
+  const step = archived ? "archive" : "restore";
+  return authedJson(
+    `/api/v1/admin/series/${encodeURIComponent(id)}/episodes/${encodeURIComponent(episodeId)}/${step}`,
+    accessToken,
+    { method: "POST" },
+  );
 }
 
 // --- Audit module: audit log (AuditController) ---

@@ -1,5 +1,5 @@
 import type { Icon } from "@phosphor-icons/react";
-import { ChartBar, Buildings, CalendarDots, Article, TreeStructure, House, Image as ImageIcon, Images, MapPin, Megaphone, GearSix, ShieldCheck, Storefront, UserCircle, Users } from "@phosphor-icons/react/dist/ssr";
+import { ChartBar, Buildings, CalendarDots, Article, TreeStructure, House, Image as ImageIcon, Images, MapPin, Megaphone, GearSix, ShieldCheck, Storefront, Television, UserCircle, Users } from "@phosphor-icons/react/dist/ssr";
 import type { AdminUser, Module } from "@/lib/api/admin-types";
 import { canAccess, isOwner } from "./permissions";
 
@@ -68,6 +68,13 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     group: "contenido",
     icon: Storefront,
     module: "DIRECTORY",
+  },
+  {
+    href: "/admin/series",
+    label: "Series",
+    group: "contenido",
+    icon: Television,
+    module: "SERIES",
   },
   {
     href: "/admin/temas",
@@ -146,6 +153,7 @@ const CREATE_ITEMS: Array<CreateItem & { navHref: string }> = [
   { label: "Evento", href: "/admin/eventos/nuevo", navHref: "/admin/eventos" },
   { label: "Galería", href: "/admin/galerias/nuevo", navHref: "/admin/galerias" },
   { label: "Ficha de directorio", href: "/admin/directorio/nuevo", navHref: "/admin/directorio" },
+  { label: "Serie", href: "/admin/series/nueva", navHref: "/admin/series" },
 ];
 
 /** Qué puede crear esta persona: un tipo por cada módulo de contenido al que accede. Lo usan Crear, la paleta y la barra del celular. */

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { AccessDenied } from "@/components/admin/access-denied";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { AdminApiError, getAdminGallery, listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
 import { getCategoryById, getPlatformSettings } from "@/lib/api/client";
@@ -32,7 +33,7 @@ export default async function EditGalleryPage(props: PageProps<"/admin/galerias/
       notFound();
     }
     if (error instanceof AdminApiError && error.status === 403) {
-      return <p className="text-sm text-muted">No tienes acceso para ver esta galería (pertenece a otro autor).</p>;
+      return <AccessDenied />;
     }
     throw error;
   }

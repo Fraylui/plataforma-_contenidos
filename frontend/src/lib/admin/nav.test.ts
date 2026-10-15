@@ -40,7 +40,7 @@ describe("lenguaje de plataforma (no de redacción)", () => {
     const menu = groupedNavItems(user({ role: "OWNER" })).map(({ group, items }) => [ADMIN_NAV_GROUP_LABELS[group], items.map((i) => i.label)]);
     expect(menu).toEqual([
       [null, ["Inicio", "Estadísticas"]],
-      ["Contenido", ["Publicaciones", "Lugares", "Eventos", "Galerías", "Directorio", "Temas", "Imágenes"]],
+      ["Contenido", ["Publicaciones", "Lugares", "Eventos", "Galerías", "Directorio", "Series", "Temas", "Imágenes"]],
       ["Publicidad", ["Espacios publicitarios", "Anunciantes"]],
       ["Equipo y ajustes", ["Trabajadores", "Configuración", "Registro de actividad", "Mi cuenta"]],
     ]);
@@ -54,13 +54,14 @@ describe("qué puede crear cada persona (botón Crear, paleta y barra del celula
     expect(items.map((i) => i.href)).toEqual(["/admin/lugares/nuevo", "/admin/eventos/nuevo"]);
   });
 
-  it("el dueño crea los 5 tipos, en el orden del menú", () => {
+  it("el dueño crea los 6 tipos, en el orden del menú", () => {
     expect(createItems(user({ role: "OWNER" })).map((i) => i.label)).toEqual([
       "Publicación",
       "Lugar",
       "Evento",
       "Galería",
       "Ficha de directorio",
+      "Serie",
     ]);
   });
 

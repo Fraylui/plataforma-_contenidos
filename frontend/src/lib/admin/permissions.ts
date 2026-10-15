@@ -14,7 +14,7 @@ export function canAccess(user: AdminUser, module: Module): boolean {
   return isOwner(user) || user.permissions[module] !== undefined;
 }
 
-const CONTENT_MODULES: Module[] = ["ARTICLES", "PLACES", "EVENTS", "GALLERIES", "DIRECTORY"];
+const CONTENT_MODULES: Module[] = ["ARTICLES", "PLACES", "EVENTS", "GALLERIES", "DIRECTORY", "SERIES"];
 
 /** Imágenes: editar o borrar las de otros exige algún módulo de contenido. */
 export function hasAnyContentModule(user: AdminUser): boolean {
