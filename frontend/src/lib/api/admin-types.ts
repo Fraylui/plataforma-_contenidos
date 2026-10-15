@@ -368,6 +368,8 @@ export interface AuditEvent {
   resourceId: string | null;
   ipAddress: string | null;
   result: AuditResult;
+  /** "Antes → después" cuando la acción lo registra (p. ej. permisos de un trabajador). */
+  details: string | null;
 }
 
 export interface AuditSearchFilters {

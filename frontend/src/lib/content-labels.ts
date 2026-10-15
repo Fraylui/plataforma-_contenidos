@@ -52,12 +52,6 @@ export function businessTypeLabel(type: BusinessType): string {
   return BUSINESS_TYPE_LABELS[type];
 }
 
-/** "ARTICLE_PUBLISHED" -> "Article published" — sin diccionario por código de auditoría (docenas de valores, ver AuditService.record en el backend), solo legible. */
-export function humanizeAuditAction(action: string): string {
-  const words = action.toLowerCase().replace(/_/g, " ");
-  return words.charAt(0).toUpperCase() + words.slice(1);
-}
-
 export function formatPublishedDate(iso: string | null): string {
   if (!iso) return "";
   return new Intl.DateTimeFormat("es-PE", {

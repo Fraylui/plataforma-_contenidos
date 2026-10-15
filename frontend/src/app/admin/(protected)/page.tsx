@@ -3,19 +3,11 @@ import Link from "next/link";
 import type { Icon } from "@phosphor-icons/react";
 import {
   Warning,
-  Pulse,
-  CheckCircle,
   Eye,
   Heart,
   Article,
   ClockCounterClockwise,
-  Key,
   ListChecks,
-  SignIn,
-  PencilSimple,
-  Plus,
-  SlidersHorizontal,
-  Trash,
   TrendUp,
   TrendDown,
   Megaphone,
@@ -28,7 +20,8 @@ import { roleLabel } from "@/lib/admin/role-labels";
 import { visibleNavItems } from "@/lib/admin/nav";
 import { CONTENT_TYPE_INFO, DASHBOARD_RANGES, kpiChange, parseDashboardRange } from "@/lib/admin/dashboard";
 import { ctr } from "@/lib/ads/campaign-report";
-import { publicationStatusLabel, publicationStatusTone, formatPublishedDate, humanizeAuditAction } from "@/lib/content-labels";
+import { publicationStatusLabel, publicationStatusTone, formatPublishedDate } from "@/lib/content-labels";
+import { AuditTimeline } from "@/components/admin/audit-timeline";
 import { DailyAreaChart, Sparkline } from "@/components/admin/dashboard-charts";
 import type { DashboardKpi, DashboardSummary } from "@/lib/api/admin-types";
 import { Badge } from "@/components/ui";
@@ -42,33 +35,6 @@ export const metadata: Metadata = {
 const CONTENT_HREFS = ["/admin/publicaciones", "/admin/lugares", "/admin/eventos", "/admin/galerias", "/admin/directorio"];
 const NUMBER = new Intl.NumberFormat("es-PE");
 const RANGE_LABEL: Record<number, string> = { 7: "7 días", 30: "30 días", 90: "90 días" };
-
-/** Clasificación por palabra clave del texto real de auditoría — no depende de un enum cerrado en el frontend. */
-function auditActionIcon(action: string): { icon: Icon; danger: boolean } {
-  const a = action.toUpperCase();
-  if (a.includes("FAIL") || a.includes("INVALID") || a.includes("DENIED") || a.includes("ERROR")) {
-    return { icon: Warning, danger: true };
-  }
-  if (a.includes("LOGIN") || a.includes("LOGOUT")) return { icon: SignIn, danger: false };
-  if (a.includes("TOKEN")) return { icon: Key, danger: false };
-  if (a.includes("SETTING")) return { icon: SlidersHorizontal, danger: false };
-  if (a.includes("DELETE") || a.includes("REMOV")) return { icon: Trash, danger: false };
-  if (a.includes("CREATE")) return { icon: Plus, danger: false };
-  if (a.includes("UPDATE")) return { icon: PencilSimple, danger: false };
-  if (a.includes("PUBLISH")) return { icon: CheckCircle, danger: false };
-  return { icon: Pulse, danger: false };
-}
-
-function auditDayLabel(iso: string): string {
-  const date = new Date(iso);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-  const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
-  if (sameDay(date, today)) return "Hoy";
-  if (sameDay(date, yesterday)) return "Ayer";
-  return formatPublishedDate(iso);
-}
 
 /**
  * Inicio del panel: resumen tipo CRM en una sola llamada (GET
@@ -173,35 +139,9 @@ export default async function AdminDashboardPage(props: PageProps<"/admin">) {
               {auditEvents.length === 0 ? (
                 <p className="mt-3 text-sm text-muted">Sin actividad registrada todavía.</p>
               ) : (
-                <ul className="mt-3 space-y-3">
-                  {auditEvents.map((event, index) => {
-                    const { icon: ActionIcon, danger } = auditActionIcon(event.action);
-                    const dayLabel = auditDayLabel(event.occurredAt);
-                    const showDayLabel = index === 0 || auditDayLabel(auditEvents[index - 1].occurredAt) !== dayLabel;
-                    return (
-                      <li key={event.id}>
-                        {showDayLabel && (
-                          <p className="mb-1.5 text-[11px] font-semibold tracking-wide text-muted uppercase">{dayLabel}</p>
-                        )}
-                        <div className="flex items-start gap-2.5 text-sm">
-                          <span
-                            className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
-                              danger ? "bg-danger/10 text-danger" : "bg-background text-muted"
-                            }`}
-                          >
-                            <ActionIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                          </span>
-                          <div className="min-w-0">
-                            <p className="text-foreground">
-                              {event.actorEmail ?? "Sistema"} — {humanizeAuditAction(event.action)}
-                            </p>
-                            <p className="text-xs text-muted">{formatPublishedDate(event.occurredAt)}</p>
-                          </div>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
+                <div className="mt-3">
+                  <AuditTimeline events={auditEvents} />
+                </div>
               )}
               <Link href="/admin/actividad" className="mt-3 inline-block text-sm font-medium text-accent hover:underline">
                 Ver auditoría completa →

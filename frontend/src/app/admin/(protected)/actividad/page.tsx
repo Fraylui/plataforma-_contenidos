@@ -5,8 +5,9 @@ import type { AuditResult } from "@/lib/api/admin-types";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdminPageHeader } from "@/components/admin/ui";
-import { Badge, type BadgeTone, Button, DateTimeInput, Field, LinkButton, Select, TextInput } from "@/components/ui";
-import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
+import { AuditTimeline } from "@/components/admin/audit-timeline";
+import { RESOURCE_LABELS } from "@/lib/admin/audit";
+import { Button, DateTimeInput, Field, LinkButton, Select, TextInput } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Registro de actividad",
@@ -14,29 +15,6 @@ export const metadata: Metadata = {
 };
 
 const PAGE_SIZE = 30;
-
-const RESULT_LABELS: Record<AuditResult, string> = {
-  SUCCESS: "Éxito",
-  FAILURE: "Fallo",
-};
-
-const RESULT_TONE: Record<AuditResult, BadgeTone> = {
-  SUCCESS: "success",
-  FAILURE: "danger",
-};
-
-// Tipos de recurso realmente emitidos hoy por AuditService.record(...) en
-// los distintos módulos (ver grep de "auditService.record(" en el backend).
-// Es solo para el <select> de filtro — el backend acepta cualquier valor.
-const RESOURCE_TYPES = ["article", "place", "image", "user", "platform_settings", "refresh_token"];
-
-function formatDateTime(iso: string): string {
-  return new Intl.DateTimeFormat("es-PE", {
-    timeZone: SITE_TIME_ZONE,
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(iso));
-}
 
 /** Convierte un <input type="date"> ("YYYY-MM-DD") al Instant que espera el backend. */
 function dateParamToInstant(value: string | undefined, endOfDay: boolean): string | undefined {
@@ -97,14 +75,14 @@ export default async function AdminAuditPage(props: PageProps<"/admin/actividad"
           <TextInput type="text" defaultValue={actorEmail ?? ""} placeholder="correo@ejemplo.com" />
         </Field>
         <Field label="Acción" name="action" className="col-span-2 sm:col-span-1">
-          <TextInput type="text" defaultValue={action ?? ""} placeholder="LOGIN_FAILURE…" />
+          <TextInput type="text" defaultValue={action ?? ""} placeholder="EVENT_PUBLISHED…" />
         </Field>
         <Field label="Recurso" name="resourceType">
           <Select defaultValue={resourceType ?? ""}>
             <option value="">Todos</option>
-            {RESOURCE_TYPES.map((type) => (
+            {Object.entries(RESOURCE_LABELS).map(([type, label]) => (
               <option key={type} value={type}>
-                {type}
+                {label}
               </option>
             ))}
           </Select>
@@ -130,40 +108,13 @@ export default async function AdminAuditPage(props: PageProps<"/admin/actividad"
         </div>
       </form>
 
-      <p className="mt-4 text-sm text-muted">{auditPage.totalElements} evento(s) encontrado(s)</p>
+      <p className="mt-4 text-sm text-muted">{auditPage.totalElements} {auditPage.totalElements === 1 ? "acción registrada" : "acciones registradas"}</p>
 
       {auditPage.items.length === 0 ? (
         <p className="mt-4 text-sm text-muted">No hay eventos que coincidan con los filtros.</p>
       ) : (
-        <div className="mt-4 overflow-x-auto rounded-card bg-surface shadow-card">
-          <table className="w-full min-w-[900px] text-left text-sm">
-            <thead className="border-b border-border">
-              <tr>
-                <th className="px-4 py-3 font-medium text-muted">Fecha</th>
-                <th className="px-4 py-3 font-medium text-muted">Usuario</th>
-                <th className="px-4 py-3 font-medium text-muted">Acción</th>
-                <th className="px-4 py-3 font-medium text-muted">Recurso</th>
-                <th className="px-4 py-3 font-medium text-muted">IP</th>
-                <th className="px-4 py-3 font-medium text-muted">Resultado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {auditPage.items.map((event) => (
-                <tr key={event.id} className="border-b border-border last:border-0 hover:bg-accent-soft/40">
-                  <td className="px-4 py-3 whitespace-nowrap text-muted">{formatDateTime(event.occurredAt)}</td>
-                  <td className="px-4 py-3 text-foreground">{event.actorEmail ?? "—"}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-foreground">{event.action}</td>
-                  <td className="px-4 py-3 text-muted">
-                    {event.resourceType ? `${event.resourceType}${event.resourceId ? ` #${event.resourceId.slice(0, 8)}` : ""}` : "—"}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs text-muted">{event.ipAddress ?? "—"}</td>
-                  <td className="px-4 py-3">
-                    <Badge tone={RESULT_TONE[event.result]} dot>{RESULT_LABELS[event.result]}</Badge>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mt-4 rounded-card bg-surface p-5 shadow-card">
+          <AuditTimeline events={auditPage.items} detailed />
         </div>
       )}
 
