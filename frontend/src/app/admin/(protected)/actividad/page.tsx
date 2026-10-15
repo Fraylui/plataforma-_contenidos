@@ -6,6 +6,7 @@ import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdminPageHeader } from "@/components/admin/ui";
 import { AuditTimeline } from "@/components/admin/audit-timeline";
+import { siteDayBoundary } from "@/lib/site-time-zone";
 import { RESOURCE_LABELS } from "@/lib/admin/audit";
 import { Button, DateTimeInput, Field, LinkButton, Select, TextInput } from "@/components/ui";
 
@@ -16,10 +17,9 @@ export const metadata: Metadata = {
 
 const PAGE_SIZE = 30;
 
-/** Convierte un <input type="date"> ("YYYY-MM-DD") al Instant que espera el backend. */
+/** Convierte un <input type="date"> ("YYYY-MM-DD", día del sitio) al Instant que espera el backend. */
 function dateParamToInstant(value: string | undefined, endOfDay: boolean): string | undefined {
-  if (!value) return undefined;
-  return `${value}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}Z`;
+  return value ? siteDayBoundary(value, endOfDay) : undefined;
 }
 
 function buildPageHref(params: Record<string, string | undefined>, page: number): string {
