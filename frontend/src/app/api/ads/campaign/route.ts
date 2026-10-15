@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { serverImageUrl } from "@/lib/server-image-url";
-import { visitorHeaders } from "@/lib/ads/forward-visitor";
+import { visitorHeaders } from "@/lib/forward-visitor";
 import type { PlacementRotation, ResolvedRotation } from "@/lib/api/types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";

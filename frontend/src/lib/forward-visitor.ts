@@ -3,7 +3,8 @@ import type { NextRequest } from "next/server";
 
 /**
  * Cabeceras para que el backend vea al visitante real y no al contenedor de
- * Next: la IP (tope de frecuencia y antiduplicado, ver AdDeliveryGuard) y
+ * Next: la IP (tope de frecuencia y antiduplicado de anuncios y visitas, ver
+ * AdDeliveryGuard y ContentViewCounter) y
  * el user agent (filtro de robots, ver InvalidTraffic). nginx ya pone
  * X-Forwarded-For; el backend confía en él porque viene de la red interna
  * (server.forward-headers-strategy). También la ubicación que agrega

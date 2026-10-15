@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getCategoryById, getPlatformSettings, getPublishedArticleBySlug, getRelatedWithFallback } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { LikeShareBar } from "@/components/content/like-share-bar";
+import { ViewBeacon } from "@/components/content/view-beacon";
 import { AdBlock } from "@/components/legal/ad-block";
 import { PostView } from "@/components/post/post-view";
 import { PostDetailMedia } from "@/components/post/post-detail-media";
@@ -165,7 +166,7 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
             dangerouslySetInnerHTML={{ __html: article.body }}
           />
         }
-        actions={<LikeShareBar contentType="articles" slug={article.slug} initialLikeCount={article.likeCount} title={article.title} />}
+        actions={<><ViewBeacon type="ARTICLE" id={article.id} /><LikeShareBar contentType="articles" slug={article.slug} initialLikeCount={article.likeCount} title={article.title} /></>}
         ad={<AdBlock position="article" section="ARTICLE" categoryId={article.categoryId} layout="band" count={2} />}
         more={[...relatedPage.related, ...relatedPage.more].map(fromFeedItem)}
       />

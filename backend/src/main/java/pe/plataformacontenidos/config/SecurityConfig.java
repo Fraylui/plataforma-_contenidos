@@ -51,6 +51,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/articles/*/like", "/api/v1/places/*/like",
                         "/api/v1/events/*/like", "/api/v1/galleries/*/like",
                         "/api/v1/directory/*/like").permitAll()
+                // Visitas anónimas (sin cookies ni IP guardada) — ver ContentViewCounter.
+                .requestMatchers(HttpMethod.POST, "/api/v1/views").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/search").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/feed", "/api/v1/feed/related", "/api/v1/feed/top",
                         "/api/v1/feed/topics").permitAll()

@@ -1,4 +1,4 @@
-package pe.plataformacontenidos.advertising;
+package pe.plataformacontenidos.shared;
 
 import java.util.regex.Pattern;
 
@@ -9,9 +9,9 @@ import java.util.regex.Pattern;
  * clic — sin él, buscadores, previsualizadores de enlaces (WhatsApp,
  * Facebook, Slack) y scripts inflan las cifras que se le reportan al
  * anunciante. Sin user agent también se descarta: un navegador real siempre
- * lo manda.
+ * lo manda. Lo usan los anuncios y el conteo de visitas.
  */
-final class InvalidTraffic {
+public final class InvalidTraffic {
 
     private static final Pattern AUTOMATED_AGENT = Pattern.compile(
             "bot|crawl|spider|slurp|headless|lighthouse|pagespeed|preview|facebookexternalhit|whatsapp"
@@ -21,7 +21,7 @@ final class InvalidTraffic {
     private InvalidTraffic() {
     }
 
-    static boolean isAutomated(String userAgent) {
+    public static boolean isAutomated(String userAgent) {
         return userAgent == null || userAgent.isBlank() || AUTOMATED_AGENT.matcher(userAgent).find();
     }
 }

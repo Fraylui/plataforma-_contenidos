@@ -4,6 +4,7 @@ import { NavigationArrow } from "@phosphor-icons/react/dist/ssr";
 import { getCategoryById, getPlatformSettings, getPublishedPlaceBySlug, getRelatedWithFallback } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { LikeShareBar, POST_ACTION_PILL } from "@/components/content/like-share-bar";
+import { ViewBeacon } from "@/components/content/view-beacon";
 import { AdBlock } from "@/components/legal/ad-block";
 import { PostView } from "@/components/post/post-view";
 import { PostDetailMedia } from "@/components/post/post-detail-media";
@@ -164,14 +165,17 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
           <div className="prose prose-theme max-w-none prose-headings:font-bold prose-a:text-accent" dangerouslySetInnerHTML={{ __html: place.body }} />
         }
         actions={
-          <LikeShareBar contentType="places" slug={place.slug} initialLikeCount={place.likeCount} title={place.name}>
-            {map && (
-              <a href={mapsDirections(map.latitude, map.longitude)} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL}>
-                <NavigationArrow className="h-4 w-4" aria-hidden="true" />
-                Cómo llegar
-              </a>
-            )}
-          </LikeShareBar>
+          <>
+            <ViewBeacon type="PLACE" id={place.id} />
+            <LikeShareBar contentType="places" slug={place.slug} initialLikeCount={place.likeCount} title={place.name}>
+              {map && (
+                <a href={mapsDirections(map.latitude, map.longitude)} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL}>
+                  <NavigationArrow className="h-4 w-4" aria-hidden="true" />
+                  Cómo llegar
+                </a>
+              )}
+            </LikeShareBar>
+          </>
         }
         ad={<AdBlock position="article" section="PLACE" categoryId={place.categoryId} layout="band" count={2} />}
         more={[...relatedPage.related, ...relatedPage.more].map(fromFeedItem)}

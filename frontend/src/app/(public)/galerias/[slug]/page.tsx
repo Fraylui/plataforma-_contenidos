@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getCategoryById, getPlatformSettings, getPublishedGalleryBySlug, getRelatedWithFallback } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { LikeShareBar } from "@/components/content/like-share-bar";
+import { ViewBeacon } from "@/components/content/view-beacon";
 import { AdBlock } from "@/components/legal/ad-block";
 import { PostView } from "@/components/post/post-view";
 import { PostDetailMedia } from "@/components/post/post-detail-media";
@@ -137,7 +138,7 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
         title={gallery.title}
         media={<PostDetailMedia images={gallery.images} videos={[]} title={gallery.title} />}
         excerpt={gallery.excerpt}
-        actions={<LikeShareBar contentType="galleries" slug={gallery.slug} initialLikeCount={gallery.likeCount} title={gallery.title} />}
+        actions={<><ViewBeacon type="GALLERY" id={gallery.id} /><LikeShareBar contentType="galleries" slug={gallery.slug} initialLikeCount={gallery.likeCount} title={gallery.title} /></>}
         ad={<AdBlock position="article" section="GALLERY" categoryId={gallery.categoryId} layout="band" count={2} />}
         more={[...relatedPage.related, ...relatedPage.more].map(fromFeedItem)}
       />

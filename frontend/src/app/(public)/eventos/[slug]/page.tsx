@@ -11,6 +11,7 @@ import {
 import { NotFoundError } from "@/lib/api/client";
 import { formatEventDateTime, isEventFinished } from "@/lib/content-labels";
 import { LikeShareBar, POST_ACTION_PILL } from "@/components/content/like-share-bar";
+import { ViewBeacon } from "@/components/content/view-beacon";
 import { PostView } from "@/components/post/post-view";
 import { PostDetailMedia } from "@/components/post/post-detail-media";
 import { PostFacts, type PostFact } from "@/components/post/post-facts";
@@ -188,20 +189,23 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
           <div className="prose prose-theme max-w-none prose-headings:font-bold prose-a:text-accent" dangerouslySetInnerHTML={{ __html: event.body }} />
         }
         actions={
-          <LikeShareBar contentType="events" slug={event.slug} initialLikeCount={event.likeCount} title={event.title}>
-            {!finished && (
-              <>
-                <a href={calendar.google} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL}>
-                  <CalendarPlus className="h-4 w-4" aria-hidden="true" />
-                  Google Calendar
-                </a>
-                <a href={calendar.ics} download={`${event.slug}.ics`} className={POST_ACTION_PILL}>
-                  <DownloadSimple className="h-4 w-4" aria-hidden="true" />
-                  Otro calendario
-                </a>
+          <>
+            <ViewBeacon type="EVENT" id={event.id} />
+            <LikeShareBar contentType="events" slug={event.slug} initialLikeCount={event.likeCount} title={event.title}>
+              {!finished && (
+                <>
+                  <a href={calendar.google} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL}>
+                    <CalendarPlus className="h-4 w-4" aria-hidden="true" />
+                    Google Calendar
+                  </a>
+                  <a href={calendar.ics} download={`${event.slug}.ics`} className={POST_ACTION_PILL}>
+                    <DownloadSimple className="h-4 w-4" aria-hidden="true" />
+                    Otro calendario
+                  </a>
               </>
             )}
           </LikeShareBar>
+          </>
         }
         ad={<AdBlock position="article" section="EVENT" categoryId={event.categoryId} layout="band" count={2} />}
         more={[...relatedPage.related, ...relatedPage.more].map(fromFeedItem)}

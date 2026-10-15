@@ -14,6 +14,7 @@ import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
 import { AdBlock } from "@/components/legal/ad-block";
 import { LikeShareBar, POST_ACTION_PILL } from "@/components/content/like-share-bar";
+import { ViewBeacon } from "@/components/content/view-beacon";
 import { PostView } from "@/components/post/post-view";
 import { PostDetailMedia } from "@/components/post/post-detail-media";
 import { PostFacts, type PostFact } from "@/components/post/post-facts";
@@ -181,20 +182,23 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
           <div className="prose prose-theme max-w-none prose-headings:font-bold prose-a:text-accent" dangerouslySetInnerHTML={{ __html: business.body }} />
         }
         actions={
-          <LikeShareBar contentType="directory" slug={business.slug} initialLikeCount={business.likeCount} title={business.name}>
-            {business.phone && (
-              <a href={`tel:${business.phone.replace(/[^\d+]/g, "")}`} className={POST_ACTION_PILL}>
-                <Phone className="h-4 w-4" aria-hidden="true" />
-                Llamar
-              </a>
-            )}
-            {hasMap && (
-              <a href={mapsDirections(business.latitude!, business.longitude!)} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL}>
-                <NavigationArrow className="h-4 w-4" aria-hidden="true" />
-                Cómo llegar
-              </a>
-            )}
-          </LikeShareBar>
+          <>
+            <ViewBeacon type="BUSINESS" id={business.id} />
+            <LikeShareBar contentType="directory" slug={business.slug} initialLikeCount={business.likeCount} title={business.name}>
+              {business.phone && (
+                <a href={`tel:${business.phone.replace(/[^\d+]/g, "")}`} className={POST_ACTION_PILL}>
+                  <Phone className="h-4 w-4" aria-hidden="true" />
+                  Llamar
+                </a>
+              )}
+              {hasMap && (
+                <a href={mapsDirections(business.latitude!, business.longitude!)} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL}>
+                  <NavigationArrow className="h-4 w-4" aria-hidden="true" />
+                  Cómo llegar
+                </a>
+              )}
+            </LikeShareBar>
+          </>
         }
         ad={<AdBlock position="article" section="BUSINESS" categoryId={business.categoryId} layout="band" count={2} />}
         more={[...relatedPage.related, ...relatedPage.more].map(fromFeedItem)}

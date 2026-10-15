@@ -21,6 +21,7 @@ import pe.plataformacontenidos.media.Image;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.InvalidTraffic;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
 

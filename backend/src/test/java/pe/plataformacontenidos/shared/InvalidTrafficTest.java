@@ -1,4 +1,4 @@
-package pe.plataformacontenidos.advertising;
+package pe.plataformacontenidos.shared;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
