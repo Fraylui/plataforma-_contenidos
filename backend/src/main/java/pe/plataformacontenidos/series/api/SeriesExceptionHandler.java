@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import pe.plataformacontenidos.series.EpisodeNotFoundException;
-import pe.plataformacontenidos.series.InvalidPlaylistException;
+import pe.plataformacontenidos.series.InvalidSeriesInputException;
 import pe.plataformacontenidos.series.PlaylistFeedException;
 import pe.plataformacontenidos.series.SeriesNotFoundException;
 
@@ -18,8 +18,8 @@ public class SeriesExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError(Instant.now(), 404, ex.getMessage()));
     }
 
-    @ExceptionHandler(InvalidPlaylistException.class)
-    public ResponseEntity<ApiError> handleInvalidPlaylist(InvalidPlaylistException ex) {
+    @ExceptionHandler(InvalidSeriesInputException.class)
+    public ResponseEntity<ApiError> handleInvalidInput(InvalidSeriesInputException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
     }
 

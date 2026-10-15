@@ -20,15 +20,16 @@ public final class SeriesDtos {
             @Size(max = 2000) String description, @NotNull UUID categoryId) {
 
         SeriesService.SeriesInput toInput() {
-            return new SeriesService.SeriesInput(playlistUrl, title, description, categoryId);
+            return new SeriesService.SeriesInput(playlistUrl, title, description, categoryId, null);
         }
     }
 
+    /** {@code coverImageId} null = sin portada propia (se usa la miniatura del último episodio). */
     public record UpdateSeriesRequest(@Size(max = 200) String title, @Size(max = 2000) String description,
-            @NotNull UUID categoryId) {
+            @NotNull UUID categoryId, UUID coverImageId) {
 
         SeriesService.SeriesInput toInput() {
-            return new SeriesService.SeriesInput(null, title, description, categoryId);
+            return new SeriesService.SeriesInput(null, title, description, categoryId, coverImageId);
         }
     }
 
@@ -38,23 +39,23 @@ public final class SeriesDtos {
 
     /** Panel: incluye el estado de la sincronización con YouTube. */
     public record SeriesResponse(UUID id, String slug, String title, String description, UUID categoryId,
-            String youtubePlaylistId, PublicationStatus status, Instant publishedAt, Instant scheduledAt,
+            UUID coverImageId, String youtubePlaylistId, PublicationStatus status, Instant publishedAt, Instant scheduledAt,
             Instant lastSyncedAt, String lastSyncError, Instant createdAt, Instant updatedAt) {
 
         static SeriesResponse from(Series s) {
             return new SeriesResponse(s.getId(), s.getSlug(), s.getTitle(), s.getDescription(), s.getCategoryId(),
-                    s.getYoutubePlaylistId(), s.getStatus(), s.getPublishedAt(), s.getScheduledAt(), s.getLastSyncedAt(),
+                    s.getCoverImageId(), s.getYoutubePlaylistId(), s.getStatus(), s.getPublishedAt(), s.getScheduledAt(), s.getLastSyncedAt(),
                     s.getLastSyncError(), s.getCreatedAt(), s.getUpdatedAt());
         }
     }
 
     /** Sitio: sin datos internos de sincronización. */
     public record PublicSeriesResponse(UUID id, String slug, String title, String description, UUID categoryId,
-            String youtubePlaylistId, Instant publishedAt) {
+            UUID coverImageId, String youtubePlaylistId, Instant publishedAt) {
 
         static PublicSeriesResponse from(Series s) {
             return new PublicSeriesResponse(s.getId(), s.getSlug(), s.getTitle(), s.getDescription(), s.getCategoryId(),
-                    s.getYoutubePlaylistId(), s.getPublishedAt());
+                    s.getCoverImageId(), s.getYoutubePlaylistId(), s.getPublishedAt());
         }
     }
 

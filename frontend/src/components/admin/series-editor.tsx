@@ -17,6 +17,7 @@ import {
 } from "@/app/admin/(protected)/series/actions";
 import { PublishPanel } from "@/components/admin/publish-panel";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { SeriesCoverPicker } from "@/components/admin/series-cover-picker";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, FormError } from "@/components/admin/ui";
 import { Badge, Button, Card, Field, Select, TextArea, TextInput } from "@/components/ui";
 
@@ -38,16 +39,26 @@ export function SeriesEditor({ series, episodes, categories, allImages, permissi
   const [title, setTitle] = useState(series.title);
   const [description, setDescription] = useState(series.description ?? "");
   const [categoryId, setCategoryId] = useState(series.categoryId);
+  const [coverImageId, setCoverImageId] = useState(series.coverImageId);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const dirty = title !== series.title || description !== (series.description ?? "") || categoryId !== series.categoryId;
+  const dirty =
+    title !== series.title ||
+    description !== (series.description ?? "") ||
+    categoryId !== series.categoryId ||
+    coverImageId !== series.coverImageId;
 
   async function save(): Promise<string | null> {
     if (!dirty) return series.id;
     setSaving(true);
     setError(null);
-    const result = await updateSeriesAction(series.id, { title: title.trim(), description: description.trim(), categoryId });
+    const result = await updateSeriesAction(series.id, {
+      title: title.trim(),
+      description: description.trim(),
+      categoryId,
+      coverImageId,
+    });
     setSaving(false);
     if (!result.ok) {
       setError(result.error);
@@ -77,6 +88,7 @@ export function SeriesEditor({ series, episodes, categories, allImages, permissi
               ))}
             </Select>
           </Field>
+          <SeriesCoverPicker value={coverImageId} onChange={setCoverImageId} allImages={allImages} disabled={!permissions.canEdit} />
           {error && <FormError message={error} />}
         </Card>
 

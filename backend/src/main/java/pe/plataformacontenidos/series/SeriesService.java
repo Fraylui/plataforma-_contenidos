@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
+import pe.plataformacontenidos.media.ImageNotFoundException;
+import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.HtmlSanitizer;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
@@ -36,18 +38,21 @@ public class SeriesService {
     private final EpisodeRepository episodeRepository;
     private final YouTubePlaylistFeed feed;
     private final CategoryService categoryService;
+    private final ImageService imageService;
     private final AuditService auditService;
 
     public SeriesService(SeriesRepository seriesRepository, EpisodeRepository episodeRepository,
-            YouTubePlaylistFeed feed, CategoryService categoryService, AuditService auditService) {
+            YouTubePlaylistFeed feed, CategoryService categoryService, ImageService imageService,
+            AuditService auditService) {
         this.seriesRepository = seriesRepository;
         this.episodeRepository = episodeRepository;
         this.feed = feed;
         this.categoryService = categoryService;
+        this.imageService = imageService;
         this.auditService = auditService;
     }
 
-    public record SeriesInput(String playlistUrl, String title, String description, UUID categoryId) {
+    public record SeriesInput(String playlistUrl, String title, String description, UUID categoryId, UUID coverImageId) {
     }
 
     /** Lo que muestra una portada del listado: cuántos episodios y el último. */
@@ -58,10 +63,10 @@ public class SeriesService {
     public Series create(SeriesInput input, UUID authorId) {
         String playlistId = YouTubePlaylistFeed.playlistIdFrom(input.playlistUrl());
         if (playlistId == null) {
-            throw new InvalidPlaylistException("Pega el link de una lista de reproducción de YouTube (el que tiene «list=»).");
+            throw new InvalidSeriesInputException("Pega el link de una lista de reproducción de YouTube (el que tiene «list=»).");
         }
         if (seriesRepository.existsByYoutubePlaylistId(playlistId)) {
-            throw new InvalidPlaylistException("Esa lista de YouTube ya está conectada a otra serie.");
+            throw new InvalidSeriesInputException("Esa lista de YouTube ya está conectada a otra serie.");
         }
         requireCategory(input.categoryId());
         YouTubePlaylistFeed.Feed playlist = feed.fetch(playlistId);
@@ -84,8 +89,15 @@ public class SeriesService {
         if (!series.getCategoryId().equals(input.categoryId())) {
             requireCategory(input.categoryId());
         }
+        if (input.coverImageId() != null) {
+            try {
+                imageService.getOrThrow(input.coverImageId());
+            } catch (ImageNotFoundException e) {
+                throw new InvalidSeriesInputException("La imagen de portada ya no existe en la biblioteca.");
+            }
+        }
         String title = blankToNull(input.title()) != null ? input.title().strip() : series.getTitle();
-        series.update(title, blankToNull(input.description()), input.categoryId());
+        series.update(title, blankToNull(input.description()), input.categoryId(), input.coverImageId());
         return saveAndAudit(series, "SERIES_UPDATED", actingUserId);
     }
 
@@ -135,9 +147,9 @@ public class SeriesService {
             UUID actingUserId) {
         Series series = getOrThrow(seriesId);
         String videoId = YouTubeUrlParser.extractVideoId(videoUrl)
-                .orElseThrow(() -> new InvalidPlaylistException("Pega el link de un video de YouTube."));
+                .orElseThrow(() -> new InvalidSeriesInputException("Pega el link de un video de YouTube."));
         if (!episodeRepository.findExistingVideoIds(seriesId, List.of(videoId)).isEmpty()) {
-            throw new InvalidPlaylistException("Ese video ya es un episodio de la serie.");
+            throw new InvalidSeriesInputException("Ese video ya es un episodio de la serie.");
         }
         String episodeTitle = blankToNull(title) != null ? title.strip() : "Episodio " + videoId;
         Episode episode = episodeRepository.save(new Episode(seriesId, videoId, uniqueEpisodeSlug(seriesId, episodeTitle),

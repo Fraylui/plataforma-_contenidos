@@ -42,6 +42,10 @@ public class Series extends PublishableContent {
     @Column(name = "youtube_playlist_id", nullable = false, unique = true)
     private String youtubePlaylistId;
 
+    /** Arte del programa (imagen de la biblioteca); null = miniatura del último episodio. */
+    @Column(name = "cover_image_id")
+    private UUID coverImageId;
+
     @Column(name = "last_synced_at")
     private Instant lastSyncedAt;
 
@@ -64,10 +68,11 @@ public class Series extends PublishableContent {
         this.youtubePlaylistId = youtubePlaylistId;
     }
 
-    public void update(String title, String description, UUID categoryId) {
+    public void update(String title, String description, UUID categoryId, UUID coverImageId) {
         this.title = title;
         this.description = description;
         this.categoryId = categoryId;
+        this.coverImageId = coverImageId;
         touch();
     }
 
@@ -103,6 +108,10 @@ public class Series extends PublishableContent {
 
     public UUID getAuthorId() {
         return authorId;
+    }
+
+    public UUID getCoverImageId() {
+        return coverImageId;
     }
 
     public String getYoutubePlaylistId() {

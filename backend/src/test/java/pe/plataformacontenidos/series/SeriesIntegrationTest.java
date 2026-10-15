@@ -183,6 +183,25 @@ class SeriesIntegrationTest {
     }
 
     @Test
+    void coverImageMustExistAndCanBeCleared() throws Exception {
+        JsonNode series = createSeries();
+        String id = series.get("id").asText();
+        String category = series.get("categoryId").asText();
+
+        mockMvc.perform(put("/api/v1/admin/series/" + id).header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"categoryId\":\"" + category + "\",\"coverImageId\":\"" + UUID.randomUUID() + "\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("La imagen de portada ya no existe en la biblioteca."));
+
+        mockMvc.perform(put("/api/v1/admin/series/" + id).header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"categoryId\":\"" + category + "\",\"coverImageId\":null}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.coverImageId").doesNotExist());
+    }
+
+    @Test
     void withoutTheSeriesModuleThePanelIsClosed() throws Exception {
         String outsider = login(TestProfile.SIN_PERMISOS);
         mockMvc.perform(get("/api/v1/admin/series").header("Authorization", "Bearer " + outsider))

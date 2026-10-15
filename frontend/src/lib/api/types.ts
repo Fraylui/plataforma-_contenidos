@@ -389,6 +389,8 @@ export interface SeriesSummary {
   title: string;
   description: string | null;
   categoryId: string;
+  /** Arte del programa; null = se usa la miniatura del último episodio. */
+  coverImageId: string | null;
   youtubePlaylistId: string;
   publishedAt: string | null;
 }

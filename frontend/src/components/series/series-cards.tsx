@@ -2,10 +2,17 @@ import Link from "next/link";
 import { Play, Television } from "@phosphor-icons/react/dist/ssr";
 import type { Episode, SeriesCard } from "@/lib/api/types";
 import { formatPublishedDate } from "@/lib/content-labels";
+import { imageUrl } from "@/lib/image-url";
 
 /** Miniatura de YouTube (la sirve YouTube, nunca el VPS). */
-export function youtubeThumb(videoId: string, size: "hq" | "maxres" = "hq"): string {
-  return `https://i.ytimg.com/vi/${videoId}/${size === "maxres" ? "maxresdefault" : "hqdefault"}.jpg`;
+export function youtubeThumb(videoId: string): string {
+  return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+}
+
+/** Portada de una serie: su arte propio o, si no tiene, la miniatura del último episodio. */
+export function seriesCoverUrl(coverImageId: string | null, latest: Episode | null | undefined): string | null {
+  if (coverImageId) return imageUrl(`/api/v1/images/${coverImageId}/file`);
+  return latest ? youtubeThumb(latest.youtubeVideoId) : null;
 }
 
 function episodesLabel(count: number): string {
@@ -14,20 +21,22 @@ function episodesLabel(count: number): string {
 
 /**
  * Portada de una serie en el listado, como en una plataforma de streaming:
- * miniatura 16:9 del último episodio, cantidad de episodios y el último.
+ * portada 16:9 (arte del programa o miniatura del último episodio),
+ * cantidad de episodios y el último.
  */
 export function SeriesCardView({ card }: { card: SeriesCard }) {
   const { series, episodeCount, latestEpisode } = card;
+  const cover = seriesCoverUrl(series.coverImageId, latestEpisode);
   return (
     <Link
       href={`/series/${series.slug}`}
       className="group flex flex-col overflow-hidden rounded-card bg-surface shadow-card transition-shadow duration-150 hover:shadow-pop focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none"
     >
       <div className="relative aspect-video overflow-hidden bg-canvas-strong">
-        {latestEpisode ? (
-          // eslint-disable-next-line @next/next/no-img-element -- miniatura servida por YouTube (i.ytimg.com)
+        {cover ? (
+          // eslint-disable-next-line @next/next/no-img-element -- portada propia o miniatura de YouTube
           <img
-            src={youtubeThumb(latestEpisode.youtubeVideoId)}
+            src={cover}
             alt=""
             loading="lazy"
             className="h-full w-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-[1.03]"

@@ -312,6 +312,8 @@ export interface AdminSeries {
   title: string;
   description: string | null;
   categoryId: string;
+  /** Arte del programa (imagen de la biblioteca); null = miniatura del último episodio. */
+  coverImageId: string | null;
   youtubePlaylistId: string;
   status: PublicationStatus;
   publishedAt: string | null;
@@ -333,6 +335,8 @@ export interface UpdateSeriesInput {
   title?: string;
   description?: string;
   categoryId: string;
+  /** null quita la portada. */
+  coverImageId: string | null;
 }
 
 export interface SeriesSyncResult {

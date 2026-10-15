@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { YoutubeLogo } from "@phosphor-icons/react/dist/ssr";
 import { getPublishedSeriesBySlug, listSeriesEpisodes, NotFoundError } from "@/lib/api/client";
 import { Pagination } from "@/components/ui/pagination";
-import { EpisodeCardView, youtubeThumb } from "@/components/series/series-cards";
+import { EpisodeCardView, seriesCoverUrl } from "@/components/series/series-cards";
 import { ShareButton } from "@/components/series/share-button";
 
 const PAGE_SIZE = 24;
@@ -34,15 +34,15 @@ export default async function SeriesPage({ params, searchParams }: PageProps<"/s
   const page = Math.max(0, Number.parseInt(typeof pageParam === "string" ? pageParam : "0", 10) || 0);
   const series = await load(slug);
   const episodes = await listSeriesEpisodes(series.slug, { page, size: PAGE_SIZE });
-  const latest = episodes.items[0];
+  const cover = seriesCoverUrl(series.coverImageId, page === 0 ? episodes.items[0] : null);
 
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 py-6">
       <header className="overflow-hidden rounded-card bg-surface shadow-card md:flex">
-        {latest && (
+        {cover && (
           <div className="aspect-video bg-canvas-strong md:w-[45%] md:shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element -- miniatura servida por YouTube (i.ytimg.com) */}
-            <img src={youtubeThumb(latest.youtubeVideoId)} alt="" className="h-full w-full object-cover" />
+            {/* eslint-disable-next-line @next/next/no-img-element -- portada propia o miniatura de YouTube */}
+            <img src={cover} alt="" className="h-full w-full object-cover" />
           </div>
         )}
         <div className="flex flex-col gap-3 p-5 md:p-6">
