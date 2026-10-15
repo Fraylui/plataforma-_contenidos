@@ -11,6 +11,7 @@ function item(overrides: Partial<HomeItem>): HomeItem {
     id: "1",
     kind: "publicacion",
     slug: "hola",
+    likeKey: "hola",
     href: "/publicaciones/hola",
     likeCount: 24,
     title: "Ruta del café",

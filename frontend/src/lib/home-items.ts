@@ -17,6 +17,8 @@ export interface HomeItem {
   id: string;
   kind: HomeItemKind;
   slug: string;
+  /** Lo que identifica el contenido al dar "me gusta": el slug, o el id en episodios. */
+  likeKey: string;
   href: string;
   likeCount: number;
   title: string;
@@ -74,6 +76,7 @@ const FEED_KIND: Record<FeedItem["type"], HomeItemKind> = {
   EVENT: "evento",
   GALLERY: "galeria",
   BUSINESS: "directorio",
+  EPISODE: "episodio",
 };
 
 const FEED_HREF_PREFIX: Record<HomeItemKind, string> = {
@@ -82,6 +85,7 @@ const FEED_HREF_PREFIX: Record<HomeItemKind, string> = {
   evento: "/eventos",
   galeria: "/galerias",
   directorio: "/directorio",
+  episodio: "/series",
 };
 
 /**
@@ -100,14 +104,16 @@ export function fromFeedItem(item: FeedItem): HomeItem {
     id: item.id,
     kind,
     slug: item.slug,
-    href: `${FEED_HREF_PREFIX[kind]}/${item.slug}`,
+    likeKey: item.type === "EPISODE" ? item.id : item.slug,
+    href: item.type === "EPISODE" ? `/series/${item.seriesSlug}/${item.slug}` : `${FEED_HREF_PREFIX[kind]}/${item.slug}`,
     likeCount: item.likeCount,
     title: item.title,
     excerpt: item.excerpt,
     imageUrl: cover.url,
     imageIsExternal: cover.isExternal,
     categoryId: item.categoryId ?? "",
-    typeLabel: KIND_LABEL[kind],
+    // Un episodio se presenta con el nombre de su serie, como un canal.
+    typeLabel: item.type === "EPISODE" && item.seriesTitle ? item.seriesTitle : KIND_LABEL[kind],
     // En la agenda importa cuándo es el evento, no cuándo se publicó.
     sortDate: (item.type === "EVENT" ? item.startsAt : item.publishedAt) ?? "",
     dateLabel: item.type === "EVENT" && item.startsAt ? formatEventDateTime(item.startsAt) : "",
@@ -133,6 +139,7 @@ export function fromSearchResult(r: SearchResult): HomeItem {
     id: r.id,
     kind,
     slug: r.slug,
+    likeKey: r.slug,
     href: `${FEED_HREF_PREFIX[kind]}/${r.slug}`,
     likeCount: 0,
     title: r.title,

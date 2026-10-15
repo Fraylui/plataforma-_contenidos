@@ -238,7 +238,12 @@ function DashboardBody({ dashboard, canSeeStats }: { dashboard: DashboardSummary
                   <span className="w-5 shrink-0 text-right text-xs font-semibold tabular-nums text-muted">{index + 1}</span>
                   <div className="min-w-0 flex-1">
                     <Link
-                      href={`${CONTENT_TYPE_INFO[row.type].adminPath}/${row.id}`}
+                      href={
+                        // Un episodio se gestiona dentro de su serie: se abre su página pública.
+                        row.type === "EPISODE"
+                          ? `${CONTENT_TYPE_INFO.EPISODE.publicPath}/${row.slug}`
+                          : `${CONTENT_TYPE_INFO[row.type].adminPath}/${row.id}`
+                      }
                       className="block truncate text-sm font-medium text-foreground hover:text-accent"
                     >
                       {row.title}

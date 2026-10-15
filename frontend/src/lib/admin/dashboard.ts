@@ -15,6 +15,8 @@ export const CONTENT_TYPE_INFO: Record<FeedItemType, { label: string; adminPath:
   EVENT: { label: "Evento", adminPath: "/admin/eventos", publicPath: "/eventos" },
   GALLERY: { label: "Galería", adminPath: "/admin/galerias", publicPath: "/galerias" },
   BUSINESS: { label: "Directorio", adminPath: "/admin/directorio", publicPath: "/directorio" },
+  // Un episodio no tiene pantalla propia en el panel: se gestiona dentro de su serie.
+  EPISODE: { label: "Episodio", adminPath: "/admin/series", publicPath: "/series" },
 };
 
 export type KpiChange =

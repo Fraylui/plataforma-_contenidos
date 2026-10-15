@@ -329,7 +329,7 @@ export interface ResolvedRotation {
 }
 
 /** Ver FeedItemResponse.java — feed unificado del home y "relacionados" de la vista de detalle. */
-export type FeedItemType = "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS";
+export type FeedItemType = "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS" | "EPISODE";
 
 /** Una imagen del carrusel de un ítem del feed: subida (`imageId`) o por enlace externo, nunca ambas. */
 export interface FeedImage {
@@ -360,6 +360,10 @@ export interface FeedItem {
   /** Solo directorio. */
   phone: string | null;
   website: string | null;
+  /** Solo episodios: la URL es /series/{seriesSlug}/{slug}. */
+  seriesSlug: string | null;
+  seriesTitle: string | null;
+  youtubeVideoId: string | null;
 }
 
 /** Ver FeedTopicResponse.java — un círculo de la fila de temas. */
@@ -415,4 +419,5 @@ export interface EpisodeView {
   episode: Episode;
   newer: Episode | null;
   older: Episode | null;
+  likeCount: number;
 }

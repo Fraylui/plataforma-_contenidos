@@ -12,6 +12,7 @@ function tile(overrides: Partial<HomeItem>): HomeItem {
     id: "1",
     kind: "lugar",
     slug: "mirador",
+    likeKey: "mirador",
     href: "/lugares/mirador",
     likeCount: 7,
     title: "Mirador",

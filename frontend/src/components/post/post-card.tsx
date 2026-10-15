@@ -35,7 +35,7 @@ export function PostCard({
   const titleId = useId();
   const { liked, likeCount, pending, copied, toggleLike, share } = useContentReactions({
     contentType: homeLikeType(item.kind),
-    slug: item.slug,
+    slug: item.likeKey,
     initialLikeCount: item.likeCount,
     title: item.title,
     path: item.href,

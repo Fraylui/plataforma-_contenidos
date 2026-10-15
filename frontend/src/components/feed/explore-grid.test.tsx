@@ -9,6 +9,7 @@ function item(n: number, extra: Partial<HomeItem> = {}): HomeItem {
     id: `id-${n}`,
     kind: "lugar",
     slug: `lugar-${n}`,
+    likeKey: `lugar-${n}`,
     href: `/lugares/lugar-${n}`,
     likeCount: n,
     title: `Lugar ${n}`,

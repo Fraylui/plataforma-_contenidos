@@ -5,7 +5,7 @@ import { visitorHeaders } from "@/lib/forward-visitor";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const TYPES: ReadonlySet<string> = new Set<FeedItemType>(["ARTICLE", "PLACE", "EVENT", "GALLERY", "BUSINESS"]);
+const TYPES: ReadonlySet<string> = new Set<FeedItemType>(["ARTICLE", "PLACE", "EVENT", "GALLERY", "BUSINESS", "EPISODE"]);
 
 /**
  * Proxy de POST /api/v1/views: la página de un contenido avisa que se abrió

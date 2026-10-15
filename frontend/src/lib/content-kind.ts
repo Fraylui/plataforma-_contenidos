@@ -5,7 +5,7 @@
 // importar home-items.ts sin arrastrar su "server-only".
 import type { LikeableContentType } from "@/components/content/like-share-bar";
 
-export type HomeItemKind = "publicacion" | "lugar" | "evento" | "galeria" | "directorio";
+export type HomeItemKind = "publicacion" | "lugar" | "evento" | "galeria" | "directorio" | "episodio";
 
 export const KIND_LABEL: Record<HomeItemKind, string> = {
   publicacion: "Publicación",
@@ -13,6 +13,7 @@ export const KIND_LABEL: Record<HomeItemKind, string> = {
   evento: "Evento",
   galeria: "Galería",
   directorio: "Directorio",
+  episodio: "Episodio",
 };
 
 const LIKE_TYPE: Record<HomeItemKind, LikeableContentType> = {
@@ -21,6 +22,7 @@ const LIKE_TYPE: Record<HomeItemKind, LikeableContentType> = {
   evento: "events",
   galeria: "galleries",
   directorio: "directory",
+  episodio: "episodes",
 };
 
 /** Tipo de contenido para el endpoint de "me gusta" (ver like-share-bar.tsx). */

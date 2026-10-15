@@ -7,7 +7,8 @@ import { formatPublishedDate } from "@/lib/content-labels";
 import { YouTubeEmbed } from "@/components/content/youtube-embed";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
 import { AdBlock } from "@/components/legal/ad-block";
-import { ShareButton } from "@/components/series/share-button";
+import { LikeShareBar } from "@/components/content/like-share-bar";
+import { ViewBeacon } from "@/components/content/view-beacon";
 import { youtubeThumb } from "@/components/series/series-cards";
 
 async function load(seriesSlug: string, episodeSlug: string) {
@@ -39,11 +40,11 @@ export async function generateMetadata({ params }: PageProps<"/series/[slug]/[ep
 /**
  * Un episodio: el video (miniatura primero; el reproductor de YouTube se
  * carga recién al tocar, así la página es liviana), las notas propias del
- * equipo, compartir y siguiente/anterior para seguir viendo la serie.
+ * equipo, me gusta, compartir y siguiente/anterior para seguir viendo la serie.
  */
 export default async function EpisodePage({ params }: PageProps<"/series/[slug]/[episodio]">) {
   const { slug, episodio } = await params;
-  const { series, episode, newer, older } = await load(slug, episodio);
+  const { series, episode, newer, older, likeCount } = await load(slug, episodio);
 
   return (
     <article className="mx-auto w-full max-w-[900px] px-4 py-6">
@@ -63,7 +64,8 @@ export default async function EpisodePage({ params }: PageProps<"/series/[slug]/
         <h1 className="mt-1 text-title font-bold text-foreground">{episode.title}</h1>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-muted">{formatPublishedDate(episode.publishedAt)}</p>
-          <ShareButton title={episode.title} />
+          <ViewBeacon type="EPISODE" id={episode.id} />
+          <LikeShareBar contentType="episodes" slug={episode.id} initialLikeCount={likeCount} title={episode.title} />
         </div>
       </header>
 

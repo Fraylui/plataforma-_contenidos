@@ -25,11 +25,35 @@ function feedItem(overrides: Partial<FeedItem>): FeedItem {
     longitude: null,
     phone: null,
     website: null,
+    seriesSlug: null,
+    seriesTitle: null,
+    youtubeVideoId: null,
     ...overrides,
   };
 }
 
 describe("fromFeedItem", () => {
+  it("un episodio va a /series/{serie}/{episodio}, se presenta con el nombre de su serie y da me gusta por id", () => {
+    const item = fromFeedItem(
+      feedItem({
+        type: "EPISODE",
+        slug: "episodio-1-nazca",
+        coverImageUrl: "https://i.ytimg.com/vi/aaaaaaaaaa1/hqdefault.jpg",
+        images: [{ imageId: null, externalUrl: "https://i.ytimg.com/vi/aaaaaaaaaa1/hqdefault.jpg" }],
+        hasVideo: true,
+        seriesSlug: "curiosidades-del-mundo",
+        seriesTitle: "Curiosidades del mundo",
+        youtubeVideoId: "aaaaaaaaaa1",
+      }),
+    );
+    expect(item.kind).toBe("episodio");
+    expect(item.href).toBe("/series/curiosidades-del-mundo/episodio-1-nazca");
+    expect(item.typeLabel).toBe("Curiosidades del mundo");
+    expect(item.likeKey).toBe("11111111-1111-1111-1111-111111111111");
+    expect(item.images[0]).toEqual({ url: "https://i.ytimg.com/vi/aaaaaaaaaa1/hqdefault.jpg", isExternal: true });
+    expect(item.hasVideo).toBe(true);
+  });
+
   it("convierte un negocio del directorio con carrusel (subida + enlace externo) y su contacto", () => {
     const item = fromFeedItem(
       feedItem({
