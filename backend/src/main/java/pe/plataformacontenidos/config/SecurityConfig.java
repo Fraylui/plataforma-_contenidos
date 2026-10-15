@@ -25,8 +25,8 @@ import pe.plataformacontenidos.identity.security.JwtService;
  * endpoint. Los matchers más específicos van primero (Spring evalúa en
  * orden y usa el primero que matchee).
  *
- * La autorización a nivel de objeto (ej. un AUTHOR solo puede editar SU
- * PROPIO artículo en DRAFT) no se puede expresar aquí — se resuelve en el
+ * La autorización a nivel de objeto (ej. quien solo crea edita SU PROPIO
+ * contenido en borrador) no se puede expresar aquí — se resuelve en el
  * servicio de dominio (ver ArticleService), esta cadena solo decide quién
  * puede llegar al endpoint.
  */

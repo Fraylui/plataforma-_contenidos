@@ -32,8 +32,8 @@ import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
 
 /**
- * CRUD de contenido + transiciones de workflow. La autorización fina (dueño vs.
- * EDITOR+, qué transición es legal desde qué estado) vive en ArticleService,
+ * CRUD de contenido + transiciones del flujo. La autorización fina (lo propio
+ * vs. permiso de publicar, qué transición es legal desde qué estado) vive en ArticleService,
  * no aquí — este controller solo traduce HTTP ↔ dominio.
  */
 @RestController

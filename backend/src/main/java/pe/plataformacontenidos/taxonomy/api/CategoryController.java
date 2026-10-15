@@ -23,8 +23,8 @@ import pe.plataformacontenidos.taxonomy.api.dto.UpdateCategoryRequest;
 
 /**
  * Lectura pública (necesaria para navegación del sitio), escritura
- * restringida a EDITOR+ (SecurityConfig). Las categorías son taxonomía
- * de contenido, no algo que un AUTHOR deba poder reestructurar libremente.
+ * restringida al módulo Temas (@RequiresModule). Los temas ordenan todo el
+ * contenido: no algo que quien solo crea deba poder reestructurar libremente.
  */
 @RestController
 @RequestMapping("/api/v1")
