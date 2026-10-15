@@ -1,24 +1,36 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { Icon } from "@phosphor-icons/react";
-import { Warning, Pulse, CheckCircle, Clock, Eye, Article, TreeStructure, ClockCounterClockwise, Key, ListChecks, SignIn, PencilSimple, Plus, SlidersHorizontal, Trash } from "@phosphor-icons/react/dist/ssr";
-import { requireAdminUser } from "@/lib/admin/auth";
 import {
-  getAdminStats,
-  listAdminArticles,
-  listAdminAuditLog,
-  listAdminBusinesses,
-  listAdminEvents,
-  listAdminGalleries,
-  listAdminPlaces,
-} from "@/lib/api/admin-client";
+  Warning,
+  Pulse,
+  CheckCircle,
+  Eye,
+  Heart,
+  Article,
+  ClockCounterClockwise,
+  Key,
+  ListChecks,
+  SignIn,
+  PencilSimple,
+  Plus,
+  SlidersHorizontal,
+  Trash,
+  TrendUp,
+  TrendDown,
+  Megaphone,
+  ArrowSquareOut,
+} from "@phosphor-icons/react/dist/ssr";
+import { requireAdminUser } from "@/lib/admin/auth";
+import { getAdminDashboard, listAdminAuditLog } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { roleLabel } from "@/lib/admin/role-labels";
 import { visibleNavItems } from "@/lib/admin/nav";
+import { CONTENT_TYPE_INFO, DASHBOARD_RANGES, kpiChange, parseDashboardRange } from "@/lib/admin/dashboard";
+import { ctr } from "@/lib/ads/campaign-report";
 import { publicationStatusLabel, publicationStatusTone, formatPublishedDate, humanizeAuditAction } from "@/lib/content-labels";
-import { StatCard } from "@/components/admin/ui";
-import type { PlatformStats } from "@/lib/api/admin-types";
-import type { PublicationStatus } from "@/lib/api/types";
+import { DailyAreaChart, Sparkline } from "@/components/admin/dashboard-charts";
+import type { DashboardKpi, DashboardSummary } from "@/lib/api/admin-types";
 import { Badge } from "@/components/ui";
 import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
@@ -27,36 +39,9 @@ export const metadata: Metadata = {
   robots: "noindex,nofollow",
 };
 
-interface ContentItem {
-  id: string;
-  title: string;
-  typeLabel: string;
-  status: PublicationStatus;
-  createdAt: string;
-  editHref: string;
-}
-
-function sumStatus(byStatus: Record<PublicationStatus, number>, statuses: PublicationStatus[]): number {
-  return statuses.reduce((total, status) => total + (byStatus[status] ?? 0), 0);
-}
-
-function summarize(stats: PlatformStats) {
-  const allByStatus = [
-    stats.articlesByStatus,
-    stats.placesByStatus,
-    stats.eventsByStatus,
-    stats.galleriesByStatus,
-    stats.businessesByStatus,
-  ];
-  const published = allByStatus.reduce((total, byStatus) => total + sumStatus(byStatus, ["PUBLISHED"]), 0);
-  const pending = allByStatus.reduce(
-    (total, byStatus) => total + sumStatus(byStatus, ["DRAFT", "IN_REVIEW", "SCHEDULED"]),
-    0,
-  );
-  return { published, pending };
-}
-
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const CONTENT_HREFS = ["/admin/publicaciones", "/admin/lugares", "/admin/eventos", "/admin/galerias", "/admin/directorio"];
+const NUMBER = new Intl.NumberFormat("es-PE");
+const RANGE_LABEL: Record<number, string> = { 7: "7 días", 30: "30 días", 90: "90 días" };
 
 /** Clasificación por palabra clave del texto real de auditoría — no depende de un enum cerrado en el frontend. */
 function auditActionIcon(action: string): { icon: Icon; danger: boolean } {
@@ -85,41 +70,32 @@ function auditDayLabel(iso: string): string {
   return formatPublishedDate(iso);
 }
 
-export default async function AdminDashboardPage() {
+/**
+ * Inicio del panel: resumen tipo CRM en una sola llamada (GET
+ * /api/v1/admin/dashboard). Período en la URL (?range=7|30|90) para que se
+ * pueda compartir y volver con el botón atrás. Cada usuario ve solo lo que
+ * sus permisos le dejan (lo filtra el backend).
+ */
+export default async function AdminDashboardPage(props: PageProps<"/admin">) {
   const { user, accessToken } = await requireAdminUser();
+  const range = parseDashboardRange((await props.searchParams).range);
   const allowedHrefs = new Set(visibleNavItems(user).map((item) => item.href));
-  const canSeeStats = allowedHrefs.has("/admin/estadisticas");
+  const canSeeContent = CONTENT_HREFS.some((href) => allowedHrefs.has(href));
   const canSeeAudit = allowedHrefs.has("/admin/actividad");
+  const canSeeStats = allowedHrefs.has("/admin/estadisticas");
 
-  const [statsResult, contentItems, auditResult] = await Promise.all([
-    canSeeStats ? fetchOrAccessDenied(() => getAdminStats(accessToken)) : Promise.resolve(null),
-    loadContentItems(accessToken, allowedHrefs),
+  const [dashboardResult, auditResult] = await Promise.all([
+    canSeeContent ? fetchOrAccessDenied(() => getAdminDashboard(accessToken, range)) : Promise.resolve(null),
     canSeeAudit ? fetchOrAccessDenied(() => listAdminAuditLog(accessToken, { size: 8 })) : Promise.resolve(null),
   ]);
-  const stats = statsResult && "data" in statsResult ? statsResult.data : null;
-  const summary = stats ? summarize(stats) : null;
+  const dashboard = dashboardResult && "data" in dashboardResult ? dashboardResult.data : null;
   const auditEvents = auditResult && "data" in auditResult ? auditResult.data.items : [];
-
-  const recentContent = [...contentItems].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 8);
-  const pendingReview = contentItems
-    .filter((item) => item.status === "IN_REVIEW")
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-
-  // Delta real de datos ya cargados (no una comparación inventada): cuántos
-  // de los publicados se crearon en los últimos 7 días.
-  // eslint-disable-next-line react-hooks/purity -- Server Component async (se re-ejecuta entero en cada request, nunca memoizado por el compilador de React), Date.now() acá siempre es del momento real de carga.
-  const sevenDaysAgo = Date.now() - SEVEN_DAYS_MS;
-  const publishedThisWeek = contentItems.filter(
-    (item) => item.status === "PUBLISHED" && new Date(item.createdAt).getTime() >= sevenDaysAgo,
-  ).length;
 
   return (
     <div>
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-title font-bold text-foreground">
-            Hola, {user.firstName}
-          </h1>
+          <h1 className="text-title font-bold text-foreground">Hola, {user.firstName}</h1>
           <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
             <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent">{roleLabel(user.role)}</span>
             <span>
@@ -127,16 +103,32 @@ export default async function AdminDashboardPage() {
             </span>
           </p>
         </div>
+        {dashboard && (
+          <nav aria-label="Período" className="inline-flex rounded-full bg-field p-1">
+            {DASHBOARD_RANGES.map((option) => (
+              <Link
+                key={option}
+                href={option === 30 ? "/admin" : `/admin?range=${option}`}
+                aria-current={option === range ? "page" : undefined}
+                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                  option === range ? "bg-surface text-foreground shadow-card" : "text-muted hover:text-foreground"
+                }`}
+              >
+                {RANGE_LABEL[option]}
+              </Link>
+            ))}
+          </nav>
+        )}
       </div>
 
-      {pendingReview.length > 0 && (
+      {dashboard && dashboard.pending[0] && (
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3">
           <p className="flex items-center gap-2 text-sm font-medium text-accent">
             <Warning className="h-4 w-4" aria-hidden="true" />
-            {pendingReview.length} {pendingReview.length === 1 ? "publicación espera" : "publicaciones esperan"} revisión.
+            {dashboard.pendingCount} {dashboard.pendingCount === 1 ? "contenido espera" : "contenidos esperan"} aprobación.
           </p>
           <Link
-            href={pendingReview[0].editHref}
+            href={`${CONTENT_TYPE_INFO[dashboard.pending[0].type].adminPath}/${dashboard.pending[0].id}`}
             className="rounded-md bg-accent-fill px-3 py-1.5 text-xs font-semibold text-accent-foreground transition-opacity hover:opacity-90"
           >
             Revisar ahora
@@ -144,89 +136,27 @@ export default async function AdminDashboardPage() {
         </div>
       )}
 
-      {summary && stats && (
-        <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatCard
-            label="Publicado"
-            value={summary.published}
-            icon={Article}
-            trend={{ value: publishedThisWeek, label: "esta semana" }}
-          />
-          <StatCard label="Pendiente de revisión" value={summary.pending} icon={Clock} accent={summary.pending > 0} />
-          <StatCard label="Temas activos" value={stats.activeCategories} icon={TreeStructure} />
-          <StatCard
-            label="Publicado (30 días)"
-            value={stats.articlesPublishedLast30Days}
-            icon={Eye}
-            hint="Solo publicaciones — sin métricas de tráfico todavía"
-          />
-        </div>
-      )}
+      {dashboard && <DashboardBody dashboard={dashboard} canSeeStats={canSeeStats} />}
 
-      {canSeeStats && (
-        <Link href="/admin/estadisticas" className="mt-3 inline-block text-sm font-medium text-accent hover:underline">
-          Ver estadísticas completas →
-        </Link>
-      )}
-
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <Article className="h-4 w-4 text-muted" aria-hidden="true" />
-            Contenido reciente
-          </h2>
-          {recentContent.length === 0 ? (
-            <p className="mt-3 rounded-card bg-surface shadow-card px-4 py-6 text-center text-sm text-muted">
-              Todavía no hay contenido creado.
-            </p>
-          ) : (
-            <div className="mt-3 overflow-x-auto rounded-card bg-surface shadow-card">
-              <table className="w-full min-w-max text-left text-sm">
-                <thead className="border-b border-border/60 text-xs text-muted">
-                  <tr>
-                    <th className="px-4 py-2.5 font-medium">Título</th>
-                    <th className="px-4 py-2.5 font-medium">Tipo</th>
-                    <th className="px-4 py-2.5 font-medium">Estado</th>
-                    <th className="px-4 py-2.5 font-medium">Creado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentContent.map((item) => (
-                    <tr key={item.editHref} className="border-b border-border/60 last:border-0 hover:bg-accent-soft/40">
-                      <td className="px-4 py-2.5">
-                        <Link href={item.editHref} className="font-medium text-foreground hover:text-accent hover:underline">
-                          {item.title}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-2.5 text-muted">{item.typeLabel}</td>
-                      <td className="px-4 py-2.5">
-                        <Badge tone={publicationStatusTone(item.status)} dot>{publicationStatusLabel(item.status)}</Badge>
-                      </td>
-                      <td className="px-4 py-2.5 text-muted">{formatPublishedDate(item.createdAt)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">{dashboard && <RecentContent dashboard={dashboard} />}</div>
 
         <div className="space-y-6">
-          {pendingReview.length > 0 && (
+          {dashboard && dashboard.pending.length > 0 && (
             <div className="rounded-card bg-surface shadow-card p-4">
               <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <ListChecks className="h-4 w-4 text-muted" aria-hidden="true" />
-                Pendientes de revisión
+                Para aprobar
               </h2>
               <ul className="mt-3 space-y-1.5">
-                {pendingReview.slice(0, 6).map((item) => (
-                  <li key={item.editHref}>
+                {dashboard.pending.slice(0, 6).map((item) => (
+                  <li key={`${item.type}-${item.id}`}>
                     <Link
-                      href={item.editHref}
+                      href={`${CONTENT_TYPE_INFO[item.type].adminPath}/${item.id}`}
                       className="flex items-center justify-between gap-3 rounded-lg border border-transparent px-2.5 py-2 text-sm transition-colors hover:border-border hover:bg-background"
                     >
                       <span className="min-w-0 truncate font-medium text-foreground">{item.title}</span>
-                      <span className="shrink-0 text-xs text-muted">{item.typeLabel}</span>
+                      <span className="shrink-0 text-xs text-muted">{CONTENT_TYPE_INFO[item.type].label}</span>
                     </Link>
                   </li>
                 ))}
@@ -284,45 +214,194 @@ export default async function AdminDashboardPage() {
   );
 }
 
-async function loadContentItems(accessToken: string, allowedHrefs: Set<string>): Promise<ContentItem[]> {
-  const loaders: Promise<ContentItem[]>[] = [];
+const CARD = "flex flex-col rounded-card bg-surface p-5 shadow-card transition-shadow duration-150 hover:shadow-pop";
 
-  if (allowedHrefs.has("/admin/publicaciones")) {
-    loaders.push(
-      listAdminArticles(accessToken).then((items) =>
-        items.map((a) => ({ id: a.id, title: a.title, typeLabel: "Publicación", status: a.status, createdAt: a.createdAt, editHref: `/admin/publicaciones/${a.id}` })),
-      ).catch(() => []),
-    );
-  }
-  if (allowedHrefs.has("/admin/lugares")) {
-    loaders.push(
-      listAdminPlaces(accessToken).then((items) =>
-        items.map((p) => ({ id: p.id, title: p.name, typeLabel: "Lugar", status: p.status, createdAt: p.createdAt, editHref: `/admin/lugares/${p.id}` })),
-      ).catch(() => []),
-    );
-  }
-  if (allowedHrefs.has("/admin/eventos")) {
-    loaders.push(
-      listAdminEvents(accessToken).then((items) =>
-        items.map((e) => ({ id: e.id, title: e.title, typeLabel: "Evento", status: e.status, createdAt: e.createdAt, editHref: `/admin/eventos/${e.id}` })),
-      ).catch(() => []),
-    );
-  }
-  if (allowedHrefs.has("/admin/galerias")) {
-    loaders.push(
-      listAdminGalleries(accessToken).then((items) =>
-        items.map((g) => ({ id: g.id, title: g.title, typeLabel: "Galería", status: g.status, createdAt: g.createdAt, editHref: `/admin/galerias/${g.id}` })),
-      ).catch(() => []),
-    );
-  }
-  if (allowedHrefs.has("/admin/directorio")) {
-    loaders.push(
-      listAdminBusinesses(accessToken).then((items) =>
-        items.map((b) => ({ id: b.id, title: b.name, typeLabel: "Directorio", status: b.status, createdAt: b.createdAt, editHref: `/admin/directorio/${b.id}` })),
-      ).catch(() => []),
-    );
-  }
+function CardHeader({ label, icon: CardIcon }: { label: string; icon: Icon }) {
+  return (
+    <div className="flex items-start justify-between">
+      <p className="text-sm font-medium text-muted">{label}</p>
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
+        <CardIcon weight="fill" className="size-[18px]" aria-hidden="true" />
+      </span>
+    </div>
+  );
+}
 
-  const results = await Promise.all(loaders);
-  return results.flat();
+/** Indicador con su variación real frente al período anterior (texto + ícono, nunca solo color) y su forma diaria. */
+function KpiCard({ label, icon, kpi, values, rangeDays }: {
+  label: string;
+  icon: Icon;
+  kpi: DashboardKpi;
+  values: number[];
+  rangeDays: number;
+}) {
+  const change = kpiChange(kpi);
+  return (
+    <div className={CARD}>
+      <CardHeader label={label} icon={icon} />
+      <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-foreground">{NUMBER.format(kpi.current)}</p>
+      <p className="mt-1 text-xs text-muted">
+        {change.kind === "percent" && (
+          <span className={`mr-1 inline-flex items-center gap-0.5 font-semibold ${change.value >= 0 ? "text-success" : "text-danger-ink"}`}>
+            {change.value >= 0 ? (
+              <TrendUp weight="bold" className="size-3" aria-hidden="true" />
+            ) : (
+              <TrendDown weight="bold" className="size-3" aria-hidden="true" />
+            )}
+            {change.value >= 0 ? "+" : ""}
+            {change.value} %
+          </span>
+        )}
+        {change.kind === "percent" && `vs. los ${rangeDays} días anteriores`}
+        {change.kind === "new" && `Sin datos en los ${rangeDays} días anteriores`}
+        {change.kind === "none" && `Últimos ${rangeDays} días`}
+      </p>
+      <div className="mt-3">
+        <Sparkline values={values} />
+      </div>
+    </div>
+  );
+}
+
+function DashboardBody({ dashboard, canSeeStats }: { dashboard: DashboardSummary; canSeeStats: boolean }) {
+  const { series, rangeDays, ads } = dashboard;
+  const impressionsChange = ads ? kpiChange({ current: ads.impressions, previous: ads.previousImpressions }) : null;
+  return (
+    <>
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard label="Visitas" icon={Eye} kpi={dashboard.views} values={series.map((d) => d.views)} rangeDays={rangeDays} />
+        <KpiCard label="Me gusta" icon={Heart} kpi={dashboard.likes} values={series.map((d) => d.likes)} rangeDays={rangeDays} />
+        <KpiCard label="Publicado" icon={Article} kpi={dashboard.published} values={series.map((d) => d.published)} rangeDays={rangeDays} />
+        {ads ? (
+          <div className={CARD}>
+            <CardHeader label="Clics en anuncios" icon={Megaphone} />
+            <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-foreground">{ctr(ads.clicks, ads.impressions)}</p>
+            <p className="mt-1 text-xs text-muted">
+              {NUMBER.format(ads.clicks)} clics en {NUMBER.format(ads.impressions)} impresiones
+            </p>
+            {impressionsChange?.kind === "percent" && (
+              <p className="mt-2 text-xs text-muted">
+                Impresiones {impressionsChange.value >= 0 ? "+" : ""}
+                {impressionsChange.value} % vs. el período anterior
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className={CARD}>
+            <CardHeader label="Para aprobar" icon={ListChecks} />
+            <p className={`mt-3 text-3xl font-bold tracking-tight tabular-nums ${dashboard.pendingCount > 0 ? "text-accent" : "text-foreground"}`}>
+              {NUMBER.format(dashboard.pendingCount)}
+            </p>
+            <p className="mt-1 text-xs text-muted">Contenido enviado que espera publicarse</p>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <section className="rounded-card bg-surface p-5 shadow-card lg:col-span-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-sm font-semibold text-foreground">Visitas por día</h2>
+            {canSeeStats && (
+              <Link href="/admin/estadisticas" className="text-xs font-medium text-accent hover:underline">
+                Ver estadísticas →
+              </Link>
+            )}
+          </div>
+          {dashboard.views.current === 0 ? (
+            <p className="mt-4 rounded-lg bg-background px-4 py-10 text-center text-sm text-muted">
+              Todavía no hay visitas en este período. Se cuentan cada vez que alguien abre un contenido publicado.
+            </p>
+          ) : (
+            <div className="mt-4">
+              <DailyAreaChart data={series.map((d) => ({ day: d.day, value: d.views }))} label="Visitas" />
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-card bg-surface p-5 shadow-card">
+          <h2 className="text-sm font-semibold text-foreground">Lo más visto</h2>
+          {dashboard.topViewed.length === 0 ? (
+            <p className="mt-3 text-sm text-muted">Aparecerá cuando tu contenido reciba visitas.</p>
+          ) : (
+            <ol className="mt-3 space-y-1">
+              {dashboard.topViewed.map((row, index) => (
+                <li key={`${row.type}-${row.id}`} className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-background">
+                  <span className="w-5 shrink-0 text-right text-xs font-semibold tabular-nums text-muted">{index + 1}</span>
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`${CONTENT_TYPE_INFO[row.type].adminPath}/${row.id}`}
+                      className="block truncate text-sm font-medium text-foreground hover:text-accent"
+                    >
+                      {row.title}
+                    </Link>
+                    <p className="text-xs text-muted">{CONTENT_TYPE_INFO[row.type].label}</p>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">{NUMBER.format(row.views)}</span>
+                  <a
+                    href={`${CONTENT_TYPE_INFO[row.type].publicPath}/${row.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 text-muted hover:text-accent"
+                    aria-label={`Ver «${row.title}» en el sitio`}
+                  >
+                    <ArrowSquareOut className="size-4" aria-hidden="true" />
+                  </a>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+      </div>
+    </>
+  );
+}
+
+function RecentContent({ dashboard }: { dashboard: DashboardSummary }) {
+  return (
+    <>
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+        <Article className="h-4 w-4 text-muted" aria-hidden="true" />
+        Contenido reciente
+      </h2>
+      {dashboard.recent.length === 0 ? (
+        <p className="mt-3 rounded-card bg-surface shadow-card px-4 py-6 text-center text-sm text-muted">
+          Todavía no hay contenido creado.
+        </p>
+      ) : (
+        <div className="mt-3 overflow-x-auto rounded-card bg-surface shadow-card">
+          <table className="w-full min-w-max text-left text-sm">
+            <thead className="border-b border-border/60 text-xs text-muted">
+              <tr>
+                <th className="px-4 py-2.5 font-medium">Título</th>
+                <th className="px-4 py-2.5 font-medium">Tipo</th>
+                <th className="px-4 py-2.5 font-medium">Estado</th>
+                <th className="px-4 py-2.5 font-medium">Creado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dashboard.recent.map((item) => (
+                <tr key={`${item.type}-${item.id}`} className="border-b border-border/60 last:border-0 hover:bg-accent-soft/40">
+                  <td className="px-4 py-2.5">
+                    <Link
+                      href={`${CONTENT_TYPE_INFO[item.type].adminPath}/${item.id}`}
+                      className="font-medium text-foreground hover:text-accent hover:underline"
+                    >
+                      {item.title}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-2.5 text-muted">{CONTENT_TYPE_INFO[item.type].label}</td>
+                  <td className="px-4 py-2.5">
+                    <Badge tone={publicationStatusTone(item.status)} dot>
+                      {publicationStatusLabel(item.status)}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-2.5 text-muted">{formatPublishedDate(item.createdAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  );
 }

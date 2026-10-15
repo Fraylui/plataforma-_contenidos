@@ -26,6 +26,8 @@ import type {
   CampaignInput,
   CategoryCreateInput,
   CategoryUpdateInput,
+  DashboardRange,
+  DashboardSummary,
   EventInput,
   GalleryInput,
   PlaceInput,
@@ -498,6 +500,10 @@ export function updatePlatformSettings(
 
 export function getAdminStats(accessToken: string): Promise<PlatformStats> {
   return authedJson("/api/v1/admin/stats", accessToken);
+}
+
+export function getAdminDashboard(accessToken: string, range: DashboardRange): Promise<DashboardSummary> {
+  return authedJson(`/api/v1/admin/dashboard?range=${range}`, accessToken);
 }
 
 // --- Audit module: audit log (AuditController) ---

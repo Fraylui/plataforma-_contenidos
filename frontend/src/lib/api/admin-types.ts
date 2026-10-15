@@ -1,7 +1,7 @@
 import type { AdSection } from "@/lib/ads/ad-context";
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
-import type { PublicationStatus, ArticleType, BusinessType, ContentImage } from "./types";
+import type { PublicationStatus, ArticleType, BusinessType, ContentImage, FeedItemType } from "./types";
 
 /** Cuerpo de un video en ArticleInput/PlaceInput/EventInput — ver ContentVideoInput.java. */
 export interface ContentVideoInput {
@@ -276,6 +276,39 @@ export interface CampaignInput {
 export interface DailyCount {
   date: string;
   count: number;
+}
+
+/** Resumen del inicio del panel (GET /api/v1/admin/dashboard, ver DashboardService). */
+export type DashboardRange = 7 | 30 | 90;
+
+export interface DashboardKpi {
+  current: number;
+  previous: number;
+}
+
+export interface DashboardContentRow {
+  type: FeedItemType;
+  id: string;
+  title: string;
+  status: PublicationStatus;
+  createdAt: string;
+}
+
+export interface DashboardSummary {
+  rangeDays: DashboardRange;
+  from: string;
+  to: string;
+  views: DashboardKpi;
+  likes: DashboardKpi;
+  published: DashboardKpi;
+  series: { day: string; views: number; likes: number; published: number }[];
+  topViewed: { type: FeedItemType; id: string; title: string; slug: string; views: number }[];
+  byTypeAndStatus: Partial<Record<FeedItemType, Partial<Record<PublicationStatus, number>>>>;
+  pendingCount: number;
+  pending: DashboardContentRow[];
+  recent: DashboardContentRow[];
+  /** null si el usuario no tiene el módulo de publicidad. */
+  ads: { impressions: number; clicks: number; previousImpressions: number; previousClicks: number } | null;
 }
 
 export interface PlatformStats {
