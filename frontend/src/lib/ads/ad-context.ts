@@ -10,7 +10,7 @@ export const AD_SECTIONS: { value: AdSection; label: string }[] = [
   { value: "HOME", label: "Inicio" },
   { value: "ARTICLE", label: "Publicaciones" },
   { value: "PLACE", label: "Lugares" },
-  { value: "EVENT", label: "Eventos" },
+  { value: "EVENT", label: "Agenda" },
   { value: "GALLERY", label: "Galerías" },
   { value: "BUSINESS", label: "Directorio" },
   { value: "SERIES", label: "Series y En vivo" },
@@ -24,7 +24,7 @@ export interface AdContext {
 const SECTION_BY_PREFIX: [string, AdSection][] = [
   ["/publicaciones", "ARTICLE"],
   ["/lugares", "PLACE"],
-  ["/eventos", "EVENT"],
+  ["/agenda", "EVENT"],
   ["/galerias", "GALLERY"],
   ["/directorio", "BUSINESS"],
   // Los videos de YouTube del sitio: programas, episodios y transmisiones.

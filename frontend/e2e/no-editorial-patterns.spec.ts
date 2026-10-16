@@ -7,7 +7,7 @@ import { test, expect, type Page } from "@playwright/test";
  * "editorial"/"artículo", "cubrimos", la ruta visible (Breadcrumb) o
  * antetítulos en mayúsculas. Corre contra el stack real.
  */
-const SCREENS = ["/", "/explorar", "/buscar?q=a", "/publicaciones", "/lugares", "/eventos", "/galerias", "/directorio", "/contacto", "/privacidad", "/terminos"];
+const SCREENS = ["/", "/explorar", "/buscar?q=a", "/publicaciones", "/lugares", "/agenda", "/galerias", "/directorio", "/contacto", "/privacidad", "/terminos"];
 const DETAIL_TYPES = ["publicaciones", "lugares", "eventos", "galerias", "directorio"];
 
 async function assertNoEditorialPatterns(page: Page) {

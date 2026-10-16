@@ -6,7 +6,7 @@ import AxeBuilder from "@axe-core/playwright";
  * los tests de accesibilidad por componente en Vitest: acá se evalúa la
  * página real con layout, estilos y contenido de datos reales aplicados.
  */
-const PUBLIC_PAGES = ["/", "/publicaciones", "/lugares", "/eventos", "/galerias", "/resenas", "/directorio",
+const PUBLIC_PAGES = ["/", "/publicaciones", "/lugares", "/agenda", "/galerias", "/resenas", "/directorio",
   "/buscar", "/privacidad", "/terminos"];
 
 for (const path of PUBLIC_PAGES) {

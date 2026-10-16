@@ -50,7 +50,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const eventEntries: MetadataRoute.Sitemap = events.map((event) => {
     const finished = isEventFinished(event);
     return {
-      url: `${SITE_URL}/eventos/${event.slug}`,
+      url: `${SITE_URL}/agenda/${event.slug}`,
       // Un evento pasado ya no cambia y ya no es prioridad de rastreo (crawl
       // budget mejor gastado en próximos/nuevos) — sigue indexado, solo baja.
       changeFrequency: finished ? "yearly" : "weekly",
@@ -91,7 +91,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     },
     {
-      url: `${SITE_URL}/eventos`,
+      url: `${SITE_URL}/agenda`,
       changeFrequency: "daily",
       priority: 0.6,
     },

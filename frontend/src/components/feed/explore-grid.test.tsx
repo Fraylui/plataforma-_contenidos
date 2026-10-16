@@ -32,7 +32,7 @@ describe("ExploreGrid — cuadrícula de descubrimiento (Instagram)", () => {
     const items = [
       item(1, { images: [{ url: "/a.jpg", isExternal: false }, { url: "/b.jpg", isExternal: false }] }),
       item(2, { hasVideo: true }),
-      item(3, { kind: "evento", href: "/eventos/e-3", typeLabel: "Evento" }),
+      item(3, { kind: "evento", href: "/agenda/e-3", typeLabel: "Evento" }),
     ];
     render(<ExploreGrid initialItems={items} initialHasMore={false} seed="s" />);
     const grid = screen.getByRole("list", { name: "Explorar" });

@@ -317,7 +317,7 @@ const NAV_PRESENCE_CHECKS: { href: string; checks: () => Promise<PageResponse<un
   { href: "/publicaciones", checks: () => [listPublishedArticles({ size: 1 })] },
   { href: "/lugares", checks: () => [listPublishedPlaces({ size: 1 })] },
   {
-    href: "/eventos",
+    href: "/agenda",
     checks: () => [listPublishedEvents({ when: "upcoming", size: 1 }), listPublishedEvents({ when: "past", size: 1 })],
   },
   { href: "/galerias", checks: () => [listPublishedGalleries({ size: 1 })] },

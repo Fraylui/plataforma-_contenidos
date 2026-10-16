@@ -124,7 +124,7 @@ function EventBody({
           <WhenAndWhereCard places={places} readOnly={readOnly} />
           <ShareCard
             siteName={siteName}
-            path={`/eventos/${event?.slug ?? "…"}`}
+            path={`/agenda/${event?.slug ?? "…"}`}
             coverUrl={coverUrl}
             metaDescriptionDefault={event?.metaDescription ?? ""}
             readOnly={readOnly}

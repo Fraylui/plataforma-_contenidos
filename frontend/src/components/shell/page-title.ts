@@ -2,7 +2,7 @@ const TOP_LEVEL: Record<string, string> = {
   "/": "Inicio",
   "/explorar": "Explorar",
   "/buscar": "Buscar",
-  "/eventos": "Agenda",
+  "/agenda": "Agenda",
   "/publicaciones": "Publicaciones",
   "/lugares": "Lugares",
   "/galerias": "Galerías",
@@ -14,7 +14,7 @@ const TOP_LEVEL: Record<string, string> = {
 const DETAIL: Record<string, string> = {
   "/publicaciones": "Publicación",
   "/lugares": "Lugar",
-  "/eventos": "Evento",
+  "/agenda": "Evento",
   "/galerias": "Galería",
   "/directorio": "Directorio",
   "/series": "Serie",

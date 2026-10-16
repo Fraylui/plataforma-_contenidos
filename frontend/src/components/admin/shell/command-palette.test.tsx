@@ -7,7 +7,7 @@ import { CommandPaletteProvider, CommandPaletteTrigger } from "./command-palette
 
 const NAV = [
   { href: "/admin", label: "Inicio" },
-  { href: "/admin/eventos", label: "Eventos" },
+  { href: "/admin/eventos", label: "Agenda" },
   { href: "/admin/cuenta", label: "Mi cuenta" },
 ];
 const CREATE = [{ label: "Evento", href: "/admin/eventos/nuevo" }];
@@ -37,7 +37,7 @@ describe("Paleta de comandos del panel", () => {
     await userEvent.click(screen.getByRole("button", { name: /Buscar o ir a/ }));
     await userEvent.type(screen.getByRole("combobox"), "cuen");
     expect(screen.getByRole("option", { name: /Mi cuenta/ })).toBeInTheDocument();
-    expect(screen.queryByRole("option", { name: /Eventos/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: /Agenda/ })).not.toBeInTheDocument();
     await userEvent.keyboard("{Enter}");
     expect(push).toHaveBeenCalledWith("/admin/cuenta");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();

@@ -142,7 +142,7 @@ export function searchResultTypeLabel(type: SearchResultType): string {
 const SEARCH_RESULT_TYPE_PATH: Record<SearchResultType, string> = {
   ARTICLE: "publicaciones",
   PLACE: "lugares",
-  EVENT: "eventos",
+  EVENT: "agenda",
   GALLERY: "galerias",
   BUSINESS: "directorio",
   EPISODE: "series",

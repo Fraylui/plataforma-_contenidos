@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 
 /**
  * Flujo completo de trabajadores (spec 2a): el dueño crea un trabajador con
- * la plantilla «Gestor de eventos», el trabajador entra con la contraseña
+ * la plantilla «Gestor de agenda», el trabajador entra con la contraseña
  * temporal, debe elegir una propia, ve solo sus módulos, no puede entrar a
  * Trabajadores, y al desactivarlo pierde el acceso al instante. Corre
  * contra el stack real; al terminar el trabajador queda desactivado.
@@ -30,7 +30,7 @@ test("el dueño crea un trabajador y este solo ve sus módulos", async ({ browse
   await owner.getByLabel("Nombre").fill("Prueba");
   await owner.getByLabel("Apellido").fill("Automática");
   await owner.getByLabel("Correo").fill(email);
-  await owner.getByRole("button", { name: "Gestor de eventos" }).click();
+  await owner.getByRole("button", { name: "Gestor de agenda" }).click();
   await owner.getByRole("button", { name: "Crear trabajador" }).click();
 
   const dialog = owner.getByRole("dialog", { name: /Contraseña temporal de Prueba Automática/ });
@@ -53,7 +53,7 @@ test("el dueño crea un trabajador y este solo ve sus módulos", async ({ browse
 
   const menu = worker.getByRole("navigation", { name: "Menú del panel" });
   await expect(menu).toBeVisible({ timeout: 10_000 });
-  await expect(menu.getByRole("link")).toHaveText(["Inicio", "Lugares", "Eventos", "Imágenes", "Mi cuenta"]);
+  await expect(menu.getByRole("link")).toHaveText(["Inicio", "Lugares", "Agenda", "Imágenes", "Mi cuenta"]);
 
   await worker.goto("/admin/trabajadores");
   await expect(worker.getByText("No tienes acceso a esta sección")).toBeVisible();

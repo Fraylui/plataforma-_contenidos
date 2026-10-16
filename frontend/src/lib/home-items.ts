@@ -82,7 +82,7 @@ const FEED_KIND: Record<FeedItem["type"], HomeItemKind> = {
 const FEED_HREF_PREFIX: Record<HomeItemKind, string> = {
   publicacion: "/publicaciones",
   lugar: "/lugares",
-  evento: "/eventos",
+  evento: "/agenda",
   galeria: "/galerias",
   directorio: "/directorio",
   episodio: "/series",

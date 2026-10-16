@@ -35,7 +35,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
     hasNew: t.hasNew,
   }));
   const brand = { name: settings.name, logoUrl: settings.logoUrl ?? null };
-  const showAgenda = Boolean(visibility["/eventos"]);
+  const showAgenda = Boolean(visibility["/agenda"]);
   const agendaCount = showAgenda ? countThisWeek(upcoming.items.map((e) => e.startsAt)) : 0;
 
   return (

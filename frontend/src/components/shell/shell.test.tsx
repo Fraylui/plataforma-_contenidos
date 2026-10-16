@@ -13,8 +13,8 @@ const brand = { name: "Ecos del Camino", logoUrl: null };
 
 describe("activeTab", () => {
   it("Agenda para eventos (listado y detalle), Explorar y Buscar en sus páginas, Inicio en el resto", () => {
-    expect(activeTab("/eventos")).toBe("agenda");
-    expect(activeTab("/eventos/feria-de-santa-ana")).toBe("agenda");
+    expect(activeTab("/agenda")).toBe("agenda");
+    expect(activeTab("/agenda/feria-de-santa-ana")).toBe("agenda");
     expect(activeTab("/explorar")).toBe("explorar");
     expect(activeTab("/buscar")).toBe("buscar");
     expect(activeTab("/")).toBe("inicio");
@@ -24,7 +24,7 @@ describe("activeTab", () => {
 
 describe("BottomTabBar", () => {
   it("marca la pestaña activa con aria-current y oculta Agenda si no hay eventos", () => {
-    pathname = "/eventos/feria";
+    pathname = "/agenda/feria";
     const { rerender } = render(<BottomTabBar showAgenda />);
     expect(screen.getByRole("link", { name: "Agenda" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Inicio" })).not.toHaveAttribute("aria-current");

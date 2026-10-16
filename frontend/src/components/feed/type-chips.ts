@@ -4,7 +4,7 @@ import type { FilterChipOption } from "./filter-chips";
 const TYPES: { href: string; label: string; type: FeedItemType }[] = [
   { href: "/publicaciones", label: "Publicaciones", type: "ARTICLE" },
   { href: "/lugares", label: "Lugares", type: "PLACE" },
-  { href: "/eventos", label: "Eventos", type: "EVENT" },
+  { href: "/agenda", label: "Agenda", type: "EVENT" },
   { href: "/galerias", label: "Galerías", type: "GALLERY" },
   { href: "/directorio", label: "Directorio", type: "BUSINESS" },
 ];

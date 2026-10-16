@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { FeedScreen } from "@/components/feed/feed-screen";
 
-const BASE_PATH = "/eventos";
+const BASE_PATH = "/agenda";
 
 export const metadata: Metadata = {
   title: "Agenda",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 /**
  * Agenda (pestaña de la barra inferior y del riel): los próximos eventos
  * por fecha de inicio, en el mismo feed del inicio. Conserva la URL
- * /eventos.
+ * /agenda.
  */
 export default function AgendaPage() {
   return (

@@ -18,7 +18,7 @@ const BASE_PATH = "/buscar";
 const TYPE_OPTIONS: { value: SearchResultType; label: string }[] = [
   { value: "ARTICLE", label: "Publicaciones" },
   { value: "PLACE", label: "Lugares" },
-  { value: "EVENT", label: "Eventos" },
+  { value: "EVENT", label: "Agenda" },
   { value: "GALLERY", label: "Galerías" },
   { value: "BUSINESS", label: "Directorio" },
   { value: "EPISODE", label: "Episodios" },

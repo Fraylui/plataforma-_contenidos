@@ -50,7 +50,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     href: "/admin/eventos",
-    label: "Eventos",
+    label: "Agenda",
     group: "contenido",
     icon: CalendarDots,
     module: "EVENTS",

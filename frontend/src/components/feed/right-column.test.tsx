@@ -31,9 +31,9 @@ describe("RightColumn — estilo columna de Facebook", () => {
   it("evento como fila: miniatura con la fecha encima, título y lugar/tema", () => {
     render(<RightColumn events={[event]} topLiked={[]} categoryNames={{ c1: "Entretenimiento" }} />);
     const section = screen.getByRole("region", { name: "Próximos eventos" });
-    expect(within(section).getByRole("link", { name: "Ver todo" })).toHaveAttribute("href", "/eventos");
+    expect(within(section).getByRole("link", { name: "Ver todo" })).toHaveAttribute("href", "/agenda");
     const row = within(section).getByRole("link", { name: /Concierto de Jazz/ });
-    expect(row).toHaveAttribute("href", "/eventos/concierto-de-jazz");
+    expect(row).toHaveAttribute("href", "/agenda/concierto-de-jazz");
     expect(row).toHaveTextContent("18");
     expect(row).toHaveTextContent("Entretenimiento");
   });

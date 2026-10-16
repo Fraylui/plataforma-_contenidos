@@ -9,7 +9,7 @@ describe("PermissionMatrix", () => {
   it("cada módulo de contenido ofrece No / Publica y avisa el cambio", async () => {
     const onChange = vi.fn();
     render(<PermissionMatrix value={{}} onChange={onChange} />);
-    const eventos = screen.getByRole("radiogroup", { name: "Eventos" });
+    const eventos = screen.getByRole("radiogroup", { name: "Agenda" });
     expect(within(eventos).getAllByRole("radio").map((r) => r.getAttribute("aria-label") ?? r.textContent)).toEqual(["No", "Publica"]);
     await userEvent.click(within(eventos).getByRole("radio", { name: "Publica" }));
     expect(onChange).toHaveBeenCalledWith({ EVENTS: "PUBLISH" });
@@ -22,7 +22,7 @@ describe("PermissionMatrix", () => {
     expect(within(temas).getAllByRole("radio")).toHaveLength(2);
     await userEvent.click(within(temas).getByRole("radio", { name: "Sí" }));
     expect(onChange).toHaveBeenCalledWith({ EVENTS: "PUBLISH", CATEGORIES: "ACCESS" });
-    await userEvent.click(within(screen.getByRole("radiogroup", { name: "Eventos" })).getByRole("radio", { name: "No" }));
+    await userEvent.click(within(screen.getByRole("radiogroup", { name: "Agenda" })).getByRole("radio", { name: "No" }));
     expect(onChange).toHaveBeenLastCalledWith({});
   });
 
@@ -36,7 +36,7 @@ describe("TemplateChips", () => {
   it("una plantilla precarga sus permisos", async () => {
     const onPick = vi.fn();
     render(<TemplateChips onPick={onPick} />);
-    await userEvent.click(screen.getByRole("button", { name: "Gestor de eventos" }));
+    await userEvent.click(screen.getByRole("button", { name: "Gestor de agenda" }));
     expect(onPick).toHaveBeenCalledWith({ EVENTS: "PUBLISH", PLACES: "PUBLISH" });
   });
 });

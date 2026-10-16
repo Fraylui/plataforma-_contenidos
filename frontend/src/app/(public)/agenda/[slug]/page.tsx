@@ -46,7 +46,7 @@ export function generateStaticParams() {
   return [];
 }
 
-export async function generateMetadata(props: PageProps<"/eventos/[slug]">): Promise<Metadata> {
+export async function generateMetadata(props: PageProps<"/agenda/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
   let event;
   try {
@@ -62,7 +62,7 @@ export async function generateMetadata(props: PageProps<"/eventos/[slug]">): Pro
   return {
     title,
     description,
-    alternates: { canonical: event.canonicalUrl || `/eventos/${slug}` },
+    alternates: { canonical: event.canonicalUrl || `/agenda/${slug}` },
     robots: event.robots,
     openGraph: {
       title,
@@ -81,7 +81,7 @@ function eventJsonLd(
   venue: { name: string; slug: string } | null,
 ) {
   const venueUrl = venue ? `${SITE_URL}/lugares/${venue.slug}` : undefined;
-  const url = event.canonicalUrl || `${SITE_URL}/eventos/${event.slug}`;
+  const url = event.canonicalUrl || `${SITE_URL}/agenda/${event.slug}`;
   return {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -104,9 +104,9 @@ function eventJsonLd(
 function breadcrumbJsonLd(event: Event, category: Category | null) {
   const items = [
     { name: "Inicio", url: SITE_URL },
-    { name: "Eventos", url: `${SITE_URL}/eventos` },
+    { name: "Agenda", url: `${SITE_URL}/agenda` },
     ...(category ? [{ name: category.name, url: `${SITE_URL}/categorias/${category.slug}` }] : []),
-    { name: event.title, url: `${SITE_URL}/eventos/${event.slug}` },
+    { name: event.title, url: `${SITE_URL}/agenda/${event.slug}` },
   ];
   return {
     "@context": "https://schema.org",
@@ -120,7 +120,7 @@ function breadcrumbJsonLd(event: Event, category: Category | null) {
   };
 }
 
-export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
+export default async function EventPage(props: PageProps<"/agenda/[slug]">) {
   const { slug } = await props.params;
   const event = await loadEvent(slug);
 
@@ -139,7 +139,7 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
     title: event.title,
     startsAt: event.startsAt,
     endsAt: event.endsAt,
-    url: `${SITE_URL}/eventos/${event.slug}`,
+    url: `${SITE_URL}/agenda/${event.slug}`,
     location: where,
   });
   const facts: PostFact[] = [

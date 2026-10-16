@@ -42,7 +42,7 @@ export const WORKER_TEMPLATES: WorkerTemplate[] = [
       STATS: "ACCESS",
     },
   },
-  { id: "GESTOR_EVENTOS", label: "Gestor de eventos", description: "Eventos y lugares", permissions: { EVENTS: "PUBLISH", PLACES: "PUBLISH" } },
+  { id: "GESTOR_EVENTOS", label: "Gestor de agenda", description: "Agenda y lugares", permissions: { EVENTS: "PUBLISH", PLACES: "PUBLISH" } },
   { id: "GESTOR_DIRECTORIO", label: "Gestor de directorio", description: "Directorio y lugares", permissions: { DIRECTORY: "PUBLISH", PLACES: "PUBLISH" } },
   { id: "PUBLICIDAD", label: "Publicidad", description: "Anunciantes, campañas y espacios", permissions: { ADVERTISING: "ACCESS", STATS: "ACCESS" } },
 ];
@@ -61,7 +61,7 @@ export function detectTemplate(permissions: ModulePermissions): string {
 export const MODULE_LABELS: Record<Module, string> = {
   ARTICLES: "Publicaciones",
   PLACES: "Lugares",
-  EVENTS: "Eventos",
+  EVENTS: "Agenda",
   GALLERIES: "Galerías",
   DIRECTORY: "Directorio",
   SERIES: "Series",

@@ -112,7 +112,7 @@ describe("fromSearchResult", () => {
     });
     expect(item).toMatchObject({
       kind: "evento",
-      href: "/eventos/feria",
+      href: "/agenda/feria",
       typeLabel: "Evento",
       hasVideo: true,
       likeCount: 0,

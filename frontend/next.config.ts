@@ -107,6 +107,9 @@ const nextConfig: NextConfig = {
     return [
       { source: "/articulos", destination: "/publicaciones", permanent: true },
       { source: "/articulos/:slug", destination: "/publicaciones/:slug", permanent: true },
+      // /eventos -> /agenda (2026-10-16): «Eventos» sonaba a publicidad; «Agenda» es lo que pasa y cuándo.
+      { source: "/eventos", destination: "/agenda", permanent: true },
+      { source: "/eventos/:slug", destination: "/agenda/:slug", permanent: true },
       // Panel con lenguaje de plataforma (2026-10-06): las URLs viejas siguen funcionando.
       { source: "/admin/categorias/nueva", destination: "/admin/temas/nuevo", permanent: true },
       { source: "/admin/publicidad/nueva", destination: "/admin/espacios/nuevo", permanent: true },

@@ -5,13 +5,13 @@ describe("pageTitle", () => {
   it("pestañas y secciones: solo el título", () => {
     expect(pageTitle("/")).toEqual({ title: "Inicio", back: null });
     expect(pageTitle("/explorar")).toEqual({ title: "Explorar", back: null });
-    expect(pageTitle("/eventos")).toEqual({ title: "Agenda", back: null });
+    expect(pageTitle("/agenda")).toEqual({ title: "Agenda", back: null });
     expect(pageTitle("/lugares")).toEqual({ title: "Lugares", back: null });
   });
 
   it("detalle: título del tipo y flecha a su sección", () => {
     expect(pageTitle("/lugares/mirador")).toEqual({ title: "Lugar", back: "/lugares" });
-    expect(pageTitle("/eventos/feria")).toEqual({ title: "Evento", back: "/eventos" });
+    expect(pageTitle("/agenda/feria")).toEqual({ title: "Evento", back: "/agenda" });
     expect(pageTitle("/publicaciones/ruta")).toEqual({ title: "Publicación", back: "/publicaciones" });
     expect(pageTitle("/categorias/turismo")).toEqual({ title: "Tema", back: "/" });
   });

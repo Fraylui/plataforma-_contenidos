@@ -34,7 +34,7 @@ function EventRow({ event, categoryName }: { event: EventSummary; categoryName?:
   const where = event.venueName ?? categoryName;
 
   return (
-    <Link href={`/eventos/${event.slug}`} className={ROW}>
+    <Link href={`/agenda/${event.slug}`} className={ROW}>
       {/* Miniatura con la fecha encima (como los eventos de Facebook): foto y día en un solo bloque. */}
       <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-accent-soft">
         {event.coverImageId ? (
@@ -83,7 +83,7 @@ export function RightColumn({
     <div className="flex flex-col gap-7">
       {events.length > 0 && (
         <section aria-labelledby="proximos-eventos">
-          <SectionHeader id="proximos-eventos" title="Próximos eventos" href="/eventos" />
+          <SectionHeader id="proximos-eventos" title="Próximos eventos" href="/agenda" />
           <ul className="flex flex-col">
             {events.map((event) => (
               <li key={event.id}>
