@@ -15,9 +15,14 @@ async function assertNoEditorialPatterns(page: Page) {
   await expect(main.getByText(/min de lectura/i)).toHaveCount(0);
   await expect(main.getByText(/\beditorial\b|\bart[íi]culos?\b|\bcubrimos\b/i)).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toHaveCount(0);
-  // Antetítulos: texto visible transformado a mayúsculas por CSS (la etiqueta "Publicidad" del banner es la excepción pedida por Google/IAB).
-  const kickers = await main.locator(".uppercase:visible").allTextContents();
-  expect(kickers.filter((text) => text.trim() && text.trim() !== "Publicidad")).toEqual([]);
+  // Antetítulos: texto visible transformado a mayúsculas por CSS. Excepciones: la etiqueta "Publicidad"
+  // (pedida por Google/IAB) y lo que va dentro de un anuncio (el dominio del anuncio nativo, como en Facebook).
+  const kickers = await main.locator(".uppercase:visible").evaluateAll((elements) =>
+    elements
+      .filter((el) => !el.closest('[data-testid="ad"], [aria-label^="Patrocinado"]'))
+      .map((el) => el.textContent?.trim() ?? ""),
+  );
+  expect(kickers.filter((text) => text && text !== "Publicidad")).toEqual([]);
 }
 
 for (const path of SCREENS) {

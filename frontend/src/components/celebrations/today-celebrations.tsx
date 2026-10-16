@@ -60,7 +60,7 @@ export function TodayCelebrations({ initial }: { initial: TodayCelebration[] }) 
         <span aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-black/10" />
         <span className="relative mt-auto flex w-full items-end justify-between gap-3 p-4 text-white">
           <span className="min-w-0">
-            <span id="hoy-se-celebra" className="flex items-center gap-1.5 text-xs font-bold tracking-wide uppercase">
+            <span id="hoy-se-celebra" className="flex items-center gap-1.5 text-sm font-bold">
               <Confetti className="size-4" weight="fill" aria-hidden="true" />
               Hoy se celebra
             </span>

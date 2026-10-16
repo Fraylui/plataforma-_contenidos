@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   robots: "index,follow",
 };
 
-const UPDATED_AT = "27 de agosto de 2026";
+const UPDATED_AT = "16 de octubre de 2026";
 
 export default async function PrivacyPolicyPage() {
   const settings = await getPlatformSettings();
-  const contact = settings.contactEmail || "el correo de contacto publicado en este sitio";
+  const contact = settings.contactEmail || "nuestro correo de contacto (lo publicaremos en este sitio)";
 
   const sections: LegalSection[] = [
     {
@@ -19,7 +19,7 @@ export default async function PrivacyPolicyPage() {
       title: "Responsable",
       content: (
         <p>
-          <strong>{settings.name}</strong> es responsable de los datos que se describen acá. Consultas a {contact}.
+          <strong>{settings.name}</strong> es responsable de los datos que se describen acá. Para consultas, escribe a {contact}.
         </p>
       ),
     },
@@ -51,7 +51,7 @@ export default async function PrivacyPolicyPage() {
               activan para quien solo lee el sitio.
             </li>
             <li>
-              <strong>YouTube:</strong> los videos se cargan solo si hacés clic para reproducirlos, nunca antes; ahí
+              <strong>YouTube:</strong> los videos se cargan solo si haces clic para reproducirlos, nunca antes; ahí
               aplica la{" "}
               <a
                 href="https://policies.google.com/privacy"
@@ -65,7 +65,7 @@ export default async function PrivacyPolicyPage() {
             </li>
             {settings.adsenseEnabled ? (
               <li>
-                <strong>Publicidad (Google AdSense):</strong> si aceptás cookies, Google puede personalizar anuncios
+                <strong>Publicidad (Google AdSense):</strong> si aceptas cookies, Google puede personalizar anuncios
                 según tus visitas. Gestión en{" "}
                 <a
                   href="https://myadcenter.google.com/"
@@ -93,7 +93,7 @@ export default async function PrivacyPolicyPage() {
       content: (
         <p>
           En Perú, la Ley N.º 29733 te da derecho a acceder, rectificar, cancelar y oponerte al uso de tus datos
-          (derechos ARCO). Para ejercerlos, escribinos a {contact}.
+          (derechos ARCO). Para ejercerlos, escríbenos a {contact}.
         </p>
       ),
     },

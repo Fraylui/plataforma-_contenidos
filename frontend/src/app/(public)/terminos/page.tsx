@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   robots: "index,follow",
 };
 
-const UPDATED_AT = "27 de agosto de 2026";
+const UPDATED_AT = "16 de octubre de 2026";
 
 export default async function TermsOfUsePage() {
   const settings = await getPlatformSettings();
-  const contact = settings.contactEmail || "el correo de contacto publicado en este sitio";
+  const contact = settings.contactEmail || "nuestro correo de contacto (lo publicaremos en este sitio)";
 
   const sections: LegalSection[] = [
     {
@@ -19,8 +19,8 @@ export default async function TermsOfUsePage() {
       title: "Qué es este sitio",
       content: (
         <p>
-          {settings.name} es una plataforma de contenidos: publicaciones, lugares y otros formatos que se van
-          sumando, todos con un proceso de revisión antes de publicarse. Al navegar el sitio aceptás estos términos —
+          {settings.name} es una plataforma de contenidos: publicaciones, lugares, celebraciones, galerías y un
+          directorio, publicados por nuestro propio equipo. Al navegar el sitio aceptas estos términos —
           hoy no hace falta registrarte ni pagar para leer nada.
         </p>
       ),
@@ -65,7 +65,7 @@ export default async function TermsOfUsePage() {
       title: "Responsabilidad, cambios y ley aplicable",
       content: (
         <p>
-          Hacemos lo posible por publicar información precisa; si encontrás un error, escribinos a {contact} y lo
+          Hacemos lo posible por publicar información precisa; si encuentras un error, escríbenos a {contact} y lo
           corregimos. Podemos actualizar estos términos cuando cambien las funciones del sitio (la fecha de arriba
           refleja la versión vigente). Se rigen por las leyes de la República del Perú.
         </p>

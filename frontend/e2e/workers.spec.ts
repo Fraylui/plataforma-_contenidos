@@ -21,7 +21,9 @@ async function login(page: Page, email: string, password: string) {
 test.describe.configure({ mode: "serial" });
 test.skip(!OWNER_PASSWORD, "Requiere E2E_ADMIN_PASSWORD (o BOOTSTRAP_ADMIN_PASSWORD de .env)");
 
-test("el dueño crea un trabajador y este solo ve sus módulos", async ({ browser }) => {
+test("el dueño crea un trabajador y este solo ve sus módulos", async ({ browser, isMobile }) => {
+  // Recorrido de escritorio (menú lateral); en el celular el menú vive en un cajón, cubierto por shell.test.tsx.
+  test.skip(isMobile, "recorrido de escritorio");
   const email = `e2e-trabajador-${Date.now()}@plataforma-contenidos.test`;
   const owner = await browser.newPage();
   await login(owner, OWNER_EMAIL, OWNER_PASSWORD);
@@ -47,13 +49,16 @@ test("el dueño crea un trabajador y este solo ve sus módulos", async ({ browse
   await login(worker, email, temporary);
   await expect(worker.getByText("Antes de empezar, elige tu contraseña.")).toBeVisible();
   await worker.getByLabel("Contraseña actual").fill(temporary);
-  await worker.getByLabel("Contraseña nueva").fill("ClaveDePrueba2026!");
+  await worker.getByLabel("Contraseña nueva", { exact: true }).fill("ClaveDePrueba2026!");
   await worker.getByLabel("Repite la contraseña nueva").fill("ClaveDePrueba2026!");
   await worker.getByRole("button", { name: "Cambiar contraseña" }).click();
 
   const menu = worker.getByRole("navigation", { name: "Menú del panel" });
   await expect(menu).toBeVisible({ timeout: 10_000 });
-  await expect(menu.getByRole("link")).toHaveText(["Inicio", "Lugares", "Celebraciones", "Imágenes", "Mi cuenta"]);
+  // Menú en acordeón: solo el grupo de la página actual está abierto; se abre «Contenido» para ver sus secciones.
+  await menu.getByRole("button", { name: "Contenido" }).click();
+  await expect(menu.getByRole("link")).toHaveText(["Inicio", "Lugares", "Celebraciones", "Imágenes"]);
+  await expect(menu.getByRole("button", { name: "Publicidad" })).toHaveCount(0);
 
   await worker.goto("/admin/trabajadores");
   await expect(worker.getByText("No tienes acceso a esta sección")).toBeVisible();
