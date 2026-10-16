@@ -296,25 +296,49 @@ export interface AdPlacement {
   height: number;
 }
 
+export type CampaignFormat = "BANNER" | "NATIVE";
+
+/** Botón del anuncio nativo (CallToAction.java); textos en lib/ads/call-to-action.ts. */
+export type CallToAction = "LEARN_MORE" | "SHOP_NOW" | "BOOK" | "ORDER" | "WHATSAPP" | "SIGN_UP";
+
+/** Proporción del medio de un anuncio nativo (CampaignService). */
+export type NativeMediaAspect = "1:1" | "4:5" | "1.91:1" | "16:9" | "9:16";
+
+/** Campos del anuncio nativo (null en un banner) — ver ActiveCampaignResponse.java. */
+interface NativeAdFields {
+  advertiserName: string | null;
+  primaryText: string | null;
+  headline: string | null;
+  callToAction: CallToAction | null;
+  /** Solo el dominio del destino («polleriaelinca.pe»): el link real nunca llega al navegador. */
+  displayDomain: string | null;
+  youtubeVideoId: string | null;
+  mediaAspect: NativeMediaAspect | null;
+}
+
 /** Ver ActiveCampaignResponse.java — nunca trae el link real, solo `id` para armar el link de clic. */
-export interface ActiveCampaign {
+export interface ActiveCampaign extends NativeAdFields {
   id: string;
   advertiserId: string;
+  format: CampaignFormat;
   imageId: string | null;
   externalImageUrl: string | null;
   imageAlt: string | null;
+  advertiserLogoImageId: string | null;
 }
 
 /**
- * ActiveCampaign con la imagen ya resuelta para next/image (ver
+ * ActiveCampaign con las imágenes ya resueltas para next/image (ver
  * app/api/ads/campaign/route.ts) — la forma que recibe el navegador.
  */
-export interface ResolvedCampaign {
+export interface ResolvedCampaign extends NativeAdFields {
   id: string;
   advertiserId: string;
+  format: CampaignFormat;
   imageSrc: string | null;
   externalImageUrl: string | null;
   imageAlt: string | null;
+  advertiserLogoSrc: string | null;
 }
 
 /** Ver PlacementRotationResponse.java: medida de la posición + campañas en el orden a asignar. */

@@ -3,11 +3,12 @@ import { axe } from "vitest-axe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { usePlannedCampaign } from "@/components/legal/use-ad-rotation";
 import { AdBlockClient } from "@/components/legal/ad-block-client";
+import { BANNER_FIELDS } from "@/lib/ads/test-campaigns";
 
 vi.mock("@/components/legal/use-ad-rotation", () => ({ usePlannedCampaign: vi.fn() }));
 vi.mock("@/components/legal/use-viewable-impression", () => ({ useViewableImpression: () => {} }));
 
-const campaign = { id: "c1", advertiserId: "a1", imageSrc: null, externalImageUrl: "https://ads.example/b.png", imageAlt: "Café Origen" };
+const campaign = { ...BANNER_FIELDS, id: "c1", advertiserId: "a1", imageSrc: null, externalImageUrl: "https://ads.example/b.png", imageAlt: "Café Origen" };
 
 describe("Anuncio del feed con forma de post («Patrocinado»)", () => {
   beforeEach(() => vi.mocked(usePlannedCampaign).mockReset());
@@ -20,6 +21,23 @@ describe("Anuncio del feed con forma de post («Patrocinado»)", () => {
     expect(screen.getByRole("img", { name: "Café Origen" })).toBeInTheDocument();
     expect(screen.queryByText("Publicidad")).toBeNull();
     expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("una campaña nativa se dibuja como post del anunciante, no como banner", () => {
+    const native = {
+      ...campaign,
+      format: "NATIVE" as const,
+      externalImageUrl: null,
+      advertiserName: "Pollería El Inca",
+      primaryText: "2x1 los martes",
+      callToAction: "ORDER" as const,
+      youtubeVideoId: "dQw4w9WgXcQ",
+      mediaAspect: "16:9" as const,
+    };
+    vi.mocked(usePlannedCampaign).mockReturnValue({ rotation: { width: 300, height: 250, campaigns: [] }, campaign: native } as never);
+    render(<AdBlockClient position="en-feed" layout="fill" frame="post" adsense={null} />);
+    expect(screen.getByRole("article", { name: "Patrocinado: Pollería El Inca" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Pedir ahora/ })).toBeInTheDocument();
   });
 
   it("sin campaña ni AdSense no dibuja nada (ni el encabezado)", () => {

@@ -4,6 +4,7 @@ import { AdSlot } from "@/components/legal/ad-slot";
 import { DirectCampaignBanner } from "@/components/legal/direct-campaign-banner";
 import { usePlannedCampaign } from "@/components/legal/use-ad-rotation";
 import { SponsoredPost } from "@/components/post/sponsored-post";
+import { NativeAdPost } from "@/components/post/native-ad-post";
 import { cn } from "@/lib/utils";
 import type { AdContext } from "@/lib/ads/ad-context";
 
@@ -127,7 +128,11 @@ function PlannedAd({
   if (planned === undefined) return null;
   const post = frame === "post";
   let ad: React.ReactNode = null;
-  if (planned?.campaign) {
+  if (planned?.campaign?.format === "NATIVE") {
+    // El anuncio nativo ya es un post completo; fuera del feed no tiene dónde ir (el backend solo lo pone en en-feed).
+    if (post) return <NativeAdPost campaign={planned.campaign} />;
+    ad = adsense ? <AdSlot clientId={adsense.clientId} slot={adsense.slot} className={className} /> : null;
+  } else if (planned?.campaign) {
     const { rotation, campaign } = planned;
     ad = (
       <DirectCampaignBanner

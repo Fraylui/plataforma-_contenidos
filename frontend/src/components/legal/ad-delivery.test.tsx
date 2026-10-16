@@ -1,6 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { ResolvedRotation } from "@/lib/api/types";
+import type { ResolvedCampaign, ResolvedRotation } from "@/lib/api/types";
+import { BANNER_FIELDS } from "@/lib/ads/test-campaigns";
 import { DirectCampaignBanner } from "./direct-campaign-banner";
 import { AdBlockClient } from "./ad-block-client";
 
@@ -14,7 +15,14 @@ function setVisibleRatio(ratio: number) {
   });
 }
 
-const campaign = { id: "11111111-1111-1111-1111-111111111111", advertiserId: "adv-1", imageSrc: null, externalImageUrl: "https://example.com/a.png", imageAlt: "Café Origen" };
+const campaign: ResolvedCampaign = {
+  ...BANNER_FIELDS,
+  id: "11111111-1111-1111-1111-111111111111",
+  advertiserId: "adv-1",
+  imageSrc: null,
+  externalImageUrl: "https://example.com/a.png",
+  imageAlt: "Café Origen",
+};
 
 describe("DirectCampaignBanner — impresión visible", () => {
   const beacon = vi.fn(() => true);

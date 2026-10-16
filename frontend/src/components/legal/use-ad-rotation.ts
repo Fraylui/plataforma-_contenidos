@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ResolvedCampaign, ResolvedRotation } from "@/lib/api/types";
 import { assignSlot, createPageAdPlan, type PageAdPlan } from "@/lib/ads/page-ad-plan";
 import { adContextQuery, type AdContext } from "@/lib/ads/ad-context";
+import { isAdHidden } from "@/lib/ads/hidden-ads";
 
 /**
  * Un solo pedido por posición y por página vista, compartido por todos los
@@ -77,5 +78,7 @@ export function usePlannedCampaign(
     plan = createPageAdPlan<ResolvedCampaign>();
     plans.set(pathname, plan);
   }
-  return { rotation, campaign: assignSlot(plan, `${placement}#${slot}`, rotation.campaigns) };
+  // Lo que el visitante ocultó («Ocultar este anuncio») no se le vuelve a asignar.
+  const visible = rotation.campaigns.filter((c) => !isAdHidden(c.id));
+  return { rotation, campaign: assignSlot(plan, `${placement}#${slot}`, visible) };
 }

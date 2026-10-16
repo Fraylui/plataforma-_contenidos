@@ -48,9 +48,20 @@ export async function GET(request: NextRequest) {
     campaigns: rotation.campaigns.map((campaign) => ({
       id: campaign.id,
       advertiserId: campaign.advertiserId,
+      format: campaign.format ?? "BANNER",
       imageSrc: campaign.imageId ? serverImageUrl(`/api/v1/images/${campaign.imageId}/file`) : null,
       externalImageUrl: campaign.externalImageUrl,
       imageAlt: campaign.imageAlt,
+      advertiserName: campaign.advertiserName,
+      advertiserLogoSrc: campaign.advertiserLogoImageId
+        ? serverImageUrl(`/api/v1/images/${campaign.advertiserLogoImageId}/file`)
+        : null,
+      primaryText: campaign.primaryText,
+      headline: campaign.headline,
+      callToAction: campaign.callToAction,
+      displayDomain: campaign.displayDomain,
+      youtubeVideoId: campaign.youtubeVideoId,
+      mediaAspect: campaign.mediaAspect,
     })),
   };
   return NextResponse.json(resolved, { headers: NO_STORE });
