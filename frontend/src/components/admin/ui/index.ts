@@ -15,4 +15,3 @@ export {
   AlertDialogFooter,
 } from "./alert-dialog";
 export { DataTable } from "./data-table";
-export { StatCard } from "./stat-card";

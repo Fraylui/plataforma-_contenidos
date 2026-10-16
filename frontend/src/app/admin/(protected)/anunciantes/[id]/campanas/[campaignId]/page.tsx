@@ -9,6 +9,7 @@ import {
   listAdminImages,
 } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
+import { parseDashboardRange } from "@/lib/admin/dashboard";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { CampaignForm } from "@/components/admin/campaign-form";
 import { CampaignReport } from "@/components/admin/campaign-report";
@@ -21,17 +22,22 @@ export const metadata: Metadata = {
 
 export default async function EditCampaignPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string; campaignId: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { id, campaignId } = await params;
+  const range = parseDashboardRange((await searchParams).range);
+  const path = `/admin/anunciantes/${id}/campanas/${campaignId}`;
   const { accessToken } = await requireAdminUser();
   const result = await fetchOrAccessDenied(async () => {
     const advertiser = await getAdvertiser(accessToken, id);
     const campaign = await getCampaign(accessToken, campaignId);
     const placements = await listAdminAdPlacements(accessToken);
     const images = await listAdminImages(accessToken);
-    const stats = await getCampaignStats(accessToken, campaignId);
+    // El doble del período: el actual y el anterior, para la variación.
+    const stats = await getCampaignStats(accessToken, campaignId, range * 2);
     const categories = await listAdminCategories(accessToken);
     return { categories, advertiser, campaign, placements, images, stats };
   });
@@ -41,8 +47,13 @@ export default async function EditCampaignPage({
   return (
     <div>
       <AdminPageHeader title={`Campaña — ${advertiser.name}`} />
-      <div className="mt-6 max-w-3xl">
-        <CampaignReport campaign={campaign} stats={stats} />
+      <div className="mt-6">
+        <CampaignReport
+          campaign={campaign}
+          stats={stats}
+          range={range}
+          hrefFor={(option) => (option === 30 ? path : `${path}?range=${option}`)}
+        />
       </div>
       <div className="mt-6">
         <CampaignForm

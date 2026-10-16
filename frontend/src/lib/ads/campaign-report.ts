@@ -20,3 +20,27 @@ export function fillDays(stats: CampaignDailyStat[], days: number, today = new D
     return byDay.get(day) ?? { day, impressions: 0, clicks: 0, plays: 0 };
   });
 }
+
+export interface PeriodTotals {
+  impressions: number;
+  clicks: number;
+  plays: number;
+}
+
+function sum(days: CampaignDailyStat[]): PeriodTotals {
+  return days.reduce(
+    (total, d) => ({ impressions: total.impressions + d.impressions, clicks: total.clicks + d.clicks, plays: total.plays + d.plays }),
+    { impressions: 0, clicks: 0, plays: 0 },
+  );
+}
+
+/**
+ * Reporte de un período: los días elegidos (para el gráfico) y los totales
+ * de ese período y del anterior del mismo largo (para la variación). Pide
+ * al backend el doble de días (ver la página de la campaña).
+ */
+export function reportPeriods(stats: CampaignDailyStat[], range: number, today = new Date()) {
+  const all = fillDays(stats, range * 2, today);
+  const days = all.slice(range);
+  return { days, current: sum(days), previous: sum(all.slice(0, range)) };
+}

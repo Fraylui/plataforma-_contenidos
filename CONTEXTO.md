@@ -2275,7 +2275,7 @@ Spec: `docs/superpowers/specs/2026-10-07-compositor-y-flujo-design.md` (local).
 **E. Pantallas y listados (F7/F8)**
 13. Vista en cuadrícula para Galerías en el panel.
 14. Revisar Trabajadores, Mi cuenta, Configuración y Login contra el sistema de diseño (los formularios ya lo usan; falta una pasada visual).
-15. Reporte de campaña con los gráficos nuevos.
+15. ~~Reporte de campaña con los gráficos nuevos~~ — **hecho** 2026-10-16: período 7/30/90 en la URL, tarjetas con variación vs. período anterior y minigráfico, gráfico de área con selector de métrica (una a la vez, un solo eje), total desde el inicio y tabla. KpiCard/RangeNav compartidos con el inicio (components/admin/kpi.tsx); se borraron CampaignStatsChart y StatCard.
 
 **F. Sitio público (F10)**
 16. Retomar el rediseño estilo red social (rama `feat/sitio-red-social`, §46.3), con Series y En vivo ya integrados al menú lateral.

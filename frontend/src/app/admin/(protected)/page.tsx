@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { Icon } from "@phosphor-icons/react";
 import {
   Globe,
   Eye,
   Heart,
   Article,
   ClockCounterClockwise,
-  TrendUp,
-  TrendDown,
   Megaphone,
   ArrowSquareOut,
 } from "@phosphor-icons/react/dist/ssr";
@@ -17,12 +14,13 @@ import { getAdminDashboard, listAdminAuditLog } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { accountLabel } from "@/lib/admin/role-labels";
 import { visibleNavItems } from "@/lib/admin/nav";
-import { CONTENT_TYPE_INFO, DASHBOARD_RANGES, kpiChange, parseDashboardRange } from "@/lib/admin/dashboard";
+import { CONTENT_TYPE_INFO, kpiChange, parseDashboardRange } from "@/lib/admin/dashboard";
 import { ctr } from "@/lib/ads/campaign-report";
 import { publicationStatusLabel, publicationStatusTone, formatPublishedDate } from "@/lib/content-labels";
 import { AuditTimeline } from "@/components/admin/audit-timeline";
-import { DailyAreaChart, Sparkline } from "@/components/admin/dashboard-charts";
-import type { DashboardKpi, DashboardSummary } from "@/lib/api/admin-types";
+import { DailyAreaChart } from "@/components/admin/dashboard-charts";
+import { KPI_CARD, KpiCard, KpiCardHeader, RangeNav } from "@/components/admin/kpi";
+import type { DashboardSummary } from "@/lib/api/admin-types";
 import { Badge } from "@/components/ui";
 import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
@@ -33,7 +31,6 @@ export const metadata: Metadata = {
 
 const CONTENT_HREFS = ["/admin/publicaciones", "/admin/lugares", "/admin/celebraciones", "/admin/galerias", "/admin/directorio"];
 const NUMBER = new Intl.NumberFormat("es-PE");
-const RANGE_LABEL: Record<number, string> = { 7: "7 días", 30: "30 días", 90: "90 días" };
 
 /**
  * Inicio del panel: resumen tipo CRM en una sola llamada (GET
@@ -68,22 +65,7 @@ export default async function AdminDashboardPage(props: PageProps<"/admin">) {
             </span>
           </p>
         </div>
-        {dashboard && (
-          <nav aria-label="Período" className="inline-flex rounded-full bg-field p-1">
-            {DASHBOARD_RANGES.map((option) => (
-              <Link
-                key={option}
-                href={option === 30 ? "/admin" : `/admin?range=${option}`}
-                aria-current={option === range ? "page" : undefined}
-                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
-                  option === range ? "bg-surface text-foreground shadow-card" : "text-muted hover:text-foreground"
-                }`}
-              >
-                {RANGE_LABEL[option]}
-              </Link>
-            ))}
-          </nav>
-        )}
+        {dashboard && <RangeNav range={range} hrefFor={(option) => (option === 30 ? "/admin" : `/admin?range=${option}`)} />}
       </div>
 
 
@@ -118,55 +100,6 @@ export default async function AdminDashboardPage(props: PageProps<"/admin">) {
   );
 }
 
-const CARD = "flex flex-col rounded-card bg-surface p-5 shadow-card transition-shadow duration-150 hover:shadow-pop";
-
-function CardHeader({ label, icon: CardIcon }: { label: string; icon: Icon }) {
-  return (
-    <div className="flex items-start justify-between">
-      <p className="text-sm font-medium text-muted">{label}</p>
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
-        <CardIcon weight="fill" className="size-[18px]" aria-hidden="true" />
-      </span>
-    </div>
-  );
-}
-
-/** Indicador con su variación real frente al período anterior (texto + ícono, nunca solo color) y su forma diaria. */
-function KpiCard({ label, icon, kpi, values, rangeDays }: {
-  label: string;
-  icon: Icon;
-  kpi: DashboardKpi;
-  values: number[];
-  rangeDays: number;
-}) {
-  const change = kpiChange(kpi);
-  return (
-    <div className={CARD}>
-      <CardHeader label={label} icon={icon} />
-      <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-foreground">{NUMBER.format(kpi.current)}</p>
-      <p className="mt-1 text-xs text-muted">
-        {change.kind === "percent" && (
-          <span className={`mr-1 inline-flex items-center gap-0.5 font-semibold ${change.value >= 0 ? "text-success" : "text-danger-ink"}`}>
-            {change.value >= 0 ? (
-              <TrendUp weight="bold" className="size-3" aria-hidden="true" />
-            ) : (
-              <TrendDown weight="bold" className="size-3" aria-hidden="true" />
-            )}
-            {change.value >= 0 ? "+" : ""}
-            {change.value} %
-          </span>
-        )}
-        {change.kind === "percent" && `vs. los ${rangeDays} días anteriores`}
-        {change.kind === "new" && `Sin datos en los ${rangeDays} días anteriores`}
-        {change.kind === "none" && `Últimos ${rangeDays} días`}
-      </p>
-      <div className="mt-3">
-        <Sparkline values={values} />
-      </div>
-    </div>
-  );
-}
-
 /** Contenido publicado en este momento, sumando los tipos que la persona puede ver. */
 function publishedNow(dashboard: DashboardSummary): number {
   return Object.values(dashboard.byTypeAndStatus).reduce((total, byStatus) => total + (byStatus?.PUBLISHED ?? 0), 0);
@@ -182,8 +115,8 @@ function DashboardBody({ dashboard, canSeeStats }: { dashboard: DashboardSummary
         <KpiCard label="Me gusta" icon={Heart} kpi={dashboard.likes} values={series.map((d) => d.likes)} rangeDays={rangeDays} />
         <KpiCard label="Publicado" icon={Article} kpi={dashboard.published} values={series.map((d) => d.published)} rangeDays={rangeDays} />
         {ads ? (
-          <div className={CARD}>
-            <CardHeader label="Clics en anuncios" icon={Megaphone} />
+          <div className={KPI_CARD}>
+            <KpiCardHeader label="Clics en anuncios" icon={Megaphone} />
             <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-foreground">{ctr(ads.clicks, ads.impressions)}</p>
             <p className="mt-1 text-xs text-muted">
               {NUMBER.format(ads.clicks)} clics en {NUMBER.format(ads.impressions)} impresiones
@@ -196,8 +129,8 @@ function DashboardBody({ dashboard, canSeeStats }: { dashboard: DashboardSummary
             )}
           </div>
         ) : (
-          <div className={CARD}>
-            <CardHeader label="En el sitio" icon={Globe} />
+          <div className={KPI_CARD}>
+            <KpiCardHeader label="En el sitio" icon={Globe} />
             <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-foreground">
               {NUMBER.format(publishedNow(dashboard))}
             </p>
