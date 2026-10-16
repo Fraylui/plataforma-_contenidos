@@ -2303,6 +2303,17 @@ Pedido del dueño: «los anuncios se tienen que mostrar como lo hacen las grande
 
 Pendiente de esto: verlo en Docker/Edge (nada visto en navegador aún); cuartiles del video (API JS de YouTube), reproducción automática en silencio, carrusel de varias fotos, Shorts a pantalla completa.
 
+### 46.6m Sesión 2026-10-16 — la Agenda pasa a ser de Fechas
+Decisión del dueño: los eventos comerciales (conciertos, Mistura) eran **publicidad gratis**; lo comercial entra solo pagando (post «Patrocinado»). La Agenda queda hecha de **Fechas**: efemérides que se repiten cada año (28 de julio, Batalla de Ayacucho, Canción Criolla) o únicas (un eclipse). Se reutilizó el módulo Eventos (tabla `events.events`, rutas `/admin/eventos` y `/api/v1/events` sin cambiar) en vez de duplicarlo.
+
+| Qué | Commits |
+|---|---|
+| «Eventos» → «Agenda»: `/agenda` con redirección 301 desde `/eventos`; plantilla «Gestor de agenda» | f00623e |
+| Backend: `recurs_yearly`, `all_day`, `since_year`, `next_occurrence` (V62); `NextOccurrence` en la zona del sitio (el mismo día cuenta como hoy, 29-feb → 28); tarea 00:01 Lima; `GET /api/v1/events/today` | 791c67a |
+| Sitio y panel: compositor de Fechas con la regla «pago o canje = anuncio», «Hoy se celebra» (inicio y Agenda), «Próximas fechas», Agendar con RRULE anual, Event JSON-LD solo en únicas, «Evento» → «Fecha» | b43a2ee |
+
+Pendiente: borrar en la base local los eventos de prueba (Jazz, Mistura, Uyuni, Vendimia) — autorizado; cargar las fechas reales del año; renombrar en el código `Event` → `AgendaDate` junto con el renombre `Article` → `Publication` (C.5).
+
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
 Ordenadas por prioridad.
