@@ -1,10 +1,11 @@
 package pe.plataformacontenidos.galleries.api;
 
-import java.time.Instant;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import pe.plataformacontenidos.shared.api.Problems;
 import pe.plataformacontenidos.galleries.GalleryNotFoundException;
 import pe.plataformacontenidos.galleries.InvalidGalleryImageCountException;
 import pe.plataformacontenidos.galleries.InvalidGalleryImageException;
@@ -13,20 +14,17 @@ import pe.plataformacontenidos.galleries.InvalidGalleryImageException;
 public class GalleryExceptionHandler {
 
     @ExceptionHandler(GalleryNotFoundException.class)
-    public ResponseEntity<ApiError> handleNotFound(GalleryNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError(Instant.now(), 404, ex.getMessage()));
+    public ResponseEntity<ProblemDetail> handleNotFound(GalleryNotFoundException ex) {
+        return Problems.of(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(InvalidGalleryImageCountException.class)
-    public ResponseEntity<ApiError> handleInvalidImageCount(InvalidGalleryImageCountException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
+    public ResponseEntity<ProblemDetail> handleInvalidImageCount(InvalidGalleryImageCountException ex) {
+        return Problems.of(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(InvalidGalleryImageException.class)
-    public ResponseEntity<ApiError> handleInvalidImage(InvalidGalleryImageException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
-    }
-
-    public record ApiError(Instant timestamp, int status, String message) {
+    public ResponseEntity<ProblemDetail> handleInvalidImage(InvalidGalleryImageException ex) {
+        return Problems.of(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 }

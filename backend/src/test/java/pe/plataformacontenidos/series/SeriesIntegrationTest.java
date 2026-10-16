@@ -179,7 +179,7 @@ class SeriesIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"playlistUrl\":\"" + playlistId + "\",\"categoryId\":\"" + category() + "\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Esa lista de YouTube ya está conectada a otra serie."));
+                .andExpect(jsonPath("$.detail").value("Esa lista de YouTube ya está conectada a otra serie."));
     }
 
     @Test
@@ -192,7 +192,7 @@ class SeriesIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"categoryId\":\"" + category + "\",\"coverImageId\":\"" + UUID.randomUUID() + "\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("La imagen de portada ya no existe en la biblioteca."));
+                .andExpect(jsonPath("$.detail").value("La imagen de portada ya no existe en la biblioteca."));
 
         mockMvc.perform(put("/api/v1/admin/series/" + id).header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)

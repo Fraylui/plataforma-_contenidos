@@ -7,6 +7,7 @@ import "server-only";
 import { headers } from "next/headers";
 import type { PublicationKind, PublicationStep } from "@/lib/admin/publication";
 import { adminListQuery, type AdminListParams } from "@/lib/admin/list-params";
+import { problemMessage } from "./problem";
 import type {
   AdminContentPage,
   AdminImage,
@@ -71,12 +72,12 @@ export class AdminApiError extends Error {
 /** El access token dejó de ser válido (expiró o fue revocado): quien llama debe redirigir a login. */
 export class AdminSessionExpiredError extends Error {}
 
+/** Mensaje de un error de la API (RFC 9457, ver lib/api/problem.ts). */
 async function parseErrorMessage(res: Response): Promise<string> {
   try {
-    const body = (await res.json()) as { message?: string };
-    return body.message ?? `Error del backend (${res.status})`;
+    return problemMessage(await res.json(), res.status);
   } catch {
-    return `Error del backend (${res.status})`;
+    return problemMessage(null, res.status);
   }
 }
 

@@ -2,6 +2,12 @@ spring:
   application:
     name: plataforma-contenidos-backend
 
+  # La API responde en español (mensajes de validación de Bean Validation en los
+  # errores RFC 9457): el panel y el sitio son en español y no mandan Accept-Language.
+  web:
+    locale: es
+    locale-resolver: fixed
+
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:plataforma_contenidos}
     username: ${DB_USER:plataforma_contenidos}

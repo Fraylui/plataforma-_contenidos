@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,6 +14,7 @@ import pe.plataformacontenidos.identity.UserRepository;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.identity.permission.OwnerOnlyPaths;
 import pe.plataformacontenidos.identity.permission.PermissionService;
+import pe.plataformacontenidos.shared.api.Problems;
 import pe.plataformacontenidos.identity.security.AccountStateFilter;
 import pe.plataformacontenidos.identity.security.RefreshTokenService;
 import pe.plataformacontenidos.identity.security.JwtAuthenticationFilter;
@@ -79,7 +81,12 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/users/me", "/api/v1/users/me/**").authenticated()
                 .anyRequest().denyAll()
             )
-            .exceptionHandling(e -> e.accessDeniedHandler(new AuditingAccessDeniedHandler(auditService, userRepository)))
+            // Sin sesión válida: 403 (el panel lo trata como «vuelve a iniciar sesión», ver lib/admin/auth.ts),
+            // con el mismo cuerpo RFC 9457 que el resto de la API.
+            .exceptionHandling(e -> e
+                    .accessDeniedHandler(new AuditingAccessDeniedHandler(auditService, userRepository))
+                    .authenticationEntryPoint((request, response, ex) -> Problems.write(request, response,
+                            HttpServletResponse.SC_FORBIDDEN, "AUTHENTICATION_REQUIRED", "Inicia sesión para continuar.")))
             .addFilterBefore(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
             // Después del token: cuenta desactivada → 401; contraseña temporal → solo puede cambiarla.
             .addFilterAfter(new AccountStateFilter(permissionService, refreshTokenService), JwtAuthenticationFilter.class);

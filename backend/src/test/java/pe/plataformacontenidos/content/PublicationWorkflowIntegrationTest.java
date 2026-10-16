@@ -126,7 +126,7 @@ class PublicationWorkflowIntegrationTest {
         mockMvc.perform(post("/api/v1/admin/publications/" + publicationId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("No se puede publicar: está Archivado."));
+                .andExpect(jsonPath("$.detail").value("No se puede publicar: está Archivado."));
     }
 
     @Test

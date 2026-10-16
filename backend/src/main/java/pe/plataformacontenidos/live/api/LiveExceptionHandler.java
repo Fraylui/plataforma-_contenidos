@@ -1,10 +1,11 @@
 package pe.plataformacontenidos.live.api;
 
-import java.time.Instant;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import pe.plataformacontenidos.shared.api.Problems;
 import pe.plataformacontenidos.live.InvalidLiveInputException;
 import pe.plataformacontenidos.live.InvalidLiveStreamException;
 import pe.plataformacontenidos.live.LiveStreamNotFoundException;
@@ -13,21 +14,18 @@ import pe.plataformacontenidos.live.LiveStreamNotFoundException;
 public class LiveExceptionHandler {
 
     @ExceptionHandler(LiveStreamNotFoundException.class)
-    public ResponseEntity<ApiError> handleNotFound(LiveStreamNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError(Instant.now(), 404, ex.getMessage()));
+    public ResponseEntity<ProblemDetail> handleNotFound(LiveStreamNotFoundException ex) {
+        return Problems.of(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(InvalidLiveInputException.class)
-    public ResponseEntity<ApiError> handleInvalidInput(InvalidLiveInputException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
+    public ResponseEntity<ProblemDetail> handleInvalidInput(InvalidLiveInputException ex) {
+        return Problems.of(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     /** Paso que no corresponde al estado (p. ej. terminar algo que no está en vivo): 409. */
     @ExceptionHandler(InvalidLiveStreamException.class)
-    public ResponseEntity<ApiError> handleInvalid(InvalidLiveStreamException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError(Instant.now(), 409, ex.getMessage()));
-    }
-
-    public record ApiError(Instant timestamp, int status, String message) {
+    public ResponseEntity<ProblemDetail> handleInvalid(InvalidLiveStreamException ex) {
+        return Problems.of(HttpStatus.CONFLICT, ex.getMessage());
     }
 }

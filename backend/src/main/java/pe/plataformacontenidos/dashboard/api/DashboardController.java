@@ -1,7 +1,7 @@
 package pe.plataformacontenidos.dashboard.api;
 
-import java.time.Instant;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import pe.plataformacontenidos.shared.api.Problems;
 import pe.plataformacontenidos.dashboard.DashboardService;
 import pe.plataformacontenidos.dashboard.DashboardSummary;
 import pe.plataformacontenidos.dashboard.InvalidDashboardRangeException;
@@ -40,11 +41,8 @@ public class DashboardController {
 
     /** 400 directo: el reenvío a /error lo convertiría en 403 (ver FeedExceptionHandler). */
     @ExceptionHandler({ InvalidDashboardRangeException.class, MethodArgumentTypeMismatchException.class })
-    public ResponseEntity<ApiError> invalidRange(RuntimeException ex) {
+    public ResponseEntity<ProblemDetail> invalidRange(RuntimeException ex) {
         String message = ex instanceof InvalidDashboardRangeException ? ex.getMessage() : "Período inválido.";
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, message));
-    }
-
-    public record ApiError(Instant timestamp, int status, String message) {
+        return Problems.of(HttpStatus.BAD_REQUEST, message);
     }
 }

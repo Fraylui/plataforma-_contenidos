@@ -8,24 +8,23 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.shared.api.Problems;
 
 /**
  * Un trabajador con sesión que pide una ruta exclusiva del dueño (OwnerOnlyPaths)
  * lo frena Spring Security antes de llegar al controlador, así que
  * AdminActionAuditInterceptor no lo ve. Aquí se registra (hallazgo menor del
- * 2a: auditar los rechazos de acceso) y se responde igual que antes (403).
+ * 2a: auditar los rechazos de acceso) y se responde 403 en formato RFC 9457 (Problems).
  */
 class AuditingAccessDeniedHandler implements AccessDeniedHandler {
 
     private final AuditService auditService;
     private final UserRepository userRepository;
-    private final AccessDeniedHandler delegate = new AccessDeniedHandlerImpl();
 
     AuditingAccessDeniedHandler(AuditService auditService, UserRepository userRepository) {
         this.auditService = auditService;
@@ -42,6 +41,6 @@ class AuditingAccessDeniedHandler implements AccessDeniedHandler {
                     email, "owner_only", null, request.getRemoteAddr(),
                     request.getMethod() + " " + request.getRequestURI());
         }
-        delegate.handle(request, response, ex);
+        Problems.write(request, response, HttpServletResponse.SC_FORBIDDEN, "ACCESS_DENIED", "No tienes permiso para esto.");
     }
 }

@@ -6,13 +6,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Set;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import pe.plataformacontenidos.identity.UserNotFoundException;
 import pe.plataformacontenidos.identity.permission.PermissionService;
 import pe.plataformacontenidos.identity.permission.Permissions;
+import pe.plataformacontenidos.shared.api.Problems;
 
 /**
  * Estado de la cuenta en cada petición autenticada (spec 2a §4.3), después
@@ -42,17 +42,17 @@ public class AccountStateFilter extends OncePerRequestFilter {
             try {
                 permissions = permissionService.forUser(principal.userId());
             } catch (UserNotFoundException e) {
-                reject(response, HttpServletResponse.SC_UNAUTHORIZED, "ACCOUNT_DISABLED", "Tu cuenta no está activa.");
+                reject(request, response, HttpServletResponse.SC_UNAUTHORIZED, "ACCOUNT_DISABLED", "Tu cuenta no está activa.");
                 return;
             }
             if (!permissions.active()) {
                 refreshTokenService.revokeAll(principal.userId());
-                reject(response, HttpServletResponse.SC_UNAUTHORIZED, "ACCOUNT_DISABLED", "Tu cuenta no está activa.");
+                reject(request, response, HttpServletResponse.SC_UNAUTHORIZED, "ACCOUNT_DISABLED", "Tu cuenta no está activa.");
                 return;
             }
             if (permissions.mustChangePassword()
                     && !ALLOWED_WITH_TEMPORARY_PASSWORD.contains(request.getMethod() + " " + request.getRequestURI())) {
-                reject(response, HttpServletResponse.SC_FORBIDDEN, "PASSWORD_CHANGE_REQUIRED",
+                reject(request, response, HttpServletResponse.SC_FORBIDDEN, "PASSWORD_CHANGE_REQUIRED",
                         "Cambia tu contraseña temporal para continuar.");
                 return;
             }
@@ -60,10 +60,8 @@ public class AccountStateFilter extends OncePerRequestFilter {
         chain.doFilter(request, response);
     }
 
-    private static void reject(HttpServletResponse response, int status, String code, String message) throws IOException {
-        response.setStatus(status);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding("UTF-8");
-        response.getWriter().write("{\"status\":" + status + ",\"code\":\"" + code + "\",\"message\":\"" + message + "\"}");
+    private static void reject(HttpServletRequest request, HttpServletResponse response, int status, String code,
+            String message) throws IOException {
+        Problems.write(request, response, status, code, message);
     }
 }
