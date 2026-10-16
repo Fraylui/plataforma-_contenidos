@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { type ReactNode, useEffect, useMemo, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   type ColumnDef,
@@ -11,9 +11,10 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { CaretDown, CaretLeft, CaretRight, CaretUp, CaretUpDown, MagnifyingGlass } from "@phosphor-icons/react";
+import { CaretDown, CaretLeft, CaretRight, CaretUp, CaretUpDown, ListBullets, MagnifyingGlass, SquaresFour } from "@phosphor-icons/react";
 import { Button, TextInput } from "@/components/ui";
 import { STATUS_FILTER_OPTIONS } from "@/lib/admin/list-params";
+import type { Table } from "@tanstack/react-table";
 
 /** Metadatos de la página que devolvió el backend (PageResponse). */
 export interface ServerPage {
@@ -39,7 +40,26 @@ interface DataTableProps<TData> {
    */
   getRowId?: (row: TData) => string;
   onSelectionChange?: (selected: TData[]) => void;
+  /**
+   * Vista en cuadrícula opcional (Galerías: lo que importa son las fotos).
+   * Se elige con «Lista / Cuadrícula» y queda en la URL (?vista); búsqueda,
+   * estado, orden, página y selección en lote funcionan igual en ambas.
+   */
+  grid?: {
+    renderItem: (item: TData, selection: GridSelection) => ReactNode;
+    /** Vista cuando la URL no dice nada. */
+    defaultView?: "grid" | "list";
+  };
 }
+
+/** Casilla de selección de una tarjeta de la cuadrícula. */
+export interface GridSelection {
+  selectable: boolean;
+  selected: boolean;
+  toggle: () => void;
+}
+
+const VIEW_PARAM = "vista";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -58,6 +78,7 @@ export function DataTable<TData>({
   emptyMessage = "Sin resultados.",
   getRowId,
   onSelectionChange,
+  grid,
 }: DataTableProps<TData>) {
   const router = useRouter();
   const pathname = usePathname();
@@ -69,6 +90,8 @@ export function DataTable<TData>({
   const urlQ = searchParams.get("q") ?? "";
   const urlStatus = searchParams.get("status") ?? "";
   const urlSort = searchParams.get("sort") ?? "";
+  const urlView = searchParams.get(VIEW_PARAM);
+  const view: "grid" | "list" = !grid ? "list" : urlView === "lista" ? "list" : urlView === "cuadricula" ? "grid" : (grid.defaultView ?? "list");
   const [search, setSearch] = useState(urlQ);
 
   function navigate(patch: Record<string, string | undefined>) {
@@ -77,8 +100,8 @@ export function DataTable<TData>({
       if (value) params.set(key, value);
       else params.delete(key);
     }
-    // Cambiar búsqueda, filtro u orden vuelve a la primera página.
-    if (!("page" in patch)) params.delete("page");
+    // Cambiar búsqueda, filtro u orden vuelve a la primera página (cambiar de vista no).
+    if (!("page" in patch) && !(VIEW_PARAM in patch)) params.delete("page");
     const query = params.toString();
     startTransition(() => router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false }));
   }
@@ -145,6 +168,8 @@ export function DataTable<TData>({
   return (
     <div>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        {/* La vista va junto al buscador: en el celular no ocupa una fila propia. */}
+        <div className="flex items-center gap-2">
         <TextInput
           type="search"
           name="tableSearch"
@@ -153,8 +178,31 @@ export function DataTable<TData>({
           onChange={(e) => setSearch(e.target.value)}
           placeholder={searchPlaceholder}
           leading={<MagnifyingGlass aria-hidden="true" />}
-          className="max-w-xs sm:max-w-sm"
+          className="min-w-0 flex-1 sm:max-w-sm"
         />
+        {grid && (
+          <div role="group" aria-label="Vista" className="flex shrink-0 rounded-full bg-field p-0.5">
+            {([
+              { value: "list", label: "Lista", icon: ListBullets },
+              { value: "grid", label: "Cuadrícula", icon: SquaresFour },
+            ] as const).map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={view === option.value}
+                aria-label={option.label}
+                title={option.label}
+                onClick={() => navigate({ [VIEW_PARAM]: option.value === "grid" ? "cuadricula" : "lista" })}
+                className={`flex size-9 items-center justify-center rounded-full transition-colors ${
+                  view === option.value ? "bg-surface text-foreground shadow-card" : "text-muted hover:text-foreground"
+                }`}
+              >
+                <option.icon className="size-4" aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        )}
+        </div>
         <div role="group" aria-label="Filtrar por estado" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 lg:pb-0">
           {[{ value: "", label: "Todos" }, ...STATUS_FILTER_OPTIONS].map((option) => {
             const active = urlStatus === option.value;
@@ -175,6 +223,18 @@ export function DataTable<TData>({
         </div>
       </div>
 
+      {view === "grid" && grid ? (
+        <GridView
+          table={table}
+          renderItem={grid.renderItem}
+          selectable={selectable}
+          emptyMessage={emptyMessage}
+          isPending={isPending}
+          sortOptions={columnsSortOptions(columns, sortKeys)}
+          sort={urlSort}
+          onSort={(value) => navigate({ sort: value || undefined })}
+        />
+      ) : (
       <div
         className={`mt-4 overflow-x-auto rounded-card bg-surface shadow-card transition-opacity ${isPending ? "opacity-60" : ""}`}
         aria-busy={isPending}
@@ -237,6 +297,7 @@ export function DataTable<TData>({
           </tbody>
         </table>
       </div>
+      )}
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-muted">
         <span>
@@ -308,4 +369,94 @@ function selectionColumn<TData>(): ColumnDef<TData, unknown> {
     ),
     enableSorting: false,
   };
+}
+
+/** Opciones de orden para la cuadrícula (que no tiene encabezados): las columnas ordenables, en ambos sentidos. */
+function columnsSortOptions<TData>(columns: ColumnDef<TData, unknown>[], sortKeys: Record<string, string>) {
+  return columns.flatMap((column) => {
+    const id = column.id ?? ("accessorKey" in column ? String(column.accessorKey) : "");
+    const key = sortKeys[id];
+    if (!key || typeof column.header !== "string") return [];
+    return [
+      { value: `${key},desc`, label: `${column.header} (descendente)` },
+      { value: `${key},asc`, label: `${column.header} (ascendente)` },
+    ];
+  });
+}
+
+function GridView<TData>({
+  table,
+  renderItem,
+  selectable,
+  emptyMessage,
+  isPending,
+  sortOptions,
+  sort,
+  onSort,
+}: {
+  table: Table<TData>;
+  renderItem: (item: TData, selection: GridSelection) => ReactNode;
+  selectable: boolean;
+  emptyMessage: string;
+  isPending: boolean;
+  sortOptions: { value: string; label: string }[];
+  sort: string;
+  onSort: (value: string) => void;
+}) {
+  const rows = table.getRowModel().rows;
+  return (
+    <div className={`mt-4 transition-opacity ${isPending ? "opacity-60" : ""}`} aria-busy={isPending}>
+      <div className="mb-3 flex items-center justify-between gap-3 text-sm">
+        {selectable && rows.length > 0 ? (
+          <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-muted">
+            <input
+              type="checkbox"
+              aria-label="Seleccionar todas las de esta página"
+              checked={table.getIsAllPageRowsSelected()}
+              ref={(el) => {
+                if (el) el.indeterminate = table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected();
+              }}
+              onChange={table.getToggleAllPageRowsSelectedHandler()}
+              className="size-4 cursor-pointer accent-[var(--accent-fill)]"
+            />
+            Seleccionar todas
+          </label>
+        ) : (
+          <span />
+        )}
+        {sortOptions.length > 0 && (
+          <label className="inline-flex items-center gap-2 text-muted">
+            <span className="sr-only sm:not-sr-only">Ordenar</span>
+            <select
+              value={sortOptions.some((option) => option.value === sort) ? sort : ""}
+              onChange={(e) => onSort(e.target.value)}
+              className="h-9 rounded-control border border-field-border bg-field px-3 text-sm text-foreground"
+            >
+              <option value="">Más recientes</option>
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+      </div>
+      {rows.length === 0 ? (
+        <p className="rounded-card bg-surface px-4 py-10 text-center text-sm text-muted shadow-card">{emptyMessage}</p>
+      ) : (
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
+          {rows.map((row) => (
+            <li key={row.id}>
+              {renderItem(row.original, {
+                selectable,
+                selected: row.getIsSelected(),
+                toggle: () => row.toggleSelected(),
+              })}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
