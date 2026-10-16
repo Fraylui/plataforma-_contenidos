@@ -74,7 +74,7 @@ public class WorkerService {
         worker.setTemporaryPassword(passwordHash);
         worker = userRepository.save(worker);
         UUID id = worker.getId();
-        permissions.forEach((module, level) -> permissionRepository.save(new WorkerPermission(id, module, level)));
+        permissionRepository.saveAll(grants(id, permissions));
         audit("WORKER_CREATED", worker, actor, describe(Map.of(), permissions));
         return new Created(worker, password);
     }
@@ -84,9 +84,8 @@ public class WorkerService {
         User worker = workerOrThrow(workerId);
         validate(permissions);
         Map<Module, AccessLevel> before = permissionService.forUser(workerId).levels();
-        permissionRepository.deleteByUserId(workerId);
-        permissionRepository.flush();
-        permissions.forEach((module, level) -> permissionRepository.save(new WorkerPermission(workerId, module, level)));
+        permissionRepository.deleteAllOfUser(workerId);
+        permissionRepository.saveAll(grants(workerId, permissions));
         audit("WORKER_PERMISSIONS_CHANGED", worker, actor, describe(before, permissions));
         return worker;
     }
@@ -143,6 +142,12 @@ public class WorkerService {
             throw new OwnerManagementDeniedException();
         }
         return user;
+    }
+
+    private static List<WorkerPermission> grants(UUID workerId, Map<Module, AccessLevel> permissions) {
+        return permissions.entrySet().stream()
+                .map(e -> new WorkerPermission(workerId, e.getKey(), e.getValue()))
+                .toList();
     }
 
     private static void validate(Map<Module, AccessLevel> permissions) {
