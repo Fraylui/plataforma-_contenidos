@@ -1,5 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { axe } from "vitest-axe";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { CalendarBlank, Phone } from "@phosphor-icons/react/dist/ssr";
 import { PostFacts } from "./post-facts";
@@ -23,6 +25,13 @@ describe("PostFacts — datos útiles del post", () => {
     expect(container.querySelector(".uppercase")).toBeNull();
     // iframes: false — el mapa es contenido de Google, jsdom no puede auditar marcos.
     expect(await axe(container, { iframes: false })).toHaveNoViolations();
+  });
+
+  it("el mapa usa un dominio que la CSP permite en frame-src (si no, el navegador lo bloquea)", () => {
+    render(<PostFacts facts={[]} map={{ latitude: -13.16, longitude: -74.22, title: "Mirador" }} />);
+    const src = new URL(screen.getByTitle("Mapa de Mirador").getAttribute("src") ?? "");
+    const frameSrc = readFileSync(join(process.cwd(), "next.config.ts"), "utf8").match(/"frame-src ([^"]+)"/)?.[1] ?? "";
+    expect(frameSrc.split(" ")).toContain(src.origin);
   });
 
   it("sin datos ni mapa no muestra nada", () => {

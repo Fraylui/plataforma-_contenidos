@@ -22,9 +22,10 @@ export default async function SeriesListPage({ searchParams }: PageProps<"/serie
 
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 py-6">
-      <header className="mb-6">
-        <h1 className="text-title font-bold text-foreground">Series</h1>
-        <p className="mt-1 text-sm text-muted">Programas en video y podcast. Elige uno y mira sus episodios.</p>
+      {/* La barra superior ya dice «Series» (como En vivo): el título queda para lectores de pantalla y buscadores. */}
+      <header className="mb-4">
+        <h1 className="sr-only">Series</h1>
+        <p className="text-sm text-muted">Programas en video y podcast. Elige uno y mira sus episodios.</p>
       </header>
 
       {result.items.length === 0 ? (

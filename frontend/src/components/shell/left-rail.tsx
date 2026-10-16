@@ -92,7 +92,10 @@ export function LeftRail({
 }) {
   const pathname = usePathname();
   const current = activeTab(pathname);
-  const visibleSections = SECTIONS.filter((s) => sections[s.href]);
+  // Una sección vacía no se muestra (sin huecos), salvo si estás en ella: así se ve dónde estás.
+  const visibleSections = SECTIONS.filter((s) => sections[s.href] || isActive(pathname, s.href));
+  // Fuera del feed (una sección, En vivo o una página de información), «Inicio» no se marca como la página actual.
+  const outsideFeed = [...SECTIONS, { href: "/en-vivo" }, ...MORE_LINKS].some((s) => isActive(pathname, s.href));
   const [showAllTopics, setShowAllTopics] = useState(false);
   const shownTopics = showAllTopics ? topics : topics.slice(0, VISIBLE_TOPICS);
   const year = new Date().getFullYear();
@@ -122,7 +125,7 @@ export function LeftRail({
       <div className="-mx-1 flex min-h-0 flex-1 flex-col px-1 no-scrollbar xl:overflow-y-auto">
         <nav aria-label="Principal" className="flex flex-col gap-1">
           {SHELL_NAV.map(({ tab, href, label, icon: NavIcon }) => {
-            const active = tab === current && !visibleSections.some((s) => isActive(pathname, s.href));
+            const active = tab === current && !outsideFeed;
             const className = cn(ITEM, active ? "bg-canvas font-bold text-foreground" : "font-medium text-foreground/80 hover:text-foreground");
             const icon = <NavIcon className={cn(ITEM_ICON, "h-[26px] w-[26px]")} weight={active ? "fill" : "regular"} aria-hidden="true" />;
             if (tab === "buscar") {

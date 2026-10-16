@@ -66,7 +66,7 @@ export function PostFacts({
       {map && (
         <div className="aspect-video w-full overflow-hidden rounded-2xl bg-canvas-strong">
           <iframe
-            src={`https://maps.google.com/maps?q=${map.latitude},${map.longitude}&z=15&output=embed`}
+            src={`https://www.google.com/maps?q=${map.latitude},${map.longitude}&z=15&output=embed`}
             title={`Mapa de ${map.title}`}
             className="h-full w-full"
             loading="lazy"
