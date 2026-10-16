@@ -33,10 +33,12 @@ export function SegmentedControl<T extends string | null>({
       {options.map((option) => {
         const checked = value === option.value;
         return (
+          // relative: el radio sr-only (absolute) queda dentro de su etiqueta; sin eso se ubica fuera del área con scroll
+          // del panel y al elegir una opción el navegador desplaza toda la página para mostrarlo.
           <label
             key={option.label}
             className={cn(
-              "flex min-h-9 flex-1 cursor-pointer items-center justify-center rounded-full px-4 text-sm font-semibold transition-colors has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring sm:flex-none",
+              "relative flex min-h-9 flex-1 cursor-pointer items-center justify-center rounded-full px-4 text-sm font-semibold transition-colors has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring sm:flex-none",
               checked ? "bg-surface text-foreground shadow-card" : "text-muted hover:text-foreground",
             )}
           >

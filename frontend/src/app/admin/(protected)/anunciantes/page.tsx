@@ -25,7 +25,7 @@ export default async function AdminAdvertisersPage() {
     <div>
       <AdminPageHeader
         title="Anunciantes"
-        description="Empresas/negocios locales que compran publicidad directa (banner), a diferencia de AdSense."
+        description="Negocios que compran publicidad directa (banner o anuncio nativo en el feed), aparte de AdSense."
         action={{ href: "/admin/anunciantes/nuevo", label: "Nuevo anunciante" }}
       />
 
