@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { getAdvertiser, listCampaigns } from "@/lib/api/admin-client";
+import { getAdvertiser, listAdminImages, listCampaigns } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdvertiserForm } from "@/components/admin/advertiser-form";
@@ -20,17 +20,17 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
   const { accessToken } = await requireAdminUser();
   const result = await fetchOrAccessDenied(async () => {
     const advertiser = await getAdvertiser(accessToken, id);
-    const campaigns = await listCampaigns(accessToken, id);
-    return { advertiser, campaigns };
+    const [campaigns, images] = await Promise.all([listCampaigns(accessToken, id), listAdminImages(accessToken)]);
+    return { advertiser, campaigns, images };
   });
   if ("denied" in result) return <AccessDenied />;
-  const { advertiser, campaigns } = result.data;
+  const { advertiser, campaigns, images } = result.data;
 
   return (
     <div className="space-y-6">
       <AdminPageHeader title={advertiser.name} action={{ href: `/admin/anunciantes/${id}/campanas/nueva`, label: "Nueva campaña" }} />
 
-      <AdvertiserForm mode="edit" advertiser={advertiser} />
+      <AdvertiserForm mode="edit" advertiser={advertiser} allImages={images} />
 
       <section>
         <h2 className="text-lg font-semibold text-foreground">Campañas</h2>
@@ -41,7 +41,7 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="border-b border-border">
                 <tr>
-                  <th className="px-4 py-3 font-medium text-muted">Posición</th>
+                  <th className="px-4 py-3 font-medium text-muted">Formato</th>
                   <th className="px-4 py-3 font-medium text-muted">Vigencia</th>
                   <th className="px-4 py-3 font-medium text-muted">Estado</th>
                   <th className="px-4 py-3 font-medium text-muted">Cobrado</th>
@@ -58,7 +58,7 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
                         href={`/admin/anunciantes/${id}/campanas/${campaign.id}`}
                         className="font-medium text-foreground hover:text-accent hover:underline"
                       >
-                        <code className="text-xs">{campaign.placementKey}</code>
+                        {campaign.format === "NATIVE" ? "Post en el feed" : <code className="text-xs">{campaign.placementKey}</code>}
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-xs text-muted">

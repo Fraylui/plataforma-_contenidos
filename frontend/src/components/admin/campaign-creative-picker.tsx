@@ -25,11 +25,21 @@ export function CampaignCreativePicker({
   value,
   onChange,
   disabled,
+  allowExternal = true,
+  showAlt = true,
+  previewClassName = "aspect-[3/1] w-full max-w-sm",
+  onImagesChange,
 }: {
   allImages: AdminImage[];
   value: CampaignCreativeValue;
   onChange: (value: CampaignCreativeValue) => void;
   disabled?: boolean;
+  /** false: solo subidas (el backend necesita medirla — anuncio nativo, logo). */
+  allowExternal?: boolean;
+  showAlt?: boolean;
+  previewClassName?: string;
+  /** Avisa cuando se sube una imagen nueva (quien la usa puede necesitar su medida). */
+  onImagesChange?: (images: AdminImage[]) => void;
 }) {
   const [images, setImages] = useState(allImages);
   const [externalUrlDraft, setExternalUrlDraft] = useState(value.externalImageUrl ?? "");
@@ -40,7 +50,9 @@ export function CampaignCreativePicker({
   }
 
   function handleUploaded(image: AdminImage) {
-    setImages((prev) => [image, ...prev]);
+    const next = [image, ...images];
+    setImages(next);
+    onImagesChange?.(next);
     setExternalUrlDraft("");
     onChange({ imageId: image.id, externalImageUrl: null, imageAlt: value.imageAlt });
   }
@@ -63,7 +75,7 @@ export function CampaignCreativePicker({
   return (
     <div className="mt-1 space-y-3">
       {previewSrc && (
-        <div className="relative aspect-[3/1] w-full max-w-sm overflow-hidden rounded-md border border-border">
+        <div className={`relative overflow-hidden rounded-md border border-border ${previewClassName}`}>
           {/* eslint-disable-next-line @next/next/no-img-element -- previsualización, host puede ser externo */}
           <img src={previewSrc} alt="" className="h-full w-full object-cover" />
           <button
@@ -78,6 +90,7 @@ export function CampaignCreativePicker({
         </div>
       )}
 
+      {allowExternal && (
       <div className="flex items-end gap-2">
         <div className="flex-1">
           <label className="mb-1 block text-xs font-medium text-muted" htmlFor="campaign-creative-external-url">
@@ -102,6 +115,7 @@ export function CampaignCreativePicker({
           Usar
         </button>
       </div>
+      )}
 
       <InlineImageUpload disabled={disabled} onUploaded={handleUploaded} compact />
 
@@ -132,6 +146,7 @@ export function CampaignCreativePicker({
         </div>
       )}
 
+      {showAlt && (
       <div>
         <label className="mb-1 block text-xs font-medium text-muted" htmlFor="campaign-creative-alt">
           Texto alternativo (accesibilidad)
@@ -144,6 +159,7 @@ export function CampaignCreativePicker({
           onChange={(e) => onChange({ ...value, imageAlt: e.target.value || null })}
         />
       </div>
+      )}
     </div>
   );
 }

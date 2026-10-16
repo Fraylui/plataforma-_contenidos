@@ -1,9 +1,8 @@
 "use client";
 
-import { useId } from "react";
 import type { AccessLevel, Module, ModulePermissions } from "@/lib/api/admin-types";
 import { ACCESS_MODULES, CONTENT_MODULES, MODULE_LABELS } from "@/lib/admin/worker-templates";
-import { cn } from "@/lib/utils";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 
 type Choice = { value: AccessLevel | null; label: string };
 
@@ -28,35 +27,10 @@ function Row({
   value: AccessLevel | undefined;
   onPick: (v: AccessLevel | null) => void;
 }) {
-  const name = useId();
   return (
     <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
       <span className="text-[15px] font-semibold text-foreground">{MODULE_LABELS[module]}</span>
-      {/* Control segmentado con radios nativos: flechas del teclado y lector de pantalla sin código extra. */}
-      <div role="radiogroup" aria-label={MODULE_LABELS[module]} className="inline-flex w-full rounded-full bg-canvas-strong p-1 sm:w-auto">
-        {choices.map((choice) => {
-          const checked = (value ?? null) === choice.value;
-          return (
-            <label
-              key={choice.label}
-              className={cn(
-                "flex min-h-9 flex-1 cursor-pointer items-center justify-center rounded-full px-4 text-sm font-semibold transition-colors has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring sm:flex-none",
-                checked ? "bg-surface text-foreground shadow-card" : "text-muted hover:text-foreground",
-              )}
-            >
-              <input
-                type="radio"
-                name={name}
-                aria-label={choice.label}
-                checked={checked}
-                onChange={() => onPick(choice.value)}
-                className="sr-only"
-              />
-              <span aria-hidden="true">{choice.label}</span>
-            </label>
-          );
-        })}
-      </div>
+      <SegmentedControl label={MODULE_LABELS[module]} options={choices} value={value ?? null} onChange={onPick} />
     </div>
   );
 }

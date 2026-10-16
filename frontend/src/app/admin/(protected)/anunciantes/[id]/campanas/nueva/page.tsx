@@ -31,6 +31,8 @@ export default async function NewCampaignPage({ params }: { params: Promise<{ id
         <CampaignForm
           mode="create"
           advertiserId={id}
+          advertiserName={advertiser.name}
+          advertiserLogoImageId={advertiser.logoImageId}
           placements={placements}
           categories={categories}
           allImages={images}

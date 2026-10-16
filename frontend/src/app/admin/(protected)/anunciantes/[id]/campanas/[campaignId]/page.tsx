@@ -48,6 +48,8 @@ export default async function EditCampaignPage({
         <CampaignForm
           mode="edit"
           advertiserId={id}
+          advertiserName={advertiser.name}
+          advertiserLogoImageId={advertiser.logoImageId}
           campaign={campaign}
           placements={placements}
           categories={categories}

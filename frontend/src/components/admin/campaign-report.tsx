@@ -1,6 +1,6 @@
-import { Eye, CursorClick, Percent } from "@phosphor-icons/react/dist/ssr";
+import { Eye, CursorClick, Percent, PlayCircle } from "@phosphor-icons/react/dist/ssr";
 import type { Campaign, CampaignDailyStat } from "@/lib/api/admin-types";
-import { ctr, fillDays } from "@/lib/ads/campaign-report";
+import { ctr, fillDays, playRate } from "@/lib/ads/campaign-report";
 import { StatCard } from "@/components/admin/ui";
 import { CampaignStatsChart } from "@/components/admin/campaign-stats-chart";
 import { Card } from "@/components/ui";
@@ -12,10 +12,12 @@ const DATE = new Intl.DateTimeFormat("es-PE", { day: "numeric", month: "short", 
  * Reporte para el anunciante: lo que justifica cobrarle. Impresiones
  * VISIBLES (50 % del anuncio en pantalla durante 1 s, estándar MRC) y
  * clics válidos (sin robots ni repeticiones) — no "veces que se pidió".
+ * Con video (anuncio nativo): reproducciones y tasa de reproducción.
  */
 export function CampaignReport({ campaign, stats }: { campaign: Campaign; stats: CampaignDailyStat[] }) {
   const days = fillDays(stats, REPORT_DAYS);
-  const recent = days.filter((d) => d.impressions > 0 || d.clicks > 0).reverse();
+  const hasVideo = Boolean(campaign.youtubeVideoId);
+  const recent = days.filter((d) => d.impressions > 0 || d.clicks > 0 || d.plays > 0).reverse();
 
   return (
     <Card title="Rendimiento">
@@ -28,6 +30,17 @@ export function CampaignReport({ campaign, stats }: { campaign: Campaign; stats:
           icon={Percent}
           hint="Clics ÷ impresiones (CTR)"
         />
+        {hasVideo && (
+          <>
+            <StatCard label="Reproducciones" value={campaign.playCount} icon={PlayCircle} hint="Personas que tocaron play" />
+            <StatCard
+              label="Tasa de reproducción"
+              value={playRate(campaign.playCount, campaign.impressionCount)}
+              icon={Percent}
+              hint="Reproducciones ÷ impresiones"
+            />
+          </>
+        )}
       </div>
 
       <div>
@@ -48,6 +61,7 @@ export function CampaignReport({ campaign, stats }: { campaign: Campaign; stats:
                     <th className="py-1.5 text-right font-medium">Impresiones</th>
                     <th className="py-1.5 text-right font-medium">Clics</th>
                     <th className="py-1.5 text-right font-medium">% de clics</th>
+                    {hasVideo && <th className="py-1.5 text-right font-medium">Reproducciones</th>}
                   </tr>
                 </thead>
                 <tbody className="tabular-nums">
@@ -57,6 +71,7 @@ export function CampaignReport({ campaign, stats }: { campaign: Campaign; stats:
                       <td className="py-1.5 text-right">{d.impressions}</td>
                       <td className="py-1.5 text-right">{d.clicks}</td>
                       <td className="py-1.5 text-right">{ctr(d.clicks, d.impressions)}</td>
+                      {hasVideo && <td className="py-1.5 text-right">{d.plays}</td>}
                     </tr>
                   ))}
                 </tbody>

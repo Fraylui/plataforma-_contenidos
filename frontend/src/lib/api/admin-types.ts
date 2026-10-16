@@ -2,6 +2,7 @@ import type { AdSection } from "@/lib/ads/ad-context";
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
 import type { PublicationStatus, ArticleType, BusinessType, ContentImage, FeedItemType } from "./types";
+import type { CallToAction, CampaignFormat, NativeMediaAspect } from "./types";
 
 /** Cuerpo de un video en ArticleInput/PlaceInput/EventInput — ver ContentVideoInput.java. */
 export interface ContentVideoInput {
@@ -223,6 +224,8 @@ export interface Advertiser {
   name: string;
   contactEmail: string | null;
   contactPhone: string | null;
+  /** Logo de sus anuncios nativos (imagen de la biblioteca); null = iniciales. */
+  logoImageId: string | null;
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/advertisers — ver AdvertiserRequest.java. */
@@ -230,13 +233,15 @@ export interface AdvertiserInput {
   name: string;
   contactEmail: string | null;
   contactPhone: string | null;
+  logoImageId: string | null;
 }
 
 /** Ver CampaignResponse.java. La creatividad es XOR: imageId o externalImageUrl, nunca ambas. */
-export interface Campaign {
+export interface Campaign extends NativeAdInputFields {
   id: string;
   advertiserId: string;
   placementKey: string;
+  format: CampaignFormat;
   imageId: string | null;
   externalImageUrl: string | null;
   imageAlt: string | null;
@@ -246,6 +251,10 @@ export interface Campaign {
   active: boolean;
   impressionCount: number;
   clickCount: number;
+  /** Reproducciones del video (solo anuncio nativo con video). */
+  playCount: number;
+  youtubeVideoId: string | null;
+  mediaAspect: NativeMediaAspect | null;
   amount: number | null;
   currency: string | null;
   /** 1–10: cuánto más seguido sale frente a otras campañas de la misma posición. */
@@ -261,12 +270,24 @@ export interface CampaignDailyStat {
   day: string;
   impressions: number;
   clicks: number;
+  plays: number;
+}
+
+/** Lo propio del anuncio nativo (null en un banner) — ver CampaignRequest.java. */
+export interface NativeAdInputFields {
+  primaryText: string | null;
+  headline: string | null;
+  callToAction: CallToAction | null;
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/campaigns — ver CampaignRequest.java. */
-export interface CampaignInput {
+export interface CampaignInput extends NativeAdInputFields {
   advertiserId: string;
-  placementKey: string;
+  /** null en el anuncio nativo: siempre va en el feed. */
+  placementKey: string | null;
+  format: CampaignFormat;
+  /** Solo anuncio nativo con video: el link de YouTube. */
+  videoUrl: string | null;
   imageId: string | null;
   externalImageUrl: string | null;
   imageAlt: string | null;

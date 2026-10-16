@@ -32,14 +32,20 @@ const TEXT_PREVIEW_CHARS = 125;
  * propio. Todo clic pasa por /ads/campaigns/{id}/click (contado; el link real
  * nunca está en el HTML).
  */
-export function NativeAdPost({ campaign }: { campaign: ResolvedCampaign }) {
+export function NativeAdPost({ campaign, preview = false }: {
+  campaign: ResolvedCampaign;
+  /** Vista previa del panel: no cuenta impresiones ni reproducciones, los enlaces no navegan y no hay menú. */
+  preview?: boolean;
+}) {
   const ref = useRef<HTMLElement>(null);
   useViewableImpression(ref, campaign.id);
+  const linkProps = preview
+    ? { href: "#", onClick: (e: React.MouseEvent) => e.preventDefault(), "aria-disabled": true }
+    : { href: imageUrl(`/api/v1/ads/campaigns/${campaign.id}/click`), target: "_blank", rel: "noopener noreferrer sponsored" };
   const [hidden, setHidden] = useState(false);
   const [whyOpen, setWhyOpen] = useState(false);
 
   const name = campaign.advertiserName ?? "Anunciante";
-  const clickHref = imageUrl(`/api/v1/ads/campaigns/${campaign.id}/click`);
   const cta = callToActionLabel(campaign.callToAction ?? "LEARN_MORE");
   const aspectRatio = NATIVE_ASPECT_RATIO[campaign.mediaAspect ?? "1:1"] ?? "1 / 1";
 
@@ -63,16 +69,17 @@ export function NativeAdPost({ campaign }: { campaign: ResolvedCampaign }) {
 
   return (
     <article
-      ref={ref}
+      ref={preview ? undefined : ref}
       aria-label={`Patrocinado: ${name}`}
       className="no-auto-ads overflow-hidden border-b border-border/70 bg-surface sm:rounded-2xl sm:border sm:shadow-[0_1px_2px_rgb(0_0_0_/_0.04)]"
     >
       <header className="flex items-center gap-3 py-3 pr-2 pl-4">
-        <AdvertiserAvatar name={name} logoSrc={campaign.advertiserLogoSrc} />
+        <AdvertiserAvatar name={name} logoSrc={campaign.advertiserLogoSrc} plain={preview} />
         <div className="min-w-0 flex-1 leading-tight">
           <p className="truncate text-sm font-bold text-foreground">{name}</p>
           <p className="text-xs text-muted">Patrocinado</p>
         </div>
+        {!preview && (
         <DropdownMenu>
           <DropdownMenuTrigger
             aria-label="Opciones del anuncio"
@@ -96,14 +103,18 @@ export function NativeAdPost({ campaign }: { campaign: ResolvedCampaign }) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        )}
       </header>
 
       <div className="relative w-full overflow-hidden bg-canvas" style={{ aspectRatio }}>
         {campaign.youtubeVideoId ? (
-          <AdVideo campaignId={campaign.id} videoId={campaign.youtubeVideoId} title={campaign.headline ?? name} />
+          <AdVideo campaignId={campaign.id} videoId={campaign.youtubeVideoId} title={campaign.headline ?? name} count={!preview} />
         ) : (
-          <a href={clickHref} target="_blank" rel="noopener noreferrer sponsored" className="absolute inset-0 block">
-            {campaign.imageSrc ? (
+          <a {...linkProps} className="absolute inset-0 block">
+            {campaign.imageSrc && preview ? (
+              // eslint-disable-next-line @next/next/no-img-element -- vista previa del panel (host propio, sin optimizar)
+              <img src={campaign.imageSrc} alt={campaign.imageAlt ?? name} className="absolute inset-0 h-full w-full object-cover" />
+            ) : campaign.imageSrc ? (
               <SkeletonImage src={campaign.imageSrc} alt={campaign.imageAlt ?? name} className="object-cover" sizes="(min-width: 640px) 600px, 100vw" />
             ) : null}
           </a>
@@ -111,9 +122,7 @@ export function NativeAdPost({ campaign }: { campaign: ResolvedCampaign }) {
       </div>
 
       <a
-        href={clickHref}
-        target="_blank"
-        rel="noopener noreferrer sponsored"
+        {...linkProps}
         className="flex items-center gap-3 border-b border-border/70 px-4 py-2.5 transition-colors hover:bg-canvas"
       >
         <span className="min-w-0 flex-1 leading-tight">
@@ -142,11 +151,16 @@ export function NativeAdPost({ campaign }: { campaign: ResolvedCampaign }) {
   );
 }
 
-function AdvertiserAvatar({ name, logoSrc }: { name: string; logoSrc: string | null }) {
+function AdvertiserAvatar({ name, logoSrc, plain }: { name: string; logoSrc: string | null; plain: boolean }) {
   if (logoSrc) {
     return (
       <span className="relative size-9 shrink-0 overflow-hidden rounded-full bg-canvas ring-1 ring-border">
-        <SkeletonImage src={logoSrc} alt="" className="object-cover" sizes="36px" />
+        {plain ? (
+          // eslint-disable-next-line @next/next/no-img-element -- vista previa del panel
+          <img src={logoSrc} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <SkeletonImage src={logoSrc} alt="" className="object-cover" sizes="36px" />
+        )}
       </span>
     );
   }
@@ -158,7 +172,7 @@ function AdvertiserAvatar({ name, logoSrc }: { name: string; logoSrc: string | n
 }
 
 /** Miniatura de YouTube con play; el iframe (y sus scripts) solo se cargan al tocar. */
-function AdVideo({ campaignId, videoId, title }: { campaignId: string; videoId: string; title: string }) {
+function AdVideo({ campaignId, videoId, title, count }: { campaignId: string; videoId: string; title: string; count: boolean }) {
   const [playing, setPlaying] = useState(false);
 
   if (playing) {
@@ -178,7 +192,7 @@ function AdVideo({ campaignId, videoId, title }: { campaignId: string; videoId: 
       type="button"
       onClick={() => {
         setPlaying(true);
-        void fetch(`/api/ads/play?id=${campaignId}`, { method: "POST", keepalive: true }).catch(() => undefined);
+        if (count) void fetch(`/api/ads/play?id=${campaignId}`, { method: "POST", keepalive: true }).catch(() => undefined);
       }}
       aria-label={`Reproducir video: ${title}`}
       className="group absolute inset-0 flex cursor-pointer items-center justify-center bg-black"
