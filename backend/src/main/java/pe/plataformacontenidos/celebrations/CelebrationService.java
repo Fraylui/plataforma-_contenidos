@@ -152,7 +152,7 @@ public class CelebrationService {
     /** Página del listado del panel (ver AdminListQuery). */
     public Page<Celebration> listForAdmin(AdminListQuery query) {
         return celebrationRepository.findAll(query.specification("title"),
-                query.pageable("title", "startsAt"));
+                query.pageable("title", "nextOccurrence"));
     }
 
     public Celebration getPublishedBySlug(String slug) {
@@ -196,16 +196,23 @@ public class CelebrationService {
     }
 
     /**
-     * Pasa al año siguiente las fechas anuales cuyo día ya pasó (lo llama la
-     * tarea diaria, ver CelebrationScheduledPublishJob). Devuelve cuántas movió.
+     * Recalcula la próxima vez que toca cada fecha anual (lo llama la tarea
+     * diaria y el arranque, ver CelebrationScheduledPublishJob): pasa al año
+     * siguiente las que ya pasaron y corrige las calculadas con una regla
+     * vieja. Son pocas, así que se revisan todas. Devuelve cuántas cambiaron.
      */
     public int refreshYearlyOccurrences() {
         LocalDate today = today();
-        List<Celebration> stale = celebrationRepository.findByRecursYearlyTrueAndNextOccurrenceBefore(
-                NextOccurrence.startOfDay(today, siteZone));
-        stale.forEach(celebration -> celebration.refreshNextOccurrence(siteZone, today));
-        celebrationRepository.saveAll(stale);
-        return stale.size();
+        List<Celebration> changed = new ArrayList<>();
+        for (Celebration celebration : celebrationRepository.findByRecursYearlyTrue()) {
+            Instant before = celebration.getNextOccurrence();
+            celebration.refreshNextOccurrence(siteZone, today);
+            if (!celebration.getNextOccurrence().equals(before)) {
+                changed.add(celebration);
+            }
+        }
+        celebrationRepository.saveAll(changed);
+        return changed.size();
     }
 
     private LocalDate today() {

@@ -28,6 +28,25 @@ class NextOccurrenceTest {
                 .isEqualTo(lima(2026, 12, 9, 0, 0));
     }
 
+    /**
+     * Antes de 1908 Lima usaba la hora solar local (−5:08): leída con esa
+     * regla, la medianoche (−5) del 9 de diciembre de 1824 cae el 8 a las
+     * 11:51 p. m. y la Batalla de Ayacucho saldría un día antes. En una
+     * fecha que se repite solo importan el día y la hora, no el año.
+     */
+    @Test
+    void oldOriginYearsKeepTheirDayDespiteHistoricLocalMeanTime() {
+        Instant ayacucho1824 = Instant.parse("1824-12-09T05:00:00Z");
+        assertThat(NextOccurrence.of(ayacucho1824, true, true, LIMA, LocalDate.of(2026, 10, 16)))
+                .isEqualTo(lima(2026, 12, 9, 0, 0));
+        Instant independence1821 = Instant.parse("1821-07-28T05:00:00Z");
+        assertThat(NextOccurrence.of(independence1821, true, true, LIMA, LocalDate.of(2026, 10, 16)))
+                .isEqualTo(lima(2027, 7, 28, 0, 0));
+        // Lo que manda el panel para 1821 (medianoche con la hora solar, 05:08 UTC) también.
+        assertThat(NextOccurrence.of(Instant.parse("1821-07-28T05:08:00Z"), true, true, LIMA, LocalDate.of(2026, 10, 16)))
+                .isEqualTo(lima(2027, 7, 28, 0, 0));
+    }
+
     @Test
     void onTheDayItselfItIsStillTodayNotNextYear() {
         Instant next = NextOccurrence.of(lima(1821, 7, 28, 0, 0), true, true, LIMA, LocalDate.of(2026, 7, 28));

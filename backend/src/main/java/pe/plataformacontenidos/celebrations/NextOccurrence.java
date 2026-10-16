@@ -2,8 +2,10 @@ package pe.plataformacontenidos.celebrations;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.MonthDay;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 /**
@@ -23,7 +25,7 @@ public final class NextOccurrence {
         if (!recursYearly) {
             return startsAt;
         }
-        ZonedDateTime original = startsAt.atZone(zone);
+        LocalDateTime original = localDateTime(startsAt, zone);
         MonthDay monthDay = MonthDay.from(original);
         LocalDate candidate = monthDay.atYear(today.getYear());
         if (candidate.isBefore(today)) {
@@ -33,6 +35,18 @@ public final class NextOccurrence {
                 ? candidate.atStartOfDay(zone)
                 : candidate.atTime(original.toLocalTime()).atZone(zone);
         return next.toInstant();
+    }
+
+    /**
+     * Día y hora de una fecha que se repite, sin depender de su año de origen.
+     * Antes de la hora estándar (Lima: 1908) las zonas usan la hora solar
+     * local (−5:08 en Lima) y la medianoche (−5) del 9 de diciembre de 1824
+     * caería el 8 a las 11:51 p. m. Se lee con el desfase que la zona usa en
+     * esa misma época del año en un año moderno (respeta el horario de verano).
+     */
+    static LocalDateTime localDateTime(Instant startsAt, ZoneId zone) {
+        Instant sameTimeOfYear = startsAt.atOffset(ZoneOffset.UTC).withYear(2000).toInstant();
+        return LocalDateTime.ofInstant(startsAt, zone.getRules().getOffset(sameTimeOfYear));
     }
 
     public static Instant startOfDay(LocalDate day, ZoneId zone) {

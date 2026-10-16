@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "vitest-axe";
 import { describe, expect, it, vi } from "vitest";
-import type { Category } from "@/lib/api/types";
+import type { Category, Celebration } from "@/lib/api/types";
 import type { PublicationPermissions } from "@/lib/admin/publication";
 import { PlaceComposer } from "./place-composer";
 import { GalleryComposer } from "./gallery-composer";
@@ -146,6 +146,20 @@ describe("Compositor de Celebraciones", () => {
     await saveDraft();
     expect(screen.getByLabelText("Termina (opcional)")).toHaveAccessibleDescription(/Termina antes de empezar/);
     expect(createCelebrationAction).not.toHaveBeenCalled();
+  });
+
+  it("al editar una fecha anual de 1824 carga su día real, no el anterior (hora solar de Lima antes de 1908)", () => {
+    const ayacucho = {
+      id: "c-1", slug: "batalla-de-ayacucho", title: "Batalla de Ayacucho", excerpt: null, body: "<p>Texto.</p>",
+      status: "PUBLISHED", authorId: "a", categoryId: "cat-1", placeId: null, venueName: null,
+      startsAt: "1824-12-09T05:00:00Z", endsAt: null, recursYearly: true, allDay: true, sinceYear: 1824,
+      scopeCountry: "PE", scopeRegion: null, nextOccurrenceAt: "2026-12-09T05:00:00Z", images: [], videos: [],
+      seoTitle: null, metaDescription: null, canonicalUrl: null, ogImageUrl: null, robots: "index,follow",
+      publishedAt: null, scheduledAt: null, createdAt: "2026-10-15T00:00:00Z", likeCount: 0,
+    } as Celebration;
+    render(<CelebrationComposer {...common} places={[]} homeCountry="PE" celebration={ayacucho} />);
+    expect(screen.getByLabelText(/^Fecha/)).toHaveValue("2026-12-09");
+    expect(screen.getAllByText("9 de diciembre · desde 1824").length).toBeGreaterThan(0);
   });
 
   it("recuerda la regla: si hubo pago o canje es un anuncio, no una fecha", () => {

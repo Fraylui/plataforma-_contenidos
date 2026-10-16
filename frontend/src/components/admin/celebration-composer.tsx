@@ -86,6 +86,10 @@ function toInput(values: Values): CelebrationInput {
   };
 }
 
+function dateToEdit(celebration: Celebration): string {
+  return celebration.recursYearly ? celebration.nextOccurrenceAt : celebration.startsAt;
+}
+
 function scopeKindOf(celebration: Celebration | undefined): ScopeKind {
   if (!celebration) return "COUNTRY";
   if (celebration.scopeRegion) return "REGION";
@@ -122,7 +126,9 @@ export function CelebrationComposer({ categories, places, allImages, celebration
       recursYearly: celebration?.recursYearly ?? true,
       allDay: celebration?.allDay ?? true,
       sinceYear: celebration?.sinceYear ? String(celebration.sinceYear) : "",
-      startsAt: celebration?.allDay ? siteDateString(celebration.startsAt) : toDateTimeLocal(celebration?.startsAt),
+      // En las que se repiten se carga la próxima vez que tocan: el año de origen no importa (y antes de 1908 Lima
+      // usaba la hora solar, que corría la medianoche al día anterior).
+      startsAt: celebration?.allDay ? siteDateString(dateToEdit(celebration)) : toDateTimeLocal(celebration && dateToEdit(celebration)),
       endsAt: toDateTimeLocal(celebration?.endsAt),
       placeId: celebration?.placeId ?? "",
       venueName: celebration?.venueName ?? "",

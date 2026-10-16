@@ -56,7 +56,7 @@ public interface CelebrationRepository extends JpaRepository<Celebration, UUID>,
             @Param("to") Instant to);
 
     /** Fechas anuales cuyo día ya pasó: la tarea diaria las mueve al año siguiente. */
-    List<Celebration> findByRecursYearlyTrueAndNextOccurrenceBefore(Instant threshold);
+    List<Celebration> findByRecursYearlyTrue();
 
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre eventos

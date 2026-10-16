@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import pe.plataformacontenidos.audit.AuditResult;
@@ -12,8 +14,8 @@ import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
 /**
  * Publica las fechas SCHEDULED cuya hora ya pasó (cada minuto, igual que
- * PlaceScheduledPublishJob) y, a las 00:01 de Lima, pasa al año siguiente
- * las fechas anuales cuyo día terminó.
+ * PlaceScheduledPublishJob) y, a las 00:01 de Lima y al arrancar, recalcula
+ * cuándo toca cada fecha anual (las que terminaron pasan al año siguiente).
  */
 @Component
 public class CelebrationScheduledPublishJob {
@@ -32,10 +34,11 @@ public class CelebrationScheduledPublishJob {
     }
 
     @Scheduled(cron = "0 1 0 * * *", zone = "${site.time-zone:America/Lima}")
+    @EventListener(ApplicationReadyEvent.class)
     public void refreshYearlyDates() {
-        int moved = celebrationService.refreshYearlyOccurrences();
-        if (moved > 0) {
-            log.info("Celebraciones: {} fechas anuales pasaron al año siguiente", moved);
+        int changed = celebrationService.refreshYearlyOccurrences();
+        if (changed > 0) {
+            log.info("Celebraciones: {} fechas anuales recalculadas", changed);
         }
     }
 
