@@ -15,7 +15,7 @@ import {
 import { requireAdminUser } from "@/lib/admin/auth";
 import { getAdminDashboard, listAdminAuditLog } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
-import { roleLabel } from "@/lib/admin/role-labels";
+import { accountLabel } from "@/lib/admin/role-labels";
 import { visibleNavItems } from "@/lib/admin/nav";
 import { CONTENT_TYPE_INFO, DASHBOARD_RANGES, kpiChange, parseDashboardRange } from "@/lib/admin/dashboard";
 import { ctr } from "@/lib/ads/campaign-report";
@@ -62,7 +62,7 @@ export default async function AdminDashboardPage(props: PageProps<"/admin">) {
         <div>
           <h1 className="text-title font-bold text-foreground">Hola, {user.firstName}</h1>
           <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
-            <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent">{roleLabel(user.role)}</span>
+            <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent">{accountLabel(user)}</span>
             <span>
               {new Intl.DateTimeFormat("es-PE", { timeZone: SITE_TIME_ZONE, weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date())}
             </span>

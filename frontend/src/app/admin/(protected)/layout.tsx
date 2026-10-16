@@ -2,7 +2,7 @@ import { requireAdminUser } from "@/lib/admin/auth";
 import { cookies } from "next/headers";
 import { ADMIN_NAV_GROUP_LABELS, createItems, groupedNavItems, visibleNavItems } from "@/lib/admin/nav";
 import { getPlatformSettings } from "@/lib/api/client";
-import { roleLabel } from "@/lib/admin/role-labels";
+import { accountLabel } from "@/lib/admin/role-labels";
 import { logoutAction } from "./actions";
 import { AdminShell } from "@/components/admin/shell/admin-shell";
 import { SIDEBAR_COOKIE } from "@/components/admin/shell/constants";
@@ -51,7 +51,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
       navItems={visibleNavItems(user).map((item) => ({ href: item.href, label: item.label }))}
       createItems={createItems(user)}
       sidebarCollapsed={cookieStore.get(SIDEBAR_COOKIE)?.value === "collapsed"}
-      account={{ firstName: user.firstName, lastName: user.lastName, email: user.email, roleLabel: roleLabel(user.role) }}
+      account={{ firstName: user.firstName, lastName: user.lastName, email: user.email, roleLabel: accountLabel(user) }}
     >
       {children}
     </AdminShell>

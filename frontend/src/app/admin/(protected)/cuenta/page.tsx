@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { roleLabel } from "@/lib/admin/role-labels";
+import { accountLabel } from "@/lib/admin/role-labels";
 import { detectTemplate } from "@/lib/admin/worker-templates";
 import { AdminPageHeader } from "@/components/admin/ui";
 import { ChangePasswordForm } from "@/components/admin/change-password-form";
@@ -27,7 +27,7 @@ export default async function AccountPage() {
               {user.firstName} {user.lastName}
             </p>
             <p className="truncate text-sm text-muted">
-              {user.email} · {roleLabel(user.role)}
+              {user.email} · {accountLabel(user)}
               {user.role === "WORKER" ? ` · ${detectTemplate(user.permissions)}` : ""}
             </p>
           </div>
