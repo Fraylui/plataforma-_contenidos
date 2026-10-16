@@ -19,12 +19,13 @@ import pe.plataformacontenidos.advertising.CampaignService;
 import pe.plataformacontenidos.advertising.api.dto.PlacementRotationResponse;
 
 /**
- * Público (SecurityConfig). Tres pasos, como un ad server:
+ * Público (SecurityConfig). Pasos, como un ad server:
  * <ol>
  * <li>{@code GET /rotation}: qué campañas puede ver este visitante en una
  * posición, ya ordenadas — no cuenta nada.</li>
  * <li>{@code POST /{id}/impression}: el navegador avisa que el anuncio se
  * vio de verdad (50 % en pantalla durante 1 s).</li>
+ * <li>{@code POST /{id}/play}: el visitante reprodujo el video de un anuncio nativo.</li>
  * <li>{@code GET /{id}/click}: cuenta el clic y redirige (302) — el href del
  * HTML siempre es el nuestro, el link real nunca se expone.</li>
  * </ol>
@@ -64,6 +65,13 @@ public class CampaignPublicController {
     @PostMapping("/{id}/impression")
     public ResponseEntity<Void> impression(@PathVariable UUID id, HttpServletRequest request) {
         campaignService.recordImpression(id, request.getRemoteAddr(), request.getHeader(HttpHeaders.USER_AGENT));
+        return ResponseEntity.noContent().build();
+    }
+
+    /** El visitante tocó play en el video de un anuncio nativo (una por persona, robots fuera). */
+    @PostMapping("/{id}/play")
+    public ResponseEntity<Void> play(@PathVariable UUID id, HttpServletRequest request) {
+        campaignService.recordPlay(id, request.getRemoteAddr(), request.getHeader(HttpHeaders.USER_AGENT));
         return ResponseEntity.noContent().build();
     }
 

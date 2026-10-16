@@ -8,6 +8,8 @@ public record PlacementRotationResponse(int width, int height, List<ActiveCampai
 
     public static PlacementRotationResponse from(PlacementRotation rotation) {
         return new PlacementRotationResponse(rotation.width(), rotation.height(),
-                rotation.campaigns().stream().map(ActiveCampaignResponse::from).toList());
+                rotation.campaigns().stream()
+                        .map(c -> ActiveCampaignResponse.from(c, rotation.advertisers().get(c.getAdvertiserId())))
+                        .toList());
     }
 }

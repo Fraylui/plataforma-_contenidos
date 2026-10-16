@@ -11,7 +11,9 @@ import pe.plataformacontenidos.advertising.AdvertiserHasCampaignsException;
 import pe.plataformacontenidos.advertising.AdvertiserNotFoundException;
 import pe.plataformacontenidos.advertising.CampaignNotFoundException;
 import pe.plataformacontenidos.advertising.DuplicateAdPlacementKeyException;
+import pe.plataformacontenidos.advertising.InvalidAdvertiserLogoException;
 import pe.plataformacontenidos.advertising.InvalidCampaignAmountException;
+import pe.plataformacontenidos.advertising.InvalidCampaignFormatException;
 import pe.plataformacontenidos.advertising.InvalidCampaignImageException;
 import pe.plataformacontenidos.advertising.InvalidCampaignScheduleException;
 import pe.plataformacontenidos.advertising.InvalidCampaignTargetingException;
@@ -32,7 +34,8 @@ public class AdvertisingExceptionHandler {
     }
 
     @ExceptionHandler({ InvalidCampaignImageException.class, InvalidCampaignScheduleException.class,
-            InvalidCampaignAmountException.class, InvalidCampaignTargetingException.class })
+            InvalidCampaignAmountException.class, InvalidCampaignTargetingException.class,
+            InvalidCampaignFormatException.class, InvalidAdvertiserLogoException.class })
     public ResponseEntity<ApiError> handleBadRequest(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
     }

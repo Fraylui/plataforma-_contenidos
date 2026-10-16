@@ -1,12 +1,15 @@
 package pe.plataformacontenidos.advertising;
 
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -17,6 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pe.plataformacontenidos.content.YouTubeUrlParser;
 import pe.plataformacontenidos.media.Image;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
@@ -48,6 +52,10 @@ import pe.plataformacontenidos.taxonomy.CategoryService;
  * visitante nunca bajara hasta el anuncio.</li>
  * <li><b>Clic válido</b> ({@link #recordClickAndGetLinkUrl}): sin robots ni
  * repeticiones; el visitante siempre llega al destino.</li>
+ * <li><b>Formatos</b>: banner (a la medida de la posición) o anuncio nativo
+ * del feed ({@link NativeAd}: texto, foto o video de YouTube y botón), que
+ * solo va en {@link #FEED_PLACEMENT_KEY} y cuenta reproducciones
+ * ({@link #recordPlay}).</li>
  * </ol>
  */
 @Service
@@ -59,6 +67,17 @@ public class CampaignService {
 
     /** Campañas activas que pueden competir por el mismo público (posición + segmentación + fechas). */
     public static final int MAX_COMPETING_CAMPAIGNS = 5;
+
+    /** Única posición donde va el anuncio nativo: el feed (V45). */
+    public static final String FEED_PLACEMENT_KEY = "en-feed";
+
+    static final int NATIVE_TEXT_MAX = 500;
+    static final int NATIVE_HEADLINE_MAX = 60;
+    /** Ancho mínimo de la foto de un nativo: va a todo el ancho del post (recomendado 1080). */
+    static final int NATIVE_IMAGE_MIN_WIDTH = 600;
+
+    /** Proporciones de feed aceptadas para la foto (ancho / alto), como en Meta: cuadrada, vertical 4:5 y horizontal. */
+    private static final Map<String, Double> NATIVE_IMAGE_ASPECTS = Map.of("1:1", 1.0, "4:5", 0.8, "1.91:1", 1.91);
 
     private final CampaignRepository campaignRepository;
     private final CampaignDailyStatRepository dailyStatRepository;
@@ -80,40 +99,154 @@ public class CampaignService {
         this.categoryService = categoryService;
     }
 
-    /** Lo que se le entrega al navegador para una posición: su medida y las campañas en el orden a usar. */
-    public record PlacementRotation(int width, int height, List<Campaign> campaigns) {
+    /**
+     * Lo que se le entrega al navegador para una posición: su medida, las
+     * campañas en el orden a usar y sus anunciantes (nombre y logo del
+     * anuncio nativo), cargados en una sola consulta.
+     */
+    public record PlacementRotation(int width, int height, List<Campaign> campaigns,
+            Map<UUID, Advertiser> advertisers) {
     }
 
-    public Campaign create(UUID advertiserId, String placementKey, ContentImageInput creativeInput, String linkUrl,
-            Instant startsAt, Instant endsAt, BigDecimal amount, String currency, Integer weight,
-            CampaignTargeting targeting) {
+    /**
+     * Lo que pide el panel para un anuncio nativo, sin validar. El medio es
+     * la foto de la creatividad ({@code imageId}) o {@code videoUrl}.
+     */
+    public record NativeAdInput(String primaryText, String headline, CallToAction callToAction, String videoUrl) {
+    }
+
+    /** Datos comunes de alta y edición; {@code format} null = banner (clientes que no lo mandan). */
+    public record CampaignDraft(String placementKey, CampaignFormat format, ContentImageInput creative,
+            NativeAdInput nativeAd, String linkUrl, Instant startsAt, Instant endsAt, BigDecimal amount,
+            String currency, Integer weight, CampaignTargeting targeting) {
+    }
+
+    /** Creatividad y nativo ya validados, y la posición donde va. */
+    private record ValidatedCreative(String placementKey, ContentImage creative, NativeAd nativeAd) {
+    }
+
+    public Campaign create(UUID advertiserId, CampaignDraft draft) {
         requireAdvertiserExists(advertiserId);
-        AdPlacement placement = requirePlacement(placementKey);
-        requireValidSchedule(startsAt, endsAt);
-        requireValidAmount(amount);
-        requireExistingCategories(targeting);
-        ContentImage creative = validateCreative(creativeInput, placement);
+        ValidatedCreative valid = validate(draft);
         // Una campaña nueva nace activa: ocupa cupo desde ya.
-        requireInventory(null, placementKey, startsAt, endsAt, targeting);
-        return campaignRepository.save(new Campaign(advertiserId, placementKey, creative, linkUrl, startsAt, endsAt,
-                amount, currency, weight != null ? weight : Campaign.DEFAULT_WEIGHT, targeting));
+        requireInventory(null, valid.placementKey(), draft.startsAt(), draft.endsAt(), draft.targeting());
+        Campaign campaign = new Campaign(advertiserId, valid.placementKey(), valid.creative(), draft.linkUrl().strip(),
+                draft.startsAt(), draft.endsAt(), draft.amount(), draft.currency(),
+                draft.weight() != null ? draft.weight() : Campaign.DEFAULT_WEIGHT, draft.targeting());
+        campaign.setNativeAd(valid.nativeAd());
+        return campaignRepository.save(campaign);
     }
 
-    public Campaign update(UUID id, String placementKey, ContentImageInput creativeInput, String linkUrl,
-            Instant startsAt, Instant endsAt, BigDecimal amount, String currency, Integer weight,
-            CampaignTargeting targeting) {
+    public Campaign update(UUID id, CampaignDraft draft) {
         Campaign campaign = getOrThrow(id);
-        AdPlacement placement = requirePlacement(placementKey);
-        requireValidSchedule(startsAt, endsAt);
-        requireValidAmount(amount);
-        requireExistingCategories(targeting);
-        ContentImage creative = validateCreative(creativeInput, placement);
+        ValidatedCreative valid = validate(draft);
         if (campaign.isActive()) {
-            requireInventory(id, placementKey, startsAt, endsAt, targeting);
+            requireInventory(id, valid.placementKey(), draft.startsAt(), draft.endsAt(), draft.targeting());
         }
-        campaign.update(placementKey, creative, linkUrl, startsAt, endsAt, amount, currency,
-                weight != null ? weight : campaign.getWeight(), targeting);
+        campaign.update(valid.placementKey(), valid.creative(), draft.linkUrl().strip(), draft.startsAt(),
+                draft.endsAt(), draft.amount(), draft.currency(),
+                draft.weight() != null ? draft.weight() : campaign.getWeight(), draft.targeting());
+        campaign.setNativeAd(valid.nativeAd());
         return campaignRepository.save(campaign);
+    }
+
+    private ValidatedCreative validate(CampaignDraft draft) {
+        requireValidSchedule(draft.startsAt(), draft.endsAt());
+        requireValidAmount(draft.amount());
+        requireExistingCategories(draft.targeting());
+        requireWebLink(draft.linkUrl());
+        if (draft.format() == CampaignFormat.NATIVE) {
+            if (draft.placementKey() != null && !draft.placementKey().isBlank()
+                    && !FEED_PLACEMENT_KEY.equals(draft.placementKey())) {
+                throw new InvalidCampaignFormatException("El post patrocinado solo va dentro del feed.");
+            }
+            requirePlacement(FEED_PLACEMENT_KEY);
+            return validateNative(draft.nativeAd(), draft.creative());
+        }
+        if (draft.placementKey() == null || draft.placementKey().isBlank()) {
+            throw new InvalidCampaignFormatException("Elige el espacio donde va el banner.");
+        }
+        AdPlacement placement = requirePlacement(draft.placementKey());
+        return new ValidatedCreative(draft.placementKey(), validateCreative(draft.creative(), placement), null);
+    }
+
+    /** Texto y botón obligatorios; exactamente un medio: foto subida con proporción de feed o video de YouTube. */
+    private ValidatedCreative validateNative(NativeAdInput input, ContentImageInput image) {
+        if (input == null || input.primaryText() == null || input.primaryText().isBlank()) {
+            throw new InvalidCampaignFormatException("Escribe el texto del anuncio.");
+        }
+        String text = input.primaryText().strip();
+        String headline = input.headline() == null || input.headline().isBlank() ? null : input.headline().strip();
+        if (text.length() > NATIVE_TEXT_MAX) {
+            throw new InvalidCampaignFormatException("El texto del anuncio admite hasta " + NATIVE_TEXT_MAX + " caracteres.");
+        }
+        if (headline != null && headline.length() > NATIVE_HEADLINE_MAX) {
+            throw new InvalidCampaignFormatException("El titular admite hasta " + NATIVE_HEADLINE_MAX + " caracteres.");
+        }
+        if (input.callToAction() == null) {
+            throw new InvalidCampaignFormatException("Elige el botón del anuncio.");
+        }
+        boolean hasVideo = input.videoUrl() != null && !input.videoUrl().isBlank();
+        boolean hasImage = image != null && (image.hasImageId() || image.hasExternalUrl());
+        if (hasVideo == hasImage) {
+            throw new InvalidCampaignFormatException("El anuncio lleva una foto o un video de YouTube (uno de los dos).");
+        }
+        if (hasVideo) {
+            String videoId = YouTubeUrlParser.extractVideoId(input.videoUrl().strip())
+                    .orElseThrow(() -> new InvalidCampaignFormatException("Pega el link de un video de YouTube."));
+            String aspect = input.videoUrl().contains("/shorts/") ? "9:16" : "16:9";
+            return new ValidatedCreative(FEED_PLACEMENT_KEY, null,
+                    new NativeAd(text, headline, input.callToAction(), videoId, aspect));
+        }
+        if (!image.hasImageId() || image.hasExternalUrl()) {
+            throw new InvalidCampaignFormatException("Sube la foto a la biblioteca: así se comprueba su medida.");
+        }
+        String aspect = nativeImageAspect(imageService.getOrThrow(image.imageId()));
+        return new ValidatedCreative(FEED_PLACEMENT_KEY, ContentImage.uploaded(image.imageId(), image.title(), null),
+                new NativeAd(text, headline, input.callToAction(), null, aspect));
+    }
+
+    private static String nativeImageAspect(Image image) {
+        double actual = (double) image.getWidth() / image.getHeight();
+        String aspect = NATIVE_IMAGE_ASPECTS.entrySet().stream()
+                .filter(e -> Math.abs(actual - e.getValue()) / e.getValue() <= ASPECT_TOLERANCE)
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElseThrow(() -> new InvalidCampaignFormatException(String.format(
+                        "La foto mide %d×%d px: para el feed tiene que ser cuadrada (1080×1080), vertical 4:5 "
+                                + "(1080×1350) u horizontal (1200×628).", image.getWidth(), image.getHeight())));
+        if (image.getWidth() < NATIVE_IMAGE_MIN_WIDTH) {
+            throw new InvalidCampaignFormatException(String.format(
+                    "La foto mide %d px de ancho: necesita al menos %d (recomendado 1080) para verse nítida.",
+                    image.getWidth(), NATIVE_IMAGE_MIN_WIDTH));
+        }
+        return aspect;
+    }
+
+    /** El clic redirige a este link: solo una web (http/https; vale https://wa.me/…), nunca javascript: ni otros esquemas. */
+    private static void requireWebLink(String linkUrl) {
+        try {
+            URI uri = new URI(linkUrl == null ? "" : linkUrl.strip());
+            String scheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase(Locale.ROOT);
+            if ((!scheme.equals("https") && !scheme.equals("http")) || uri.getHost() == null) {
+                throw new InvalidCampaignFormatException("El destino tiene que ser una web (https://…).");
+            }
+        } catch (URISyntaxException e) {
+            throw new InvalidCampaignFormatException("El destino tiene que ser una web (https://…).");
+        }
+    }
+
+    /** Dominio que se muestra en la barra del nativo («polleriaelinca.pe»), sin «www.». */
+    public static String displayDomain(String linkUrl) {
+        try {
+            String host = new URI(linkUrl).getHost();
+            if (host == null) {
+                return null;
+            }
+            return host.toLowerCase(Locale.ROOT).replaceFirst("^www\\.", "");
+        } catch (URISyntaxException e) {
+            return null;
+        }
     }
 
     public void setActive(UUID id, boolean active) {
@@ -179,7 +312,11 @@ public class CampaignService {
                 .flatMap(level -> WeightedOrder.order(bySpecificity.get(level), Campaign::getWeight,
                         ThreadLocalRandom.current()).stream())
                 .toList();
-        return Optional.of(new PlacementRotation(placement.get().getWidth(), placement.get().getHeight(), ordered));
+        Map<UUID, Advertiser> advertisers = advertiserRepository
+                .findAllById(ordered.stream().map(Campaign::getAdvertiserId).distinct().toList()).stream()
+                .collect(Collectors.toMap(Advertiser::getId, Function.identity()));
+        return Optional.of(new PlacementRotation(placement.get().getWidth(), placement.get().getHeight(), ordered,
+                advertisers));
     }
 
     /** Impresión visible informada por el navegador. Robots, duplicados y campañas no vigentes no cuentan. */
@@ -193,7 +330,7 @@ public class CampaignService {
         }
         if (deliveryGuard.acceptImpression(AdDeliveryGuard.visitorKey(clientIp), id)) {
             campaignRepository.incrementImpressions(id);
-            dailyStatRepository.add(id, today(), 1, 0);
+            dailyStatRepository.add(id, today(), 1, 0, 0);
         }
     }
 
@@ -203,9 +340,23 @@ public class CampaignService {
         if (!InvalidTraffic.isAutomated(userAgent)
                 && deliveryGuard.acceptClick(AdDeliveryGuard.visitorKey(clientIp), id)) {
             campaignRepository.incrementClicks(id);
-            dailyStatRepository.add(id, today(), 0, 1);
+            dailyStatRepository.add(id, today(), 0, 1, 0);
         }
         return campaign.getLinkUrl();
+    }
+
+    /** El visitante tocó play en el video de un anuncio nativo. Robots, repeticiones y no vigentes no cuentan. */
+    public void recordPlay(UUID id, String clientIp, String userAgent) {
+        if (InvalidTraffic.isAutomated(userAgent)) {
+            return;
+        }
+        Optional<Campaign> campaign = campaignRepository.findById(id);
+        boolean playable = campaign.map(c -> c.isCurrentlyServable(Instant.now()) && c.getNativeAd() != null
+                && c.getNativeAd().youtubeVideoId() != null).orElse(false);
+        if (playable && deliveryGuard.acceptPlay(AdDeliveryGuard.visitorKey(clientIp), id)) {
+            campaignRepository.incrementPlays(id);
+            dailyStatRepository.add(id, today(), 0, 0, 1);
+        }
     }
 
     @Transactional(readOnly = true)

@@ -3,6 +3,8 @@ package pe.plataformacontenidos.advertising;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -44,8 +46,29 @@ public class Campaign {
     @Column(name = "placement_key", nullable = false)
     private String placementKey;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CampaignFormat format = CampaignFormat.BANNER;
+
+    /** Banner: siempre. Nativo: la foto (null si el medio es un video de YouTube). */
     @Embedded
     private ContentImage creative;
+
+    // Solo anuncio nativo (ver NativeAd); null en banners.
+    @Column(name = "primary_text")
+    private String primaryText;
+
+    private String headline;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "call_to_action")
+    private CallToAction callToAction;
+
+    @Column(name = "youtube_video_id")
+    private String youtubeVideoId;
+
+    @Column(name = "media_aspect")
+    private String mediaAspect;
 
     @Column(name = "link_url", nullable = false)
     private String linkUrl;
@@ -93,6 +116,9 @@ public class Campaign {
     @Column(name = "click_count", nullable = false)
     private long clickCount = 0;
 
+    @Column(name = "play_count", nullable = false)
+    private long playCount = 0;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -129,8 +155,30 @@ public class Campaign {
         return placementKey;
     }
 
+    public CampaignFormat getFormat() {
+        return format;
+    }
+
+    /** Banner: la imagen. Nativo: la foto, o null si el medio es un video. */
     public ContentImage getCreative() {
         return creative;
+    }
+
+    /** null si es un banner. */
+    public NativeAd getNativeAd() {
+        return format == CampaignFormat.NATIVE
+                ? new NativeAd(primaryText, headline, callToAction, youtubeVideoId, mediaAspect)
+                : null;
+    }
+
+    /** Banner ({@code nativeAd} null) o nativo; la creatividad la fijan el constructor y {@link #update}. */
+    public void setNativeAd(NativeAd nativeAd) {
+        this.format = nativeAd == null ? CampaignFormat.BANNER : CampaignFormat.NATIVE;
+        this.primaryText = nativeAd == null ? null : nativeAd.primaryText();
+        this.headline = nativeAd == null ? null : nativeAd.headline();
+        this.callToAction = nativeAd == null ? null : nativeAd.callToAction();
+        this.youtubeVideoId = nativeAd == null ? null : nativeAd.youtubeVideoId();
+        this.mediaAspect = nativeAd == null ? null : nativeAd.mediaAspect();
     }
 
     public String getLinkUrl() {
@@ -180,6 +228,10 @@ public class Campaign {
 
     public long getClickCount() {
         return clickCount;
+    }
+
+    public long getPlayCount() {
+        return playCount;
     }
 
     public Instant getCreatedAt() {

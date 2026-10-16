@@ -15,12 +15,13 @@ public interface CampaignDailyStatRepository extends JpaRepository<CampaignDaily
     /** Upsert atómico: dos vistas simultáneas nunca se pisan (sin leer-sumar-guardar). */
     @Modifying
     @Query(value = """
-            INSERT INTO advertising.campaign_daily_stats (campaign_id, day, impressions, clicks)
-            VALUES (:campaignId, :day, :impressions, :clicks)
+            INSERT INTO advertising.campaign_daily_stats (campaign_id, day, impressions, clicks, plays)
+            VALUES (:campaignId, :day, :impressions, :clicks, :plays)
             ON CONFLICT (campaign_id, day) DO UPDATE
                SET impressions = advertising.campaign_daily_stats.impressions + EXCLUDED.impressions,
-                   clicks      = advertising.campaign_daily_stats.clicks + EXCLUDED.clicks
+                   clicks      = advertising.campaign_daily_stats.clicks + EXCLUDED.clicks,
+                   plays       = advertising.campaign_daily_stats.plays + EXCLUDED.plays
             """, nativeQuery = true)
     void add(@Param("campaignId") UUID campaignId, @Param("day") LocalDate day,
-            @Param("impressions") long impressions, @Param("clicks") long clicks);
+            @Param("impressions") long impressions, @Param("clicks") long clicks, @Param("plays") long plays);
 }

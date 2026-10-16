@@ -45,13 +45,15 @@ public class AdvertiserAdminController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AdvertiserResponse create(@Valid @RequestBody AdvertiserRequest request) {
-        var advertiser = advertiserService.create(request.name(), request.contactEmail(), request.contactPhone());
+        var advertiser = advertiserService.create(request.name(), request.contactEmail(), request.contactPhone(),
+                request.logoImageId());
         return AdvertiserResponse.from(advertiser);
     }
 
     @PutMapping("/{id}")
     public AdvertiserResponse update(@PathVariable UUID id, @Valid @RequestBody AdvertiserRequest request) {
-        var advertiser = advertiserService.update(id, request.name(), request.contactEmail(), request.contactPhone());
+        var advertiser = advertiserService.update(id, request.name(), request.contactEmail(), request.contactPhone(),
+                request.logoImageId());
         return AdvertiserResponse.from(advertiser);
     }
 

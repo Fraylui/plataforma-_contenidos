@@ -68,6 +68,7 @@ public class SecurityConfig {
                 // consume cualquier lector anónimo (ver AdBlock), igual que ad-placements.
                 .requestMatchers(HttpMethod.GET, "/api/v1/ads/campaigns/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/ads/campaigns/*/impression").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/ads/campaigns/*/play").permitAll()
 
                 // Panel (spec 2a §4.1): las rutas exclusivas del dueño se exigen por rol;
                 // el resto del panel exige sesión y cada endpoint declara su módulo con

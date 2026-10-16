@@ -89,6 +89,11 @@ class AdDeliveryGuard {
         return firstWithin(PREFIX + "clk:" + campaignId + ":" + visitor, CLICK_DEDUP);
     }
 
+    /** Reproducción del video de un anuncio nativo: misma ventana que el clic (una por persona). */
+    boolean acceptPlay(String visitor, UUID campaignId) {
+        return firstWithin(PREFIX + "play:" + campaignId + ":" + visitor, CLICK_DEDUP);
+    }
+
     private boolean firstWithin(String key, Duration window) {
         return Boolean.TRUE.equals(redis.opsForValue().setIfAbsent(key, "1", window));
     }

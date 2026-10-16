@@ -33,6 +33,10 @@ public class Advertiser {
     @Column(name = "contact_phone")
     private String contactPhone;
 
+    /** Logo (imagen de la biblioteca) que encabeza sus anuncios nativos; null = iniciales. */
+    @Column(name = "logo_image_id")
+    private UUID logoImageId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -43,10 +47,11 @@ public class Advertiser {
         // JPA
     }
 
-    public Advertiser(String name, String contactEmail, String contactPhone) {
+    public Advertiser(String name, String contactEmail, String contactPhone, UUID logoImageId) {
         this.name = name;
         this.contactEmail = contactEmail;
         this.contactPhone = contactPhone;
+        this.logoImageId = logoImageId;
     }
 
     public UUID getId() {
@@ -65,14 +70,19 @@ public class Advertiser {
         return contactPhone;
     }
 
+    public UUID getLogoImageId() {
+        return logoImageId;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void update(String name, String contactEmail, String contactPhone) {
+    public void update(String name, String contactEmail, String contactPhone, UUID logoImageId) {
         this.name = name;
         this.contactEmail = contactEmail;
         this.contactPhone = contactPhone;
+        this.logoImageId = logoImageId;
         this.updatedAt = Instant.now();
     }
 }

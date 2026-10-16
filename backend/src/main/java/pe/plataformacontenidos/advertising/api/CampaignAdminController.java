@@ -23,7 +23,6 @@ import pe.plataformacontenidos.advertising.CampaignService;
 import pe.plataformacontenidos.advertising.api.dto.CampaignDailyStatResponse;
 import pe.plataformacontenidos.advertising.api.dto.CampaignRequest;
 import pe.plataformacontenidos.advertising.api.dto.CampaignResponse;
-import pe.plataformacontenidos.shared.ContentImageInput;
 
 /** Solo admin (SecurityConfig): CRUD de campañas, incluye impresiones/clics para mostrarle métricas al anunciante. */
 @RestController
@@ -52,17 +51,13 @@ public class CampaignAdminController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CampaignResponse create(@Valid @RequestBody CampaignRequest request) {
-        var campaign = campaignService.create(request.advertiserId(), request.placementKey(), toImageInput(request),
-                request.linkUrl(), request.startsAt(), request.endsAt(), request.amount(), request.currency(),
-                request.weight(), request.targeting());
+        var campaign = campaignService.create(request.advertiserId(), request.toDraft());
         return CampaignResponse.from(campaign);
     }
 
     @PutMapping("/{id}")
     public CampaignResponse update(@PathVariable UUID id, @Valid @RequestBody CampaignRequest request) {
-        var campaign = campaignService.update(id, request.placementKey(), toImageInput(request), request.linkUrl(),
-                request.startsAt(), request.endsAt(), request.amount(), request.currency(), request.weight(),
-                request.targeting());
+        var campaign = campaignService.update(id, request.toDraft());
         return CampaignResponse.from(campaign);
     }
 
@@ -86,9 +81,5 @@ public class CampaignAdminController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable UUID id) {
         campaignService.delete(id);
-    }
-
-    private ContentImageInput toImageInput(CampaignRequest request) {
-        return new ContentImageInput(request.imageId(), request.externalImageUrl(), request.imageAlt(), null);
     }
 }

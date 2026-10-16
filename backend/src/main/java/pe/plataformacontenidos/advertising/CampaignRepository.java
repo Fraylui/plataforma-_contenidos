@@ -24,4 +24,8 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID> {
     @Modifying
     @Query("UPDATE Campaign c SET c.clickCount = c.clickCount + 1 WHERE c.id = :id")
     void incrementClicks(@Param("id") UUID id);
+
+    @Modifying
+    @Query("UPDATE Campaign c SET c.playCount = c.playCount + 1 WHERE c.id = :id")
+    void incrementPlays(@Param("id") UUID id);
 }

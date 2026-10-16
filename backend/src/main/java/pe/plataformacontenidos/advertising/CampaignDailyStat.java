@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.UUID;
 
-/** Impresiones visibles y clics válidos de una campaña en un día (UTC) — base del reporte al anunciante. */
+/** Impresiones visibles, clics válidos y reproducciones de una campaña en un día (UTC) — base del reporte al anunciante. */
 @Entity
 @Table(name = "campaign_daily_stats", schema = "advertising")
 @IdClass(CampaignDailyStat.Key.class)
@@ -27,6 +27,9 @@ public class CampaignDailyStat {
 
     @Column(nullable = false)
     private long clicks;
+
+    @Column(nullable = false)
+    private long plays;
 
     protected CampaignDailyStat() {
         // JPA
@@ -46,6 +49,10 @@ public class CampaignDailyStat {
 
     public long getClicks() {
         return clicks;
+    }
+
+    public long getPlays() {
+        return plays;
     }
 
     public record Key(UUID campaignId, LocalDate day) implements Serializable {
