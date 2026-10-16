@@ -34,7 +34,7 @@ export function CookieConsentBanner({ adsenseEnabled }: { adsenseEnabled: boolea
         <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted">
             {adsenseEnabled
-              ? "Usamos cookies técnicas necesarias y, si aceptás, cookies de terceros (Google) para mostrar publicidad."
+              ? "Usamos cookies técnicas necesarias y, si aceptas, cookies de terceros (Google) para mostrar publicidad."
               : "Usamos cookies técnicas necesarias para el funcionamiento del sitio. Si en el futuro sumamos publicidad o analítica de terceros, te lo vamos a preguntar de nuevo."}{" "}
             {/* "Más información" es genérico fuera de contexto (lectores de pantalla
                 anuncian los links de una página en lista, sin la frase alrededor) —

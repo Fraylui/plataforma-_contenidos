@@ -1190,12 +1190,29 @@ políticas, controles, evidencia y logs desde el principio.
 ### 35.2 Marco legal aplicable
 
 ```text
-Perú
-├── Ley N.º 29733 — Ley de Protección de Datos Personales
-├── Reglamento de la Ley 29733 (D.S. 003-2013-JUS)
-├── Ley N.º 30096 — Ley de Delitos Informáticos
-├── Indecopi — protección al consumidor (publicidad, comercio electrónico)
-└── Ley N.º 29571 — Código de Protección y Defensa del Consumidor
+Perú (revisado 2026-10-16)
+├── Ley N.º 29733 — Protección de Datos Personales
+├── Reglamento nuevo: D.S. 016-2024-JUS, vigente desde el 30-03-2025 (reemplaza
+│   al D.S. 003-2013-JUS): brechas de seguridad se notifican en 48 h, oficial de
+│   datos personales con plazos según tamaño, transferencias internacionales
+├── D.L. 1044 — Competencia Desleal: art. 16, principio de autenticidad (todo
+│   anuncio identificable como tal; publicidad encubierta sancionada hasta 700 UIT)
+├── Guía de Publicidad para Influencers de Indecopi (2.ª ed., 2024): «conexión
+│   material» con el anunciante = se marca como publicidad
+├── Ley N.º 29571 — Código de Protección y Defensa del Consumidor
+├── D.L. 822 — Derecho de Autor (fotos, textos y videos propios o con licencia)
+├── Ley N.º 28493 — correo comercial no solicitado (si hay boletín por email)
+├── Ley N.º 30096 — Delitos Informáticos
+├── Rubros con advertencias obligatorias en sus anuncios: alimentos procesados
+│   (Ley 30021, octógonos), bebidas alcohólicas (Ley 28681), juegos y apuestas
+│   a distancia (Ley 31557) → no aceptar sin revisión legal
+└── SUNAT: RUC y comprobantes electrónicos por la publicidad directa; ingresos
+    de AdSense declarados
+
+Contractual (no es ley, pero te pueden cerrar la cuenta)
+├── Políticas del programa de Google AdSense (contenido, clics inválidos,
+│   divulgación de cookies en la política de privacidad, consentimiento)
+└── Términos de servicio de YouTube (insertar videos está permitido)
 
 Si la plataforma capta usuarios de la UE
 └── GDPR (Reglamento General de Protección de Datos) — aplica por alcance,
