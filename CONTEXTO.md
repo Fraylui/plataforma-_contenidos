@@ -2278,7 +2278,7 @@ Spec: `docs/superpowers/specs/2026-10-07-compositor-y-flujo-design.md` (local).
 15. ~~Reporte de campaña con los gráficos nuevos~~ — **hecho** 2026-10-16: período 7/30/90 en la URL, tarjetas con variación vs. período anterior y minigráfico, gráfico de área con selector de métrica (una a la vez, un solo eje), total desde el inicio y tabla. KpiCard/RangeNav compartidos con el inicio (components/admin/kpi.tsx); se borraron CampaignStatsChart y StatCard.
 
 **F. Sitio público (F10)**
-16. Retomar el rediseño estilo red social (rama `feat/sitio-red-social`, §46.3), con Series y En vivo ya integrados al menú lateral.
+16. ~~Retomar el rediseño estilo red social~~ — **hecho** 2026-10-16: revisión completa en Edge de las 19 pantallas públicas (escritorio 1366 y celular 390, sin desborde horizontal). Arreglado: mapa de Lugares bloqueado por la CSP, «Inicio» marcado en Series/En vivo/páginas de información, título duplicado en Series. Los algoritmos de §45.2 siguen esperando su condición de activación (datos reales).
 
 **G. Calidad y cierre (F11)**
 17. E2E: necesita `E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD` del dueño; `workers.spec` debe ajustarse al menú en acordeón y al modelo sin aprobación.
