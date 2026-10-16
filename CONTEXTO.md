@@ -2316,6 +2316,22 @@ Decisión del dueño: los eventos comerciales (conciertos, Mistura) eran **publi
 
 Pendiente: celebraciones por geografía del visitante (ver propuesta en la sesión); renombrar en el código `Event` → `Celebration` junto con `Article` → `Publication` (C.5).
 
+### 46.6n PAUSA 2026-10-16 — pendiente detallado para continuar
+**Estado:** rama `feat/sistema-diseno`, árbol limpio, **12 commits locales sin subir** (desde 4743195). El dueño ejecuta `! git push` y luego revisar `gh pr checks 22`: ahí corren por primera vez las pruebas de integración de anuncio nativo (NativeCampaignIntegrationTest), Fechas/«Hoy se celebra» (EventWorkflowIntegrationTest) y búsqueda de episodios. Vercel falla siempre (no se usa; decisión pendiente de desconectarlo). Docker apagado. Base local: 5 celebraciones reales sin foto + campaña nativa de demo «Pollería El Inca (demo)» (borrar cuando el dueño diga).
+
+**En este orden:**
+1. **Celebraciones por geografía (aprobado, no empezado).** Diseño y prueba ya escrita en `docs/superpowers/specs/2026-10-16-celebraciones-geografia.md`. Plan:
+   - V63: `events.events.scope_country` (ISO-2, null = mundial) y `scope_region` (texto, exige país); `platform_settings.home_country` (default 'PE', editable en Configuración).
+   - Sacar `CampaignTargeting.normalizeRegion` a `shared` y usarlo en anuncios y celebraciones (sin duplicar).
+   - `GET /api/v1/events/today` lee `CF-IPCountry`/`CF-Region`/`CF-Region-Code` (como CampaignPublicController): filtra mundial + país + región del visitante y ordena región > país > mundial; sin ubicación: mundial + `home_country`, sin regiones.
+   - «Hoy se celebra» pasa a pedirse desde el navegador (proxy `/api/celebrations/today` con `visitorHeaders`, como los anuncios) para que las páginas sigan en caché.
+   - Panel: campo «Alcance» (Mundial / País / Región) en el compositor; la página de la celebración dice «Se celebra en Ayacucho, Perú» o «En todo el mundo». Archivo `/celebraciones` y «Próximas celebraciones» muestran todo (como el archivo de Doodles).
+2. Ver en Edge el anuncio nativo con foto (falta una imagen 1:1 o 4:5 en la biblioteca) y el panel de campañas/celebraciones con sesión (falta la contraseña del dueño para Playwright).
+3. Fotos para las 5 celebraciones; cargar más fechas reales (Canción Ayacuchana, Día de la Bandera, Inti Raymi, Semana Santa ayacuchana como «solo una vez» por año).
+4. Lo que seguía de §46.6k: C.5 renombre `Article`→`Publication` (y `Event`→`Celebration`), C.6 RFC 9457, C.7 dueño único (fixture de pruebas primero), E.13 cuadrícula de Galerías, E.14 revisión visual de pantallas, F.16 rediseño social, G.17–18 E2E y axe/Lighthouse.
+5. Pendientes de anuncios: cuartiles de video, autoplay en silencio, carrusel de fotos.
+6. Legal (no es código): revisión con abogado antes de vender el primer anuncio; RUC y régimen con contador (AdSense = renta de tercera categoría; posible exportación de servicios); actualizar la política de privacidad al reglamento D.S. 016-2024-JUS.
+
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
 Ordenadas por prioridad.
