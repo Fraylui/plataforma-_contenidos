@@ -67,18 +67,18 @@ class FeedIntegrationTest {
     private EntityManagerFactory entityManagerFactory;
 
     @Test
-    void feedMixesArticlesPlacesAndEvents() throws Exception {
+    void feedMixesPublicationsPlacesAndEvents() throws Exception {
         String publisherToken = createUserAndLogin("feed-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String creatorToken = createUserAndLogin("feed-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Mix");
 
-        publishArticle(creatorToken, publisherToken, categoryId, "Feed: publicación de prueba " + UUID.randomUUID());
+        publishPublication(creatorToken, publisherToken, categoryId, "Feed: publicación de prueba " + UUID.randomUUID());
         publishPlace(creatorToken, publisherToken, categoryId, "Feed: lugar de prueba " + UUID.randomUUID());
         publishEvent(creatorToken, publisherToken, categoryId, "Feed: evento de prueba " + UUID.randomUUID());
 
         mockMvc.perform(get("/api/v1/feed").param("size", "30"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[*].type", hasItem("ARTICLE")))
+                .andExpect(jsonPath("$.items[*].type", hasItem("PUBLICATION")))
                 .andExpect(jsonPath("$.items[*].type", hasItem("PLACE")))
                 .andExpect(jsonPath("$.items[*].type", hasItem("EVENT")));
     }
@@ -95,7 +95,7 @@ class FeedIntegrationTest {
         String creatorToken = createUserAndLogin("feed-n1-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed N+1");
         for (int i = 0; i < 12; i++) {
-            publishArticle(creatorToken, publisherToken, categoryId, "Feed N+1: publicación " + i + " " + UUID.randomUUID());
+            publishPublication(creatorToken, publisherToken, categoryId, "Feed N+1: publicación " + i + " " + UUID.randomUUID());
         }
         for (int i = 0; i < 6; i++) {
             publishPlace(creatorToken, publisherToken, categoryId, "Feed N+1: lugar " + i + " " + UUID.randomUUID());
@@ -136,13 +136,13 @@ class FeedIntegrationTest {
         String publisherToken = createUserAndLogin("feed-cache-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String creatorToken = createUserAndLogin("feed-cache-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Cache");
-        mockMvc.perform(get("/api/v1/feed").param("size", "100").param("type", "ARTICLE")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/feed").param("size", "100").param("type", "PUBLICATION")).andExpect(status().isOk());
 
-        String articleId = publishArticle(creatorToken, publisherToken, categoryId, "Feed: recién publicada " + UUID.randomUUID());
+        String publicationId = publishPublication(creatorToken, publisherToken, categoryId, "Feed: recién publicada " + UUID.randomUUID());
 
-        mockMvc.perform(get("/api/v1/feed").param("size", "100").param("type", "ARTICLE"))
+        mockMvc.perform(get("/api/v1/feed").param("size", "100").param("type", "PUBLICATION"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[*].id", hasItem(articleId)));
+                .andExpect(jsonPath("$.items[*].id", hasItem(publicationId)));
     }
 
     @Test
@@ -151,12 +151,12 @@ class FeedIntegrationTest {
         String creatorToken = createUserAndLogin("feed-exclude-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Exclude");
 
-        String articleId = publishArticle(creatorToken, publisherToken, categoryId,
+        String publicationId = publishPublication(creatorToken, publisherToken, categoryId,
                 "Feed: publicación a excluir " + UUID.randomUUID());
 
-        mockMvc.perform(get("/api/v1/feed").param("size", "30").param("exclude", articleId))
+        mockMvc.perform(get("/api/v1/feed").param("size", "30").param("exclude", publicationId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[*].id", not(hasItem(articleId))));
+                .andExpect(jsonPath("$.items[*].id", not(hasItem(publicationId))));
     }
 
     @Test
@@ -168,18 +168,18 @@ class FeedIntegrationTest {
         String creatorToken = createUserAndLogin("feed-exclude-bound-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Exclude Bound");
 
-        String articleId = publishArticle(creatorToken, publisherToken, categoryId,
+        String publicationId = publishPublication(creatorToken, publisherToken, categoryId,
                 "Feed: excluido al final de una lista larga " + UUID.randomUUID());
 
         String[] excludeParams = new String[301];
         for (int i = 0; i < 300; i++) {
             excludeParams[i] = UUID.randomUUID().toString();
         }
-        excludeParams[300] = articleId; // el visto más recientemente, al final de la lista
+        excludeParams[300] = publicationId; // el visto más recientemente, al final de la lista
 
         mockMvc.perform(get("/api/v1/feed").param("size", "30").param("exclude", excludeParams))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[*].id", not(hasItem(articleId))));
+                .andExpect(jsonPath("$.items[*].id", not(hasItem(publicationId))));
     }
 
     @Test
@@ -189,10 +189,10 @@ class FeedIntegrationTest {
         String categoryId = createCategory(publisherToken, "Feed Draft");
         String draftTitle = "Feed: borrador que no debe salir " + UUID.randomUUID();
 
-        mockMvc.perform(post("/api/v1/admin/articles")
+        mockMvc.perform(post("/api/v1/admin/publications")
                         .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(articleJson(categoryId, draftTitle)))
+                        .content(publicationJson(categoryId, draftTitle)))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(get("/api/v1/feed").param("size", "30"))
@@ -214,19 +214,19 @@ class FeedIntegrationTest {
         String categoryId = createCategory(publisherToken, "Feed Related");
         String otherCategoryId = createCategory(publisherToken, "Feed Related Otra");
 
-        String sourceArticleId = publishArticle(creatorToken, publisherToken, categoryId,
+        String sourcePublicationId = publishPublication(creatorToken, publisherToken, categoryId,
                 "Feed: fuente para relacionados " + UUID.randomUUID());
         String relatedPlaceId = publishPlace(creatorToken, publisherToken, categoryId,
                 "Feed: lugar relacionado " + UUID.randomUUID());
         publishPlace(creatorToken, publisherToken, otherCategoryId, "Feed: lugar sin relación " + UUID.randomUUID());
 
         mockMvc.perform(get("/api/v1/feed/related")
-                        .param("excludeType", "ARTICLE")
-                        .param("excludeId", sourceArticleId)
+                        .param("excludeType", "PUBLICATION")
+                        .param("excludeId", sourcePublicationId)
                         .param("categoryId", categoryId)
                         .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].id", not(hasItem(sourceArticleId))))
+                .andExpect(jsonPath("$[*].id", not(hasItem(sourcePublicationId))))
                 .andExpect(jsonPath("$[*].id", hasItem(relatedPlaceId)))
                 .andExpect(jsonPath("$[*].categoryId", everyItem(is(categoryId))));
     }
@@ -234,7 +234,7 @@ class FeedIntegrationTest {
     @Test
     void relatedWithoutCategoryReturnsEmptyList() throws Exception {
         mockMvc.perform(get("/api/v1/feed/related")
-                        .param("excludeType", "ARTICLE")
+                        .param("excludeType", "PUBLICATION")
                         .param("excludeId", UUID.randomUUID().toString())
                         .param("categoryId", UUID.randomUUID().toString()))
                 .andExpect(status().isOk())
@@ -247,7 +247,7 @@ class FeedIntegrationTest {
         String creatorToken = createUserAndLogin("feed-tab-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Tabs");
 
-        publishArticle(creatorToken, publisherToken, categoryId, "Feed tab: publicación " + UUID.randomUUID());
+        publishPublication(creatorToken, publisherToken, categoryId, "Feed tab: publicación " + UUID.randomUUID());
         publishPlace(creatorToken, publisherToken, categoryId, "Feed tab: lugar " + UUID.randomUUID());
 
         mockMvc.perform(get("/api/v1/feed").param("size", "30").param("type", "PLACE"))
@@ -289,7 +289,7 @@ class FeedIntegrationTest {
         String childId = createSubcategory(publisherToken, "Feed Hija", parentId);
         String otherId = createCategory(publisherToken, "Feed Otro");
 
-        String inChild = publishArticle(creatorToken, publisherToken, childId, "Feed hija " + UUID.randomUUID());
+        String inChild = publishPublication(creatorToken, publisherToken, childId, "Feed hija " + UUID.randomUUID());
         String inOther = publishPlace(creatorToken, publisherToken, otherId, "Feed otro " + UUID.randomUUID());
 
         mockMvc.perform(get("/api/v1/feed").param("size", "30").param("categoryId", parentId))
@@ -350,11 +350,11 @@ class FeedIntegrationTest {
         String creatorToken = createUserAndLogin("feed-top-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Top");
 
-        String popularId = publishArticle(creatorToken, publisherToken, categoryId, "Feed top: popular " + UUID.randomUUID());
-        String lessId = publishArticle(creatorToken, publisherToken, categoryId, "Feed top: menos " + UUID.randomUUID());
-        String noneId = publishArticle(creatorToken, publisherToken, categoryId, "Feed top: sin likes " + UUID.randomUUID());
-        likeArticle(popularId, 3);
-        likeArticle(lessId, 1);
+        String popularId = publishPublication(creatorToken, publisherToken, categoryId, "Feed top: popular " + UUID.randomUUID());
+        String lessId = publishPublication(creatorToken, publisherToken, categoryId, "Feed top: menos " + UUID.randomUUID());
+        String noneId = publishPublication(creatorToken, publisherToken, categoryId, "Feed top: sin likes " + UUID.randomUUID());
+        likePublication(popularId, 3);
+        likePublication(lessId, 1);
 
         MvcResult result = mockMvc.perform(get("/api/v1/feed/top").param("size", "50"))
                 .andExpect(status().isOk())
@@ -366,32 +366,32 @@ class FeedIntegrationTest {
         org.assertj.core.api.Assertions.assertThat(ids.indexOf(popularId)).isLessThan(ids.indexOf(lessId));
     }
 
-    private void likeArticle(String articleId, int times) throws Exception {
-        JsonNode feed = objectMapper.readTree(mockMvc.perform(get("/api/v1/feed").param("size", "50").param("type", "ARTICLE"))
+    private void likePublication(String publicationId, int times) throws Exception {
+        JsonNode feed = objectMapper.readTree(mockMvc.perform(get("/api/v1/feed").param("size", "50").param("type", "PUBLICATION"))
                 .andReturn().getResponse().getContentAsString());
         String slug = null;
         for (JsonNode item : feed.get("items")) {
-            if (item.get("id").asString().equals(articleId)) {
+            if (item.get("id").asString().equals(publicationId)) {
                 slug = item.get("slug").asString();
             }
         }
-        org.assertj.core.api.Assertions.assertThat(slug).as("slug de " + articleId).isNotNull();
+        org.assertj.core.api.Assertions.assertThat(slug).as("slug de " + publicationId).isNotNull();
         for (int i = 0; i < times; i++) {
-            mockMvc.perform(post("/api/v1/articles/" + slug + "/like").param("visitorId", UUID.randomUUID().toString()))
+            mockMvc.perform(post("/api/v1/publications/" + slug + "/like").param("visitorId", UUID.randomUUID().toString()))
                     .andExpect(status().isOk());
         }
     }
 
-    private String publishArticle(String creatorToken, String publisherToken, String categoryId, String title)
+    private String publishPublication(String creatorToken, String publisherToken, String categoryId, String title)
             throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/v1/admin/articles")
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/publications")
                         .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(articleJson(categoryId, title)))
+                        .content(publicationJson(categoryId, title)))
                 .andExpect(status().isCreated())
                 .andReturn();
         String id = textField(result, "id");
-        runWorkflow("/api/v1/admin/articles/" + id, creatorToken, publisherToken);
+        runWorkflow("/api/v1/admin/publications/" + id, creatorToken, publisherToken);
         return id;
     }
 
@@ -432,7 +432,7 @@ class FeedIntegrationTest {
         String rootId = createCategory(publisherToken, "Tema Raíz");
         String childId = createSubcategory(publisherToken, "Tema Hijo", rootId);
         String emptyId = createCategory(publisherToken, "Tema Vacío");
-        publishArticle(creatorToken, publisherToken, childId, "Tema hijo " + UUID.randomUUID());
+        publishPublication(creatorToken, publisherToken, childId, "Tema hijo " + UUID.randomUUID());
 
         mockMvc.perform(get("/api/v1/feed/topics"))
                 .andExpect(status().isOk())
@@ -447,9 +447,9 @@ class FeedIntegrationTest {
         String creatorToken = createUserAndLogin("feed-new-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String freshId = createCategory(publisherToken, "Tema Fresco");
         String oldId = createCategory(publisherToken, "Tema Viejo");
-        publishArticle(creatorToken, publisherToken, freshId, "Fresco " + UUID.randomUUID());
-        String old = publishArticle(creatorToken, publisherToken, oldId, "Viejo " + UUID.randomUUID());
-        jdbcTemplate.update("UPDATE content.articles SET published_at = now() - interval '3 days' WHERE id = ?::uuid", old);
+        publishPublication(creatorToken, publisherToken, freshId, "Fresco " + UUID.randomUUID());
+        String old = publishPublication(creatorToken, publisherToken, oldId, "Viejo " + UUID.randomUUID());
+        jdbcTemplate.update("UPDATE content.publications SET published_at = now() - interval '3 days' WHERE id = ?::uuid", old);
 
         mockMvc.perform(get("/api/v1/feed/topics"))
                 .andExpect(jsonPath("$[?(@.categoryId == '" + freshId + "')].hasNew", hasItem(true)))
@@ -463,7 +463,7 @@ class FeedIntegrationTest {
         String topicId = createCategory(publisherToken, "Tema Portada");
         String gallery = publishGallery(creatorToken, publisherToken, topicId, "Portada " + UUID.randomUUID());
         jdbcTemplate.update("UPDATE galleries.galleries SET published_at = now() - interval '1 day' WHERE id = ?::uuid", gallery);
-        publishArticle(creatorToken, publisherToken, topicId, "Sin imagen " + UUID.randomUUID());
+        publishPublication(creatorToken, publisherToken, topicId, "Sin imagen " + UUID.randomUUID());
 
         mockMvc.perform(get("/api/v1/feed/topics"))
                 .andExpect(jsonPath("$[?(@.categoryId == '" + topicId + "')].coverImageUrl",
@@ -535,12 +535,12 @@ class FeedIntegrationTest {
                 .andExpect(status().isOk());
     }
 
-    private String articleJson(String categoryId, String title) {
+    private String publicationJson(String categoryId, String title) {
         return "{"
                 + "\"title\":\"" + title + "\","
                 + "\"excerpt\":\"Resumen breve\","
                 + "\"body\":\"Cuerpo de prueba con suficiente contenido para publicar.\","
-                + "\"articleType\":\"GENERAL\","
+                + "\"publicationType\":\"GENERAL\","
                 + "\"categoryId\":\"" + categoryId + "\""
                 + "}";
     }

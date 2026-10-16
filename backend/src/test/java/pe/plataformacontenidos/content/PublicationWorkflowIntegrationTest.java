@@ -30,7 +30,7 @@ import tools.jackson.databind.JsonNode;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
-class ArticleWorkflowIntegrationTest {
+class PublicationWorkflowIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -56,33 +56,33 @@ class ArticleWorkflowIntegrationTest {
         String workerToken = createUserAndLogin("wf-trabajador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Actualidad");
 
-        String articleId = createDraftArticle(workerToken, categoryId, "Un título de prueba para el artículo");
+        String publicationId = createDraftPublication(workerToken, categoryId, "Un título de prueba para el artículo");
 
         // No visible públicamente en borrador
-        mockMvc.perform(get("/api/v1/articles/un-titulo-de-prueba-para-el-articulo"))
+        mockMvc.perform(get("/api/v1/publications/un-titulo-de-prueba-para-el-articulo"))
                 .andExpect(status().isNotFound());
 
         // Sin paso de aprobación: quien tiene el módulo publica directo
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
+        mockMvc.perform(post("/api/v1/admin/publications/" + publicationId + "/publish")
                         .header("Authorization", "Bearer " + workerToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PUBLISHED"));
 
-        mockMvc.perform(get("/api/v1/articles/un-titulo-de-prueba-para-el-articulo"))
+        mockMvc.perform(get("/api/v1/publications/un-titulo-de-prueba-para-el-articulo"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Un título de prueba para el artículo"));
 
-        mockMvc.perform(get("/api/v1/articles").param("categoryId", categoryId))
+        mockMvc.perform(get("/api/v1/publications").param("categoryId", categoryId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[?(@.slug == 'un-titulo-de-prueba-para-el-articulo')]").exists());
 
         // Archivar lo retira de la vista pública
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/archive")
+        mockMvc.perform(post("/api/v1/admin/publications/" + publicationId + "/archive")
                         .header("Authorization", "Bearer " + workerToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ARCHIVED"));
 
-        mockMvc.perform(get("/api/v1/articles/un-titulo-de-prueba-para-el-articulo"))
+        mockMvc.perform(get("/api/v1/publications/un-titulo-de-prueba-para-el-articulo"))
                 .andExpect(status().isNotFound());
     }
 
@@ -90,19 +90,19 @@ class ArticleWorkflowIntegrationTest {
     void returnToDraftCancelsTheSchedule() throws Exception {
         String publisherToken = createUserAndLogin("wf-publicador-2@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Historia");
-        String articleId = createDraftArticle(publisherToken, categoryId, "Publicación que vuelve a borrador");
+        String publicationId = createDraftPublication(publisherToken, categoryId, "Publicación que vuelve a borrador");
 
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/return-to-draft")
+        mockMvc.perform(post("/api/v1/admin/publications/" + publicationId + "/return-to-draft")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isConflict());
 
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/schedule")
+        mockMvc.perform(post("/api/v1/admin/publications/" + publicationId + "/schedule")
                         .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"scheduledAt\":\"" + Instant.now().plusSeconds(3600) + "\"}"))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/return-to-draft")
+        mockMvc.perform(post("/api/v1/admin/publications/" + publicationId + "/return-to-draft")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("DRAFT"))
@@ -114,16 +114,16 @@ class ArticleWorkflowIntegrationTest {
         String publisherToken = createUserAndLogin("wf-publicador-6@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Directo");
 
-        String articleId = createDraftArticle(publisherToken, categoryId, "Publicada directo desde borrador");
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
+        String publicationId = createDraftPublication(publisherToken, categoryId, "Publicada directo desde borrador");
+        mockMvc.perform(post("/api/v1/admin/publications/" + publicationId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PUBLISHED"));
 
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/archive")
+        mockMvc.perform(post("/api/v1/admin/publications/" + publicationId + "/archive")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
+        mockMvc.perform(post("/api/v1/admin/publications/" + publicationId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("No se puede publicar: está Archivado."));
@@ -137,104 +137,104 @@ class ArticleWorkflowIntegrationTest {
         String outsiderToken = createUserAndLogin("wf-sin-permisos@plataforma-contenidos.test", TestProfile.SIN_PERMISOS);
         String categoryId = createCategory(publisherToken, "Gastronomía");
 
-        String articleId = createDraftArticle(workerToken, categoryId, "Receta ancestral de la región");
+        String publicationId = createDraftPublication(workerToken, categoryId, "Receta ancestral de la región");
 
-        mockMvc.perform(put("/api/v1/admin/articles/" + articleId)
+        mockMvc.perform(put("/api/v1/admin/publications/" + publicationId)
                         .header("Authorization", "Bearer " + teammateToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(articleJson(categoryId, "Receta ancestral de la región, mejorada")))
+                        .content(publicationJson(categoryId, "Receta ancestral de la región, mejorada")))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(put("/api/v1/admin/articles/" + articleId)
+        mockMvc.perform(put("/api/v1/admin/publications/" + publicationId)
                         .header("Authorization", "Bearer " + outsiderToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(articleJson(categoryId, "Sin el módulo no se edita")))
+                        .content(publicationJson(categoryId, "Sin el módulo no se edita")))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    void scheduledArticleIsPublishedOnceDueDateArrivesAndJobRuns() throws Exception {
+    void scheduledPublicationIsPublishedOnceDueDateArrivesAndJobRuns() throws Exception {
         String publisherToken = createUserAndLogin("wf-publicador-5@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String workerToken = createUserAndLogin("wf-trabajador-5@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Eventos");
 
-        String articleId = createDraftArticle(workerToken, categoryId, "Feria programada para el fin de semana");
+        String publicationId = createDraftPublication(workerToken, categoryId, "Feria programada para el fin de semana");
 
         Instant scheduledAt = Instant.now().plusSeconds(2);
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/schedule")
+        mockMvc.perform(post("/api/v1/admin/publications/" + publicationId + "/schedule")
                         .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"scheduledAt\":\"" + scheduledAt + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SCHEDULED"));
 
-        mockMvc.perform(get("/api/v1/articles/feria-programada-para-el-fin-de-semana"))
+        mockMvc.perform(get("/api/v1/publications/feria-programada-para-el-fin-de-semana"))
                 .andExpect(status().isNotFound());
 
         Thread.sleep(2500);
-        scheduledPublishJob.publishDueArticles();
+        scheduledPublishJob.publishDuePublications();
 
-        mockMvc.perform(get("/api/v1/articles/feria-programada-para-el-fin-de-semana"))
+        mockMvc.perform(get("/api/v1/publications/feria-programada-para-el-fin-de-semana"))
                 .andExpect(status().isOk());
     }
 
     @Test
-    void articleStoresYoutubeVideoIdParsedFromUrlAndRejectsInvalidUrl() throws Exception {
+    void publicationStoresYoutubeVideoIdParsedFromUrlAndRejectsInvalidUrl() throws Exception {
         String publisherToken = createUserAndLogin("wf-publicador-7@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String workerToken = createUserAndLogin("wf-trabajador-7@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Entretenimiento Test");
 
-        mockMvc.perform(post("/api/v1/admin/articles")
+        mockMvc.perform(post("/api/v1/admin/publications")
                         .header("Authorization", "Bearer " + workerToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(articleJsonWithYoutube(categoryId, "https://vimeo.com/12345678",
+                        .content(publicationJsonWithYoutube(categoryId, "https://vimeo.com/12345678",
                                 "Artículo con URL de video inválida")))
                 .andExpect(status().isBadRequest());
 
-        MvcResult result = mockMvc.perform(post("/api/v1/admin/articles")
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/publications")
                         .header("Authorization", "Bearer " + workerToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(articleJsonWithYoutube(categoryId,
+                        .content(publicationJsonWithYoutube(categoryId,
                                 "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=10s", "Artículo con video de YouTube")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.videos[0].videoId").value("dQw4w9WgXcQ"))
                 .andReturn();
 
-        String articleId = textField(result, "id");
-        mockMvc.perform(get("/api/v1/admin/articles/" + articleId)
+        String publicationId = textField(result, "id");
+        mockMvc.perform(get("/api/v1/admin/publications/" + publicationId)
                         .header("Authorization", "Bearer " + workerToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.videos[0].videoId").value("dQw4w9WgXcQ"));
     }
 
-    private String articleJsonWithYoutube(String categoryId, String youtubeUrl, String title) {
+    private String publicationJsonWithYoutube(String categoryId, String youtubeUrl, String title) {
         return "{"
                 + "\"title\":\"" + title + "\","
                 + "\"excerpt\":\"Resumen breve\","
                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
-                + "\"articleType\":\"GENERAL\","
+                + "\"publicationType\":\"GENERAL\","
                 + "\"categoryId\":\"" + categoryId + "\","
                 + "\"videos\":[{\"url\":\"" + youtubeUrl + "\"}]"
                 + "}";
     }
 
-    private String createDraftArticle(String workerToken, String categoryId, String title) throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/v1/admin/articles")
+    private String createDraftPublication(String workerToken, String categoryId, String title) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/publications")
                         .header("Authorization", "Bearer " + workerToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(articleJson(categoryId, title)))
+                        .content(publicationJson(categoryId, title)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("DRAFT"))
                 .andReturn();
         return textField(result, "id");
     }
 
-    private String articleJson(String categoryId, String title) {
+    private String publicationJson(String categoryId, String title) {
         return "{"
                 + "\"title\":\"" + title + "\","
                 + "\"excerpt\":\"Resumen breve\","
                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
-                + "\"articleType\":\"GENERAL\","
+                + "\"publicationType\":\"GENERAL\","
                 + "\"categoryId\":\"" + categoryId + "\""
                 + "}";
     }

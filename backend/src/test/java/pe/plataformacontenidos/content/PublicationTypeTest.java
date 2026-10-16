@@ -10,11 +10,11 @@ import org.junit.jupiter.api.Test;
  * periodísticos (decisión del dueño, 2026-10-06: "esto no es periodismo,
  * no es editorial"). V48 migra los datos viejos.
  */
-class ArticleTypeTest {
+class PublicationTypeTest {
 
     @Test
     void onlyPlatformFormatsExist() {
-        assertThat(Arrays.stream(ArticleType.values()).map(Enum::name))
+        assertThat(Arrays.stream(PublicationType.values()).map(Enum::name))
                 .containsExactly("GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA");
     }
 }

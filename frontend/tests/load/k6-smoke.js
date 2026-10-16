@@ -65,7 +65,7 @@ export default function () {
   });
 
   group("errores no filtran detalles internos", () => {
-    const res = http.get(`${BASE_URL}/api/v1/articles/slug-inexistente-xyz`);
+    const res = http.get(`${BASE_URL}/api/v1/publications/slug-inexistente-xyz`);
     check(res, {
       "artículo inexistente -> 404": (r) => r.status === 404,
       "sin stack trace en el cuerpo": (r) => !String(r.body).includes("at pe.plataformacontenidos"),

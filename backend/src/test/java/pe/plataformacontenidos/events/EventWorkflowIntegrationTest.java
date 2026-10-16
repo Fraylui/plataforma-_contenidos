@@ -24,7 +24,7 @@ import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-/** Eventos, con el mismo flujo de publicación que Article/Places (sección 12). */
+/** Eventos, con el mismo flujo de publicación que Publication/Places (sección 12). */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")

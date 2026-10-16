@@ -34,7 +34,7 @@ class PermissionsTest {
         Permissions p = worker(Map.of(Module.CATEGORIES, AccessLevel.ACCESS));
         assertThat(p.can(Module.CATEGORIES, AccessLevel.ACCESS)).isTrue();
         assertThat(p.can(Module.ADVERTISING, AccessLevel.ACCESS)).isFalse();
-        assertThat(p.can(Module.ARTICLES, AccessLevel.PUBLISH)).isFalse();
+        assertThat(p.can(Module.PUBLICATIONS, AccessLevel.PUBLISH)).isFalse();
         assertThat(p.hasAnyContentModule()).isFalse();
     }
 

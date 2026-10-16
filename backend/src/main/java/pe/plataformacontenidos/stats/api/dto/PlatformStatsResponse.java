@@ -7,8 +7,8 @@ import pe.plataformacontenidos.identity.Role;
 
 /** CONTEXTO.md sección 34. Ver StatsService — pura agregación, sin persistencia propia. */
 public record PlatformStatsResponse(
-        Map<PublicationStatus, Long> articlesByStatus,
-        long articlesPublishedLast30Days,
+        Map<PublicationStatus, Long> publicationsByStatus,
+        long publicationsPublishedLast30Days,
         List<DailyCountResponse> publishedTrendLast30Days,
         Map<PublicationStatus, Long> placesByStatus,
         Map<PublicationStatus, Long> eventsByStatus,

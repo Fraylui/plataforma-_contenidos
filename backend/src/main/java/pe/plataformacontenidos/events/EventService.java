@@ -36,7 +36,7 @@ import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
 /**
  * Orquesta el ciclo de publicación de Eventos (CONTEXTO.md sección 12), mismo
- * patrón que ArticleService/PlaceService. La autorización a nivel de objeto
+ * patrón que PublicationService/PlaceService. La autorización a nivel de objeto
  * vive acá (SecurityConfig solo decide quién llega al endpoint).
  */
 @Service
@@ -212,7 +212,7 @@ public class EventService {
         return LocalDate.now(siteZone);
     }
 
-    /** CONTEXTO.md sección 16. Mismo criterio que ArticleService/PlaceService.search (query en blanco: página vacía, no error). */
+    /** CONTEXTO.md sección 16. Mismo criterio que PublicationService/PlaceService.search (query en blanco: página vacía, no error). */
     public Page<Event> search(String query, UUID categoryId, Instant from, Instant to, Pageable pageable) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);

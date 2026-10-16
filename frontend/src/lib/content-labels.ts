@@ -1,8 +1,8 @@
-import type { ArticleType, BusinessType, SearchResult, SearchResultType, PublicationStatus } from "@/lib/api/types";
+import type { PublicationType, BusinessType, SearchResult, SearchResultType, PublicationStatus } from "@/lib/api/types";
 import type { BadgeTone } from "@/components/ui";
 import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
-const ARTICLE_TYPE_LABELS: Record<ArticleType, string> = {
+const PUBLICATION_TYPE_LABELS: Record<PublicationType, string> = {
   GENERAL: "General",
   GUIA: "Guía",
   LISTA: "Lista",
@@ -10,8 +10,8 @@ const ARTICLE_TYPE_LABELS: Record<ArticleType, string> = {
   HISTORIA: "Historia",
 };
 
-export function articleTypeLabel(type: ArticleType): string {
-  return ARTICLE_TYPE_LABELS[type];
+export function publicationTypeLabel(type: PublicationType): string {
+  return PUBLICATION_TYPE_LABELS[type];
 }
 
 const PUBLICATION_STATUS_LABELS: Record<PublicationStatus, string> = {
@@ -69,7 +69,7 @@ export function formatPublishedDate(iso: string | null): string {
  * diferencia de Lugar/Galería, atemporales, o Evento, donde la fecha es
  * de calendario, no de antigüedad — ver formatEventDateTime).
  */
-export function formatArticleDate(iso: string | null): string {
+export function formatPublicationDate(iso: string | null): string {
   if (!iso) return "";
   const date = new Date(iso);
   const diffMs = Date.now() - date.getTime();
@@ -91,7 +91,7 @@ export function formatArticleDate(iso: string | null): string {
 /**
  * Fecha corta absoluta ("sáb 29 ago 2026") para Lugar/Galería en el
  * home: contenido atemporal donde "hace 3 meses" no aporta (ver
- * formatArticleDate, que sí es relativa a propósito para Publicaciones).
+ * formatPublicationDate, que sí es relativa a propósito para Publicaciones).
  */
 export function formatShortDate(iso: string | null): string {
   if (!iso) return "";
@@ -127,7 +127,7 @@ export function formatEventDateTime(iso: string): string {
 // Ver SearchResultResponse.java (CONTEXTO.md sección 16) — un solo lugar para
 // la etiqueta y la ruta de cada tipo buscable (buscador con sugerencias en vivo).
 const SEARCH_RESULT_TYPE_LABEL: Record<SearchResultType, string> = {
-  ARTICLE: "Publicación",
+  PUBLICATION: "Publicación",
   PLACE: "Lugar",
   EVENT: "Celebración",
   GALLERY: "Galería",
@@ -140,7 +140,7 @@ export function searchResultTypeLabel(type: SearchResultType): string {
 }
 
 const SEARCH_RESULT_TYPE_PATH: Record<SearchResultType, string> = {
-  ARTICLE: "publicaciones",
+  PUBLICATION: "publicaciones",
   PLACE: "lugares",
   EVENT: "celebraciones",
   GALLERY: "galerias",

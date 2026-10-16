@@ -1,20 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { articleTypeLabel, formatEventDateTime, formatPublishedDate, formatShortDate, publicationStatusLabel, publicationStatusTone } from "./content-labels";
-import type { ArticleType, PublicationStatus } from "@/lib/api/types";
+import { publicationTypeLabel, formatEventDateTime, formatPublishedDate, formatShortDate, publicationStatusLabel, publicationStatusTone } from "./content-labels";
+import type { PublicationType, PublicationStatus } from "@/lib/api/types";
 
-const ALL_ARTICLE_TYPES: ArticleType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA"];
+const ALL_PUBLICATION_TYPES: PublicationType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA"];
 
 const ALL_STATUSES: PublicationStatus[] = ["DRAFT", "SCHEDULED", "PUBLISHED", "ARCHIVED"];
 
 // Sobre todo para que un nuevo valor del enum (backend) que se olvide
 // agregar acá explote en un test en vez de mostrar `undefined` en la UI.
 describe("mapas de etiquetas", () => {
-  it.each(ALL_ARTICLE_TYPES)("articleTypeLabel(%s) devuelve una etiqueta no vacía", (type) => {
-    expect(articleTypeLabel(type)).toBeTruthy();
+  it.each(ALL_PUBLICATION_TYPES)("publicationTypeLabel(%s) devuelve una etiqueta no vacía", (type) => {
+    expect(publicationTypeLabel(type)).toBeTruthy();
   });
 
   it("formatos de plataforma, sin géneros periodísticos", () => {
-    expect(ALL_ARTICLE_TYPES.map(articleTypeLabel)).toEqual(["General", "Guía", "Lista", "Tutorial", "Historia"]);
+    expect(ALL_PUBLICATION_TYPES.map(publicationTypeLabel)).toEqual(["General", "Guía", "Lista", "Tutorial", "Historia"]);
   });
 
   it("estados de plataforma, sin pasos de redacción", () => {

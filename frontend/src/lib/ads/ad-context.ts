@@ -4,11 +4,11 @@
  * el visitante está viendo. La ubicación del visitante no va acá: la agrega
  * Cloudflare en cabeceras y el proxy de Next la reenvía.
  */
-export type AdSection = "HOME" | "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS" | "SERIES";
+export type AdSection = "HOME" | "PUBLICATION" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS" | "SERIES";
 
 export const AD_SECTIONS: { value: AdSection; label: string }[] = [
   { value: "HOME", label: "Inicio" },
-  { value: "ARTICLE", label: "Publicaciones" },
+  { value: "PUBLICATION", label: "Publicaciones" },
   { value: "PLACE", label: "Lugares" },
   { value: "EVENT", label: "Celebraciones" },
   { value: "GALLERY", label: "Galerías" },
@@ -22,7 +22,7 @@ export interface AdContext {
 }
 
 const SECTION_BY_PREFIX: [string, AdSection][] = [
-  ["/publicaciones", "ARTICLE"],
+  ["/publicaciones", "PUBLICATION"],
   ["/lugares", "PLACE"],
   ["/celebraciones", "EVENT"],
   ["/galerias", "GALLERY"],

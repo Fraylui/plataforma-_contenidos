@@ -3,8 +3,8 @@ package pe.plataformacontenidos.feed.api.dto;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import pe.plataformacontenidos.content.Article;
-import pe.plataformacontenidos.content.ArticleType;
+import pe.plataformacontenidos.content.Publication;
+import pe.plataformacontenidos.content.PublicationType;
 import pe.plataformacontenidos.directory.Business;
 import pe.plataformacontenidos.engagement.ContentType;
 import pe.plataformacontenidos.events.Event;
@@ -19,10 +19,10 @@ import pe.plataformacontenidos.shared.ContentImage;
  * criterio que search.api.dto.SearchResultResponse (CONTEXTO.md sección 16):
  * el frontend arma la URL a partir de `type` + `slug`. A diferencia de
  * SearchResultResponse, acá sí importa likeCount (las tarjetas del home lo
- * muestran, ver CONTEXTO.md sección 43). `articleType` solo aplica a
- * ARTICLE (null en Lugar/Evento) — permite mostrar la etiqueta real
+ * muestran, ver CONTEXTO.md sección 43). `publicationType` solo aplica a
+ * PUBLICATION (null en Lugar/Evento) — permite mostrar la etiqueta real
  * (Guía/Crónica/…) en vez de un genérico "Publicación", igual que
- * ArticleSummaryResponse. coverImageId/coverImageUrl son excluyentes (ver
+ * PublicationSummaryResponse. coverImageId/coverImageUrl son excluyentes (ver
  * ContentImage): la primera imagen del contenido, subida o por enlace
  * externo.
  *
@@ -39,7 +39,7 @@ public record FeedItemResponse(
         String slug,
         String title,
         String excerpt,
-        ArticleType articleType,
+        PublicationType publicationType,
         UUID categoryId,
         UUID coverImageId,
         String coverImageUrl,
@@ -65,12 +65,12 @@ public record FeedItemResponse(
     public record FeedImage(UUID imageId, String externalUrl) {
     }
 
-    public static FeedItemResponse fromArticle(Article article, long likeCount) {
-        ContentImage cover = article.getCoverImage();
-        return new FeedItemResponse(ContentType.ARTICLE, article.getId(), article.getSlug(), article.getTitle(),
-                article.getExcerpt(), article.getArticleType(), article.getCategoryId(), imageId(cover),
-                externalUrl(cover), !article.getVideos().isEmpty(), article.getPublishedAt(), likeCount,
-                images(article.getImages()), null, null, null, null, null, null, null, null, null, null);
+    public static FeedItemResponse fromPublication(Publication publication, long likeCount) {
+        ContentImage cover = publication.getCoverImage();
+        return new FeedItemResponse(ContentType.PUBLICATION, publication.getId(), publication.getSlug(), publication.getTitle(),
+                publication.getExcerpt(), publication.getPublicationType(), publication.getCategoryId(), imageId(cover),
+                externalUrl(cover), !publication.getVideos().isEmpty(), publication.getPublishedAt(), likeCount,
+                images(publication.getImages()), null, null, null, null, null, null, null, null, null, null);
     }
 
     public static FeedItemResponse fromPlace(Place place, long likeCount) {

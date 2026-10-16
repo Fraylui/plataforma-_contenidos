@@ -140,7 +140,7 @@ class NativeCampaignIntegrationTest {
         // Destino que no es una web
         expectBadRequest(token, nativeJson(advertiserId, video, "javascript:alert(1)"));
         // Fuera del feed
-        expectBadRequest(token, nativeJson(advertiserId, video + ",\"placementKey\":\"article\"", "https://tienda.example.com"));
+        expectBadRequest(token, nativeJson(advertiserId, video + ",\"placementKey\":\"publication\"", "https://tienda.example.com"));
         // Sin texto
         expectBadRequest(token, nativeJson(advertiserId, video, "https://tienda.example.com").replace("2x1 los martes en todo el menú", ""));
     }

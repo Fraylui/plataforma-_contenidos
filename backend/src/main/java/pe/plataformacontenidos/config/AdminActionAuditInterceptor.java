@@ -19,7 +19,7 @@ import pe.plataformacontenidos.identity.security.UserPrincipal;
  * Auditoría de toda acción del panel que modifica algo (ISO 27001 A.8.15,
  * COBIT DSS06): cada POST/PUT/PATCH/DELETE hecho por un usuario autenticado
  * del panel queda registrado con quién, qué (método + ruta, p. ej. "POST
- * /admin/articles/{id}/publish" o "PUT /categories/{id}"), sobre qué
+ * /admin/publications/{id}/publish" o "PUT /categories/{id}"), sobre qué
  * recurso, desde qué IP y si salió bien o fue rechazado (4xx/5xx). Las
  * acciones públicas y anónimas (me gusta, impresiones de anuncios) no son
  * del panel y no se registran: masivas y sin valor de auditoría.

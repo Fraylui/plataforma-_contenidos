@@ -6,7 +6,7 @@ package pe.plataformacontenidos.content;
  * Crónica y Opinión se retiraron el 2026-10-06 (V48); Entrevista, el
  * 2026-10-15 (V56).
  */
-public enum ArticleType {
+public enum PublicationType {
     GENERAL,
     GUIA,
     LISTA,

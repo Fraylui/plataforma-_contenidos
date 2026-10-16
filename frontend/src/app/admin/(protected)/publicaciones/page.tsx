@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { listAdminArticles } from "@/lib/api/admin-client";
+import { listAdminPublications } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { parseAdminListParams } from "@/lib/admin/list-params";
 import { AccessDenied } from "@/components/admin/access-denied";
@@ -12,10 +12,10 @@ export const metadata: Metadata = {
   robots: "noindex,nofollow",
 };
 
-export default async function AdminArticlesPage(props: PageProps<"/admin/publicaciones">) {
+export default async function AdminPublicationsPage(props: PageProps<"/admin/publicaciones">) {
   const { user, accessToken } = await requireAdminUser();
   const params = parseAdminListParams(await props.searchParams);
-  const result = await fetchOrAccessDenied(() => listAdminArticles(accessToken, params));
+  const result = await fetchOrAccessDenied(() => listAdminPublications(accessToken, params));
   if ("denied" in result) return <AccessDenied />;
   const isEmpty = result.data.totalElements === 0 && !params.q && !params.status;
 

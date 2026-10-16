@@ -71,7 +71,7 @@ public class DashboardService {
             + " FROM series.episodes e JOIN series.series s ON s.id = e.series_id";
 
     private static final Map<ContentType, Source> SOURCES = new EnumMap<>(Map.of(
-            ContentType.ARTICLE, new Source("content.articles", "title", Module.ARTICLES),
+            ContentType.PUBLICATION, new Source("content.publications", "title", Module.PUBLICATIONS),
             ContentType.PLACE, new Source("places.places", "name", Module.PLACES),
             ContentType.EVENT, new Source("events.events", "title", Module.EVENTS),
             ContentType.GALLERY, new Source("galleries.galleries", "title", Module.GALLERIES),

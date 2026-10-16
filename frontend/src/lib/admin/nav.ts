@@ -39,7 +39,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     label: "Publicaciones",
     group: "contenido",
     icon: Article,
-    module: "ARTICLES",
+    module: "PUBLICATIONS",
   },
   {
     href: "/admin/lugares",

@@ -35,22 +35,22 @@ import pe.plataformacontenidos.taxonomy.CategoryService;
  */
 @Service
 @Transactional
-public class ArticleService {
+public class PublicationService {
 
-    private final ArticleRepository articleRepository;
+    private final PublicationRepository publicationRepository;
     private final CategoryService categoryService;
     private final AuditService auditService;
     private final ImageService imageService;
 
-    public ArticleService(ArticleRepository articleRepository, CategoryService categoryService,
+    public PublicationService(PublicationRepository publicationRepository, CategoryService categoryService,
             AuditService auditService, ImageService imageService) {
-        this.articleRepository = articleRepository;
+        this.publicationRepository = publicationRepository;
         this.categoryService = categoryService;
         this.auditService = auditService;
         this.imageService = imageService;
     }
 
-    public Article create(ArticleInput input, UUID authorId) {
+    public Publication create(PublicationInput input, UUID authorId) {
         if (!categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
@@ -58,108 +58,108 @@ public class ArticleService {
         List<ContentVideo> videos = resolveVideos(input.videos());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
-        Article article = new Article(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), sanitizedBody,
-                input.articleType(), authorId, input.categoryId());
-        article.updateContent(input.title(), input.excerpt(), sanitizedBody, input.articleType(), input.categoryId(),
+        Publication publication = new Publication(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), sanitizedBody,
+                input.publicationType(), authorId, input.categoryId());
+        publication.updateContent(input.title(), input.excerpt(), sanitizedBody, input.publicationType(), input.categoryId(),
                 input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
                 input.ogImageUrl(), images, videos, input.robots());
 
-        Article saved = articleRepository.save(article);
-        audit("ARTICLE_CREATED", saved, authorId);
+        Publication saved = publicationRepository.save(publication);
+        audit("PUBLICATION_CREATED", saved, authorId);
         return saved;
     }
 
-    public Article update(UUID articleId, ArticleInput input, UUID actingUserId) {
-        Article article = getOrThrow(articleId);
-        requireEditable(article);
+    public Publication update(UUID publicationId, PublicationInput input, UUID actingUserId) {
+        Publication publication = getOrThrow(publicationId);
+        requireEditable(publication);
 
-        if (!article.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
+        if (!publication.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
 
-        article.updateContent(input.title(), input.excerpt(), sanitizedBody, input.articleType(), input.categoryId(),
+        publication.updateContent(input.title(), input.excerpt(), sanitizedBody, input.publicationType(), input.categoryId(),
                 input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
                 input.ogImageUrl(), images, videos, input.robots());
-        Article saved = articleRepository.save(article);
-        audit("ARTICLE_UPDATED", saved, actingUserId);
+        Publication saved = publicationRepository.save(publication);
+        audit("PUBLICATION_UPDATED", saved, actingUserId);
         return saved;
     }
 
-    public Article publish(UUID articleId, UUID actingUserId) {
-        Article article = getOrThrow(articleId);
-        article.publishNow(Instant.now());
-        return saveAndAudit(article, "ARTICLE_PUBLISHED", actingUserId);
+    public Publication publish(UUID publicationId, UUID actingUserId) {
+        Publication publication = getOrThrow(publicationId);
+        publication.publishNow(Instant.now());
+        return saveAndAudit(publication, "PUBLICATION_PUBLISHED", actingUserId);
     }
 
-    public Article schedule(UUID articleId, Instant when, UUID actingUserId) {
-        Article article = getOrThrow(articleId);
-        article.schedule(when, Instant.now());
-        return saveAndAudit(article, "ARTICLE_SCHEDULED", actingUserId);
+    public Publication schedule(UUID publicationId, Instant when, UUID actingUserId) {
+        Publication publication = getOrThrow(publicationId);
+        publication.schedule(when, Instant.now());
+        return saveAndAudit(publication, "PUBLICATION_SCHEDULED", actingUserId);
     }
 
     /** Cancela la programación: vuelve a borrador. */
-    public Article returnToDraft(UUID articleId, UUID actingUserId) {
-        Article article = getOrThrow(articleId);
-        article.returnToDraft();
-        return saveAndAudit(article, "ARTICLE_RETURNED_TO_DRAFT", actingUserId);
+    public Publication returnToDraft(UUID publicationId, UUID actingUserId) {
+        Publication publication = getOrThrow(publicationId);
+        publication.returnToDraft();
+        return saveAndAudit(publication, "PUBLICATION_RETURNED_TO_DRAFT", actingUserId);
     }
 
-    public Article archive(UUID articleId, UUID actingUserId) {
-        Article article = getOrThrow(articleId);
-        article.archive();
-        return saveAndAudit(article, "ARTICLE_ARCHIVED", actingUserId);
+    public Publication archive(UUID publicationId, UUID actingUserId) {
+        Publication publication = getOrThrow(publicationId);
+        publication.archive();
+        return saveAndAudit(publication, "PUBLICATION_ARCHIVED", actingUserId);
     }
 
-    public Article getForAdmin(UUID articleId) {
-        return getOrThrow(articleId);
+    public Publication getForAdmin(UUID publicationId) {
+        return getOrThrow(publicationId);
     }
 
     /** Página del listado del panel (ver AdminListQuery). */
-    public Page<Article> listForAdmin(AdminListQuery query) {
-        return articleRepository.findAll(query.specification("title"),
+    public Page<Publication> listForAdmin(AdminListQuery query) {
+        return publicationRepository.findAll(query.specification("title"),
                 query.pageable("title"));
     }
 
-    public Article getPublishedBySlug(String slug) {
-        return articleRepository.findBySlugAndStatus(slug, PublicationStatus.PUBLISHED)
-                .orElseThrow(() -> new ArticleNotFoundException(slug));
+    public Publication getPublishedBySlug(String slug) {
+        return publicationRepository.findBySlugAndStatus(slug, PublicationStatus.PUBLISHED)
+                .orElseThrow(() -> new PublicationNotFoundException(slug));
     }
 
-    public Page<Article> listPublished(UUID categoryId, Pageable pageable) {
+    public Page<Publication> listPublished(UUID categoryId, Pageable pageable) {
         if (categoryId != null) {
-            return articleRepository.findByStatusAndCategoryId(PublicationStatus.PUBLISHED, categoryId, pageable);
+            return publicationRepository.findByStatusAndCategoryId(PublicationStatus.PUBLISHED, categoryId, pageable);
         }
-        return articleRepository.findByStatus(PublicationStatus.PUBLISHED, pageable);
+        return publicationRepository.findByStatus(PublicationStatus.PUBLISHED, pageable);
     }
 
     /** CONTEXTO.md sección 16. Query en blanco: página vacía, no error — evita un 400 por un input trivial. */
-    public Page<Article> search(String query, UUID categoryId, Pageable pageable) {
+    public Page<Publication> search(String query, UUID categoryId, Pageable pageable) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);
         }
-        return articleRepository.search(query.trim(), categoryId, pageable);
+        return publicationRepository.search(query.trim(), categoryId, pageable);
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
     public Map<PublicationStatus, Long> countByStatus() {
         Map<PublicationStatus, Long> counts = new EnumMap<>(PublicationStatus.class);
         for (PublicationStatus status : PublicationStatus.values()) {
-            counts.put(status, articleRepository.countByStatus(status));
+            counts.put(status, publicationRepository.countByStatus(status));
         }
         return counts;
     }
 
     public long countPublishedSince(Instant threshold) {
-        return articleRepository.countByStatusAndPublishedAtAfter(PublicationStatus.PUBLISHED, threshold);
+        return publicationRepository.countByStatusAndPublishedAtAfter(PublicationStatus.PUBLISHED, threshold);
     }
 
     /** Ver StatsService.trend — un conteo por día (UTC), solo los días con al menos una publicación. */
     public Map<LocalDate, Long> publishedCountsByDaySince(Instant threshold) {
         Map<LocalDate, Long> counts = new LinkedHashMap<>();
-        for (ArticleRepository.DailyCountRow row : articleRepository.countPublishedByDaySince(threshold)) {
+        for (PublicationRepository.DailyCountRow row : publicationRepository.countPublishedByDaySince(threshold)) {
             LocalDate day = row.getDay().atZone(ZoneOffset.UTC).toLocalDate();
             counts.put(day, row.getCnt());
         }
@@ -175,7 +175,7 @@ public class ArticleService {
         List<ContentImage> result = new ArrayList<>(images.size());
         for (ContentImageInput input : images) {
             if (!input.isValidShape() || (input.hasExternalUrl() && !input.isValidExternalUrl())) {
-                throw new InvalidArticleImageException();
+                throw new InvalidPublicationImageException();
             }
             if (input.hasImageId()) {
                 imageService.getOrThrow(input.imageId());
@@ -204,34 +204,34 @@ public class ArticleService {
         return result;
     }
 
-    private void requireEditable(Article article) {
-        if (!article.isEditable()) {
-            throw new InvalidPublicationTransitionException(article.getStatus(), "editar");
+    private void requireEditable(Publication publication) {
+        if (!publication.isEditable()) {
+            throw new InvalidPublicationTransitionException(publication.getStatus(), "editar");
         }
     }
 
-    private Article getOrThrow(UUID id) {
-        return articleRepository.findById(id).orElseThrow(() -> new ArticleNotFoundException(id));
+    private Publication getOrThrow(UUID id) {
+        return publicationRepository.findById(id).orElseThrow(() -> new PublicationNotFoundException(id));
     }
 
     private String uniqueSlugFrom(String title) {
         String base = Slugify.slugify(title);
         String candidate = base;
         int suffix = 2;
-        while (articleRepository.existsBySlug(candidate)) {
+        while (publicationRepository.existsBySlug(candidate)) {
             candidate = base + "-" + suffix++;
         }
         return candidate;
     }
 
-    private Article saveAndAudit(Article article, String action, UUID actingUserId) {
-        Article saved = articleRepository.save(article);
+    private Publication saveAndAudit(Publication publication, String action, UUID actingUserId) {
+        Publication saved = publicationRepository.save(publication);
         audit(action, saved, actingUserId);
         return saved;
     }
 
-    private void audit(String action, Article article, UUID actingUserId) {
-        auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "article", article.getId().toString(),
+    private void audit(String action, Publication publication, UUID actingUserId) {
+        auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "publication", publication.getId().toString(),
                 null);
     }
 

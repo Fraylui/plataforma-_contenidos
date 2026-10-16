@@ -23,15 +23,15 @@ import pe.plataformacontenidos.shared.ContentVideo;
 
 /**
  * Un artículo de texto (sección 3: noticia, reportaje, crónica, etc. — todos
- * comparten la misma forma, solo cambia articleType). author_id y
+ * comparten la misma forma, solo cambia publicationType). author_id y
  * category_id son UUID sin FK: pertenecen a los módulos Identity y Taxonomy
  * respectivamente, y este módulo no hace joins cruzados de esquema
- * (CONTEXTO.md sección 38). Se validan en ArticleService llamando a los
+ * (CONTEXTO.md sección 38). Se validan en PublicationService llamando a los
  * repositorios/servicios de esos módulos.
  */
 @Entity
-@Table(name = "articles", schema = "content")
-public class Article extends PublishableContent {
+@Table(name = "publications", schema = "content")
+public class Publication extends PublishableContent {
 
     @Id
     @GeneratedValue
@@ -50,8 +50,8 @@ public class Article extends PublishableContent {
     private String body;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "article_type", nullable = false)
-    private ArticleType articleType;
+    @Column(name = "publication_type", nullable = false)
+    private PublicationType publicationType;
 
     @Column(name = "author_id", nullable = false)
     private UUID authorId;
@@ -78,13 +78,13 @@ public class Article extends PublishableContent {
      * Lugares/Eventos.
      */
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "article_images", schema = "content", joinColumns = @JoinColumn(name = "article_id"))
+    @CollectionTable(name = "publication_images", schema = "content", joinColumns = @JoinColumn(name = "publication_id"))
     @OrderColumn(name = "sort_order")
     private List<ContentImage> images = new ArrayList<>();
 
     /** Solo la referencia (Video ID de YouTube), nunca el video en sí — sección 8. Varios videos por publicación. */
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "article_videos", schema = "content", joinColumns = @JoinColumn(name = "article_id"))
+    @CollectionTable(name = "publication_videos", schema = "content", joinColumns = @JoinColumn(name = "publication_id"))
     @OrderColumn(name = "sort_order")
     private List<ContentVideo> videos = new ArrayList<>();
 
@@ -94,17 +94,17 @@ public class Article extends PublishableContent {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
-    protected Article() {
+    protected Publication() {
         // JPA
     }
 
-    public Article(String slug, String title, String excerpt, String body, ArticleType articleType,
+    public Publication(String slug, String title, String excerpt, String body, PublicationType publicationType,
             UUID authorId, UUID categoryId) {
         this.slug = slug;
         this.title = title;
         this.excerpt = excerpt;
         this.body = body;
-        this.articleType = articleType;
+        this.publicationType = publicationType;
         this.authorId = authorId;
         this.categoryId = categoryId;
     }
@@ -129,8 +129,8 @@ public class Article extends PublishableContent {
         return body;
     }
 
-    public ArticleType getArticleType() {
-        return articleType;
+    public PublicationType getPublicationType() {
+        return publicationType;
     }
 
     public UUID getAuthorId() {
@@ -178,13 +178,13 @@ public class Article extends PublishableContent {
         return createdAt;
     }
 
-    public void updateContent(String title, String excerpt, String body, ArticleType articleType, UUID categoryId,
+    public void updateContent(String title, String excerpt, String body, PublicationType publicationType, UUID categoryId,
             String seoTitle, String metaDescription, String canonicalUrl,
             String ogImageUrl, List<ContentImage> images, List<ContentVideo> videos, String robots) {
         this.title = title;
         this.excerpt = excerpt;
         this.body = body;
-        this.articleType = articleType;
+        this.publicationType = publicationType;
         this.categoryId = categoryId;
         this.seoTitle = seoTitle;
         this.metaDescription = metaDescription;

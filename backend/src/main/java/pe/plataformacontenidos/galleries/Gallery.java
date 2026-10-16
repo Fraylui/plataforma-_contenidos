@@ -27,7 +27,7 @@ import pe.plataformacontenidos.shared.ContentImage;
  * exige al menos una imagen). Mismo flujo de publicación que el resto (sección
  * 12). category_id es UUID sin FK (Taxonomy, sección 38); images tampoco
  * (Media) — cada imagen es subida o por enlace externo, con título/pie de
- * foto opcionales, mismo patrón que Article/Place/Event.
+ * foto opcionales, mismo patrón que Publication/Place/Event.
  */
 @Entity
 @Table(name = "galleries", schema = "galleries")

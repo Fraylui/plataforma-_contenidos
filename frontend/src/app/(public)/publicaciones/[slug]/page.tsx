@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCategoryById, getPlatformSettings, getPublishedArticleBySlug, getRelatedWithFallback } from "@/lib/api/client";
+import { getCategoryById, getPlatformSettings, getPublishedPublicationBySlug, getRelatedWithFallback } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { LikeShareBar } from "@/components/content/like-share-bar";
 import { ViewBeacon } from "@/components/content/view-beacon";
@@ -11,15 +11,15 @@ import { headerTimeFor } from "@/components/post/post-header";
 import { KIND_LABEL } from "@/lib/content-kind";
 import { fromFeedItem } from "@/lib/home-items";
 import { SITE_URL } from "@/lib/site-url";
-import type { Article, Category } from "@/lib/api/types";
+import type { Publication, Category } from "@/lib/api/types";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
 
 /** "Más como esto": 3 filas de la cuadrícula de 3. */
 const MORE_SIZE = 9;
 
-async function loadArticle(slug: string) {
+async function loadPublication(slug: string) {
   try {
-    return await getPublishedArticleBySlug(slug);
+    return await getPublishedPublicationBySlug(slug);
   } catch (error) {
     if (error instanceof NotFoundError) {
       notFound();
@@ -39,16 +39,16 @@ export function generateStaticParams() {
 
 export async function generateMetadata(props: PageProps<"/publicaciones/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
-  let article;
+  let publication;
   try {
-    article = await getPublishedArticleBySlug(slug);
+    publication = await getPublishedPublicationBySlug(slug);
   } catch {
     return {};
   }
   const settings = await getPlatformSettings();
 
-  const title = article.seoTitle || article.title;
-  const description = article.metaDescription || article.excerpt || undefined;
+  const title = publication.seoTitle || publication.title;
+  const description = publication.metaDescription || publication.excerpt || undefined;
 
   return {
     title,
@@ -56,29 +56,29 @@ export async function generateMetadata(props: PageProps<"/publicaciones/[slug]">
     // Por defecto, cada artículo es canónico de sí mismo (sección 15); solo
     // se sobreescribe si el editor definió explícitamente otra URL canónica
     // (ej. republicación de contenido originado en otro sitio).
-    alternates: { canonical: article.canonicalUrl || `/publicaciones/${slug}` },
-    robots: article.robots,
+    alternates: { canonical: publication.canonicalUrl || `/publicaciones/${slug}` },
+    robots: publication.robots,
     openGraph: {
       title,
       description,
       type: "article",
-      images: article.ogImageUrl ? [article.ogImageUrl] : undefined,
-      publishedTime: article.publishedAt ?? undefined,
+      images: publication.ogImageUrl ? [publication.ogImageUrl] : undefined,
+      publishedTime: publication.publishedAt ?? undefined,
       siteName: settings.name,
     },
   };
 }
 
-function articleJsonLd(article: Article, category: Category | null, siteName: string) {
-  const url = article.canonicalUrl || `${SITE_URL}/publicaciones/${article.slug}`;
+function publicationJsonLd(publication: Publication, category: Category | null, siteName: string) {
+  const url = publication.canonicalUrl || `${SITE_URL}/publicaciones/${publication.slug}`;
   return {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: article.seoTitle || article.title,
-    description: article.metaDescription || article.excerpt || undefined,
-    image: article.ogImageUrl ? [article.ogImageUrl] : undefined,
-    datePublished: article.publishedAt ?? undefined,
-    dateModified: article.updatedAt ?? article.publishedAt ?? undefined,
+    headline: publication.seoTitle || publication.title,
+    description: publication.metaDescription || publication.excerpt || undefined,
+    image: publication.ogImageUrl ? [publication.ogImageUrl] : undefined,
+    datePublished: publication.publishedAt ?? undefined,
+    dateModified: publication.updatedAt ?? publication.publishedAt ?? undefined,
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     articleSection: category?.name,
     publisher: {
@@ -88,11 +88,11 @@ function articleJsonLd(article: Article, category: Category | null, siteName: st
   };
 }
 
-function breadcrumbJsonLd(article: Article, category: Category | null) {
+function breadcrumbJsonLd(publication: Publication, category: Category | null) {
   const items = [
     { name: "Inicio", url: SITE_URL },
     ...(category ? [{ name: category.name, url: `${SITE_URL}/categorias/${category.slug}` }] : []),
-    { name: article.title, url: `${SITE_URL}/publicaciones/${article.slug}` },
+    { name: publication.title, url: `${SITE_URL}/publicaciones/${publication.slug}` },
   ];
   return {
     "@context": "https://schema.org",
@@ -106,35 +106,35 @@ function breadcrumbJsonLd(article: Article, category: Category | null) {
   };
 }
 
-export default async function ArticlePage(props: PageProps<"/publicaciones/[slug]">) {
+export default async function PublicationPage(props: PageProps<"/publicaciones/[slug]">) {
   const { slug } = await props.params;
-  const article = await loadArticle(slug);
+  const publication = await loadPublication(slug);
 
   const [category, settings, relatedPage] = await Promise.all([
-    getCategoryById(article.categoryId).catch(() => null),
+    getCategoryById(publication.categoryId).catch(() => null),
     getPlatformSettings(),
-    getRelatedWithFallback({ excludeType: "ARTICLE", excludeId: article.id, categoryId: article.categoryId, size: MORE_SIZE }),
+    getRelatedWithFallback({ excludeType: "PUBLICATION", excludeId: publication.id, categoryId: publication.categoryId, size: MORE_SIZE }),
   ]);
-  const hasMedia = article.images.length > 0 || article.videos.length > 0;
+  const hasMedia = publication.images.length > 0 || publication.videos.length > 0;
 
   return (
     <>
       <VideoJsonLd
-        videos={article.videos}
-        fallbackTitle={article.title}
-        description={article.metaDescription || article.excerpt}
-        uploadDate={article.publishedAt}
+        videos={publication.videos}
+        fallbackTitle={publication.title}
+        description={publication.metaDescription || publication.excerpt}
+        uploadDate={publication.publishedAt}
       />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(articleJsonLd(article, category, settings.name)).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(publicationJsonLd(publication, category, settings.name)).replace(/</g, "\\u003c"),
         }}
       />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbJsonLd(article, category)).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(breadcrumbJsonLd(publication, category)).replace(/</g, "\\u003c"),
         }}
       />
 
@@ -143,13 +143,13 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
         brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}
         typeLabel={KIND_LABEL.publicacion}
         categoryName={category?.name}
-        time={headerTimeFor({ kind: "publicacion", sortDate: article.publishedAt ?? "" })}
-        title={article.title}
+        time={headerTimeFor({ kind: "publicacion", sortDate: publication.publishedAt ?? "" })}
+        title={publication.title}
         // Texto largo: sin fotos ni videos no hace falta el bloque de marca, el título ya encabeza.
-        media={hasMedia ? <PostDetailMedia images={article.images} videos={article.videos} title={article.title} aspect="aspect-video" /> : null}
-        excerpt={article.excerpt}
+        media={hasMedia ? <PostDetailMedia images={publication.images} videos={publication.videos} title={publication.title} aspect="aspect-video" /> : null}
+        excerpt={publication.excerpt}
         body={
-          // article.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
+          // publication.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
           // de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
           // Cita destacada con borde de acento; imágenes y subtítulos sin líneas ni
           // sombras (la separación es el espacio, como el resto del sitio).
@@ -163,11 +163,11 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
               prose-blockquote:text-xl prose-blockquote:leading-snug prose-blockquote:text-foreground
               prose-blockquote:before:content-none prose-blockquote:after:content-none
               prose-img:rounded-2xl"
-            dangerouslySetInnerHTML={{ __html: article.body }}
+            dangerouslySetInnerHTML={{ __html: publication.body }}
           />
         }
-        actions={<><ViewBeacon type="ARTICLE" id={article.id} /><LikeShareBar contentType="articles" slug={article.slug} initialLikeCount={article.likeCount} title={article.title} /></>}
-        ad={<AdBlock position="article" section="ARTICLE" categoryId={article.categoryId} layout="band" count={2} />}
+        actions={<><ViewBeacon type="PUBLICATION" id={publication.id} /><LikeShareBar contentType="publications" slug={publication.slug} initialLikeCount={publication.likeCount} title={publication.title} /></>}
+        ad={<AdBlock position="article" section="PUBLICATION" categoryId={publication.categoryId} layout="band" count={2} />}
         more={[...relatedPage.related, ...relatedPage.more].map(fromFeedItem)}
       />
     </>

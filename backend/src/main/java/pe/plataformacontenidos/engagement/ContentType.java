@@ -6,7 +6,7 @@ package pe.plataformacontenidos.engagement;
  * (video de YouTube), que también entra al feed.
  */
 public enum ContentType {
-    ARTICLE,
+    PUBLICATION,
     PLACE,
     EVENT,
     GALLERY,

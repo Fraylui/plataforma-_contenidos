@@ -31,7 +31,7 @@ import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;
 
 /**
  * CRUD de contenido + transiciones de workflow para Lugares — mismo patrón que
- * ArticleAdminController. La autorización fina vive en PlaceService.
+ * PublicationAdminController. La autorización fina vive en PlaceService.
  */
 @RestController
 @RequiresModule(value = Module.PLACES)

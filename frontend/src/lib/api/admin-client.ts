@@ -20,7 +20,7 @@ import type {
   AdPlacementUpdateInput,
   Advertiser,
   AdvertiserInput,
-  ArticleInput,
+  PublicationInput,
   AuditEvent,
   AuditSearchFilters,
   BusinessInput,
@@ -44,7 +44,7 @@ import type {
 } from "./admin-types";
 import type {
   AdPlacement,
-  Article,
+  Publication,
   Business,
   Category,
   Episode,
@@ -160,26 +160,26 @@ export function getCurrentUser(accessToken: string): Promise<AdminUser> {
   return authedJson("/api/v1/users/me", accessToken);
 }
 
-// --- Content module: artículos (ArticleAdminController) ---
+// --- Content module: artículos (PublicationAdminController) ---
 
-export function listAdminArticles(accessToken: string, params: AdminListParams): Promise<AdminContentPage<Article>> {
-  return authedJson(`/api/v1/admin/articles?${adminListQuery(params)}`, accessToken);
+export function listAdminPublications(accessToken: string, params: AdminListParams): Promise<AdminContentPage<Publication>> {
+  return authedJson(`/api/v1/admin/publications?${adminListQuery(params)}`, accessToken);
 }
 
-export function getAdminArticle(accessToken: string, id: string): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}`, accessToken);
+export function getAdminPublication(accessToken: string, id: string): Promise<Publication> {
+  return authedJson(`/api/v1/admin/publications/${encodeURIComponent(id)}`, accessToken);
 }
 
-export function createArticle(accessToken: string, input: ArticleInput): Promise<Article> {
-  return authedJson("/api/v1/admin/articles", accessToken, {
+export function createPublication(accessToken: string, input: PublicationInput): Promise<Publication> {
+  return authedJson("/api/v1/admin/publications", accessToken, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
 }
 
-export function updateArticle(accessToken: string, id: string, input: ArticleInput): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}`, accessToken, {
+export function updatePublication(accessToken: string, id: string, input: PublicationInput): Promise<Publication> {
+  return authedJson(`/api/v1/admin/publications/${encodeURIComponent(id)}`, accessToken, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),

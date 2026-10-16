@@ -36,7 +36,7 @@ describe("AuditTimeline", () => {
       <AuditTimeline
         detailed
         events={[
-          event({ action: "WORKER_PERMISSIONS_CHANGED", resourceType: "worker", details: "ARTICLES: CREATE → PUBLISH" }),
+          event({ action: "WORKER_PERMISSIONS_CHANGED", resourceType: "worker", details: "PUBLICATIONS: CREATE → PUBLISH" }),
           event({ action: "LOGIN_FAILURE", result: "FAILURE" }),
         ]}
       />,

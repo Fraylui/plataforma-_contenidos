@@ -2,12 +2,12 @@
 
 import { Controller, FormProvider } from "react-hook-form";
 import { z } from "zod";
-import type { AdminImage, ArticleInput } from "@/lib/api/admin-types";
-import type { Article, ArticleType, Category } from "@/lib/api/types";
+import type { AdminImage, PublicationInput } from "@/lib/api/admin-types";
+import type { Publication, PublicationType, Category } from "@/lib/api/types";
 import type { PublicationPermissions } from "@/lib/admin/publication";
-import { articleTypeLabel } from "@/lib/content-labels";
+import { publicationTypeLabel } from "@/lib/content-labels";
 import { Combobox, Field } from "@/components/ui";
-import { createArticleAction, updateArticleAction } from "@/app/admin/(protected)/publicaciones/actions";
+import { createPublicationAction, updatePublicationAction } from "@/app/admin/(protected)/publicaciones/actions";
 import { PublishPanel } from "./publish-panel";
 import { useComposer } from "./composer/use-composer";
 import { ComposerShell, MediaCard, TopicCard, useCoverUrl, WritingCard } from "./composer/sections";
@@ -15,25 +15,25 @@ import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
 import { baseDefaults, baseFields, baseInput, bodyField, videosField, videosFromContent } from "./composer/schema";
 
-const ARTICLE_TYPES: ArticleType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA"];
+const PUBLICATION_TYPES: PublicationType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA"];
 
 const schema = z.object({
   ...baseFields,
   body: bodyField,
-  articleType: z.enum(ARTICLE_TYPES as [ArticleType, ...ArticleType[]]),
+  publicationType: z.enum(PUBLICATION_TYPES as [PublicationType, ...PublicationType[]]),
   videos: videosField,
 });
 
 type Values = z.infer<typeof schema>;
 
-function toInput(values: Values): ArticleInput {
-  return { ...baseInput(values), title: values.title.trim(), body: values.body, articleType: values.articleType, videos: values.videos };
+function toInput(values: Values): PublicationInput {
+  return { ...baseInput(values), title: values.title.trim(), body: values.body, publicationType: values.publicationType, videos: values.videos };
 }
 
-interface ArticleComposerProps {
+interface PublicationComposerProps {
   categories: Category[];
   allImages: AdminImage[];
-  article?: Article;
+  publication?: Publication;
   permissions: PublicationPermissions;
   siteName: string;
 }
@@ -43,34 +43,34 @@ interface ArticleComposerProps {
  * grande, descripción corta y texto; Publicar, tema y formato, vista previa
  * en el feed y «Cómo se ve al compartir». Las piezas viven en ./composer.
  */
-export function ArticleComposer({ categories, allImages, article, permissions, siteName }: ArticleComposerProps) {
-  const status = article?.status ?? "DRAFT";
+export function PublicationComposer({ categories, allImages, publication, permissions, siteName }: PublicationComposerProps) {
+  const status = publication?.status ?? "DRAFT";
   const readOnly = !permissions.canEdit;
   const { form, id, save, saving, savedAt, error } = useComposer({
     schema,
     defaultValues: {
-      ...baseDefaults(article?.title, article, categories[0]?.id ?? ""),
-      body: article?.body ?? "",
-      articleType: article?.articleType ?? "GENERAL",
-      videos: videosFromContent(article?.videos),
+      ...baseDefaults(publication?.title, publication, categories[0]?.id ?? ""),
+      body: publication?.body ?? "",
+      publicationType: publication?.publicationType ?? "GENERAL",
+      videos: videosFromContent(publication?.videos),
     },
-    initialId: article?.id ?? "",
+    initialId: publication?.id ?? "",
     status,
     readOnly,
     toInput,
-    create: createArticleAction,
-    update: updateArticleAction,
+    create: createPublicationAction,
+    update: updatePublicationAction,
     adminPath: "/admin/publicaciones",
   });
 
   return (
     <FormProvider {...form}>
       <ComposerBody
-        {...{ categories, allImages, article, permissions, siteName, readOnly, error }}
+        {...{ categories, allImages, publication, permissions, siteName, readOnly, error }}
         publish={
           <PublishPanel
-            kind="articles"
-            item={{ id, status, scheduledAt: article?.scheduledAt ?? null }}
+            kind="publications"
+            item={{ id, status, scheduledAt: publication?.scheduledAt ?? null }}
             permissions={permissions}
             dirty={form.formState.isDirty}
             saving={saving}
@@ -87,12 +87,12 @@ export function ArticleComposer({ categories, allImages, article, permissions, s
 function ComposerBody({
   categories,
   allImages,
-  article,
+  publication,
   siteName,
   readOnly,
   error,
   publish,
-}: Omit<ArticleComposerProps, "permissions"> & { readOnly: boolean; error: string | null; publish: React.ReactNode }) {
+}: Omit<PublicationComposerProps, "permissions"> & { readOnly: boolean; error: string | null; publish: React.ReactNode }) {
   const coverUrl = useCoverUrl(allImages);
   return (
     <ComposerShell
@@ -101,12 +101,12 @@ function ComposerBody({
       main={
         <>
           <MediaCard allImages={allImages} readOnly={readOnly} />
-          <WritingCard excerptDefault={article?.excerpt ?? ""} allImages={allImages} readOnly={readOnly} />
+          <WritingCard excerptDefault={publication?.excerpt ?? ""} allImages={allImages} readOnly={readOnly} />
           <ShareCard
             siteName={siteName}
-            path={`/publicaciones/${article?.slug ?? "…"}`}
+            path={`/publicaciones/${publication?.slug ?? "…"}`}
             coverUrl={coverUrl}
-            metaDescriptionDefault={article?.metaDescription ?? ""}
+            metaDescriptionDefault={publication?.metaDescription ?? ""}
             readOnly={readOnly}
           />
         </>
@@ -115,15 +115,15 @@ function ComposerBody({
       aside={
         <>
           <TopicCard title="Tema y formato" categories={categories} readOnly={readOnly}>
-            <Field label="Formato" name="articleType">
+            <Field label="Formato" name="publicationType">
               <Controller
-                name="articleType"
+                name="publicationType"
                 render={({ field }) => (
                   <Combobox
-                    options={ARTICLE_TYPES.map((type) => ({ id: type, label: articleTypeLabel(type) }))}
+                    options={PUBLICATION_TYPES.map((type) => ({ id: type, label: publicationTypeLabel(type) }))}
                     value={field.value}
                     disabled={readOnly}
-                    onSelect={(value) => value && field.onChange(value as ArticleType)}
+                    onSelect={(value) => value && field.onChange(value as PublicationType)}
                   />
                 )}
               />

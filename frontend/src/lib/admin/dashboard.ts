@@ -10,7 +10,7 @@ export function parseDashboardRange(value: string | string[] | undefined): Dashb
 }
 
 export const CONTENT_TYPE_INFO: Record<FeedItemType, { label: string; adminPath: string; publicPath: string }> = {
-  ARTICLE: { label: "Publicación", adminPath: "/admin/publicaciones", publicPath: "/publicaciones" },
+  PUBLICATION: { label: "Publicación", adminPath: "/admin/publicaciones", publicPath: "/publicaciones" },
   PLACE: { label: "Lugar", adminPath: "/admin/lugares", publicPath: "/lugares" },
   EVENT: { label: "Celebración", adminPath: "/admin/eventos", publicPath: "/celebraciones" },
   GALLERY: { label: "Galería", adminPath: "/admin/galerias", publicPath: "/galerias" },

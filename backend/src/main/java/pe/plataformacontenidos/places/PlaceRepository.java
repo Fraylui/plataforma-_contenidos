@@ -29,7 +29,7 @@ public interface PlaceRepository extends JpaRepository<Place, UUID>, JpaSpecific
 
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre lugares
-     * publicados — mismo patrón que ArticleRepository.search
+     * publicados — mismo patrón que PublicationRepository.search
      * (V15__place_search.sql, unaccent en V36__search_unaccent.sql).
      */
     @Query(value = """

@@ -1,10 +1,10 @@
 import type { AdSection } from "@/lib/ads/ad-context";
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
-import type { PublicationStatus, ArticleType, BusinessType, ContentImage, FeedItemType } from "./types";
+import type { PublicationStatus, PublicationType, BusinessType, ContentImage, FeedItemType } from "./types";
 import type { CallToAction, CampaignFormat, NativeMediaAspect } from "./types";
 
-/** Cuerpo de un video en ArticleInput/PlaceInput/EventInput — ver ContentVideoInput.java. */
+/** Cuerpo de un video en PublicationInput/PlaceInput/EventInput — ver ContentVideoInput.java. */
 export interface ContentVideoInput {
   url: string;
   title: string | null;
@@ -16,7 +16,7 @@ export type Role = "OWNER" | "WORKER";
 
 /** Módulos que se asignan a un trabajador (espejo de Module.java). */
 export type Module =
-  | "ARTICLES"
+  | "PUBLICATIONS"
   | "PLACES"
   | "EVENTS"
   | "GALLERIES"
@@ -75,12 +75,12 @@ export interface AdminUser {
   permissions: ModulePermissions;
 }
 
-/** Cuerpo de POST/PUT /api/v1/admin/articles — ver ArticleRequest.java. */
-export interface ArticleInput {
+/** Cuerpo de POST/PUT /api/v1/admin/publications — ver PublicationRequest.java. */
+export interface PublicationInput {
   title: string;
   excerpt: string | null;
   body: string;
-  articleType: ArticleType;
+  publicationType: PublicationType;
   categoryId: string;
   seoTitle: string | null;
   metaDescription: string | null;
@@ -421,8 +421,8 @@ export interface DashboardSummary {
 }
 
 export interface PlatformStats {
-  articlesByStatus: Record<PublicationStatus, number>;
-  articlesPublishedLast30Days: number;
+  publicationsByStatus: Record<PublicationStatus, number>;
+  publicationsPublishedLast30Days: number;
   publishedTrendLast30Days: DailyCount[];
   placesByStatus: Record<PublicationStatus, number>;
   eventsByStatus: Record<PublicationStatus, number>;

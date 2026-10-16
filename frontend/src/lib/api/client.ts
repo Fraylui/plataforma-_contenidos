@@ -6,8 +6,8 @@ import "server-only";
 import { PUBLIC_CONTENT_TAG } from "@/lib/cache-tags";
 import type {
   AdPlacement,
-  Article,
-  ArticleSummary,
+  Publication,
+  PublicationSummary,
   Business,
   BusinessSummary,
   BusinessType,
@@ -51,18 +51,18 @@ async function apiFetch<T>(path: string, revalidateSeconds: number): Promise<T> 
   return res.json() as Promise<T>;
 }
 
-export function listPublishedArticles(params?: {
+export function listPublishedPublications(params?: {
   categoryId?: string;
   page?: number;
   size?: number;
-}): Promise<PageResponse<ArticleSummary>> {
+}): Promise<PageResponse<PublicationSummary>> {
   const query = new URLSearchParams();
   if (params?.categoryId) query.set("categoryId", params.categoryId);
   query.set("page", String(params?.page ?? 0));
   query.set("size", String(params?.size ?? 20));
 
   // Listado: revalidación corta, cambia seguido (nuevas publicaciones).
-  return apiFetch(`/api/v1/articles?${query.toString()}`, 60);
+  return apiFetch(`/api/v1/publications?${query.toString()}`, 60);
 }
 
 /**
@@ -93,19 +93,19 @@ export function searchContent(
   return apiFetch(`/api/v1/search?${query.toString()}`, 60);
 }
 
-export function getPublishedArticleBySlug(slug: string): Promise<Article> {
+export function getPublishedPublicationBySlug(slug: string): Promise<Publication> {
   // Detalle: revalidación más larga, un artículo publicado rara vez cambia.
-  return apiFetch(`/api/v1/articles/${encodeURIComponent(slug)}`, 300);
+  return apiFetch(`/api/v1/publications/${encodeURIComponent(slug)}`, 300);
 }
 
-const SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en ArticlePublicController
+const SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en PublicationPublicController
 const SITEMAP_MAX_PAGES = 200; // tope de seguridad: 10 000 artículos
 
 /** Todos los artículos publicados, para sitemap.xml. No usar para listados de UI. */
-export async function listAllPublishedArticlesForSitemap(): Promise<ArticleSummary[]> {
-  const items: ArticleSummary[] = [];
+export async function listAllPublishedPublicationsForSitemap(): Promise<PublicationSummary[]> {
+  const items: PublicationSummary[] = [];
   for (let page = 0; page < SITEMAP_MAX_PAGES; page++) {
-    const result = await listPublishedArticles({ page, size: SITEMAP_PAGE_SIZE });
+    const result = await listPublishedPublications({ page, size: SITEMAP_PAGE_SIZE });
     items.push(...result.items);
     if (page + 1 >= result.totalPages) break;
   }
@@ -323,7 +323,7 @@ export async function listAllPublishedBusinessesForSitemap(): Promise<BusinessSu
 // Un módulo se declara visible si AL MENOS UNA de sus consultas (ej. eventos
 // próximos + pasados) devuelve algo publicado.
 const NAV_PRESENCE_CHECKS: { href: string; checks: () => Promise<PageResponse<unknown>>[] }[] = [
-  { href: "/publicaciones", checks: () => [listPublishedArticles({ size: 1 })] },
+  { href: "/publicaciones", checks: () => [listPublishedPublications({ size: 1 })] },
   { href: "/lugares", checks: () => [listPublishedPlaces({ size: 1 })] },
   {
     href: "/celebraciones",

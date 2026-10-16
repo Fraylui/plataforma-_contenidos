@@ -1,5 +1,5 @@
 import type { HomeItem } from "@/lib/home-items";
-import { formatArticleDate, formatShortDate } from "@/lib/content-labels";
+import { formatPublicationDate, formatShortDate } from "@/lib/content-labels";
 import { formatCelebrationDate } from "@/lib/celebration-date";
 
 export interface PostBrand {
@@ -26,7 +26,7 @@ function postTimeLabel(item: DatedItem): string {
   const iso = postDateIso(item);
   if (!iso) return "";
   if (item.kind === "evento") return formatCelebrationDate({ at: iso, allDay: Boolean(item.allDay), recursYearly: Boolean(item.recursYearly) });
-  if (item.kind === "publicacion") return formatArticleDate(iso);
+  if (item.kind === "publicacion") return formatPublicationDate(iso);
   return formatShortDate(iso);
 }
 

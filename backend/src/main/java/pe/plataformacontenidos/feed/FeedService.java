@@ -15,8 +15,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import pe.plataformacontenidos.content.Article;
-import pe.plataformacontenidos.content.ArticleService;
+import pe.plataformacontenidos.content.Publication;
+import pe.plataformacontenidos.content.PublicationService;
 import pe.plataformacontenidos.directory.Business;
 import pe.plataformacontenidos.directory.BusinessService;
 import pe.plataformacontenidos.engagement.ContentLikeService;
@@ -64,7 +64,7 @@ public class FeedService {
     // memoria de tamaño arbitrario).
     private static final int MAX_EXCLUDE_IDS = 300;
 
-    private final ArticleService articleService;
+    private final PublicationService publicationService;
     private final PlaceService placeService;
     private final EventService eventService;
     private final GalleryService galleryService;
@@ -74,10 +74,10 @@ public class FeedService {
     private final FeedCandidateCache candidateCache;
     private final SeriesService seriesService;
 
-    public FeedService(ArticleService articleService, PlaceService placeService, EventService eventService,
+    public FeedService(PublicationService publicationService, PlaceService placeService, EventService eventService,
             GalleryService galleryService, BusinessService businessService, CategoryService categoryService,
             ContentLikeService contentLikeService, FeedCandidateCache candidateCache, SeriesService seriesService) {
-        this.articleService = articleService;
+        this.publicationService = publicationService;
         this.placeService = placeService;
         this.eventService = eventService;
         this.galleryService = galleryService;
@@ -89,7 +89,7 @@ public class FeedService {
     }
 
     /** Tipos que forman parte del feed (las pestañas del home solo pueden pedir uno de estos). */
-    public static final Set<ContentType> FEED_TYPES = Set.of(ContentType.ARTICLE, ContentType.PLACE, ContentType.EVENT,
+    public static final Set<ContentType> FEED_TYPES = Set.of(ContentType.PUBLICATION, ContentType.PLACE, ContentType.EVENT,
             ContentType.GALLERY, ContentType.BUSINESS, ContentType.EPISODE);
 
     /**
@@ -128,8 +128,8 @@ public class FeedService {
     /** Candidatos de un tipo (o de todos) sin filtrar: los mismos para cualquier visitante (ver FeedCandidateCache). */
     private List<FeedItemResponse> buildCandidates(ContentType type) {
         Pageable pageable = PageRequest.of(0, CANDIDATE_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
-        List<Article> articles = includes(type, ContentType.ARTICLE)
-                ? articleService.listPublished(null, pageable).getContent()
+        List<Publication> publications = includes(type, ContentType.PUBLICATION)
+                ? publicationService.listPublished(null, pageable).getContent()
                 : List.of();
         List<Place> places = includes(type, ContentType.PLACE)
                 ? placeService.listPublished(null, pageable).getContent()
@@ -147,7 +147,7 @@ public class FeedService {
         List<SeriesService.FeedEpisode> episodes = includes(type, ContentType.EPISODE)
                 ? seriesService.listPublishedForFeed(null, EPISODE_POOL)
                 : List.of();
-        return buildPool(articles, places, events, galleries, businesses, episodes);
+        return buildPool(publications, places, events, galleries, businesses, episodes);
     }
 
     private static boolean includes(ContentType requested, ContentType candidate) {
@@ -165,7 +165,7 @@ public class FeedService {
     public List<FeedItemResponse> getTopLiked(int size) {
         Pageable pageable = PageRequest.of(0, CANDIDATE_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
         List<FeedItemResponse> pool = buildPool(
-                articleService.listPublished(null, pageable).getContent(),
+                publicationService.listPublished(null, pageable).getContent(),
                 placeService.listPublished(null, pageable).getContent(),
                 eventService.listPublished(null, true, pageable).getContent(),
                 galleryService.listPublished(null, pageable).getContent(),
@@ -192,7 +192,7 @@ public class FeedService {
         Instant newSince = now.minus(Duration.ofHours(NEW_TOPIC_HOURS));
         Pageable pageable = PageRequest.of(0, CANDIDATE_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
         List<FeedItemResponse> pool = buildPool(
-                articleService.listPublished(null, pageable).getContent(),
+                publicationService.listPublished(null, pageable).getContent(),
                 placeService.listPublished(null, pageable).getContent(),
                 eventService.listPublished(null, true, pageable).getContent(),
                 galleryService.listPublished(null, pageable).getContent(),
@@ -273,7 +273,7 @@ public class FeedService {
         }
         Pageable pageable = PageRequest.of(0, RELATED_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
 
-        List<Article> articles = articleService.listPublished(categoryId, pageable).getContent();
+        List<Publication> publications = publicationService.listPublished(categoryId, pageable).getContent();
         List<Place> places = placeService.listPublished(categoryId, pageable).getContent();
         List<Event> events = eventService.listPublished(categoryId, true, pageable).getContent();
         List<Gallery> galleries = galleryService.listPublished(categoryId, pageable).getContent();
@@ -281,7 +281,7 @@ public class FeedService {
         List<SeriesService.FeedEpisode> episodes = seriesService.listPublishedForFeed(categoryId,
                 PageRequest.of(0, RELATED_POOL_LIMIT));
 
-        List<FeedItemResponse> pool = buildPool(articles, places, events, galleries, businesses, episodes).stream()
+        List<FeedItemResponse> pool = buildPool(publications, places, events, galleries, businesses, episodes).stream()
                 .filter(item -> !(item.type() == excludeType && item.id().equals(excludeId)))
                 .toList();
 
@@ -292,10 +292,10 @@ public class FeedService {
                 .toList();
     }
 
-    private List<FeedItemResponse> buildPool(List<Article> articles, List<Place> places, List<Event> events,
+    private List<FeedItemResponse> buildPool(List<Publication> publications, List<Place> places, List<Event> events,
             List<Gallery> galleries, List<Business> businesses, List<SeriesService.FeedEpisode> episodes) {
-        Map<UUID, Long> articleLikes = contentLikeService.countLikes(ContentType.ARTICLE,
-                articles.stream().map(Article::getId).toList());
+        Map<UUID, Long> publicationLikes = contentLikeService.countLikes(ContentType.PUBLICATION,
+                publications.stream().map(Publication::getId).toList());
         Map<UUID, Long> placeLikes = contentLikeService.countLikes(ContentType.PLACE,
                 places.stream().map(Place::getId).toList());
         Map<UUID, Long> eventLikes = contentLikeService.countLikes(ContentType.EVENT,
@@ -308,8 +308,8 @@ public class FeedService {
                 episodes.stream().map(e -> e.episode().getId()).toList());
 
         List<FeedItemResponse> pool = new ArrayList<>(
-                articles.size() + places.size() + events.size() + galleries.size() + businesses.size() + episodes.size());
-        articles.forEach(a -> pool.add(FeedItemResponse.fromArticle(a, articleLikes.getOrDefault(a.getId(), 0L))));
+                publications.size() + places.size() + events.size() + galleries.size() + businesses.size() + episodes.size());
+        publications.forEach(a -> pool.add(FeedItemResponse.fromPublication(a, publicationLikes.getOrDefault(a.getId(), 0L))));
         places.forEach(p -> pool.add(FeedItemResponse.fromPlace(p, placeLikes.getOrDefault(p.getId(), 0L))));
         events.forEach(e -> pool.add(FeedItemResponse.fromEvent(e, eventLikes.getOrDefault(e.getId(), 0L))));
         galleries.forEach(g -> pool.add(FeedItemResponse.fromGallery(g, galleryLikes.getOrDefault(g.getId(), 0L))));

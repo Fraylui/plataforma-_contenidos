@@ -17,13 +17,13 @@ export const metadata: Metadata = {
  * filtrar en Instagram — sin portada de sección ni desplegables. Las URLs
  * viejas con ?page= siguen respondiendo (canonical a la sección).
  */
-export default function ArticlesPage() {
+export default function PublicationsPage() {
   return (
     <FeedScreen
       heading="Publicaciones"
-      filter={{ type: "ARTICLE" }}
+      filter={{ type: "PUBLICATION" }}
       activePath={BASE_PATH}
-      adSection="ARTICLE"
+      adSection="PUBLICATION"
       emptyMessage="Todavía no hay publicaciones."
     />
   );

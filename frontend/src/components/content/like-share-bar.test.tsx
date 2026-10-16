@@ -4,7 +4,7 @@ import { axe } from "vitest-axe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LikeShareBar } from "./like-share-bar";
 
-const props = { contentType: "articles" as const, slug: "mi-articulo", initialLikeCount: 7, title: "Mi publicación" };
+const props = { contentType: "publications" as const, slug: "mi-articulo", initialLikeCount: 7, title: "Mi publicación" };
 
 describe("LikeShareBar (integración de componente: fetch, localStorage, Web Share API/clipboard)", () => {
   beforeEach(() => {
@@ -43,9 +43,9 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
 
     await waitFor(() => expect(screen.getByRole("button", { name: /8\s*Me gusta/ })).toHaveAttribute("aria-pressed", "true"));
     const url = vi.mocked(fetch).mock.calls[0][0] as string;
-    expect(url).toMatch(/^\/api\/content\/articles\/mi-articulo\/like\?visitorId=[0-9a-f-]{36}$/);
+    expect(url).toMatch(/^\/api\/content\/publications\/mi-articulo\/like\?visitorId=[0-9a-f-]{36}$/);
     expect(vi.mocked(fetch).mock.calls[0][1]).toMatchObject({ method: "POST" });
-    expect(localStorage.getItem("liked:articles:mi-articulo")).toBe("1");
+    expect(localStorage.getItem("liked:publications:mi-articulo")).toBe("1");
     // El visitorId se persiste para deduplicar en el backend.
     expect(localStorage.getItem("visitor-id")).toMatch(/[0-9a-f-]{36}/);
   });
@@ -59,7 +59,7 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
 
     await waitFor(() => expect(screen.getByRole("button", { name: /Me gusta/ })).toBeEnabled());
     expect(screen.getByRole("button", { name: /7\s*Me gusta/ })).toHaveAttribute("aria-pressed", "false");
-    expect(localStorage.getItem("liked:articles:mi-articulo")).toBeNull();
+    expect(localStorage.getItem("liked:publications:mi-articulo")).toBeNull();
   });
 
   it("Compartir usa el diálogo nativo cuando existe", async () => {

@@ -14,7 +14,7 @@ export const WORKER_TEMPLATES: WorkerTemplate[] = [
     label: "Administrador",
     description: "Todo, como el dueño, menos el registro de actividad",
     permissions: {
-      ARTICLES: "PUBLISH",
+      PUBLICATIONS: "PUBLISH",
       PLACES: "PUBLISH",
       EVENTS: "PUBLISH",
       GALLERIES: "PUBLISH",
@@ -32,7 +32,7 @@ export const WORKER_TEMPLATES: WorkerTemplate[] = [
     label: "Publicador",
     description: "Publica en todo; temas y estadísticas",
     permissions: {
-      ARTICLES: "PUBLISH",
+      PUBLICATIONS: "PUBLISH",
       PLACES: "PUBLISH",
       EVENTS: "PUBLISH",
       GALLERIES: "PUBLISH",
@@ -59,7 +59,7 @@ export function detectTemplate(permissions: ModulePermissions): string {
 }
 
 export const MODULE_LABELS: Record<Module, string> = {
-  ARTICLES: "Publicaciones",
+  PUBLICATIONS: "Publicaciones",
   PLACES: "Lugares",
   EVENTS: "Celebraciones",
   GALLERIES: "Galerías",
@@ -72,5 +72,5 @@ export const MODULE_LABELS: Record<Module, string> = {
   SETTINGS: "Configuración",
 };
 
-export const CONTENT_MODULES: Module[] = ["ARTICLES", "PLACES", "EVENTS", "GALLERIES", "DIRECTORY", "SERIES"];
+export const CONTENT_MODULES: Module[] = ["PUBLICATIONS", "PLACES", "EVENTS", "GALLERIES", "DIRECTORY", "SERIES"];
 export const ACCESS_MODULES: Module[] = ["CATEGORIES", "STATS", "ADVERTISING", "WORKERS", "SETTINGS"];

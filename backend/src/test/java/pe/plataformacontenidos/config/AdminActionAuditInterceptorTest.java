@@ -61,14 +61,14 @@ class AdminActionAuditInterceptorTest {
     void recordsAManualAdminActionWithActorResourceAndIp() throws Exception {
         signIn();
         String id = UUID.randomUUID().toString();
-        var request = adminRequest("POST", "/api/v1/admin/articles/" + id + "/publish", "/api/v1/admin/articles/{id}/publish", Map.of("id", id));
+        var request = adminRequest("POST", "/api/v1/admin/publications/" + id + "/publish", "/api/v1/admin/publications/{id}/publish", Map.of("id", id));
         var response = new MockHttpServletResponse();
         response.setStatus(200);
 
         interceptor.afterCompletion(request, response, new Object(), null);
 
-        assertThat(recorded).containsExactly(new Recorded("POST /admin/articles/{id}/publish", AuditResult.SUCCESS, adminId,
-                "dueno@ejemplo.com", "articles", id, "190.12.34.56"));
+        assertThat(recorded).containsExactly(new Recorded("POST /admin/publications/{id}/publish", AuditResult.SUCCESS, adminId,
+                "dueno@ejemplo.com", "publications", id, "190.12.34.56"));
     }
 
     @Test
@@ -90,10 +90,10 @@ class AdminActionAuditInterceptorTest {
     @Test
     void ignoresReadsAndAnonymousPublicActions() throws Exception {
         // Me gusta, impresiones de anuncios: anónimos y masivos, no son acciones del panel.
-        interceptor.afterCompletion(adminRequest("POST", "/api/v1/articles/x/like", "/api/v1/articles/{slug}/like", Map.of()),
+        interceptor.afterCompletion(adminRequest("POST", "/api/v1/publications/x/like", "/api/v1/publications/{slug}/like", Map.of()),
                 new MockHttpServletResponse(), new Object(), null);
         signIn();
-        interceptor.afterCompletion(adminRequest("GET", "/api/v1/admin/articles", "/api/v1/admin/articles", Map.of()),
+        interceptor.afterCompletion(adminRequest("GET", "/api/v1/admin/publications", "/api/v1/admin/publications", Map.of()),
                 new MockHttpServletResponse(), new Object(), null);
 
         assertThat(recorded).isEmpty();

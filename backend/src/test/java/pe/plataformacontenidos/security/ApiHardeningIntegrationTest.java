@@ -33,14 +33,14 @@ import pe.plataformacontenidos.TestcontainersConfiguration;
 @Import(TestcontainersConfiguration.class)
 class ApiHardeningIntegrationTest {
 
-    private static final String[] PUBLIC_COLLECTIONS = {"articles", "places", "events", "galleries", "directory"};
+    private static final String[] PUBLIC_COLLECTIONS = {"publications", "places", "events", "galleries", "directory"};
 
     @Autowired private MockMvc mockMvc;
 
     static Stream<String> hostileSearchTerms() {
         return Stream.of(
                 "' OR 1=1 --",
-                "\"; DROP TABLE articles; --",
+                "\"; DROP TABLE publications; --",
                 "<script>alert(1)</script>",
                 "%00null",
                 "a".repeat(2000),
@@ -91,15 +91,15 @@ class ApiHardeningIntegrationTest {
 
     @Test
     void likeEndpointRejectsInvalidVisitorId() throws Exception {
-        mockMvc.perform(post("/api/v1/articles/cualquier-slug/like").param("visitorId", "not-a-uuid"))
+        mockMvc.perform(post("/api/v1/publications/cualquier-slug/like").param("visitorId", "not-a-uuid"))
                 .andExpect(status().isBadRequest());
-        mockMvc.perform(post("/api/v1/articles/cualquier-slug/like"))
+        mockMvc.perform(post("/api/v1/publications/cualquier-slug/like"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void errorResponsesDoNotExposeStackTraces() throws Exception {
-        mockMvc.perform(get("/api/v1/articles/este-slug-no-existe"))
+        mockMvc.perform(get("/api/v1/publications/este-slug-no-existe"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(not(containsString("trace"))))
                 .andExpect(content().string(not(containsString("at pe.plataformacontenidos"))));

@@ -63,7 +63,7 @@ export async function generateMetadata(props: PageProps<"/lugares/[slug]">): Pro
   return {
     title,
     description,
-    // Cada lugar es canónico de sí mismo por defecto (sección 15), igual que Article.
+    // Cada lugar es canónico de sí mismo por defecto (sección 15), igual que Publication.
     alternates: { canonical: place.canonicalUrl || `/lugares/${slug}` },
     robots: place.robots,
     openGraph: {

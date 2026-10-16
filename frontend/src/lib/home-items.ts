@@ -75,7 +75,7 @@ function coverImage(imageId: string | null, imageUrl: string | null): { url: str
 }
 
 const FEED_KIND: Record<FeedItem["type"], HomeItemKind> = {
-  ARTICLE: "publicacion",
+  PUBLICATION: "publicacion",
   PLACE: "lugar",
   EVENT: "evento",
   GALLERY: "galeria",

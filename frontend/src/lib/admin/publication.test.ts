@@ -11,7 +11,7 @@ function user(overrides: Partial<AdminUser> = {}): AdminUser {
     lastName: "De prueba",
     role: "WORKER",
     mustChangePassword: false,
-    permissions: { ARTICLES: "PUBLISH" },
+    permissions: { PUBLICATIONS: "PUBLISH" },
     ...overrides,
   };
 }
@@ -21,7 +21,7 @@ const outsider = user({ permissions: { STATS: "ACCESS" } });
 const owner = user({ role: "OWNER", permissions: {} });
 
 function perms(status: PublicationStatus, who: AdminUser = worker): PublicationPermissions {
-  return computePublicationPermissions({ status }, who, "articles");
+  return computePublicationPermissions({ status }, who, "publications");
 }
 
 // Réplica de shared.publishing.PublishableContent: quien tiene el módulo
@@ -75,7 +75,7 @@ describe("computePublicationPermissions", () => {
   });
 
   it("cada tipo conoce su ruta del panel y su módulo", () => {
-    expect(PUBLICATION_KINDS.articles).toMatchObject({ adminPath: "/admin/publicaciones", module: "ARTICLES" });
+    expect(PUBLICATION_KINDS.publications).toMatchObject({ adminPath: "/admin/publicaciones", module: "PUBLICATIONS" });
     expect(PUBLICATION_KINDS.directory).toMatchObject({ adminPath: "/admin/directorio", module: "DIRECTORY" });
   });
 });

@@ -27,8 +27,8 @@ function todayDateline(): string {
 }
 
 export function StatsDashboard({ stats }: { stats: PlatformStats }) {
-  const pipelineTotal = PIPELINE.reduce((sum, status) => sum + (stats.articlesByStatus[status] ?? 0), 0);
-  const inProgress = pipelineTotal - stats.articlesByStatus.PUBLISHED;
+  const pipelineTotal = PIPELINE.reduce((sum, status) => sum + (stats.publicationsByStatus[status] ?? 0), 0);
+  const inProgress = pipelineTotal - stats.publicationsByStatus.PUBLISHED;
   const dateline = todayDateline();
 
   return (
@@ -37,8 +37,8 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
 
       {/* Cifras destacadas, tabulares — sin íconos: el número es el protagonista. */}
       <dl className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <EditionFigure label="Publicados" value={stats.articlesByStatus.PUBLISHED} />
-        <EditionFigure label="Últimos 30 días" value={stats.articlesPublishedLast30Days} />
+        <EditionFigure label="Publicados" value={stats.publicationsByStatus.PUBLISHED} />
+        <EditionFigure label="Últimos 30 días" value={stats.publicationsPublishedLast30Days} />
         <EditionFigure label="En preparación" value={inProgress} />
         <EditionFigure label="Usuarios activos" value={stats.activeUsers} />
       </dl>
@@ -78,7 +78,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
                 <span
                   className="tabular-nums font-medium text-foreground"
                 >
-                  {stats.articlesByStatus[status] ?? 0}
+                  {stats.publicationsByStatus[status] ?? 0}
                 </span>
               </span>
             ))}

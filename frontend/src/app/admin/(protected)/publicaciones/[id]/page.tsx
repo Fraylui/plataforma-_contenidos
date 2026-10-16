@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { AdminApiError, getAdminArticle, listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
+import { AdminApiError, getAdminPublication, listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
 import { getCategoryById, getPlatformSettings } from "@/lib/api/client";
 import { computePublicationPermissions } from "@/lib/admin/publication";
-import { ArticleComposer } from "@/components/admin/article-composer";
+import { PublicationComposer } from "@/components/admin/publication-composer";
 import { AdminPageHeader } from "@/components/admin/ui";
 import type { Category } from "@/lib/api/types";
 
@@ -21,13 +21,13 @@ async function resolveCategories(activeCategories: Category[], categoryId: strin
   return current ? [current, ...activeCategories] : activeCategories;
 }
 
-export default async function EditArticlePage(props: PageProps<"/admin/publicaciones/[id]">) {
+export default async function EditPublicationPage(props: PageProps<"/admin/publicaciones/[id]">) {
   const { id } = await props.params;
   const { user, accessToken } = await requireAdminUser();
 
-  let article;
+  let publication;
   try {
-    article = await getAdminArticle(accessToken, id);
+    publication = await getAdminPublication(accessToken, id);
   } catch (error) {
     if (error instanceof AdminApiError && error.status === 404) {
       notFound();
@@ -43,14 +43,14 @@ export default async function EditArticlePage(props: PageProps<"/admin/publicaci
     listAdminImages(accessToken),
     getPlatformSettings(),
   ]);
-  const categories = await resolveCategories(activeCategories, article.categoryId);
-  const permissions = computePublicationPermissions(article, user, "articles");
+  const categories = await resolveCategories(activeCategories, publication.categoryId);
+  const permissions = computePublicationPermissions(publication, user, "publications");
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title={article.title} back={{ href: "/admin/publicaciones", label: "Publicaciones" }} />
-      <ArticleComposer
-        article={article}
+      <AdminPageHeader title={publication.title} back={{ href: "/admin/publicaciones", label: "Publicaciones" }} />
+      <PublicationComposer
+        publication={publication}
         categories={categories}
         allImages={allImages}
         permissions={permissions}

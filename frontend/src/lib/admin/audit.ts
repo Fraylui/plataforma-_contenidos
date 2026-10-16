@@ -1,8 +1,13 @@
 import type { Module } from "@/lib/api/admin-types";
 import { MODULE_LABELS } from "@/lib/admin/worker-templates";
 
-/** Lo que nombra cada tipo de recurso que hoy registra el backend (AuditService.record). */
+/**
+ * Lo que nombra cada tipo de recurso que registra el backend (AuditService.record).
+ * El registro es inmutable: las filas anteriores al renombre (V64) dicen
+ * «article», ARTICLE_… y ARTICLES, y se siguen mostrando como publicación.
+ */
 export const RESOURCE_LABELS: Record<string, string> = {
+  publication: "Publicación",
   article: "Publicación",
   place: "Lugar",
   event: "Celebración",
@@ -17,6 +22,7 @@ export const RESOURCE_LABELS: Record<string, string> = {
 };
 
 const SUBJECTS: Record<string, string> = {
+  PUBLICATION: "una publicación",
   ARTICLE: "una publicación",
   PLACE: "un lugar",
   EVENT: "una celebración",
@@ -80,7 +86,8 @@ export type AuditDetail = { kind: "change"; label: string; from: string; to: str
 
 /**
  * Detalle "antes → después" (hoy: permisos de un trabajador, formato
- * "ARTICLES: CREATE → PUBLISH; STATS: — → ACCESS" de WorkerService.describe).
+ * "PUBLICATIONS: CREATE → PUBLISH; STATS: — → ACCESS" de WorkerService.describe;
+ * las filas viejas dicen ARTICLES).
  * Lo que no tenga ese formato se muestra tal cual.
  */
 export function parseAuditDetails(details: string | null | undefined): AuditDetail[] {
@@ -88,7 +95,7 @@ export function parseAuditDetails(details: string | null | undefined): AuditDeta
   return details.split(";").map((part) => part.trim()).filter(Boolean).map((part) => {
     const m = part.match(/^([A-Z_]+): (\S+) → (\S+)$/);
     if (!m) return { kind: "text", text: part };
-    const label = MODULE_LABELS[m[1] as Module] ?? m[1];
+    const label = MODULE_LABELS[(m[1] === "ARTICLES" ? "PUBLICATIONS" : m[1]) as Module] ?? m[1];
     return { kind: "change", label, from: LEVEL_LABELS[m[2]] ?? m[2], to: LEVEL_LABELS[m[3]] ?? m[3] };
   });
 }

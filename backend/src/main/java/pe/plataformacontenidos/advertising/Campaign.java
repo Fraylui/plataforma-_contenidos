@@ -22,7 +22,7 @@ import pe.plataformacontenidos.shared.ContentImage;
 /**
  * Banner directo vendido a un {@link Advertiser} para una posición existente
  * (`placementKey`, referencia libre a AdPlacement.key — igual que
- * Article.categoryId, sin FK entre schemas de dominio, validado en
+ * Publication.categoryId, sin FK entre schemas de dominio, validado en
  * CampaignService). Mientras haya una campaña activa y vigente para una
  * posición, AdBlock la muestra en vez de caer a AdSense (frontend).
  * `creative` reutiliza el mismo patrón XOR (subida o enlace externo) que

@@ -7,7 +7,7 @@ import { FilterChips } from "@/components/feed/filter-chips";
 import { exploreChipOptions } from "@/components/feed/type-chips";
 
 const INITIAL_SIZE = 24; // múltiplo de 3: filas completas en el HTML inicial
-const TYPES = new Set<FeedItemType>(["ARTICLE", "PLACE", "EVENT", "GALLERY", "BUSINESS"]);
+const TYPES = new Set<FeedItemType>(["PUBLICATION", "PLACE", "EVENT", "GALLERY", "BUSINESS"]);
 
 export const metadata: Metadata = {
   title: "Explorar",

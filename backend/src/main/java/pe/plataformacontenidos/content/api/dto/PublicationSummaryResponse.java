@@ -2,8 +2,8 @@ package pe.plataformacontenidos.content.api.dto;
 
 import java.time.Instant;
 import java.util.UUID;
-import pe.plataformacontenidos.content.Article;
-import pe.plataformacontenidos.content.ArticleType;
+import pe.plataformacontenidos.content.Publication;
+import pe.plataformacontenidos.content.PublicationType;
 import pe.plataformacontenidos.shared.ContentImage;
 
 /**
@@ -11,12 +11,12 @@ import pe.plataformacontenidos.shared.ContentImage;
  * 43). coverImageId/coverImageUrl son excluyentes (ver ContentImage): la
  * primera imagen de la publicación, subida o por enlace externo.
  */
-public record ArticleSummaryResponse(
+public record PublicationSummaryResponse(
         UUID id,
         String slug,
         String title,
         String excerpt,
-        ArticleType articleType,
+        PublicationType publicationType,
         UUID categoryId,
         UUID coverImageId,
         String coverImageUrl,
@@ -24,11 +24,11 @@ public record ArticleSummaryResponse(
         Instant publishedAt,
         long likeCount) {
 
-    public static ArticleSummaryResponse from(Article article, long likeCount) {
-        ContentImage cover = article.getCoverImage();
-        return new ArticleSummaryResponse(article.getId(), article.getSlug(), article.getTitle(),
-                article.getExcerpt(), article.getArticleType(), article.getCategoryId(),
+    public static PublicationSummaryResponse from(Publication publication, long likeCount) {
+        ContentImage cover = publication.getCoverImage();
+        return new PublicationSummaryResponse(publication.getId(), publication.getSlug(), publication.getTitle(),
+                publication.getExcerpt(), publication.getPublicationType(), publication.getCategoryId(),
                 cover == null ? null : cover.getImageId(), cover == null ? null : cover.getExternalUrl(),
-                !article.getVideos().isEmpty(), article.getPublishedAt(), likeCount);
+                !publication.getVideos().isEmpty(), publication.getPublishedAt(), likeCount);
     }
 }

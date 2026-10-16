@@ -33,7 +33,7 @@ class FeedCandidateCache {
     static final Duration MAX_AGE = Duration.ofSeconds(30);
 
     private static final String CONTENT_VERSION_SQL = "select greatest("
-            + "(select max(updated_at) from content.articles),"
+            + "(select max(updated_at) from content.publications),"
             + " (select max(updated_at) from places.places),"
             + " (select max(updated_at) from events.events),"
             + " (select max(updated_at) from galleries.galleries),"

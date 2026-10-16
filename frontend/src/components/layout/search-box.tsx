@@ -25,7 +25,7 @@ import { Highlighted } from "@/components/ui/highlighted";
 const DEBOUNCE_MS = 250;
 
 const TYPE_ICON: Record<SearchResultType, Icon> = {
-  ARTICLE: Notepad,
+  PUBLICATION: Notepad,
   PLACE: MapPin,
   EVENT: CalendarBlank,
   GALLERY: ImagesSquare,

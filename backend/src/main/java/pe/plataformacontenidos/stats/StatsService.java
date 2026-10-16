@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
-import pe.plataformacontenidos.content.ArticleService;
+import pe.plataformacontenidos.content.PublicationService;
 import pe.plataformacontenidos.directory.BusinessService;
 import pe.plataformacontenidos.events.EventService;
 import pe.plataformacontenidos.galleries.GalleryService;
@@ -30,7 +30,7 @@ public class StatsService {
 
     private static final int RECENT_WINDOW_DAYS = 30;
 
-    private final ArticleService articleService;
+    private final PublicationService publicationService;
     private final PlaceService placeService;
     private final EventService eventService;
     private final GalleryService galleryService;
@@ -38,10 +38,10 @@ public class StatsService {
     private final CategoryService categoryService;
     private final WorkerService workerService;
 
-    public StatsService(ArticleService articleService, PlaceService placeService, EventService eventService,
+    public StatsService(PublicationService publicationService, PlaceService placeService, EventService eventService,
             GalleryService galleryService, BusinessService businessService,
             CategoryService categoryService, WorkerService workerService) {
-        this.articleService = articleService;
+        this.publicationService = publicationService;
         this.placeService = placeService;
         this.eventService = eventService;
         this.galleryService = galleryService;
@@ -53,9 +53,9 @@ public class StatsService {
     public PlatformStatsResponse snapshot() {
         Instant recentThreshold = Instant.now().minus(RECENT_WINDOW_DAYS, ChronoUnit.DAYS);
         return new PlatformStatsResponse(
-                articleService.countByStatus(),
-                articleService.countPublishedSince(recentThreshold),
-                trend(articleService.publishedCountsByDaySince(recentThreshold)),
+                publicationService.countByStatus(),
+                publicationService.countPublishedSince(recentThreshold),
+                trend(publicationService.publishedCountsByDaySince(recentThreshold)),
                 placeService.countByStatus(),
                 eventService.countByStatus(),
                 galleryService.countByStatus(),

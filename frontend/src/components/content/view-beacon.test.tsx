@@ -21,9 +21,9 @@ describe("ViewBeacon", () => {
     Object.defineProperty(navigator, "sendBeacon", { value: undefined, configurable: true });
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null, { status: 204 }));
 
-    render(<ViewBeacon type="ARTICLE" id="0b0e7f6a-1c2d-4e5f-8a9b-0c1d2e3f4a5b" />);
+    render(<ViewBeacon type="PUBLICATION" id="0b0e7f6a-1c2d-4e5f-8a9b-0c1d2e3f4a5b" />);
 
-    expect(fetchSpy).toHaveBeenCalledWith("/api/views?type=ARTICLE&id=0b0e7f6a-1c2d-4e5f-8a9b-0c1d2e3f4a5b",
+    expect(fetchSpy).toHaveBeenCalledWith("/api/views?type=PUBLICATION&id=0b0e7f6a-1c2d-4e5f-8a9b-0c1d2e3f4a5b",
       { method: "POST", keepalive: true });
   });
 });

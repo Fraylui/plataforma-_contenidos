@@ -8,14 +8,14 @@ import pe.plataformacontenidos.shared.ContentVideoInput;
 /**
  * Entrada de creación/edición de artículo, ya validada en el DTO de API.
  * Cada imagen es subida o por enlace externo (ver ContentImageInput); cada
- * video trae la URL pegada por quien redacta (sección 8) — ArticleService la
+ * video trae la URL pegada por quien redacta (sección 8) — PublicationService la
  * convierte a Video ID antes de guardar, nunca se persiste la URL cruda.
  */
-public record ArticleInput(
+public record PublicationInput(
         String title,
         String excerpt,
         String body,
-        ArticleType articleType,
+        PublicationType publicationType,
         UUID categoryId,
         String seoTitle,
         String metaDescription,

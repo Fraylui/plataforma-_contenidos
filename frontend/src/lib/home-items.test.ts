@@ -7,12 +7,12 @@ const { fromFeedItem } = await import("./home-items");
 
 function feedItem(overrides: Partial<FeedItem>): FeedItem {
   return {
-    type: "ARTICLE",
+    type: "PUBLICATION",
     id: "11111111-1111-1111-1111-111111111111",
     slug: "hola",
     title: "Hola",
     excerpt: null,
-    articleType: null,
+    publicationType: null,
     categoryId: "cat-1",
     coverImageId: null,
     coverImageUrl: null,

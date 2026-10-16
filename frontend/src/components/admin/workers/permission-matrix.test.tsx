@@ -27,7 +27,7 @@ describe("PermissionMatrix", () => {
   });
 
   it("es accesible", async () => {
-    const { container } = render(<PermissionMatrix value={{ ARTICLES: "PUBLISH" }} onChange={() => {}} />);
+    const { container } = render(<PermissionMatrix value={{ PUBLICATIONS: "PUBLISH" }} onChange={() => {}} />);
     expect(await axe(container)).toHaveNoViolations();
   });
 });

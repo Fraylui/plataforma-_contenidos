@@ -46,7 +46,7 @@ const PIPELINE: PublicationStatus[] = ["DRAFT", "SCHEDULED", "PUBLISHED"];
 export function PipelineChart({ stats }: { stats: PlatformStats }) {
   const data = PIPELINE.map((status) => ({
     name: publicationStatusLabel(status),
-    value: stats.articlesByStatus[status] ?? 0,
+    value: stats.publicationsByStatus[status] ?? 0,
     status,
   })).filter((row) => row.value > 0);
 
@@ -225,7 +225,7 @@ export function PublishTrendChart({ data }: { data: DailyCount[] }) {
  */
 export function TotalDistributionDonut({ stats }: { stats: PlatformStats }) {
   const rows = [
-    stats.articlesByStatus,
+    stats.publicationsByStatus,
     stats.placesByStatus,
     stats.eventsByStatus,
     stats.galleriesByStatus,

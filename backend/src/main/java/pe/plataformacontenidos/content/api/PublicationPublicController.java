@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import pe.plataformacontenidos.content.Article;
-import pe.plataformacontenidos.content.ArticleService;
-import pe.plataformacontenidos.content.api.dto.ArticleResponse;
-import pe.plataformacontenidos.content.api.dto.ArticleSummaryResponse;
+import pe.plataformacontenidos.content.Publication;
+import pe.plataformacontenidos.content.PublicationService;
+import pe.plataformacontenidos.content.api.dto.PublicationResponse;
+import pe.plataformacontenidos.content.api.dto.PublicationSummaryResponse;
 import pe.plataformacontenidos.shared.PageResponse;
 import pe.plataformacontenidos.engagement.ContentLikeService;
 import pe.plataformacontenidos.engagement.ContentType;
@@ -20,21 +20,21 @@ import pe.plataformacontenidos.engagement.LikeResponse;
 
 /** Solo contenido PUBLISHED — nada de estados intermedios visibles públicamente. */
 @RestController
-@RequestMapping("/api/v1/articles")
-public class ArticlePublicController {
+@RequestMapping("/api/v1/publications")
+public class PublicationPublicController {
 
     private static final int MAX_PAGE_SIZE = 50;
 
-    private final ArticleService articleService;
+    private final PublicationService publicationService;
     private final ContentLikeService contentLikeService;
 
-    public ArticlePublicController(ArticleService articleService, ContentLikeService contentLikeService) {
-        this.articleService = articleService;
+    public PublicationPublicController(PublicationService publicationService, ContentLikeService contentLikeService) {
+        this.publicationService = publicationService;
         this.contentLikeService = contentLikeService;
     }
 
     @GetMapping
-    public PageResponse<ArticleSummaryResponse> list(
+    public PageResponse<PublicationSummaryResponse> list(
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
@@ -45,23 +45,23 @@ public class ArticlePublicController {
         int safePage = Math.min(Math.max(page, 0), 10_000_000);
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         var pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "publishedAt"));
-        var result = articleService.listPublished(categoryId, pageable);
-        var likes = contentLikeService.countLikes(ContentType.ARTICLE,
-                result.getContent().stream().map(Article::getId).toList());
-        return PageResponse.from(result, item -> ArticleSummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));
+        var result = publicationService.listPublished(categoryId, pageable);
+        var likes = contentLikeService.countLikes(ContentType.PUBLICATION,
+                result.getContent().stream().map(Publication::getId).toList());
+        return PageResponse.from(result, item -> PublicationSummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));
     }
 
     @GetMapping("/{slug}")
-    public ArticleResponse getBySlug(@PathVariable String slug) {
-        Article article = articleService.getPublishedBySlug(slug);
-        long likeCount = contentLikeService.countLikes(ContentType.ARTICLE, article.getId());
-        return ArticleResponse.from(article, likeCount);
+    public PublicationResponse getBySlug(@PathVariable String slug) {
+        Publication publication = publicationService.getPublishedBySlug(slug);
+        long likeCount = contentLikeService.countLikes(ContentType.PUBLICATION, publication.getId());
+        return PublicationResponse.from(publication, likeCount);
     }
 
     /** visitorId es un UUID generado y persistido en el navegador del lector (no requiere cuenta) — ver ContentLike. */
     @PostMapping("/{slug}/like")
     public LikeResponse toggleLike(@PathVariable String slug, @RequestParam UUID visitorId) {
-        Article article = articleService.getPublishedBySlug(slug);
-        return LikeResponse.from(contentLikeService.toggleLike(ContentType.ARTICLE, article.getId(), visitorId));
+        Publication publication = publicationService.getPublishedBySlug(slug);
+        return LikeResponse.from(contentLikeService.toggleLike(ContentType.PUBLICATION, publication.getId(), visitorId));
     }
 }

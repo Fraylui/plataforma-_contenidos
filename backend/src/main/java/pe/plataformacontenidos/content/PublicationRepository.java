@@ -12,18 +12,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface ArticleRepository extends JpaRepository<Article, UUID>, JpaSpecificationExecutor<Article> {
+public interface PublicationRepository extends JpaRepository<Publication, UUID>, JpaSpecificationExecutor<Publication> {
 
-    Optional<Article> findBySlugAndStatus(String slug, PublicationStatus status);
+    Optional<Publication> findBySlugAndStatus(String slug, PublicationStatus status);
 
     boolean existsBySlug(String slug);
 
-    Page<Article> findByStatus(PublicationStatus status, Pageable pageable);
+    Page<Publication> findByStatus(PublicationStatus status, Pageable pageable);
 
-    Page<Article> findByStatusAndCategoryId(PublicationStatus status, UUID categoryId, Pageable pageable);
+    Page<Publication> findByStatusAndCategoryId(PublicationStatus status, UUID categoryId, Pageable pageable);
 
 
-    List<Article> findByStatusAndScheduledAtBefore(PublicationStatus status, Instant threshold);
+    List<Publication> findByStatusAndScheduledAtBefore(PublicationStatus status, Instant threshold);
 
     long countByStatus(PublicationStatus status);
 
@@ -32,7 +32,7 @@ public interface ArticleRepository extends JpaRepository<Article, UUID>, JpaSpec
     /** Ver StatsService — un punto por día con publicaciones, para el gráfico de tendencia de Estadísticas. Los días sin publicaciones no aparecen; StatsService completa los huecos con 0. */
     @Query(value = """
             SELECT date_trunc('day', published_at) AS day, count(*) AS cnt
-            FROM content.articles
+            FROM content.publications
             WHERE status = 'PUBLISHED' AND published_at >= :threshold
             GROUP BY day
             ORDER BY day
@@ -59,18 +59,18 @@ public interface ArticleRepository extends JpaRepository<Article, UUID>, JpaSpec
      * gobierna ts_rank, no un ORDER BY genérico de Spring Data.
      */
     @Query(value = """
-            SELECT a.* FROM content.articles a
+            SELECT a.* FROM content.publications a
             WHERE a.status = 'PUBLISHED'
             AND a.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
             AND (:categoryId IS NULL OR a.category_id = :categoryId)
             ORDER BY ts_rank(a.search_vector, websearch_to_tsquery('spanish', public.immutable_unaccent(:query))) DESC
             """,
             countQuery = """
-            SELECT count(*) FROM content.articles a
+            SELECT count(*) FROM content.publications a
             WHERE a.status = 'PUBLISHED'
             AND a.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
             AND (:categoryId IS NULL OR a.category_id = :categoryId)
             """,
             nativeQuery = true)
-    Page<Article> search(@Param("query") String query, @Param("categoryId") UUID categoryId, Pageable pageable);
+    Page<Publication> search(@Param("query") String query, @Param("categoryId") UUID categoryId, Pageable pageable);
 }

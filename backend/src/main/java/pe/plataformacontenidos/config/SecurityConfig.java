@@ -27,7 +27,7 @@ import pe.plataformacontenidos.identity.security.JwtService;
  *
  * La autorización a nivel de objeto (ej. quien solo crea edita SU PROPIO
  * contenido en borrador) no se puede expresar aquí — se resuelve en el
- * servicio de dominio (ver ArticleService), esta cadena solo decide quién
+ * servicio de dominio (ver PublicationService), esta cadena solo decide quién
  * puede llegar al endpoint.
  */
 @Configuration
@@ -45,7 +45,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/categories", "/api/v1/categories/**")
                     .permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/articles", "/api/v1/articles/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/publications", "/api/v1/publications/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/places", "/api/v1/places/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/events", "/api/v1/events/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/galleries", "/api/v1/galleries/**").permitAll()
@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/series", "/api/v1/series/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/live/**").permitAll()
                 // "Me gusta" anónimo de lector (visitorId generado en el navegador, no requiere cuenta) — ver ContentLike, un solo mecanismo para los tipos de contenido.
-                .requestMatchers(HttpMethod.POST, "/api/v1/articles/*/like", "/api/v1/places/*/like",
+                .requestMatchers(HttpMethod.POST, "/api/v1/publications/*/like", "/api/v1/places/*/like",
                         "/api/v1/events/*/like", "/api/v1/galleries/*/like",
                         "/api/v1/directory/*/like", "/api/v1/series/episodes/*/like").permitAll()
                 // Visitas anónimas (sin cookies ni IP guardada) — ver ContentViewCounter.

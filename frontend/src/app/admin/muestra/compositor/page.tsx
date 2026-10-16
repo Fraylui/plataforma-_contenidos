@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/ui";
-import { ArticleComposer } from "@/components/admin/article-composer";
+import { PublicationComposer } from "@/components/admin/publication-composer";
 import type { Category } from "@/lib/api/types";
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export default function ComposerShowcasePage() {
   return (
     <main className="mx-auto max-w-6xl space-y-6 p-4 sm:p-8">
       <AdminPageHeader title="Nueva publicación" />
-      <ArticleComposer
+      <PublicationComposer
         categories={CATEGORIES}
         allImages={[]}
         siteName="Ecos del Camino"

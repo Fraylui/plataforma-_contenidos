@@ -29,7 +29,7 @@ import pe.plataformacontenidos.shared.ContentVideo;
  * o llevar su propia dirección libre (address) — mismo patrón que
  * events.placeId/venueName. category_id/place_id son UUID sin FK
  * (Taxonomy/Places, sección 38); images/videos tampoco (Media) — mismo
- * patrón ContentImage/ContentVideo que Article/Place/Event.
+ * patrón ContentImage/ContentVideo que Publication/Place/Event.
  */
 @Entity
 @Table(name = "businesses", schema = "directory")

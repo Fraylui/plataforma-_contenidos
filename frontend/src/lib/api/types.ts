@@ -4,7 +4,7 @@
 // generarlos desde una spec OpenAPI.
 
 /** Formato de publicación (plataforma de contenido, no géneros periodísticos — ver V48 en el backend). */
-export type ArticleType = "GENERAL" | "GUIA" | "LISTA" | "TUTORIAL" | "HISTORIA";
+export type PublicationType = "GENERAL" | "GUIA" | "LISTA" | "TUTORIAL" | "HISTORIA";
 
 /** Estado de cualquier contenido — shared.publishing.PublicationStatus (spec 2026-10-07 §1). */
 export type PublicationStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED" | "ARCHIVED";
@@ -24,12 +24,12 @@ export interface ContentVideo {
   caption: string | null;
 }
 
-export interface ArticleSummary {
+export interface PublicationSummary {
   id: string;
   slug: string;
   title: string;
   excerpt: string | null;
-  articleType: ArticleType;
+  publicationType: PublicationType;
   categoryId: string;
   coverImageId: string | null;
   coverImageUrl: string | null;
@@ -38,13 +38,13 @@ export interface ArticleSummary {
   likeCount: number;
 }
 
-export interface Article {
+export interface Publication {
   id: string;
   slug: string;
   title: string;
   excerpt: string | null;
   body: string;
-  articleType: ArticleType;
+  publicationType: PublicationType;
   status: PublicationStatus;
   authorId: string;
   categoryId: string;
@@ -63,7 +63,7 @@ export interface Article {
 }
 
 /** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de todos los tipos buscables. */
-export type SearchResultType = "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS" | "EPISODE";
+export type SearchResultType = "PUBLICATION" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS" | "EPISODE";
 
 export interface SearchResult {
   contentType: SearchResultType;
@@ -377,7 +377,7 @@ export interface ResolvedRotation {
 }
 
 /** Ver FeedItemResponse.java — feed unificado del home y "relacionados" de la vista de detalle. */
-export type FeedItemType = "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS" | "EPISODE";
+export type FeedItemType = "PUBLICATION" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS" | "EPISODE";
 
 /** Una imagen del carrusel de un ítem del feed: subida (`imageId`) o por enlace externo, nunca ambas. */
 export interface FeedImage {
@@ -391,7 +391,7 @@ export interface FeedItem {
   slug: string;
   title: string;
   excerpt: string | null;
-  articleType: ArticleType | null;
+  publicationType: PublicationType | null;
   categoryId: string | null;
   coverImageId: string | null;
   coverImageUrl: string | null;

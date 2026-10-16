@@ -33,8 +33,8 @@ class CampaignTargetingTest {
     @Test
     void topicIncludesItsSubtopics() {
         var turismo = targeting(List.of(), List.of(TURISMO), List.of(), List.of());
-        var onGastronomyPage = new AdContext(AdSection.ARTICLE, LINEAGE.get(GASTRONOMIA), null, null, null);
-        var onTechPage = new AdContext(AdSection.ARTICLE, LINEAGE.get(TECNOLOGIA), null, null, null);
+        var onGastronomyPage = new AdContext(AdSection.PUBLICATION, LINEAGE.get(GASTRONOMIA), null, null, null);
+        var onTechPage = new AdContext(AdSection.PUBLICATION, LINEAGE.get(TECNOLOGIA), null, null, null);
         assertThat(turismo.matches(onGastronomyPage)).isTrue();
         assertThat(turismo.matches(onTechPage)).isFalse();
         assertThat(turismo.matches(AdContext.NONE)).isFalse();

@@ -25,7 +25,7 @@ public interface EventRepository extends JpaRepository<Event, UUID>, JpaSpecific
 
     /**
      * Eventos próximos (starts_at >= now), del más cercano al más lejano —
-     * la razón de ser de este módulo frente a Article/Place, que ordenan por
+     * la razón de ser de este módulo frente a Publication/Place, que ordenan por
      * published_at (CONTEXTO.md: separar activamente lo vigente de lo pasado
      * en vez de un muro cronológico único). categoryId opcional vía
      * "param IS NULL OR".

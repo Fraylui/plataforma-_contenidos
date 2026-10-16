@@ -2,7 +2,7 @@ package pe.plataformacontenidos.search.api.dto;
 
 import java.time.Instant;
 import java.util.UUID;
-import pe.plataformacontenidos.content.Article;
+import pe.plataformacontenidos.content.Publication;
 import pe.plataformacontenidos.directory.Business;
 import pe.plataformacontenidos.events.Event;
 import pe.plataformacontenidos.galleries.Gallery;
@@ -19,7 +19,7 @@ import pe.plataformacontenidos.shared.ContentImage;
  * agregue resultados de varios módulos" — ya hay dos tipos buscables, este
  * es ese momento). El frontend arma la URL a partir de `contentType` +
  * `slug` (/publicaciones/{slug} o /lugares/{slug}). featuredImageId/
- * featuredImageUrl son excluyentes (ver ContentImage) en Article/Place/
+ * featuredImageUrl son excluyentes (ver ContentImage) en Publication/Place/
  * Event, que ya soportan imágenes por enlace externo además de subidas;
  * Gallery/Business todavía son solo imágenes subidas.
  */
@@ -39,19 +39,19 @@ public record SearchResultResponse(
         /** Solo Episodio: su URL es /series/{seriesSlug}/{slug} — null en los demás tipos. */
         String seriesSlug) {
 
-    public static SearchResultResponse fromArticle(Article article) {
-        ContentImage cover = article.getCoverImage();
+    public static SearchResultResponse fromPublication(Publication publication) {
+        ContentImage cover = publication.getCoverImage();
         return new SearchResultResponse(
-                SearchResultType.ARTICLE,
-                article.getId(),
-                article.getSlug(),
-                article.getTitle(),
-                article.getExcerpt(),
-                article.getCategoryId(),
+                SearchResultType.PUBLICATION,
+                publication.getId(),
+                publication.getSlug(),
+                publication.getTitle(),
+                publication.getExcerpt(),
+                publication.getCategoryId(),
                 cover == null ? null : cover.getImageId(),
                 cover == null ? null : cover.getExternalUrl(),
-                !article.getVideos().isEmpty(),
-                article.getPublishedAt(),
+                !publication.getVideos().isEmpty(),
+                publication.getPublishedAt(),
                 null,
                 null);
     }

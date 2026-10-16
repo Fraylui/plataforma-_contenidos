@@ -28,7 +28,7 @@ import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
 /**
  * Orquesta el ciclo de publicación de Lugares (CONTEXTO.md sección 12), mismo
- * patrón que ArticleService. La autorización a nivel de objeto vive acá
+ * patrón que PublicationService. La autorización a nivel de objeto vive acá
  * (SecurityConfig solo decide quién llega al endpoint).
  */
 @Service
@@ -147,7 +147,7 @@ public class PlaceService {
         return placeRepository.findByStatus(PublicationStatus.PUBLISHED, pageable);
     }
 
-    /** CONTEXTO.md sección 16. Mismo criterio que ArticleService.search (query en blanco: página vacía, no error). */
+    /** CONTEXTO.md sección 16. Mismo criterio que PublicationService.search (query en blanco: página vacía, no error). */
     public Page<Place> search(String query, UUID categoryId, Pageable pageable) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);

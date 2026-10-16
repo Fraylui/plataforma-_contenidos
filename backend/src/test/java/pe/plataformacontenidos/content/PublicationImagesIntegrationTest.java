@@ -38,7 +38,7 @@ import tools.jackson.databind.ObjectMapper;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import(TestcontainersConfiguration.class)
-class ArticleImagesIntegrationTest {
+class PublicationImagesIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -61,13 +61,13 @@ class ArticleImagesIntegrationTest {
         String publisherToken = createUserAndLogin("images-publicador-1@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Imagen Inexistente Test");
 
-        mockMvc.perform(post("/api/v1/admin/articles")
+        mockMvc.perform(post("/api/v1/admin/publications")
                         .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Publicación con imagen inexistente\","
                                 + "\"excerpt\":\"Resumen breve\","
                                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
-                                + "\"articleType\":\"GENERAL\","
+                                + "\"publicationType\":\"GENERAL\","
                                 + "\"categoryId\":\"" + categoryId + "\","
                                 + "\"images\":[{\"imageId\":\"00000000-0000-0000-0000-000000000000\"}]}"))
                 .andExpect(status().isNotFound());
@@ -79,13 +79,13 @@ class ArticleImagesIntegrationTest {
         String publisherToken = createUserAndLogin("images-publicador-shape@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Imagen Forma Inválida Test");
 
-        mockMvc.perform(post("/api/v1/admin/articles")
+        mockMvc.perform(post("/api/v1/admin/publications")
                         .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Publicación con imagen sin fuente\","
                                 + "\"excerpt\":\"Resumen breve\","
                                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
-                                + "\"articleType\":\"GENERAL\","
+                                + "\"publicationType\":\"GENERAL\","
                                 + "\"categoryId\":\"" + categoryId + "\","
                                 + "\"images\":[{}]}"))
                 .andExpect(status().isBadRequest());
@@ -105,13 +105,13 @@ class ArticleImagesIntegrationTest {
                 .andReturn();
         String imageId = objectMapper.readTree(uploadResult.getResponse().getContentAsString()).get("id").asText();
 
-        MvcResult createResult = mockMvc.perform(post("/api/v1/admin/articles")
+        MvcResult createResult = mockMvc.perform(post("/api/v1/admin/publications")
                         .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Publicación con varias imágenes\","
                                 + "\"excerpt\":\"Resumen breve\","
                                 + "\"body\":\"Cuerpo completo del artículo con suficiente contenido.\","
-                                + "\"articleType\":\"GENERAL\","
+                                + "\"publicationType\":\"GENERAL\","
                                 + "\"categoryId\":\"" + categoryId + "\","
                                 + "\"images\":[{\"imageId\":\"" + imageId + "\"},"
                                 + "{\"externalUrl\":\"https://example.com/foto.jpg\"}]}"))
@@ -120,14 +120,14 @@ class ArticleImagesIntegrationTest {
                 .andExpect(jsonPath("$.images[0].externalUrl").doesNotExist())
                 .andExpect(jsonPath("$.images[1].externalUrl").value("https://example.com/foto.jpg"))
                 .andReturn();
-        String articleId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asText();
+        String publicationId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asText();
 
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
+        mockMvc.perform(post("/api/v1/admin/publications/" + publicationId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());
 
         // La portada del listado público (usado por las tarjetas) es la primera imagen de la lista.
-        mockMvc.perform(get("/api/v1/articles").param("categoryId", categoryId))
+        mockMvc.perform(get("/api/v1/publications").param("categoryId", categoryId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].coverImageId").value(imageId));
     }

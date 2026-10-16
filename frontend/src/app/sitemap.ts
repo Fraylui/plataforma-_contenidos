@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import {
   listActiveCategories,
-  listAllPublishedArticlesForSitemap,
+  listAllPublishedPublicationsForSitemap,
   listAllPublishedBusinessesForSitemap,
   listAllPublishedEventsForSitemap,
   listAllPublishedGalleriesForSitemap,
@@ -12,8 +12,8 @@ import { SITE_URL } from "@/lib/site-url";
 import { isEventFinished } from "@/lib/content-labels";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [articles, places, events, galleries, businesses, categories, series] = await Promise.all([
-    listAllPublishedArticlesForSitemap(),
+  const [publications, places, events, galleries, businesses, categories, series] = await Promise.all([
+    listAllPublishedPublicationsForSitemap(),
     listAllPublishedPlacesForSitemap(),
     listAllPublishedEventsForSitemap(),
     listAllPublishedGalleriesForSitemap(),
@@ -33,9 +33,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ]);
 
-  const articleEntries: MetadataRoute.Sitemap = articles.map((article) => ({
-    url: `${SITE_URL}/publicaciones/${article.slug}`,
-    lastModified: article.publishedAt ?? undefined,
+  const publicationEntries: MetadataRoute.Sitemap = publications.map((publication) => ({
+    url: `${SITE_URL}/publicaciones/${publication.slug}`,
+    lastModified: publication.publishedAt ?? undefined,
     changeFrequency: "weekly",
     priority: 0.7,
   }));
@@ -110,7 +110,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.5,
     },
-    ...articleEntries,
+    ...publicationEntries,
     ...placeEntries,
     ...eventEntries,
     ...galleryEntries,

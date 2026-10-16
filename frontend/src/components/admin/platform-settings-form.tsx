@@ -169,7 +169,7 @@ const NAV_ITEMS = [
   { id: "publicidad", label: "Publicidad y AdSense" },
 ] as const;
 
-/** Misma tarjeta que el resto del panel (article-form.tsx, place-form.tsx, ...): border-border/60 bg-surface, sin shadow. */
+/** Misma tarjeta que el resto del panel (los compositores de contenido): border-border/60 bg-surface, sin shadow. */
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
     <div id={id} className="scroll-mt-24 rounded-card bg-surface shadow-card p-5">

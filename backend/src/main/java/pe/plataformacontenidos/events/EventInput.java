@@ -11,7 +11,7 @@ import pe.plataformacontenidos.shared.ContentVideoInput;
  * placeId, venueName y endsAt son opcionales. Cada imagen es subida o por
  * enlace externo (ver ContentImageInput); cada video trae la URL pegada
  * por quien redacta (sección 8) — EventService la convierte a Video ID
- * antes de guardar, igual que Article/Place.
+ * antes de guardar, igual que Publication/Place.
  */
 public record EventInput(
         String title,

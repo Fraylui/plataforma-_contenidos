@@ -2,15 +2,15 @@ import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "vitest-axe";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { Article, Category } from "@/lib/api/types";
+import type { Publication, Category } from "@/lib/api/types";
 import type { PublicationPermissions } from "@/lib/admin/publication";
-import { ArticleComposer } from "./article-composer";
+import { PublicationComposer } from "./publication-composer";
 import { AUTOSAVE_INTERVAL_MS } from "./use-autosave";
-import { createArticleAction, updateArticleAction } from "@/app/admin/(protected)/publicaciones/actions";
+import { createPublicationAction, updatePublicationAction } from "@/app/admin/(protected)/publicaciones/actions";
 
 vi.mock("@/app/admin/(protected)/publicaciones/actions", () => ({
-  createArticleAction: vi.fn().mockResolvedValue({ ok: true, data: { id: "nuevo-1" } }),
-  updateArticleAction: vi.fn().mockResolvedValue({ ok: true }),
+  createPublicationAction: vi.fn().mockResolvedValue({ ok: true, data: { id: "nuevo-1" } }),
+  updatePublicationAction: vi.fn().mockResolvedValue({ ok: true }),
 }));
 vi.mock("@/app/admin/(protected)/imagenes/actions", () => ({ uploadImageInlineAction: vi.fn() }));
 vi.mock("@/app/admin/(protected)/publication-actions", () => ({
@@ -33,12 +33,12 @@ const PUBLISHER: PublicationPermissions = {
 };
 
 function renderNew() {
-  return render(<ArticleComposer categories={CATEGORIES} allImages={[]} permissions={PUBLISHER} siteName="Ecos del Camino" />);
+  return render(<PublicationComposer categories={CATEGORIES} allImages={[]} permissions={PUBLISHER} siteName="Ecos del Camino" />);
 }
 
 afterEach(() => vi.useRealTimers());
 
-describe("ArticleComposer", () => {
+describe("PublicationComposer", () => {
   it("lenguaje de plataforma: título, descripción corta y texto; nada de extracto ni cuerpo", async () => {
     const { container } = renderNew();
     expect(screen.getByLabelText("Título")).toBeInTheDocument();
@@ -55,7 +55,7 @@ describe("ArticleComposer", () => {
     const title = screen.getByLabelText("Título");
     expect(title).toHaveAccessibleDescription("Escribe un título.");
     expect(title).toHaveFocus();
-    expect(createArticleAction).not.toHaveBeenCalled();
+    expect(createPublicationAction).not.toHaveBeenCalled();
   });
 
   it("el guardado automático crea el borrador y cambia la URL sin salir de la página", async () => {
@@ -65,7 +65,7 @@ describe("ArticleComposer", () => {
     await user.type(screen.getByLabelText("Título"), "Una ruta por el valle");
     await user.type(screen.getByLabelText("Texto"), "Tres días caminando.");
     await act(() => vi.advanceTimersByTimeAsync(AUTOSAVE_INTERVAL_MS));
-    expect(createArticleAction).toHaveBeenCalledTimes(1);
+    expect(createPublicationAction).toHaveBeenCalledTimes(1);
     expect(window.location.pathname).toBe("/admin/publicaciones/nuevo-1");
     expect(screen.getByText(/^Guardado · /)).toBeInTheDocument();
   });
@@ -73,13 +73,13 @@ describe("ArticleComposer", () => {
   it("lo ya publicado no se guarda solo: solo con «Guardar cambios»", async () => {
     vi.useFakeTimers({ toFake: ["setInterval", "clearInterval", "Date"] });
     const user = userEvent.setup();
-    const article = {
+    const publication = {
       id: "pub-1",
       slug: "una-ruta",
       title: "Una ruta",
       excerpt: null,
       body: "<p>Texto</p>",
-      articleType: "GENERAL",
+      publicationType: "GENERAL",
       status: "PUBLISHED",
       authorId: "x",
       categoryId: "cat-1",
@@ -95,19 +95,19 @@ describe("ArticleComposer", () => {
       createdAt: "2026-10-01T10:00:00Z",
       updatedAt: "2026-10-01T10:00:00Z",
       likeCount: 0,
-    } as Article;
+    } as Publication;
     render(
-      <ArticleComposer
+      <PublicationComposer
         categories={CATEGORIES}
         allImages={[]}
-        article={article}
+        publication={publication}
         permissions={{ ...PUBLISHER, canPublish: false, canSchedule: false, canArchive: true }}
         siteName="Ecos del Camino"
       />,
     );
     await user.type(screen.getByLabelText("Título"), " nueva");
     await act(() => vi.advanceTimersByTimeAsync(AUTOSAVE_INTERVAL_MS * 3));
-    expect(updateArticleAction).not.toHaveBeenCalled();
+    expect(updatePublicationAction).not.toHaveBeenCalled();
   });
 
   it("con cambios sin guardar, salir de la página pide confirmación", async () => {

@@ -77,7 +77,7 @@ class AuthorizationMatrixIntegrationTest {
 
     /** Endpoints de contenido a los que llega cualquier miembro del equipo (Creador incluido). */
     static Stream<String> creatorEndpoints() {
-        return Stream.of("/api/v1/admin/articles", "/api/v1/admin/images", "/api/v1/admin/places",
+        return Stream.of("/api/v1/admin/publications", "/api/v1/admin/images", "/api/v1/admin/places",
                 "/api/v1/admin/events", "/api/v1/admin/galleries", "/api/v1/admin/directory");
     }
 
@@ -86,11 +86,11 @@ class AuthorizationMatrixIntegrationTest {
     }
 
     static Stream<String> unknownPaths() {
-        return Stream.of("/api/v1/does-not-exist", "/actuator/env", "/actuator/beans", "/api/v2/articles");
+        return Stream.of("/api/v1/does-not-exist", "/actuator/env", "/actuator/beans", "/api/v2/publications");
     }
 
     static Stream<String> publicReadOnlyCollections() {
-        return Stream.of("/api/v1/articles", "/api/v1/places", "/api/v1/events", "/api/v1/galleries",
+        return Stream.of("/api/v1/publications", "/api/v1/places", "/api/v1/events", "/api/v1/galleries",
                 "/api/v1/directory", "/api/v1/categories");
     }
 

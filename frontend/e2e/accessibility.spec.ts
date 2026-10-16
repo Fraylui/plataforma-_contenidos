@@ -19,8 +19,8 @@ for (const path of PUBLIC_PAGES) {
 }
 
 test("página de detalle de publicación no tiene violaciones WCAG", async ({ page, request }) => {
-  const articles = await (await request.get("http://localhost:8080/api/v1/articles?size=1")).json();
-  await page.goto(`/publicaciones/${articles.items[0].slug}`);
+  const publications = await (await request.get("http://localhost:8080/api/v1/publications?size=1")).json();
+  await page.goto(`/publicaciones/${publications.items[0].slug}`);
   await page.waitForLoadState("networkidle");
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(results.violations, JSON.stringify(results.violations, null, 2)).toEqual([]);

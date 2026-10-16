@@ -60,7 +60,7 @@ class SearchIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void findsPublishedArticleByTitleWordAndNotUnrelatedMatches() throws Exception {
+    void findsPublishedPublicationByTitleWordAndNotUnrelatedMatches() throws Exception {
         String publisherToken = createUserAndLogin("search-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String creatorToken = createUserAndLogin("search-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Turismo Búsqueda Test");
@@ -68,10 +68,10 @@ class SearchIntegrationTest {
         // Palabra distintiva (no "turismo"/"andino" sueltos: la suite completa
         // comparte una sola base entre clases de test, y esas son demasiado
         // comunes en otros fixtures — daría falsos positivos de tamaño exacto).
-        publishArticle(creatorToken, publisherToken, categoryId,
+        publishPublication(creatorToken, publisherToken, categoryId,
                 "Quinua, Ayacucho: historia y kimsapampatur andino",
                 "Un recorrido por la plaza y la iglesia colonial de Quinua.");
-        publishArticle(creatorToken, publisherToken, categoryId,
+        publishPublication(creatorToken, publisherToken, categoryId,
                 "Receta tradicional de puca picante",
                 "Un plato típico ayacuchano, sin relación con lo anterior.");
 
@@ -79,7 +79,7 @@ class SearchIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items", org.hamcrest.Matchers.hasSize(1)))
                 .andExpect(jsonPath("$.items[0].title").value("Quinua, Ayacucho: historia y kimsapampatur andino"))
-                .andExpect(jsonPath("$.items[0].contentType").value("ARTICLE"));
+                .andExpect(jsonPath("$.items[0].contentType").value("PUBLICATION"));
     }
 
     @Test
@@ -108,7 +108,7 @@ class SearchIntegrationTest {
         // Misma palabra distintiva en un artículo y en un lugar, para probar
         // que el filtro type= de verdad excluye al otro tipo (y no que
         // simplemente no había resultados del otro tipo para empezar).
-        publishArticle(creatorToken, publisherToken, categoryId,
+        publishPublication(creatorToken, publisherToken, categoryId,
                 "Wamanripa: guía completa", "Todo sobre wamanripa en la región.");
         String placeId = createPlace(creatorToken, categoryId, "Mirador Wamanripa");
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
@@ -121,10 +121,10 @@ class SearchIntegrationTest {
                         org.hamcrest.Matchers.is("PLACE"))))
                 .andExpect(jsonPath("$.items[*].title", org.hamcrest.Matchers.hasItem("Mirador Wamanripa")));
 
-        mockMvc.perform(get("/api/v1/search").param("q", "Wamanripa").param("type", "ARTICLE"))
+        mockMvc.perform(get("/api/v1/search").param("q", "Wamanripa").param("type", "PUBLICATION"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[*].contentType", org.hamcrest.Matchers.everyItem(
-                        org.hamcrest.Matchers.is("ARTICLE"))))
+                        org.hamcrest.Matchers.is("PUBLICATION"))))
                 .andExpect(jsonPath("$.items[*].title", org.hamcrest.Matchers.hasItem("Wamanripa: guía completa")));
     }
 
@@ -164,15 +164,15 @@ class SearchIntegrationTest {
     }
 
     @Test
-    void doesNotReturnDraftArticles() throws Exception {
+    void doesNotReturnDraftPublications() throws Exception {
         String creatorToken = createUserAndLogin("search-creador-2@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("search-publicador-2@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String categoryId = createCategory(publisherToken, "Categoría Draft Test");
 
-        mockMvc.perform(post("/api/v1/admin/articles")
+        mockMvc.perform(post("/api/v1/admin/publications")
                         .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(articleJson(categoryId, "Borrador exclusivo sobre criptomonedas")))
+                        .content(publicationJson(categoryId, "Borrador exclusivo sobre criptomonedas")))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(get("/api/v1/search").param("q", "criptomonedas"))
@@ -194,7 +194,7 @@ class SearchIntegrationTest {
         // Nombre con tilde: la búsqueda debe encontrarlo escrito sin tilde y en minúsculas.
         String categoryId = createCategory(publisherToken, "Kunturwási Temático");
 
-        publishArticle(creatorToken, publisherToken, categoryId, "Paseo por la plaza al atardecer",
+        publishPublication(creatorToken, publisherToken, categoryId, "Paseo por la plaza al atardecer",
                 "Un recorrido tranquilo, sin nombrar el tema en ningún lado.");
         publishPlaceInCategory(creatorToken, publisherToken, categoryId, "Mirador del cerro alto");
 
@@ -215,7 +215,7 @@ class SearchIntegrationTest {
         String creatorToken = createUserAndLogin("search-dup-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Wiñaypachaq");
 
-        publishArticle(creatorToken, publisherToken, categoryId, "Guía de Wiñaypachaq para principiantes",
+        publishPublication(creatorToken, publisherToken, categoryId, "Guía de Wiñaypachaq para principiantes",
                 "Todo sobre wiñaypachaq.");
 
         mockMvc.perform(get("/api/v1/search").param("q", "wiñaypachaq"))
@@ -231,17 +231,17 @@ class SearchIntegrationTest {
                 .andExpect(status().isOk());
     }
 
-    private void publishArticle(String creatorToken, String publisherToken, String categoryId, String title,
+    private void publishPublication(String creatorToken, String publisherToken, String categoryId, String title,
             String body) throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/v1/admin/articles")
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/publications")
                         .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(articleJsonWithBody(categoryId, title, body)))
+                        .content(publicationJsonWithBody(categoryId, title, body)))
                 .andExpect(status().isCreated())
                 .andReturn();
-        String articleId = textField(result, "id");
+        String publicationId = textField(result, "id");
 
-        mockMvc.perform(post("/api/v1/admin/articles/" + articleId + "/publish")
+        mockMvc.perform(post("/api/v1/admin/publications/" + publicationId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());
     }
@@ -293,18 +293,18 @@ class SearchIntegrationTest {
         return textField(result, "id");
     }
 
-    private String articleJsonWithBody(String categoryId, String title, String body) {
+    private String publicationJsonWithBody(String categoryId, String title, String body) {
         return "{"
                 + "\"title\":\"" + title + "\","
                 + "\"excerpt\":\"Resumen breve\","
                 + "\"body\":\"" + body + "\","
-                + "\"articleType\":\"GENERAL\","
+                + "\"publicationType\":\"GENERAL\","
                 + "\"categoryId\":\"" + categoryId + "\""
                 + "}";
     }
 
-    private String articleJson(String categoryId, String title) {
-        return articleJsonWithBody(categoryId, title, "Cuerpo completo del artículo con suficiente contenido.");
+    private String publicationJson(String categoryId, String title) {
+        return publicationJsonWithBody(categoryId, title, "Cuerpo completo del artículo con suficiente contenido.");
     }
 
     private String createCategory(String publisherToken, String name) throws Exception {

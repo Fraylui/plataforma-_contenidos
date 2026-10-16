@@ -46,7 +46,7 @@ class StatsIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void reflectsCreatedCategoryAndArticleCounts() throws Exception {
+    void reflectsCreatedCategoryAndPublicationCounts() throws Exception {
         String publisherToken = createUserAndLogin("stats-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String creatorToken = createUserAndLogin("stats-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
 
@@ -58,17 +58,17 @@ class StatsIntegrationTest {
                 .andReturn();
         String categoryId = textField(categoryResult, "id");
 
-        mockMvc.perform(post("/api/v1/admin/articles")
+        mockMvc.perform(post("/api/v1/admin/publications")
                         .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Artículo para estadísticas\",\"excerpt\":\"Resumen\","
-                                + "\"body\":\"Cuerpo suficientemente largo.\",\"articleType\":\"GENERAL\","
+                                + "\"body\":\"Cuerpo suficientemente largo.\",\"publicationType\":\"GENERAL\","
                                 + "\"categoryId\":\"" + categoryId + "\"}"))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(get("/api/v1/admin/stats").header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.articlesByStatus.DRAFT").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
+                .andExpect(jsonPath("$.publicationsByStatus.DRAFT").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
                 .andExpect(jsonPath("$.totalCategories").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
                 // Roles de 2a: dueño y trabajador (el alcance de cada trabajador está en sus permisos).
                 .andExpect(jsonPath("$.usersByRole.WORKER").value(org.hamcrest.Matchers.greaterThanOrEqualTo(2)));

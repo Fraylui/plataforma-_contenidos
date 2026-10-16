@@ -16,23 +16,23 @@ public class ScheduledPublishJob {
 
     private static final Logger log = LoggerFactory.getLogger(ScheduledPublishJob.class);
 
-    private final ArticleRepository articleRepository;
+    private final PublicationRepository publicationRepository;
     private final AuditService auditService;
 
-    public ScheduledPublishJob(ArticleRepository articleRepository, AuditService auditService) {
-        this.articleRepository = articleRepository;
+    public ScheduledPublishJob(PublicationRepository publicationRepository, AuditService auditService) {
+        this.publicationRepository = publicationRepository;
         this.auditService = auditService;
     }
 
     @Scheduled(fixedDelay = 60_000)
-    public void publishDueArticles() {
-        List<Article> due = articleRepository.findByStatusAndScheduledAtBefore(PublicationStatus.SCHEDULED, Instant.now());
-        for (Article article : due) {
-            article.publishFromSchedule(Instant.now());
-            articleRepository.save(article);
-            auditService.record("ARTICLE_PUBLISHED_FROM_SCHEDULE", AuditResult.SUCCESS, null, null,
-                    "article", article.getId().toString(), null);
-            log.info("Publicación {} publicada automáticamente (programación cumplida)", article.getId());
+    public void publishDuePublications() {
+        List<Publication> due = publicationRepository.findByStatusAndScheduledAtBefore(PublicationStatus.SCHEDULED, Instant.now());
+        for (Publication publication : due) {
+            publication.publishFromSchedule(Instant.now());
+            publicationRepository.save(publication);
+            auditService.record("PUBLICATION_PUBLISHED_FROM_SCHEDULE", AuditResult.SUCCESS, null, null,
+                    "publication", publication.getId().toString(), null);
+            log.info("Publicación {} publicada automáticamente (programación cumplida)", publication.getId());
         }
     }
 }

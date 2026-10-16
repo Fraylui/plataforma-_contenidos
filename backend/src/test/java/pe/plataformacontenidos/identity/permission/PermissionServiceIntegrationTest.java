@@ -43,7 +43,7 @@ class PermissionServiceIntegrationTest {
         Permissions p = permissionService.forUser(worker.getId());
         assertThat(p.owner()).isFalse();
         assertThat(p.can(Module.EVENTS, AccessLevel.PUBLISH)).isTrue();
-        assertThat(p.can(Module.ARTICLES, AccessLevel.PUBLISH)).isFalse();
+        assertThat(p.can(Module.PUBLICATIONS, AccessLevel.PUBLISH)).isFalse();
     }
 
     @Test

@@ -28,7 +28,7 @@ function renderPanel(
   const onSave = vi.fn().mockResolvedValue("item-1");
   const utils = render(
     <PublishPanel
-      kind="articles"
+      kind="publications"
       item={{ id: "item-1", status, scheduledAt: null}}
       permissions={{ ...NONE, ...permissions }}
       dirty={false}
@@ -61,7 +61,7 @@ describe("PublishPanel", () => {
     expect(screen.getByText(`Se publicará ${formatEventDateTime(when)}`)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Publicar ahora" })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Quitar programación" }));
-    expect(publicationStepAction).toHaveBeenCalledWith("articles", "item-1", "return-to-draft", undefined);
+    expect(publicationStepAction).toHaveBeenCalledWith("publications", "item-1", "return-to-draft", undefined);
   });
 
   it("publicado: guardar cambios y archivar", () => {
@@ -74,7 +74,7 @@ describe("PublishPanel", () => {
     const { onSave } = renderPanel("DRAFT", { canEdit: true, canPublish: true, canSchedule: true }, { dirty: true });
     await userEvent.click(screen.getByRole("button", { name: "Publicar" }));
     expect(onSave).toHaveBeenCalledOnce();
-    expect(publicationStepAction).toHaveBeenCalledWith("articles", "item-1", "publish", undefined);
+    expect(publicationStepAction).toHaveBeenCalledWith("publications", "item-1", "publish", undefined);
   });
 
   it("algo nuevo aún sin guardar: publicar lo crea primero aunque no haya cambios", async () => {
@@ -85,7 +85,7 @@ describe("PublishPanel", () => {
     });
     await userEvent.click(screen.getByRole("button", { name: "Publicar" }));
     expect(onSave).toHaveBeenCalledOnce();
-    expect(publicationStepAction).toHaveBeenCalledWith("articles", "nuevo-1", "publish", undefined);
+    expect(publicationStepAction).toHaveBeenCalledWith("publications", "nuevo-1", "publish", undefined);
   });
 
   it("si guardar falla, no publica", async () => {
@@ -101,7 +101,7 @@ describe("PublishPanel", () => {
     const input = screen.getByLabelText("Fecha y hora de publicación");
     await userEvent.type(input, "2030-01-15T10:30");
     await userEvent.click(screen.getByRole("button", { name: "Confirmar programación" }));
-    expect(publicationStepAction).toHaveBeenCalledWith("articles", "item-1", "schedule", {
+    expect(publicationStepAction).toHaveBeenCalledWith("publications", "item-1", "schedule", {
       scheduledAt: new Date("2030-01-15T10:30").toISOString(),
     });
   });

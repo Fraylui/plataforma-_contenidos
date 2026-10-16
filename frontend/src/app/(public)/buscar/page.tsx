@@ -16,7 +16,7 @@ const PAGE_SIZE = 24;
 const BASE_PATH = "/buscar";
 
 const TYPE_OPTIONS: { value: SearchResultType; label: string }[] = [
-  { value: "ARTICLE", label: "Publicaciones" },
+  { value: "PUBLICATION", label: "Publicaciones" },
   { value: "PLACE", label: "Lugares" },
   { value: "EVENT", label: "Celebraciones" },
   { value: "GALLERY", label: "Galerías" },
@@ -52,7 +52,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
     await props.searchParams;
   const query = typeof q === "string" ? q : "";
   const type =
-    typeParam === "ARTICLE" ||
+    typeParam === "PUBLICATION" ||
     typeParam === "PLACE" ||
     typeParam === "EVENT" ||
     typeParam === "GALLERY" ||

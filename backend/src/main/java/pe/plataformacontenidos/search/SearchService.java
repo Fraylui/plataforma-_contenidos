@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import pe.plataformacontenidos.content.ArticleService;
+import pe.plataformacontenidos.content.PublicationService;
 import pe.plataformacontenidos.directory.BusinessService;
 import pe.plataformacontenidos.events.EventService;
 import pe.plataformacontenidos.galleries.GalleryService;
@@ -40,7 +40,7 @@ public class SearchService {
     // (sección 16), no de optimizar este merge.
     private static final int MERGE_FETCH_LIMIT = 200;
 
-    private final ArticleService articleService;
+    private final PublicationService publicationService;
     private final PlaceService placeService;
     private final EventService eventService;
     private final GalleryService galleryService;
@@ -48,10 +48,10 @@ public class SearchService {
     private final SeriesService seriesService;
     private final CategoryService categoryService;
 
-    public SearchService(ArticleService articleService, PlaceService placeService, EventService eventService,
+    public SearchService(PublicationService publicationService, PlaceService placeService, EventService eventService,
             GalleryService galleryService, BusinessService businessService, SeriesService seriesService,
             CategoryService categoryService) {
-        this.articleService = articleService;
+        this.publicationService = publicationService;
         this.placeService = placeService;
         this.eventService = eventService;
         this.galleryService = galleryService;
@@ -68,9 +68,9 @@ public class SearchService {
         }
 
         List<SearchResultResponse> combined = new ArrayList<>();
-        if (type == null || type == SearchResultType.ARTICLE) {
-            articleService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
-                    .forEach(a -> combined.add(SearchResultResponse.fromArticle(a)));
+        if (type == null || type == SearchResultType.PUBLICATION) {
+            publicationService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
+                    .forEach(a -> combined.add(SearchResultResponse.fromPublication(a)));
         }
         if (type == null || type == SearchResultType.PLACE) {
             placeService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
@@ -126,9 +126,9 @@ public class SearchService {
         PageRequest pageable = PageRequest.of(0, MERGE_FETCH_LIMIT);
 
         for (UUID id : categoryIds) {
-            if (type == null || type == SearchResultType.ARTICLE) {
-                articleService.listPublished(id, pageable)
-                        .forEach(a -> addIfNew(combined, seen, SearchResultResponse.fromArticle(a)));
+            if (type == null || type == SearchResultType.PUBLICATION) {
+                publicationService.listPublished(id, pageable)
+                        .forEach(a -> addIfNew(combined, seen, SearchResultResponse.fromPublication(a)));
             }
             if (type == null || type == SearchResultType.PLACE) {
                 placeService.listPublished(id, pageable)

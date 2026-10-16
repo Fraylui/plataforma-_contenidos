@@ -24,7 +24,7 @@ describe("menú del panel según permisos (espejo del servidor)", () => {
   it("las secciones del dueño no aparecen para un trabajador con todos los módulos", () => {
     const all = user({
       permissions: {
-        ARTICLES: "PUBLISH", PLACES: "PUBLISH", EVENTS: "PUBLISH", GALLERIES: "PUBLISH", DIRECTORY: "PUBLISH",
+        PUBLICATIONS: "PUBLISH", PLACES: "PUBLISH", EVENTS: "PUBLISH", GALLERIES: "PUBLISH", DIRECTORY: "PUBLISH",
         CATEGORIES: "ACCESS", STATS: "ACCESS", ADVERTISING: "ACCESS",
       },
     });

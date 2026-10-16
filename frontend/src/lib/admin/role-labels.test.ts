@@ -14,7 +14,7 @@ describe("accountLabel", () => {
   });
 
   it("cualquier otro trabajador se muestra como Trabajador", () => {
-    expect(accountLabel({ role: "WORKER", permissions: { ARTICLES: "PUBLISH" } })).toBe("Trabajador");
+    expect(accountLabel({ role: "WORKER", permissions: { PUBLICATIONS: "PUBLISH" } })).toBe("Trabajador");
     expect(accountLabel({ role: "WORKER", permissions: {} })).toBe("Trabajador");
   });
 });

@@ -30,7 +30,7 @@ function visibleTexts(source: string): string[] {
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
   const quoted = [...code.matchAll(/"([^"\n]*)"|'([^'\n]*)'|`([^`]*)`/g)].map((m) => m[1] ?? m[2] ?? m[3] ?? "");
   const jsxText = [...code.matchAll(/>([^<>{}]+)</g)].map((m) => m[1]);
-  // Rutas e imports no son texto visible (p. ej. "@/components/article/...").
+  // Rutas e imports no son texto visible (p. ej. "@/components/publication/...").
   return [...quoted, ...jsxText].filter((text) => !/^[@./]/.test(text.trim()));
 }
 

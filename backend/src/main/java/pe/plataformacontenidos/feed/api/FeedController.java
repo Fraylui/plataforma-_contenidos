@@ -65,7 +65,7 @@ public class FeedController {
     /**
      * `categoryId` viene del propio recurso que el frontend ya está
      * mostrando (no hace falta otra consulta al servidor para resolverlo) —
-     * ver ArticleResponse/PlaceResponse/EventResponse.
+     * ver PublicationResponse/PlaceResponse/EventResponse.
      */
     @GetMapping("/related")
     public List<FeedItemResponse> getRelated(

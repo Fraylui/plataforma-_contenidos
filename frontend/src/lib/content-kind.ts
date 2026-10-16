@@ -17,7 +17,7 @@ export const KIND_LABEL: Record<HomeItemKind, string> = {
 };
 
 const LIKE_TYPE: Record<HomeItemKind, LikeableContentType> = {
-  publicacion: "articles",
+  publicacion: "publications",
   lugar: "places",
   evento: "events",
   galeria: "galleries",

@@ -25,7 +25,7 @@ import pe.plataformacontenidos.shared.PageResponse;
  * Solo contenido PUBLISHED — nada de estados intermedios visibles
  * públicamente. `when` separa próximos de pasados (razón de ser de este
  * módulo, ver EventService.listPublished) — no se ordena por published_at
- * como Article/Place.
+ * como Publication/Place.
  */
 @RestController
 @RequestMapping("/api/v1/events")
