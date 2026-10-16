@@ -8,7 +8,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import org.junit.jupiter.api.Test;
 
-/** Fechas de la Agenda: cuándo «toca» la próxima vez una fecha que se repite cada año o una única. */
+/** Celebraciones: cuándo «toca» la próxima vez una fecha que se repite cada año o una única. */
 class NextOccurrenceTest {
 
     private static final ZoneId LIMA = ZoneId.of("America/Lima");

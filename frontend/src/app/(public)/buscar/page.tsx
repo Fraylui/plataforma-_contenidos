@@ -18,7 +18,7 @@ const BASE_PATH = "/buscar";
 const TYPE_OPTIONS: { value: SearchResultType; label: string }[] = [
   { value: "ARTICLE", label: "Publicaciones" },
   { value: "PLACE", label: "Lugares" },
-  { value: "EVENT", label: "Agenda" },
+  { value: "EVENT", label: "Celebraciones" },
   { value: "GALLERY", label: "Galerías" },
   { value: "BUSINESS", label: "Directorio" },
   { value: "EPISODE", label: "Episodios" },
@@ -115,7 +115,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
             type="search"
             defaultValue={query}
             enterKeyHint="search"
-            placeholder="Buscar lugares, fechas, publicaciones…"
+            placeholder="Buscar lugares, celebraciones, publicaciones…"
             className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm text-foreground placeholder-muted outline-none"
           />
         </div>

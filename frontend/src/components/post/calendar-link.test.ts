@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { calendarLinks } from "./calendar-link";
 
 describe("calendarLinks", () => {
-  const event = { title: "Feria de Santa Ana", startsAt: "2030-01-10T19:00:00Z", url: "https://ecos.example/agenda/feria" };
+  const event = { title: "Feria de Santa Ana", startsAt: "2030-01-10T19:00:00Z", url: "https://ecos.example/celebraciones/feria" };
 
   it("Google Calendar con fechas en UTC y 2 h de duración por defecto", () => {
     const { google } = calendarLinks(event);
@@ -17,6 +17,6 @@ describe("calendarLinks", () => {
     expect(ics).toContain("BEGIN:VEVENT");
     expect(ics).toContain("DTSTART:20300110T190000Z");
     expect(ics).toContain("DTEND:20300110T210000Z");
-    expect(ics).toContain("URL:https://ecos.example/agenda/feria");
+    expect(ics).toContain("URL:https://ecos.example/celebraciones/feria");
   });
 });

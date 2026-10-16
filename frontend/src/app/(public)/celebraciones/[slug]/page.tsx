@@ -10,7 +10,7 @@ import {
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { formatEventDateTime, isEventFinished } from "@/lib/content-labels";
-import { formatAgendaDate } from "@/lib/agenda-date";
+import { formatCelebrationDate } from "@/lib/celebration-date";
 import { LikeShareBar, POST_ACTION_PILL } from "@/components/content/like-share-bar";
 import { ViewBeacon } from "@/components/content/view-beacon";
 import { PostView } from "@/components/post/post-view";
@@ -47,7 +47,7 @@ export function generateStaticParams() {
   return [];
 }
 
-export async function generateMetadata(props: PageProps<"/agenda/[slug]">): Promise<Metadata> {
+export async function generateMetadata(props: PageProps<"/celebraciones/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
   let event;
   try {
@@ -63,7 +63,7 @@ export async function generateMetadata(props: PageProps<"/agenda/[slug]">): Prom
   return {
     title,
     description,
-    alternates: { canonical: event.canonicalUrl || `/agenda/${slug}` },
+    alternates: { canonical: event.canonicalUrl || `/celebraciones/${slug}` },
     robots: event.robots,
     openGraph: {
       title,
@@ -82,7 +82,7 @@ function eventJsonLd(
   venue: { name: string; slug: string } | null,
 ) {
   const venueUrl = venue ? `${SITE_URL}/lugares/${venue.slug}` : undefined;
-  const url = event.canonicalUrl || `${SITE_URL}/agenda/${event.slug}`;
+  const url = event.canonicalUrl || `${SITE_URL}/celebraciones/${event.slug}`;
   return {
     "@context": "https://schema.org",
     "@type": "Event",
@@ -105,9 +105,9 @@ function eventJsonLd(
 function breadcrumbJsonLd(event: Event, category: Category | null) {
   const items = [
     { name: "Inicio", url: SITE_URL },
-    { name: "Agenda", url: `${SITE_URL}/agenda` },
+    { name: "Celebraciones", url: `${SITE_URL}/celebraciones` },
     ...(category ? [{ name: category.name, url: `${SITE_URL}/categorias/${category.slug}` }] : []),
-    { name: event.title, url: `${SITE_URL}/agenda/${event.slug}` },
+    { name: event.title, url: `${SITE_URL}/celebraciones/${event.slug}` },
   ];
   return {
     "@context": "https://schema.org",
@@ -121,7 +121,7 @@ function breadcrumbJsonLd(event: Event, category: Category | null) {
   };
 }
 
-export default async function EventPage(props: PageProps<"/agenda/[slug]">) {
+export default async function EventPage(props: PageProps<"/celebraciones/[slug]">) {
   const { slug } = await props.params;
   const event = await loadEvent(slug);
 
@@ -135,7 +135,7 @@ export default async function EventPage(props: PageProps<"/agenda/[slug]">) {
   const venue = place ? { name: place.name, slug: place.slug } : null;
   const finished = isEventFinished(event);
   const when = event.recursYearly || event.allDay
-    ? formatAgendaDate({ at: event.nextOccurrenceAt, allDay: event.allDay, recursYearly: event.recursYearly, sinceYear: event.sinceYear })
+    ? formatCelebrationDate({ at: event.nextOccurrenceAt, allDay: event.allDay, recursYearly: event.recursYearly, sinceYear: event.sinceYear })
     : `${formatEventDateTime(event.startsAt)}${event.endsAt ? ` — ${formatEventDateTime(event.endsAt)}` : ""}`;
   const where = venue?.name ?? event.venueName;
   const calendar = calendarLinks({
@@ -144,7 +144,7 @@ export default async function EventPage(props: PageProps<"/agenda/[slug]">) {
     endsAt: event.recursYearly ? null : event.endsAt,
     allDay: event.allDay,
     recursYearly: event.recursYearly,
-    url: `${SITE_URL}/agenda/${event.slug}`,
+    url: `${SITE_URL}/celebraciones/${event.slug}`,
     location: where,
   });
   const facts: PostFact[] = [

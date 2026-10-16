@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CalendarBlank, Heart } from "@phosphor-icons/react/dist/ssr";
 import type { EventSummary } from "@/lib/api/types";
 import type { HomeItem } from "@/lib/home-items";
-import { agendaDateParts, formatAgendaDate } from "@/lib/agenda-date";
+import { celebrationDateParts, formatCelebrationDate } from "@/lib/celebration-date";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { SkeletonImage } from "@/components/ui/skeleton-image";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -27,11 +27,11 @@ function SectionHeader({ id, title, href }: { id: string; title: string; href?: 
 }
 
 function EventRow({ event, categoryName }: { event: EventSummary; categoryName?: string }) {
-  const { day, month } = agendaDateParts(event.nextOccurrenceAt);
+  const { day, month } = celebrationDateParts(event.nextOccurrenceAt);
   const where = event.venueName ?? categoryName;
 
   return (
-    <Link href={`/agenda/${event.slug}`} className={ROW}>
+    <Link href={`/celebraciones/${event.slug}`} className={ROW}>
       {/* Miniatura con la fecha encima (como los eventos de Facebook): foto y día en un solo bloque. */}
       <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-accent-soft">
         {event.coverImageId ? (
@@ -51,7 +51,7 @@ function EventRow({ event, categoryName }: { event: EventSummary; categoryName?:
         <span className="line-clamp-2 text-[15px] leading-snug font-semibold text-foreground">{event.title}</span>
         <span className="truncate text-[13px] text-muted">
           <time dateTime={event.nextOccurrenceAt}>
-            {formatAgendaDate({ at: event.nextOccurrenceAt, allDay: event.allDay, recursYearly: event.recursYearly, sinceYear: event.sinceYear })}
+            {formatCelebrationDate({ at: event.nextOccurrenceAt, allDay: event.allDay, recursYearly: event.recursYearly, sinceYear: event.sinceYear })}
           </time>
           {where && ` · ${where}`}
         </span>
@@ -65,7 +65,7 @@ function EventRow({ event, categoryName }: { event: EventSummary; categoryName?:
  * Facebook: pegada al borde derecho de la pantalla (sin franjas vacías a
  * los costados), títulos grises, filas con píldora al pasar el mouse y sin
  * tarjetas ni líneas. Próximos eventos, lo más gustado y un anuncio. En
- * celular estos bloques viven en la pestaña Agenda y dentro del feed.
+ * celular, las celebraciones están en «Más» y dentro del feed.
  */
 export function RightColumn({
   events,
@@ -81,8 +81,8 @@ export function RightColumn({
   return (
     <div className="flex flex-col gap-7">
       {events.length > 0 && (
-        <section aria-labelledby="proximas-fechas">
-          <SectionHeader id="proximas-fechas" title="Próximas fechas" href="/agenda" />
+        <section aria-labelledby="proximas-celebraciones">
+          <SectionHeader id="proximas-celebraciones" title="Próximas celebraciones" href="/celebraciones" />
           <ul className="flex flex-col">
             {events.map((event) => (
               <li key={event.id}>

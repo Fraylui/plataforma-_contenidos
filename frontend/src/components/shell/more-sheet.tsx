@@ -5,6 +5,9 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { DotsThreeCircle, X } from "@phosphor-icons/react";
 import { MORE_LINKS } from "./shell-nav";
 
+/** En el celular, el archivo de Celebraciones (sin pestaña propia, modelo Google) se encuentra aquí. */
+const SHEET_LINKS = [{ href: "/celebraciones", label: "Celebraciones" }, ...MORE_LINKS];
+
 /**
  * Hoja inferior "Más" (celular): lo que antes vivía en el pie de página y en
  * el menú ☰. Radix Dialog aporta foco atrapado, Escape y aria-modal.
@@ -34,7 +37,7 @@ export function MoreSheet({ triggerClassName }: { triggerClassName: string }) {
           </div>
           <nav aria-label="Más enlaces" className="mt-2">
             <ul className="divide-y divide-border/60">
-              {MORE_LINKS.map((link) => (
+              {SHEET_LINKS.map((link) => (
                 <li key={link.href}>
                   <Dialog.Close asChild>
                     <Link

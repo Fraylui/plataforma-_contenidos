@@ -107,9 +107,12 @@ const nextConfig: NextConfig = {
     return [
       { source: "/articulos", destination: "/publicaciones", permanent: true },
       { source: "/articulos/:slug", destination: "/publicaciones/:slug", permanent: true },
-      // /eventos -> /agenda (2026-10-16): «Eventos» sonaba a publicidad; «Agenda» es lo que pasa y cuándo.
-      { source: "/eventos", destination: "/agenda", permanent: true },
-      { source: "/eventos/:slug", destination: "/agenda/:slug", permanent: true },
+      // /eventos y /agenda -> /celebraciones (2026-10-16): «Eventos» sonaba a publicidad; el modelo es el de
+      // Google (la portada cambia el día que toca + un archivo de celebraciones).
+      { source: "/eventos", destination: "/celebraciones", permanent: true },
+      { source: "/eventos/:slug", destination: "/celebraciones/:slug", permanent: true },
+      { source: "/agenda", destination: "/celebraciones", permanent: true },
+      { source: "/agenda/:slug", destination: "/celebraciones/:slug", permanent: true },
       // Panel con lenguaje de plataforma (2026-10-06): las URLs viejas siguen funcionando.
       { source: "/admin/categorias/nueva", destination: "/admin/temas/nuevo", permanent: true },
       { source: "/admin/publicidad/nueva", destination: "/admin/espacios/nuevo", permanent: true },

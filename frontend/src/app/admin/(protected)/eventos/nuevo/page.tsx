@@ -7,7 +7,7 @@ import { computePublicationPermissions } from "@/lib/admin/publication";
 import { getPlatformSettings } from "@/lib/api/client";
 
 export const metadata: Metadata = {
-  title: "Nueva fecha",
+  title: "Nueva celebración",
   robots: "noindex,nofollow",
 };
 
@@ -25,7 +25,7 @@ export default async function NewEventPage() {
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title="Nueva fecha" back={{ href: "/admin/eventos", label: "Agenda" }} />
+      <AdminPageHeader title="Nueva celebración" back={{ href: "/admin/eventos", label: "Celebraciones" }} />
       <EventComposer categories={categories} places={places} allImages={allImages} permissions={permissions} siteName={settings.name} />
     </div>
   );

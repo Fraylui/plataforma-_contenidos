@@ -3,12 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Buildings, CaretDown, ImagesSquare, MapPin, Notepad, Television, type Icon } from "@phosphor-icons/react";
+import { Buildings, Confetti, CaretDown, ImagesSquare, MapPin, Notepad, Television, type Icon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import type { TopicStory } from "@/components/feed/topic-stories";
 import { InfoMenu } from "./info-menu";
 import { SearchDrawer } from "./search-drawer";
-import { MORE_LINKS, activeTab, visibleNav } from "./shell-nav";
+import { MORE_LINKS, activeTab, SHELL_NAV } from "./shell-nav";
 
 export interface ShellBrand {
   name: string;
@@ -27,6 +27,7 @@ const SECTIONS: { href: string; label: string; icon: Icon; tile: string }[] = [
   { href: "/series", label: "Series", icon: Television, tile: "bg-linear-to-br from-rose-500 to-red-600" },
   { href: "/galerias", label: "Galerías", icon: ImagesSquare, tile: "bg-linear-to-br from-fuchsia-500 to-pink-600" },
   { href: "/directorio", label: "Directorio", icon: Buildings, tile: "bg-linear-to-br from-amber-500 to-orange-600" },
+  { href: "/celebraciones", label: "Celebraciones", icon: Confetti, tile: "bg-linear-to-br from-violet-500 to-purple-600" },
 ];
 /** Temas visibles antes de "Ver más" (como los accesos directos de Facebook): el menú cabe en pantalla sin barra de desplazamiento. */
 const VISIBLE_TOPICS = 5;
@@ -60,18 +61,12 @@ function RailTooltip({ label }: { label: string }) {
   );
 }
 
-function agendaLabel(count: number) {
-  if (count <= 0) return "Agenda";
-  return `Agenda, ${count} ${count === 1 ? "evento" : "eventos"} esta semana`;
-}
-
 /**
  * Columna de navegación izquierda (escritorio, ≥ 1024 px), con el lenguaje
  * de Instagram, Facebook y X:
  * - marca grande arriba (como el logotipo de Instagram);
  * - navegación principal con íconos grandes, el activo relleno y en una
- *   píldora; "Buscar" abre un panel lateral y Agenda lleva el contador de
- *   la semana;
+ *   píldora; "Buscar" abre un panel lateral;
  * - Secciones con círculos de color (accesos de Facebook);
  * - Temas con su foto en el anillo de historia de Instagram y "Novedades"
  *   a la vista cuando hay contenido nuevo;
@@ -84,19 +79,14 @@ function agendaLabel(count: number) {
  */
 export function LeftRail({
   brand,
-  showAgenda,
   sections = {},
   topics = [],
-  agendaCount = 0,
   categoryNames = {},
 }: {
   brand: ShellBrand;
-  showAgenda: boolean;
   /** Qué secciones tienen contenido (getPrimaryNavVisibility). */
   sections?: Record<string, boolean>;
   topics?: TopicStory[];
-  /** Eventos de los próximos 7 días (countThisWeek), calculado en el servidor. */
-  agendaCount?: number;
   /** Nombres de temas para las sugerencias del panel de búsqueda. */
   categoryNames?: Record<string, string>;
 }) {
@@ -131,7 +121,7 @@ export function LeftRail({
       {/* Desplazable solo con etiquetas (≥ 1280 px): en el modo de íconos el menú cabe y las etiquetas flotantes deben poder salir de la columna. Sin barra visible (como Facebook/Instagram). */}
       <div className="-mx-1 flex min-h-0 flex-1 flex-col px-1 no-scrollbar xl:overflow-y-auto">
         <nav aria-label="Principal" className="flex flex-col gap-1">
-          {visibleNav(showAgenda).map(({ tab, href, label, icon: NavIcon }) => {
+          {SHELL_NAV.map(({ tab, href, label, icon: NavIcon }) => {
             const active = tab === current && !visibleSections.some((s) => isActive(pathname, s.href));
             const className = cn(ITEM, active ? "bg-canvas font-bold text-foreground" : "font-medium text-foreground/80 hover:text-foreground");
             const icon = <NavIcon className={cn(ITEM_ICON, "h-[26px] w-[26px]")} weight={active ? "fill" : "regular"} aria-hidden="true" />;
@@ -150,26 +140,9 @@ export function LeftRail({
                 />
               );
             }
-            const count = tab === "agenda" ? agendaCount : 0;
             return (
-              <Link
-                key={tab}
-                href={href}
-                aria-current={active ? "page" : undefined}
-                aria-label={tab === "agenda" ? agendaLabel(count) : label}
-                className={className}
-              >
-                <span className="relative shrink-0">
-                  {icon}
-                  {count > 0 && (
-                    <span
-                      aria-hidden="true"
-                      className="absolute -top-1.5 -right-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-600 px-1 text-[11px] leading-none font-bold text-white ring-2 ring-surface"
-                    >
-                      {count > 9 ? "9+" : count}
-                    </span>
-                  )}
-                </span>
+              <Link key={tab} href={href} aria-current={active ? "page" : undefined} aria-label={label} className={className}>
+                <span className="relative shrink-0">{icon}</span>
                 <span className="hidden xl:inline">{label}</span>
                 <RailTooltip label={label} />
               </Link>

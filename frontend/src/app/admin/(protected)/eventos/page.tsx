@@ -8,7 +8,7 @@ import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
 import { EventsTable } from "@/components/admin/events-table";
 
 export const metadata: Metadata = {
-  title: "Agenda",
+  title: "Celebraciones",
   robots: "noindex,nofollow",
 };
 
@@ -21,10 +21,10 @@ export default async function AdminEventsPage(props: PageProps<"/admin/eventos">
 
   return (
     <div>
-      <AdminPageHeader title="Agenda" action={{ href: "/admin/eventos/nuevo", label: "Nueva fecha" }} />
+      <AdminPageHeader title="Celebraciones" action={{ href: "/admin/eventos/nuevo", label: "Nueva celebración" }} />
 
       {isEmpty ? (
-        <EmptyState title="Todavía no hay fechas" description="Empieza por las que vuelven cada año: 28 de julio, Batalla de Ayacucho…" action={{ href: "/admin/eventos/nuevo", label: "Crear evento" }} />
+        <EmptyState title="Todavía no hay celebraciones" description="Empieza por las que vuelven cada año: 28 de julio, Batalla de Ayacucho…" action={{ href: "/admin/eventos/nuevo", label: "Crear evento" }} />
       ) : (
         <div className="mt-6">
           <EventsTable page={result.data} currentUser={user} />

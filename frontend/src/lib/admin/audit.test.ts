@@ -3,7 +3,7 @@ import { describeAuditAction, parseAuditDetails } from "./audit";
 
 describe("describeAuditAction", () => {
   it("traduce los códigos del backend a frases en español", () => {
-    expect(describeAuditAction("EVENT_PUBLISHED")).toBe("Publicó una fecha");
+    expect(describeAuditAction("EVENT_PUBLISHED")).toBe("Publicó una celebración");
     expect(describeAuditAction("ARTICLE_RETURNED_TO_DRAFT")).toBe("Devolvió a borrador una publicación");
     expect(describeAuditAction("WORKER_DEACTIVATED")).toBe("Desactivó a un trabajador");
     expect(describeAuditAction("LOGIN_FAILURE")).toBe("Intento de inicio de sesión fallido");

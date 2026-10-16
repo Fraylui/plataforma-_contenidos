@@ -16,9 +16,9 @@ function user(overrides: Partial<AdminUser> = {}): AdminUser {
 }
 
 describe("menú del panel según permisos (espejo del servidor)", () => {
-  it("un trabajador solo con Agenda ve Inicio, Agenda, Imágenes y Mi cuenta", () => {
+  it("un trabajador solo con Celebraciones ve Inicio, Celebraciones, Imágenes y Mi cuenta", () => {
     const labels = visibleNavItems(user({ permissions: { EVENTS: "PUBLISH" } })).map((i) => i.label);
-    expect(labels).toEqual(["Inicio", "Agenda", "Imágenes", "Mi cuenta"]);
+    expect(labels).toEqual(["Inicio", "Celebraciones", "Imágenes", "Mi cuenta"]);
   });
 
   it("las secciones del dueño no aparecen para un trabajador con todos los módulos", () => {
@@ -40,7 +40,7 @@ describe("lenguaje de plataforma (no de redacción)", () => {
     const menu = groupedNavItems(user({ role: "OWNER" })).map(({ group, items }) => [ADMIN_NAV_GROUP_LABELS[group], items.map((i) => i.label)]);
     expect(menu).toEqual([
       [null, ["Inicio", "Estadísticas"]],
-      ["Contenido", ["Publicaciones", "Lugares", "Agenda", "Galerías", "Directorio", "Series", "En vivo", "Temas", "Imágenes"]],
+      ["Contenido", ["Publicaciones", "Lugares", "Celebraciones", "Galerías", "Directorio", "Series", "En vivo", "Temas", "Imágenes"]],
       ["Publicidad", ["Espacios publicitarios", "Anunciantes"]],
       ["Equipo y ajustes", ["Trabajadores", "Configuración", "Registro de actividad", "Mi cuenta"]],
     ]);
@@ -50,7 +50,7 @@ describe("lenguaje de plataforma (no de redacción)", () => {
 describe("qué puede crear cada persona (botón Crear, paleta y barra del celular)", () => {
   it("solo los tipos de contenido de sus módulos", () => {
     const items = createItems(user({ permissions: { EVENTS: "PUBLISH", PLACES: "PUBLISH" } }));
-    expect(items.map((i) => i.label)).toEqual(["Lugar", "Fecha"]);
+    expect(items.map((i) => i.label)).toEqual(["Lugar", "Celebración"]);
     expect(items.map((i) => i.href)).toEqual(["/admin/lugares/nuevo", "/admin/eventos/nuevo"]);
   });
 
@@ -58,7 +58,7 @@ describe("qué puede crear cada persona (botón Crear, paleta y barra del celula
     expect(createItems(user({ role: "OWNER" })).map((i) => i.label)).toEqual([
       "Publicación",
       "Lugar",
-      "Fecha",
+      "Celebración",
       "Galería",
       "Ficha de directorio",
       "Serie",

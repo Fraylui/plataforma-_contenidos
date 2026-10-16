@@ -1,10 +1,9 @@
-import { getFeed, getFeedTopics, getPlatformSettings, getPrimaryNavVisibility, listActiveCategories } from "@/lib/api/client";
+import { getFeedTopics, getPlatformSettings, getPrimaryNavVisibility, listActiveCategories } from "@/lib/api/client";
 import { imageUrl } from "@/lib/image-url";
 import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner";
 import { AdsenseLoader } from "@/components/legal/adsense-loader";
 import { AnchorAdSlot } from "@/components/legal/anchor-ad-slot";
 import { LeftRail } from "@/components/shell/left-rail";
-import { countThisWeek } from "@/components/shell/agenda-count";
 import { BottomTabBar } from "@/components/shell/bottom-tab-bar";
 import { TopBar } from "@/components/shell/top-bar";
 
@@ -18,13 +17,11 @@ import { TopBar } from "@/components/shell/top-bar";
  * Separado del layout raíz (app/layout.tsx) para que /admin/* no lo herede.
  */
 export default async function PublicLayout({ children }: LayoutProps<"/">) {
-  const [settings, visibility, topics, categories, upcoming] = await Promise.all([
+  const [settings, visibility, topics, categories] = await Promise.all([
     getPlatformSettings(),
     getPrimaryNavVisibility(),
     getFeedTopics().catch(() => []),
     listActiveCategories(),
-    // Contador de Agenda: los próximos por fecha; 10 alcanzan para mostrar "9+".
-    getFeed({ type: "EVENT", sort: "upcoming", size: 10 }).catch(() => ({ items: [], hasMore: false })),
   ]);
   const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
   const topicLinks = topics.map((t) => ({
@@ -35,8 +32,6 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
     hasNew: t.hasNew,
   }));
   const brand = { name: settings.name, logoUrl: settings.logoUrl ?? null };
-  const showAgenda = Boolean(visibility["/agenda"]);
-  const agendaCount = showAgenda ? countThisWeek(upcoming.items.map((e) => e.startsAt)) : 0;
 
   return (
     <div id="top" className="flex min-h-full bg-canvas">
@@ -48,10 +43,8 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
       </a>
       <LeftRail
         brand={brand}
-        showAgenda={showAgenda}
         sections={visibility}
         topics={topicLinks}
-        agendaCount={agendaCount}
         categoryNames={categoryNames}
       />
       <div className="flex min-w-0 flex-1 flex-col">
@@ -60,7 +53,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
       </div>
-      <BottomTabBar showAgenda={showAgenda} />
+      <BottomTabBar />
       <AnchorAdSlot />
       <CookieConsentBanner adsenseEnabled={settings.adsenseEnabled} />
       {settings.adsenseEnabled && settings.adsenseClientId && (

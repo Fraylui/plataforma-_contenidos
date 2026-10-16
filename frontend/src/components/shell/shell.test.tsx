@@ -12,9 +12,8 @@ vi.mock("next/navigation", () => ({ usePathname: () => pathname }));
 const brand = { name: "Ecos del Camino", logoUrl: null };
 
 describe("activeTab", () => {
-  it("Agenda para eventos (listado y detalle), Explorar y Buscar en sus páginas, Inicio en el resto", () => {
-    expect(activeTab("/agenda")).toBe("agenda");
-    expect(activeTab("/agenda/feria-de-santa-ana")).toBe("agenda");
+  it("Explorar y Buscar en sus páginas; Inicio en el resto, también Celebraciones (sin pestaña)", () => {
+    expect(activeTab("/celebraciones")).toBe("inicio");
     expect(activeTab("/explorar")).toBe("explorar");
     expect(activeTab("/buscar")).toBe("buscar");
     expect(activeTab("/")).toBe("inicio");
@@ -23,20 +22,20 @@ describe("activeTab", () => {
 });
 
 describe("BottomTabBar", () => {
-  it("marca la pestaña activa con aria-current y oculta Agenda si no hay eventos", () => {
-    pathname = "/agenda/feria";
-    const { rerender } = render(<BottomTabBar showAgenda />);
-    expect(screen.getByRole("link", { name: "Agenda" })).toHaveAttribute("aria-current", "page");
+  it("marca la pestaña activa con aria-current; ya no hay pestaña Agenda", () => {
+    pathname = "/explorar";
+    render(<BottomTabBar />);
+    expect(screen.getByRole("link", { name: "Explorar" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Inicio" })).not.toHaveAttribute("aria-current");
-    rerender(<BottomTabBar showAgenda={false} />);
     expect(screen.queryByRole("link", { name: "Agenda" })).not.toBeInTheDocument();
   });
 
-  it("«Más» abre una hoja con Contacto, Privacidad y Términos", async () => {
+  it("«Más» abre una hoja con Celebraciones, Contacto, Privacidad y Términos", async () => {
     pathname = "/";
-    render(<BottomTabBar showAgenda />);
+    render(<BottomTabBar />);
     await userEvent.click(screen.getByRole("button", { name: "Más" }));
     const sheet = screen.getByRole("dialog", { name: "Más" });
+    expect(sheet).toHaveTextContent("Celebraciones");
     expect(sheet).toHaveTextContent("Contacto");
     expect(sheet).toHaveTextContent("Privacidad");
     expect(sheet).toHaveTextContent("Términos");
@@ -44,7 +43,7 @@ describe("BottomTabBar", () => {
 
   it("no tiene problemas de accesibilidad", async () => {
     pathname = "/";
-    const { container } = render(<BottomTabBar showAgenda />);
+    const { container } = render(<BottomTabBar />);
     expect(await axe(container)).toHaveNoViolations();
   });
 });
@@ -55,7 +54,7 @@ describe("LeftRail — sin vacío, como Facebook/X", () => {
     render(
       <LeftRail
         brand={brand}
-        showAgenda
+       
         sections={{ "/publicaciones": true, "/lugares": true, "/galerias": false, "/directorio": true }}
         topics={[{ categoryId: "t1", name: "Turismo", slug: "turismo", coverUrl: null, hasNew: true }]}
       />,
@@ -70,7 +69,7 @@ describe("LeftRail — temas con «Ver más» (como Facebook)", () => {
   it("muestra 5 temas y despliega el resto con «Ver más»", async () => {
     pathname = "/";
     const topics = Array.from({ length: 8 }, (_, i) => ({ categoryId: `t${i}`, name: `Tema ${i}`, slug: `tema-${i}`, coverUrl: null, hasNew: false }));
-    render(<LeftRail brand={brand} showAgenda topics={topics} />);
+    render(<LeftRail brand={brand} topics={topics} />);
     const nav = screen.getByRole("navigation", { name: "Temas del menú" });
     expect(nav.querySelectorAll("a")).toHaveLength(5);
     await userEvent.click(screen.getByRole("button", { name: "Ver más temas" }));
@@ -82,7 +81,7 @@ describe("LeftRail — temas con «Ver más» (como Facebook)", () => {
 describe("LeftRail", () => {
   it("muestra la marca y las mismas secciones, con la activa marcada", () => {
     pathname = "/explorar";
-    render(<LeftRail brand={brand} showAgenda />);
+    render(<LeftRail brand={brand} />);
     expect(screen.getByRole("link", { name: /Ecos del Camino/ })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: "Explorar" })).toHaveAttribute("aria-current", "page");
   });

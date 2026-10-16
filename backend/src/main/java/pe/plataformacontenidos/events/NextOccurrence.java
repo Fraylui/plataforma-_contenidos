@@ -7,7 +7,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
 /**
- * Cuándo «toca» la próxima vez una Fecha de la Agenda (spec 2026-10-16):
+ * Cuándo «toca» la próxima vez una celebración (spec 2026-10-16):
  * una única es su propia fecha; una que se repite cada año (28 de julio,
  * Batalla de Ayacucho) vuelve este año si su día aún no pasó — el mismo día
  * cuenta como hoy — y si no, el año siguiente. El 29 de febrero cae el 28

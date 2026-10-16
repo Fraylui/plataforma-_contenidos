@@ -98,7 +98,7 @@ public class FeedService {
      * casos; con un solo tipo no se consulta a los otros servicios.
      *
      * <p>{@code categoryId}: solo ese tema y sus subtemas (círculos de temas,
-     * páginas de tema). {@code upcoming} con {@code type=EVENT}: la Agenda —
+     * páginas de tema). {@code upcoming} con {@code type=EVENT}: Celebraciones —
      * próximos eventos por fecha de inicio, sin diversificar (en una agenda
      * el orden útil es el cronológico).
      */

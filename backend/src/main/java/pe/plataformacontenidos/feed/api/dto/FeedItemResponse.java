@@ -27,7 +27,7 @@ import pe.plataformacontenidos.shared.ContentImage;
  * externo.
  *
  * <p>Tarjeta tipo post (diseño 2026-10-06): `images` alimenta el carrusel
- * (hasta {@link #MAX_IMAGES}); `startsAt` (fecha de la Agenda: la próxima vez que toca), `latitude`/`longitude`
+ * (hasta {@link #MAX_IMAGES}); `startsAt` (celebración: la próxima vez que toca), `latitude`/`longitude`
  * (lugar, directorio) y `phone`/`website` (directorio) alimentan la acción
  * de cada tipo (Agendar, Cómo llegar, Llamar, Sitio web). Nulos cuando no
  * aplican. `seriesSlug`/`seriesTitle`/`youtubeVideoId` solo en EPISODE: la
@@ -55,7 +55,7 @@ public record FeedItemResponse(
         String seriesSlug,
         String seriesTitle,
         String youtubeVideoId,
-        /** Solo fechas de la Agenda: todo el día (sin hora) y si se repite cada año; null en los demás tipos. */
+        /** Solo celebraciones: todo el día (sin hora) y si se repite cada año; null en los demás tipos. */
         Boolean allDay,
         Boolean recursYearly) {
 

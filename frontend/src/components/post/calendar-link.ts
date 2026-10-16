@@ -51,7 +51,7 @@ export function calendarLinks(event: CalendarEvent): { google: string; ics: stri
   const ics = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//plataforma//agenda//ES",
+    "PRODID:-//plataforma//celebraciones//ES",
     "BEGIN:VEVENT",
     `UID:${utcStamp(start)}-${encodeURIComponent(event.url)}`,
     `DTSTAMP:${utcStamp(new Date())}`,

@@ -118,7 +118,7 @@ export interface EventInput {
   venueName: string | null;
   startsAt: string;
   endsAt: string | null;
-  /** Fecha de la Agenda que se repite cada año (28 de julio); false = única. */
+  /** Celebración que se repite cada año (28 de julio); false = única. */
   recursYearly: boolean;
   /** Todo el día, sin hora. */
   allDay: boolean;

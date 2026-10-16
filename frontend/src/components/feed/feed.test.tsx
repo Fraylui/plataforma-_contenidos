@@ -59,7 +59,7 @@ describe("TopicStories", () => {
 
 describe("exploreChipOptions", () => {
   it("filtran la cuadrícula de Explorar (?tipo=) en vez de ir a la sección", () => {
-    const options = exploreChipOptions({ "/lugares": true, "/agenda": false }, "PLACE");
+    const options = exploreChipOptions({ "/lugares": true, "/celebraciones": false }, "PLACE");
     expect(options).toEqual([
       { label: "Todo", href: "/explorar", active: false },
       { label: "Lugares", href: "/explorar?tipo=PLACE", active: true },
@@ -69,7 +69,7 @@ describe("exploreChipOptions", () => {
 
 describe("typeChipOptions", () => {
   it("solo tipos con contenido; el activo según la ruta", () => {
-    const options = typeChipOptions({ "/lugares": true, "/agenda": false, "/publicaciones": true }, "/lugares");
+    const options = typeChipOptions({ "/lugares": true, "/celebraciones": false, "/publicaciones": true }, "/lugares");
     expect(options.map((o) => o.label)).toEqual(["Todo", "Publicaciones", "Lugares"]);
     expect(options.find((o) => o.label === "Lugares")?.active).toBe(true);
     expect(options.find((o) => o.label === "Todo")?.active).toBe(false);

@@ -80,7 +80,7 @@ describe("Compositor de Galerías", () => {
   });
 });
 
-describe("Compositor de Fechas (Agenda)", () => {
+describe("Compositor de Celebraciones", () => {
   it("por defecto es una fecha que se repite cada año, de todo el día, y se manda así", async () => {
     vi.mocked(createEventAction).mockResolvedValue(created as never);
     render(<EventComposer {...common} places={[]} />);

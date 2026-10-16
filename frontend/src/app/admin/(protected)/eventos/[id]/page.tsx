@@ -16,7 +16,7 @@ import { AdminPageHeader } from "@/components/admin/ui";
 import type { Category } from "@/lib/api/types";
 
 export const metadata: Metadata = {
-  title: "Editar fecha",
+  title: "Editar celebración",
   robots: "noindex,nofollow",
 };
 
@@ -55,7 +55,7 @@ export default async function EditEventPage(props: PageProps<"/admin/eventos/[id
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title={event.title} back={{ href: "/admin/eventos", label: "Agenda" }} />
+      <AdminPageHeader title={event.title} back={{ href: "/admin/eventos", label: "Celebraciones" }} />
       <EventComposer
         event={event}
         categories={categories} places={places}

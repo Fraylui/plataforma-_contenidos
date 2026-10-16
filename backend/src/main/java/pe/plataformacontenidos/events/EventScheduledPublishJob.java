@@ -35,7 +35,7 @@ public class EventScheduledPublishJob {
     public void refreshYearlyDates() {
         int moved = eventService.refreshYearlyOccurrences();
         if (moved > 0) {
-            log.info("Agenda: {} fechas anuales pasaron al año siguiente", moved);
+            log.info("Celebraciones: {} fechas anuales pasaron al año siguiente", moved);
         }
     }
 

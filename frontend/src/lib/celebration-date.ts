@@ -1,7 +1,7 @@
 import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 import { formatEventDateTime, formatShortDate } from "@/lib/content-labels";
 
-export interface AgendaDate {
+export interface CelebrationDate {
   /** Próxima vez que toca (ISO). */
   at: string;
   allDay: boolean;
@@ -14,12 +14,11 @@ const DAY = new Intl.DateTimeFormat("es-PE", { timeZone: SITE_TIME_ZONE, day: "n
 const SHORT_MONTH = new Intl.DateTimeFormat("es-PE", { timeZone: SITE_TIME_ZONE, month: "short" });
 
 /**
- * Fecha de la Agenda, siempre absoluta (memoria: fechas absolutas en la
- * Agenda): la que se repite cada año va sin año («28 de julio · desde
+ * Fecha de una celebración, siempre absoluta (memoria: fechas absolutas): la que se repite cada año va sin año («28 de julio · desde
  * 1821»), una única de todo el día con su año y sin hora, y una con hora
  * como hasta ahora.
  */
-export function formatAgendaDate(date: AgendaDate): string {
+export function formatCelebrationDate(date: CelebrationDate): string {
   if (date.recursYearly) {
     const dayMonth = DAY_MONTH.format(new Date(date.at));
     return date.sinceYear ? `${dayMonth} · desde ${date.sinceYear}` : dayMonth;
@@ -63,7 +62,7 @@ export function siteDateString(iso: string): string {
 }
 
 /** Día y mes corto («28», «jul») para el cuadrito de fecha de las listas. */
-export function agendaDateParts(iso: string): { day: string; month: string } {
+export function celebrationDateParts(iso: string): { day: string; month: string } {
   const date = new Date(iso);
   return { day: DAY.format(date), month: SHORT_MONTH.format(date).replace(".", "").toLowerCase() };
 }

@@ -149,7 +149,7 @@ public class EventService {
     }
 
     /**
-     * Listado público de la Agenda: lo que viene (desde el inicio de hoy en
+     * Listado público de Celebraciones: lo que viene (desde el inicio de hoy en
      * la zona del sitio, así lo de hoy se ve todo el día) por la próxima vez
      * que toca, o lo pasado (solo fechas únicas: las anuales siempre vuelven).
      */

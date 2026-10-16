@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { MoreSheet } from "./more-sheet";
-import { activeTab, visibleNav } from "./shell-nav";
+import { activeTab, SHELL_NAV } from "./shell-nav";
 
 const TAB =
   "flex min-h-14 min-w-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-muted transition-colors active:scale-95 motion-reduce:transform-none";
@@ -17,7 +17,7 @@ const TAB =
  * variable CSS --bottom-bar-h (globals.css), que usan el anuncio fijo, el
  * aviso de cookies y el `main` para no quedar debajo.
  */
-export function BottomTabBar({ showAgenda }: { showAgenda: boolean }) {
+export function BottomTabBar() {
   const current = activeTab(usePathname());
 
   return (
@@ -27,7 +27,7 @@ export function BottomTabBar({ showAgenda }: { showAgenda: boolean }) {
       className="fixed inset-x-0 bottom-0 z-40 bg-surface/95 shadow-[0_-1px_0_var(--border)] pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
     >
       <div className="mx-auto flex h-16 max-w-xl items-center justify-around px-2">
-        {visibleNav(showAgenda).map(({ tab, href, label, icon: Icon }) => {
+        {SHELL_NAV.map(({ tab, href, label, icon: Icon }) => {
           const active = tab === current;
           return (
             <Link

@@ -26,7 +26,7 @@ public record EventRequest(
         String ogImageUrl,
         List<ContentVideoInput> videos,
         String robots,
-        /** Fecha de la Agenda que se repite cada año (28 de julio). Ausente = única. */
+        /** Celebración que se repite cada año (28 de julio). Ausente = única. */
         Boolean recursYearly,
         /** Todo el día (sin hora). Ausente = con hora. */
         Boolean allDay,

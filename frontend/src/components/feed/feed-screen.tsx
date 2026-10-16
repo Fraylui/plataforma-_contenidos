@@ -8,13 +8,13 @@ import {
   listActiveAdPlacements,
   listActiveCategories,
   listPublishedEvents,
-  listTodayDates,
+  listTodayCelebrations,
 } from "@/lib/api/client";
 import type { AdSection } from "@/lib/ads/ad-context";
 import { fromFeedItem } from "@/lib/home-items";
 import { imageUrl } from "@/lib/image-url";
 import { LiveBanner } from "@/components/live/live-banner";
-import { TodayDates } from "@/components/agenda/today-dates";
+import { TodayCelebrations } from "@/components/celebrations/today-celebrations";
 import { TopicStories, type TopicStory } from "./topic-stories";
 import { FilterChips } from "./filter-chips";
 import { typeChipOptions } from "./type-chips";
@@ -27,7 +27,7 @@ const UPCOMING_EVENTS_SIZE = 4;
 
 /**
  * Pantalla de feed, la misma para el inicio, las secciones (Publicaciones,
- * Lugares, Galerías, Directorio), la Agenda y cada tema — como Instagram o
+ * Lugares, Galerías, Directorio), Celebraciones y cada tema — como Instagram o
  * Facebook, donde filtrar no cambia de diseño: círculos de temas, chips de
  * tipo, feed de una columna con scroll infinito y, en escritorio ancho,
  * columna derecha pegada al borde. Sin portadas de sección, contadores ni
@@ -63,22 +63,22 @@ export async function FeedScreen({
   intro?: { title: string; description: string | null };
 }) {
   const seed = `${activePath}${filter.categoryId ?? ""}-${new Date().toISOString().slice(0, 13)}`;
-  const agenda = filter.sort === "upcoming";
-  // «Hoy se celebra» va en el inicio y en la Agenda; no en cada sección ni tema.
-  const showToday = activePath === "/" || agenda;
-  const [settings, categories, topics, feedPage, events, visibility, placements, topLikedRaw, liveNow, todayDates] = await Promise.all([
+  const celebrations = filter.sort === "upcoming";
+  // «Hoy se celebra» va en el inicio y en Celebraciones; no en cada sección ni tema.
+  const showToday = activePath === "/" || celebrations;
+  const [settings, categories, topics, feedPage, events, visibility, placements, topLikedRaw, liveNow, todayCelebrations] = await Promise.all([
     getPlatformSettings(),
     listActiveCategories(),
     getFeedTopics().catch(() => []),
     getFeed({ size: FEED_INITIAL_SIZE, seed, ...filter }),
-    // En la Agenda los próximos eventos ya son el feed: la columna no los repite.
-    agenda ? Promise.resolve({ items: [] }) : listPublishedEvents({ when: "upcoming", size: UPCOMING_EVENTS_SIZE }),
+    // En Celebraciones las próximas ya son el feed: la columna no las repite.
+    celebrations ? Promise.resolve({ items: [] }) : listPublishedEvents({ when: "upcoming", size: UPCOMING_EVENTS_SIZE }),
     getPrimaryNavVisibility(),
     listActiveAdPlacements(),
     getTopLiked(5).catch(() => []),
     // Si el backend de En vivo falla, el feed sigue: solo no se muestra el aviso.
     getLiveNow().catch(() => null),
-    showToday ? listTodayDates().catch(() => []) : Promise.resolve([]),
+    showToday ? listTodayCelebrations().catch(() => []) : Promise.resolve([]),
   ]);
 
   const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
@@ -109,7 +109,7 @@ export async function FeedScreen({
           )}
           <div className="px-4 sm:px-0">
             {liveNow && <LiveBanner stream={liveNow} />}
-            <TodayDates dates={todayDates} />
+            <TodayCelebrations dates={todayCelebrations} />
             <TopicStories topics={stories} activeCategoryId={activeCategoryId} />
             <FilterChips label="Tipo de contenido" options={typeChipOptions(visibility, activePath)} className="mt-2 mb-3" />
           </div>

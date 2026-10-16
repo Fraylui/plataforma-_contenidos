@@ -67,7 +67,7 @@ export function formatPublishedDate(iso: string | null): string {
  * Solo para Artículo: es el único tipo de contenido donde "qué tan
  * reciente es" sigue siendo la señal relevante después de publicado (a
  * diferencia de Lugar/Galería, atemporales, o Evento, donde la fecha es
- * de agenda, no de antigüedad — ver formatEventDateTime).
+ * de calendario, no de antigüedad — ver formatEventDateTime).
  */
 export function formatArticleDate(iso: string | null): string {
   if (!iso) return "";
@@ -129,7 +129,7 @@ export function formatEventDateTime(iso: string): string {
 const SEARCH_RESULT_TYPE_LABEL: Record<SearchResultType, string> = {
   ARTICLE: "Publicación",
   PLACE: "Lugar",
-  EVENT: "Fecha",
+  EVENT: "Celebración",
   GALLERY: "Galería",
   BUSINESS: "Directorio",
   EPISODE: "Episodio",
@@ -142,7 +142,7 @@ export function searchResultTypeLabel(type: SearchResultType): string {
 const SEARCH_RESULT_TYPE_PATH: Record<SearchResultType, string> = {
   ARTICLE: "publicaciones",
   PLACE: "lugares",
-  EVENT: "agenda",
+  EVENT: "celebraciones",
   GALLERY: "galerias",
   BUSINESS: "directorio",
   EPISODE: "series",

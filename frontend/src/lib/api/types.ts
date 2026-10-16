@@ -149,11 +149,11 @@ export interface EventSummary {
   venueName: string | null;
   startsAt: string;
   endsAt: string | null;
-  /** Fecha de la Agenda que se repite cada año; false = única (spec 2026-10-16). */
+  /** Celebración que se repite cada año; false = única (spec 2026-10-16). */
   recursYearly: boolean;
   allDay: boolean;
   sinceYear: number | null;
-  /** Próxima vez que toca (lo que se muestra y ordena la Agenda). */
+  /** Próxima vez que toca (lo que se muestra y ordena Celebraciones). */
   nextOccurrenceAt: string;
   coverImageId: string | null;
   coverImageUrl: string | null;
@@ -174,11 +174,11 @@ export interface Event {
   venueName: string | null;
   startsAt: string;
   endsAt: string | null;
-  /** Fecha de la Agenda que se repite cada año; false = única (spec 2026-10-16). */
+  /** Celebración que se repite cada año; false = única (spec 2026-10-16). */
   recursYearly: boolean;
   allDay: boolean;
   sinceYear: number | null;
-  /** Próxima vez que toca (lo que se muestra y ordena la Agenda). */
+  /** Próxima vez que toca (lo que se muestra y ordena Celebraciones). */
   nextOccurrenceAt: string;
   images: ContentImage[];
   seoTitle: string | null;
@@ -402,7 +402,7 @@ export interface FeedItem {
   seriesSlug: string | null;
   seriesTitle: string | null;
   youtubeVideoId: string | null;
-  /** Solo fechas de la Agenda: todo el día y si se repite cada año (`startsAt` = la próxima vez). */
+  /** Solo celebraciones: todo el día y si se repite cada año (`startsAt` = la próxima vez). */
   allDay: boolean | null;
   recursYearly: boolean | null;
 }

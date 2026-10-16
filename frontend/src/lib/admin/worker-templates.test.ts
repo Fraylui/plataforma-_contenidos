@@ -17,11 +17,11 @@ describe("plantillas de trabajador", () => {
       GESTOR_DIRECTORIO: { DIRECTORY: "PUBLISH", PLACES: "PUBLISH" },
       PUBLICIDAD: { ADVERTISING: "ACCESS", STATS: "ACCESS" },
     });
-    expect(WORKER_TEMPLATES.map((t) => t.label)).toEqual(["Administrador", "Publicador", "Gestor de agenda", "Gestor de directorio", "Publicidad"]);
+    expect(WORKER_TEMPLATES.map((t) => t.label)).toEqual(["Administrador", "Publicador", "Gestor de celebraciones", "Gestor de directorio", "Publicidad"]);
   });
 
   it("reconoce la plantilla de un conjunto de permisos, o «Personalizado»", () => {
-    expect(detectTemplate({ EVENTS: "PUBLISH", PLACES: "PUBLISH" })).toBe("Gestor de agenda");
+    expect(detectTemplate({ EVENTS: "PUBLISH", PLACES: "PUBLISH" })).toBe("Gestor de celebraciones");
     expect(detectTemplate({ EVENTS: "PUBLISH" })).toBe("Personalizado");
     expect(detectTemplate({})).toBe("Sin permisos");
   });

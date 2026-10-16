@@ -5,7 +5,7 @@ import { MODULE_LABELS } from "@/lib/admin/worker-templates";
 export const RESOURCE_LABELS: Record<string, string> = {
   article: "Publicación",
   place: "Lugar",
-  event: "Fecha",
+  event: "Celebración",
   gallery: "Galería",
   business: "Directorio",
   image: "Imagen",
@@ -19,7 +19,7 @@ export const RESOURCE_LABELS: Record<string, string> = {
 const SUBJECTS: Record<string, string> = {
   ARTICLE: "una publicación",
   PLACE: "un lugar",
-  EVENT: "una fecha",
+  EVENT: "una celebración",
   GALLERY: "una galería",
   BUSINESS: "una ficha del directorio",
   IMAGE: "una imagen",

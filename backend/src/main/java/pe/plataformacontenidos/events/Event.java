@@ -82,7 +82,7 @@ public class Event extends PublishableContent {
     @Column(name = "since_year")
     private Integer sinceYear;
 
-    /** Próxima vez que toca (ver NextOccurrence); ordena la Agenda y arma «Hoy se celebra». */
+    /** Próxima vez que toca (ver NextOccurrence); ordena Celebraciones y arma «Hoy se celebra». */
     @Column(name = "next_occurrence", nullable = false)
     private Instant nextOccurrence;
 

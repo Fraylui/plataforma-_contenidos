@@ -1,7 +1,7 @@
 const PULSE = "animate-pulse bg-canvas-strong";
 
 /**
- * Esqueleto de carga de las pantallas de feed (inicio, secciones, Agenda,
+ * Esqueleto de carga de las pantallas de feed (inicio, secciones, Celebraciones,
  * temas): círculos de temas, chips y dos posts — el mismo diseño que
  * FeedScreen, así no hay salto cuando llega el contenido. Sin líneas ni
  * bordes, como el resto del sitio.

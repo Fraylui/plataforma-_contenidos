@@ -166,8 +166,8 @@ export function listPublishedEvents(params?: {
   return apiFetch(`/api/v1/events?${query.toString()}`, 60);
 }
 
-/** «Hoy se celebra»: las fechas de la Agenda que tocan hoy (zona del sitio). */
-export function listTodayDates(): Promise<EventSummary[]> {
+/** «Hoy se celebra»: las celebraciones que tocan hoy (zona del sitio). */
+export function listTodayCelebrations(): Promise<EventSummary[]> {
   return apiFetch("/api/v1/events/today", 300);
 }
 
@@ -322,7 +322,7 @@ const NAV_PRESENCE_CHECKS: { href: string; checks: () => Promise<PageResponse<un
   { href: "/publicaciones", checks: () => [listPublishedArticles({ size: 1 })] },
   { href: "/lugares", checks: () => [listPublishedPlaces({ size: 1 })] },
   {
-    href: "/agenda",
+    href: "/celebraciones",
     checks: () => [listPublishedEvents({ when: "upcoming", size: 1 }), listPublishedEvents({ when: "past", size: 1 })],
   },
   { href: "/galerias", checks: () => [listPublishedGalleries({ size: 1 })] },
@@ -371,7 +371,7 @@ export function getFeed(params: {
   seed?: string;
   type?: FeedItemType;
   categoryId?: string;
-  /** Agenda: con type EVENT, próximos por fecha de inicio. */
+  /** Celebraciones: con type EVENT, por la próxima vez que tocan. */
   sort?: "upcoming";
 }): Promise<FeedPage> {
   const query = new URLSearchParams();

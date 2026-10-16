@@ -1,7 +1,7 @@
 import "server-only";
 import type { FeedItem, SearchResult } from "@/lib/api/types";
 import { searchResultHref } from "@/lib/content-labels";
-import { formatAgendaDate } from "@/lib/agenda-date";
+import { formatCelebrationDate } from "@/lib/celebration-date";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { KIND_LABEL, type HomeItemKind } from "@/lib/content-kind";
 
@@ -40,7 +40,7 @@ export interface HomeItem {
   hasVideo?: boolean;
   /** Acciones por tipo (Agendar, Cómo llegar, Llamar, Sitio web); null si no aplican. En la Agenda: la próxima vez que toca. */
   startsAt?: string | null;
-  /** Solo fechas de la Agenda. */
+  /** Solo celebraciones. */
   allDay?: boolean | null;
   recursYearly?: boolean | null;
   latitude?: number | null;
@@ -86,7 +86,7 @@ const FEED_KIND: Record<FeedItem["type"], HomeItemKind> = {
 const FEED_HREF_PREFIX: Record<HomeItemKind, string> = {
   publicacion: "/publicaciones",
   lugar: "/lugares",
-  evento: "/agenda",
+  evento: "/celebraciones",
   galeria: "/galerias",
   directorio: "/directorio",
   episodio: "/series",
@@ -118,11 +118,11 @@ export function fromFeedItem(item: FeedItem): HomeItem {
     categoryId: item.categoryId ?? "",
     // Un episodio se presenta con el nombre de su serie, como un canal.
     typeLabel: item.type === "EPISODE" && item.seriesTitle ? item.seriesTitle : KIND_LABEL[kind],
-    // En la agenda importa cuándo toca la fecha, no cuándo se publicó.
+    // En Celebraciones importa cuándo toca, no cuándo se publicó.
     sortDate: (item.type === "EVENT" ? item.startsAt : item.publishedAt) ?? "",
     dateLabel:
       item.type === "EVENT" && item.startsAt
-        ? formatAgendaDate({ at: item.startsAt, allDay: Boolean(item.allDay), recursYearly: Boolean(item.recursYearly) })
+        ? formatCelebrationDate({ at: item.startsAt, allDay: Boolean(item.allDay), recursYearly: Boolean(item.recursYearly) })
         : "",
     images: images.length > 0 ? images : coverAsImages(cover),
     hasVideo: item.hasVideo,
@@ -158,7 +158,7 @@ export function fromSearchResult(r: SearchResult): HomeItem {
     categoryId: r.categoryId ?? "",
     typeLabel: KIND_LABEL[kind],
     sortDate: (r.contentType === "EVENT" ? r.eventStartsAt : r.publishedAt) ?? "",
-    dateLabel: r.contentType === "EVENT" && r.eventStartsAt ? formatAgendaDate({ at: r.eventStartsAt, allDay: true, recursYearly: false }) : "",
+    dateLabel: r.contentType === "EVENT" && r.eventStartsAt ? formatCelebrationDate({ at: r.eventStartsAt, allDay: true, recursYearly: false }) : "",
     images: coverAsImages(cover),
     hasVideo: r.hasVideo,
     startsAt: r.eventStartsAt,

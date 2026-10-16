@@ -24,7 +24,7 @@ describe("AuditTimeline", () => {
     render(<AuditTimeline events={[event({}), event({ action: "LOGIN_FAILURE", result: "FAILURE", actorEmail: null })]} />);
 
     expect(screen.getByText("Hoy")).toBeInTheDocument();
-    expect(screen.getByText("Publicó una fecha")).toBeInTheDocument();
+    expect(screen.getByText("Publicó una celebración")).toBeInTheDocument();
     expect(screen.getByText("Intento de inicio de sesión fallido")).toBeInTheDocument();
     expect(screen.getByText("Sistema")).toBeInTheDocument();
     // Compacto (inicio): sin IP ni detalle.

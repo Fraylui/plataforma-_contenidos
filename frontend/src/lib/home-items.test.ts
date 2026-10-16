@@ -114,8 +114,8 @@ describe("fromSearchResult", () => {
     });
     expect(item).toMatchObject({
       kind: "evento",
-      href: "/agenda/feria",
-      typeLabel: "Fecha",
+      href: "/celebraciones/feria",
+      typeLabel: "Celebración",
       hasVideo: true,
       likeCount: 0,
       images: [{ url: "https://example.com/a.jpg", isExternal: true }],

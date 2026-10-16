@@ -222,7 +222,7 @@ export function SearchBox({
             onFocus={() => setOpen(true)}
             onKeyDown={onKeyDown}
             autoFocus={panel}
-            placeholder={wide ? "Buscar lugares, fechas, publicaciones…" : "Buscar…"}
+            placeholder={wide ? "Buscar lugares, celebraciones, publicaciones…" : "Buscar…"}
             className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm text-foreground placeholder-muted outline-none focus-visible:outline-none! [&::-webkit-search-cancel-button]:hidden"
           />
           {query && (

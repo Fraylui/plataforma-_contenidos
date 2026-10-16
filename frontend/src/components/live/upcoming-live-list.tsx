@@ -3,7 +3,7 @@ import { CalendarBlank } from "@phosphor-icons/react/dist/ssr";
 import type { LiveStream } from "@/lib/api/types";
 import { formatEventDateTime } from "@/lib/content-labels";
 
-/** Próximas transmisiones, con fecha y hora absolutas (como la Agenda). */
+/** Próximas transmisiones, con fecha y hora absolutas (como Celebraciones). */
 export function UpcomingLiveList({ streams }: { streams: LiveStream[] }) {
   if (streams.length === 0) return null;
   return (

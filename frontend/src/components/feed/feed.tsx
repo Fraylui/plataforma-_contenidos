@@ -21,7 +21,7 @@ const TOP_LIKED_AFTER = 3;
  * lote que trajo el servidor (render inicial y SEO sin JavaScript) y pide
  * más a /api/feed al acercarse al final, excluyendo lo ya visto. `filter`
  * es el mismo en todas las páginas que lo usan: inicio (vacío), secciones
- * (`type`), temas (`categoryId`) y Agenda (`type: "EVENT", sort: "upcoming"`).
+ * (`type`), temas (`categoryId`) y Celebraciones (`type: "EVENT", sort: "upcoming"`).
  */
 export function Feed({
   initialItems,

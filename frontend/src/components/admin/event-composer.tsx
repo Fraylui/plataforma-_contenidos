@@ -7,7 +7,7 @@ import { z } from "zod";
 import type { AdminImage, EventInput, PlaceOption } from "@/lib/api/admin-types";
 import type { Category, Event } from "@/lib/api/types";
 import type { PublicationPermissions } from "@/lib/admin/publication";
-import { formatAgendaDate, siteDateString, siteMidnightIso } from "@/lib/agenda-date";
+import { formatCelebrationDate, siteDateString, siteMidnightIso } from "@/lib/celebration-date";
 import { Card, Checkbox, Combobox, DateTimeInput, Field, TextInput } from "@/components/ui";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { createEventAction, updateEventAction } from "@/app/admin/(protected)/eventos/actions";
@@ -79,7 +79,7 @@ interface EventComposerProps {
 }
 
 /**
- * Compositor de Fechas de la Agenda (spec 2026-10-16): fotos, título, texto
+ * Compositor de Celebraciones (spec 2026-10-16): fotos, título, texto
  * y cuándo — una fecha que se repite cada año (28 de julio, Batalla de
  * Ayacucho) o única (un eclipse), de todo el día o con hora — y dónde.
  * Recuerda la regla: lo que alguien pagó es un anuncio, no una fecha.
@@ -93,7 +93,7 @@ export function EventComposer({ categories, places, allImages, event, permission
       ...baseDefaults(event?.title, event, categories[0]?.id ?? ""),
       body: event?.body ?? "",
       videos: videosFromContent(event?.videos),
-      // Lo más común en la Agenda: fechas cívicas que vuelven cada año, de todo el día.
+      // Lo más común: fechas cívicas que vuelven cada año, de todo el día.
       recursYearly: event?.recursYearly ?? true,
       allDay: event?.allDay ?? true,
       sinceYear: event?.sinceYear ? String(event.sinceYear) : "",
@@ -149,7 +149,7 @@ function EventBody({
   return (
     <ComposerShell
       error={error}
-      readOnlyNotice={readOnly ? "Esta fecha no se puede editar en su estado actual. Puedes verla tal cual está." : null}
+      readOnlyNotice={readOnly ? "Esta celebración no se puede editar en su estado actual. Puedes verla tal cual está." : null}
       main={
         <>
           <PaidContentRule />
@@ -158,7 +158,7 @@ function EventBody({
           <WhenAndWhereCard places={places} readOnly={readOnly} />
           <ShareCard
             siteName={siteName}
-            path={`/agenda/${event?.slug ?? "…"}`}
+            path={`/celebraciones/${event?.slug ?? "…"}`}
             coverUrl={coverUrl}
             metaDescriptionDefault={event?.metaDescription ?? ""}
             readOnly={readOnly}
@@ -175,7 +175,7 @@ function EventBody({
             categories={categories}
             meta={
               validStart
-                ? formatAgendaDate({
+                ? formatCelebrationDate({
                     at: startsAtIso({ startsAt, allDay }),
                     allDay,
                     recursYearly,
@@ -198,7 +198,7 @@ function PaidContentRule() {
   return (
     <p className="rounded-card bg-accent-soft px-4 py-3 text-sm text-foreground">
       <strong className="font-semibold">¿Te pagaron o te dieron algo a cambio</strong> (entradas, canje, un descuento)? Entonces
-      no es una fecha de la Agenda: es publicidad y tiene que salir como «Patrocinado».{" "}
+      no es una celebración: es publicidad y tiene que salir como «Patrocinado».{" "}
       <Link href="/admin/anunciantes" className="font-semibold text-accent underline underline-offset-2">
         Crear un anuncio
       </Link>
@@ -260,7 +260,7 @@ function WhenAndWhereCard({ places, readOnly }: { places: PlaceOption[]; readOnl
           </Field>
         ) : null}
       </div>
-      <Field label="Lugar del sitio (opcional)" name="placeId" hint="Si el lugar ya está en Lugares, la fecha queda enlazada a él.">
+      <Field label="Lugar del sitio (opcional)" name="placeId" hint="Si el lugar ya está en Lugares, la celebración queda enlazada a él.">
         <Controller
           control={control}
           name="placeId"

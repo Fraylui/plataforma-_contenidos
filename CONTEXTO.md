@@ -2312,7 +2312,9 @@ Decisión del dueño: los eventos comerciales (conciertos, Mistura) eran **publi
 | Backend: `recurs_yearly`, `all_day`, `since_year`, `next_occurrence` (V62); `NextOccurrence` en la zona del sitio (el mismo día cuenta como hoy, 29-feb → 28); tarea 00:01 Lima; `GET /api/v1/events/today` | 791c67a |
 | Sitio y panel: compositor de Fechas con la regla «pago o canje = anuncio», «Hoy se celebra» (inicio y Agenda), «Próximas fechas», Agendar con RRULE anual, Event JSON-LD solo en únicas, «Evento» → «Fecha» | b43a2ee |
 
-Pendiente: borrar en la base local los eventos de prueba (Jazz, Mistura, Uyuni, Vendimia) — autorizado; cargar las fechas reales del año; renombrar en el código `Event` → `AgendaDate` junto con el renombre `Article` → `Publication` (C.5).
+**Después (mismo día): modelo Google, «Celebraciones».** El dueño eligió el modelo de Google: la portada cambia el día que toca («Hoy se celebra») y hay un archivo. La sección se llama **Celebraciones** (`/celebraciones`; `/agenda` y `/eventos` redirigen), cada ítem «Celebración», **sin pestaña** en la barra inferior (queda en Secciones del riel y en «Más»); se borró el contador semanal de Agenda (`agenda-count`). Eventos de prueba borrados de la base local; quedan 5 celebraciones reales sin foto (Lavado de Manos, Alimentación, Canción Criolla, Batalla de Ayacucho, Fiestas Patrias).
+
+Pendiente: celebraciones por geografía del visitante (ver propuesta en la sesión); renombrar en el código `Event` → `Celebration` junto con `Article` → `Publication` (C.5).
 
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 

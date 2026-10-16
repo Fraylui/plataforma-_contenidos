@@ -34,10 +34,10 @@ function liked(n: number): HomeItem {
 describe("RightColumn — estilo columna de Facebook", () => {
   it("fecha como fila: miniatura con el día encima, título, cuándo vuelve y el tema", () => {
     render(<RightColumn events={[event]} topLiked={[]} categoryNames={{ c1: "Historia" }} />);
-    const section = screen.getByRole("region", { name: "Próximas fechas" });
-    expect(within(section).getByRole("link", { name: "Ver todo" })).toHaveAttribute("href", "/agenda");
+    const section = screen.getByRole("region", { name: "Próximas celebraciones" });
+    expect(within(section).getByRole("link", { name: "Ver todo" })).toHaveAttribute("href", "/celebraciones");
     const row = within(section).getByRole("link", { name: /Fiestas Patrias/ });
-    expect(row).toHaveAttribute("href", "/agenda/fiestas-patrias");
+    expect(row).toHaveAttribute("href", "/celebraciones/fiestas-patrias");
     expect(row).toHaveTextContent("28");
     expect(row).toHaveTextContent("28 de julio · desde 1821");
     expect(row).toHaveTextContent("Historia");

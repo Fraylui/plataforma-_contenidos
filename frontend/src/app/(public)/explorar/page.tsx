@@ -11,7 +11,7 @@ const TYPES = new Set<FeedItemType>(["ARTICLE", "PLACE", "EVENT", "GALLERY", "BU
 
 export const metadata: Metadata = {
   title: "Explorar",
-  description: "Descubre lugares, fechas, galerías y publicaciones en una cuadrícula de fotos.",
+  description: "Descubre lugares, celebraciones, galerías y publicaciones en una cuadrícula de fotos.",
   alternates: { canonical: "/explorar" },
 };
 

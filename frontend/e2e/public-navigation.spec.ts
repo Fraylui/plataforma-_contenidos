@@ -55,7 +55,7 @@ test.describe("Navegación pública", () => {
 
   for (const [path, label] of [
     ["/lugares", "Lugares"],
-    ["/agenda", "Agenda"],
+    ["/celebraciones", "Celebraciones"],
     ["/galerias", "Galerías"],
     ["/directorio", "Directorio"],
     ["/explorar", "Explorar"],
