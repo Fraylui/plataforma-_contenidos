@@ -15,6 +15,7 @@ import { fromFeedItem } from "@/lib/home-items";
 import { imageUrl } from "@/lib/image-url";
 import { LiveBanner } from "@/components/live/live-banner";
 import { TodayCelebrations } from "@/components/celebrations/today-celebrations";
+import { toTodayCelebration } from "@/lib/today-celebrations";
 import { TopicStories, type TopicStory } from "./topic-stories";
 import { FilterChips } from "./filter-chips";
 import { typeChipOptions } from "./type-chips";
@@ -109,7 +110,7 @@ export async function FeedScreen({
           )}
           <div className="px-4 sm:px-0">
             {liveNow && <LiveBanner stream={liveNow} />}
-            <TodayCelebrations dates={todayCelebrations} />
+            {showToday && <TodayCelebrations initial={todayCelebrations.map(toTodayCelebration)} />}
             <TopicStories topics={stories} activeCategoryId={activeCategoryId} />
             <FilterChips label="Tipo de contenido" options={typeChipOptions(visibility, activePath)} className="mt-2 mb-3" />
           </div>

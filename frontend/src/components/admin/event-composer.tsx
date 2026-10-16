@@ -8,6 +8,7 @@ import type { AdminImage, EventInput, PlaceOption } from "@/lib/api/admin-types"
 import type { Category, Event } from "@/lib/api/types";
 import type { PublicationPermissions } from "@/lib/admin/publication";
 import { formatCelebrationDate, siteDateString, siteMidnightIso } from "@/lib/celebration-date";
+import { celebrationPlace, COUNTRY_OPTIONS } from "@/lib/countries";
 import { Card, Checkbox, Combobox, DateTimeInput, Field, TextInput } from "@/components/ui";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { createEventAction, updateEventAction } from "@/app/admin/(protected)/eventos/actions";
@@ -20,9 +21,12 @@ import { baseDefaults, baseFields, baseInput, bodyField, emptyToNull, toDateTime
 
 const THIS_YEAR = new Date().getFullYear();
 
+type ScopeKind = "WORLD" | "COUNTRY" | "REGION";
+
 /**
  * Mismas reglas que el backend: la fecha es obligatoria, no termina antes de
- * empezar y «desde el año» solo existe en las que se repiten (año pasado).
+ * empezar, «desde el año» solo existe en las que se repiten (año pasado) y
+ * una celebración de un país o región dice cuál.
  */
 const schema = z
   .object({
@@ -39,6 +43,17 @@ const schema = z
     endsAt: z.string(),
     placeId: z.string(),
     venueName: z.string().max(200, "Máximo 200 caracteres."),
+    scopeKind: z.enum(["WORLD", "COUNTRY", "REGION"]),
+    scopeCountry: z.string(),
+    scopeRegion: z.string().max(100, "Máximo 100 caracteres."),
+  })
+  .refine((values) => values.scopeKind === "WORLD" || /^[A-Z]{2}$/.test(values.scopeCountry), {
+    path: ["scopeCountry"],
+    message: "Elige el país.",
+  })
+  .refine((values) => values.scopeKind !== "REGION" || values.scopeRegion.trim().length > 0, {
+    path: ["scopeRegion"],
+    message: "Escribe la región (por ejemplo Ayacucho).",
   })
   .refine((values) => values.allDay || !values.endsAt || !values.startsAt || new Date(values.endsAt) >= new Date(values.startsAt), {
     path: ["endsAt"],
@@ -66,7 +81,15 @@ function toInput(values: Values): EventInput {
     placeId: values.placeId || null,
     // Con un lugar del sitio elegido, el nombre libre sobra.
     venueName: values.placeId ? null : emptyToNull(values.venueName),
+    scopeCountry: values.scopeKind === "WORLD" ? null : values.scopeCountry,
+    scopeRegion: values.scopeKind === "REGION" ? values.scopeRegion.trim() : null,
   };
+}
+
+function scopeKindOf(event: Event | undefined): ScopeKind {
+  if (!event) return "COUNTRY";
+  if (event.scopeRegion) return "REGION";
+  return event.scopeCountry ? "COUNTRY" : "WORLD";
 }
 
 interface EventComposerProps {
@@ -76,6 +99,8 @@ interface EventComposerProps {
   event?: Event;
   permissions: PublicationPermissions;
   siteName: string;
+  /** País del sitio (Configuración): por defecto una celebración nueva es de ese país. */
+  homeCountry: string;
 }
 
 /**
@@ -84,7 +109,7 @@ interface EventComposerProps {
  * Ayacucho) o única (un eclipse), de todo el día o con hora — y dónde.
  * Recuerda la regla: lo que alguien pagó es un anuncio, no una fecha.
  */
-export function EventComposer({ categories, places, allImages, event, permissions, siteName }: EventComposerProps) {
+export function EventComposer({ categories, places, allImages, event, permissions, siteName, homeCountry }: EventComposerProps) {
   const status = event?.status ?? "DRAFT";
   const readOnly = !permissions.canEdit;
   const { form, id, save, saving, savedAt, error } = useComposer({
@@ -101,6 +126,10 @@ export function EventComposer({ categories, places, allImages, event, permission
       endsAt: toDateTimeLocal(event?.endsAt),
       placeId: event?.placeId ?? "",
       venueName: event?.venueName ?? "",
+      // Lo local es lo común; «todo el mundo» se elige a propósito (si no, un visitante de México vería fechas peruanas).
+      scopeKind: scopeKindOf(event),
+      scopeCountry: event?.scopeCountry ?? homeCountry,
+      scopeRegion: event?.scopeRegion ?? "",
     },
     initialId: event?.id ?? "",
     status,
@@ -140,7 +169,7 @@ function EventBody({
   readOnly,
   error,
   publish,
-}: Omit<EventComposerProps, "permissions"> & { readOnly: boolean; error: string | null; publish: ReactNode }) {
+}: Omit<EventComposerProps, "permissions" | "homeCountry"> & { readOnly: boolean; error: string | null; publish: ReactNode }) {
   const coverUrl = useCoverUrl(allImages);
   const [startsAt, allDay, recursYearly, sinceYear] = useWatch<Values, ["startsAt", "allDay", "recursYearly", "sinceYear"]>({
     name: ["startsAt", "allDay", "recursYearly", "sinceYear"],
@@ -156,6 +185,7 @@ function EventBody({
           <MediaCard allImages={allImages} readOnly={readOnly} />
           <WritingCard excerptDefault={event?.excerpt ?? ""} allImages={allImages} readOnly={readOnly} />
           <WhenAndWhereCard places={places} readOnly={readOnly} />
+          <ScopeCard readOnly={readOnly} />
           <ShareCard
             siteName={siteName}
             path={`/celebraciones/${event?.slug ?? "…"}`}
@@ -280,6 +310,66 @@ function WhenAndWhereCard({ places, readOnly }: { places: PlaceOption[]; readOnl
           <TextInput placeholder="Plaza de Armas, Teatro Municipal…" disabled={readOnly} {...register("venueName")} />
         </Field>
       )}
+    </Card>
+  );
+}
+
+const SCOPE_OPTIONS: { value: ScopeKind; label: string }[] = [
+  { value: "COUNTRY", label: "Un país" },
+  { value: "REGION", label: "Una región" },
+  { value: "WORLD", label: "Todo el mundo" },
+];
+
+/**
+ * Dónde se celebra (como los Doodles de Google): «Hoy se celebra» muestra a
+ * cada visitante lo de su región, su país y lo mundial. El archivo de
+ * Celebraciones muestra todo.
+ */
+function ScopeCard({ readOnly }: { readOnly: boolean }) {
+  const { control, register, formState, setValue } = useFormContext<Values>();
+  const [scopeKind, scopeCountry, scopeRegion] = useWatch<Values, ["scopeKind", "scopeCountry", "scopeRegion"]>({
+    name: ["scopeKind", "scopeCountry", "scopeRegion"],
+  });
+  const { errors } = formState;
+  const summary = celebrationPlace(
+    scopeKind === "WORLD" || !scopeCountry ? null : scopeCountry,
+    scopeKind === "REGION" && scopeRegion.trim() ? scopeRegion.trim() : null,
+  );
+  return (
+    <Card title="Dónde se celebra">
+      <SegmentedControl
+        label="Dónde se celebra"
+        options={SCOPE_OPTIONS}
+        value={scopeKind}
+        onChange={(v) => setValue("scopeKind", v, { shouldDirty: true })}
+      />
+      {scopeKind !== "WORLD" && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label="País" name="scopeCountry" required error={errors.scopeCountry?.message}>
+            <Controller
+              control={control}
+              name="scopeCountry"
+              render={({ field }) => (
+                <Combobox
+                  options={COUNTRY_OPTIONS}
+                  value={field.value || null}
+                  disabled={readOnly}
+                  placeholder="Buscar un país"
+                  onSelect={(value) => field.onChange(value ?? "")}
+                />
+              )}
+            />
+          </Field>
+          {scopeKind === "REGION" && (
+            <Field label="Región" name="scopeRegion" required hint="Como la conoce la gente: Ayacucho, Cusco, Jalisco…" error={errors.scopeRegion?.message}>
+              <TextInput placeholder="Ayacucho" disabled={readOnly} {...register("scopeRegion")} />
+            </Field>
+          )}
+        </div>
+      )}
+      <p role="status" className="rounded-md bg-canvas px-3 py-2 text-xs text-foreground">
+        <span className="font-semibold">«Hoy se celebra» la mostrará a visitantes de:</span> {summary}.
+      </p>
     </Card>
   );
 }

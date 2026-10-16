@@ -124,6 +124,10 @@ export interface EventInput {
   allDay: boolean;
   /** «Desde 1821»: solo si se repite. */
   sinceYear: number | null;
+  /** Dónde se celebra: país ISO-2; null = en todo el mundo. */
+  scopeCountry: string | null;
+  /** Región de ese país; exige scopeCountry. */
+  scopeRegion: string | null;
   images: ContentImage[];
   seoTitle: string | null;
   metaDescription: string | null;
@@ -205,6 +209,8 @@ export interface PlatformSettingsInput {
   adsenseEnabled: boolean;
   adsenseClientId: string | null;
   analyticsId: string | null;
+  /** País del sitio (ISO-2). */
+  homeCountry: string;
 }
 
 /** Cuerpo de POST /api/v1/admin/ad-placements — ver CreateAdPlacementRequest.java. */

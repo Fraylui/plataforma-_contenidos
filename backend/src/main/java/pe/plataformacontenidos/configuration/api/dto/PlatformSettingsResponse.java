@@ -23,7 +23,8 @@ public record PlatformSettingsResponse(
         String contactEmail,
         boolean adsenseEnabled,
         String adsenseClientId,
-        String analyticsId) {
+        String analyticsId,
+        String homeCountry) {
 
     public static PlatformSettingsResponse from(PlatformSettings settings) {
         return new PlatformSettingsResponse(
@@ -46,6 +47,7 @@ public record PlatformSettingsResponse(
                 settings.getContactEmail(),
                 settings.isAdsenseEnabled(),
                 settings.getAdsenseClientId(),
-                settings.getAnalyticsId());
+                settings.getAnalyticsId(),
+                settings.getHomeCountry());
     }
 }

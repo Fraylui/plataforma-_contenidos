@@ -19,6 +19,8 @@ public record EventSummaryResponse(
         boolean recursYearly,
         boolean allDay,
         Integer sinceYear,
+        String scopeCountry,
+        String scopeRegion,
         Instant nextOccurrenceAt,
         UUID coverImageId,
         String coverImageUrl,
@@ -30,7 +32,7 @@ public record EventSummaryResponse(
         return new EventSummaryResponse(event.getId(), event.getSlug(), event.getTitle(), event.getExcerpt(),
                 event.getCategoryId(), event.getPlaceId(), event.getVenueName(),
                 event.getStartsAt(), event.getEndsAt(), event.isRecursYearly(), event.isAllDay(),
-                event.getSinceYear(), event.getNextOccurrence(), cover == null ? null : cover.getImageId(),
+                event.getSinceYear(), event.getScopeCountry(), event.getScopeRegion(), event.getNextOccurrence(), cover == null ? null : cover.getImageId(),
                 cover == null ? null : cover.getExternalUrl(), !event.getVideos().isEmpty(), likeCount);
     }
 }

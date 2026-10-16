@@ -1,6 +1,7 @@
 package pe.plataformacontenidos.configuration;
 
 import java.time.Instant;
+import java.util.Locale;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import pe.plataformacontenidos.audit.AuditResult;
@@ -62,6 +63,9 @@ public class PlatformSettingsService {
         settings.setAdsenseEnabled(request.adsenseEnabled());
         settings.setAdsenseClientId(request.adsenseClientId());
         settings.setAnalyticsId(request.analyticsId());
+        if (request.homeCountry() != null) {
+            settings.setHomeCountry(request.homeCountry().toUpperCase(Locale.ROOT));
+        }
 
         settings.setUpdatedAt(Instant.now());
         settings.setUpdatedBy(actingAdminId);

@@ -31,12 +31,16 @@ public record EventRequest(
         /** Todo el día (sin hora). Ausente = con hora. */
         Boolean allDay,
         /** «Desde 1824», solo si se repite. */
-        Integer sinceYear) {
+        Integer sinceYear,
+        /** Dónde se celebra: código de país ISO de 2 letras. Ausente = en todo el mundo. */
+        @Size(max = 2) String scopeCountry,
+        /** Región de ese país («Ayacucho»). Ausente = todo el país. */
+        @Size(max = 100) String scopeRegion) {
 
     public EventInput toInput() {
         return new EventInput(title, excerpt, body, categoryId, placeId, venueName, startsAt, endsAt,
                 images == null ? List.of() : images, seoTitle, metaDescription, canonicalUrl, ogImageUrl,
                 videos == null ? List.of() : videos, robots, Boolean.TRUE.equals(recursYearly),
-                Boolean.TRUE.equals(allDay), sinceYear);
+                Boolean.TRUE.equals(allDay), sinceYear, scopeCountry, scopeRegion);
     }
 }

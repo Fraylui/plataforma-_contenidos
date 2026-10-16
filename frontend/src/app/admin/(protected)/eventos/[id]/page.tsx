@@ -62,6 +62,7 @@ export default async function EditEventPage(props: PageProps<"/admin/eventos/[id
         allImages={allImages}
         permissions={permissions}
         siteName={settings.name}
+        homeCountry={settings.homeCountry}
       />
     </div>
   );

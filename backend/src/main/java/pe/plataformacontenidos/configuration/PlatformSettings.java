@@ -86,6 +86,10 @@ public class PlatformSettings {
     @Column(name = "analytics_id")
     private String analyticsId;
 
+    /** País del sitio (ISO-2): qué celebraciones ve quien llega sin ubicación conocida. */
+    @Column(name = "home_country", nullable = false)
+    private String homeCountry = "PE";
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
@@ -258,6 +262,14 @@ public class PlatformSettings {
 
     public void setAnalyticsId(String analyticsId) {
         this.analyticsId = analyticsId;
+    }
+
+    public String getHomeCountry() {
+        return homeCountry;
+    }
+
+    public void setHomeCountry(String homeCountry) {
+        this.homeCountry = homeCountry;
     }
 
     public Instant getUpdatedAt() {

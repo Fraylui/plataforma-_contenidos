@@ -26,7 +26,7 @@ export default async function NewEventPage() {
   return (
     <div className="space-y-6">
       <AdminPageHeader title="Nueva celebración" back={{ href: "/admin/eventos", label: "Celebraciones" }} />
-      <EventComposer categories={categories} places={places} allImages={allImages} permissions={permissions} siteName={settings.name} />
+      <EventComposer categories={categories} places={places} allImages={allImages} permissions={permissions} siteName={settings.name} homeCountry={settings.homeCountry} />
     </div>
   );
 }

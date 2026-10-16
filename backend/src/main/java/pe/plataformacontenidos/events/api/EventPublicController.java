@@ -3,9 +3,12 @@ package pe.plataformacontenidos.events.api;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.CacheControl;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,12 +61,22 @@ public class EventPublicController {
         return PageResponse.from(result, item -> EventSummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));
     }
 
-    /** «Hoy se celebra» del inicio: las fechas que tocan hoy (zona del sitio). */
+    /**
+     * «Hoy se celebra» del inicio: las fechas que tocan hoy (zona del sitio)
+     * donde está el visitante. La ubicación llega por las cabeceras de
+     * Cloudflare que reenvía el proxy de Next (como CampaignPublicController),
+     * así que la respuesta es por visitante: el navegador la pide aparte y
+     * la página sigue en caché.
+     */
     @GetMapping("/today")
-    public List<EventSummaryResponse> today() {
-        var events = eventService.listToday();
+    public ResponseEntity<List<EventSummaryResponse>> today(
+            @RequestHeader(value = "CF-IPCountry", required = false) String country,
+            @RequestHeader(value = "CF-Region", required = false) String region,
+            @RequestHeader(value = "CF-Region-Code", required = false) String regionCode) {
+        var events = eventService.listToday(country, region, regionCode);
         var likes = contentLikeService.countLikes(ContentType.EVENT, events.stream().map(Event::getId).toList());
-        return events.stream().map(e -> EventSummaryResponse.from(e, likes.getOrDefault(e.getId(), 0L))).toList();
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(events.stream().map(e -> EventSummaryResponse.from(e, likes.getOrDefault(e.getId(), 0L))).toList());
     }
 
     @GetMapping("/{slug}")

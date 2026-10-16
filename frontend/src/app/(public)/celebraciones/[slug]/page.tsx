@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { CalendarBlank, CalendarPlus, DownloadSimple, MapPin } from "@phosphor-icons/react/dist/ssr";
+import { CalendarBlank, CalendarPlus, DownloadSimple, GlobeHemisphereWest, MapPin } from "@phosphor-icons/react/dist/ssr";
 import {
   getCategoryById,
   getPlatformSettings,
@@ -11,6 +11,7 @@ import {
 import { NotFoundError } from "@/lib/api/client";
 import { formatEventDateTime, isEventFinished } from "@/lib/content-labels";
 import { formatCelebrationDate } from "@/lib/celebration-date";
+import { celebrationPlace } from "@/lib/countries";
 import { LikeShareBar, POST_ACTION_PILL } from "@/components/content/like-share-bar";
 import { ViewBeacon } from "@/components/content/view-beacon";
 import { PostView } from "@/components/post/post-view";
@@ -149,6 +150,7 @@ export default async function EventPage(props: PageProps<"/celebraciones/[slug]"
   });
   const facts: PostFact[] = [
     { icon: CalendarBlank, label: event.recursYearly ? "Cada año" : finished ? "Fue" : "Cuándo", value: when },
+    { icon: GlobeHemisphereWest, label: "Se celebra en", value: celebrationPlace(event.scopeCountry, event.scopeRegion) },
     ...(venue
       ? [{ icon: MapPin, label: "Dónde", value: venue.name, href: `/lugares/${venue.slug}` }]
       : event.venueName

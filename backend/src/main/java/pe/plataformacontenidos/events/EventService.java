@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
+import pe.plataformacontenidos.configuration.PlatformSettingsService;
 import pe.plataformacontenidos.content.YouTubeUrlParser;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.places.PlaceService;
@@ -24,6 +26,7 @@ import pe.plataformacontenidos.shared.ContentImageInput;
 import pe.plataformacontenidos.shared.ContentVideo;
 import pe.plataformacontenidos.shared.ContentVideoInput;
 import pe.plataformacontenidos.shared.HtmlSanitizer;
+import pe.plataformacontenidos.shared.RegionNames;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
@@ -45,16 +48,19 @@ public class EventService {
     private final PlaceService placeService;
     private final ImageService imageService;
     private final AuditService auditService;
+    private final PlatformSettingsService platformSettingsService;
     private final ZoneId siteZone;
 
     public EventService(EventRepository eventRepository, CategoryService categoryService,
             PlaceService placeService, ImageService imageService, AuditService auditService,
+            PlatformSettingsService platformSettingsService,
             @Value("${site.time-zone:America/Lima}") String siteTimeZone) {
         this.eventRepository = eventRepository;
         this.categoryService = categoryService;
         this.placeService = placeService;
         this.imageService = imageService;
         this.auditService = auditService;
+        this.platformSettingsService = platformSettingsService;
         this.siteZone = ZoneId.of(siteTimeZone);
     }
 
@@ -65,6 +71,8 @@ public class EventService {
         validatePlace(input.placeId());
         validateDateRange(input.startsAt(), input.endsAt());
         validateRecurrence(input);
+        String scopeCountry = scopeCountry(input);
+        String scopeRegion = scopeRegion(input, scopeCountry);
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
@@ -75,6 +83,7 @@ public class EventService {
                 input.placeId(), input.venueName(), input.startsAt(), input.endsAt(), images, input.seoTitle(),
                 input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
         event.setSchedule(input.recursYearly(), input.allDay(), input.sinceYear());
+        event.setScope(scopeCountry, scopeRegion);
         event.refreshNextOccurrence(siteZone, today());
 
         Event saved = eventRepository.save(event);
@@ -94,6 +103,8 @@ public class EventService {
         }
         validateDateRange(input.startsAt(), input.endsAt());
         validateRecurrence(input);
+        String scopeCountry = scopeCountry(input);
+        String scopeRegion = scopeRegion(input, scopeCountry);
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
@@ -102,6 +113,7 @@ public class EventService {
                 input.placeId(), input.venueName(), input.startsAt(), input.endsAt(), images, input.seoTitle(),
                 input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
         event.setSchedule(input.recursYearly(), input.allDay(), input.sinceYear());
+        event.setScope(scopeCountry, scopeRegion);
         event.refreshNextOccurrence(siteZone, today());
         Event saved = eventRepository.save(event);
         audit("EVENT_UPDATED", saved, actingUserId);
@@ -161,11 +173,26 @@ public class EventService {
         return eventRepository.findPast(PublicationStatus.PUBLISHED, startOfToday, categoryId, pageable);
     }
 
-    /** «Hoy se celebra»: las fechas publicadas que tocan hoy (zona del sitio). */
-    public List<Event> listToday() {
+    /**
+     * «Hoy se celebra»: las fechas publicadas que tocan hoy (zona del sitio) y
+     * se celebran donde está el visitante (cabeceras de Cloudflare), de lo más
+     * cercano a lo más general: su región, su país, lo mundial. Sin ubicación
+     * (VPN, sin Cloudflare): lo mundial y lo del país del sitio, sin regiones.
+     * Son pocas por día, así que se filtra en memoria.
+     */
+    public List<Event> listToday(String countryHeader, String region, String regionCode) {
         LocalDate today = today();
+        String visitorCountry = RegionNames.visitorCountry(countryHeader);
+        String country = visitorCountry != null ? visitorCountry : platformSettingsService.get().getHomeCountry();
+        String knownRegion = visitorCountry != null ? region : null;
+        String knownRegionCode = visitorCountry != null ? regionCode : null;
         return eventRepository.findOccurringBetween(PublicationStatus.PUBLISHED,
-                NextOccurrence.startOfDay(today, siteZone), NextOccurrence.startOfDay(today.plusDays(1), siteZone));
+                        NextOccurrence.startOfDay(today, siteZone), NextOccurrence.startOfDay(today.plusDays(1), siteZone))
+                .stream()
+                .filter(event -> event.closenessTo(country, knownRegion, knownRegionCode) >= 0)
+                .sorted(Comparator.comparingInt(
+                        (Event event) -> event.closenessTo(country, knownRegion, knownRegionCode)).reversed())
+                .toList();
     }
 
     /**
@@ -215,6 +242,30 @@ public class EventService {
         if (input.sinceYear() != null && (input.sinceYear() < 1 || input.sinceYear() > today().getYear())) {
             throw new InvalidEventDateRangeException("El año de origen tiene que ser un año pasado.");
         }
+    }
+
+    /** País del alcance en mayúsculas, o null (= mundial). */
+    private String scopeCountry(EventInput input) {
+        if (input.scopeCountry() == null || input.scopeCountry().isBlank()) {
+            return null;
+        }
+        String code = RegionNames.countryCode(input.scopeCountry());
+        if (code == null) {
+            throw new InvalidEventScopeException(
+                    "País inválido: «" + input.scopeCountry() + "». Usa el código de 2 letras (PE, CO, MX…).");
+        }
+        return code;
+    }
+
+    /** Región sin espacios sobrantes, o null (= todo el país). Exige país. */
+    private String scopeRegion(EventInput input, String scopeCountry) {
+        if (input.scopeRegion() == null || input.scopeRegion().isBlank()) {
+            return null;
+        }
+        if (scopeCountry == null) {
+            throw new InvalidEventScopeException("Para elegir una región, primero elige su país.");
+        }
+        return input.scopeRegion().trim().replaceAll(" +", " ");
     }
 
     private void validateDateRange(Instant startsAt, Instant endsAt) {

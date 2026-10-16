@@ -143,6 +143,102 @@ class EventWorkflowIntegrationTest {
                 .andExpect(jsonPath("$[?(@.slug == 'dia-kimsapampino-de-ayer')]").doesNotExist());
     }
 
+    /**
+     * Modelo de los Doodles de Google: cada celebración tiene alcance (mundial,
+     * país o región) y «Hoy se celebra» muestra solo lo del lugar del visitante
+     * (cabeceras de Cloudflare), de lo más cercano a lo más general.
+     */
+    @Test
+    void todayShowsOnlyWhatIsCelebratedWhereTheVisitorIs() throws Exception {
+        String token = createUserAndLogin("celebraciones-geo@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String categoryId = createCategory(token, "Celebraciones geo Test");
+        java.time.LocalDate today = java.time.LocalDate.now(java.time.ZoneId.of("America/Lima"));
+
+        String world = publishScoped(token, categoryId, "Kimsa mundial", today, null, null);
+        String peru = publishScoped(token, categoryId, "Kimsa peruana", today, "pe", null);
+        String ayacucho = publishScoped(token, categoryId, "Kimsa ayacuchana", today, "PE", "Ayacucho");
+        String mexico = publishScoped(token, categoryId, "Kimsa mexicana", today, "MX", null);
+
+        // Visitante en Ayacucho: región, luego país, luego mundial; nada de México.
+        java.util.List<String> fromAyacucho = todaySlugs("PE", "Región de Ayacucho");
+        assertOrder(fromAyacucho, ayacucho, peru, world);
+        org.assertj.core.api.Assertions.assertThat(fromAyacucho).doesNotContain(mexico);
+
+        // Visitante en Lima: lo peruano y lo mundial, no lo de Ayacucho.
+        java.util.List<String> fromLima = todaySlugs("PE", "Lima");
+        assertOrder(fromLima, peru, world);
+        org.assertj.core.api.Assertions.assertThat(fromLima).doesNotContain(ayacucho, mexico);
+
+        // Visitante en México.
+        java.util.List<String> fromMexico = todaySlugs("MX", null);
+        assertOrder(fromMexico, mexico, world);
+        org.assertj.core.api.Assertions.assertThat(fromMexico).doesNotContain(peru, ayacucho);
+
+        // Sin ubicación (VPN, local): lo mundial y lo del país del sitio (Perú por defecto), sin regiones.
+        java.util.List<String> unknown = todaySlugs(null, null);
+        assertOrder(unknown, peru, world);
+        org.assertj.core.api.Assertions.assertThat(unknown).doesNotContain(ayacucho, mexico);
+
+        // La respuesta dice dónde se celebra.
+        mockMvc.perform(get("/api/v1/events/today").header("CF-IPCountry", "PE").header("CF-Region", "Ayacucho"))
+                .andExpect(jsonPath("$[?(@.slug == '" + ayacucho + "')].scopeCountry").value(org.hamcrest.Matchers.hasItem("PE")))
+                .andExpect(jsonPath("$[?(@.slug == '" + ayacucho + "')].scopeRegion").value(org.hamcrest.Matchers.hasItem("Ayacucho")));
+    }
+
+    @Test
+    void scopeMustBeACountryCodeAndARegionNeedsItsCountry() throws Exception {
+        String token = createUserAndLogin("celebraciones-geo-validacion@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String categoryId = createCategory(token, "Celebraciones geo validación Test");
+        for (String scope : new String[] {"\"scopeCountry\":\"Peru\"", "\"scopeRegion\":\"Ayacucho\""}) {
+            mockMvc.perform(post("/api/v1/admin/events").header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"title\":\"Kimsa inválida\",\"body\":\"Texto.\",\"categoryId\":\"" + categoryId
+                                    + "\",\"startsAt\":\"2030-06-14T05:00:00Z\",\"recursYearly\":true,\"allDay\":true," + scope + "}"))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
+    private String publishScoped(String token, String categoryId, String title, java.time.LocalDate day, String country,
+            String region) throws Exception {
+        String startsAt = day.withYear(2000).atStartOfDay(java.time.ZoneId.of("America/Lima")).toInstant().toString();
+        String scope = (country == null ? "" : ",\"scopeCountry\":\"" + country + "\"")
+                + (region == null ? "" : ",\"scopeRegion\":\"" + region + "\"");
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/events").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"" + title + " " + UUID.randomUUID().toString().substring(0, 6)
+                                + "\",\"body\":\"Texto.\",\"categoryId\":\"" + categoryId + "\",\"startsAt\":\"" + startsAt
+                                + "\",\"recursYearly\":true,\"allDay\":true" + scope + "}"))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String id = textField(result, "id");
+        mockMvc.perform(post("/api/v1/admin/events/" + id + "/publish").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        return textField(result, "slug");
+    }
+
+    private java.util.List<String> todaySlugs(String country, String region) throws Exception {
+        var request = get("/api/v1/events/today");
+        if (country != null) {
+            request = request.header("CF-IPCountry", country);
+        }
+        if (region != null) {
+            request = request.header("CF-Region", region);
+        }
+        JsonNode items = objectMapper.readTree(mockMvc.perform(request).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        java.util.List<String> slugs = new java.util.ArrayList<>();
+        items.forEach(item -> slugs.add(item.get("slug").asText()));
+        return slugs;
+    }
+
+    private static void assertOrder(java.util.List<String> slugs, String... expectedInOrder) {
+        org.assertj.core.api.Assertions.assertThat(slugs).contains(expectedInOrder);
+        for (int i = 1; i < expectedInOrder.length; i++) {
+            org.assertj.core.api.Assertions.assertThat(slugs.indexOf(expectedInOrder[i - 1]))
+                    .isLessThan(slugs.indexOf(expectedInOrder[i]));
+        }
+    }
+
     @Test
     void sinceYearOnlyMakesSenseForYearlyDates() throws Exception {
         String token = createUserAndLogin("fechas-desde@plataforma-contenidos.test", TestProfile.PUBLICADOR);

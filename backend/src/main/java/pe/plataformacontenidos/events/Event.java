@@ -82,6 +82,14 @@ public class Event extends PublishableContent {
     @Column(name = "since_year")
     private Integer sinceYear;
 
+    /** Dónde se celebra: país ISO-2 ('PE'); null = en todo el mundo. */
+    @Column(name = "scope_country")
+    private String scopeCountry;
+
+    /** Región de ese país ('Ayacucho'); null = todo el país. */
+    @Column(name = "scope_region")
+    private String scopeRegion;
+
     /** Próxima vez que toca (ver NextOccurrence); ordena Celebraciones y arma «Hoy se celebra». */
     @Column(name = "next_occurrence", nullable = false)
     private Instant nextOccurrence;
@@ -185,6 +193,37 @@ public class Event extends PublishableContent {
 
     public Integer getSinceYear() {
         return sinceYear;
+    }
+
+    public String getScopeCountry() {
+        return scopeCountry;
+    }
+
+    public String getScopeRegion() {
+        return scopeRegion;
+    }
+
+    /** Ya validado y normalizado por EventService (país en mayúsculas; región exige país). */
+    public void setScope(String scopeCountry, String scopeRegion) {
+        this.scopeCountry = scopeCountry;
+        this.scopeRegion = scopeRegion;
+    }
+
+    /**
+     * Qué tan cerca del visitante: 2 = su región, 1 = su país, 0 = mundial;
+     * -1 = no se celebra donde está. Sin región conocida, nada regional califica.
+     */
+    public int closenessTo(String country, String region, String regionCode) {
+        if (scopeCountry == null) {
+            return 0;
+        }
+        if (!scopeCountry.equals(country)) {
+            return -1;
+        }
+        if (scopeRegion == null) {
+            return 1;
+        }
+        return pe.plataformacontenidos.shared.RegionNames.matches(scopeRegion, region, regionCode) ? 2 : -1;
     }
 
     public Instant getNextOccurrence() {

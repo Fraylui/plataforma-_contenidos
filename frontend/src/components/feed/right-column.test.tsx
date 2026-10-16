@@ -20,6 +20,8 @@ const event: EventSummary = {
   recursYearly: true,
   allDay: true,
   sinceYear: 1821,
+  scopeCountry: "PE",
+  scopeRegion: null,
   nextOccurrenceAt: "2027-07-28T00:00:00-05:00",
   coverImageId: null,
   coverImageUrl: null,

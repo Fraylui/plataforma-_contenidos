@@ -2320,7 +2320,7 @@ Pendiente: celebraciones por geografía del visitante (ver propuesta en la sesi�
 **Estado:** rama `feat/sistema-diseno`, árbol limpio, **12 commits locales sin subir** (desde 4743195). El dueño ejecuta `! git push` y luego revisar `gh pr checks 22`: ahí corren por primera vez las pruebas de integración de anuncio nativo (NativeCampaignIntegrationTest), Fechas/«Hoy se celebra» (EventWorkflowIntegrationTest) y búsqueda de episodios. Vercel falla siempre (no se usa; decisión pendiente de desconectarlo). Docker apagado. Base local: 5 celebraciones reales sin foto + campaña nativa de demo «Pollería El Inca (demo)» (borrar cuando el dueño diga).
 
 **En este orden:**
-1. **Celebraciones por geografía (aprobado, no empezado).** Diseño y prueba ya escrita en `docs/superpowers/specs/2026-10-16-celebraciones-geografia.md`. Plan:
+1. ~~**Celebraciones por geografía**~~ — **hecho** 2026-10-16 (ver §46.6o). Diseño original en `docs/superpowers/specs/2026-10-16-celebraciones-geografia.md`. Plan:
    - V63: `events.events.scope_country` (ISO-2, null = mundial) y `scope_region` (texto, exige país); `platform_settings.home_country` (default 'PE', editable en Configuración).
    - Sacar `CampaignTargeting.normalizeRegion` a `shared` y usarlo en anuncios y celebraciones (sin duplicar).
    - `GET /api/v1/events/today` lee `CF-IPCountry`/`CF-Region`/`CF-Region-Code` (como CampaignPublicController): filtra mundial + país + región del visitante y ordena región > país > mundial; sin ubicación: mundial + `home_country`, sin regiones.
@@ -2331,6 +2331,16 @@ Pendiente: celebraciones por geografía del visitante (ver propuesta en la sesi�
 4. Lo que seguía de §46.6k: C.5 renombre `Article`→`Publication` (y `Event`→`Celebration`), C.6 RFC 9457, C.7 dueño único (fixture de pruebas primero), E.13 cuadrícula de Galerías, E.14 revisión visual de pantallas, F.16 rediseño social, G.17–18 E2E y axe/Lighthouse.
 5. Pendientes de anuncios: cuartiles de video, autoplay en silencio, carrusel de fotos.
 6. Legal (no es código): revisión con abogado antes de vender el primer anuncio; RUC y régimen con contador (AdSense = renta de tercera categoría; posible exportación de servicios); actualizar la política de privacidad al reglamento D.S. 016-2024-JUS.
+
+### 46.6o Sesión 2026-10-16 (cont.) — celebraciones por geografía
+CI verde en los 12 commits de §46.6n (Vercel sigue fallando; no se usa). Construido el punto 1:
+- **V63**: `events.events.scope_country` (ISO-2, null = todo el mundo) y `scope_region` (exige país, CHECK en la base); `configuration.platform_settings.home_country` (default 'PE').
+- **`shared/RegionNames`**: normalización de regiones (antes `CampaignTargeting.normalizeRegion`), `matches`, `visitorCountry` (descarta "XX" y "T1" de Cloudflare) y `countryCode`. Anuncios y celebraciones usan el mismo código; prueba unitaria `RegionNamesTest`.
+- **`GET /api/v1/events/today`** lee `CF-IPCountry`/`CF-Region`/`CF-Region-Code`, filtra con `Event.closenessTo` y ordena región > país > mundial; sin ubicación usa `home_country` sin regiones. Responde `no-store`. País inválido o región sin país → 400 (`InvalidEventScopeException`).
+- **Frontend**: la página trae en su HTML en caché lo del visitante sin ubicación (mundial + país del sitio); `TodayCelebrations` (ahora componente de cliente) lo reemplaza con lo de su lugar vía el proxy `/api/celebrations/today` (`visitorHeaders`). La forma de tarjeta se arma en el servidor (`lib/today-celebrations.ts`). Página de la celebración: dato «Se celebra en · Ayacucho, Perú / Perú / Todo el mundo». Compositor: tarjeta «Dónde se celebra» (Un país / Una región / Todo el mundo; país con buscador, nombres por `Intl.DisplayNames` en `lib/countries.ts`). Una celebración nueva es por defecto del país del sitio: lo mundial se elige a propósito. Configuración › Identidad: «País del sitio».
+- Las pruebas de integración (`todayShowsOnlyWhatIsCelebratedWhereTheVisitorIs`, `scopeMustBeACountryCodeAndARegionNeedsItsCountry`) corren en CI.
+- **Pendiente del dueño**: las 5 celebraciones de la base local quedaron como «Todo el mundo» (null). Las peruanas (Fiestas Patrias, etc.) hay que pasarlas a «Perú» en el panel; si no, un visitante de México las vería.
+- **Compromiso aceptado**: un visitante fuera del país del sitio, o de una región con fecha propia, ve un cambio en la tarjeta al cargar (de lo general a lo suyo). Es el precio de mantener las páginas en caché; para la mayoría (Perú sin fecha regional) no cambia nada.
 
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 

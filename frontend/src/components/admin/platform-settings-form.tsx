@@ -9,6 +9,7 @@ import { FormError } from "@/components/admin/ui";
 import { Button, Checkbox, Combobox, Field, TextArea, TextInput } from "@/components/ui";
 import { InlineImageUpload } from "@/components/admin/inline-image-upload";
 import { imageUrl } from "@/lib/image-url";
+import { COUNTRY_OPTIONS } from "@/lib/countries";
 import type { AdminImage } from "@/lib/api/admin-types";
 
 type FormState = {
@@ -37,6 +38,7 @@ function toFormState(settings: PlatformSettings): FormState {
     adsenseEnabled: settings.adsenseEnabled,
     adsenseClientId: settings.adsenseClientId ?? "",
     analyticsId: settings.analyticsId ?? "",
+    homeCountry: settings.homeCountry,
   };
 }
 
@@ -63,6 +65,7 @@ function toInput(state: FormState): PlatformSettingsInput {
     adsenseEnabled: state.adsenseEnabled,
     adsenseClientId: blankToNull(state.adsenseClientId),
     analyticsId: blankToNull(state.analyticsId),
+    homeCountry: state.homeCountry,
   };
 }
 
@@ -237,6 +240,13 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
               onChange={(e) => set("description", e.target.value)}
               rows={2}
             />
+          </Field>
+          <Field
+            label="País del sitio"
+            name="homeCountry"
+            hint="Quien entra sin ubicación conocida (VPN) ve en «Hoy se celebra» lo mundial y lo de este país."
+          >
+            <Combobox options={COUNTRY_OPTIONS} value={state.homeCountry} onSelect={(id) => id && set("homeCountry", id)} placeholder="Buscar un país" />
           </Field>
         </Section>
 

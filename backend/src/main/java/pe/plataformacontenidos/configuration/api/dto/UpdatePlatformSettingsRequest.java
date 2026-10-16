@@ -24,5 +24,7 @@ public record UpdatePlatformSettingsRequest(
         @Email String contactEmail,
         boolean adsenseEnabled,
         String adsenseClientId,
-        String analyticsId) {
+        String analyticsId,
+        /** País del sitio, ISO de 2 letras. Ausente = se mantiene el actual. */
+        @Pattern(regexp = "[A-Za-z]{2}", message = "homeCountry debe ser un código de país de 2 letras") String homeCountry) {
 }

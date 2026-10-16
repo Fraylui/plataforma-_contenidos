@@ -166,7 +166,11 @@ export function listPublishedEvents(params?: {
   return apiFetch(`/api/v1/events?${query.toString()}`, 60);
 }
 
-/** «Hoy se celebra»: las celebraciones que tocan hoy (zona del sitio). */
+/**
+ * «Hoy se celebra» para quien no tiene ubicación conocida: lo mundial y lo
+ * del país del sitio. Va en el HTML en caché; el navegador lo cambia por lo
+ * de su lugar con /api/celebrations/today (ver TodayCelebrations).
+ */
 export function listTodayCelebrations(): Promise<EventSummary[]> {
   return apiFetch("/api/v1/events/today", 300);
 }

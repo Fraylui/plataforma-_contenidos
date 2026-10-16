@@ -153,6 +153,10 @@ export interface EventSummary {
   recursYearly: boolean;
   allDay: boolean;
   sinceYear: number | null;
+  /** Dónde se celebra: país ISO-2 («PE»); null = en todo el mundo. */
+  scopeCountry: string | null;
+  /** Región de ese país («Ayacucho»); null = todo el país. */
+  scopeRegion: string | null;
   /** Próxima vez que toca (lo que se muestra y ordena Celebraciones). */
   nextOccurrenceAt: string;
   coverImageId: string | null;
@@ -178,6 +182,10 @@ export interface Event {
   recursYearly: boolean;
   allDay: boolean;
   sinceYear: number | null;
+  /** Dónde se celebra: país ISO-2 («PE»); null = en todo el mundo. */
+  scopeCountry: string | null;
+  /** Región de ese país («Ayacucho»); null = todo el país. */
+  scopeRegion: string | null;
   /** Próxima vez que toca (lo que se muestra y ordena Celebraciones). */
   nextOccurrenceAt: string;
   images: ContentImage[];
@@ -294,6 +302,8 @@ export interface PlatformSettings {
   adsenseEnabled: boolean;
   adsenseClientId: string | null;
   analyticsId: string | null;
+  /** País del sitio (ISO-2): qué celebraciones ve quien llega sin ubicación conocida. */
+  homeCountry: string;
 }
 
 /** Ver AdPlacementResponse.java — posición de anuncio configurable (CONTEXTO.md sección 43.2). */

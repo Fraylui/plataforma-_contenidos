@@ -1,13 +1,12 @@
 package pe.plataformacontenidos.advertising;
 
-import java.text.Normalizer;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.regex.Pattern;
+import pe.plataformacontenidos.shared.RegionNames;
 
 /**
  * Segmentación de una campaña. Cada dimensión vacía = sin restricción
@@ -23,10 +22,6 @@ public record CampaignTargeting(Set<AdSection> sections, Set<UUID> categoryIds, 
 
     public static final CampaignTargeting EVERYWHERE = new CampaignTargeting(Set.of(), Set.of(), Set.of(), Set.of());
 
-    private static final Pattern MARKS = Pattern.compile("\\p{M}+");
-    private static final Pattern REGION_NOISE = Pattern.compile(
-            "^(region|departamento|department|provincia|province|estado|state)( de)? | (region|department|province)$");
-
     public CampaignTargeting {
         sections = Set.copyOf(sections);
         categoryIds = Set.copyOf(categoryIds);
@@ -40,9 +35,8 @@ public record CampaignTargeting(Set<AdSection> sections, Set<UUID> categoryIds, 
                 && (categoryIds.isEmpty() || categoryIds.stream().anyMatch(context.categoryLineage()::contains))
                 && (countries.isEmpty() || (context.country() != null
                         && countries.contains(context.country().toUpperCase(Locale.ROOT))))
-                && (regions.isEmpty() || regions.stream().map(CampaignTargeting::normalizeRegion)
-                        .anyMatch(r -> r.equals(normalizeRegion(context.region()))
-                                || r.equals(normalizeRegion(context.regionCode()))));
+                && (regions.isEmpty() || regions.stream()
+                        .anyMatch(r -> RegionNames.matches(r, context.region(), context.regionCode())));
     }
 
     /**
@@ -74,8 +68,8 @@ public record CampaignTargeting(Set<AdSection> sections, Set<UUID> categoryIds, 
 
     private static boolean intersectsNormalized(Set<String> a, Set<String> b) {
         return a.isEmpty() || b.isEmpty()
-                || a.stream().map(CampaignTargeting::normalizeRegion)
-                        .anyMatch(r -> b.stream().map(CampaignTargeting::normalizeRegion).anyMatch(r::equals));
+                || a.stream().map(RegionNames::normalize)
+                        .anyMatch(r -> b.stream().map(RegionNames::normalize).anyMatch(r::equals));
     }
 
     private static boolean categoriesOverlap(Set<UUID> a, Set<UUID> b, Function<UUID, Set<UUID>> lineage) {
@@ -92,23 +86,13 @@ public record CampaignTargeting(Set<AdSection> sections, Set<UUID> categoryIds, 
         return false;
     }
 
-    /** "Región de Ayacucho" / "Ayacucho Region" / "ayacucho" → "ayacucho". */
-    static String normalizeRegion(String value) {
-        if (value == null) {
-            return "";
-        }
-        String plain = MARKS.matcher(Normalizer.normalize(value, Normalizer.Form.NFD)).replaceAll("")
-                .toLowerCase(Locale.ROOT).trim().replaceAll("\\s+", " ");
-        return REGION_NOISE.matcher(plain).replaceAll("").trim();
-    }
-
     /** Limpia lo que llega del panel: países en mayúsculas, regiones sin espacios sobrantes, sin repetidos. */
     public static CampaignTargeting of(Collection<AdSection> sections, Collection<UUID> categoryIds,
             Collection<String> countries, Collection<String> regions) {
         Set<String> cleanCountries = new LinkedHashSet<>();
         for (String country : nullSafe(countries)) {
-            String code = country.trim().toUpperCase(Locale.ROOT);
-            if (!code.matches("[A-Z]{2}")) {
+            String code = RegionNames.countryCode(country);
+            if (code == null) {
                 throw new InvalidCampaignTargetingException(
                         "País inválido: «" + country + "». Usa el código de 2 letras (PE, CO, MX…).");
             }

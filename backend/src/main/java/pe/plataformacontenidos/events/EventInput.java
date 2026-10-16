@@ -31,5 +31,7 @@ public record EventInput(
         String robots,
         boolean recursYearly,
         boolean allDay,
-        Integer sinceYear) {
+        Integer sinceYear,
+        String scopeCountry,
+        String scopeRegion) {
 }
