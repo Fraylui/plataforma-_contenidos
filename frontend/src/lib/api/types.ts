@@ -293,7 +293,6 @@ export interface PlatformSettings {
   secondaryColor: string | null;
   backgroundColor: string | null;
   fontFamily: string | null;
-  theme: "LIGHT" | "DARK" | "AUTO";
   seoDefaultTitle: string | null;
   seoDefaultDescription: string | null;
   seoDefaultImageUrl: string | null;

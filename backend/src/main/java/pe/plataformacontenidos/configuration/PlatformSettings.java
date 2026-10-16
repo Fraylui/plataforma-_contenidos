@@ -59,8 +59,6 @@ public class PlatformSettings {
     @Column(name = "font_family")
     private String fontFamily;
 
-    @Column(nullable = false)
-    private String theme;
 
     @Column(name = "seo_default_title")
     private String seoDefaultTitle;
@@ -192,13 +190,6 @@ public class PlatformSettings {
         this.fontFamily = fontFamily;
     }
 
-    public String getTheme() {
-        return theme;
-    }
-
-    public void setTheme(String theme) {
-        this.theme = theme;
-    }
 
     public String getSeoDefaultTitle() {
         return seoDefaultTitle;

@@ -16,7 +16,6 @@ public record UpdatePlatformSettingsRequest(
         String secondaryColor,
         String backgroundColor,
         String fontFamily,
-        @NotBlank @Pattern(regexp = "LIGHT|DARK|AUTO", message = "theme debe ser LIGHT, DARK o AUTO") String theme,
         String seoDefaultTitle,
         String seoDefaultDescription,
         String seoDefaultImageUrl,

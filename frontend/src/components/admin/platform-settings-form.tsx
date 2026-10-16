@@ -29,7 +29,6 @@ function toFormState(settings: PlatformSettings): FormState {
     secondaryColor: settings.secondaryColor ?? "",
     backgroundColor: settings.backgroundColor ?? "",
     fontFamily: settings.fontFamily ?? "",
-    theme: settings.theme,
     seoDefaultTitle: settings.seoDefaultTitle ?? "",
     seoDefaultDescription: settings.seoDefaultDescription ?? "",
     seoDefaultImageUrl: settings.seoDefaultImageUrl ?? "",
@@ -56,7 +55,6 @@ function toInput(state: FormState): PlatformSettingsInput {
     secondaryColor: blankToNull(state.secondaryColor),
     backgroundColor: blankToNull(state.backgroundColor),
     fontFamily: blankToNull(state.fontFamily),
-    theme: state.theme as PlatformSettingsInput["theme"],
     seoDefaultTitle: blankToNull(state.seoDefaultTitle),
     seoDefaultDescription: blankToNull(state.seoDefaultDescription),
     seoDefaultImageUrl: blankToNull(state.seoDefaultImageUrl),
@@ -163,7 +161,6 @@ function SharePreview({ title, description, imageUrl, siteName }: { title: strin
 
 const NAV_ITEMS = [
   { id: "identidad", label: "Identidad" },
-  { id: "apariencia", label: "Apariencia" },
   { id: "seo", label: "SEO por defecto" },
   { id: "contacto", label: "Contacto" },
   { id: "publicidad", label: "Publicidad y AdSense" },
@@ -251,19 +248,6 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
           </Field>
         </Section>
 
-        <Section id="apariencia" title="Apariencia">
-          <Field label="Tema" name="theme">
-            <Combobox
-              options={[
-                { id: "AUTO", label: "Auto (según el sistema)" },
-                { id: "LIGHT", label: "Claro" },
-                { id: "DARK", label: "Oscuro" },
-              ]}
-              value={state.theme}
-              onSelect={(id) => id && set("theme", id as FormState["theme"])}
-            />
-          </Field>
-        </Section>
 
         <Section id="seo" title="SEO por defecto">
           <TextField label="Título por defecto" name="seoDefaultTitle" value={state.seoDefaultTitle} onChange={(v) => set("seoDefaultTitle", v)} />

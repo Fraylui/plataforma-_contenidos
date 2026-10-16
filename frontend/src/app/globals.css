@@ -114,66 +114,8 @@
   --elev-overlay: 0 24px 48px -12px rgb(15 23 42 / 0.3);
 }
 
-/*
- * "Oscuro" elegido a mano en Configuración → Apariencia debe aplicar
- * siempre, sin importar el sistema operativo del visitante — por eso va
- * SIN @media, aparte de la regla de "Auto" de abajo (antes estaban
- * agrupadas bajo el mismo @media, lo que hacía que "Oscuro" no hiciera
- * nada si el sistema operativo estaba en modo claro).
- */
-:root[data-theme="dark"] {
-  /* Negro puro (#0a0a0a) resultaba plano; mezclar verde directo en cada
-     neutro (intentado en iteraciones previas) daba un charcoal turbio y
-     contraste al límite. Slate-900/800 en su lugar: azulado, no negro
-     plano, con la garantía de contraste de una escala ya probada — el
-     verde de marca queda reservado para --accent. */
-  --background: #0f172a;
-  --surface: #1e293b;
-  --foreground: #f1f5f9;
-  /* slate-400: 6.97:1 contra --background, 5.70:1 contra --surface —
-     verificado con la fórmula de luminancia relativa WCAG. La iteración
-     anterior (verde mezclado a mano) apenas llegaba a 4.66:1; esta escala
-     da margen real en vez de rozar el mínimo cada vez que --surface cambia. */
-  --muted: #94a3b8;
-  --border: #334155;
-  /* Oscuro: el mismo #0BDA51 sirve de texto (9.49 sobre el fondo, 7.78
-     sobre tarjetas) y de relleno con texto oscuro encima (9.49). */
-  --accent: #0bda51;
-  --accent-fill: #0bda51;
-  --accent-foreground: #0f172a;
-  --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
-  --danger: #dc2626;
-  --danger-foreground: #ffffff;
-  /* Antes un verde-negro aparte (#0c120e) de otra familia y ~40% más
-     oscuro que --background — al lado de las tarjetas (--surface, Slate)
-     se veía como un hueco negro que no combinaba. Ahora se construye desde
-     el mismo Slate que el resto del tema, con el mismo tinte de marca
-     sutil que ya usa --canvas claro, en vez de una paleta oscura paralela
-     que queda desactualizada cada vez que se ajusta --background. */
-  --canvas: color-mix(in srgb, #0bda51 6%, #0f172a);
-  --canvas-strong: color-mix(in srgb, #0bda51 8%, #1e293b);
-  --canvas-border: color-mix(in srgb, #0bda51 10%, #334155);
-  --field: #0f172a;
-  --field-hover: #131d33;
-  --field-border: rgb(255 255 255 / 0.08);
-  --ring: color-mix(in srgb, var(--accent-fill) 40%, transparent);
-  --success: #34d399;
-  --warning: #fbbf24;
-  --info: #60a5fa;
-  --success-soft: color-mix(in srgb, var(--success) 16%, var(--surface));
-  --warning-soft: color-mix(in srgb, var(--warning) 16%, var(--surface));
-  --info-soft: color-mix(in srgb, var(--info) 16%, var(--surface));
-  --danger-soft: color-mix(in srgb, var(--danger) 18%, var(--surface));
-  /* #dc2626 sobre --surface oscuro da 3.6:1; red-400 da 5.9:1 para texto. */
-  --danger-ink: #f87171;
-  color-scheme: dark;
-  --elev-card: 0 1px 2px rgb(0 0 0 / 0.35), inset 0 0 0 1px rgb(255 255 255 / 0.04);
-  --elev-pop: 0 12px 28px -6px rgb(0 0 0 / 0.55), inset 0 0 0 1px rgb(255 255 255 / 0.06);
-  --elev-overlay: 0 24px 56px -12px rgb(0 0 0 / 0.7), inset 0 0 0 1px rgb(255 255 255 / 0.06);
-}
-
-/* "Auto": sin elección explícita, sigue el sistema operativo del visitante. */
-:root:not([data-theme="light"]):not([data-theme="dark"]) {
+/* Modo oscuro: sigue al dispositivo del visitante, sin selector (decisión del dueño). */
+:root {
   @media (prefers-color-scheme: dark) {
     --background: #0f172a;
     --surface: #1e293b;
@@ -309,26 +251,17 @@ body {
 }
 
 /*
- * Logo con variante oscura opcional (logoDarkUrl en Configuración de
- * plataforma): mismo patrón condicional que ya usan los demás tokens de
- * tema (data-theme explícito, si no hay, sigue prefers-color-scheme).
+ * Logo con variante oscura opcional (logoDarkUrl en Configuración): se
+ * muestra cuando el dispositivo está en modo oscuro.
  */
 .logo-dark {
   display: none;
 }
-:root[data-theme="dark"] .logo-dark {
-  display: block;
-}
-:root[data-theme="dark"] .logo-light {
-  display: none;
-}
-:root:not([data-theme="light"]):not([data-theme="dark"]) .logo-dark {
-  @media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: dark) {
+  .logo-dark {
     display: block;
   }
-}
-:root:not([data-theme="light"]):not([data-theme="dark"]) .logo-light {
-  @media (prefers-color-scheme: dark) {
+  .logo-light {
     display: none;
   }
 }

@@ -51,7 +51,6 @@ public class PlatformSettingsService {
         settings.setSecondaryColor(request.secondaryColor());
         settings.setBackgroundColor(request.backgroundColor());
         settings.setFontFamily(request.fontFamily());
-        settings.setTheme(request.theme());
 
         settings.setSeoDefaultTitle(request.seoDefaultTitle());
         settings.setSeoDefaultDescription(request.seoDefaultDescription());
