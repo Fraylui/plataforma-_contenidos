@@ -16,6 +16,7 @@ import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.search.api.dto.SearchPageResponse;
 import pe.plataformacontenidos.search.api.dto.SearchResultResponse;
+import pe.plataformacontenidos.series.SeriesService;
 import pe.plataformacontenidos.taxonomy.CategoryService;
 
 /**
@@ -26,7 +27,7 @@ import pe.plataformacontenidos.taxonomy.CategoryService;
  * contenido distintos ese puntaje no es directamente comparable (viene de
  * columnas tsvector separadas), así que la fusión ordena por fecha de
  * publicación — más simple y honesto que fingir una relevancia cruzada que
- * no existe. categoryId es el único filtro fino que aplica a los 6 tipos;
+ * no existe. categoryId es el único filtro fino que aplica a todos los tipos;
  * from/to (rango de fechas) solo tiene efecto en Evento, que es el único con
  * una fecha propia con sentido de filtro.
  */
@@ -44,15 +45,18 @@ public class SearchService {
     private final EventService eventService;
     private final GalleryService galleryService;
     private final BusinessService businessService;
+    private final SeriesService seriesService;
     private final CategoryService categoryService;
 
     public SearchService(ArticleService articleService, PlaceService placeService, EventService eventService,
-            GalleryService galleryService, BusinessService businessService, CategoryService categoryService) {
+            GalleryService galleryService, BusinessService businessService, SeriesService seriesService,
+            CategoryService categoryService) {
         this.articleService = articleService;
         this.placeService = placeService;
         this.eventService = eventService;
         this.galleryService = galleryService;
         this.businessService = businessService;
+        this.seriesService = seriesService;
         this.categoryService = categoryService;
     }
 
@@ -83,6 +87,10 @@ public class SearchService {
         if (type == null || type == SearchResultType.BUSINESS) {
             businessService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
                     .forEach(b -> combined.add(SearchResultResponse.fromBusiness(b)));
+        }
+        if (type == null || type == SearchResultType.EPISODE) {
+            seriesService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
+                    .forEach(e -> combined.add(SearchResultResponse.fromEpisode(e.episode(), e.series())));
         }
         addCategoryMatches(combined, query, type, categoryId, from, to);
         combined.sort(Comparator.comparing(SearchResultResponse::publishedAt).reversed());
@@ -142,6 +150,10 @@ public class SearchService {
             if (type == null || type == SearchResultType.BUSINESS) {
                 businessService.listPublished(id, null, pageable)
                         .forEach(b -> addIfNew(combined, seen, SearchResultResponse.fromBusiness(b)));
+            }
+            if (type == null || type == SearchResultType.EPISODE) {
+                seriesService.listPublishedForFeed(id, pageable)
+                        .forEach(e -> addIfNew(combined, seen, SearchResultResponse.fromEpisode(e.episode(), e.series())));
             }
         }
     }

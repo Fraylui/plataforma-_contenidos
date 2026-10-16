@@ -108,6 +108,7 @@ describe("fromSearchResult", () => {
       hasVideo: true,
       publishedAt: null,
       eventStartsAt: "2026-11-05T15:00:00Z",
+      seriesSlug: null,
     });
     expect(item).toMatchObject({
       kind: "evento",
@@ -117,5 +118,24 @@ describe("fromSearchResult", () => {
       likeCount: 0,
       images: [{ url: "https://example.com/a.jpg", isExternal: true }],
     });
+  });
+
+  it("un episodio enlaza dentro de su serie y su «me gusta» va por id", async () => {
+    const { fromSearchResult } = await import("./home-items");
+    const item = fromSearchResult({
+      contentType: "EPISODE",
+      id: "ep1",
+      slug: "episodio-1",
+      title: "Episodio 1",
+      excerpt: null,
+      categoryId: "c1",
+      featuredImageId: null,
+      featuredImageUrl: "https://i.ytimg.com/vi/aaaaaaaaaa1/hqdefault.jpg",
+      hasVideo: true,
+      publishedAt: "2026-10-01T15:00:00Z",
+      eventStartsAt: null,
+      seriesSlug: "viajes",
+    });
+    expect(item).toMatchObject({ kind: "episodio", href: "/series/viajes/episodio-1", likeKey: "ep1", typeLabel: "Episodio" });
   });
 });

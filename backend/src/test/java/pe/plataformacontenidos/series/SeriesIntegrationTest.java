@@ -201,6 +201,50 @@ class SeriesIntegrationTest {
                 .andExpect(jsonPath("$.coverImageId").doesNotExist());
     }
 
+    /** Los episodios se encuentran en el buscador: por su título y por el nombre del programa. */
+    @Test
+    void publishedEpisodesAreSearchableByTitleAndBySeriesName() throws Exception {
+        entries.add(entry("aaaaaaaaaa4", "Episodio 4: el quirquinchozafiro", "2026-10-12T15:00:00Z"));
+        String body = mockMvc.perform(post("/api/v1/admin/series").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"playlistUrl\":\"" + playlistId + "\",\"title\":\"Viajes vicuñatronicos\",\"categoryId\":\""
+                                + category() + "\"}"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        JsonNode series = objectMapper.readTree(body);
+        String id = series.get("id").asText();
+        String slug = series.get("slug").asText();
+
+        // Serie en borrador: sus episodios no salen
+        mockMvc.perform(get("/api/v1/search").param("q", "quirquinchozafiro"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(0));
+
+        mockMvc.perform(post("/api/v1/admin/series/" + id + "/publish").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/search").param("q", "quirquinchozafiro"))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.items[0].contentType").value("EPISODE"))
+                .andExpect(jsonPath("$.items[0].slug").value("episodio-4-el-quirquinchozafiro"))
+                .andExpect(jsonPath("$.items[0].seriesSlug").value(slug))
+                .andExpect(jsonPath("$.items[0].featuredImageUrl").value("https://i.ytimg.com/vi/aaaaaaaaaa4/hqdefault.jpg"));
+
+        // Sin tilde y por el nombre del programa: trae todos sus episodios
+        mockMvc.perform(get("/api/v1/search").param("q", "vicunatronicos").param("type", "EPISODE"))
+                .andExpect(jsonPath("$.totalElements").value(3));
+
+        // Un episodio archivado deja de aparecer
+        String episodeId = objectMapper.readTree(mockMvc.perform(get("/api/v1/admin/series/" + id + "/episodes")
+                        .header("Authorization", "Bearer " + token)).andReturn().getResponse().getContentAsString())
+                .get("items").get(0).get("id").asText();
+        mockMvc.perform(post("/api/v1/admin/series/" + id + "/episodes/" + episodeId + "/archive")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/search").param("q", "quirquinchozafiro"))
+                .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
     @Test
     void withoutTheSeriesModuleThePanelIsClosed() throws Exception {
         String outsider = login(TestProfile.SIN_PERMISOS);

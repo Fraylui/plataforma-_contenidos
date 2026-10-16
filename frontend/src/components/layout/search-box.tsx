@@ -11,6 +11,7 @@ import {
   MagnifyingGlass,
   MapPin,
   Notepad,
+  Television,
   X,
   type Icon,
 } from "@phosphor-icons/react";
@@ -29,6 +30,7 @@ const TYPE_ICON: Record<SearchResultType, Icon> = {
   EVENT: CalendarBlank,
   GALLERY: ImagesSquare,
   BUSINESS: Buildings,
+  EPISODE: Television,
 };
 
 const noopSubscribe = () => () => {};
@@ -139,7 +141,7 @@ export function SearchBox({
 
   function selectResult(item: SearchResult) {
     setOpen(false);
-    router.push(searchResultHref(item.contentType, item.slug));
+    router.push(searchResultHref(item));
     onNavigate?.();
   }
 

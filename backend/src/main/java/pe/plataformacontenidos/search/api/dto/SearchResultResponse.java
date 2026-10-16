@@ -8,6 +8,8 @@ import pe.plataformacontenidos.events.Event;
 import pe.plataformacontenidos.galleries.Gallery;
 import pe.plataformacontenidos.places.Place;
 import pe.plataformacontenidos.search.SearchResultType;
+import pe.plataformacontenidos.series.Episode;
+import pe.plataformacontenidos.series.Series;
 import pe.plataformacontenidos.shared.ContentImage;
 
 /**
@@ -33,7 +35,9 @@ public record SearchResultResponse(
         boolean hasVideo,
         Instant publishedAt,
         /** Solo Evento la trae (rango de fechas del buscador) — null en los demás tipos. */
-        Instant eventStartsAt) {
+        Instant eventStartsAt,
+        /** Solo Episodio: su URL es /series/{seriesSlug}/{slug} — null en los demás tipos. */
+        String seriesSlug) {
 
     public static SearchResultResponse fromArticle(Article article) {
         ContentImage cover = article.getCoverImage();
@@ -48,6 +52,7 @@ public record SearchResultResponse(
                 cover == null ? null : cover.getExternalUrl(),
                 !article.getVideos().isEmpty(),
                 article.getPublishedAt(),
+                null,
                 null);
     }
 
@@ -64,6 +69,7 @@ public record SearchResultResponse(
                 cover == null ? null : cover.getExternalUrl(),
                 !place.getVideos().isEmpty(),
                 place.getPublishedAt(),
+                null,
                 null);
     }
 
@@ -80,7 +86,8 @@ public record SearchResultResponse(
                 cover == null ? null : cover.getExternalUrl(),
                 !event.getVideos().isEmpty(),
                 event.getPublishedAt(),
-                event.getStartsAt());
+                event.getStartsAt(),
+                null);
     }
 
     public static SearchResultResponse fromGallery(Gallery gallery) {
@@ -96,6 +103,7 @@ public record SearchResultResponse(
                 cover == null ? null : cover.getExternalUrl(),
                 false,
                 gallery.getPublishedAt(),
+                null,
                 null);
     }
 
@@ -112,6 +120,24 @@ public record SearchResultResponse(
                 cover == null ? null : cover.getExternalUrl(),
                 !business.getVideos().isEmpty(),
                 business.getPublishedAt(),
+                null,
                 null);
+    }
+
+    /** Episodio: portada = miniatura de YouTube (igual que en el feed); tema = el de su serie. */
+    public static SearchResultResponse fromEpisode(Episode episode, Series series) {
+        return new SearchResultResponse(
+                SearchResultType.EPISODE,
+                episode.getId(),
+                episode.getSlug(),
+                episode.getTitle(),
+                episode.getDescription(),
+                series.getCategoryId(),
+                null,
+                "https://i.ytimg.com/vi/" + episode.getYoutubeVideoId() + "/hqdefault.jpg",
+                true,
+                episode.getPublishedAt(),
+                null,
+                series.getSlug());
     }
 }

@@ -275,6 +275,18 @@ public class SeriesService {
                 .toList();
     }
 
+    /** Buscador (CONTEXTO.md §16): mismo criterio que el resto de módulos.search (en blanco: nada). */
+    @Transactional(readOnly = true)
+    public List<FeedEpisode> search(String query, UUID categoryId, Pageable pageable) {
+        if (query == null || query.isBlank()) {
+            return List.of();
+        }
+        List<Episode> episodes = episodeRepository.search(query.trim(), categoryId, pageable);
+        Map<UUID, Series> series = seriesRepository.findAllById(episodes.stream().map(Episode::getSeriesId).distinct().toList())
+                .stream().collect(Collectors.toMap(Series::getId, Function.identity()));
+        return episodes.stream().map(e -> new FeedEpisode(e, series.get(e.getSeriesId()))).toList();
+    }
+
     // ---------- ayudas ----------
 
     private int importEntries(Series series, List<YouTubePlaylistFeed.FeedEntry> entries) {

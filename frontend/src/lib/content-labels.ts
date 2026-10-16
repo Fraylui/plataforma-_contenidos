@@ -1,4 +1,4 @@
-import type { ArticleType, BusinessType, SearchResultType, PublicationStatus } from "@/lib/api/types";
+import type { ArticleType, BusinessType, SearchResult, SearchResultType, PublicationStatus } from "@/lib/api/types";
 import type { BadgeTone } from "@/components/ui";
 import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
@@ -132,6 +132,7 @@ const SEARCH_RESULT_TYPE_LABEL: Record<SearchResultType, string> = {
   EVENT: "Evento",
   GALLERY: "Galería",
   BUSINESS: "Directorio",
+  EPISODE: "Episodio",
 };
 
 export function searchResultTypeLabel(type: SearchResultType): string {
@@ -144,10 +145,13 @@ const SEARCH_RESULT_TYPE_PATH: Record<SearchResultType, string> = {
   EVENT: "eventos",
   GALLERY: "galerias",
   BUSINESS: "directorio",
+  EPISODE: "series",
 };
 
-export function searchResultHref(type: SearchResultType, slug: string): string {
-  return `/${SEARCH_RESULT_TYPE_PATH[type]}/${slug}`;
+/** Un episodio vive dentro de su serie: /series/{seriesSlug}/{slug}. */
+export function searchResultHref(result: Pick<SearchResult, "contentType" | "slug" | "seriesSlug">): string {
+  if (result.contentType === "EPISODE") return `/series/${result.seriesSlug}/${result.slug}`;
+  return `/${SEARCH_RESULT_TYPE_PATH[result.contentType]}/${result.slug}`;
 }
 
 export function isEventFinished(event: { startsAt: string; endsAt: string | null }): boolean {

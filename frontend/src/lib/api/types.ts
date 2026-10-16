@@ -62,8 +62,8 @@ export interface Article {
   likeCount: number;
 }
 
-/** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de Artículos, Lugares, Eventos, Galerías y Directorio. */
-export type SearchResultType = "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS";
+/** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de todos los tipos buscables. */
+export type SearchResultType = "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS" | "EPISODE";
 
 export interface SearchResult {
   contentType: SearchResultType;
@@ -78,6 +78,8 @@ export interface SearchResult {
   publishedAt: string | null;
   /** Solo Evento la trae (rango de fechas del buscador) — null en los demás tipos. */
   eventStartsAt: string | null;
+  /** Solo Episodio: la URL es /series/{seriesSlug}/{slug}. */
+  seriesSlug: string | null;
 }
 
 export interface PageResponse<T> {

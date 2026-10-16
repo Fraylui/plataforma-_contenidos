@@ -1,6 +1,6 @@
 import "server-only";
 import type { FeedItem, SearchResult } from "@/lib/api/types";
-import { formatEventDateTime } from "@/lib/content-labels";
+import { formatEventDateTime, searchResultHref } from "@/lib/content-labels";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { KIND_LABEL, type HomeItemKind } from "@/lib/content-kind";
 
@@ -139,8 +139,8 @@ export function fromSearchResult(r: SearchResult): HomeItem {
     id: r.id,
     kind,
     slug: r.slug,
-    likeKey: r.slug,
-    href: `${FEED_HREF_PREFIX[kind]}/${r.slug}`,
+    likeKey: r.contentType === "EPISODE" ? r.id : r.slug,
+    href: searchResultHref(r),
     likeCount: 0,
     title: r.title,
     excerpt: r.excerpt,

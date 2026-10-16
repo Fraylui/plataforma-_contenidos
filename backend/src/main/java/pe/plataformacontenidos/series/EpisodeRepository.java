@@ -48,6 +48,24 @@ public interface EpisodeRepository extends JpaRepository<Episode, UUID> {
     List<Object[]> findPublishedForFeed(@Param("allTopics") boolean allTopics,
             @Param("categoryIds") Collection<UUID> categoryIds, Pageable pageable);
 
+    /**
+     * Búsqueda de texto (CONTEXTO.md §16, V60): episodios publicados de series
+     * publicadas cuyo texto, o el nombre de su serie, coincide. Mismo esquema,
+     * así que el join es legítimo (§38 solo prohíbe cruzar esquemas).
+     */
+    @Query(value = """
+            SELECT e.* FROM series.episodes e
+              JOIN series.series s ON s.id = e.series_id
+            WHERE e.status = 'PUBLISHED' AND s.status = 'PUBLISHED'
+            AND (e.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
+                 OR s.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query)))
+            AND (:categoryId IS NULL OR s.category_id = :categoryId)
+            ORDER BY ts_rank(e.search_vector, websearch_to_tsquery('spanish', public.immutable_unaccent(:query))) DESC,
+                     e.published_at DESC
+            """,
+            nativeQuery = true)
+    List<Episode> search(@Param("query") String query, @Param("categoryId") UUID categoryId, Pageable pageable);
+
     /** Siguiente episodio (más nuevo) y anterior (más viejo) de uno dado. */
     Optional<Episode> findFirstBySeriesIdAndStatusAndPublishedAtGreaterThanOrderByPublishedAtAsc(UUID seriesId,
             Episode.Status status, java.time.Instant publishedAt);
