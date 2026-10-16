@@ -47,7 +47,7 @@ export function ChangePasswordForm({ temporary }: { temporary: boolean }) {
   }
 
   return (
-    <Card className="max-w-md">
+    <Card>
       <form onSubmit={handleSubmit(submit)} noValidate className="flex flex-col gap-4">
         <div className="flex items-center gap-3">
           <span className="flex size-10 items-center justify-center rounded-full bg-accent-soft text-accent">

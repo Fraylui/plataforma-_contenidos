@@ -5,7 +5,7 @@ import { requireAdminUser } from "@/lib/admin/auth";
 import { listWorkers } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { detectTemplate } from "@/lib/admin/worker-templates";
-import { formatPublishedDate } from "@/lib/content-labels";
+import { formatShortDate } from "@/lib/content-labels";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
 import { Badge } from "@/components/ui";
@@ -29,7 +29,7 @@ export default async function WorkersPage() {
       {workers.length === 0 ? (
         <EmptyState title="Todavía no hay trabajadores" />
       ) : (
-        <ul className="mt-6 flex max-w-3xl flex-col gap-2">
+        <ul className="mt-6 flex flex-col gap-2">
           {workers.map((worker) => (
             <li key={worker.id}>
               <Link
@@ -42,13 +42,19 @@ export default async function WorkersPage() {
                 >
                   {worker.firstName.charAt(0)}
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[15px] font-semibold text-foreground">
-                    {worker.firstName} {worker.lastName}
+                <span className="min-w-0 flex-1 lg:grid lg:grid-cols-[minmax(0,1fr)_12rem_14rem] lg:items-center lg:gap-4">
+                  <span className="min-w-0">
+                    <span className="block truncate text-[15px] font-semibold text-foreground">
+                      {worker.firstName} {worker.lastName}
+                    </span>
+                    <span className="block truncate text-sm text-muted">{worker.email}</span>
                   </span>
-                  <span className="block truncate text-sm text-muted">
-                    {worker.email} · {detectTemplate(worker.permissions)}
-                    {worker.lastLoginAt ? ` · último ingreso ${formatPublishedDate(worker.lastLoginAt)}` : " · aún no ingresa"}
+                  <span className="mt-1 block text-sm text-foreground lg:mt-0">
+                    <span className="sr-only">Permisos: </span>
+                    {detectTemplate(worker.permissions)}
+                  </span>
+                  <span className="block text-sm text-muted">
+                    {worker.lastLoginAt ? `Último ingreso: ${formatShortDate(worker.lastLoginAt)}` : "Aún no ingresa"}
                   </span>
                 </span>
                 {worker.status !== "ACTIVE" && <Badge tone="neutral" dot>Desactivado</Badge>}

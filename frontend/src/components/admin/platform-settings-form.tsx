@@ -6,7 +6,7 @@ import type { PlatformSettings } from "@/lib/api/types";
 import type { PlatformSettingsInput } from "@/lib/api/admin-types";
 import { updatePlatformSettingsAction } from "@/app/admin/(protected)/configuracion/actions";
 import { FormError } from "@/components/admin/ui";
-import { Button, Checkbox, Combobox, Field, TextArea, TextInput } from "@/components/ui";
+import { Button, Card, Checkbox, Combobox, Field, TextArea, TextInput } from "@/components/ui";
 import { InlineImageUpload } from "@/components/admin/inline-image-upload";
 import { imageUrl } from "@/lib/image-url";
 import { COUNTRY_OPTIONS } from "@/lib/countries";
@@ -169,12 +169,13 @@ const NAV_ITEMS = [
   { id: "publicidad", label: "Publicidad y AdSense" },
 ] as const;
 
-/** Misma tarjeta que el resto del panel (los compositores de contenido): border-border/60 bg-surface, sin shadow. */
+/** Una sección del formulario: la misma Card del resto del panel, con ancla para el índice de la izquierda. */
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
-    <div id={id} className="scroll-mt-24 rounded-card bg-surface shadow-card p-5">
-      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
+    <div id={id} className="scroll-mt-24">
+      <Card title={title}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
+      </Card>
     </div>
   );
 }
