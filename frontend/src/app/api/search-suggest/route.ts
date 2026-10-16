@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const MAX_SIZE = 8;
-const SEARCH_TYPES = new Set(["PUBLICATION", "PLACE", "EVENT", "GALLERY", "BUSINESS", "EPISODE"]);
+const SEARCH_TYPES = new Set(["PUBLICATION", "PLACE", "CELEBRATION", "GALLERY", "BUSINESS", "EPISODE"]);
 
 /**
  * Proxy de GET /api/v1/search (público, sin autenticación) para las

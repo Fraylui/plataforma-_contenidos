@@ -78,7 +78,7 @@ class AuthorizationMatrixIntegrationTest {
     /** Endpoints de contenido a los que llega cualquier miembro del equipo (Creador incluido). */
     static Stream<String> creatorEndpoints() {
         return Stream.of("/api/v1/admin/publications", "/api/v1/admin/images", "/api/v1/admin/places",
-                "/api/v1/admin/events", "/api/v1/admin/galleries", "/api/v1/admin/directory");
+                "/api/v1/admin/celebrations", "/api/v1/admin/galleries", "/api/v1/admin/directory");
     }
 
     static Stream<Arguments> everyAdminEndpoint() {
@@ -90,7 +90,7 @@ class AuthorizationMatrixIntegrationTest {
     }
 
     static Stream<String> publicReadOnlyCollections() {
-        return Stream.of("/api/v1/publications", "/api/v1/places", "/api/v1/events", "/api/v1/galleries",
+        return Stream.of("/api/v1/publications", "/api/v1/places", "/api/v1/celebrations", "/api/v1/galleries",
                 "/api/v1/directory", "/api/v1/categories");
     }
 

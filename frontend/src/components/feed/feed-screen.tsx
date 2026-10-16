@@ -7,7 +7,7 @@ import {
   getTopLiked,
   listActiveAdPlacements,
   listActiveCategories,
-  listPublishedEvents,
+  listPublishedCelebrations,
   listTodayCelebrations,
 } from "@/lib/api/client";
 import type { AdSection } from "@/lib/ads/ad-context";
@@ -24,7 +24,7 @@ import { RightColumn } from "./right-column";
 import type { FeedFilter } from "./use-feed-pages";
 
 const FEED_INITIAL_SIZE = 12;
-const UPCOMING_EVENTS_SIZE = 4;
+const UPCOMING_CELEBRATIONS_SIZE = 4;
 
 /**
  * Pantalla de feed, la misma para el inicio, las secciones (Publicaciones,
@@ -64,16 +64,16 @@ export async function FeedScreen({
   intro?: { title: string; description: string | null };
 }) {
   const seed = `${activePath}${filter.categoryId ?? ""}-${new Date().toISOString().slice(0, 13)}`;
-  const celebrations = filter.sort === "upcoming";
+  const celebrationsFeed = filter.sort === "upcoming";
   // «Hoy se celebra» va en el inicio y en Celebraciones; no en cada sección ni tema.
-  const showToday = activePath === "/" || celebrations;
-  const [settings, categories, topics, feedPage, events, visibility, placements, topLikedRaw, liveNow, todayCelebrations] = await Promise.all([
+  const showToday = activePath === "/" || celebrationsFeed;
+  const [settings, categories, topics, feedPage, upcoming, visibility, placements, topLikedRaw, liveNow, todayCelebrations] = await Promise.all([
     getPlatformSettings(),
     listActiveCategories(),
     getFeedTopics().catch(() => []),
     getFeed({ size: FEED_INITIAL_SIZE, seed, ...filter }),
     // En Celebraciones las próximas ya son el feed: la columna no las repite.
-    celebrations ? Promise.resolve({ items: [] }) : listPublishedEvents({ when: "upcoming", size: UPCOMING_EVENTS_SIZE }),
+    celebrationsFeed ? Promise.resolve({ items: [] }) : listPublishedCelebrations({ when: "upcoming", size: UPCOMING_CELEBRATIONS_SIZE }),
     getPrimaryNavVisibility(),
     listActiveAdPlacements(),
     getTopLiked(5).catch(() => []),
@@ -131,7 +131,7 @@ export async function FeedScreen({
       <aside aria-label="Más para descubrir" className="hidden w-[22.5rem] shrink-0 xl:block">
         {/* Alto de pantalla bajo la franja superior (h-16), con desplazamiento propio sin barra visible. */}
         <div className="sticky top-16 h-[calc(100dvh-4rem)] overflow-y-auto px-5 py-6 no-scrollbar">
-          <RightColumn events={events.items} topLiked={topLiked} categoryNames={categoryNames} adSection={adSection} />
+          <RightColumn celebrations={upcoming.items} topLiked={topLiked} categoryNames={categoryNames} adSection={adSection} />
         </div>
       </aside>
     </div>

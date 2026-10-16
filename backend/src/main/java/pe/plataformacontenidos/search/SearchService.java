@@ -11,7 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import pe.plataformacontenidos.content.PublicationService;
 import pe.plataformacontenidos.directory.BusinessService;
-import pe.plataformacontenidos.events.EventService;
+import pe.plataformacontenidos.celebrations.CelebrationService;
 import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.search.api.dto.SearchPageResponse;
@@ -42,18 +42,18 @@ public class SearchService {
 
     private final PublicationService publicationService;
     private final PlaceService placeService;
-    private final EventService eventService;
+    private final CelebrationService celebrationService;
     private final GalleryService galleryService;
     private final BusinessService businessService;
     private final SeriesService seriesService;
     private final CategoryService categoryService;
 
-    public SearchService(PublicationService publicationService, PlaceService placeService, EventService eventService,
+    public SearchService(PublicationService publicationService, PlaceService placeService, CelebrationService celebrationService,
             GalleryService galleryService, BusinessService businessService, SeriesService seriesService,
             CategoryService categoryService) {
         this.publicationService = publicationService;
         this.placeService = placeService;
-        this.eventService = eventService;
+        this.celebrationService = celebrationService;
         this.galleryService = galleryService;
         this.businessService = businessService;
         this.seriesService = seriesService;
@@ -76,9 +76,9 @@ public class SearchService {
             placeService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
                     .forEach(p -> combined.add(SearchResultResponse.fromPlace(p)));
         }
-        if (type == null || type == SearchResultType.EVENT) {
-            eventService.search(query, categoryId, from, to, PageRequest.of(0, MERGE_FETCH_LIMIT))
-                    .forEach(e -> combined.add(SearchResultResponse.fromEvent(e)));
+        if (type == null || type == SearchResultType.CELEBRATION) {
+            celebrationService.search(query, categoryId, from, to, PageRequest.of(0, MERGE_FETCH_LIMIT))
+                    .forEach(e -> combined.add(SearchResultResponse.fromCelebration(e)));
         }
         if (type == null || type == SearchResultType.GALLERY) {
             galleryService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
@@ -134,13 +134,13 @@ public class SearchService {
                 placeService.listPublished(id, pageable)
                         .forEach(p -> addIfNew(combined, seen, SearchResultResponse.fromPlace(p)));
             }
-            if (type == null || type == SearchResultType.EVENT) {
+            if (type == null || type == SearchResultType.CELEBRATION) {
                 // Próximos y pasados: la búsqueda de texto tampoco distingue.
                 for (boolean upcoming : new boolean[] {true, false}) {
-                    eventService.listPublished(id, upcoming, pageable).stream()
+                    celebrationService.listPublished(id, upcoming, pageable).stream()
                             .filter(e -> from == null || !e.getNextOccurrence().isBefore(from))
                             .filter(e -> to == null || !e.getNextOccurrence().isAfter(to))
-                            .forEach(e -> addIfNew(combined, seen, SearchResultResponse.fromEvent(e)));
+                            .forEach(e -> addIfNew(combined, seen, SearchResultResponse.fromCelebration(e)));
                 }
             }
             if (type == null || type == SearchResultType.GALLERY) {

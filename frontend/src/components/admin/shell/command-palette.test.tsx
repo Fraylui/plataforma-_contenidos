@@ -7,10 +7,10 @@ import { CommandPaletteProvider, CommandPaletteTrigger } from "./command-palette
 
 const NAV = [
   { href: "/admin", label: "Inicio" },
-  { href: "/admin/eventos", label: "Celebraciones" },
+  { href: "/admin/celebraciones", label: "Celebraciones" },
   { href: "/admin/cuenta", label: "Mi cuenta" },
 ];
-const CREATE = [{ label: "Evento", href: "/admin/eventos/nuevo" }];
+const CREATE = [{ label: "Celebración", href: "/admin/celebraciones/nuevo" }];
 
 function renderPalette() {
   const push = vi.fn();
@@ -29,7 +29,7 @@ describe("Paleta de comandos del panel", () => {
     fireEvent.keyDown(window, { key: "k", ctrlKey: true });
     expect(await screen.findByRole("dialog", { name: "Buscar o ir a" })).toBeInTheDocument();
     expect(screen.getByText("Ir a")).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Crear evento" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Crear celebración" })).toBeInTheDocument();
   });
 
   it("también se abre con el botón y escribir filtra; Enter navega", async () => {

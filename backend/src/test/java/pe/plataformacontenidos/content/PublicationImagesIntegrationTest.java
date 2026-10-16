@@ -32,7 +32,7 @@ import tools.jackson.databind.ObjectMapper;
 /**
  * Imágenes de publicaciones (sección 43): varias por publicación, cada una
  * subida (imageId) o por enlace externo (externalUrl) — mismo patrón de
- * validación que Place/Event.images.
+ * validación que Place/Celebration.images.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc

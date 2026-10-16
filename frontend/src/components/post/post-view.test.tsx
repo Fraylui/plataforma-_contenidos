@@ -85,8 +85,8 @@ describe("GridTile", () => {
     expect(screen.getByLabelText("Varias imágenes")).toBeInTheDocument();
     rerender(<GridTile item={tile({ hasVideo: true })} />);
     expect(screen.getByLabelText("Video")).toBeInTheDocument();
-    rerender(<GridTile item={tile({ kind: "evento", typeLabel: "Evento" })} />);
-    expect(screen.getByLabelText("Evento")).toBeInTheDocument();
+    rerender(<GridTile item={tile({ kind: "celebracion", typeLabel: "Celebración" })} />);
+    expect(screen.getByLabelText("Celebración")).toBeInTheDocument();
     expect(screen.getByRole("link")).toHaveAccessibleName(/Mirador/);
   });
 });

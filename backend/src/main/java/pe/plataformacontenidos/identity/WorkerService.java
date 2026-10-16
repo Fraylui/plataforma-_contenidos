@@ -161,7 +161,7 @@ public class WorkerService {
         });
     }
 
-    /** "EVENTS: — → PUBLISH; ADVERTISING: ACCESS → —", en el orden de los módulos y solo lo que cambió. */
+    /** "CELEBRATIONS: — → PUBLISH; ADVERTISING: ACCESS → —", en el orden de los módulos y solo lo que cambió. */
     static String describe(Map<Module, AccessLevel> before, Map<Module, AccessLevel> after) {
         Map<Module, AccessLevel> old = new EnumMap<>(Module.class);
         old.putAll(before);

@@ -43,7 +43,7 @@ class AccountStateIntegrationTest {
 
     private User worker(boolean mustChangePassword) {
         User user = userRepository.save(new User(UUID.randomUUID() + "@state.test", passwordEncoder.encode(PASSWORD), "A", "B", Role.WORKER));
-        permissions.save(new WorkerPermission(user.getId(), Module.EVENTS, AccessLevel.PUBLISH));
+        permissions.save(new WorkerPermission(user.getId(), Module.CELEBRATIONS, AccessLevel.PUBLISH));
         jdbc.update("UPDATE identity.users SET must_change_password = ? WHERE id = ?", mustChangePassword, user.getId());
         return user;
     }
@@ -61,21 +61,21 @@ class AccountStateIntegrationTest {
         JsonNode tokens = login(user.getEmail(), PASSWORD);
         String token = tokens.get("accessToken").asText();
 
-        mockMvc.perform(get("/api/v1/admin/events").header("Authorization", "Bearer " + token))
+        mockMvc.perform(get("/api/v1/admin/celebrations").header("Authorization", "Bearer " + token))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("PASSWORD_CHANGE_REQUIRED"));
         mockMvc.perform(get("/api/v1/users/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.mustChangePassword").value(true))
                 .andExpect(jsonPath("$.role").value("WORKER"))
-                .andExpect(jsonPath("$.permissions.EVENTS").value("PUBLISH"));
+                .andExpect(jsonPath("$.permissions.CELEBRATIONS").value("PUBLISH"));
 
         mockMvc.perform(post("/api/v1/users/me/password").header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"currentPassword\":\"" + PASSWORD + "\",\"newPassword\":\"MiClaveNueva2026\"}"))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(get("/api/v1/admin/events").header("Authorization", "Bearer " + token)).andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/admin/celebrations").header("Authorization", "Bearer " + token)).andExpect(status().isOk());
         // Las demás sesiones (refresh tokens anteriores) quedan cerradas.
         mockMvc.perform(post("/api/v1/auth/refresh").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"refreshToken\":\"" + tokens.get("refreshToken").asText() + "\"}"))
@@ -102,11 +102,11 @@ class AccountStateIntegrationTest {
     void disabledAccountIsRejectedImmediatelyEvenWithAValidToken() throws Exception {
         User user = worker(false);
         String token = login(user.getEmail(), PASSWORD).get("accessToken").asText();
-        mockMvc.perform(get("/api/v1/admin/events").header("Authorization", "Bearer " + token)).andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/admin/celebrations").header("Authorization", "Bearer " + token)).andExpect(status().isOk());
 
         jdbc.update("UPDATE identity.users SET status = 'DISABLED' WHERE id = ?", user.getId());
 
-        mockMvc.perform(get("/api/v1/admin/events").header("Authorization", "Bearer " + token))
+        mockMvc.perform(get("/api/v1/admin/celebrations").header("Authorization", "Bearer " + token))
                 .andExpect(status().isUnauthorized());
         assertThat(userRepository.findById(user.getId())).isPresent();
     }

@@ -4,7 +4,7 @@ package pe.plataformacontenidos.search;
 public enum SearchResultType {
     PUBLICATION,
     PLACE,
-    EVENT,
+    CELEBRATION,
     GALLERY,
     BUSINESS,
     /** Episodio de una serie: la URL es /series/{seriesSlug}/{slug}. */

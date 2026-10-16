@@ -32,7 +32,7 @@ describe("ExploreGrid — cuadrícula de descubrimiento (Instagram)", () => {
     const items = [
       item(1, { images: [{ url: "/a.jpg", isExternal: false }, { url: "/b.jpg", isExternal: false }] }),
       item(2, { hasVideo: true }),
-      item(3, { kind: "evento", href: "/celebraciones/e-3", typeLabel: "Evento" }),
+      item(3, { kind: "celebracion", href: "/celebraciones/e-3", typeLabel: "Celebración" }),
     ];
     render(<ExploreGrid initialItems={items} initialHasMore={false} seed="s" />);
     const grid = screen.getByRole("list", { name: "Explorar" });
@@ -40,7 +40,7 @@ describe("ExploreGrid — cuadrícula de descubrimiento (Instagram)", () => {
     expect(screen.getByRole("link", { name: /Lugar 1/ })).toHaveAttribute("href", "/lugares/lugar-1");
     expect(screen.getByRole("img", { name: "Varias imágenes" })).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Evento" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Celebración" })).toBeInTheDocument();
   });
 
   it("al llegar al final pide más a /api/feed sin repetir lo visto", async () => {

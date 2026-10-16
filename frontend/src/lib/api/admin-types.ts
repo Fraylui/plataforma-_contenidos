@@ -4,7 +4,7 @@ import type { AdSection } from "@/lib/ads/ad-context";
 import type { PublicationStatus, PublicationType, BusinessType, ContentImage, FeedItemType } from "./types";
 import type { CallToAction, CampaignFormat, NativeMediaAspect } from "./types";
 
-/** Cuerpo de un video en PublicationInput/PlaceInput/EventInput — ver ContentVideoInput.java. */
+/** Cuerpo de un video en PublicationInput/PlaceInput/CelebrationInput — ver ContentVideoInput.java. */
 export interface ContentVideoInput {
   url: string;
   title: string | null;
@@ -18,7 +18,7 @@ export type Role = "OWNER" | "WORKER";
 export type Module =
   | "PUBLICATIONS"
   | "PLACES"
-  | "EVENTS"
+  | "CELEBRATIONS"
   | "GALLERIES"
   | "DIRECTORY"
   | "SERIES"
@@ -108,8 +108,8 @@ export interface PlaceInput {
   robots: string;
 }
 
-/** Cuerpo de POST/PUT /api/v1/admin/events — ver EventRequest.java. */
-export interface EventInput {
+/** Cuerpo de POST/PUT /api/v1/admin/celebrations — ver EventRequest.java. */
+export interface CelebrationInput {
   title: string;
   excerpt: string | null;
   body: string;
@@ -425,7 +425,7 @@ export interface PlatformStats {
   publicationsPublishedLast30Days: number;
   publishedTrendLast30Days: DailyCount[];
   placesByStatus: Record<PublicationStatus, number>;
-  eventsByStatus: Record<PublicationStatus, number>;
+  celebrationsByStatus: Record<PublicationStatus, number>;
   galleriesByStatus: Record<PublicationStatus, number>;
   businessesByStatus: Record<PublicationStatus, number>;
   totalCategories: number;

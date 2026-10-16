@@ -110,10 +110,10 @@ class SessionSecurityIntegrationTest {
 
     /** Hallazgo 2: quien gestiona eventos o directorio elige lugar aunque no tenga el módulo Lugares. */
     @Test
-    void placeOptionsAreAvailableToEventsOrDirectoryWorkers() throws Exception {
-        User eventsOnly = user(Role.WORKER);
-        permissions.save(new WorkerPermission(eventsOnly.getId(), Module.EVENTS, AccessLevel.PUBLISH));
-        String token = login(eventsOnly.getEmail(), PASSWORD).get("accessToken").asText();
+    void placeOptionsAreAvailableToCelebrationsOrDirectoryWorkers() throws Exception {
+        User celebrationsOnly = user(Role.WORKER);
+        permissions.save(new WorkerPermission(celebrationsOnly.getId(), Module.CELEBRATIONS, AccessLevel.PUBLISH));
+        String token = login(celebrationsOnly.getEmail(), PASSWORD).get("accessToken").asText();
         mockMvc.perform(get(PlaceOptionsController.PATH).header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());

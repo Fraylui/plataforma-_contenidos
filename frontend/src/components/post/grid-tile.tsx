@@ -13,7 +13,7 @@ export function GridTile({ item }: { item: HomeItem }) {
   const cover = item.images[0] ?? (item.imageUrl ? { url: item.imageUrl, isExternal: item.imageIsExternal } : null);
   const badge =
     item.hasVideo ? { icon: Play, label: "Video" } :
-    item.kind === "evento" ? { icon: CalendarBlank, label: "Evento" } :
+    item.kind === "celebracion" ? { icon: CalendarBlank, label: "Celebración" } :
     item.images.length > 1 ? { icon: SquaresFour, label: "Varias imágenes" } :
     null;
 

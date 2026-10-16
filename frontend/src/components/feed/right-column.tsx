@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CalendarBlank, Heart } from "@phosphor-icons/react/dist/ssr";
-import type { EventSummary } from "@/lib/api/types";
+import type { CelebrationSummary } from "@/lib/api/types";
 import type { HomeItem } from "@/lib/home-items";
 import { celebrationDateParts, formatCelebrationDate } from "@/lib/celebration-date";
 import { serverImageUrl } from "@/lib/server-image-url";
@@ -26,19 +26,19 @@ function SectionHeader({ id, title, href }: { id: string; title: string; href?: 
   );
 }
 
-function EventRow({ event, categoryName }: { event: EventSummary; categoryName?: string }) {
-  const { day, month } = celebrationDateParts(event.nextOccurrenceAt);
-  const where = event.venueName ?? categoryName;
+function CelebrationRow({ celebration, categoryName }: { celebration: CelebrationSummary; categoryName?: string }) {
+  const { day, month } = celebrationDateParts(celebration.nextOccurrenceAt);
+  const where = celebration.venueName ?? categoryName;
 
   return (
-    <Link href={`/celebraciones/${event.slug}`} className={ROW}>
+    <Link href={`/celebraciones/${celebration.slug}`} className={ROW}>
       {/* Miniatura con la fecha encima (como los eventos de Facebook): foto y día en un solo bloque. */}
       <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-accent-soft">
-        {event.coverImageId ? (
-          <SkeletonImage src={serverImageUrl(`/api/v1/images/${event.coverImageId}/file`)} alt="" className="object-cover" sizes="64px" />
-        ) : event.coverImageUrl ? (
+        {celebration.coverImageId ? (
+          <SkeletonImage src={serverImageUrl(`/api/v1/images/${celebration.coverImageId}/file`)} alt="" className="object-cover" sizes="64px" />
+        ) : celebration.coverImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- enlace externo pegado por quien redacta, host arbitrario
-          <img src={event.coverImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={celebration.coverImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
           <CalendarBlank className="absolute top-2 left-1/2 h-5 w-5 -translate-x-1/2 text-accent" aria-hidden="true" />
         )}
@@ -48,10 +48,10 @@ function EventRow({ event, categoryName }: { event: EventSummary; categoryName?:
         </span>
       </span>
       <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="line-clamp-2 text-[15px] leading-snug font-semibold text-foreground">{event.title}</span>
+        <span className="line-clamp-2 text-[15px] leading-snug font-semibold text-foreground">{celebration.title}</span>
         <span className="truncate text-[13px] text-muted">
-          <time dateTime={event.nextOccurrenceAt}>
-            {formatCelebrationDate({ at: event.nextOccurrenceAt, allDay: event.allDay, recursYearly: event.recursYearly, sinceYear: event.sinceYear })}
+          <time dateTime={celebration.nextOccurrenceAt}>
+            {formatCelebrationDate({ at: celebration.nextOccurrenceAt, allDay: celebration.allDay, recursYearly: celebration.recursYearly, sinceYear: celebration.sinceYear })}
           </time>
           {where && ` · ${where}`}
         </span>
@@ -68,25 +68,25 @@ function EventRow({ event, categoryName }: { event: EventSummary; categoryName?:
  * celular, las celebraciones están en «Más» y dentro del feed.
  */
 export function RightColumn({
-  events,
+  celebrations,
   topLiked,
   categoryNames,
   adSection = "HOME",
 }: {
-  events: EventSummary[];
+  celebrations: CelebrationSummary[];
   topLiked: HomeItem[];
   categoryNames: Record<string, string>;
   adSection?: AdSection;
 }) {
   return (
     <div className="flex flex-col gap-7">
-      {events.length > 0 && (
+      {celebrations.length > 0 && (
         <section aria-labelledby="proximas-celebraciones">
           <SectionHeader id="proximas-celebraciones" title="Próximas celebraciones" href="/celebraciones" />
           <ul className="flex flex-col">
-            {events.map((event) => (
-              <li key={event.id}>
-                <EventRow event={event} categoryName={categoryNames[event.categoryId]} />
+            {celebrations.map((celebration) => (
+              <li key={celebration.id}>
+                <CelebrationRow celebration={celebration} categoryName={categoryNames[celebration.categoryId]} />
               </li>
             ))}
           </ul>

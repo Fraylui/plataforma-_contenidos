@@ -21,8 +21,8 @@ import pe.plataformacontenidos.directory.Business;
 import pe.plataformacontenidos.directory.BusinessService;
 import pe.plataformacontenidos.engagement.ContentLikeService;
 import pe.plataformacontenidos.engagement.ContentType;
-import pe.plataformacontenidos.events.Event;
-import pe.plataformacontenidos.events.EventService;
+import pe.plataformacontenidos.celebrations.Celebration;
+import pe.plataformacontenidos.celebrations.CelebrationService;
 import pe.plataformacontenidos.feed.api.dto.FeedItemResponse;
 import pe.plataformacontenidos.feed.api.dto.FeedPageResponse;
 import pe.plataformacontenidos.feed.api.dto.FeedTopicResponse;
@@ -66,7 +66,7 @@ public class FeedService {
 
     private final PublicationService publicationService;
     private final PlaceService placeService;
-    private final EventService eventService;
+    private final CelebrationService celebrationService;
     private final GalleryService galleryService;
     private final BusinessService businessService;
     private final CategoryService categoryService;
@@ -74,12 +74,12 @@ public class FeedService {
     private final FeedCandidateCache candidateCache;
     private final SeriesService seriesService;
 
-    public FeedService(PublicationService publicationService, PlaceService placeService, EventService eventService,
+    public FeedService(PublicationService publicationService, PlaceService placeService, CelebrationService celebrationService,
             GalleryService galleryService, BusinessService businessService, CategoryService categoryService,
             ContentLikeService contentLikeService, FeedCandidateCache candidateCache, SeriesService seriesService) {
         this.publicationService = publicationService;
         this.placeService = placeService;
-        this.eventService = eventService;
+        this.celebrationService = celebrationService;
         this.galleryService = galleryService;
         this.businessService = businessService;
         this.categoryService = categoryService;
@@ -89,7 +89,7 @@ public class FeedService {
     }
 
     /** Tipos que forman parte del feed (las pestañas del home solo pueden pedir uno de estos). */
-    public static final Set<ContentType> FEED_TYPES = Set.of(ContentType.PUBLICATION, ContentType.PLACE, ContentType.EVENT,
+    public static final Set<ContentType> FEED_TYPES = Set.of(ContentType.PUBLICATION, ContentType.PLACE, ContentType.CELEBRATION,
             ContentType.GALLERY, ContentType.BUSINESS, ContentType.EPISODE);
 
     /**
@@ -98,7 +98,7 @@ public class FeedService {
      * casos; con un solo tipo no se consulta a los otros servicios.
      *
      * <p>{@code categoryId}: solo ese tema y sus subtemas (círculos de temas,
-     * páginas de tema). {@code upcoming} con {@code type=EVENT}: Celebraciones —
+     * páginas de tema). {@code upcoming} con {@code type=CELEBRATION}: Celebraciones —
      * próximos eventos por fecha de inicio, sin diversificar (en una agenda
      * el orden útil es el cronológico).
      */
@@ -115,7 +115,7 @@ public class FeedService {
             Set<UUID> topic = categoryService.descendants(categoryId);
             pool = pool.stream().filter(item -> topic.contains(item.categoryId())).toList();
         }
-        List<FeedItemResponse> ordered = upcoming && type == ContentType.EVENT
+        List<FeedItemResponse> ordered = upcoming && type == ContentType.CELEBRATION
                 ? pool.stream().sorted(Comparator.comparing(FeedItemResponse::startsAt,
                         Comparator.nullsLast(Comparator.naturalOrder()))).toList()
                 : diversify(pool, seed);
@@ -135,8 +135,8 @@ public class FeedService {
                 ? placeService.listPublished(null, pageable).getContent()
                 : List.of();
         // Solo próximos: un feed de descubrimiento no debe recomendar eventos que ya pasaron.
-        List<Event> events = includes(type, ContentType.EVENT)
-                ? eventService.listPublished(null, true, pageable).getContent()
+        List<Celebration> celebrations = includes(type, ContentType.CELEBRATION)
+                ? celebrationService.listPublished(null, true, pageable).getContent()
                 : List.of();
         List<Gallery> galleries = includes(type, ContentType.GALLERY)
                 ? galleryService.listPublished(null, pageable).getContent()
@@ -147,7 +147,7 @@ public class FeedService {
         List<SeriesService.FeedEpisode> episodes = includes(type, ContentType.EPISODE)
                 ? seriesService.listPublishedForFeed(null, EPISODE_POOL)
                 : List.of();
-        return buildPool(publications, places, events, galleries, businesses, episodes);
+        return buildPool(publications, places, celebrations, galleries, businesses, episodes);
     }
 
     private static boolean includes(ContentType requested, ContentType candidate) {
@@ -167,7 +167,7 @@ public class FeedService {
         List<FeedItemResponse> pool = buildPool(
                 publicationService.listPublished(null, pageable).getContent(),
                 placeService.listPublished(null, pageable).getContent(),
-                eventService.listPublished(null, true, pageable).getContent(),
+                celebrationService.listPublished(null, true, pageable).getContent(),
                 galleryService.listPublished(null, pageable).getContent(),
                 businessService.listPublished(null, null, pageable).getContent(),
                 seriesService.listPublishedForFeed(null, EPISODE_POOL));
@@ -194,7 +194,7 @@ public class FeedService {
         List<FeedItemResponse> pool = buildPool(
                 publicationService.listPublished(null, pageable).getContent(),
                 placeService.listPublished(null, pageable).getContent(),
-                eventService.listPublished(null, true, pageable).getContent(),
+                celebrationService.listPublished(null, true, pageable).getContent(),
                 galleryService.listPublished(null, pageable).getContent(),
                 businessService.listPublished(null, null, pageable).getContent(),
                 seriesService.listPublishedForFeed(null, EPISODE_POOL));
@@ -275,13 +275,13 @@ public class FeedService {
 
         List<Publication> publications = publicationService.listPublished(categoryId, pageable).getContent();
         List<Place> places = placeService.listPublished(categoryId, pageable).getContent();
-        List<Event> events = eventService.listPublished(categoryId, true, pageable).getContent();
+        List<Celebration> celebrations = celebrationService.listPublished(categoryId, true, pageable).getContent();
         List<Gallery> galleries = galleryService.listPublished(categoryId, pageable).getContent();
         List<Business> businesses = businessService.listPublished(categoryId, null, pageable).getContent();
         List<SeriesService.FeedEpisode> episodes = seriesService.listPublishedForFeed(categoryId,
                 PageRequest.of(0, RELATED_POOL_LIMIT));
 
-        List<FeedItemResponse> pool = buildPool(publications, places, events, galleries, businesses, episodes).stream()
+        List<FeedItemResponse> pool = buildPool(publications, places, celebrations, galleries, businesses, episodes).stream()
                 .filter(item -> !(item.type() == excludeType && item.id().equals(excludeId)))
                 .toList();
 
@@ -292,14 +292,14 @@ public class FeedService {
                 .toList();
     }
 
-    private List<FeedItemResponse> buildPool(List<Publication> publications, List<Place> places, List<Event> events,
+    private List<FeedItemResponse> buildPool(List<Publication> publications, List<Place> places, List<Celebration> celebrations,
             List<Gallery> galleries, List<Business> businesses, List<SeriesService.FeedEpisode> episodes) {
         Map<UUID, Long> publicationLikes = contentLikeService.countLikes(ContentType.PUBLICATION,
                 publications.stream().map(Publication::getId).toList());
         Map<UUID, Long> placeLikes = contentLikeService.countLikes(ContentType.PLACE,
                 places.stream().map(Place::getId).toList());
-        Map<UUID, Long> eventLikes = contentLikeService.countLikes(ContentType.EVENT,
-                events.stream().map(Event::getId).toList());
+        Map<UUID, Long> celebrationLikes = contentLikeService.countLikes(ContentType.CELEBRATION,
+                celebrations.stream().map(Celebration::getId).toList());
         Map<UUID, Long> galleryLikes = contentLikeService.countLikes(ContentType.GALLERY,
                 galleries.stream().map(Gallery::getId).toList());
         Map<UUID, Long> businessLikes = contentLikeService.countLikes(ContentType.BUSINESS,
@@ -308,10 +308,10 @@ public class FeedService {
                 episodes.stream().map(e -> e.episode().getId()).toList());
 
         List<FeedItemResponse> pool = new ArrayList<>(
-                publications.size() + places.size() + events.size() + galleries.size() + businesses.size() + episodes.size());
+                publications.size() + places.size() + celebrations.size() + galleries.size() + businesses.size() + episodes.size());
         publications.forEach(a -> pool.add(FeedItemResponse.fromPublication(a, publicationLikes.getOrDefault(a.getId(), 0L))));
         places.forEach(p -> pool.add(FeedItemResponse.fromPlace(p, placeLikes.getOrDefault(p.getId(), 0L))));
-        events.forEach(e -> pool.add(FeedItemResponse.fromEvent(e, eventLikes.getOrDefault(e.getId(), 0L))));
+        celebrations.forEach(e -> pool.add(FeedItemResponse.fromCelebration(e, celebrationLikes.getOrDefault(e.getId(), 0L))));
         galleries.forEach(g -> pool.add(FeedItemResponse.fromGallery(g, galleryLikes.getOrDefault(g.getId(), 0L))));
         businesses.forEach(b -> pool.add(FeedItemResponse.fromBusiness(b, businessLikes.getOrDefault(b.getId(), 0L))));
         episodes.forEach(e -> pool.add(FeedItemResponse.fromEpisode(e.episode(), e.series(),

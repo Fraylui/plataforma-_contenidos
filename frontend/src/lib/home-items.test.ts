@@ -84,8 +84,8 @@ describe("fromFeedItem", () => {
   });
 
   it("un evento conserva su fecha de inicio y ordena por ella", () => {
-    const item = fromFeedItem(feedItem({ type: "EVENT", slug: "feria", startsAt: "2030-01-10T19:00:00Z" }));
-    expect(item.kind).toBe("evento");
+    const item = fromFeedItem(feedItem({ type: "CELEBRATION", slug: "feria", startsAt: "2030-01-10T19:00:00Z" }));
+    expect(item.kind).toBe("celebracion");
     expect(item.startsAt).toBe("2030-01-10T19:00:00Z");
     expect(item.sortDate).toBe("2030-01-10T19:00:00Z");
   });
@@ -99,7 +99,7 @@ describe("fromSearchResult", () => {
   it("convierte un resultado de búsqueda en miniatura de cuadrícula (enlace, tipo y portada)", async () => {
     const { fromSearchResult } = await import("./home-items");
     const item = fromSearchResult({
-      contentType: "EVENT",
+      contentType: "CELEBRATION",
       id: "e1",
       slug: "feria",
       title: "Feria",
@@ -109,11 +109,11 @@ describe("fromSearchResult", () => {
       featuredImageUrl: "https://example.com/a.jpg",
       hasVideo: true,
       publishedAt: null,
-      eventStartsAt: "2026-11-05T15:00:00Z",
+      celebrationStartsAt: "2026-11-05T15:00:00Z",
       seriesSlug: null,
     });
     expect(item).toMatchObject({
-      kind: "evento",
+      kind: "celebracion",
       href: "/celebraciones/feria",
       typeLabel: "Celebración",
       hasVideo: true,
@@ -135,7 +135,7 @@ describe("fromSearchResult", () => {
       featuredImageUrl: "https://i.ytimg.com/vi/aaaaaaaaaa1/hqdefault.jpg",
       hasVideo: true,
       publishedAt: "2026-10-01T15:00:00Z",
-      eventStartsAt: null,
+      celebrationStartsAt: null,
       seriesSlug: "viajes",
     });
     expect(item).toMatchObject({ kind: "episodio", href: "/series/viajes/episodio-1", likeKey: "ep1", typeLabel: "Episodio" });

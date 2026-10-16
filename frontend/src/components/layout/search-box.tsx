@@ -27,7 +27,7 @@ const DEBOUNCE_MS = 250;
 const TYPE_ICON: Record<SearchResultType, Icon> = {
   PUBLICATION: Notepad,
   PLACE: MapPin,
-  EVENT: CalendarBlank,
+  CELEBRATION: CalendarBlank,
   GALLERY: ImagesSquare,
   BUSINESS: Buildings,
   EPISODE: Television,

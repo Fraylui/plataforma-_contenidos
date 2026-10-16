@@ -82,9 +82,9 @@ export function PipelineChart({ stats }: { stats: PlatformStats }) {
 }
 
 const CONTENT_TYPE_ROWS: { label: string; key: keyof Pick<PlatformStats,
-  "placesByStatus" | "eventsByStatus" | "galleriesByStatus" | "businessesByStatus"> }[] = [
+  "placesByStatus" | "celebrationsByStatus" | "galleriesByStatus" | "businessesByStatus"> }[] = [
   { label: "Lugares", key: "placesByStatus" },
-  { label: "Celebraciones", key: "eventsByStatus" },
+  { label: "Celebraciones", key: "celebrationsByStatus" },
   { label: "Galerías", key: "galleriesByStatus" },
   { label: "Directorio", key: "businessesByStatus" },
 ];
@@ -227,7 +227,7 @@ export function TotalDistributionDonut({ stats }: { stats: PlatformStats }) {
   const rows = [
     stats.publicationsByStatus,
     stats.placesByStatus,
-    stats.eventsByStatus,
+    stats.celebrationsByStatus,
     stats.galleriesByStatus,
     stats.businessesByStatus,
   ];

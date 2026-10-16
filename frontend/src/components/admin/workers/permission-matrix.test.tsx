@@ -12,16 +12,16 @@ describe("PermissionMatrix", () => {
     const eventos = screen.getByRole("radiogroup", { name: "Celebraciones" });
     expect(within(eventos).getAllByRole("radio").map((r) => r.getAttribute("aria-label") ?? r.textContent)).toEqual(["No", "Publica"]);
     await userEvent.click(within(eventos).getByRole("radio", { name: "Publica" }));
-    expect(onChange).toHaveBeenCalledWith({ EVENTS: "PUBLISH" });
+    expect(onChange).toHaveBeenCalledWith({ CELEBRATIONS: "PUBLISH" });
   });
 
   it("Temas, Estadísticas y Publicidad solo ofrecen No / Sí", async () => {
     const onChange = vi.fn();
-    render(<PermissionMatrix value={{ EVENTS: "PUBLISH" }} onChange={onChange} />);
+    render(<PermissionMatrix value={{ CELEBRATIONS: "PUBLISH" }} onChange={onChange} />);
     const temas = screen.getByRole("radiogroup", { name: "Temas" });
     expect(within(temas).getAllByRole("radio")).toHaveLength(2);
     await userEvent.click(within(temas).getByRole("radio", { name: "Sí" }));
-    expect(onChange).toHaveBeenCalledWith({ EVENTS: "PUBLISH", CATEGORIES: "ACCESS" });
+    expect(onChange).toHaveBeenCalledWith({ CELEBRATIONS: "PUBLISH", CATEGORIES: "ACCESS" });
     await userEvent.click(within(screen.getByRole("radiogroup", { name: "Celebraciones" })).getByRole("radio", { name: "No" }));
     expect(onChange).toHaveBeenLastCalledWith({});
   });
@@ -37,6 +37,6 @@ describe("TemplateChips", () => {
     const onPick = vi.fn();
     render(<TemplateChips onPick={onPick} />);
     await userEvent.click(screen.getByRole("button", { name: "Gestor de celebraciones" }));
-    expect(onPick).toHaveBeenCalledWith({ EVENTS: "PUBLISH", PLACES: "PUBLISH" });
+    expect(onPick).toHaveBeenCalledWith({ CELEBRATIONS: "PUBLISH", PLACES: "PUBLISH" });
   });
 });

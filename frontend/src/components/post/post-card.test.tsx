@@ -47,7 +47,7 @@ describe("PostCard", () => {
   });
 
   it("un evento muestra su fecha absoluta y la acción Agendar (Google Calendar)", () => {
-    render(<PostCard item={item({ kind: "evento", typeLabel: "Evento", startsAt: "2030-01-10T19:00:00Z" })} brand={brand} />);
+    render(<PostCard item={item({ kind: "celebracion", typeLabel: "Celebración", startsAt: "2030-01-10T19:00:00Z" })} brand={brand} />);
     expect(screen.getByTestId("post-header").textContent).not.toMatch(/hace /);
     expect(screen.getByRole("link", { name: /Agendar/ })).toHaveAttribute("href", expect.stringContaining("calendar.google.com"));
   });
@@ -71,8 +71,8 @@ describe("PostCard", () => {
   });
 
   it("una fecha faltante o inválida no rompe la tarjeta (queda sin fecha)", () => {
-    render(<PostCard item={item({ kind: "evento", typeLabel: "Evento", startsAt: null, sortDate: "" })} brand={brand} />);
-    expect(screen.getByTestId("post-header")).toHaveTextContent("Evento");
+    render(<PostCard item={item({ kind: "celebracion", typeLabel: "Celebración", startsAt: null, sortDate: "" })} brand={brand} />);
+    expect(screen.getByTestId("post-header")).toHaveTextContent("Celebración");
     expect(screen.getByTestId("post-header").querySelector("time")).toBeNull();
   });
 

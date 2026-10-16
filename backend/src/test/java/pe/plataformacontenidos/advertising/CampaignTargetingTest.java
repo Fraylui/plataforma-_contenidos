@@ -46,7 +46,7 @@ class CampaignTargetingTest {
         assertThat(ayacuchoPlaces.specificity()).isEqualTo(3);
         assertThat(ayacuchoPlaces.matches(new AdContext(AdSection.PLACE, Set.of(), "PE", "Ayacucho", "AYA"))).isTrue();
         assertThat(ayacuchoPlaces.matches(new AdContext(AdSection.PLACE, Set.of(), "PE", "Lima", "LIM"))).isFalse();
-        assertThat(ayacuchoPlaces.matches(new AdContext(AdSection.EVENT, Set.of(), "PE", "Ayacucho", "AYA"))).isFalse();
+        assertThat(ayacuchoPlaces.matches(new AdContext(AdSection.CELEBRATION, Set.of(), "PE", "Ayacucho", "AYA"))).isFalse();
         // Sin cabeceras de Cloudflare (local): una campaña geográfica no se muestra.
         assertThat(ayacuchoPlaces.matches(new AdContext(AdSection.PLACE, Set.of(), null, null, null))).isFalse();
     }

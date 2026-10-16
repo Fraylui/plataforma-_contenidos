@@ -55,7 +55,7 @@ class FeedCandidateCacheTest {
     }
 
     @Test
-    void rebuildsAfterMaxAgeForLikesAndEndedEvents() {
+    void rebuildsAfterMaxAgeForLikesAndEndedCelebrations() {
         contentVersion(T0);
         cache.candidates(null, this::build);
         clock.advance(FeedCandidateCache.MAX_AGE.plusSeconds(1));
@@ -67,8 +67,8 @@ class FeedCandidateCacheTest {
     void eachTypeHasItsOwnCandidates() {
         contentVersion(T0);
         cache.candidates(null, this::build);
-        cache.candidates(ContentType.EVENT, this::build);
-        cache.candidates(ContentType.EVENT, this::build);
+        cache.candidates(ContentType.CELEBRATION, this::build);
+        cache.candidates(ContentType.CELEBRATION, this::build);
         assertThat(builds).hasValue(2);
     }
 

@@ -4,12 +4,14 @@ import { MODULE_LABELS } from "@/lib/admin/worker-templates";
 /**
  * Lo que nombra cada tipo de recurso que registra el backend (AuditService.record).
  * El registro es inmutable: las filas anteriores al renombre (V64) dicen
- * «article», ARTICLE_… y ARTICLES, y se siguen mostrando como publicación.
+ * «article», ARTICLE_… y ARTICLES, y se siguen mostrando como publicación;
+ * las anteriores a V65 dicen «event», EVENT_… y EVENTS (celebración).
  */
 export const RESOURCE_LABELS: Record<string, string> = {
   publication: "Publicación",
   article: "Publicación",
   place: "Lugar",
+  celebration: "Celebración",
   event: "Celebración",
   gallery: "Galería",
   business: "Directorio",
@@ -25,6 +27,7 @@ const SUBJECTS: Record<string, string> = {
   PUBLICATION: "una publicación",
   ARTICLE: "una publicación",
   PLACE: "un lugar",
+  CELEBRATION: "una celebración",
   EVENT: "una celebración",
   GALLERY: "una galería",
   BUSINESS: "una ficha del directorio",
@@ -80,6 +83,9 @@ export function describeAuditAction(action: string): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
+/** Módulos con su nombre anterior a V64/V65 (filas viejas del registro). */
+const LEGACY_MODULES: Record<string, Module> = { ARTICLES: "PUBLICATIONS", EVENTS: "CELEBRATIONS" };
+
 const LEVEL_LABELS: Record<string, string> = { CREATE: "Crear", PUBLISH: "Publicar", ACCESS: "Acceso", "—": "Sin acceso" };
 
 export type AuditDetail = { kind: "change"; label: string; from: string; to: string } | { kind: "text"; text: string };
@@ -95,7 +101,7 @@ export function parseAuditDetails(details: string | null | undefined): AuditDeta
   return details.split(";").map((part) => part.trim()).filter(Boolean).map((part) => {
     const m = part.match(/^([A-Z_]+): (\S+) → (\S+)$/);
     if (!m) return { kind: "text", text: part };
-    const label = MODULE_LABELS[(m[1] === "ARTICLES" ? "PUBLICATIONS" : m[1]) as Module] ?? m[1];
+    const label = MODULE_LABELS[(LEGACY_MODULES[m[1]] ?? m[1]) as Module] ?? m[1];
     return { kind: "change", label, from: LEVEL_LABELS[m[2]] ?? m[2], to: LEVEL_LABELS[m[3]] ?? m[3] };
   });
 }

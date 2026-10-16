@@ -73,7 +73,7 @@ public class DashboardService {
     private static final Map<ContentType, Source> SOURCES = new EnumMap<>(Map.of(
             ContentType.PUBLICATION, new Source("content.publications", "title", Module.PUBLICATIONS),
             ContentType.PLACE, new Source("places.places", "name", Module.PLACES),
-            ContentType.EVENT, new Source("events.events", "title", Module.EVENTS),
+            ContentType.CELEBRATION, new Source("celebrations.celebrations", "title", Module.CELEBRATIONS),
             ContentType.GALLERY, new Source("galleries.galleries", "title", Module.GALLERIES),
             ContentType.BUSINESS, new Source("directory.businesses", "name", Module.DIRECTORY),
             ContentType.EPISODE, new Source("series.episodes", "title", Module.SERIES, EPISODE_SELECT)));

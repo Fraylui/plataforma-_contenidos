@@ -31,7 +31,7 @@ import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;
 
 /**
  * CRUD de contenido + transiciones de workflow para Galerías — mismo patrón que
- * EventAdminController. La autorización fina vive en GalleryService.
+ * CelebrationAdminController. La autorización fina vive en GalleryService.
  */
 @RestController
 @RequiresModule(value = Module.GALLERIES)

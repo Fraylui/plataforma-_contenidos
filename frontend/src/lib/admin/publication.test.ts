@@ -71,7 +71,7 @@ describe("computePublicationPermissions", () => {
   });
 
   it("el permiso es por módulo: Publicaciones no da Eventos", () => {
-    expect(computePublicationPermissions({ status: "DRAFT" }, worker, "events").canPublish).toBe(false);
+    expect(computePublicationPermissions({ status: "DRAFT" }, worker, "celebrations").canPublish).toBe(false);
   });
 
   it("cada tipo conoce su ruta del panel y su módulo", () => {

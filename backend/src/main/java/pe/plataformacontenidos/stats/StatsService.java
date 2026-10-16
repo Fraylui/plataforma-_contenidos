@@ -10,7 +10,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import pe.plataformacontenidos.content.PublicationService;
 import pe.plataformacontenidos.directory.BusinessService;
-import pe.plataformacontenidos.events.EventService;
+import pe.plataformacontenidos.celebrations.CelebrationService;
 import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.identity.WorkerService;
 import pe.plataformacontenidos.places.PlaceService;
@@ -32,18 +32,18 @@ public class StatsService {
 
     private final PublicationService publicationService;
     private final PlaceService placeService;
-    private final EventService eventService;
+    private final CelebrationService celebrationService;
     private final GalleryService galleryService;
     private final BusinessService businessService;
     private final CategoryService categoryService;
     private final WorkerService workerService;
 
-    public StatsService(PublicationService publicationService, PlaceService placeService, EventService eventService,
+    public StatsService(PublicationService publicationService, PlaceService placeService, CelebrationService celebrationService,
             GalleryService galleryService, BusinessService businessService,
             CategoryService categoryService, WorkerService workerService) {
         this.publicationService = publicationService;
         this.placeService = placeService;
-        this.eventService = eventService;
+        this.celebrationService = celebrationService;
         this.galleryService = galleryService;
         this.businessService = businessService;
         this.categoryService = categoryService;
@@ -57,7 +57,7 @@ public class StatsService {
                 publicationService.countPublishedSince(recentThreshold),
                 trend(publicationService.publishedCountsByDaySince(recentThreshold)),
                 placeService.countByStatus(),
-                eventService.countByStatus(),
+                celebrationService.countByStatus(),
                 galleryService.countByStatus(),
                 businessService.countByStatus(),
                 categoryService.countAll(),

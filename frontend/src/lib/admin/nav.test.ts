@@ -17,14 +17,14 @@ function user(overrides: Partial<AdminUser> = {}): AdminUser {
 
 describe("menú del panel según permisos (espejo del servidor)", () => {
   it("un trabajador solo con Celebraciones ve Inicio, Celebraciones, Imágenes y Mi cuenta", () => {
-    const labels = visibleNavItems(user({ permissions: { EVENTS: "PUBLISH" } })).map((i) => i.label);
+    const labels = visibleNavItems(user({ permissions: { CELEBRATIONS: "PUBLISH" } })).map((i) => i.label);
     expect(labels).toEqual(["Inicio", "Celebraciones", "Imágenes", "Mi cuenta"]);
   });
 
   it("las secciones del dueño no aparecen para un trabajador con todos los módulos", () => {
     const all = user({
       permissions: {
-        PUBLICATIONS: "PUBLISH", PLACES: "PUBLISH", EVENTS: "PUBLISH", GALLERIES: "PUBLISH", DIRECTORY: "PUBLISH",
+        PUBLICATIONS: "PUBLISH", PLACES: "PUBLISH", CELEBRATIONS: "PUBLISH", GALLERIES: "PUBLISH", DIRECTORY: "PUBLISH",
         CATEGORIES: "ACCESS", STATS: "ACCESS", ADVERTISING: "ACCESS",
       },
     });
@@ -49,9 +49,9 @@ describe("lenguaje de plataforma (no de redacción)", () => {
 
 describe("qué puede crear cada persona (botón Crear, paleta y barra del celular)", () => {
   it("solo los tipos de contenido de sus módulos", () => {
-    const items = createItems(user({ permissions: { EVENTS: "PUBLISH", PLACES: "PUBLISH" } }));
+    const items = createItems(user({ permissions: { CELEBRATIONS: "PUBLISH", PLACES: "PUBLISH" } }));
     expect(items.map((i) => i.label)).toEqual(["Lugar", "Celebración"]);
-    expect(items.map((i) => i.href)).toEqual(["/admin/lugares/nuevo", "/admin/eventos/nuevo"]);
+    expect(items.map((i) => i.href)).toEqual(["/admin/lugares/nuevo", "/admin/celebraciones/nuevo"]);
   });
 
   it("el dueño crea todo, en el orden del menú", () => {

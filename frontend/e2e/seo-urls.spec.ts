@@ -6,7 +6,7 @@ import { test, expect, type Page } from "@playwright/test";
  * <title>, el canonical y el JSON-LD con BreadcrumbList. Corre contra el
  * stack real; toma el primer contenido de cada tipo desde Explorar.
  */
-const TYPES = ["publicaciones", "lugares", "eventos", "galerias", "directorio"] as const;
+const TYPES = ["publicaciones", "lugares", "celebraciones", "galerias", "directorio"] as const;
 
 async function firstDetailHref(page: Page, type: (typeof TYPES)[number]): Promise<string | null> {
   await page.goto(`/${type}`);

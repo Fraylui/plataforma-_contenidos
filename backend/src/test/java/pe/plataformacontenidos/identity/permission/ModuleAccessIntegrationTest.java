@@ -39,7 +39,7 @@ class ModuleAccessIntegrationTest {
     @CsvSource({
         "PUBLICATIONS, /api/v1/admin/publications, PUBLISH",
         "PLACES, /api/v1/admin/places, PUBLISH",
-        "EVENTS, /api/v1/admin/events, PUBLISH",
+        "CELEBRATIONS, /api/v1/admin/celebrations, PUBLISH",
         "GALLERIES, /api/v1/admin/galleries, PUBLISH",
         "DIRECTORY, /api/v1/admin/directory, PUBLISH",
         "CATEGORIES, /api/v1/admin/categories, ACCESS",

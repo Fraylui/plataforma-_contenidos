@@ -58,7 +58,7 @@ public class PlacePublicController {
         return PlaceResponse.from(place, likeCount);
     }
 
-    /** Usado por Events para resolver el nombre/slug de un lugar vinculado (placeId) — ver EventResponse.placeId. */
+    /** Usado por Celebrations para resolver el nombre/slug de un lugar vinculado (placeId) — ver CelebrationResponse.placeId. */
     @GetMapping("/by-id/{id}")
     public PlaceSummaryResponse getById(@PathVariable UUID id) {
         Place place = placeService.getPublishedById(id);

@@ -4,7 +4,7 @@ package pe.plataformacontenidos.identity.permission;
 public enum Module {
     PUBLICATIONS(true),
     PLACES(true),
-    EVENTS(true),
+    CELEBRATIONS(true),
     GALLERIES(true),
     DIRECTORY(true),
     /** Series conectadas a listas de YouTube y sus episodios. */

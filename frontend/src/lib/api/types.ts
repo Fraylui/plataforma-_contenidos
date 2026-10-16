@@ -63,7 +63,7 @@ export interface Publication {
 }
 
 /** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de todos los tipos buscables. */
-export type SearchResultType = "PUBLICATION" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS" | "EPISODE";
+export type SearchResultType = "PUBLICATION" | "PLACE" | "CELEBRATION" | "GALLERY" | "BUSINESS" | "EPISODE";
 
 export interface SearchResult {
   contentType: SearchResultType;
@@ -76,8 +76,8 @@ export interface SearchResult {
   featuredImageUrl: string | null;
   hasVideo: boolean;
   publishedAt: string | null;
-  /** Solo Evento la trae (rango de fechas del buscador) — null en los demás tipos. */
-  eventStartsAt: string | null;
+  /** Solo Celebración la trae (rango de fechas del buscador) — null en los demás tipos. */
+  celebrationStartsAt: string | null;
   /** Solo Episodio: la URL es /series/{seriesSlug}/{slug}. */
   seriesSlug: string | null;
 }
@@ -139,7 +139,7 @@ export interface Place {
   likeCount: number;
 }
 
-export interface EventSummary {
+export interface CelebrationSummary {
   id: string;
   slug: string;
   title: string;
@@ -165,7 +165,7 @@ export interface EventSummary {
   likeCount: number;
 }
 
-export interface Event {
+export interface Celebration {
   id: string;
   slug: string;
   title: string;
@@ -377,7 +377,7 @@ export interface ResolvedRotation {
 }
 
 /** Ver FeedItemResponse.java — feed unificado del home y "relacionados" de la vista de detalle. */
-export type FeedItemType = "PUBLICATION" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS" | "EPISODE";
+export type FeedItemType = "PUBLICATION" | "PLACE" | "CELEBRATION" | "GALLERY" | "BUSINESS" | "EPISODE";
 
 /** Una imagen del carrusel de un ítem del feed: subida (`imageId`) o por enlace externo, nunca ambas. */
 export interface FeedImage {

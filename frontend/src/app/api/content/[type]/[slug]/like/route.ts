@@ -7,7 +7,7 @@ const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const BACKEND_PATH: Record<string, string> = {
   publications: "publications",
   places: "places",
-  events: "events",
+  celebrations: "celebrations",
   galleries: "galleries",
   directory: "directory",
   // Episodios por id: /api/v1/series/episodes/{id}/like.

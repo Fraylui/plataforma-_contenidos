@@ -6,17 +6,17 @@ import type { Category } from "@/lib/api/types";
 import type { PublicationPermissions } from "@/lib/admin/publication";
 import { PlaceComposer } from "./place-composer";
 import { GalleryComposer } from "./gallery-composer";
-import { EventComposer } from "./event-composer";
+import { CelebrationComposer } from "./celebration-composer";
 import { BusinessComposer } from "./business-composer";
 import { createPlaceAction } from "@/app/admin/(protected)/lugares/actions";
 import { createGalleryAction } from "@/app/admin/(protected)/galerias/actions";
-import { createEventAction } from "@/app/admin/(protected)/eventos/actions";
+import { createCelebrationAction } from "@/app/admin/(protected)/celebraciones/actions";
 import { createBusinessAction } from "@/app/admin/(protected)/directorio/actions";
 
 const created = { ok: true, data: { id: "nuevo-1" } };
 vi.mock("@/app/admin/(protected)/lugares/actions", () => ({ createPlaceAction: vi.fn(), updatePlaceAction: vi.fn() }));
 vi.mock("@/app/admin/(protected)/galerias/actions", () => ({ createGalleryAction: vi.fn(), updateGalleryAction: vi.fn() }));
-vi.mock("@/app/admin/(protected)/eventos/actions", () => ({ createEventAction: vi.fn(), updateEventAction: vi.fn() }));
+vi.mock("@/app/admin/(protected)/celebraciones/actions", () => ({ createCelebrationAction: vi.fn(), updateCelebrationAction: vi.fn() }));
 vi.mock("@/app/admin/(protected)/directorio/actions", () => ({ createBusinessAction: vi.fn(), updateBusinessAction: vi.fn() }));
 vi.mock("@/app/admin/(protected)/imagenes/actions", () => ({ uploadImageInlineAction: vi.fn() }));
 vi.mock("@/app/admin/(protected)/publication-actions", () => ({ publicationStepAction: vi.fn().mockResolvedValue({ ok: true }) }));
@@ -82,8 +82,8 @@ describe("Compositor de Galerías", () => {
 
 describe("Compositor de Celebraciones", () => {
   it("por defecto es una fecha que se repite cada año, de todo el día, y se manda así", async () => {
-    vi.mocked(createEventAction).mockResolvedValue(created as never);
-    render(<EventComposer {...common} places={[]} homeCountry="PE" />);
+    vi.mocked(createCelebrationAction).mockResolvedValue(created as never);
+    render(<CelebrationComposer {...common} places={[]} homeCountry="PE" />);
     expect(screen.getByRole("radio", { name: "Se repite cada año" })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: "Todo el día" })).toBeChecked();
     await userEvent.type(screen.getByLabelText("Título"), "Fiestas Patrias");
@@ -92,7 +92,7 @@ describe("Compositor de Celebraciones", () => {
     await userEvent.type(screen.getByLabelText("Desde el año (opcional)"), "1821");
     expect(screen.getAllByText("28 de julio · desde 1821").length).toBeGreaterThan(0);
     await saveDraft();
-    expect(createEventAction).toHaveBeenCalledWith(
+    expect(createCelebrationAction).toHaveBeenCalledWith(
       expect.objectContaining({
         recursYearly: true,
         allDay: true,
@@ -107,35 +107,35 @@ describe("Compositor de Celebraciones", () => {
   });
 
   it("una celebración regional exige la región y se manda con su país", async () => {
-    vi.mocked(createEventAction).mockResolvedValue(created as never);
-    render(<EventComposer {...common} places={[]} homeCountry="PE" />);
+    vi.mocked(createCelebrationAction).mockResolvedValue(created as never);
+    render(<CelebrationComposer {...common} places={[]} homeCountry="PE" />);
     await userEvent.type(screen.getByLabelText("Título"), "Semana Santa ayacuchana");
     await userEvent.type(screen.getByLabelText("Texto"), "Procesiones en Huamanga.");
     await userEvent.type(screen.getByLabelText(/^Fecha/), "2026-04-02");
     await userEvent.click(screen.getByRole("radio", { name: "Una región" }));
     await saveDraft();
     expect(screen.getByLabelText(/^Región/)).toHaveAccessibleDescription(/Escribe la región/);
-    expect(createEventAction).not.toHaveBeenCalled();
+    expect(createCelebrationAction).not.toHaveBeenCalled();
     await userEvent.type(screen.getByLabelText(/^Región/), "Ayacucho");
     expect(screen.getByText(/Ayacucho, Perú/)).toBeInTheDocument();
     await saveDraft();
-    expect(createEventAction).toHaveBeenCalledWith(expect.objectContaining({ scopeCountry: "PE", scopeRegion: "Ayacucho" }));
+    expect(createCelebrationAction).toHaveBeenCalledWith(expect.objectContaining({ scopeCountry: "PE", scopeRegion: "Ayacucho" }));
   });
 
   it("en todo el mundo no manda país ni región", async () => {
-    vi.mocked(createEventAction).mockResolvedValue(created as never);
-    render(<EventComposer {...common} places={[]} homeCountry="PE" />);
+    vi.mocked(createCelebrationAction).mockResolvedValue(created as never);
+    render(<CelebrationComposer {...common} places={[]} homeCountry="PE" />);
     await userEvent.type(screen.getByLabelText("Título"), "Año Nuevo");
     await userEvent.type(screen.getByLabelText("Texto"), "Empieza el año.");
     await userEvent.type(screen.getByLabelText(/^Fecha/), "2026-01-01");
     await userEvent.click(screen.getByRole("radio", { name: "Todo el mundo" }));
     expect(screen.queryByLabelText(/^Región/)).toBeNull();
     await saveDraft();
-    expect(createEventAction).toHaveBeenCalledWith(expect.objectContaining({ scopeCountry: null, scopeRegion: null }));
+    expect(createCelebrationAction).toHaveBeenCalledWith(expect.objectContaining({ scopeCountry: null, scopeRegion: null }));
   });
 
   it("una fecha única con hora no deja terminar antes de empezar", async () => {
-    render(<EventComposer {...common} places={[]} homeCountry="PE" />);
+    render(<CelebrationComposer {...common} places={[]} homeCountry="PE" />);
     await userEvent.click(screen.getByRole("radio", { name: "Solo una vez" }));
     await userEvent.click(screen.getByRole("checkbox", { name: "Todo el día" }));
     expect(screen.queryByLabelText("Desde el año (opcional)")).toBeNull();
@@ -145,11 +145,11 @@ describe("Compositor de Celebraciones", () => {
     await userEvent.type(screen.getByLabelText("Termina (opcional)"), "2030-05-10T16:00");
     await saveDraft();
     expect(screen.getByLabelText("Termina (opcional)")).toHaveAccessibleDescription(/Termina antes de empezar/);
-    expect(createEventAction).not.toHaveBeenCalled();
+    expect(createCelebrationAction).not.toHaveBeenCalled();
   });
 
   it("recuerda la regla: si hubo pago o canje es un anuncio, no una fecha", () => {
-    render(<EventComposer {...common} places={[]} homeCountry="PE" />);
+    render(<CelebrationComposer {...common} places={[]} homeCountry="PE" />);
     expect(screen.getByText(/¿Te pagaron o te dieron algo a cambio/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Crear un anuncio/ })).toHaveAttribute("href", "/admin/anunciantes");
   });

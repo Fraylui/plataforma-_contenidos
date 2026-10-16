@@ -7,7 +7,7 @@ import pe.plataformacontenidos.content.Publication;
 import pe.plataformacontenidos.content.PublicationType;
 import pe.plataformacontenidos.directory.Business;
 import pe.plataformacontenidos.engagement.ContentType;
-import pe.plataformacontenidos.events.Event;
+import pe.plataformacontenidos.celebrations.Celebration;
 import pe.plataformacontenidos.galleries.Gallery;
 import pe.plataformacontenidos.places.Place;
 import pe.plataformacontenidos.series.Episode;
@@ -81,13 +81,13 @@ public record FeedItemResponse(
                 place.getLatitude(), place.getLongitude(), null, null, null, null, null, null, null);
     }
 
-    public static FeedItemResponse fromEvent(Event event, long likeCount) {
-        ContentImage cover = event.getCoverImage();
-        return new FeedItemResponse(ContentType.EVENT, event.getId(), event.getSlug(), event.getTitle(),
-                event.getExcerpt(), null, event.getCategoryId(), imageId(cover), externalUrl(cover),
-                !event.getVideos().isEmpty(), event.getPublishedAt(), likeCount, images(event.getImages()),
-                event.getNextOccurrence(), null, null, null, null, null, null, null, event.isAllDay(),
-                event.isRecursYearly());
+    public static FeedItemResponse fromCelebration(Celebration celebration, long likeCount) {
+        ContentImage cover = celebration.getCoverImage();
+        return new FeedItemResponse(ContentType.CELEBRATION, celebration.getId(), celebration.getSlug(), celebration.getTitle(),
+                celebration.getExcerpt(), null, celebration.getCategoryId(), imageId(cover), externalUrl(cover),
+                !celebration.getVideos().isEmpty(), celebration.getPublishedAt(), likeCount, images(celebration.getImages()),
+                celebration.getNextOccurrence(), null, null, null, null, null, null, null, celebration.isAllDay(),
+                celebration.isRecursYearly());
     }
 
     public static FeedItemResponse fromGallery(Gallery gallery, long likeCount) {

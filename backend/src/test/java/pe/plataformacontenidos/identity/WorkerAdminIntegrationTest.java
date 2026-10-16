@@ -79,13 +79,13 @@ class WorkerAdminIntegrationTest {
 
     @Test
     void createdWorkerGetsATemporaryPasswordShownOnce() throws Exception {
-        JsonNode created = createWorker("{\"EVENTS\":\"PUBLISH\",\"PLACES\":\"PUBLISH\"}");
+        JsonNode created = createWorker("{\"CELEBRATIONS\":\"PUBLISH\",\"PLACES\":\"PUBLISH\"}");
         String password = created.get("temporaryPassword").asText();
         String id = created.get("worker").get("id").asText();
 
         assertThat(password).hasSize(20).matches("[ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789]{20}");
         assertThat(created.get("worker").get("mustChangePassword").asBoolean()).isTrue();
-        assertThat(created.get("worker").get("permissions").get("EVENTS").asText()).isEqualTo("PUBLISH");
+        assertThat(created.get("worker").get("permissions").get("CELEBRATIONS").asText()).isEqualTo("PUBLISH");
         assertThat(auditCount("WORKER_CREATED", id)).isEqualTo(1);
         login(created.get("worker").get("email").asText(), password);
 
@@ -99,12 +99,12 @@ class WorkerAdminIntegrationTest {
         String id = createWorker("{\"ADVERTISING\":\"ACCESS\"}").get("worker").get("id").asText();
 
         as(ownerToken, put("/api/v1/admin/workers/" + id + "/permissions").contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"permissions\":{\"EVENTS\":\"PUBLISH\"}}"))
+                        .content("{\"permissions\":{\"CELEBRATIONS\":\"PUBLISH\"}}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.permissions.EVENTS").value("PUBLISH"))
+                .andExpect(jsonPath("$.permissions.CELEBRATIONS").value("PUBLISH"))
                 .andExpect(jsonPath("$.permissions.ADVERTISING").doesNotExist());
 
-        assertThat(lastAuditDetails("WORKER_PERMISSIONS_CHANGED", id)).isEqualTo("EVENTS: — → PUBLISH; ADVERTISING: ACCESS → —");
+        assertThat(lastAuditDetails("WORKER_PERMISSIONS_CHANGED", id)).isEqualTo("CELEBRATIONS: — → PUBLISH; ADVERTISING: ACCESS → —");
     }
 
     @Test
@@ -117,7 +117,7 @@ class WorkerAdminIntegrationTest {
 
     @Test
     void resetGivesANewTemporaryPasswordAndClosesSessions() throws Exception {
-        JsonNode created = createWorker("{\"EVENTS\":\"PUBLISH\"}");
+        JsonNode created = createWorker("{\"CELEBRATIONS\":\"PUBLISH\"}");
         String id = created.get("worker").get("id").asText();
         String email = created.get("worker").get("email").asText();
         String oldRefresh = login(email, created.get("temporaryPassword").asText()).get("refreshToken").asText();
@@ -134,7 +134,7 @@ class WorkerAdminIntegrationTest {
 
     @Test
     void deactivateAndActivate() throws Exception {
-        JsonNode created = createWorker("{\"EVENTS\":\"PUBLISH\"}");
+        JsonNode created = createWorker("{\"CELEBRATIONS\":\"PUBLISH\"}");
         String id = created.get("worker").get("id").asText();
         String email = created.get("worker").get("email").asText();
         String password = created.get("temporaryPassword").asText();
@@ -165,7 +165,7 @@ class WorkerAdminIntegrationTest {
 
     @Test
     void workersCannotManageWorkers() throws Exception {
-        JsonNode created = createWorker("{\"EVENTS\":\"PUBLISH\"}");
+        JsonNode created = createWorker("{\"CELEBRATIONS\":\"PUBLISH\"}");
         String email = created.get("worker").get("email").asText();
         String token = login(email, created.get("temporaryPassword").asText()).get("accessToken").asText();
         mockMvc.perform(post("/api/v1/users/me/password").header("Authorization", "Bearer " + token)
@@ -180,7 +180,7 @@ class WorkerAdminIntegrationTest {
     @Test
     void administratorRunsThePlatformButNotTheAuditNorTheOwner() throws Exception {
         JsonNode created = createWorker("""
-                {"PUBLICATIONS":"PUBLISH","PLACES":"PUBLISH","EVENTS":"PUBLISH","GALLERIES":"PUBLISH","DIRECTORY":"PUBLISH",
+                {"PUBLICATIONS":"PUBLISH","PLACES":"PUBLISH","CELEBRATIONS":"PUBLISH","GALLERIES":"PUBLISH","DIRECTORY":"PUBLISH",
                  "CATEGORIES":"ACCESS","STATS":"ACCESS","ADVERTISING":"ACCESS","WORKERS":"ACCESS","SETTINGS":"ACCESS"}""");
         String email = created.get("worker").get("email").asText();
         String token = login(email, created.get("temporaryPassword").asText()).get("accessToken").asText();
@@ -192,7 +192,7 @@ class WorkerAdminIntegrationTest {
         as(token, get("/api/v1/admin/workers")).andExpect(status().isOk());
         as(token, post("/api/v1/admin/workers").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + UUID.randomUUID() + "@worker.test\",\"firstName\":\"Luz\",\"lastName\":\"Rojas\","
-                                + "\"permissions\":{\"EVENTS\":\"PUBLISH\"}}"))
+                                + "\"permissions\":{\"CELEBRATIONS\":\"PUBLISH\"}}"))
                 .andExpect(status().isCreated());
         as(token, get("/api/v1/admin/platform-settings")).andExpect(status().isOk());
 

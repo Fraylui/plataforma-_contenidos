@@ -49,11 +49,11 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     module: "PLACES",
   },
   {
-    href: "/admin/eventos",
+    href: "/admin/celebraciones",
     label: "Celebraciones",
     group: "contenido",
     icon: CalendarDots,
-    module: "EVENTS",
+    module: "CELEBRATIONS",
   },
   {
     href: "/admin/galerias",
@@ -157,7 +157,7 @@ export interface CreateItem {
 const CREATE_ITEMS: Array<CreateItem & { navHref: string }> = [
   { label: "Publicación", href: "/admin/publicaciones/nuevo", navHref: "/admin/publicaciones" },
   { label: "Lugar", href: "/admin/lugares/nuevo", navHref: "/admin/lugares" },
-  { label: "Celebración", href: "/admin/eventos/nuevo", navHref: "/admin/eventos" },
+  { label: "Celebración", href: "/admin/celebraciones/nuevo", navHref: "/admin/celebraciones" },
   { label: "Galería", href: "/admin/galerias/nuevo", navHref: "/admin/galerias" },
   { label: "Ficha de directorio", href: "/admin/directorio/nuevo", navHref: "/admin/directorio" },
   { label: "Serie", href: "/admin/series/nueva", navHref: "/admin/series" },

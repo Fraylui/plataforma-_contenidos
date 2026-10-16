@@ -30,7 +30,7 @@ import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
 /**
  * Orquesta el ciclo de publicación de fichas de Directorio (CONTEXTO.md sección
- * 12), mismo patrón que ReviewService/EventService. La autorización a nivel
+ * 12), mismo patrón que ReviewService/CelebrationService. La autorización a nivel
  * de objeto vive acá (SecurityConfig solo decide quién llega al endpoint).
  */
 @Service

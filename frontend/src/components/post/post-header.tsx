@@ -11,7 +11,7 @@ export interface PostBrand {
 type DatedItem = Pick<HomeItem, "kind" | "sortDate" | "startsAt" | "allDay" | "recursYearly">;
 
 function postDateIso(item: DatedItem): string | null {
-  const iso = item.kind === "evento" ? (item.startsAt ?? item.sortDate) : item.sortDate;
+  const iso = item.kind === "celebracion" ? (item.startsAt ?? item.sortDate) : item.sortDate;
   return iso && !Number.isNaN(Date.parse(iso)) ? iso : null;
 }
 
@@ -25,7 +25,7 @@ function postDateIso(item: DatedItem): string | null {
 function postTimeLabel(item: DatedItem): string {
   const iso = postDateIso(item);
   if (!iso) return "";
-  if (item.kind === "evento") return formatCelebrationDate({ at: iso, allDay: Boolean(item.allDay), recursYearly: Boolean(item.recursYearly) });
+  if (item.kind === "celebracion") return formatCelebrationDate({ at: iso, allDay: Boolean(item.allDay), recursYearly: Boolean(item.recursYearly) });
   if (item.kind === "publicacion") return formatPublicationDate(iso);
   return formatShortDate(iso);
 }

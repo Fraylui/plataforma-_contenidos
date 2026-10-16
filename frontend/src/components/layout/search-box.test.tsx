@@ -69,7 +69,7 @@ describe("SearchBox — diseño moderno", () => {
                 featuredImageUrl: null,
                 hasVideo: false,
                 publishedAt: null,
-                eventStartsAt: null,
+                celebrationStartsAt: null,
               },
             ],
             totalElements: 1,

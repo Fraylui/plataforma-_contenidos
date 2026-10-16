@@ -16,7 +16,7 @@ export const WORKER_TEMPLATES: WorkerTemplate[] = [
     permissions: {
       PUBLICATIONS: "PUBLISH",
       PLACES: "PUBLISH",
-      EVENTS: "PUBLISH",
+      CELEBRATIONS: "PUBLISH",
       GALLERIES: "PUBLISH",
       DIRECTORY: "PUBLISH",
       SERIES: "PUBLISH",
@@ -34,7 +34,7 @@ export const WORKER_TEMPLATES: WorkerTemplate[] = [
     permissions: {
       PUBLICATIONS: "PUBLISH",
       PLACES: "PUBLISH",
-      EVENTS: "PUBLISH",
+      CELEBRATIONS: "PUBLISH",
       GALLERIES: "PUBLISH",
       DIRECTORY: "PUBLISH",
       SERIES: "PUBLISH",
@@ -42,7 +42,7 @@ export const WORKER_TEMPLATES: WorkerTemplate[] = [
       STATS: "ACCESS",
     },
   },
-  { id: "GESTOR_EVENTOS", label: "Gestor de celebraciones", description: "Celebraciones y lugares", permissions: { EVENTS: "PUBLISH", PLACES: "PUBLISH" } },
+  { id: "GESTOR_CELEBRACIONES", label: "Gestor de celebraciones", description: "Celebraciones y lugares", permissions: { CELEBRATIONS: "PUBLISH", PLACES: "PUBLISH" } },
   { id: "GESTOR_DIRECTORIO", label: "Gestor de directorio", description: "Directorio y lugares", permissions: { DIRECTORY: "PUBLISH", PLACES: "PUBLISH" } },
   { id: "PUBLICIDAD", label: "Publicidad", description: "Anunciantes, campañas y espacios", permissions: { ADVERTISING: "ACCESS", STATS: "ACCESS" } },
 ];
@@ -61,7 +61,7 @@ export function detectTemplate(permissions: ModulePermissions): string {
 export const MODULE_LABELS: Record<Module, string> = {
   PUBLICATIONS: "Publicaciones",
   PLACES: "Lugares",
-  EVENTS: "Celebraciones",
+  CELEBRATIONS: "Celebraciones",
   GALLERIES: "Galerías",
   DIRECTORY: "Directorio",
   SERIES: "Series",
@@ -72,5 +72,5 @@ export const MODULE_LABELS: Record<Module, string> = {
   SETTINGS: "Configuración",
 };
 
-export const CONTENT_MODULES: Module[] = ["PUBLICATIONS", "PLACES", "EVENTS", "GALLERIES", "DIRECTORY", "SERIES"];
+export const CONTENT_MODULES: Module[] = ["PUBLICATIONS", "PLACES", "CELEBRATIONS", "GALLERIES", "DIRECTORY", "SERIES"];
 export const ACCESS_MODULES: Module[] = ["CATEGORIES", "STATS", "ADVERTISING", "WORKERS", "SETTINGS"];

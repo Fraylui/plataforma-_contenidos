@@ -24,7 +24,7 @@ import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
 /**
  * Orquesta el ciclo de publicación de Galerías (CONTEXTO.md sección 12), mismo
- * patrón que EventService/PlaceService. La autorización a nivel de objeto
+ * patrón que CelebrationService/PlaceService. La autorización a nivel de objeto
  * vive acá (SecurityConfig solo decide quién llega al endpoint).
  */
 @Service
@@ -140,7 +140,7 @@ public class GalleryService {
         return counts;
     }
 
-    /** A diferencia de Place/Event (fotos opcionales), acá el contenido ES la colección: al menos una imagen. */
+    /** A diferencia de Place/Celebration (fotos opcionales), acá el contenido ES la colección: al menos una imagen. */
     private List<ContentImage> validateImages(List<ContentImageInput> images) {
         if (images == null || images.isEmpty()) {
             throw new InvalidGalleryImageCountException();

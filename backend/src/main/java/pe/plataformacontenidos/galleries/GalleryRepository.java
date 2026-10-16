@@ -29,7 +29,7 @@ public interface GalleryRepository extends JpaRepository<Gallery, UUID>, JpaSpec
 
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre galerías
-     * publicadas — mismo patrón que PlaceRepository/EventRepository.search
+     * publicadas — mismo patrón que PlaceRepository/CelebrationRepository.search
      * (V19__gallery_search.sql, unaccent en V36__search_unaccent.sql). Solo
      * title+excerpt: no hay body que indexar.
      */

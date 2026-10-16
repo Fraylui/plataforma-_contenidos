@@ -20,7 +20,7 @@ export function mapsDirections(latitude: number, longitude: number): string {
  */
 export function typeActions(item: HomeItem, absoluteUrl: string): TypeAction[] {
   const actions: TypeAction[] = [];
-  if (item.kind === "evento" && item.startsAt) {
+  if (item.kind === "celebracion" && item.startsAt) {
     actions.push({ label: "Agendar", href: calendarLinks({ title: item.title, startsAt: item.startsAt, url: absoluteUrl, allDay: Boolean(item.allDay), recursYearly: Boolean(item.recursYearly) }).google, icon: CalendarPlus, external: true });
   }
   if (item.kind === "directorio" && item.phone) {

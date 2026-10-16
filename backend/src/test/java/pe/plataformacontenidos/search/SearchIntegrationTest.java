@@ -129,20 +129,20 @@ class SearchIntegrationTest {
     }
 
     @Test
-    void findsPublishedEvent() throws Exception {
-        String publisherToken = createUserAndLogin("search-event-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
-        String creatorToken = createUserAndLogin("search-event-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
+    void findsPublishedCelebration() throws Exception {
+        String publisherToken = createUserAndLogin("search-celebration-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String creatorToken = createUserAndLogin("search-celebration-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Categoría Evento Búsqueda Test");
 
-        String eventId = createEvent(creatorToken, categoryId, "Festival Puyllay de Quinua");
-        mockMvc.perform(post("/api/v1/admin/events/" + eventId + "/publish")
+        String celebrationId = createCelebration(creatorToken, categoryId, "Festival Puyllay de Quinua");
+        mockMvc.perform(post("/api/v1/admin/celebrations/" + celebrationId + "/publish")
                         .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(get("/api/v1/search").param("q", "Puyllay").param("type", "EVENT"))
+        mockMvc.perform(get("/api/v1/search").param("q", "Puyllay").param("type", "CELEBRATION"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].title").value("Festival Puyllay de Quinua"))
-                .andExpect(jsonPath("$.items[0].contentType").value("EVENT"));
+                .andExpect(jsonPath("$.items[0].contentType").value("CELEBRATION"));
     }
 
     @Test
@@ -258,8 +258,8 @@ class SearchIntegrationTest {
         return textField(result, "id");
     }
 
-    private String createEvent(String creatorToken, String categoryId, String title) throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/v1/admin/events")
+    private String createCelebration(String creatorToken, String categoryId, String title) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/celebrations")
                         .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"" + title + "\",\"excerpt\":\"Resumen breve\","

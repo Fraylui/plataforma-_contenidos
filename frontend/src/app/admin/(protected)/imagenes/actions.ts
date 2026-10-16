@@ -16,7 +16,7 @@ export async function uploadImageAction(formData: FormData): Promise<ActionResul
 /**
  * Igual que uploadImageAction pero devuelve la imagen creada: para subir una
  * foto "al vuelo" desde el selector de un formulario de contenido
- * (Artículo/Lugar/Evento/...) sin obligar a pasar antes por /admin/imagenes.
+ * (Publicación/Lugar/Celebración/...) sin obligar a pasar antes por /admin/imagenes.
  */
 export async function uploadImageInlineAction(formData: FormData): Promise<MutationResult<AdminImage>> {
   const result = await runAdminMutation((token) => uploadImage(token, formData));

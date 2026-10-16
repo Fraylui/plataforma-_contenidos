@@ -69,14 +69,14 @@ class RoleMigrationIntegrationTest {
         assertThat(roleOf("admin@legacy.test")).isEqualTo("WORKER");
         // V57 suma Series a quien ya publicaba en los 5 tipos.
         assertThat(permissionsOf("admin@legacy.test")).isEqualTo(Map.of(
-                "PUBLICATIONS", "PUBLISH", "PLACES", "PUBLISH", "EVENTS", "PUBLISH", "GALLERIES", "PUBLISH", "DIRECTORY", "PUBLISH",
+                "PUBLICATIONS", "PUBLISH", "PLACES", "PUBLISH", "CELEBRATIONS", "PUBLISH", "GALLERIES", "PUBLISH", "DIRECTORY", "PUBLISH",
                 "SERIES", "PUBLISH", "CATEGORIES", "ACCESS", "STATS", "ACCESS", "ADVERTISING", "ACCESS"));
     }
 
     @Test
     void publisherAndCreatorKeepTheirReach() {
         assertThat(roleOf("editor@legacy.test")).isEqualTo("WORKER");
-        assertThat(permissionsOf("editor@legacy.test")).containsEntry("EVENTS", "PUBLISH").doesNotContainKey("ADVERTISING");
+        assertThat(permissionsOf("editor@legacy.test")).containsEntry("CELEBRATIONS", "PUBLISH").doesNotContainKey("ADVERTISING");
         assertThat(roleOf("author@legacy.test")).isEqualTo("WORKER");
         // V54: ya no existe "solo crear" — quien tenía los 5 módulos de contenido ahora publica en ellos.
         // V57: quien publicaba en los 5 tipos también publica Series.

@@ -14,8 +14,8 @@ import type {
   Category,
   Episode,
   EpisodeView,
-  Event,
-  EventSummary,
+  Celebration,
+  CelebrationSummary,
   FeedItem,
   FeedItemType,
   FeedPage,
@@ -77,7 +77,7 @@ export function searchContent(
     size?: number;
     type?: SearchResultType;
     categoryId?: string;
-    /** Rango de fechas — solo tiene efecto cuando type es "EVENT" (único tipo con fecha propia filtrable). ISO 8601. */
+    /** Rango de fechas — solo tiene efecto cuando type es "CELEBRATION" (único tipo con fecha propia filtrable). ISO 8601. */
     from?: string;
     to?: string;
   },
@@ -128,7 +128,7 @@ export function getPublishedPlaceBySlug(slug: string): Promise<Place> {
   return apiFetch(`/api/v1/places/${encodeURIComponent(slug)}`, 300);
 }
 
-/** Usado por la página de detalle de Evento para resolver el nombre/slug de un lugar vinculado (placeId). */
+/** Usado por la página de detalle de Celebración para resolver el nombre/slug de un lugar vinculado (placeId). */
 export function getPublishedPlaceById(id: string): Promise<PlaceSummary> {
   return apiFetch(`/api/v1/places/by-id/${encodeURIComponent(id)}`, 300);
 }
@@ -150,20 +150,20 @@ export async function listAllPublishedPlacesForSitemap(): Promise<PlaceSummary[]
 /**
  * Eventos públicos. `when` separa próximos de pasados (razón de ser de este
  * módulo — CONTEXTO.md, ver EventService.listPublished en el backend):
- * a diferencia de Artículo/Lugar, no se ordena por fecha de publicación.
+ * a diferencia de Publicación/Lugar, no se ordena por fecha de publicación.
  */
-export function listPublishedEvents(params?: {
+export function listPublishedCelebrations(params?: {
   categoryId?: string;
   when?: "upcoming" | "past";
   page?: number;
   size?: number;
-}): Promise<PageResponse<EventSummary>> {
+}): Promise<PageResponse<CelebrationSummary>> {
   const query = new URLSearchParams();
   if (params?.categoryId) query.set("categoryId", params.categoryId);
   query.set("when", params?.when ?? "upcoming");
   query.set("page", String(params?.page ?? 0));
   query.set("size", String(params?.size ?? 20));
-  return apiFetch(`/api/v1/events?${query.toString()}`, 60);
+  return apiFetch(`/api/v1/celebrations?${query.toString()}`, 60);
 }
 
 /**
@@ -171,26 +171,26 @@ export function listPublishedEvents(params?: {
  * del país del sitio. Va en el HTML en caché; el navegador lo cambia por lo
  * de su lugar con /api/celebrations/today (ver TodayCelebrations).
  */
-export function listTodayCelebrations(): Promise<EventSummary[]> {
-  return apiFetch("/api/v1/events/today", 300);
+export function listTodayCelebrations(): Promise<CelebrationSummary[]> {
+  return apiFetch("/api/v1/celebrations/today", 300);
 }
 
-export function getPublishedEventBySlug(slug: string): Promise<Event> {
-  return apiFetch(`/api/v1/events/${encodeURIComponent(slug)}`, 60);
+export function getPublishedCelebrationBySlug(slug: string): Promise<Celebration> {
+  return apiFetch(`/api/v1/celebrations/${encodeURIComponent(slug)}`, 60);
 }
 
-const EVENTS_SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en EventPublicController
+const CELEBRATIONS_SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en EventPublicController
 
-export async function listAllPublishedEventsForSitemap(): Promise<EventSummary[]> {
-  const items: EventSummary[] = [];
+export async function listAllPublishedCelebrationsForSitemap(): Promise<CelebrationSummary[]> {
+  const items: CelebrationSummary[] = [];
   for (let page = 0; ; page++) {
-    const result = await listPublishedEvents({ when: "upcoming", page, size: EVENTS_SITEMAP_PAGE_SIZE });
+    const result = await listPublishedCelebrations({ when: "upcoming", page, size: CELEBRATIONS_SITEMAP_PAGE_SIZE });
     items.push(...result.items);
     if (page + 1 >= result.totalPages) break;
   }
   // Los eventos pasados también deben quedar indexados (contenido evergreen), no solo los próximos.
   for (let page = 0; ; page++) {
-    const result = await listPublishedEvents({ when: "past", page, size: EVENTS_SITEMAP_PAGE_SIZE });
+    const result = await listPublishedCelebrations({ when: "past", page, size: CELEBRATIONS_SITEMAP_PAGE_SIZE });
     items.push(...result.items);
     if (page + 1 >= result.totalPages) break;
   }
@@ -327,7 +327,7 @@ const NAV_PRESENCE_CHECKS: { href: string; checks: () => Promise<PageResponse<un
   { href: "/lugares", checks: () => [listPublishedPlaces({ size: 1 })] },
   {
     href: "/celebraciones",
-    checks: () => [listPublishedEvents({ when: "upcoming", size: 1 }), listPublishedEvents({ when: "past", size: 1 })],
+    checks: () => [listPublishedCelebrations({ when: "upcoming", size: 1 }), listPublishedCelebrations({ when: "past", size: 1 })],
   },
   { href: "/galerias", checks: () => [listPublishedGalleries({ size: 1 })] },
   { href: "/directorio", checks: () => [listPublishedBusinesses({ size: 1 })] },
@@ -375,7 +375,7 @@ export function getFeed(params: {
   seed?: string;
   type?: FeedItemType;
   categoryId?: string;
-  /** Celebraciones: con type EVENT, por la próxima vez que tocan. */
+  /** Celebraciones: con type CELEBRATION, por la próxima vez que tocan. */
   sort?: "upcoming";
 }): Promise<FeedPage> {
   const query = new URLSearchParams();

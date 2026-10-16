@@ -8,7 +8,7 @@ import pe.plataformacontenidos.shared.ContentImageInput;
  * Entrada de creación/edición de galería, ya validada en el DTO de API.
  * images debe tener al menos un elemento (lo valida GalleryService, no el
  * DTO — es una regla de negocio, no de forma). Cada imagen es subida o por
- * enlace externo (ver ContentImageInput), igual que Publication/Place/Event.
+ * enlace externo (ver ContentImageInput), igual que Publication/Place/Celebration.
  */
 public record GalleryInput(
         String title,

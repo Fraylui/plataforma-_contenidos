@@ -33,7 +33,7 @@ import pe.plataformacontenidos.TestcontainersConfiguration;
 @Import(TestcontainersConfiguration.class)
 class ApiHardeningIntegrationTest {
 
-    private static final String[] PUBLIC_COLLECTIONS = {"publications", "places", "events", "galleries", "directory"};
+    private static final String[] PUBLIC_COLLECTIONS = {"publications", "places", "celebrations", "galleries", "directory"};
 
     @Autowired private MockMvc mockMvc;
 

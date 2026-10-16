@@ -6,14 +6,14 @@ describe("plantillas de trabajador", () => {
   it("mismos permisos que el backend", () => {
     expect(Object.fromEntries(WORKER_TEMPLATES.map((t) => [t.id, t.permissions]))).toEqual({
       ADMINISTRADOR: {
-        PUBLICATIONS: "PUBLISH", PLACES: "PUBLISH", EVENTS: "PUBLISH", GALLERIES: "PUBLISH", DIRECTORY: "PUBLISH",
+        PUBLICATIONS: "PUBLISH", PLACES: "PUBLISH", CELEBRATIONS: "PUBLISH", GALLERIES: "PUBLISH", DIRECTORY: "PUBLISH",
         SERIES: "PUBLISH", CATEGORIES: "ACCESS", STATS: "ACCESS", ADVERTISING: "ACCESS", WORKERS: "ACCESS", SETTINGS: "ACCESS",
       },
       PUBLICADOR: {
-        PUBLICATIONS: "PUBLISH", PLACES: "PUBLISH", EVENTS: "PUBLISH", GALLERIES: "PUBLISH", DIRECTORY: "PUBLISH",
+        PUBLICATIONS: "PUBLISH", PLACES: "PUBLISH", CELEBRATIONS: "PUBLISH", GALLERIES: "PUBLISH", DIRECTORY: "PUBLISH",
         SERIES: "PUBLISH", CATEGORIES: "ACCESS", STATS: "ACCESS",
       },
-      GESTOR_EVENTOS: { EVENTS: "PUBLISH", PLACES: "PUBLISH" },
+      GESTOR_CELEBRACIONES: { CELEBRATIONS: "PUBLISH", PLACES: "PUBLISH" },
       GESTOR_DIRECTORIO: { DIRECTORY: "PUBLISH", PLACES: "PUBLISH" },
       PUBLICIDAD: { ADVERTISING: "ACCESS", STATS: "ACCESS" },
     });
@@ -21,8 +21,8 @@ describe("plantillas de trabajador", () => {
   });
 
   it("reconoce la plantilla de un conjunto de permisos, o «Personalizado»", () => {
-    expect(detectTemplate({ EVENTS: "PUBLISH", PLACES: "PUBLISH" })).toBe("Gestor de celebraciones");
-    expect(detectTemplate({ EVENTS: "PUBLISH" })).toBe("Personalizado");
+    expect(detectTemplate({ CELEBRATIONS: "PUBLISH", PLACES: "PUBLISH" })).toBe("Gestor de celebraciones");
+    expect(detectTemplate({ CELEBRATIONS: "PUBLISH" })).toBe("Personalizado");
     expect(detectTemplate({})).toBe("Sin permisos");
   });
 });

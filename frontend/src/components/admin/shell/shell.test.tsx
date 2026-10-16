@@ -22,7 +22,7 @@ const GROUPS = [
 ];
 const CREATE = [
   { label: "Publicación", href: "/admin/publicaciones/nuevo" },
-  { label: "Evento", href: "/admin/eventos/nuevo" },
+  { label: "Celebración", href: "/admin/celebraciones/nuevo" },
 ];
 
 describe("Menú de cuenta", () => {

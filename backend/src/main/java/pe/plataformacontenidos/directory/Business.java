@@ -27,9 +27,9 @@ import pe.plataformacontenidos.shared.ContentVideo;
  * (sección 12); a diferencia de Reseña (que opina sobre un lugar), esta
  * ficha ES el negocio. Puede vincularse a un Lugar ya existente (placeId)
  * o llevar su propia dirección libre (address) — mismo patrón que
- * events.placeId/venueName. category_id/place_id son UUID sin FK
+ * celebrations.placeId/venueName. category_id/place_id son UUID sin FK
  * (Taxonomy/Places, sección 38); images/videos tampoco (Media) — mismo
- * patrón ContentImage/ContentVideo que Publication/Place/Event.
+ * patrón ContentImage/ContentVideo que Publication/Place/Celebration.
  */
 @Entity
 @Table(name = "businesses", schema = "directory")

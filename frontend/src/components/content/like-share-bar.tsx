@@ -5,7 +5,7 @@ import { Check, Heart, PaperPlaneTilt } from "@phosphor-icons/react";
 import { getOrCreateVisitorId } from "@/lib/visitor-id";
 
 /** "episodes" se identifica por id (el slug de un episodio solo es único dentro de su serie). */
-export type LikeableContentType = "publications" | "places" | "events" | "galleries" | "directory" | "episodes";
+export type LikeableContentType = "publications" | "places" | "celebrations" | "galleries" | "directory" | "episodes";
 
 const CHANGE_EVENT = "like-share-bar-change";
 

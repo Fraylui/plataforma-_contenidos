@@ -32,7 +32,7 @@ public class DashboardController {
     }
 
     @GetMapping
-    @RequiresAnyModule({ Module.PUBLICATIONS, Module.PLACES, Module.EVENTS, Module.GALLERIES, Module.DIRECTORY })
+    @RequiresAnyModule({ Module.PUBLICATIONS, Module.PLACES, Module.CELEBRATIONS, Module.GALLERIES, Module.DIRECTORY })
     public DashboardSummary get(@RequestParam(defaultValue = "30") int range,
             @AuthenticationPrincipal UserPrincipal principal) {
         return dashboardService.summary(permissionService.forUser(principal.userId()), range);

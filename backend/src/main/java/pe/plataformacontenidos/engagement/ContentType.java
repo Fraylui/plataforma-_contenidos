@@ -8,7 +8,7 @@ package pe.plataformacontenidos.engagement;
 public enum ContentType {
     PUBLICATION,
     PLACE,
-    EVENT,
+    CELEBRATION,
     GALLERY,
     BUSINESS,
     EPISODE

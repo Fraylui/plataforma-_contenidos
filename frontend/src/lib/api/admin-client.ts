@@ -32,7 +32,7 @@ import type {
   CreateSeriesInput,
   DashboardRange,
   DashboardSummary,
-  EventInput,
+  CelebrationInput,
   LiveInput,
   GalleryInput,
   PlaceInput,
@@ -49,7 +49,7 @@ import type {
   Category,
   Episode,
   LiveStream,
-  Event,
+  Celebration,
   Gallery,
   PageResponse,
   Place,
@@ -212,26 +212,26 @@ export function updatePlace(accessToken: string, id: string, input: PlaceInput):
   });
 }
 
-// --- Events module: eventos (EventAdminController, rutas /admin/events) ---
+// --- Módulo de celebraciones (CelebrationAdminController, rutas /admin/celebrations) ---
 
-export function listAdminEvents(accessToken: string, params: AdminListParams): Promise<AdminContentPage<Event>> {
-  return authedJson(`/api/v1/admin/events?${adminListQuery(params)}`, accessToken);
+export function listAdminCelebrations(accessToken: string, params: AdminListParams): Promise<AdminContentPage<Celebration>> {
+  return authedJson(`/api/v1/admin/celebrations?${adminListQuery(params)}`, accessToken);
 }
 
-export function getAdminEvent(accessToken: string, id: string): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}`, accessToken);
+export function getAdminCelebration(accessToken: string, id: string): Promise<Celebration> {
+  return authedJson(`/api/v1/admin/celebrations/${encodeURIComponent(id)}`, accessToken);
 }
 
-export function createEvent(accessToken: string, input: EventInput): Promise<Event> {
-  return authedJson("/api/v1/admin/events", accessToken, {
+export function createCelebration(accessToken: string, input: CelebrationInput): Promise<Celebration> {
+  return authedJson("/api/v1/admin/celebrations", accessToken, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
 }
 
-export function updateEvent(accessToken: string, id: string, input: EventInput): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}`, accessToken, {
+export function updateCelebration(accessToken: string, id: string, input: CelebrationInput): Promise<Celebration> {
+  return authedJson(`/api/v1/admin/celebrations/${encodeURIComponent(id)}`, accessToken, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),

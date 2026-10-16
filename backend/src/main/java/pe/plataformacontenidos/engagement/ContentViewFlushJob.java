@@ -41,7 +41,7 @@ public class ContentViewFlushJob {
     private static final Map<ContentType, String> TABLES = new EnumMap<>(Map.of(
             ContentType.PUBLICATION, "content.publications",
             ContentType.PLACE, "places.places",
-            ContentType.EVENT, "events.events",
+            ContentType.CELEBRATION, "celebrations.celebrations",
             ContentType.GALLERY, "galleries.galleries",
             ContentType.BUSINESS, "directory.businesses",
             ContentType.EPISODE, "series.episodes"));

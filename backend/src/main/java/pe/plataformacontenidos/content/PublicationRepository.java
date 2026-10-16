@@ -55,7 +55,7 @@ public interface PublicationRepository extends JpaRepository<Publication, UUID>,
      * param. immutable_unaccent envuelve tanto la columna indexada como la
      * consulta, para que "peru" encuentre "Perú" en cualquier dirección.
      * categoryId opcional vía "param IS NULL OR" (mismo patrón que
-     * EventRepository.findUpcoming). Sin Pageable.getSort(): el orden lo
+     * CelebrationRepository.findUpcoming). Sin Pageable.getSort(): el orden lo
      * gobierna ts_rank, no un ORDER BY genérico de Spring Data.
      */
     @Query(value = """

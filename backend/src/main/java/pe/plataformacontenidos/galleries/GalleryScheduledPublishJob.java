@@ -10,7 +10,7 @@ import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
-/** Publica galerías SCHEDULED cuya fecha ya pasó. Corre cada minuto, igual que EventScheduledPublishJob. */
+/** Publica galerías SCHEDULED cuya fecha ya pasó. Corre cada minuto, igual que CelebrationScheduledPublishJob. */
 @Component
 public class GalleryScheduledPublishJob {
 

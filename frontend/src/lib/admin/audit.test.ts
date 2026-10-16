@@ -11,8 +11,10 @@ describe("describeAuditAction", () => {
     expect(describeAuditAction("GALLERY_PUBLISHED_FROM_SCHEDULE")).toBe("Publicó una galería a la hora programada");
   });
 
-  it("el historial anterior al renombre (ARTICLE_*) se sigue leyendo como publicación", () => {
+  it("el historial anterior a los renombres (ARTICLE_*, EVENT_*) se sigue leyendo con los nombres de hoy", () => {
     expect(describeAuditAction("ARTICLE_PUBLISHED")).toBe("Publicó una publicación");
+    expect(describeAuditAction("EVENT_ARCHIVED")).toBe("Archivó una celebración");
+    expect(parseAuditDetails("EVENTS: — → PUBLISH")[0]).toMatchObject({ label: "Celebraciones" });
     expect(parseAuditDetails("ARTICLES: CREATE → PUBLISH")).toEqual([
       { kind: "change", label: "Publicaciones", from: "Crear", to: "Publicar" },
     ]);

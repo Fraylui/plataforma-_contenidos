@@ -41,7 +41,7 @@ test.describe("Autenticación admin", () => {
   });
 
   test("tras iniciar sesión, /admin/login redirige al destino solicitado originalmente", async ({ page }) => {
-    await page.goto("/admin/eventos");
+    await page.goto("/admin/celebraciones");
     await expect(page).toHaveURL(/from=%2Fadmin%2Feventos/);
     await fillLoginForm(page);
     await expect(page).toHaveURL(/\/admin\/eventos/, { timeout: 10_000 });

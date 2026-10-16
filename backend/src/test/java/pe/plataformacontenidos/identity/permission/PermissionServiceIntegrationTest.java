@@ -38,11 +38,11 @@ class PermissionServiceIntegrationTest {
     @Test
     void workerPermissionsComeFromItsRows() {
         User worker = user(Role.WORKER);
-        repository.save(new WorkerPermission(worker.getId(), Module.EVENTS, AccessLevel.PUBLISH));
+        repository.save(new WorkerPermission(worker.getId(), Module.CELEBRATIONS, AccessLevel.PUBLISH));
 
         Permissions p = permissionService.forUser(worker.getId());
         assertThat(p.owner()).isFalse();
-        assertThat(p.can(Module.EVENTS, AccessLevel.PUBLISH)).isTrue();
+        assertThat(p.can(Module.CELEBRATIONS, AccessLevel.PUBLISH)).isTrue();
         assertThat(p.can(Module.PUBLICATIONS, AccessLevel.PUBLISH)).isFalse();
     }
 
@@ -53,11 +53,11 @@ class PermissionServiceIntegrationTest {
                 "INSERT INTO identity.worker_permissions (user_id, module, level) VALUES (?, 'CATEGORIES', 'PUBLISH')", worker.getId()))
                 .isInstanceOf(DataIntegrityViolationException.class);
         assertThatThrownBy(() -> jdbc.update(
-                "INSERT INTO identity.worker_permissions (user_id, module, level) VALUES (?, 'EVENTS', 'ACCESS')", worker.getId()))
+                "INSERT INTO identity.worker_permissions (user_id, module, level) VALUES (?, 'CELEBRATIONS', 'ACCESS')", worker.getId()))
                 .isInstanceOf(DataIntegrityViolationException.class);
         // V54: el nivel "solo crear" ya no existe.
         assertThatThrownBy(() -> jdbc.update(
-                "INSERT INTO identity.worker_permissions (user_id, module, level) VALUES (?, 'EVENTS', 'CREATE')", worker.getId()))
+                "INSERT INTO identity.worker_permissions (user_id, module, level) VALUES (?, 'CELEBRATIONS', 'CREATE')", worker.getId()))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 }

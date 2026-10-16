@@ -8,7 +8,7 @@ import { test, expect, type Page } from "@playwright/test";
  * antetítulos en mayúsculas. Corre contra el stack real.
  */
 const SCREENS = ["/", "/explorar", "/buscar?q=a", "/publicaciones", "/lugares", "/celebraciones", "/galerias", "/directorio", "/contacto", "/privacidad", "/terminos"];
-const DETAIL_TYPES = ["publicaciones", "lugares", "eventos", "galerias", "directorio"];
+const DETAIL_TYPES = ["publicaciones", "lugares", "celebraciones", "galerias", "directorio"];
 
 async function assertNoEditorialPatterns(page: Page) {
   const main = page.locator("main");

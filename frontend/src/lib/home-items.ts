@@ -30,7 +30,7 @@ export interface HomeItem {
   categoryId: string;
   /** Etiqueta del tipo ("Publicación", "Lugar", "Galería"…). */
   typeLabel: string;
-  /** ISO usado para ordenar "Lo nuevo" (publishedAt, o startsAt en Evento). */
+  /** ISO usado para ordenar "Lo nuevo" (publishedAt, o startsAt en Celebración). */
   sortDate: string;
   /** Texto de fecha ya formateado según la regla de cada tipo (ver content-labels.ts). */
   dateLabel: string;
@@ -64,7 +64,7 @@ function image(id: string | null | undefined): string | null {
 }
 
 /**
- * Portada de Publicación/Lugar/Evento: subida (coverImageId) o por enlace
+ * Portada de Publicación/Lugar/Celebración: subida (coverImageId) o por enlace
  * externo (coverImageUrl), nunca ambas — el `isExternal` que devuelve es lo
  * que le dice a cada Cover si puede pasar por next/image (host propio,
  * allowlisteado) o si tiene que ser un <img> plano (host arbitrario, ver
@@ -77,7 +77,7 @@ function coverImage(imageId: string | null, imageUrl: string | null): { url: str
 const FEED_KIND: Record<FeedItem["type"], HomeItemKind> = {
   PUBLICATION: "publicacion",
   PLACE: "lugar",
-  EVENT: "evento",
+  CELEBRATION: "celebracion",
   GALLERY: "galeria",
   BUSINESS: "directorio",
   EPISODE: "episodio",
@@ -86,7 +86,7 @@ const FEED_KIND: Record<FeedItem["type"], HomeItemKind> = {
 const FEED_HREF_PREFIX: Record<HomeItemKind, string> = {
   publicacion: "/publicaciones",
   lugar: "/lugares",
-  evento: "/celebraciones",
+  celebracion: "/celebraciones",
   galeria: "/galerias",
   directorio: "/directorio",
   episodio: "/series",
@@ -119,9 +119,9 @@ export function fromFeedItem(item: FeedItem): HomeItem {
     // Un episodio se presenta con el nombre de su serie, como un canal.
     typeLabel: item.type === "EPISODE" && item.seriesTitle ? item.seriesTitle : KIND_LABEL[kind],
     // En Celebraciones importa cuándo toca, no cuándo se publicó.
-    sortDate: (item.type === "EVENT" ? item.startsAt : item.publishedAt) ?? "",
+    sortDate: (item.type === "CELEBRATION" ? item.startsAt : item.publishedAt) ?? "",
     dateLabel:
-      item.type === "EVENT" && item.startsAt
+      item.type === "CELEBRATION" && item.startsAt
         ? formatCelebrationDate({ at: item.startsAt, allDay: Boolean(item.allDay), recursYearly: Boolean(item.recursYearly) })
         : "",
     images: images.length > 0 ? images : coverAsImages(cover),
@@ -157,11 +157,11 @@ export function fromSearchResult(r: SearchResult): HomeItem {
     imageIsExternal: cover.isExternal,
     categoryId: r.categoryId ?? "",
     typeLabel: KIND_LABEL[kind],
-    sortDate: (r.contentType === "EVENT" ? r.eventStartsAt : r.publishedAt) ?? "",
-    dateLabel: r.contentType === "EVENT" && r.eventStartsAt ? formatCelebrationDate({ at: r.eventStartsAt, allDay: true, recursYearly: false }) : "",
+    sortDate: (r.contentType === "CELEBRATION" ? r.celebrationStartsAt : r.publishedAt) ?? "",
+    dateLabel: r.contentType === "CELEBRATION" && r.celebrationStartsAt ? formatCelebrationDate({ at: r.celebrationStartsAt, allDay: true, recursYearly: false }) : "",
     images: coverAsImages(cover),
     hasVideo: r.hasVideo,
-    startsAt: r.eventStartsAt,
+    startsAt: r.celebrationStartsAt,
   };
 }
 

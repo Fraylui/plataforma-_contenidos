@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 import pe.plataformacontenidos.content.Publication;
 import pe.plataformacontenidos.directory.Business;
-import pe.plataformacontenidos.events.Event;
+import pe.plataformacontenidos.celebrations.Celebration;
 import pe.plataformacontenidos.galleries.Gallery;
 import pe.plataformacontenidos.places.Place;
 import pe.plataformacontenidos.search.SearchResultType;
@@ -20,7 +20,7 @@ import pe.plataformacontenidos.shared.ContentImage;
  * es ese momento). El frontend arma la URL a partir de `contentType` +
  * `slug` (/publicaciones/{slug} o /lugares/{slug}). featuredImageId/
  * featuredImageUrl son excluyentes (ver ContentImage) en Publication/Place/
- * Event, que ya soportan imágenes por enlace externo además de subidas;
+ * Celebration, que ya soportan imágenes por enlace externo además de subidas;
  * Gallery/Business todavía son solo imágenes subidas.
  */
 public record SearchResultResponse(
@@ -35,7 +35,7 @@ public record SearchResultResponse(
         boolean hasVideo,
         Instant publishedAt,
         /** Solo Evento la trae (rango de fechas del buscador) — null en los demás tipos. */
-        Instant eventStartsAt,
+        Instant celebrationStartsAt,
         /** Solo Episodio: su URL es /series/{seriesSlug}/{slug} — null en los demás tipos. */
         String seriesSlug) {
 
@@ -73,20 +73,20 @@ public record SearchResultResponse(
                 null);
     }
 
-    public static SearchResultResponse fromEvent(Event event) {
-        ContentImage cover = event.getCoverImage();
+    public static SearchResultResponse fromCelebration(Celebration celebration) {
+        ContentImage cover = celebration.getCoverImage();
         return new SearchResultResponse(
-                SearchResultType.EVENT,
-                event.getId(),
-                event.getSlug(),
-                event.getTitle(),
-                event.getExcerpt(),
-                event.getCategoryId(),
+                SearchResultType.CELEBRATION,
+                celebration.getId(),
+                celebration.getSlug(),
+                celebration.getTitle(),
+                celebration.getExcerpt(),
+                celebration.getCategoryId(),
                 cover == null ? null : cover.getImageId(),
                 cover == null ? null : cover.getExternalUrl(),
-                !event.getVideos().isEmpty(),
-                event.getPublishedAt(),
-                event.getNextOccurrence(),
+                !celebration.getVideos().isEmpty(),
+                celebration.getPublishedAt(),
+                celebration.getNextOccurrence(),
                 null);
     }
 

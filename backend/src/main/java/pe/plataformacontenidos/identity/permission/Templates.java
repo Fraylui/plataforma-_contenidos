@@ -14,14 +14,14 @@ import java.util.Map;
 public final class Templates {
 
     private static final Map<String, Map<Module, AccessLevel>> TEMPLATES = Map.of(
-            "PUBLICADOR", Map.of(PUBLICATIONS, PUBLISH, PLACES, PUBLISH, EVENTS, PUBLISH, GALLERIES, PUBLISH, DIRECTORY, PUBLISH,
+            "PUBLICADOR", Map.of(PUBLICATIONS, PUBLISH, PLACES, PUBLISH, CELEBRATIONS, PUBLISH, GALLERIES, PUBLISH, DIRECTORY, PUBLISH,
                     SERIES, PUBLISH, CATEGORIES, ACCESS, STATS, ACCESS),
-            "GESTOR_EVENTOS", Map.of(EVENTS, PUBLISH, PLACES, PUBLISH),
+            "GESTOR_CELEBRACIONES", Map.of(CELEBRATIONS, PUBLISH, PLACES, PUBLISH),
             "GESTOR_DIRECTORIO", Map.of(DIRECTORY, PUBLISH, PLACES, PUBLISH),
             "PUBLICIDAD", Map.of(ADVERTISING, ACCESS, STATS, ACCESS),
             // Igual que el dueño en todo menos la auditoría (Actividad), que sigue siendo solo del dueño.
             "ADMINISTRADOR", Map.ofEntries(Map.entry(PUBLICATIONS, PUBLISH), Map.entry(PLACES, PUBLISH),
-                    Map.entry(EVENTS, PUBLISH), Map.entry(GALLERIES, PUBLISH), Map.entry(DIRECTORY, PUBLISH),
+                    Map.entry(CELEBRATIONS, PUBLISH), Map.entry(GALLERIES, PUBLISH), Map.entry(DIRECTORY, PUBLISH),
                     Map.entry(SERIES, PUBLISH), Map.entry(CATEGORIES, ACCESS), Map.entry(STATS, ACCESS),
                     Map.entry(ADVERTISING, ACCESS), Map.entry(WORKERS, ACCESS), Map.entry(SETTINGS, ACCESS)));
 

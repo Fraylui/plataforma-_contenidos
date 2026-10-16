@@ -64,6 +64,6 @@ test("el dueño crea un trabajador y este solo ve sus módulos", async ({ browse
   await owner.getByRole("alertdialog").getByRole("button", { name: "Desactivar" }).click();
   await expect(owner.getByText("Trabajador desactivado")).toBeVisible();
 
-  await worker.goto("/admin/eventos");
+  await worker.goto("/admin/celebraciones");
   await expect(worker).toHaveURL(/\/admin\/login/, { timeout: 10_000 });
 });

@@ -47,14 +47,14 @@ public class SecurityConfig {
                     .permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/publications", "/api/v1/publications/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/places", "/api/v1/places/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/events", "/api/v1/events/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/celebrations", "/api/v1/celebrations/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/galleries", "/api/v1/galleries/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/directory", "/api/v1/directory/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/series", "/api/v1/series/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/live/**").permitAll()
                 // "Me gusta" anónimo de lector (visitorId generado en el navegador, no requiere cuenta) — ver ContentLike, un solo mecanismo para los tipos de contenido.
                 .requestMatchers(HttpMethod.POST, "/api/v1/publications/*/like", "/api/v1/places/*/like",
-                        "/api/v1/events/*/like", "/api/v1/galleries/*/like",
+                        "/api/v1/celebrations/*/like", "/api/v1/galleries/*/like",
                         "/api/v1/directory/*/like", "/api/v1/series/episodes/*/like").permitAll()
                 // Visitas anónimas (sin cookies ni IP guardada) — ver ContentViewCounter.
                 .requestMatchers(HttpMethod.POST, "/api/v1/views").permitAll()

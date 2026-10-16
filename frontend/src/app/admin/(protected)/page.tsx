@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   robots: "noindex,nofollow",
 };
 
-const CONTENT_HREFS = ["/admin/publicaciones", "/admin/lugares", "/admin/eventos", "/admin/galerias", "/admin/directorio"];
+const CONTENT_HREFS = ["/admin/publicaciones", "/admin/lugares", "/admin/celebraciones", "/admin/galerias", "/admin/directorio"];
 const NUMBER = new Intl.NumberFormat("es-PE");
 const RANGE_LABEL: Record<number, string> = { 7: "7 días", 30: "30 días", 90: "90 días" };
 

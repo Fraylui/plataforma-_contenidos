@@ -67,20 +67,20 @@ class FeedIntegrationTest {
     private EntityManagerFactory entityManagerFactory;
 
     @Test
-    void feedMixesPublicationsPlacesAndEvents() throws Exception {
+    void feedMixesPublicationsPlacesAndCelebrations() throws Exception {
         String publisherToken = createUserAndLogin("feed-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String creatorToken = createUserAndLogin("feed-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Mix");
 
         publishPublication(creatorToken, publisherToken, categoryId, "Feed: publicación de prueba " + UUID.randomUUID());
         publishPlace(creatorToken, publisherToken, categoryId, "Feed: lugar de prueba " + UUID.randomUUID());
-        publishEvent(creatorToken, publisherToken, categoryId, "Feed: evento de prueba " + UUID.randomUUID());
+        publishCelebration(creatorToken, publisherToken, categoryId, "Feed: evento de prueba " + UUID.randomUUID());
 
         mockMvc.perform(get("/api/v1/feed").param("size", "30"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[*].type", hasItem("PUBLICATION")))
                 .andExpect(jsonPath("$.items[*].type", hasItem("PLACE")))
-                .andExpect(jsonPath("$.items[*].type", hasItem("EVENT")));
+                .andExpect(jsonPath("$.items[*].type", hasItem("CELEBRATION")));
     }
 
     /**
@@ -331,12 +331,12 @@ class FeedIntegrationTest {
         String creatorToken = createUserAndLogin("feed-agenda-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Agenda");
 
-        String later = publishEventAt(creatorToken, publisherToken, categoryId, "Agenda tarde " + UUID.randomUUID(),
+        String later = publishCelebrationAt(creatorToken, publisherToken, categoryId, "Agenda tarde " + UUID.randomUUID(),
                 "2031-03-01T19:00:00Z");
-        String sooner = publishEventAt(creatorToken, publisherToken, categoryId, "Agenda pronto " + UUID.randomUUID(),
+        String sooner = publishCelebrationAt(creatorToken, publisherToken, categoryId, "Agenda pronto " + UUID.randomUUID(),
                 "2030-01-10T19:00:00Z");
 
-        mockMvc.perform(get("/api/v1/feed").param("size", "30").param("type", "EVENT").param("sort", "upcoming")
+        mockMvc.perform(get("/api/v1/feed").param("size", "30").param("type", "CELEBRATION").param("sort", "upcoming")
                         .param("categoryId", categoryId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].id").value(sooner))
@@ -410,9 +410,9 @@ class FeedIntegrationTest {
         return id;
     }
 
-    private String publishEvent(String creatorToken, String publisherToken, String categoryId, String title)
+    private String publishCelebration(String creatorToken, String publisherToken, String categoryId, String title)
             throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/v1/admin/events")
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/celebrations")
                         .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"" + title + "\",\"excerpt\":\"Resumen breve\","
@@ -421,7 +421,7 @@ class FeedIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn();
         String id = textField(result, "id");
-        runWorkflow("/api/v1/admin/events/" + id, creatorToken, publisherToken);
+        runWorkflow("/api/v1/admin/celebrations/" + id, creatorToken, publisherToken);
         return id;
     }
 
@@ -470,9 +470,9 @@ class FeedIntegrationTest {
                         hasItem("https://example.com/g.jpg")));
     }
 
-    private String publishEventAt(String creatorToken, String publisherToken, String categoryId, String title,
+    private String publishCelebrationAt(String creatorToken, String publisherToken, String categoryId, String title,
             String startsAt) throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/v1/admin/events")
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/celebrations")
                         .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"" + title + "\",\"excerpt\":\"Resumen breve\","
@@ -481,7 +481,7 @@ class FeedIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn();
         String id = textField(result, "id");
-        runWorkflow("/api/v1/admin/events/" + id, creatorToken, publisherToken);
+        runWorkflow("/api/v1/admin/celebrations/" + id, creatorToken, publisherToken);
         return id;
     }
 

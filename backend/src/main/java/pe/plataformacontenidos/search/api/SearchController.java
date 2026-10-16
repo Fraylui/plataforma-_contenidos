@@ -30,7 +30,7 @@ public class SearchController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) SearchResultType type,
             @RequestParam(required = false) UUID categoryId,
-            // Rango de fechas: solo tiene efecto cuando type=EVENT (único tipo con fecha propia filtrable).
+            // Rango de fechas: solo tiene efecto cuando type=CELEBRATION (único tipo con fecha propia filtrable).
             @RequestParam(required = false) Instant from,
             @RequestParam(required = false) Instant to) {
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);

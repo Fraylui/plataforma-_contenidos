@@ -29,7 +29,7 @@ import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-/** Galerías, con el mismo flujo de publicación que Publication/Places/Events (sección 12), sin cuerpo de texto largo. */
+/** Galerías, con el mismo flujo de publicación que Publication/Places/Celebrations (sección 12), sin cuerpo de texto largo. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")

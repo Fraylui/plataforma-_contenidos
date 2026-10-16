@@ -4,13 +4,13 @@
  * el visitante está viendo. La ubicación del visitante no va acá: la agrega
  * Cloudflare en cabeceras y el proxy de Next la reenvía.
  */
-export type AdSection = "HOME" | "PUBLICATION" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS" | "SERIES";
+export type AdSection = "HOME" | "PUBLICATION" | "PLACE" | "CELEBRATION" | "GALLERY" | "BUSINESS" | "SERIES";
 
 export const AD_SECTIONS: { value: AdSection; label: string }[] = [
   { value: "HOME", label: "Inicio" },
   { value: "PUBLICATION", label: "Publicaciones" },
   { value: "PLACE", label: "Lugares" },
-  { value: "EVENT", label: "Celebraciones" },
+  { value: "CELEBRATION", label: "Celebraciones" },
   { value: "GALLERY", label: "Galerías" },
   { value: "BUSINESS", label: "Directorio" },
   { value: "SERIES", label: "Series y En vivo" },
@@ -24,7 +24,7 @@ export interface AdContext {
 const SECTION_BY_PREFIX: [string, AdSection][] = [
   ["/publicaciones", "PUBLICATION"],
   ["/lugares", "PLACE"],
-  ["/celebraciones", "EVENT"],
+  ["/celebraciones", "CELEBRATION"],
   ["/galerias", "GALLERY"],
   ["/directorio", "BUSINESS"],
   // Los videos de YouTube del sitio: programas, episodios y transmisiones.

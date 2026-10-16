@@ -23,8 +23,8 @@ class PermissionsTest {
 
     @Test
     void aContentModuleMeansPublishingInIt() {
-        Permissions worker = worker(Map.of(Module.EVENTS, AccessLevel.PUBLISH));
-        assertThat(worker.can(Module.EVENTS, AccessLevel.PUBLISH)).isTrue();
+        Permissions worker = worker(Map.of(Module.CELEBRATIONS, AccessLevel.PUBLISH));
+        assertThat(worker.can(Module.CELEBRATIONS, AccessLevel.PUBLISH)).isTrue();
         assertThat(worker.can(Module.PLACES, AccessLevel.PUBLISH)).isFalse();
         assertThat(worker.hasAnyContentModule()).isTrue();
     }
@@ -40,8 +40,8 @@ class PermissionsTest {
 
     @Test
     void inactiveAccountCannotDoAnything() {
-        Permissions disabled = new Permissions(UUID.randomUUID(), false, false, false, Map.of(Module.EVENTS, AccessLevel.PUBLISH));
-        assertThat(disabled.can(Module.EVENTS, AccessLevel.PUBLISH)).isFalse();
+        Permissions disabled = new Permissions(UUID.randomUUID(), false, false, false, Map.of(Module.CELEBRATIONS, AccessLevel.PUBLISH));
+        assertThat(disabled.can(Module.CELEBRATIONS, AccessLevel.PUBLISH)).isFalse();
         assertThat(disabled.hasAnyContentModule()).isFalse();
     }
 }

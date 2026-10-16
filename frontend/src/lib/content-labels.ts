@@ -60,13 +60,13 @@ export function formatPublishedDate(iso: string | null): string {
 }
 
 /**
- * Fecha de publicación de Artículo: tiempo relativo que se extiende
+ * Fecha de publicación de Publicación: tiempo relativo que se extiende
  * indefinidamente (segundos→minutos→horas→días→meses→años), nunca fecha
  * absoluta, nunca vacío — mismo patrón que usan YouTube/Reddit/GitHub, a
  * pedido explícito del usuario tras comparar con otros sitios grandes.
- * Solo para Artículo: es el único tipo de contenido donde "qué tan
+ * Solo para Publicación: es el único tipo de contenido donde "qué tan
  * reciente es" sigue siendo la señal relevante después de publicado (a
- * diferencia de Lugar/Galería, atemporales, o Evento, donde la fecha es
+ * diferencia de Lugar/Galería, atemporales, o Celebración, donde la fecha es
  * de calendario, no de antigüedad — ver formatEventDateTime).
  */
 export function formatPublicationDate(iso: string | null): string {
@@ -105,9 +105,9 @@ export function formatShortDate(iso: string | null): string {
 }
 
 /**
- * Fecha y hora de un Evento — siempre absoluta ("vie 12 dic, 7:00 p. m."),
+ * Fecha y hora de un Celebración — siempre absoluta ("vie 12 dic, 7:00 p. m."),
  * nunca relativa ("hace 3 días", "en 5 horas"): a diferencia de la fecha de
- * publicación de Artículo/Lugar (un dato secundario de "qué tan viejo es
+ * publicación de Publicación/Lugar (un dato secundario de "qué tan viejo es
  * esto"), la fecha de un evento es información que el usuario necesita para
  * decidir si asiste — mismo criterio que usan Eventbrite/Meetup/Atlas
  * Obscura.
@@ -129,7 +129,7 @@ export function formatEventDateTime(iso: string): string {
 const SEARCH_RESULT_TYPE_LABEL: Record<SearchResultType, string> = {
   PUBLICATION: "Publicación",
   PLACE: "Lugar",
-  EVENT: "Celebración",
+  CELEBRATION: "Celebración",
   GALLERY: "Galería",
   BUSINESS: "Directorio",
   EPISODE: "Episodio",
@@ -142,7 +142,7 @@ export function searchResultTypeLabel(type: SearchResultType): string {
 const SEARCH_RESULT_TYPE_PATH: Record<SearchResultType, string> = {
   PUBLICATION: "publicaciones",
   PLACE: "lugares",
-  EVENT: "celebraciones",
+  CELEBRATION: "celebraciones",
   GALLERY: "galerias",
   BUSINESS: "directorio",
   EPISODE: "series",
@@ -154,7 +154,7 @@ export function searchResultHref(result: Pick<SearchResult, "contentType" | "slu
   return `/${SEARCH_RESULT_TYPE_PATH[result.contentType]}/${result.slug}`;
 }
 
-export function isEventFinished(event: { startsAt: string; endsAt: string | null; recursYearly?: boolean; allDay?: boolean }): boolean {
+export function isCelebrationFinished(event: { startsAt: string; endsAt: string | null; recursYearly?: boolean; allDay?: boolean }): boolean {
   if (event.recursYearly) return false;
   // Todo el día: termina al acabar ese día, no a su medianoche de inicio.
   const reference = event.endsAt ?? (event.allDay ? new Date(new Date(event.startsAt).getTime() + 86_400_000).toISOString() : event.startsAt);

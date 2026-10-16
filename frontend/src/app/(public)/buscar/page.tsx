@@ -6,7 +6,7 @@ import { GridTile } from "@/components/post/grid-tile";
 import { SearchSuggestions } from "@/components/search/search-suggestions";
 import { FilterChips } from "@/components/feed/filter-chips";
 import { MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
-import { EventDateRangeFilter } from "@/components/search/event-date-range-filter";
+import { CelebrationDateRangeFilter } from "@/components/search/celebration-date-range-filter";
 import { Pagination } from "@/components/ui/pagination";
 
 /** Con menos resultados que esto, la búsqueda sugiere temas y lo más reciente. */
@@ -18,7 +18,7 @@ const BASE_PATH = "/buscar";
 const TYPE_OPTIONS: { value: SearchResultType; label: string }[] = [
   { value: "PUBLICATION", label: "Publicaciones" },
   { value: "PLACE", label: "Lugares" },
-  { value: "EVENT", label: "Celebraciones" },
+  { value: "CELEBRATION", label: "Celebraciones" },
   { value: "GALLERY", label: "Galerías" },
   { value: "BUSINESS", label: "Directorio" },
   { value: "EPISODE", label: "Episodios" },
@@ -41,8 +41,8 @@ function buildHref(
   const params = new URLSearchParams({ q: query });
   if (type) params.set("type", type);
   if (categoryId) params.set("categoryId", categoryId);
-  if (type === "EVENT" && from) params.set("from", from);
-  if (type === "EVENT" && to) params.set("to", to);
+  if (type === "CELEBRATION" && from) params.set("from", from);
+  if (type === "CELEBRATION" && to) params.set("to", to);
   if (page > 0) params.set("page", String(page));
   return `${BASE_PATH}?${params.toString()}`;
 }
@@ -54,7 +54,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
   const type =
     typeParam === "PUBLICATION" ||
     typeParam === "PLACE" ||
-    typeParam === "EVENT" ||
+    typeParam === "CELEBRATION" ||
     typeParam === "GALLERY" ||
     typeParam === "BUSINESS" ||
     typeParam === "EPISODE"
@@ -67,8 +67,8 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
   // la fecha simple (más limpia para compartir/editar a mano).
   const from = typeof fromParam === "string" && fromParam ? fromParam : null;
   const to = typeof toParam === "string" && toParam ? toParam : null;
-  const fromInstant = type === "EVENT" && from ? `${from}T00:00:00Z` : undefined;
-  const toInstant = type === "EVENT" && to ? `${to}T23:59:59Z` : undefined;
+  const fromInstant = type === "CELEBRATION" && from ? `${from}T00:00:00Z` : undefined;
+  const toInstant = type === "CELEBRATION" && to ? `${to}T23:59:59Z` : undefined;
 
   const [result, categories] = await Promise.all([
     query
@@ -137,9 +137,9 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
       )}
       {!query && <h1 className="sr-only">Buscar</h1>}
 
-      {query && type === "EVENT" && (
+      {query && type === "CELEBRATION" && (
         <div className="mt-4">
-          <EventDateRangeFilter
+          <CelebrationDateRangeFilter
             q={query}
             categoryId={categoryId}
             from={from}
@@ -152,7 +152,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
       <section className="mt-8" aria-label="Resultados de búsqueda">
         {!query ? (
           <p className="px-6 py-16 text-center text-sm text-muted">
-            Busca lugares, eventos, publicaciones, galerías o negocios.
+            Busca lugares, celebraciones, publicaciones, galerías o negocios.
           </p>
         ) : result && result.items.length > 0 ? (
           <>

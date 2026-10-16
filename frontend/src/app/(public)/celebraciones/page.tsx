@@ -21,9 +21,9 @@ export default function CelebrationsPage() {
   return (
     <FeedScreen
       heading="Celebraciones"
-      filter={{ type: "EVENT", sort: "upcoming" }}
+      filter={{ type: "CELEBRATION", sort: "upcoming" }}
       activePath={BASE_PATH}
-      adSection="EVENT"
+      adSection="CELEBRATION"
       emptyMessage="No hay celebraciones próximas por ahora."
     />
   );

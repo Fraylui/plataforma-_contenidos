@@ -1,5 +1,5 @@
 import "server-only";
-import type { EventSummary } from "@/lib/api/types";
+import type { CelebrationSummary } from "@/lib/api/types";
 import type { TodayCelebration } from "@/components/celebrations/today-celebrations";
 import { formatCelebrationDate } from "@/lib/celebration-date";
 import { serverImageUrl } from "@/lib/server-image-url";
@@ -10,7 +10,7 @@ import { serverImageUrl } from "@/lib/server-image-url";
  * server-image-url.ts) y la fecha se escribe en la zona del sitio. La usan
  * el render de la página y el proxy por visitante (api/celebrations/today).
  */
-export function toTodayCelebration(date: EventSummary): TodayCelebration {
+export function toTodayCelebration(date: CelebrationSummary): TodayCelebration {
   return {
     id: date.id,
     slug: date.slug,

@@ -25,7 +25,7 @@ describe("Button", () => {
   });
 
   it("LinkButton es un enlace", () => {
-    render(<LinkButton href="/admin/eventos/nuevo">Crear evento</LinkButton>);
-    expect(screen.getByRole("link", { name: "Crear evento" })).toHaveAttribute("href", "/admin/eventos/nuevo");
+    render(<LinkButton href="/admin/celebraciones/nuevo">Crear celebración</LinkButton>);
+    expect(screen.getByRole("link", { name: "Crear celebración" })).toHaveAttribute("href", "/admin/celebraciones/nuevo");
   });
 });

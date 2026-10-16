@@ -199,7 +199,7 @@ class CampaignWorkflowIntegrationTest {
 
         // En Eventos, o sin saber el país del visitante: solo la general.
         mockMvc.perform(get("/api/v1/ads/campaigns/rotation").param("placementKey", placementKey)
-                        .param("section", "EVENT").header("CF-IPCountry", "PE"))
+                        .param("section", "CELEBRATION").header("CF-IPCountry", "PE"))
                 .andExpect(jsonPath("$.campaigns.length()").value(1))
                 .andExpect(jsonPath("$.campaigns[0].id").value(everywhere));
         mockMvc.perform(get("/api/v1/ads/campaigns/rotation").param("placementKey", placementKey)
@@ -223,17 +223,17 @@ class CampaignWorkflowIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isConflict());
         // Un público que no se cruza (otra sección, cuando las 5 son solo de Eventos) sí entra.
-        String eventsOnly = createAdPlacement(adminToken);
-        String eventsBody = campaignJson(advertiserId, eventsOnly, "https://example.com/a.jpg", null)
-                .replace("}", ",\"targetSections\":[\"EVENT\"]}");
+        String celebrationsOnly = createAdPlacement(adminToken);
+        String celebrationsBody = campaignJson(advertiserId, celebrationsOnly, "https://example.com/a.jpg", null)
+                .replace("}", ",\"targetSections\":[\"CELEBRATION\"]}");
         for (int i = 0; i < CampaignService.MAX_COMPETING_CAMPAIGNS; i++) {
             mockMvc.perform(post("/api/v1/admin/campaigns").header("Authorization", "Bearer " + adminToken)
-                            .contentType(MediaType.APPLICATION_JSON).content(eventsBody))
+                            .contentType(MediaType.APPLICATION_JSON).content(celebrationsBody))
                     .andExpect(status().isCreated());
         }
         mockMvc.perform(post("/api/v1/admin/campaigns").header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(eventsBody.replace("EVENT", "PLACE")))
+                        .content(celebrationsBody.replace("CELEBRATION", "PLACE")))
                 .andExpect(status().isCreated());
     }
 

@@ -291,8 +291,8 @@ def main():
     ]
 
     for event_input in events:
-        created = request("POST", "/api/v1/admin/events", token=editor_token, body=event_input)
-        publish_workflow(editor_token, "/api/v1/admin/events", created["id"])
+        created = request("POST", "/api/v1/admin/celebrations", token=editor_token, body=event_input)
+        publish_workflow(editor_token, "/api/v1/admin/celebrations", created["id"])
         print(f"Evento publicado: {created['title']} -> slug={created['slug']}")
 
     print("\nSeed de datos de prueba completo.")

@@ -11,7 +11,7 @@ public record PlatformStatsResponse(
         long publicationsPublishedLast30Days,
         List<DailyCountResponse> publishedTrendLast30Days,
         Map<PublicationStatus, Long> placesByStatus,
-        Map<PublicationStatus, Long> eventsByStatus,
+        Map<PublicationStatus, Long> celebrationsByStatus,
         Map<PublicationStatus, Long> galleriesByStatus,
         Map<PublicationStatus, Long> businessesByStatus,
         long totalCategories,

@@ -5,7 +5,7 @@ describe("sectionFromPath", () => {
   it("reconoce cada sección, en el listado y en el detalle", () => {
     expect(sectionFromPath("/")).toBe("HOME");
     expect(sectionFromPath("/lugares")).toBe("PLACE");
-    expect(sectionFromPath("/celebraciones/feria-de-santa-ana")).toBe("EVENT");
+    expect(sectionFromPath("/celebraciones/feria-de-santa-ana")).toBe("CELEBRATION");
     expect(sectionFromPath("/directorio/hostal-plaza")).toBe("BUSINESS");
   });
 
