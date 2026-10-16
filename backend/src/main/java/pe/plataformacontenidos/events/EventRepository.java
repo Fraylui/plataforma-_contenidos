@@ -31,21 +31,32 @@ public interface EventRepository extends JpaRepository<Event, UUID>, JpaSpecific
      * "param IS NULL OR".
      */
     @Query("""
-            SELECT e FROM Event e WHERE e.status = :status AND e.startsAt >= :now
+            SELECT e FROM Event e WHERE e.status = :status AND e.nextOccurrence >= :now
             AND (:categoryId IS NULL OR e.categoryId = :categoryId)
-            ORDER BY e.startsAt ASC
+            ORDER BY e.nextOccurrence ASC
             """)
     Page<Event> findUpcoming(@Param("status") PublicationStatus status, @Param("now") Instant now,
             @Param("categoryId") UUID categoryId, Pageable pageable);
 
-    /** Eventos pasados (starts_at < now), del más reciente al más antiguo. */
+    /** Fechas únicas ya pasadas, de la más reciente a la más antigua (las anuales siempre vuelven). */
     @Query("""
-            SELECT e FROM Event e WHERE e.status = :status AND e.startsAt < :now
+            SELECT e FROM Event e WHERE e.status = :status AND e.recursYearly = false AND e.nextOccurrence < :now
             AND (:categoryId IS NULL OR e.categoryId = :categoryId)
-            ORDER BY e.startsAt DESC
+            ORDER BY e.nextOccurrence DESC
             """)
     Page<Event> findPast(@Param("status") PublicationStatus status, @Param("now") Instant now,
             @Param("categoryId") UUID categoryId, Pageable pageable);
+
+    /** «Hoy se celebra»: las que tocan en [from, to). */
+    @Query("""
+            SELECT e FROM Event e WHERE e.status = :status AND e.nextOccurrence >= :from AND e.nextOccurrence < :to
+            ORDER BY e.nextOccurrence ASC, e.title ASC
+            """)
+    List<Event> findOccurringBetween(@Param("status") PublicationStatus status, @Param("from") Instant from,
+            @Param("to") Instant to);
+
+    /** Fechas anuales cuyo día ya pasó: la tarea diaria las mueve al año siguiente. */
+    List<Event> findByRecursYearlyTrueAndNextOccurrenceBefore(Instant threshold);
 
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre eventos
@@ -61,8 +72,8 @@ public interface EventRepository extends JpaRepository<Event, UUID>, JpaSpecific
             WHERE e.status = 'PUBLISHED'
             AND e.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
             AND (:categoryId IS NULL OR e.category_id = :categoryId)
-            AND (CAST(:from AS timestamptz) IS NULL OR e.starts_at >= :from)
-            AND (CAST(:to AS timestamptz) IS NULL OR e.starts_at <= :to)
+            AND (CAST(:from AS timestamptz) IS NULL OR e.next_occurrence >= :from)
+            AND (CAST(:to AS timestamptz) IS NULL OR e.next_occurrence <= :to)
             ORDER BY ts_rank(e.search_vector, websearch_to_tsquery('spanish', public.immutable_unaccent(:query))) DESC
             """,
             countQuery = """
@@ -70,8 +81,8 @@ public interface EventRepository extends JpaRepository<Event, UUID>, JpaSpecific
             WHERE e.status = 'PUBLISHED'
             AND e.search_vector @@ websearch_to_tsquery('spanish', public.immutable_unaccent(:query))
             AND (:categoryId IS NULL OR e.category_id = :categoryId)
-            AND (CAST(:from AS timestamptz) IS NULL OR e.starts_at >= :from)
-            AND (CAST(:to AS timestamptz) IS NULL OR e.starts_at <= :to)
+            AND (CAST(:from AS timestamptz) IS NULL OR e.next_occurrence >= :from)
+            AND (CAST(:to AS timestamptz) IS NULL OR e.next_occurrence <= :to)
             """,
             nativeQuery = true)
     Page<Event> search(@Param("query") String query, @Param("categoryId") UUID categoryId,

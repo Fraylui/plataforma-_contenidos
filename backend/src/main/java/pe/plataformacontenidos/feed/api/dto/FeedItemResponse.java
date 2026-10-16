@@ -27,7 +27,7 @@ import pe.plataformacontenidos.shared.ContentImage;
  * externo.
  *
  * <p>Tarjeta tipo post (diseño 2026-10-06): `images` alimenta el carrusel
- * (hasta {@link #MAX_IMAGES}); `startsAt` (evento), `latitude`/`longitude`
+ * (hasta {@link #MAX_IMAGES}); `startsAt` (fecha de la Agenda: la próxima vez que toca), `latitude`/`longitude`
  * (lugar, directorio) y `phone`/`website` (directorio) alimentan la acción
  * de cada tipo (Agendar, Cómo llegar, Llamar, Sitio web). Nulos cuando no
  * aplican. `seriesSlug`/`seriesTitle`/`youtubeVideoId` solo en EPISODE: la
@@ -54,7 +54,10 @@ public record FeedItemResponse(
         String website,
         String seriesSlug,
         String seriesTitle,
-        String youtubeVideoId) {
+        String youtubeVideoId,
+        /** Solo fechas de la Agenda: todo el día (sin hora) y si se repite cada año; null en los demás tipos. */
+        Boolean allDay,
+        Boolean recursYearly) {
 
     public static final int MAX_IMAGES = 10;
 
@@ -67,7 +70,7 @@ public record FeedItemResponse(
         return new FeedItemResponse(ContentType.ARTICLE, article.getId(), article.getSlug(), article.getTitle(),
                 article.getExcerpt(), article.getArticleType(), article.getCategoryId(), imageId(cover),
                 externalUrl(cover), !article.getVideos().isEmpty(), article.getPublishedAt(), likeCount,
-                images(article.getImages()), null, null, null, null, null, null, null, null);
+                images(article.getImages()), null, null, null, null, null, null, null, null, null, null);
     }
 
     public static FeedItemResponse fromPlace(Place place, long likeCount) {
@@ -75,7 +78,7 @@ public record FeedItemResponse(
         return new FeedItemResponse(ContentType.PLACE, place.getId(), place.getSlug(), place.getName(),
                 place.getExcerpt(), null, place.getCategoryId(), imageId(cover), externalUrl(cover),
                 !place.getVideos().isEmpty(), place.getPublishedAt(), likeCount, images(place.getImages()), null,
-                place.getLatitude(), place.getLongitude(), null, null, null, null, null);
+                place.getLatitude(), place.getLongitude(), null, null, null, null, null, null, null);
     }
 
     public static FeedItemResponse fromEvent(Event event, long likeCount) {
@@ -83,14 +86,15 @@ public record FeedItemResponse(
         return new FeedItemResponse(ContentType.EVENT, event.getId(), event.getSlug(), event.getTitle(),
                 event.getExcerpt(), null, event.getCategoryId(), imageId(cover), externalUrl(cover),
                 !event.getVideos().isEmpty(), event.getPublishedAt(), likeCount, images(event.getImages()),
-                event.getStartsAt(), null, null, null, null, null, null, null);
+                event.getNextOccurrence(), null, null, null, null, null, null, null, event.isAllDay(),
+                event.isRecursYearly());
     }
 
     public static FeedItemResponse fromGallery(Gallery gallery, long likeCount) {
         ContentImage cover = gallery.getCoverImage();
         return new FeedItemResponse(ContentType.GALLERY, gallery.getId(), gallery.getSlug(), gallery.getTitle(),
                 gallery.getExcerpt(), null, gallery.getCategoryId(), imageId(cover), externalUrl(cover), false,
-                gallery.getPublishedAt(), likeCount, images(gallery.getImages()), null, null, null, null, null, null, null, null);
+                gallery.getPublishedAt(), likeCount, images(gallery.getImages()), null, null, null, null, null, null, null, null, null, null);
     }
 
     public static FeedItemResponse fromBusiness(Business business, long likeCount) {
@@ -98,7 +102,7 @@ public record FeedItemResponse(
         return new FeedItemResponse(ContentType.BUSINESS, business.getId(), business.getSlug(), business.getName(),
                 business.getExcerpt(), null, business.getCategoryId(), imageId(cover), externalUrl(cover),
                 !business.getVideos().isEmpty(), business.getPublishedAt(), likeCount, images(business.getImages()),
-                null, business.getLatitude(), business.getLongitude(), business.getPhone(), business.getWebsite(), null, null, null);
+                null, business.getLatitude(), business.getLongitude(), business.getPhone(), business.getWebsite(), null, null, null, null, null);
     }
 
     /** Episodio: portada = miniatura de YouTube (la sirve YouTube); tema = el de su serie. */
@@ -107,7 +111,7 @@ public record FeedItemResponse(
         return new FeedItemResponse(ContentType.EPISODE, episode.getId(), episode.getSlug(), episode.getTitle(),
                 episode.getDescription(), null, series.getCategoryId(), null, thumbnail, true, episode.getPublishedAt(),
                 likeCount, List.of(new FeedImage(null, thumbnail)), null, null, null, null, null, series.getSlug(),
-                series.getTitle(), episode.getYoutubeVideoId());
+                series.getTitle(), episode.getYoutubeVideoId(), null, null);
     }
 
     private static UUID imageId(ContentImage image) {

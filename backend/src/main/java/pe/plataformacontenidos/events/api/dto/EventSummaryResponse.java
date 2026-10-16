@@ -16,6 +16,10 @@ public record EventSummaryResponse(
         String venueName,
         Instant startsAt,
         Instant endsAt,
+        boolean recursYearly,
+        boolean allDay,
+        Integer sinceYear,
+        Instant nextOccurrenceAt,
         UUID coverImageId,
         String coverImageUrl,
         boolean hasVideo,
@@ -25,7 +29,8 @@ public record EventSummaryResponse(
         ContentImage cover = event.getCoverImage();
         return new EventSummaryResponse(event.getId(), event.getSlug(), event.getTitle(), event.getExcerpt(),
                 event.getCategoryId(), event.getPlaceId(), event.getVenueName(),
-                event.getStartsAt(), event.getEndsAt(), cover == null ? null : cover.getImageId(),
+                event.getStartsAt(), event.getEndsAt(), event.isRecursYearly(), event.isAllDay(),
+                event.getSinceYear(), event.getNextOccurrence(), cover == null ? null : cover.getImageId(),
                 cover == null ? null : cover.getExternalUrl(), !event.getVideos().isEmpty(), likeCount);
     }
 }

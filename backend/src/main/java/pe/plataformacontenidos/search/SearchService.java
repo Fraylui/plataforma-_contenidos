@@ -138,8 +138,8 @@ public class SearchService {
                 // Próximos y pasados: la búsqueda de texto tampoco distingue.
                 for (boolean upcoming : new boolean[] {true, false}) {
                     eventService.listPublished(id, upcoming, pageable).stream()
-                            .filter(e -> from == null || !e.getStartsAt().isBefore(from))
-                            .filter(e -> to == null || !e.getStartsAt().isAfter(to))
+                            .filter(e -> from == null || !e.getNextOccurrence().isBefore(from))
+                            .filter(e -> to == null || !e.getNextOccurrence().isAfter(to))
                             .forEach(e -> addIfNew(combined, seen, SearchResultResponse.fromEvent(e)));
                 }
             }

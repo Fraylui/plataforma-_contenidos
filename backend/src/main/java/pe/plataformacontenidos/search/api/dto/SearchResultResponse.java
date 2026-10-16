@@ -86,7 +86,7 @@ public record SearchResultResponse(
                 cover == null ? null : cover.getExternalUrl(),
                 !event.getVideos().isEmpty(),
                 event.getPublishedAt(),
-                event.getStartsAt(),
+                event.getNextOccurrence(),
                 null);
     }
 

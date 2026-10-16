@@ -107,6 +107,53 @@ class EventWorkflowIntegrationTest {
         mockMvc.perform(get("/api/v1/events/feria-kimsapampa-pasada")).andExpect(status().isOk());
     }
 
+    /** Fechas que se repiten cada año (spec 2026-10-16): nunca pasan a «pasadas» y salen en «Hoy se celebra» su día. */
+    @Test
+    void yearlyDatesComeBackEveryYearAndShowUpOnTheirDay() throws Exception {
+        String token = createUserAndLogin("fechas-anuales@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String categoryId = createCategory(token, "Fechas cívicas Test");
+        java.time.ZoneId lima = java.time.ZoneId.of("America/Lima");
+        java.time.LocalDate today = java.time.LocalDate.now(lima);
+        java.time.LocalDate yesterday = today.minusDays(1);
+
+        String todayId = createDate(token, categoryId, "Día kimsapampino de hoy", today.withYear(1900), true, 1900);
+        String yesterdayId = createDate(token, categoryId, "Día kimsapampino de ayer", yesterday.withYear(1900), true, null);
+        for (String id : new String[] {todayId, yesterdayId}) {
+            mockMvc.perform(post("/api/v1/admin/events/" + id + "/publish").header("Authorization", "Bearer " + token))
+                    .andExpect(status().isOk());
+        }
+
+        String midnightToday = today.atStartOfDay(lima).toInstant().toString();
+        mockMvc.perform(get("/api/v1/events").param("categoryId", categoryId).param("when", "upcoming"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].slug").value("dia-kimsapampino-de-hoy"))
+                .andExpect(jsonPath("$.items[0].nextOccurrenceAt").value(midnightToday))
+                .andExpect(jsonPath("$.items[0].recursYearly").value(true))
+                .andExpect(jsonPath("$.items[0].sinceYear").value(1900))
+                // La de ayer vuelve el próximo año, no se va a «pasadas».
+                .andExpect(jsonPath("$.items[1].slug").value("dia-kimsapampino-de-ayer"))
+                .andExpect(jsonPath("$.items[1].nextOccurrenceAt")
+                        .value(yesterday.plusYears(1).atStartOfDay(lima).toInstant().toString()));
+        mockMvc.perform(get("/api/v1/events").param("categoryId", categoryId).param("when", "past"))
+                .andExpect(jsonPath("$.totalElements").value(0));
+
+        mockMvc.perform(get("/api/v1/events/today"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.slug == 'dia-kimsapampino-de-hoy')]").exists())
+                .andExpect(jsonPath("$[?(@.slug == 'dia-kimsapampino-de-ayer')]").doesNotExist());
+    }
+
+    @Test
+    void sinceYearOnlyMakesSenseForYearlyDates() throws Exception {
+        String token = createUserAndLogin("fechas-desde@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String categoryId = createCategory(token, "Fechas desde Test");
+        mockMvc.perform(post("/api/v1/admin/events").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Eclipse kimsapampino\",\"body\":\"Texto.\",\"categoryId\":\"" + categoryId
+                                + "\",\"startsAt\":\"2030-06-14T19:00:00Z\",\"recursYearly\":false,\"sinceYear\":1824}"))
+                .andExpect(status().isBadRequest());
+    }
+
     @Test
     void rejectsEndsAtBeforeStartsAt() throws Exception {
         String creatorToken = createUserAndLogin("events-creador-3@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
@@ -171,6 +218,21 @@ class EventWorkflowIntegrationTest {
                                 + "\"categoryId\":\"" + categoryId + "\",\"startsAt\":\"" + startsAt + "\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("DRAFT"))
+                .andReturn();
+        return textField(result, "id");
+    }
+
+    private String createDate(String token, String categoryId, String title, java.time.LocalDate date, boolean yearly,
+            Integer sinceYear) throws Exception {
+        String startsAt = date.atStartOfDay(java.time.ZoneId.of("America/Lima")).toInstant().toString();
+        MvcResult result = mockMvc.perform(post("/api/v1/admin/events")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"" + title + "\",\"body\":\"Por qué se celebra.\","
+                                + "\"categoryId\":\"" + categoryId + "\",\"startsAt\":\"" + startsAt + "\","
+                                + "\"recursYearly\":" + yearly + ",\"allDay\":true"
+                                + (sinceYear == null ? "" : ",\"sinceYear\":" + sinceYear) + "}"))
+                .andExpect(status().isCreated())
                 .andReturn();
         return textField(result, "id");
     }

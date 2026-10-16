@@ -10,7 +10,11 @@ import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
-/** Publica eventos SCHEDULED cuya fecha ya pasó. Corre cada minuto, igual que PlaceScheduledPublishJob. */
+/**
+ * Publica las fechas SCHEDULED cuya hora ya pasó (cada minuto, igual que
+ * PlaceScheduledPublishJob) y, a las 00:01 de Lima, pasa al año siguiente
+ * las fechas anuales cuyo día terminó.
+ */
 @Component
 public class EventScheduledPublishJob {
 
@@ -18,10 +22,21 @@ public class EventScheduledPublishJob {
 
     private final EventRepository eventRepository;
     private final AuditService auditService;
+    private final EventService eventService;
 
-    public EventScheduledPublishJob(EventRepository eventRepository, AuditService auditService) {
+    public EventScheduledPublishJob(EventRepository eventRepository, AuditService auditService,
+            EventService eventService) {
         this.eventRepository = eventRepository;
         this.auditService = auditService;
+        this.eventService = eventService;
+    }
+
+    @Scheduled(cron = "0 1 0 * * *", zone = "${site.time-zone:America/Lima}")
+    public void refreshYearlyDates() {
+        int moved = eventService.refreshYearlyOccurrences();
+        if (moved > 0) {
+            log.info("Agenda: {} fechas anuales pasaron al año siguiente", moved);
+        }
     }
 
     @Scheduled(fixedDelay = 60_000)

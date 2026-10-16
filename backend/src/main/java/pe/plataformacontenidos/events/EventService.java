@@ -1,6 +1,8 @@
 package pe.plataformacontenidos.events;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -8,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,14 +45,17 @@ public class EventService {
     private final PlaceService placeService;
     private final ImageService imageService;
     private final AuditService auditService;
+    private final ZoneId siteZone;
 
     public EventService(EventRepository eventRepository, CategoryService categoryService,
-            PlaceService placeService, ImageService imageService, AuditService auditService) {
+            PlaceService placeService, ImageService imageService, AuditService auditService,
+            @Value("${site.time-zone:America/Lima}") String siteTimeZone) {
         this.eventRepository = eventRepository;
         this.categoryService = categoryService;
         this.placeService = placeService;
         this.imageService = imageService;
         this.auditService = auditService;
+        this.siteZone = ZoneId.of(siteTimeZone);
     }
 
     public Event create(EventInput input, UUID authorId) {
@@ -58,6 +64,7 @@ public class EventService {
         }
         validatePlace(input.placeId());
         validateDateRange(input.startsAt(), input.endsAt());
+        validateRecurrence(input);
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
@@ -67,6 +74,8 @@ public class EventService {
         event.updateContent(input.title(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.placeId(), input.venueName(), input.startsAt(), input.endsAt(), images, input.seoTitle(),
                 input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
+        event.setSchedule(input.recursYearly(), input.allDay(), input.sinceYear());
+        event.refreshNextOccurrence(siteZone, today());
 
         Event saved = eventRepository.save(event);
         audit("EVENT_CREATED", saved, authorId);
@@ -84,6 +93,7 @@ public class EventService {
             validatePlace(input.placeId());
         }
         validateDateRange(input.startsAt(), input.endsAt());
+        validateRecurrence(input);
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
         String sanitizedBody = HtmlSanitizer.sanitize(input.body());
@@ -91,6 +101,8 @@ public class EventService {
         event.updateContent(input.title(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.placeId(), input.venueName(), input.startsAt(), input.endsAt(), images, input.seoTitle(),
                 input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
+        event.setSchedule(input.recursYearly(), input.allDay(), input.sinceYear());
+        event.refreshNextOccurrence(siteZone, today());
         Event saved = eventRepository.save(event);
         audit("EVENT_UPDATED", saved, actingUserId);
         return saved;
@@ -137,16 +149,40 @@ public class EventService {
     }
 
     /**
-     * Listado público separado en próximos/pasados (razón de ser de este
-     * módulo — ver EventRepository). `upcoming=true` por defecto en el
-     * controller.
+     * Listado público de la Agenda: lo que viene (desde el inicio de hoy en
+     * la zona del sitio, así lo de hoy se ve todo el día) por la próxima vez
+     * que toca, o lo pasado (solo fechas únicas: las anuales siempre vuelven).
      */
     public Page<Event> listPublished(UUID categoryId, boolean upcoming, Pageable pageable) {
-        Instant now = Instant.now();
+        Instant startOfToday = NextOccurrence.startOfDay(today(), siteZone);
         if (upcoming) {
-            return eventRepository.findUpcoming(PublicationStatus.PUBLISHED, now, categoryId, pageable);
+            return eventRepository.findUpcoming(PublicationStatus.PUBLISHED, startOfToday, categoryId, pageable);
         }
-        return eventRepository.findPast(PublicationStatus.PUBLISHED, now, categoryId, pageable);
+        return eventRepository.findPast(PublicationStatus.PUBLISHED, startOfToday, categoryId, pageable);
+    }
+
+    /** «Hoy se celebra»: las fechas publicadas que tocan hoy (zona del sitio). */
+    public List<Event> listToday() {
+        LocalDate today = today();
+        return eventRepository.findOccurringBetween(PublicationStatus.PUBLISHED,
+                NextOccurrence.startOfDay(today, siteZone), NextOccurrence.startOfDay(today.plusDays(1), siteZone));
+    }
+
+    /**
+     * Pasa al año siguiente las fechas anuales cuyo día ya pasó (lo llama la
+     * tarea diaria, ver EventScheduledPublishJob). Devuelve cuántas movió.
+     */
+    public int refreshYearlyOccurrences() {
+        LocalDate today = today();
+        List<Event> stale = eventRepository.findByRecursYearlyTrueAndNextOccurrenceBefore(
+                NextOccurrence.startOfDay(today, siteZone));
+        stale.forEach(event -> event.refreshNextOccurrence(siteZone, today));
+        eventRepository.saveAll(stale);
+        return stale.size();
+    }
+
+    private LocalDate today() {
+        return LocalDate.now(siteZone);
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que ArticleService/PlaceService.search (query en blanco: página vacía, no error). */
@@ -169,6 +205,15 @@ public class EventService {
     private void validatePlace(UUID placeId) {
         if (placeId != null && !placeService.existsById(placeId)) {
             throw new EventPlaceNotFoundException(placeId);
+        }
+    }
+
+    private void validateRecurrence(EventInput input) {
+        if (input.sinceYear() != null && !input.recursYearly()) {
+            throw new InvalidEventDateRangeException("«Desde el año» es solo para fechas que se repiten cada año.");
+        }
+        if (input.sinceYear() != null && (input.sinceYear() < 1 || input.sinceYear() > today().getYear())) {
+            throw new InvalidEventDateRangeException("El año de origen tiene que ser un año pasado.");
         }
     }
 

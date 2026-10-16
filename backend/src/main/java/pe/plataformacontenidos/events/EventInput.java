@@ -28,5 +28,8 @@ public record EventInput(
         String canonicalUrl,
         String ogImageUrl,
         List<ContentVideoInput> videos,
-        String robots) {
+        String robots,
+        boolean recursYearly,
+        boolean allDay,
+        Integer sinceYear) {
 }

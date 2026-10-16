@@ -70,6 +70,22 @@ public class Event extends PublishableContent {
     @Column(name = "ends_at")
     private Instant endsAt;
 
+    /** Fecha que se repite cada año (28 de julio); si no, es única (un eclipse). Spec 2026-10-16. */
+    @Column(name = "recurs_yearly", nullable = false)
+    private boolean recursYearly;
+
+    /** Todo el día (lo cívico); si no, a la hora de startsAt. */
+    @Column(name = "all_day", nullable = false)
+    private boolean allDay;
+
+    /** «Desde 1824»: solo en las que se repiten. */
+    @Column(name = "since_year")
+    private Integer sinceYear;
+
+    /** Próxima vez que toca (ver NextOccurrence); ordena la Agenda y arma «Hoy se celebra». */
+    @Column(name = "next_occurrence", nullable = false)
+    private Instant nextOccurrence;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "event_images", schema = "events", joinColumns = @JoinColumn(name = "event_id"))
     @OrderColumn(name = "sort_order")
@@ -112,6 +128,7 @@ public class Event extends PublishableContent {
         this.authorId = authorId;
         this.categoryId = categoryId;
         this.startsAt = startsAt;
+        this.nextOccurrence = startsAt;
     }
 
     public UUID getId() {
@@ -156,6 +173,33 @@ public class Event extends PublishableContent {
 
     public Instant getEndsAt() {
         return endsAt;
+    }
+
+    public boolean isRecursYearly() {
+        return recursYearly;
+    }
+
+    public boolean isAllDay() {
+        return allDay;
+    }
+
+    public Integer getSinceYear() {
+        return sinceYear;
+    }
+
+    public Instant getNextOccurrence() {
+        return nextOccurrence;
+    }
+
+    public void setSchedule(boolean recursYearly, boolean allDay, Integer sinceYear) {
+        this.recursYearly = recursYearly;
+        this.allDay = allDay;
+        this.sinceYear = recursYearly ? sinceYear : null;
+    }
+
+    /** Recalcula la próxima vez que toca, con «hoy» en la zona del sitio. */
+    public void refreshNextOccurrence(java.time.ZoneId zone, java.time.LocalDate today) {
+        this.nextOccurrence = NextOccurrence.of(startsAt, recursYearly, allDay, zone, today);
     }
 
     public List<ContentImage> getImages() {

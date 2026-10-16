@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.events.api;
 
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,6 +56,14 @@ public class EventPublicController {
         var likes = contentLikeService.countLikes(ContentType.EVENT,
                 result.getContent().stream().map(Event::getId).toList());
         return PageResponse.from(result, item -> EventSummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));
+    }
+
+    /** «Hoy se celebra» del inicio: las fechas que tocan hoy (zona del sitio). */
+    @GetMapping("/today")
+    public List<EventSummaryResponse> today() {
+        var events = eventService.listToday();
+        var likes = contentLikeService.countLikes(ContentType.EVENT, events.stream().map(Event::getId).toList());
+        return events.stream().map(e -> EventSummaryResponse.from(e, likes.getOrDefault(e.getId(), 0L))).toList();
     }
 
     @GetMapping("/{slug}")
