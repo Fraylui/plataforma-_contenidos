@@ -20,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import pe.plataformacontenidos.TestcontainersConfiguration;
+import pe.plataformacontenidos.identity.TestOwner;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import pe.plataformacontenidos.identity.permission.TestProfile;
@@ -130,7 +131,7 @@ class LiveIntegrationTest {
 
     private String category() throws Exception {
         if (categoryId == null) {
-            String owner = login(TestProfile.DUENO);
+            String owner = TestOwner.login(mockMvc, userRepository, passwordEncoder);
             String response = mockMvc.perform(post("/api/v1/admin/categories").header("Authorization", "Bearer " + owner)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"name\":\"En vivo " + UUID.randomUUID().toString().substring(0, 8) + "\"}"))

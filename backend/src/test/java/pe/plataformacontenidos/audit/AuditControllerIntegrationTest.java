@@ -17,6 +17,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
+import pe.plataformacontenidos.identity.TestOwner;
 import pe.plataformacontenidos.identity.permission.TestProfile;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
@@ -50,7 +51,7 @@ class AuditControllerIntegrationTest {
 
     @Test
     void adminCanFilterAuditLogByResourceTypeAndResult() throws Exception {
-        String adminToken = createUserAndLogin("audit-admin@plataforma-contenidos.test", TestProfile.DUENO);
+        String adminToken = TestOwner.login(mockMvc, userRepository, passwordEncoder);
 
         auditService.record("TEST_ACTION_A", AuditResult.SUCCESS, null, "someone@test", "widget", "1", "127.0.0.1");
         auditService.record("TEST_ACTION_B", AuditResult.FAILURE, null, "someone@test", "gadget", "2", "127.0.0.1");
@@ -66,7 +67,7 @@ class AuditControllerIntegrationTest {
 
     @Test
     void loginSuccessIsRecordedAndVisibleToAdmin() throws Exception {
-        String adminToken = createUserAndLogin("audit-admin-2@plataforma-contenidos.test", TestProfile.DUENO);
+        String adminToken = TestOwner.login(mockMvc, userRepository, passwordEncoder);
         createUserAndLogin("audit-target@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
 
         mockMvc.perform(get("/api/v1/admin/audit")
@@ -80,7 +81,7 @@ class AuditControllerIntegrationTest {
 
     @Test
     void panelActionsAreAuditedAutomatically() throws Exception {
-        String adminToken = createUserAndLogin("audit-admin-3@plataforma-contenidos.test", TestProfile.DUENO);
+        String adminToken = TestOwner.login(mockMvc, userRepository, passwordEncoder);
 
         mockMvc.perform(post("/api/v1/admin/categories")
                         .header("Authorization", "Bearer " + adminToken)
@@ -90,7 +91,7 @@ class AuditControllerIntegrationTest {
 
         mockMvc.perform(get("/api/v1/admin/audit")
                         .header("Authorization", "Bearer " + adminToken)
-                        .param("actorEmail", "audit-admin-3@plataforma-contenidos.test")
+                        .param("actorEmail", TestOwner.EMAIL)
                         .param("action", "POST /admin/categories"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].result").value("SUCCESS"))

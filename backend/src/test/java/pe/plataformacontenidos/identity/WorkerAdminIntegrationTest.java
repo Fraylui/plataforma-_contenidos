@@ -31,7 +31,6 @@ import tools.jackson.databind.ObjectMapper;
 @Import(TestcontainersConfiguration.class)
 class WorkerAdminIntegrationTest {
 
-    private static final String OWNER_PASSWORD = "ClaveDelDueno123";
 
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
@@ -44,8 +43,8 @@ class WorkerAdminIntegrationTest {
 
     @BeforeEach
     void owner() throws Exception {
-        owner = userRepository.save(new User(UUID.randomUUID() + "@owner.test", passwordEncoder.encode(OWNER_PASSWORD), "D", "Ueño", Role.OWNER));
-        ownerToken = login(owner.getEmail(), OWNER_PASSWORD).get("accessToken").asText();
+        owner = TestOwner.ensure(userRepository, passwordEncoder);
+        ownerToken = TestOwner.login(mockMvc, userRepository, passwordEncoder);
     }
 
     private JsonNode login(String email, String password) throws Exception {

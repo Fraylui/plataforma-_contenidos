@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import pe.plataformacontenidos.TestcontainersConfiguration;
+import pe.plataformacontenidos.identity.TestOwner;
 import pe.plataformacontenidos.identity.permission.TestProfile;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
@@ -62,7 +63,7 @@ class AuthorizationMatrixIntegrationTest {
         creatorToken = createUserAndLogin("matrix-creador-" + suffix + "@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         publisherToken = createUserAndLogin("matrix-publicador-" + suffix + "@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         adminToken = createUserAndLogin("matrix-admin-" + suffix + "@plataforma-contenidos.test", TestProfile.PUBLICADOR_CON_PUBLICIDAD);
-        ownerToken = createUserAndLogin("matrix-owner-" + suffix + "@plataforma-contenidos.test", TestProfile.DUENO);
+        ownerToken = TestOwner.login(mockMvc, userRepository, passwordEncoder);
     }
 
     /** Endpoints exclusivos del dueño (spec 2a: usuarios/trabajadores, configuración, auditoría). */

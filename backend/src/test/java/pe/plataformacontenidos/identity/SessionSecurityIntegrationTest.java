@@ -85,8 +85,7 @@ class SessionSecurityIntegrationTest {
     /** Hallazgo 3: sesiones creadas antes del índice por usuario (o en plena carrera) también caen al restablecer. */
     @Test
     void resetInvalidatesSessionsThatAreNotInThePerUserIndex() throws Exception {
-        User owner = user(Role.OWNER);
-        String ownerToken = login(owner.getEmail(), PASSWORD).get("accessToken").asText();
+        String ownerToken = TestOwner.login(mockMvc, userRepository, passwordEncoder);
         User worker = user(Role.WORKER);
         String oldRefresh = login(worker.getEmail(), PASSWORD).get("refreshToken").asText();
         redis.delete("refresh_tokens_of:" + worker.getId()); // como un token emitido antes de este cambio

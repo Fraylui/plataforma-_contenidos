@@ -10,9 +10,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import pe.plataformacontenidos.TestcontainersConfiguration;
 import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.TestOwner;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 
@@ -23,6 +25,7 @@ class PermissionServiceIntegrationTest {
 
     @Autowired private PermissionService permissionService;
     @Autowired private UserRepository userRepository;
+    @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private WorkerPermissionRepository repository;
     @Autowired private JdbcTemplate jdbc;
 
@@ -32,7 +35,7 @@ class PermissionServiceIntegrationTest {
 
     @Test
     void superAdminIsTheOwner() {
-        assertThat(permissionService.forUser(user(Role.OWNER).getId()).owner()).isTrue();
+        assertThat(permissionService.forUser(TestOwner.ensure(userRepository, passwordEncoder).getId()).owner()).isTrue();
     }
 
     @Test
@@ -58,6 +61,15 @@ class PermissionServiceIntegrationTest {
         // V54: el nivel "solo crear" ya no existe.
         assertThatThrownBy(() -> jdbc.update(
                 "INSERT INTO identity.worker_permissions (user_id, module, level) VALUES (?, 'CELEBRATIONS', 'CREATE')", worker.getId()))
+                .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    /** V66: la plataforma tiene un solo dueño, también a nivel de base. */
+    @Test
+    void databaseAllowsOnlyOneOwner() {
+        TestOwner.ensure(userRepository, passwordEncoder);
+        assertThatThrownBy(() -> userRepository.saveAndFlush(
+                new User(UUID.randomUUID() + "@segundo-dueno.test", "x", "Otro", "Dueño", Role.OWNER)))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 }

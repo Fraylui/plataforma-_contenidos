@@ -6,20 +6,19 @@ import java.util.UUID;
 import pe.plataformacontenidos.identity.Role;
 
 /**
- * Perfiles de prueba con los mismos permisos que las cuentas reales de la
- * plataforma: el dueño (sin filas, puede todo) y trabajadores con las
- * plantillas del panel (Publicador), solo los 5 módulos de contenido o sin
+ * Trabajadores de prueba con los mismos permisos que las cuentas reales:
+ * las plantillas del panel (Publicador), solo los módulos de contenido o sin
  * permisos. Todos los que tienen un módulo de contenido publican directo (V54).
+ * El dueño no está acá: hay uno solo (V66) y se usa con TestOwner.
  */
 public enum TestProfile {
-    DUENO,
     PUBLICADOR_CON_PUBLICIDAD,
     PUBLICADOR,
     SOLO_CONTENIDO,
     SIN_PERMISOS;
 
     public Role toRole() {
-        return this == DUENO ? Role.OWNER : Role.WORKER;
+        return Role.WORKER;
     }
 
     public void grant(WorkerPermissionRepository repository, UUID userId) {
@@ -38,7 +37,7 @@ public enum TestProfile {
                 }
             }
             default -> {
-                // Dueño: no necesita filas. Sin permisos: ninguna.
+                // Sin permisos: ninguna fila.
             }
         }
         levels.forEach((module, level) -> repository.save(new WorkerPermission(userId, module, level)));
