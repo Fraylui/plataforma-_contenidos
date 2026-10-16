@@ -2275,6 +2275,17 @@ Spec: `docs/superpowers/specs/2026-10-07-compositor-y-flujo-design.md` (local).
 - La cuenta trabajadora «Fray Luis» en la base local parece de prueba: ¿se queda?
 - Comunidad tipo Reddit (comentarios/votos) requeriría cuentas de lectores, que se descartaron antes: ¿se reabre?
 
+### 46.6l Sesión 2026-10-16 — anuncio nativo del feed (estilo Instagram/Facebook)
+Pedido del dueño: «los anuncios se tienen que mostrar como lo hacen las grandes empresas», con video de YouTube. Diseño: `docs/superpowers/specs/2026-10-16-anuncio-nativo-feed.md` (solo en disco).
+
+| Qué | Commits |
+|---|---|
+| Backend: `Campaign.format` BANNER/NATIVE; nativo solo en `en-feed`; texto ≤ 500, titular ≤ 60, botón de lista cerrada (`CallToAction`), un medio: foto de la biblioteca 1:1, 4:5 o 1.91:1 (≥ 600 px) **o** video de YouTube (Shorts = 9:16); destino solo http(s); logo del anunciante; `POST /ads/campaigns/{id}/play` + `plays` diarios (V61) | 41d4b32 |
+| Sitio: `NativeAdPost` — logo y nombre, «Patrocinado», menú ⋯ («Ocultar este anuncio», recordado en el navegador; «¿Por qué veo este anuncio?»: contextual, sin datos personales), medio a todo el ancho sin márgenes, video que carga al tocar (nocookie) y cuenta la reproducción, barra dominio + titular + botón, texto con «más». Sin me gusta ni compartir | 204d1a7 |
+| Panel: formato «Post en el feed» / «Banner», vista previa en vivo al lado (como el Administrador de anuncios de Meta), logo en el anunciante, reproducciones y tasa en el reporte. **Corregido**: el formulario de campañas se caía (`Field` con varios hijos) | 70c6c62 |
+
+Pendiente de esto: verlo en Docker/Edge (nada visto en navegador aún); cuartiles del video (API JS de YouTube), reproducción automática en silencio, carrusel de varias fotos, Shorts a pantalla completa.
+
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
 Ordenadas por prioridad.
