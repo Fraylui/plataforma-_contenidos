@@ -7,7 +7,9 @@ export function ctr(clicks: number, impressions: number): string {
 }
 
 /** Tasa de reproducción del video: reproducciones ÷ impresiones visibles. */
-export const playRate = ctr;
+export function playRate(plays: number, impressions: number): string {
+  return impressions > 0 ? PERCENT.format(plays / impressions) : "—";
+}
 
 /** Rellena los días sin datos con 0: el eje es tiempo continuo, un día sin vistas también es un dato. */
 export function fillDays(stats: CampaignDailyStat[], days: number, today = new Date()): CampaignDailyStat[] {
