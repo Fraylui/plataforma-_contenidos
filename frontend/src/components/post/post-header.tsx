@@ -1,5 +1,6 @@
 import type { HomeItem } from "@/lib/home-items";
-import { formatArticleDate, formatEventDateTime, formatShortDate } from "@/lib/content-labels";
+import { formatArticleDate, formatShortDate } from "@/lib/content-labels";
+import { formatAgendaDate } from "@/lib/agenda-date";
 
 export interface PostBrand {
   name: string;
@@ -7,7 +8,9 @@ export interface PostBrand {
 }
 
 /** Fecha ISO usable para el encabezado según el tipo, o null si falta o es inválida. */
-function postDateIso(item: Pick<HomeItem, "kind" | "sortDate" | "startsAt">): string | null {
+type DatedItem = Pick<HomeItem, "kind" | "sortDate" | "startsAt" | "allDay" | "recursYearly">;
+
+function postDateIso(item: DatedItem): string | null {
   const iso = item.kind === "evento" ? (item.startsAt ?? item.sortDate) : item.sortDate;
   return iso && !Number.isNaN(Date.parse(iso)) ? iso : null;
 }
@@ -19,10 +22,10 @@ function postDateIso(item: Pick<HomeItem, "kind" | "sortDate" | "startsAt">): st
  * — un dato faltante nunca debe romper la página (pasó en el build con un
  * backend desactualizado).
  */
-function postTimeLabel(item: Pick<HomeItem, "kind" | "sortDate" | "startsAt">): string {
+function postTimeLabel(item: DatedItem): string {
   const iso = postDateIso(item);
   if (!iso) return "";
-  if (item.kind === "evento") return formatEventDateTime(iso);
+  if (item.kind === "evento") return formatAgendaDate({ at: iso, allDay: Boolean(item.allDay), recursYearly: Boolean(item.recursYearly) });
   if (item.kind === "publicacion") return formatArticleDate(iso);
   return formatShortDate(iso);
 }
@@ -33,7 +36,7 @@ export interface PostHeaderTime {
 }
 
 /** Fecha del encabezado ya resuelta para un ítem del feed, o null si no hay una válida. */
-export function headerTimeFor(item: Pick<HomeItem, "kind" | "sortDate" | "startsAt">): PostHeaderTime | null {
+export function headerTimeFor(item: DatedItem): PostHeaderTime | null {
   const iso = postDateIso(item);
   return iso ? { label: postTimeLabel(item), iso } : null;
 }

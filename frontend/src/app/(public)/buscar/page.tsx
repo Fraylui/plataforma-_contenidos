@@ -115,7 +115,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
             type="search"
             defaultValue={query}
             enterKeyHint="search"
-            placeholder="Buscar lugares, eventos, publicaciones…"
+            placeholder="Buscar lugares, fechas, publicaciones…"
             className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm text-foreground placeholder-muted outline-none"
           />
         </div>

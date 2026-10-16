@@ -166,6 +166,11 @@ export function listPublishedEvents(params?: {
   return apiFetch(`/api/v1/events?${query.toString()}`, 60);
 }
 
+/** «Hoy se celebra»: las fechas de la Agenda que tocan hoy (zona del sitio). */
+export function listTodayDates(): Promise<EventSummary[]> {
+  return apiFetch("/api/v1/events/today", 300);
+}
+
 export function getPublishedEventBySlug(slug: string): Promise<Event> {
   return apiFetch(`/api/v1/events/${encodeURIComponent(slug)}`, 60);
 }

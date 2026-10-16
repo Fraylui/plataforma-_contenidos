@@ -28,6 +28,8 @@ function feedItem(overrides: Partial<FeedItem>): FeedItem {
     seriesSlug: null,
     seriesTitle: null,
     youtubeVideoId: null,
+    allDay: null,
+    recursYearly: null,
     ...overrides,
   };
 }
@@ -113,7 +115,7 @@ describe("fromSearchResult", () => {
     expect(item).toMatchObject({
       kind: "evento",
       href: "/agenda/feria",
-      typeLabel: "Evento",
+      typeLabel: "Fecha",
       hasVideo: true,
       likeCount: 0,
       images: [{ url: "https://example.com/a.jpg", isExternal: true }],

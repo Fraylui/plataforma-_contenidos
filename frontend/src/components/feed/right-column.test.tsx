@@ -9,14 +9,18 @@ vi.mock("@/lib/server-image-url", () => ({ serverImageUrl: (p: string) => p }));
 
 const event: EventSummary = {
   id: "e1",
-  slug: "concierto-de-jazz",
-  title: "Concierto de Jazz en el Jardín Botánico",
+  slug: "fiestas-patrias",
+  title: "Fiestas Patrias",
   excerpt: null,
   categoryId: "c1",
   placeId: null,
   venueName: null,
-  startsAt: "2026-10-18T23:00:00-05:00",
+  startsAt: "1821-07-28T00:00:00-05:00",
   endsAt: null,
+  recursYearly: true,
+  allDay: true,
+  sinceYear: 1821,
+  nextOccurrenceAt: "2027-07-28T00:00:00-05:00",
   coverImageId: null,
   coverImageUrl: null,
   hasVideo: false,
@@ -28,14 +32,15 @@ function liked(n: number): HomeItem {
 }
 
 describe("RightColumn — estilo columna de Facebook", () => {
-  it("evento como fila: miniatura con la fecha encima, título y lugar/tema", () => {
-    render(<RightColumn events={[event]} topLiked={[]} categoryNames={{ c1: "Entretenimiento" }} />);
-    const section = screen.getByRole("region", { name: "Próximos eventos" });
+  it("fecha como fila: miniatura con el día encima, título, cuándo vuelve y el tema", () => {
+    render(<RightColumn events={[event]} topLiked={[]} categoryNames={{ c1: "Historia" }} />);
+    const section = screen.getByRole("region", { name: "Próximas fechas" });
     expect(within(section).getByRole("link", { name: "Ver todo" })).toHaveAttribute("href", "/agenda");
-    const row = within(section).getByRole("link", { name: /Concierto de Jazz/ });
-    expect(row).toHaveAttribute("href", "/agenda/concierto-de-jazz");
-    expect(row).toHaveTextContent("18");
-    expect(row).toHaveTextContent("Entretenimiento");
+    const row = within(section).getByRole("link", { name: /Fiestas Patrias/ });
+    expect(row).toHaveAttribute("href", "/agenda/fiestas-patrias");
+    expect(row).toHaveTextContent("28");
+    expect(row).toHaveTextContent("28 de julio · desde 1821");
+    expect(row).toHaveTextContent("Historia");
   });
 
   it("lo más gustado sin líneas divisorias, con su cantidad real", () => {

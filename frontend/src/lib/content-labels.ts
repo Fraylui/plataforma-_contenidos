@@ -123,13 +123,13 @@ export function formatEventDateTime(iso: string): string {
   }).format(new Date(iso));
 }
 
-/** Un evento se considera finalizado cuando pasó endsAt (o startsAt si no tiene hora de fin). */
+/** Una fecha única terminó cuando pasó endsAt (o startsAt); las que se repiten cada año nunca terminan. */
 // Ver SearchResultResponse.java (CONTEXTO.md sección 16) — un solo lugar para
 // la etiqueta y la ruta de cada tipo buscable (buscador con sugerencias en vivo).
 const SEARCH_RESULT_TYPE_LABEL: Record<SearchResultType, string> = {
   ARTICLE: "Publicación",
   PLACE: "Lugar",
-  EVENT: "Evento",
+  EVENT: "Fecha",
   GALLERY: "Galería",
   BUSINESS: "Directorio",
   EPISODE: "Episodio",
@@ -154,7 +154,9 @@ export function searchResultHref(result: Pick<SearchResult, "contentType" | "slu
   return `/${SEARCH_RESULT_TYPE_PATH[result.contentType]}/${result.slug}`;
 }
 
-export function isEventFinished(event: { startsAt: string; endsAt: string | null }): boolean {
-  const reference = event.endsAt ?? event.startsAt;
+export function isEventFinished(event: { startsAt: string; endsAt: string | null; recursYearly?: boolean; allDay?: boolean }): boolean {
+  if (event.recursYearly) return false;
+  // Todo el día: termina al acabar ese día, no a su medianoche de inicio.
+  const reference = event.endsAt ?? (event.allDay ? new Date(new Date(event.startsAt).getTime() + 86_400_000).toISOString() : event.startsAt);
   return new Date(reference).getTime() < Date.now();
 }

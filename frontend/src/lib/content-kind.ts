@@ -10,7 +10,7 @@ export type HomeItemKind = "publicacion" | "lugar" | "evento" | "galeria" | "dir
 export const KIND_LABEL: Record<HomeItemKind, string> = {
   publicacion: "Publicación",
   lugar: "Lugar",
-  evento: "Evento",
+  evento: "Fecha",
   galeria: "Galería",
   directorio: "Directorio",
   episodio: "Episodio",

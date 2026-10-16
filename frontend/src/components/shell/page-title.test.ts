@@ -11,7 +11,7 @@ describe("pageTitle", () => {
 
   it("detalle: título del tipo y flecha a su sección", () => {
     expect(pageTitle("/lugares/mirador")).toEqual({ title: "Lugar", back: "/lugares" });
-    expect(pageTitle("/agenda/feria")).toEqual({ title: "Evento", back: "/agenda" });
+    expect(pageTitle("/agenda/feria")).toEqual({ title: "Fecha", back: "/agenda" });
     expect(pageTitle("/publicaciones/ruta")).toEqual({ title: "Publicación", back: "/publicaciones" });
     expect(pageTitle("/categorias/turismo")).toEqual({ title: "Tema", back: "/" });
   });

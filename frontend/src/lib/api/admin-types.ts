@@ -118,6 +118,12 @@ export interface EventInput {
   venueName: string | null;
   startsAt: string;
   endsAt: string | null;
+  /** Fecha de la Agenda que se repite cada año (28 de julio); false = única. */
+  recursYearly: boolean;
+  /** Todo el día, sin hora. */
+  allDay: boolean;
+  /** «Desde 1821»: solo si se repite. */
+  sinceYear: number | null;
   images: ContentImage[];
   seoTitle: string | null;
   metaDescription: string | null;

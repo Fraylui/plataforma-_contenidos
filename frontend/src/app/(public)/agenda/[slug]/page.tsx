@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { formatEventDateTime, isEventFinished } from "@/lib/content-labels";
+import { formatAgendaDate } from "@/lib/agenda-date";
 import { LikeShareBar, POST_ACTION_PILL } from "@/components/content/like-share-bar";
 import { ViewBeacon } from "@/components/content/view-beacon";
 import { PostView } from "@/components/post/post-view";
@@ -133,17 +134,21 @@ export default async function EventPage(props: PageProps<"/agenda/[slug]">) {
 
   const venue = place ? { name: place.name, slug: place.slug } : null;
   const finished = isEventFinished(event);
-  const when = `${formatEventDateTime(event.startsAt)}${event.endsAt ? ` — ${formatEventDateTime(event.endsAt)}` : ""}`;
+  const when = event.recursYearly || event.allDay
+    ? formatAgendaDate({ at: event.nextOccurrenceAt, allDay: event.allDay, recursYearly: event.recursYearly, sinceYear: event.sinceYear })
+    : `${formatEventDateTime(event.startsAt)}${event.endsAt ? ` — ${formatEventDateTime(event.endsAt)}` : ""}`;
   const where = venue?.name ?? event.venueName;
   const calendar = calendarLinks({
     title: event.title,
-    startsAt: event.startsAt,
-    endsAt: event.endsAt,
+    startsAt: event.nextOccurrenceAt,
+    endsAt: event.recursYearly ? null : event.endsAt,
+    allDay: event.allDay,
+    recursYearly: event.recursYearly,
     url: `${SITE_URL}/agenda/${event.slug}`,
     location: where,
   });
   const facts: PostFact[] = [
-    { icon: CalendarBlank, label: finished ? "Finalizó" : "Cuándo", value: when },
+    { icon: CalendarBlank, label: event.recursYearly ? "Cada año" : finished ? "Fue" : "Cuándo", value: when },
     ...(venue
       ? [{ icon: MapPin, label: "Dónde", value: venue.name, href: `/lugares/${venue.slug}` }]
       : event.venueName
@@ -159,12 +164,15 @@ export default async function EventPage(props: PageProps<"/agenda/[slug]">) {
         description={event.metaDescription || event.excerpt}
         uploadDate={event.publishedAt}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(eventJsonLd(event, category, settings.name, venue)).replace(/</g, "\\u003c"),
-        }}
-      />
+      {/* Event de schema.org solo para fechas únicas: Google pide no marcar como evento las conmemoraciones que se repiten. */}
+      {!event.recursYearly && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(eventJsonLd(event, category, settings.name, venue)).replace(/</g, "\\u003c"),
+          }}
+        />
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -177,7 +185,7 @@ export default async function EventPage(props: PageProps<"/agenda/[slug]">) {
         brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}
         typeLabel={KIND_LABEL.evento}
         categoryName={category?.name}
-        // La fecha del evento va en los datos ("Cuándo"), no repetida en el encabezado.
+        // La fecha va en los datos ("Cuándo" / "Cada año"), no repetida en el encabezado.
         time={null}
         title={event.title}
         media={<PostDetailMedia images={event.images} videos={event.videos} title={event.title} />}

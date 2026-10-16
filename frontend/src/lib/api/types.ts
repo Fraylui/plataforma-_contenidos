@@ -149,6 +149,12 @@ export interface EventSummary {
   venueName: string | null;
   startsAt: string;
   endsAt: string | null;
+  /** Fecha de la Agenda que se repite cada año; false = única (spec 2026-10-16). */
+  recursYearly: boolean;
+  allDay: boolean;
+  sinceYear: number | null;
+  /** Próxima vez que toca (lo que se muestra y ordena la Agenda). */
+  nextOccurrenceAt: string;
   coverImageId: string | null;
   coverImageUrl: string | null;
   hasVideo: boolean;
@@ -168,6 +174,12 @@ export interface Event {
   venueName: string | null;
   startsAt: string;
   endsAt: string | null;
+  /** Fecha de la Agenda que se repite cada año; false = única (spec 2026-10-16). */
+  recursYearly: boolean;
+  allDay: boolean;
+  sinceYear: number | null;
+  /** Próxima vez que toca (lo que se muestra y ordena la Agenda). */
+  nextOccurrenceAt: string;
   images: ContentImage[];
   seoTitle: string | null;
   metaDescription: string | null;
@@ -390,6 +402,9 @@ export interface FeedItem {
   seriesSlug: string | null;
   seriesTitle: string | null;
   youtubeVideoId: string | null;
+  /** Solo fechas de la Agenda: todo el día y si se repite cada año (`startsAt` = la próxima vez). */
+  allDay: boolean | null;
+  recursYearly: boolean | null;
 }
 
 /** Ver FeedTopicResponse.java — un círculo de la fila de temas. */

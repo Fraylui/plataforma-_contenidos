@@ -157,7 +157,7 @@ export interface CreateItem {
 const CREATE_ITEMS: Array<CreateItem & { navHref: string }> = [
   { label: "Publicación", href: "/admin/publicaciones/nuevo", navHref: "/admin/publicaciones" },
   { label: "Lugar", href: "/admin/lugares/nuevo", navHref: "/admin/lugares" },
-  { label: "Evento", href: "/admin/eventos/nuevo", navHref: "/admin/eventos" },
+  { label: "Fecha", href: "/admin/eventos/nuevo", navHref: "/admin/eventos" },
   { label: "Galería", href: "/admin/galerias/nuevo", navHref: "/admin/galerias" },
   { label: "Ficha de directorio", href: "/admin/directorio/nuevo", navHref: "/admin/directorio" },
   { label: "Serie", href: "/admin/series/nueva", navHref: "/admin/series" },

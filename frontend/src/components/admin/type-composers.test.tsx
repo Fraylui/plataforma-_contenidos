@@ -4,7 +4,6 @@ import { axe } from "vitest-axe";
 import { describe, expect, it, vi } from "vitest";
 import type { Category } from "@/lib/api/types";
 import type { PublicationPermissions } from "@/lib/admin/publication";
-import { formatEventDateTime } from "@/lib/content-labels";
 import { PlaceComposer } from "./place-composer";
 import { GalleryComposer } from "./gallery-composer";
 import { EventComposer } from "./event-composer";
@@ -81,11 +80,36 @@ describe("Compositor de Galerías", () => {
   });
 });
 
-describe("Compositor de Eventos", () => {
-  it("no deja guardar un evento que termina antes de empezar", async () => {
+describe("Compositor de Fechas (Agenda)", () => {
+  it("por defecto es una fecha que se repite cada año, de todo el día, y se manda así", async () => {
+    vi.mocked(createEventAction).mockResolvedValue(created as never);
     render(<EventComposer {...common} places={[]} />);
-    await userEvent.type(screen.getByLabelText("Título"), "Feria");
-    await userEvent.type(screen.getByLabelText("Texto"), "Gastronomía.");
+    expect(screen.getByRole("radio", { name: "Se repite cada año" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Todo el día" })).toBeChecked();
+    await userEvent.type(screen.getByLabelText("Título"), "Fiestas Patrias");
+    await userEvent.type(screen.getByLabelText("Texto"), "La independencia del Perú.");
+    await userEvent.type(screen.getByLabelText(/^Fecha/), "2026-07-28");
+    await userEvent.type(screen.getByLabelText("Desde el año (opcional)"), "1821");
+    expect(screen.getAllByText("28 de julio · desde 1821").length).toBeGreaterThan(0);
+    await saveDraft();
+    expect(createEventAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        recursYearly: true,
+        allDay: true,
+        sinceYear: 1821,
+        startsAt: "2026-07-28T05:00:00.000Z",
+        endsAt: null,
+      }),
+    );
+  });
+
+  it("una fecha única con hora no deja terminar antes de empezar", async () => {
+    render(<EventComposer {...common} places={[]} />);
+    await userEvent.click(screen.getByRole("radio", { name: "Solo una vez" }));
+    await userEvent.click(screen.getByRole("checkbox", { name: "Todo el día" }));
+    expect(screen.queryByLabelText("Desde el año (opcional)")).toBeNull();
+    await userEvent.type(screen.getByLabelText("Título"), "Eclipse");
+    await userEvent.type(screen.getByLabelText("Texto"), "Se verá desde Ayacucho.");
     await userEvent.type(screen.getByLabelText(/^Empieza/), "2030-05-10T18:00");
     await userEvent.type(screen.getByLabelText("Termina (opcional)"), "2030-05-10T16:00");
     await saveDraft();
@@ -93,18 +117,13 @@ describe("Compositor de Eventos", () => {
     expect(createEventAction).not.toHaveBeenCalled();
   });
 
-  it("la vista previa muestra la fecha absoluta y se manda en ISO", async () => {
-    vi.mocked(createEventAction).mockResolvedValue(created as never);
+  it("recuerda la regla: si hubo pago o canje es un anuncio, no una fecha", () => {
     render(<EventComposer {...common} places={[]} />);
-    await userEvent.type(screen.getByLabelText("Título"), "Feria");
-    await userEvent.type(screen.getByLabelText("Texto"), "Gastronomía.");
-    await userEvent.type(screen.getByLabelText(/^Empieza/), "2030-05-10T18:00");
-    const iso = new Date("2030-05-10T18:00").toISOString();
-    expect(screen.getAllByText(formatEventDateTime(iso)).length).toBeGreaterThan(0);
-    await saveDraft();
-    expect(createEventAction).toHaveBeenCalledWith(expect.objectContaining({ startsAt: iso, endsAt: null, placeId: null }));
+    expect(screen.getByText(/¿Te pagaron o te dieron algo a cambio/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Crear un anuncio/ })).toHaveAttribute("href", "/admin/anunciantes");
   });
 });
+
 
 describe("Compositor del Directorio", () => {
   it("valida correo y sitio web antes de guardar", async () => {

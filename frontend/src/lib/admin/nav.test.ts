@@ -50,7 +50,7 @@ describe("lenguaje de plataforma (no de redacción)", () => {
 describe("qué puede crear cada persona (botón Crear, paleta y barra del celular)", () => {
   it("solo los tipos de contenido de sus módulos", () => {
     const items = createItems(user({ permissions: { EVENTS: "PUBLISH", PLACES: "PUBLISH" } }));
-    expect(items.map((i) => i.label)).toEqual(["Lugar", "Evento"]);
+    expect(items.map((i) => i.label)).toEqual(["Lugar", "Fecha"]);
     expect(items.map((i) => i.href)).toEqual(["/admin/lugares/nuevo", "/admin/eventos/nuevo"]);
   });
 
@@ -58,7 +58,7 @@ describe("qué puede crear cada persona (botón Crear, paleta y barra del celula
     expect(createItems(user({ role: "OWNER" })).map((i) => i.label)).toEqual([
       "Publicación",
       "Lugar",
-      "Evento",
+      "Fecha",
       "Galería",
       "Ficha de directorio",
       "Serie",

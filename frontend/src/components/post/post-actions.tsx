@@ -21,7 +21,7 @@ export function mapsDirections(latitude: number, longitude: number): string {
 export function typeActions(item: HomeItem, absoluteUrl: string): TypeAction[] {
   const actions: TypeAction[] = [];
   if (item.kind === "evento" && item.startsAt) {
-    actions.push({ label: "Agendar", href: calendarLinks({ title: item.title, startsAt: item.startsAt, url: absoluteUrl }).google, icon: CalendarPlus, external: true });
+    actions.push({ label: "Agendar", href: calendarLinks({ title: item.title, startsAt: item.startsAt, url: absoluteUrl, allDay: Boolean(item.allDay), recursYearly: Boolean(item.recursYearly) }).google, icon: CalendarPlus, external: true });
   }
   if (item.kind === "directorio" && item.phone) {
     actions.push({ label: "Llamar", href: `tel:${item.phone.replace(/[^\d+]/g, "")}`, icon: Phone, external: false });

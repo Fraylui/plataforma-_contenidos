@@ -16,7 +16,7 @@ import { AdminPageHeader } from "@/components/admin/ui";
 import type { Category } from "@/lib/api/types";
 
 export const metadata: Metadata = {
-  title: "Editar evento",
+  title: "Editar fecha",
   robots: "noindex,nofollow",
 };
 

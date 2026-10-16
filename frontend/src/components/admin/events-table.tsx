@@ -53,7 +53,7 @@ export function EventsTable({ page, currentUser }: { page: AdminContentPage<Even
             id={row.original.id}
             editHref={`/admin/eventos/${row.original.id}`}
             permissions={computePublicationPermissions(row.original, currentUser, "events")}
-            itemLabel="este evento"
+            itemLabel="esta fecha"
           kind="events"
           />
         ),
@@ -78,8 +78,8 @@ export function EventsTable({ page, currentUser }: { page: AdminContentPage<Even
         data={page.items}
         serverPage={page}
         sortKeys={SORT_KEYS}
-        searchPlaceholder="Buscar eventos…"
-        emptyMessage="Ningún evento coincide con la búsqueda."
+        searchPlaceholder="Buscar fechas…"
+        emptyMessage="Ninguna fecha coincide con la búsqueda."
         getRowId={(row) => row.id}
         onSelectionChange={setSelected}
       />

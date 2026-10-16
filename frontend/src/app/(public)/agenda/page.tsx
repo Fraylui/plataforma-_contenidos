@@ -5,7 +5,7 @@ const BASE_PATH = "/agenda";
 
 export const metadata: Metadata = {
   title: "Agenda",
-  description: "Próximos eventos de la región, ordenados por fecha.",
+  description: "Las fechas que vienen: fiestas patrias, aniversarios, celebraciones y fenómenos, en orden.",
   // Sin esto hereda el canonical "/" del layout raíz (bug real hallado con
   // Lighthouse/lhci: SEO le decía a los buscadores que esta página era
   // duplicado del home).
@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 };
 
 /**
- * Agenda (pestaña de la barra inferior y del riel): los próximos eventos
- * por fecha de inicio, en el mismo feed del inicio. Conserva la URL
- * /agenda.
+ * Agenda (pestaña de la barra inferior y del riel): las fechas que vienen
+ * (las que se repiten cada año y las únicas) por la próxima vez que tocan,
+ * en el mismo feed del inicio.
  */
 export default function AgendaPage() {
   return (
@@ -24,7 +24,7 @@ export default function AgendaPage() {
       filter={{ type: "EVENT", sort: "upcoming" }}
       activePath={BASE_PATH}
       adSection="EVENT"
-      emptyMessage="No hay eventos próximos por ahora."
+      emptyMessage="No hay fechas próximas por ahora."
     />
   );
 }

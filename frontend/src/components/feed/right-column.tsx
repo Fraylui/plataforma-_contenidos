@@ -2,12 +2,11 @@ import Link from "next/link";
 import { CalendarBlank, Heart } from "@phosphor-icons/react/dist/ssr";
 import type { EventSummary } from "@/lib/api/types";
 import type { HomeItem } from "@/lib/home-items";
-import { formatEventDateTime } from "@/lib/content-labels";
+import { agendaDateParts, formatAgendaDate } from "@/lib/agenda-date";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { SkeletonImage } from "@/components/ui/skeleton-image";
 import { AdBlock } from "@/components/legal/ad-block";
 import type { AdSection } from "@/lib/ads/ad-context";
-import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
 /** Fila de la columna: píldora de fondo al pasar el mouse, sin bordes ni líneas (como Facebook). */
 const ROW = "group -mx-2 flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-surface";
@@ -28,9 +27,7 @@ function SectionHeader({ id, title, href }: { id: string; title: string; href?: 
 }
 
 function EventRow({ event, categoryName }: { event: EventSummary; categoryName?: string }) {
-  const start = new Date(event.startsAt);
-  const day = new Intl.DateTimeFormat("es-PE", { timeZone: SITE_TIME_ZONE, day: "numeric" }).format(start);
-  const month = new Intl.DateTimeFormat("es-PE", { timeZone: SITE_TIME_ZONE, month: "short" }).format(start).replace(".", "");
+  const { day, month } = agendaDateParts(event.nextOccurrenceAt);
   const where = event.venueName ?? categoryName;
 
   return (
@@ -53,7 +50,9 @@ function EventRow({ event, categoryName }: { event: EventSummary; categoryName?:
       <span className="flex min-w-0 flex-col gap-0.5">
         <span className="line-clamp-2 text-[15px] leading-snug font-semibold text-foreground">{event.title}</span>
         <span className="truncate text-[13px] text-muted">
-          <time dateTime={event.startsAt}>{formatEventDateTime(event.startsAt)}</time>
+          <time dateTime={event.nextOccurrenceAt}>
+            {formatAgendaDate({ at: event.nextOccurrenceAt, allDay: event.allDay, recursYearly: event.recursYearly, sinceYear: event.sinceYear })}
+          </time>
           {where && ` · ${where}`}
         </span>
       </span>
@@ -82,8 +81,8 @@ export function RightColumn({
   return (
     <div className="flex flex-col gap-7">
       {events.length > 0 && (
-        <section aria-labelledby="proximos-eventos">
-          <SectionHeader id="proximos-eventos" title="Próximos eventos" href="/agenda" />
+        <section aria-labelledby="proximas-fechas">
+          <SectionHeader id="proximas-fechas" title="Próximas fechas" href="/agenda" />
           <ul className="flex flex-col">
             {events.map((event) => (
               <li key={event.id}>
