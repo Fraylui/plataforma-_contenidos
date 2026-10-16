@@ -79,7 +79,7 @@ export default async function EpisodePage({ params }: PageProps<"/series/[slug]/
       )}
 
       <div className="mt-8">
-        <AdBlock position="article" section="HOME" categoryId={series.categoryId} layout="band" count={1} />
+        <AdBlock position="article" section="SERIES" categoryId={series.categoryId} layout="band" count={1} />
       </div>
 
       {(older || newer) && (

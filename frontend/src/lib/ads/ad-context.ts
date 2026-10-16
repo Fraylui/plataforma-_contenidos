@@ -4,7 +4,7 @@
  * el visitante está viendo. La ubicación del visitante no va acá: la agrega
  * Cloudflare en cabeceras y el proxy de Next la reenvía.
  */
-export type AdSection = "HOME" | "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS";
+export type AdSection = "HOME" | "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS" | "SERIES";
 
 export const AD_SECTIONS: { value: AdSection; label: string }[] = [
   { value: "HOME", label: "Inicio" },
@@ -13,6 +13,7 @@ export const AD_SECTIONS: { value: AdSection; label: string }[] = [
   { value: "EVENT", label: "Eventos" },
   { value: "GALLERY", label: "Galerías" },
   { value: "BUSINESS", label: "Directorio" },
+  { value: "SERIES", label: "Series y En vivo" },
 ];
 
 export interface AdContext {
@@ -26,6 +27,9 @@ const SECTION_BY_PREFIX: [string, AdSection][] = [
   ["/eventos", "EVENT"],
   ["/galerias", "GALLERY"],
   ["/directorio", "BUSINESS"],
+  // Los videos de YouTube del sitio: programas, episodios y transmisiones.
+  ["/series", "SERIES"],
+  ["/en-vivo", "SERIES"],
 ];
 
 /** Para lo que vive en el layout (barra fija), que no recibe el contexto de cada página. */

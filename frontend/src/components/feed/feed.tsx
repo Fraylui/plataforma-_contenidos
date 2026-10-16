@@ -2,6 +2,7 @@
 
 import { Fragment } from "react";
 import type { HomeItem } from "@/lib/home-items";
+import type { AdSection } from "@/lib/ads/ad-context";
 import { AdBlockClient } from "@/components/legal/ad-block-client";
 import { TopLikedList } from "@/components/content/top-liked-list";
 import { PostCard } from "@/components/post/post-card";
@@ -42,7 +43,7 @@ export function Feed({
   categoryNames: Record<string, string>;
   feedAd: { clientId: string; slot: string } | null;
   topLiked?: HomeItem[];
-  adSection?: "HOME" | "ARTICLE" | "PLACE" | "EVENT" | "GALLERY" | "BUSINESS";
+  adSection?: AdSection;
   emptyMessage?: string;
 }) {
   const { items, hasMore, loading, error, loadMore, sentinelRef } = useFeedPages({

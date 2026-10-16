@@ -9,6 +9,12 @@ describe("sectionFromPath", () => {
     expect(sectionFromPath("/directorio/hostal-plaza")).toBe("BUSINESS");
   });
 
+  it("Series y En vivo comparten la sección de videos", () => {
+    expect(sectionFromPath("/series")).toBe("SERIES");
+    expect(sectionFromPath("/series/viajes/episodio-1")).toBe("SERIES");
+    expect(sectionFromPath("/en-vivo")).toBe("SERIES");
+  });
+
   it("no confunde prefijos ni inventa sección", () => {
     expect(sectionFromPath("/lugaresx")).toBeUndefined();
     expect(sectionFromPath("/buscar")).toBeUndefined();
