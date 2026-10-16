@@ -2247,12 +2247,12 @@ Spec: `docs/superpowers/specs/2026-10-07-compositor-y-flujo-design.md` (local).
 5. Renombrar en el código `Article` → `Publication` (clases, tablas `content.articles`, rutas `/api/v1/articles` y `/api/v1/admin/articles`, tipos del frontend, ~140 archivos). Hacerlo en un paso propio con CI verde antes y después.
 6. Errores uniformes RFC 9457 (Problem Details) con códigos estables en español.
 7. Un solo dueño garantizado en la base (índice único parcial sobre `role = 'OWNER'`): **antes** cambiar las ~8 clases de prueba que crean su propio dueño en la base compartida a un dueño único de fixture.
-8. Guardado de permisos en lote (hallazgo menor 2a).
+8. ~~Guardado de permisos en lote~~ — **hecho** 2026-10-15 (4743195): un DELETE en bloque + solo INSERT (`WorkerPermission` es `Persistable`).
 
 **D. Series y En vivo — mejoras siguientes**
-9. Sección de anuncios propia (`AdSection` SERIES) — hoy las páginas de Series/En vivo usan la de Inicio.
-10. Episodios en el buscador (Ctrl+K y `/buscar`), hoy no aparecen.
-11. Etiqueta «Administrador» en el menú de cuenta (hoy muestra «Trabajador» aunque tenga la plantilla).
+9. ~~Sección de anuncios propia~~ — **hecho** (c730329): `AdSection.SERIES` «Series y En vivo», `/series` y `/en-vivo` la usan.
+10. ~~Episodios en el buscador~~ — **hecho** (969f40c, V60): por título, notas y nombre del programa; filtro «Episodios»; buscar un tema también trae sus episodios.
+11. ~~Etiqueta «Administrador»~~ — **hecho** (47269ad): `accountLabel()` la deduce de los permisos (la plantilla no se guarda).
 12. Duración de episodios: el feed de YouTube no la trae; solo con clave de la API de datos (decisión del dueño: por ahora no).
 
 **E. Pantallas y listados (F7/F8)**
