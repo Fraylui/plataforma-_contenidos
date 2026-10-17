@@ -34,7 +34,7 @@ describe("BottomTabBar", () => {
     pathname = "/";
     render(<BottomTabBar />);
     await userEvent.click(screen.getByRole("button", { name: "Más" }));
-    const sheet = screen.getByRole("dialog", { name: "Más" });
+    const sheet = await screen.findByRole("dialog", { name: "Más" });
     expect(sheet).toHaveTextContent("Celebraciones");
     expect(sheet).toHaveTextContent("Contacto");
     expect(sheet).toHaveTextContent("Privacidad");

@@ -29,7 +29,8 @@ export function CookieConsentBanner({ adsenseEnabled }: { adsenseEnabled: boolea
       <div
         role="region"
         aria-label="Aviso de cookies"
-        className="fixed inset-x-0 bottom-(--bottom-bar-h) z-50 border-t border-border bg-surface px-4 py-4 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] sm:px-6"
+        // En escritorio empieza después del menú lateral (como el anuncio fijo): no tapa «Información» ni los enlaces legales.
+        className="fixed inset-x-0 bottom-(--bottom-bar-h) z-50 border-t border-border bg-surface px-4 py-4 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] sm:px-6 lg:left-[76px] xl:left-[17.5rem]"
       >
         <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted">

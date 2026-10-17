@@ -1,47 +1,37 @@
 "use client";
 
-import Link from "next/link";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { Suspense, useState, type ReactNode } from "react";
 import { Info } from "@phosphor-icons/react";
-import { MORE_LINKS } from "./shell-nav";
+import { lazyPopup } from "./lazy-popup";
+
+const { Component: InfoMenuPanel, preload } = lazyPopup(() => import("./info-menu-panel"));
 
 /**
- * "Información" del riel en el modo de solo íconos (1024–1279 px), donde
- * los enlaces legales no caben a la vista (desde 1280 px se ven al pie).
- * Ícono de información con su nombre — no las tres rayitas de "Más", que
- * no decían qué hacían. Radix DropdownMenu aporta roles de menú, flechas,
- * Esc y foco de vuelta al botón.
+ * «Información» del riel en modo íconos (1024–1279 px): enlaces legales. El
+ * menú (Radix DropdownMenu) se carga al primer toque: ver lazy-popup.ts.
  */
-export function InfoMenu({ brandName, triggerClassName, children }: { brandName: string; triggerClassName: string; children?: React.ReactNode }) {
-  const year = new Date().getFullYear();
-
+export function InfoMenu({ brandName, triggerClassName, children }: { brandName: string; triggerClassName: string; children?: ReactNode }) {
+  const [active, setActive] = useState(false);
+  const idle = (
+    <button
+      type="button"
+      aria-label="Información"
+      aria-haspopup="menu"
+      className={triggerClassName}
+      onClick={() => setActive(true)}
+      onPointerEnter={preload}
+      onFocus={preload}
+    >
+      <Info className="h-6 w-6 shrink-0" aria-hidden="true" />
+      {children}
+    </button>
+  );
+  if (!active) return idle;
   return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger aria-label="Información" className={triggerClassName}>
-        <Info className="h-6 w-6 shrink-0" aria-hidden="true" />
+    <Suspense fallback={idle}>
+      <InfoMenuPanel brandName={brandName} triggerClassName={triggerClassName}>
         {children}
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          side="right"
-          align="end"
-          sideOffset={8}
-          className="z-[60] w-56 rounded-2xl bg-surface p-2 shadow-2xl ring-1 ring-border/60 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95"
-        >
-          {MORE_LINKS.map((link) => (
-            <DropdownMenu.Item
-              key={link.href}
-              asChild
-              className="flex min-h-11 cursor-pointer items-center rounded-xl px-3 text-[15px] font-medium text-foreground outline-none transition-colors data-[highlighted]:bg-canvas"
-            >
-              <Link href={link.href}>{link.label}</Link>
-            </DropdownMenu.Item>
-          ))}
-          <p className="px-3 pt-2 pb-1 text-xs text-muted">
-            © {year} {brandName}
-          </p>
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
+      </InfoMenuPanel>
+    </Suspense>
   );
 }

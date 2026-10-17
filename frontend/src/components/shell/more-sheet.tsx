@@ -1,58 +1,44 @@
 "use client";
 
-import Link from "next/link";
-import * as Dialog from "@radix-ui/react-dialog";
-import { DotsThreeCircle, X } from "@phosphor-icons/react";
-import { MORE_LINKS } from "./shell-nav";
+import { Suspense, useRef, useState } from "react";
+import { DotsThreeCircle } from "@phosphor-icons/react";
+import { lazyPopup } from "./lazy-popup";
 
-/** En el celular, el archivo de Celebraciones (sin pestaña propia, modelo Google) se encuentra aquí. */
-const SHEET_LINKS = [{ href: "/celebraciones", label: "Celebraciones" }, ...MORE_LINKS];
+const { Component: MoreSheetPanel, preload } = lazyPopup(() => import("./more-sheet-panel"));
 
 /**
- * Hoja inferior "Más" (celular): lo que antes vivía en el pie de página y en
- * el menú ☰. Radix Dialog aporta foco atrapado, Escape y aria-modal.
+ * «Más» de la barra inferior (celular): hoja con Celebraciones y los enlaces
+ * legales. El botón queda siempre en su lugar; la hoja (Radix Dialog) se
+ * carga al primer toque (ver lazy-popup.ts) y al cerrarse le devuelve el foco.
  */
 export function MoreSheet({ triggerClassName }: { triggerClassName: string }) {
+  const [mounted, setMounted] = useState(false);
+  const [open, setOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
   return (
-    <Dialog.Root>
-      <Dialog.Trigger className={triggerClassName}>
+    <>
+      <button
+        ref={buttonRef}
+        type="button"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        className={triggerClassName}
+        onClick={() => {
+          setMounted(true);
+          setOpen(true);
+        }}
+        onPointerDown={preload}
+        onFocus={preload}
+      >
         <DotsThreeCircle className="h-6 w-6" aria-hidden="true" />
         <span className="text-[11px] font-medium">Más</span>
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-[60] bg-black/50" />
-        <Dialog.Content
-          aria-describedby={undefined}
-          className="fixed inset-x-0 bottom-0 z-[60] rounded-t-3xl border-t border-border bg-surface px-4 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl"
-        >
-          <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border" aria-hidden="true" />
-          <div className="flex items-center justify-between">
-            <Dialog.Title className="text-base font-bold text-foreground">Más</Dialog.Title>
-            <Dialog.Close
-              aria-label="Cerrar"
-              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-muted hover:bg-canvas hover:text-foreground"
-            >
-              <X className="h-5 w-5" aria-hidden="true" />
-            </Dialog.Close>
-          </div>
-          <nav aria-label="Más enlaces" className="mt-2">
-            <ul className="divide-y divide-border/60">
-              {SHEET_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Dialog.Close asChild>
-                    <Link
-                      href={link.href}
-                      className="flex min-h-12 items-center text-[15px] font-medium text-foreground hover:text-accent"
-                    >
-                      {link.label}
-                    </Link>
-                  </Dialog.Close>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+      </button>
+      {mounted && (
+        <Suspense fallback={null}>
+          <MoreSheetPanel open={open} onOpenChange={setOpen} onClosed={() => buttonRef.current?.focus()} />
+        </Suspense>
+      )}
+    </>
   );
 }

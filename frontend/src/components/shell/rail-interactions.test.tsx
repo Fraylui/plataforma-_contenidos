@@ -12,10 +12,12 @@ describe("LeftRail — «Buscar» abre un panel lateral (como Instagram)", () =>
     vi.mocked(usePathname).mockReturnValue("/");
     render(<LeftRail brand={brand} />);
     await userEvent.click(screen.getByRole("button", { name: "Buscar" }));
-    const panel = screen.getByRole("dialog", { name: "Buscar" });
+    const panel = await screen.findByRole("dialog", { name: "Buscar" });
     await waitFor(() => expect(panel.querySelector("input")).toHaveFocus());
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("dialog", { name: "Buscar" })).not.toBeInTheDocument();
+    // El panel se carga aparte (lazy-popup): al cerrarse, el foco vuelve al botón que lo abrió.
+    await waitFor(() => expect(screen.getByRole("button", { name: "Buscar" })).toHaveFocus());
     // Margen amplio: con la CPU ocupada (p. ej. un build de Docker en paralelo) el diálogo de Radix superó los 5 s por defecto.
   }, 15_000);
 });
@@ -33,7 +35,7 @@ describe("LeftRail — sin selector de apariencia: claro u oscuro según el disp
     vi.mocked(usePathname).mockReturnValue("/");
     const { container } = render(<LeftRail brand={brand} />);
     await userEvent.click(screen.getByRole("button", { name: "Información" }));
-    expect(screen.getByRole("menuitem", { name: "Términos" })).toHaveAttribute("href", "/terminos");
+    expect(await screen.findByRole("menuitem", { name: "Términos" })).toHaveAttribute("href", "/terminos");
     expect(await axe(container)).toHaveNoViolations();
   });
 });
