@@ -203,6 +203,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: e2e-lighthouse-reports
+          # .lighthouseci es una carpeta oculta: sin esto upload-artifact la omite.
+          include-hidden-files: true
           path: |
             frontend/playwright-report
             frontend/.lighthouseci
