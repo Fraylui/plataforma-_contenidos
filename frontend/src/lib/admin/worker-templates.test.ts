@@ -6,18 +6,17 @@ describe("plantillas de trabajador", () => {
   it("mismos permisos que el backend", () => {
     expect(Object.fromEntries(WORKER_TEMPLATES.map((t) => [t.id, t.permissions]))).toEqual({
       ADMINISTRADOR: {
-        PUBLICATIONS: "PUBLISH", PLACES: "PUBLISH", CELEBRATIONS: "PUBLISH", GALLERIES: "PUBLISH", DIRECTORY: "PUBLISH",
+        PUBLICATIONS: "PUBLISH", PLACES: "PUBLISH", CELEBRATIONS: "PUBLISH", GALLERIES: "PUBLISH",
         SERIES: "PUBLISH", CATEGORIES: "ACCESS", STATS: "ACCESS", ADVERTISING: "ACCESS", WORKERS: "ACCESS", SETTINGS: "ACCESS",
       },
       PUBLICADOR: {
-        PUBLICATIONS: "PUBLISH", PLACES: "PUBLISH", CELEBRATIONS: "PUBLISH", GALLERIES: "PUBLISH", DIRECTORY: "PUBLISH",
+        PUBLICATIONS: "PUBLISH", PLACES: "PUBLISH", CELEBRATIONS: "PUBLISH", GALLERIES: "PUBLISH",
         SERIES: "PUBLISH", CATEGORIES: "ACCESS", STATS: "ACCESS",
       },
       GESTOR_CELEBRACIONES: { CELEBRATIONS: "PUBLISH", PLACES: "PUBLISH" },
-      GESTOR_DIRECTORIO: { DIRECTORY: "PUBLISH", PLACES: "PUBLISH" },
       PUBLICIDAD: { ADVERTISING: "ACCESS", STATS: "ACCESS" },
     });
-    expect(WORKER_TEMPLATES.map((t) => t.label)).toEqual(["Administrador", "Publicador", "Gestor de celebraciones", "Gestor de directorio", "Publicidad"]);
+    expect(WORKER_TEMPLATES.map((t) => t.label)).toEqual(["Administrador", "Publicador", "Gestor de celebraciones", "Publicidad"]);
   });
 
   it("reconoce la plantilla de un conjunto de permisos, o «Personalizado»", () => {

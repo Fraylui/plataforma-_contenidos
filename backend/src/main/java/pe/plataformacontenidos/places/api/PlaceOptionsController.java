@@ -32,7 +32,7 @@ public class PlaceOptionsController {
     }
 
     @GetMapping(PATH)
-    @RequiresAnyModule({ Module.PLACES, Module.CELEBRATIONS, Module.DIRECTORY })
+    @RequiresAnyModule({ Module.PLACES, Module.CELEBRATIONS })
     public List<PlaceOption> options() {
         return placeRepository.findAll().stream()
                 .filter(place -> place.getStatus() != PublicationStatus.ARCHIVED)

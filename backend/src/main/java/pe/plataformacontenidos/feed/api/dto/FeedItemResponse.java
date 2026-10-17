@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 import pe.plataformacontenidos.content.Publication;
 import pe.plataformacontenidos.content.PublicationType;
-import pe.plataformacontenidos.directory.Business;
 import pe.plataformacontenidos.engagement.ContentType;
 import pe.plataformacontenidos.celebrations.Celebration;
 import pe.plataformacontenidos.galleries.Gallery;
@@ -28,9 +27,8 @@ import pe.plataformacontenidos.shared.ContentImage;
  *
  * <p>Tarjeta tipo post (diseño 2026-10-06): `images` alimenta el carrusel
  * (hasta {@link #MAX_IMAGES}); `startsAt` (celebración: la próxima vez que toca), `latitude`/`longitude`
- * (lugar, directorio) alimentan la acción de cada tipo (Agendar, Cómo
- * llegar). Nulos cuando no aplican. Sin teléfono ni web del directorio: el
- * sitio no hace publicidad gratis de negocios (dueño, 2026-10-16). `seriesSlug`/`seriesTitle`/`youtubeVideoId` solo en EPISODE: la
+ * (lugar) alimentan la acción de cada tipo (Recordarme, Cómo llegar).
+ * Nulos cuando no aplican. `seriesSlug`/`seriesTitle`/`youtubeVideoId` solo en EPISODE: la
  * URL es /series/{seriesSlug}/{slug} y la portada, la miniatura de YouTube.
  */
 public record FeedItemResponse(
@@ -95,13 +93,6 @@ public record FeedItemResponse(
                 gallery.getPublishedAt(), likeCount, images(gallery.getImages()), null, null, null, null, null, null, null, null);
     }
 
-    public static FeedItemResponse fromBusiness(Business business, long likeCount) {
-        ContentImage cover = business.getCoverImage();
-        return new FeedItemResponse(ContentType.BUSINESS, business.getId(), business.getSlug(), business.getName(),
-                business.getExcerpt(), null, business.getCategoryId(), imageId(cover), externalUrl(cover),
-                !business.getVideos().isEmpty(), business.getPublishedAt(), likeCount, images(business.getImages()),
-                null, business.getLatitude(), business.getLongitude(), null, null, null, null, null);
-    }
 
     /** Episodio: portada = miniatura de YouTube (la sirve YouTube); tema = el de su serie. */
     public static FeedItemResponse fromEpisode(Episode episode, Series series, long likeCount) {

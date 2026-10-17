@@ -9,7 +9,6 @@ const BACKEND_PATH: Record<string, string> = {
   places: "places",
   celebrations: "celebrations",
   galleries: "galleries",
-  directory: "directory",
   // Episodios por id: /api/v1/series/episodes/{id}/like.
   episodes: "series/episodes",
 };

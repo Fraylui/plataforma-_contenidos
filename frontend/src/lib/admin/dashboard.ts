@@ -14,7 +14,6 @@ export const CONTENT_TYPE_INFO: Record<FeedItemType, { label: string; adminPath:
   PLACE: { label: "Lugar", adminPath: "/admin/lugares", publicPath: "/lugares" },
   CELEBRATION: { label: "Celebración", adminPath: "/admin/celebraciones", publicPath: "/celebraciones" },
   GALLERY: { label: "Galería", adminPath: "/admin/galerias", publicPath: "/galerias" },
-  BUSINESS: { label: "Directorio", adminPath: "/admin/directorio", publicPath: "/directorio" },
   // Un episodio no tiene pantalla propia en el panel: se gestiona dentro de su serie.
   EPISODE: { label: "Episodio", adminPath: "/admin/series", publicPath: "/series" },
 };

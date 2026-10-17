@@ -8,9 +8,6 @@ import type {
   AdPlacement,
   Publication,
   PublicationSummary,
-  Business,
-  BusinessSummary,
-  BusinessType,
   Category,
   Episode,
   EpisodeView,
@@ -290,36 +287,6 @@ export async function listAllPublishedGalleriesForSitemap(): Promise<GallerySumm
   return items;
 }
 
-function listPublishedBusinesses(params?: {
-  categoryId?: string;
-  businessType?: BusinessType;
-  page?: number;
-  size?: number;
-}): Promise<PageResponse<BusinessSummary>> {
-  const query = new URLSearchParams();
-  if (params?.categoryId) query.set("categoryId", params.categoryId);
-  if (params?.businessType) query.set("businessType", params.businessType);
-  query.set("page", String(params?.page ?? 0));
-  query.set("size", String(params?.size ?? 20));
-  return apiFetch(`/api/v1/directory?${query.toString()}`, 60);
-}
-
-export function getPublishedBusinessBySlug(slug: string): Promise<Business> {
-  return apiFetch(`/api/v1/directory/${encodeURIComponent(slug)}`, 300);
-}
-
-const DIRECTORY_SITEMAP_PAGE_SIZE = 50; // = MAX_PAGE_SIZE en BusinessPublicController
-
-export async function listAllPublishedBusinessesForSitemap(): Promise<BusinessSummary[]> {
-  const items: BusinessSummary[] = [];
-  for (let page = 0; ; page++) {
-    const result = await listPublishedBusinesses({ page, size: DIRECTORY_SITEMAP_PAGE_SIZE });
-    items.push(...result.items);
-    if (page + 1 >= result.totalPages) break;
-  }
-  return items;
-}
-
 // Un módulo se declara visible si AL MENOS UNA de sus consultas (ej. eventos
 // próximos + pasados) devuelve algo publicado.
 const NAV_PRESENCE_CHECKS: { href: string; checks: () => Promise<PageResponse<unknown>>[] }[] = [
@@ -330,7 +297,6 @@ const NAV_PRESENCE_CHECKS: { href: string; checks: () => Promise<PageResponse<un
     checks: () => [listPublishedCelebrations({ when: "upcoming", size: 1 }), listPublishedCelebrations({ when: "past", size: 1 })],
   },
   { href: "/galerias", checks: () => [listPublishedGalleries({ size: 1 })] },
-  { href: "/directorio", checks: () => [listPublishedBusinesses({ size: 1 })] },
   { href: "/series", checks: () => [listPublishedSeries({ size: 1 })] },
 ];
 

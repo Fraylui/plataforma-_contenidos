@@ -65,7 +65,7 @@ export interface Publication {
 }
 
 /** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de todos los tipos buscables. */
-export type SearchResultType = "PUBLICATION" | "PLACE" | "CELEBRATION" | "GALLERY" | "BUSINESS" | "EPISODE";
+export type SearchResultType = "PUBLICATION" | "PLACE" | "CELEBRATION" | "GALLERY" | "EPISODE";
 
 export interface SearchResult {
   contentType: SearchResultType;
@@ -234,54 +234,6 @@ export interface Gallery {
   likeCount: number;
 }
 
-/** Ver BusinessType.java (CONTEXTO.md sección 6) — eje de filtrado del Directorio, distinto de la categoría de contenido. */
-export type BusinessType = "RESTAURANT" | "HOTEL" | "SERVICE" | "SHOP" | "OTHER";
-
-export interface BusinessSummary {
-  id: string;
-  slug: string;
-  name: string;
-  excerpt: string | null;
-  businessType: BusinessType;
-  categoryId: string;
-  placeId: string | null;
-  address: string | null;
-  coverImageId: string | null;
-  coverImageUrl: string | null;
-  publishedAt: string | null;
-  likeCount: number;
-}
-
-export interface Business {
-  id: string;
-  slug: string;
-  name: string;
-  excerpt: string | null;
-  body: string;
-  status: PublicationStatus;
-  businessType: BusinessType;
-  authorId: string;
-  categoryId: string;
-  placeId: string | null;
-  address: string | null;
-  phone: string | null;
-  email: string | null;
-  website: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  images: ContentImage[];
-  seoTitle: string | null;
-  metaDescription: string | null;
-  canonicalUrl: string | null;
-  ogImageUrl: string | null;
-  videos: ContentVideo[];
-  robots: string;
-  publishedAt: string | null;
-  scheduledAt: string | null;
-  createdAt: string;
-  likeCount: number;
-}
-
 /** Ver PlatformSettingsResponse.java (CONTEXTO.md sección 14). */
 export interface PlatformSettings {
   name: string;
@@ -380,7 +332,7 @@ export interface ResolvedRotation {
 }
 
 /** Ver FeedItemResponse.java — feed unificado del home y "relacionados" de la vista de detalle. */
-export type FeedItemType = "PUBLICATION" | "PLACE" | "CELEBRATION" | "GALLERY" | "BUSINESS" | "EPISODE";
+export type FeedItemType = "PUBLICATION" | "PLACE" | "CELEBRATION" | "GALLERY" | "EPISODE";
 
 /** Una imagen del carrusel de un ítem del feed: subida (`imageId`) o por enlace externo, nunca ambas. */
 export interface FeedImage {
@@ -405,7 +357,7 @@ export interface FeedItem {
   images: FeedImage[];
   /** Solo eventos. */
   startsAt: string | null;
-  /** Lugares y directorio. */
+  /** Lugares. */
   latitude: number | null;
   longitude: number | null;
   /** Solo episodios: la URL es /series/{seriesSlug}/{slug}. */

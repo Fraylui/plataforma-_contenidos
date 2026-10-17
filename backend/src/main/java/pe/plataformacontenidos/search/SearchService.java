@@ -10,7 +10,6 @@ import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import pe.plataformacontenidos.content.PublicationService;
-import pe.plataformacontenidos.directory.BusinessService;
 import pe.plataformacontenidos.celebrations.CelebrationService;
 import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.places.PlaceService;
@@ -44,18 +43,16 @@ public class SearchService {
     private final PlaceService placeService;
     private final CelebrationService celebrationService;
     private final GalleryService galleryService;
-    private final BusinessService businessService;
     private final SeriesService seriesService;
     private final CategoryService categoryService;
 
     public SearchService(PublicationService publicationService, PlaceService placeService, CelebrationService celebrationService,
-            GalleryService galleryService, BusinessService businessService, SeriesService seriesService,
+            GalleryService galleryService, SeriesService seriesService,
             CategoryService categoryService) {
         this.publicationService = publicationService;
         this.placeService = placeService;
         this.celebrationService = celebrationService;
         this.galleryService = galleryService;
-        this.businessService = businessService;
         this.seriesService = seriesService;
         this.categoryService = categoryService;
     }
@@ -83,10 +80,6 @@ public class SearchService {
         if (type == null || type == SearchResultType.GALLERY) {
             galleryService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
                     .forEach(g -> combined.add(SearchResultResponse.fromGallery(g)));
-        }
-        if (type == null || type == SearchResultType.BUSINESS) {
-            businessService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
-                    .forEach(b -> combined.add(SearchResultResponse.fromBusiness(b)));
         }
         if (type == null || type == SearchResultType.EPISODE) {
             seriesService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
@@ -146,10 +139,6 @@ public class SearchService {
             if (type == null || type == SearchResultType.GALLERY) {
                 galleryService.listPublished(id, pageable)
                         .forEach(g -> addIfNew(combined, seen, SearchResultResponse.fromGallery(g)));
-            }
-            if (type == null || type == SearchResultType.BUSINESS) {
-                businessService.listPublished(id, null, pageable)
-                        .forEach(b -> addIfNew(combined, seen, SearchResultResponse.fromBusiness(b)));
             }
             if (type == null || type == SearchResultType.EPISODE) {
                 seriesService.listPublishedForFeed(id, pageable)

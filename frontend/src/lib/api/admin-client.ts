@@ -24,7 +24,6 @@ import type {
   PublicationInput,
   AuditEvent,
   AuditSearchFilters,
-  BusinessInput,
   Campaign,
   CampaignDailyStat,
   CampaignInput,
@@ -46,7 +45,6 @@ import type {
 import type {
   AdPlacement,
   Publication,
-  Business,
   Category,
   Episode,
   LiveStream,
@@ -259,32 +257,6 @@ export function createGallery(accessToken: string, input: GalleryInput): Promise
 
 export function updateGallery(accessToken: string, id: string, input: GalleryInput): Promise<Gallery> {
   return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}`, accessToken, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-}
-
-// --- Directory module: fichas de directorio (BusinessAdminController, rutas /admin/directory) ---
-
-export function listAdminBusinesses(accessToken: string, params: AdminListParams): Promise<AdminContentPage<Business>> {
-  return authedJson(`/api/v1/admin/directory?${adminListQuery(params)}`, accessToken);
-}
-
-export function getAdminBusiness(accessToken: string, id: string): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}`, accessToken);
-}
-
-export function createBusiness(accessToken: string, input: BusinessInput): Promise<Business> {
-  return authedJson("/api/v1/admin/directory", accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-}
-
-export function updateBusiness(accessToken: string, id: string, input: BusinessInput): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}`, accessToken, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
@@ -671,7 +643,7 @@ export function changeOwnPassword(accessToken: string, currentPassword: string, 
   });
 }
 
-/** Lugares para elegir en Eventos y Directorio (no exige el módulo Lugares). */
+/** Lugares para elegir en Celebraciones (no exige el módulo Lugares). */
 export function listPlaceOptions(accessToken: string): Promise<PlaceOption[]> {
   return authedJson("/api/v1/admin/place-options", accessToken);
 }

@@ -3,7 +3,7 @@ import type { PublicationStatus } from "@/lib/api/types";
 import type { AdminUser, Module } from "@/lib/api/admin-types";
 
 /** Los 5 tipos de contenido comparten el flujo de publicación (backend: shared.publishing). */
-export type PublicationKind = "publications" | "places" | "celebrations" | "galleries" | "directory" | "series";
+export type PublicationKind = "publications" | "places" | "celebrations" | "galleries" | "series";
 
 /** Pasos del flujo; cada uno es POST /api/v1/admin/{tipo}/{id}/{paso}. */
 export type PublicationStep = "publish" | "schedule" | "return-to-draft" | "archive";
@@ -15,7 +15,6 @@ export const PUBLICATION_KINDS: Record<PublicationKind, { adminPath: string; mod
   places: { adminPath: "/admin/lugares", module: "PLACES", noun: "lugar" },
   celebrations: { adminPath: "/admin/celebraciones", module: "CELEBRATIONS", noun: "celebracion" },
   galleries: { adminPath: "/admin/galerias", module: "GALLERIES", noun: "galería" },
-  directory: { adminPath: "/admin/directorio", module: "DIRECTORY", noun: "ficha del directorio" },
   series: { adminPath: "/admin/series", module: "SERIES", noun: "serie" },
 };
 

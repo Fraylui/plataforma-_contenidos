@@ -6,7 +6,6 @@ public enum SearchResultType {
     PLACE,
     CELEBRATION,
     GALLERY,
-    BUSINESS,
     /** Episodio de una serie: la URL es /series/{seriesSlug}/{slug}. */
     EPISODE
 }

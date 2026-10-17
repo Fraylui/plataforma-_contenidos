@@ -28,7 +28,7 @@ function utcStamp(date: Date): string {
 }
 
 /**
- * Enlaces para "Agendar" un evento: Google Calendar (abre en el navegador) y
+ * Enlaces para «Recordarme» una celebración: Google Calendar (abre en el navegador) y
  * un .ics (RFC 5545) para Apple Calendar / Outlook. Siempre en UTC: cada
  * calendario lo muestra en la zona horaria de quien lo agrega.
  */

@@ -1,7 +1,7 @@
 import type { AdSection } from "@/lib/ads/ad-context";
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
-import type { PublicationStatus, PublicationType, BusinessType, ContentImage, FeedItemType } from "./types";
+import type { PublicationStatus, PublicationType, ContentImage, FeedItemType } from "./types";
 import type { CallToAction, CampaignFormat, NativeMediaAspect } from "./types";
 
 /** Cuerpo de un video en PublicationInput/PlaceInput/CelebrationInput — ver ContentVideoInput.java. */
@@ -20,7 +20,6 @@ export type Module =
   | "PLACES"
   | "CELEBRATIONS"
   | "GALLERIES"
-  | "DIRECTORY"
   | "SERIES"
   | "CATEGORIES"
   | "STATS"
@@ -39,7 +38,7 @@ export interface TokenResponse {
   tokenType: string;
 }
 
-/** Lugar para elegir en Eventos y Directorio — PlaceOptionsController (acceso a Lugares, Eventos o Directorio). */
+/** Lugar para elegir en Celebraciones — PlaceOptionsController (acceso a Lugares o Celebraciones). */
 export interface PlaceOption {
   id: string;
   name: string;
@@ -147,29 +146,6 @@ export interface GalleryInput {
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
-  robots: string;
-}
-
-/** Cuerpo de POST/PUT /api/v1/admin/directory — ver BusinessRequest.java. */
-export interface BusinessInput {
-  name: string;
-  excerpt: string | null;
-  body: string;
-  categoryId: string;
-  businessType: BusinessType;
-  placeId: string | null;
-  address: string | null;
-  phone: string | null;
-  email: string | null;
-  website: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  images: ContentImage[];
-  seoTitle: string | null;
-  metaDescription: string | null;
-  canonicalUrl: string | null;
-  ogImageUrl: string | null;
-  videos: ContentVideoInput[];
   robots: string;
 }
 
@@ -437,7 +413,6 @@ export interface PlatformStats {
   placesByStatus: Record<PublicationStatus, number>;
   celebrationsByStatus: Record<PublicationStatus, number>;
   galleriesByStatus: Record<PublicationStatus, number>;
-  businessesByStatus: Record<PublicationStatus, number>;
   totalCategories: number;
   activeCategories: number;
   usersByRole: Record<Role, number>;

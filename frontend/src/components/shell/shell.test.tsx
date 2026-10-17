@@ -55,7 +55,7 @@ describe("LeftRail — sin vacío, como Facebook/X", () => {
       <LeftRail
         brand={brand}
        
-        sections={{ "/publicaciones": true, "/lugares": true, "/galerias": false, "/directorio": true }}
+        sections={{ "/publicaciones": true, "/lugares": true, "/galerias": false }}
         topics={[{ categoryId: "t1", name: "Turismo", slug: "turismo", coverUrl: null, hasNew: true }]}
       />,
     );

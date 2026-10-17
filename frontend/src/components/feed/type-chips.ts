@@ -6,7 +6,6 @@ const TYPES: { href: string; label: string; type: FeedItemType }[] = [
   { href: "/lugares", label: "Lugares", type: "PLACE" },
   { href: "/celebraciones", label: "Celebraciones", type: "CELEBRATION" },
   { href: "/galerias", label: "Galerías", type: "GALLERY" },
-  { href: "/directorio", label: "Directorio", type: "BUSINESS" },
 ];
 
 /**

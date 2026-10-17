@@ -6,7 +6,7 @@ import type { FeedItem } from "@/lib/api/types";
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const MAX_SIZE = 30; // = MAX_PAGE_SIZE en FeedController
 // Filtros del feed: solo los tipos que el feed incluye (FeedService.FEED_TYPES).
-const FEED_TYPES = new Set(["PUBLICATION", "PLACE", "CELEBRATION", "GALLERY", "BUSINESS"]);
+const FEED_TYPES = new Set(["PUBLICATION", "PLACE", "CELEBRATION", "GALLERY"]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**

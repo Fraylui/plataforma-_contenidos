@@ -1,5 +1,5 @@
 import type { Icon } from "@phosphor-icons/react";
-import { ChartBar, Buildings, CalendarDots, Article, TreeStructure, House, Image as ImageIcon, Images, MapPin, Megaphone, GearSix, ShieldCheck, Storefront, Television, Broadcast, UserCircle, Users } from "@phosphor-icons/react/dist/ssr";
+import { ChartBar, Buildings, CalendarDots, Article, TreeStructure, House, Image as ImageIcon, Images, MapPin, Megaphone, GearSix, ShieldCheck, Television, Broadcast, UserCircle, Users } from "@phosphor-icons/react/dist/ssr";
 import type { AdminUser, Module } from "@/lib/api/admin-types";
 import { canAccess, isOwner } from "./permissions";
 
@@ -61,13 +61,6 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     group: "contenido",
     icon: Images,
     module: "GALLERIES",
-  },
-  {
-    href: "/admin/directorio",
-    label: "Directorio",
-    group: "contenido",
-    icon: Storefront,
-    module: "DIRECTORY",
   },
   {
     href: "/admin/series",
@@ -159,7 +152,6 @@ const CREATE_ITEMS: Array<CreateItem & { navHref: string }> = [
   { label: "Lugar", href: "/admin/lugares/nuevo", navHref: "/admin/lugares" },
   { label: "Celebración", href: "/admin/celebraciones/nuevo", navHref: "/admin/celebraciones" },
   { label: "Galería", href: "/admin/galerias/nuevo", navHref: "/admin/galerias" },
-  { label: "Ficha de directorio", href: "/admin/directorio/nuevo", navHref: "/admin/directorio" },
   { label: "Serie", href: "/admin/series/nueva", navHref: "/admin/series" },
   { label: "Transmisión en vivo", href: "/admin/en-vivo/nueva", navHref: "/admin/en-vivo" },
 ];

@@ -24,7 +24,7 @@ describe("menú del panel según permisos (espejo del servidor)", () => {
   it("las secciones del dueño no aparecen para un trabajador con todos los módulos", () => {
     const all = user({
       permissions: {
-        PUBLICATIONS: "PUBLISH", PLACES: "PUBLISH", CELEBRATIONS: "PUBLISH", GALLERIES: "PUBLISH", DIRECTORY: "PUBLISH",
+        PUBLICATIONS: "PUBLISH", PLACES: "PUBLISH", CELEBRATIONS: "PUBLISH", GALLERIES: "PUBLISH",
         CATEGORIES: "ACCESS", STATS: "ACCESS", ADVERTISING: "ACCESS",
       },
     });
@@ -40,7 +40,7 @@ describe("lenguaje de plataforma (no de redacción)", () => {
     const menu = groupedNavItems(user({ role: "OWNER" })).map(({ group, items }) => [ADMIN_NAV_GROUP_LABELS[group], items.map((i) => i.label)]);
     expect(menu).toEqual([
       [null, ["Inicio", "Estadísticas"]],
-      ["Contenido", ["Publicaciones", "Lugares", "Celebraciones", "Galerías", "Directorio", "Series", "En vivo", "Temas", "Imágenes"]],
+      ["Contenido", ["Publicaciones", "Lugares", "Celebraciones", "Galerías", "Series", "En vivo", "Temas", "Imágenes"]],
       ["Publicidad", ["Espacios publicitarios", "Anunciantes"]],
       ["Equipo y ajustes", ["Trabajadores", "Configuración", "Registro de actividad", "Mi cuenta"]],
     ]);
@@ -60,7 +60,6 @@ describe("qué puede crear cada persona (botón Crear, paleta y barra del celula
       "Lugar",
       "Celebración",
       "Galería",
-      "Ficha de directorio",
       "Serie",
       "Transmisión en vivo",
     ]);

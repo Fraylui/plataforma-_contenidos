@@ -25,7 +25,7 @@ export default async function AdminMediaPage() {
     <div>
       <AdminPageHeader
         title="Imágenes"
-        description="Sube tus fotos aquí una sola vez. Al crear o editar cualquier contenido (Publicación, Lugar, Fecha, Galería, Directorio) las eliges directamente de una galería visual — no hace falta copiar ninguna URL."
+        description="Sube tus fotos aquí una sola vez. Al crear o editar cualquier contenido (Publicación, Lugar, Celebración, Galería) las eliges directamente de una galería visual — no hace falta copiar ninguna URL."
       />
 
       <div className="mt-6">

@@ -1,4 +1,4 @@
-import type { PublicationType, BusinessType, SearchResult, SearchResultType, PublicationStatus } from "@/lib/api/types";
+import type { PublicationType, SearchResult, SearchResultType, PublicationStatus } from "@/lib/api/types";
 import type { BadgeTone } from "@/components/ui";
 import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
@@ -35,18 +35,6 @@ const PUBLICATION_STATUS_TONE: Record<PublicationStatus, BadgeTone> = {
 
 export function publicationStatusTone(status: PublicationStatus): BadgeTone {
   return PUBLICATION_STATUS_TONE[status];
-}
-
-const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
-  RESTAURANT: "Restaurante",
-  HOTEL: "Hotel",
-  SERVICE: "Servicio",
-  SHOP: "Tienda",
-  OTHER: "Otro",
-};
-
-export function businessTypeLabel(type: BusinessType): string {
-  return BUSINESS_TYPE_LABELS[type];
 }
 
 export function formatPublishedDate(iso: string | null): string {
@@ -131,7 +119,6 @@ const SEARCH_RESULT_TYPE_LABEL: Record<SearchResultType, string> = {
   PLACE: "Lugar",
   CELEBRATION: "Celebración",
   GALLERY: "Galería",
-  BUSINESS: "Directorio",
   EPISODE: "Episodio",
 };
 
@@ -144,7 +131,6 @@ const SEARCH_RESULT_TYPE_PATH: Record<SearchResultType, string> = {
   PLACE: "lugares",
   CELEBRATION: "celebraciones",
   GALLERY: "galerias",
-  BUSINESS: "directorio",
   EPISODE: "series",
 };
 

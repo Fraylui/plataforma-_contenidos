@@ -14,8 +14,8 @@ export interface PostFact {
 }
 
 /**
- * Datos útiles del post según el tipo (evento: cuándo y dónde; directorio:
- * dirección, teléfono, correo y web; lugar: el mapa), como el bloque de
+ * Datos útiles del post según el tipo (celebración: cuándo y dónde; lugar:
+ * el mapa), como el bloque de
  * información de una página de Facebook: filas con ícono en círculo, sin
  * cajas con borde ni etiquetas en mayúsculas. Solo lo que existe — nada
  * inventado. El mapa es el embed simple de Google Maps (sin API key).

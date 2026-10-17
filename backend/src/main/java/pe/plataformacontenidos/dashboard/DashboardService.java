@@ -75,7 +75,6 @@ public class DashboardService {
             ContentType.PLACE, new Source("places.places", "name", Module.PLACES),
             ContentType.CELEBRATION, new Source("celebrations.celebrations", "title", Module.CELEBRATIONS),
             ContentType.GALLERY, new Source("galleries.galleries", "title", Module.GALLERIES),
-            ContentType.BUSINESS, new Source("directory.businesses", "name", Module.DIRECTORY),
             ContentType.EPISODE, new Source("series.episodes", "title", Module.SERIES, EPISODE_SELECT)));
 
     private record CacheEntry(Instant builtAt, DashboardSummary summary) {

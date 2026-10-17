@@ -3,7 +3,6 @@ package pe.plataformacontenidos.search.api.dto;
 import java.time.Instant;
 import java.util.UUID;
 import pe.plataformacontenidos.content.Publication;
-import pe.plataformacontenidos.directory.Business;
 import pe.plataformacontenidos.celebrations.Celebration;
 import pe.plataformacontenidos.galleries.Gallery;
 import pe.plataformacontenidos.places.Place;
@@ -15,13 +14,13 @@ import pe.plataformacontenidos.shared.ContentImage;
 /**
  * Forma unificada de un resultado de búsqueda, sea cual sea el tipo de
  * contenido de origen (CONTEXTO.md sección 16 y 20: "cuando existan
- * Lugares/Eventos/Directorio, esto se separa a un módulo Search propio que
+ * Lugares/Eventos, esto se separa a un módulo Search propio que
  * agregue resultados de varios módulos" — ya hay dos tipos buscables, este
  * es ese momento). El frontend arma la URL a partir de `contentType` +
  * `slug` (/publicaciones/{slug} o /lugares/{slug}). featuredImageId/
  * featuredImageUrl son excluyentes (ver ContentImage) en Publication/Place/
  * Celebration, que ya soportan imágenes por enlace externo además de subidas;
- * Gallery/Business todavía son solo imágenes subidas.
+ * Gallery todavía es solo imágenes subidas.
  */
 public record SearchResultResponse(
         SearchResultType contentType,
@@ -107,22 +106,6 @@ public record SearchResultResponse(
                 null);
     }
 
-    public static SearchResultResponse fromBusiness(Business business) {
-        ContentImage cover = business.getCoverImage();
-        return new SearchResultResponse(
-                SearchResultType.BUSINESS,
-                business.getId(),
-                business.getSlug(),
-                business.getName(),
-                business.getExcerpt(),
-                business.getCategoryId(),
-                cover == null ? null : cover.getImageId(),
-                cover == null ? null : cover.getExternalUrl(),
-                !business.getVideos().isEmpty(),
-                business.getPublishedAt(),
-                null,
-                null);
-    }
 
     /** Episodio: portada = miniatura de YouTube (igual que en el feed); tema = el de su serie. */
     public static SearchResultResponse fromEpisode(Episode episode, Series series) {

@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 import pe.plataformacontenidos.content.PublicationService;
-import pe.plataformacontenidos.directory.BusinessService;
 import pe.plataformacontenidos.celebrations.CelebrationService;
 import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.identity.WorkerService;
@@ -34,18 +33,16 @@ public class StatsService {
     private final PlaceService placeService;
     private final CelebrationService celebrationService;
     private final GalleryService galleryService;
-    private final BusinessService businessService;
     private final CategoryService categoryService;
     private final WorkerService workerService;
 
     public StatsService(PublicationService publicationService, PlaceService placeService, CelebrationService celebrationService,
-            GalleryService galleryService, BusinessService businessService,
+            GalleryService galleryService,
             CategoryService categoryService, WorkerService workerService) {
         this.publicationService = publicationService;
         this.placeService = placeService;
         this.celebrationService = celebrationService;
         this.galleryService = galleryService;
-        this.businessService = businessService;
         this.categoryService = categoryService;
         this.workerService = workerService;
     }
@@ -59,7 +56,6 @@ public class StatsService {
                 placeService.countByStatus(),
                 celebrationService.countByStatus(),
                 galleryService.countByStatus(),
-                businessService.countByStatus(),
                 categoryService.countAll(),
                 categoryService.countActive(),
                 workerService.countByRole(),

@@ -41,7 +41,6 @@ class ModuleAccessIntegrationTest {
         "PLACES, /api/v1/admin/places, PUBLISH",
         "CELEBRATIONS, /api/v1/admin/celebrations, PUBLISH",
         "GALLERIES, /api/v1/admin/galleries, PUBLISH",
-        "DIRECTORY, /api/v1/admin/directory, PUBLISH",
         "CATEGORIES, /api/v1/admin/categories, ACCESS",
         "STATS, /api/v1/admin/stats, ACCESS",
         "ADVERTISING, /api/v1/admin/advertisers, ACCESS",

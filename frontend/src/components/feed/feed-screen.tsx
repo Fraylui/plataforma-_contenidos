@@ -28,7 +28,7 @@ const UPCOMING_CELEBRATIONS_SIZE = 4;
 
 /**
  * Pantalla de feed, la misma para el inicio, las secciones (Publicaciones,
- * Lugares, Galerías, Directorio), Celebraciones y cada tema — como Instagram o
+ * Lugares, Galerías), Celebraciones y cada tema — como Instagram o
  * Facebook, donde filtrar no cambia de diseño: círculos de temas, chips de
  * tipo, feed de una columna con scroll infinito y, en escritorio ancho,
  * columna derecha pegada al borde. Sin portadas de sección, contadores ni

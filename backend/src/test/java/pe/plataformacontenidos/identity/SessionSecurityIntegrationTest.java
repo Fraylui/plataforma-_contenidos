@@ -107,9 +107,9 @@ class SessionSecurityIntegrationTest {
         changePassword(token, PASSWORD, "ClaveNuevaSegura2026").andExpect(status().isTooManyRequests());
     }
 
-    /** Hallazgo 2: quien gestiona eventos o directorio elige lugar aunque no tenga el módulo Lugares. */
+    /** Hallazgo 2: quien gestiona celebraciones elige lugar aunque no tenga el módulo Lugares. */
     @Test
-    void placeOptionsAreAvailableToCelebrationsOrDirectoryWorkers() throws Exception {
+    void placeOptionsAreAvailableToCelebrationsWorkers() throws Exception {
         User celebrationsOnly = user(Role.WORKER);
         permissions.save(new WorkerPermission(celebrationsOnly.getId(), Module.CELEBRATIONS, AccessLevel.PUBLISH));
         String token = login(celebrationsOnly.getEmail(), PASSWORD).get("accessToken").asText();

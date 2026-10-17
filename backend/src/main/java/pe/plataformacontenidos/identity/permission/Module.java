@@ -6,7 +6,6 @@ public enum Module {
     PLACES(true),
     CELEBRATIONS(true),
     GALLERIES(true),
-    DIRECTORY(true),
     /** Series conectadas a listas de YouTube y sus episodios. */
     SERIES(true),
     CATEGORIES(false),

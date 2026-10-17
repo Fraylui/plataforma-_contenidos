@@ -14,7 +14,6 @@ export const RESOURCE_LABELS: Record<string, string> = {
   celebration: "Celebración",
   event: "Celebración",
   gallery: "Galería",
-  business: "Directorio",
   image: "Imagen",
   worker: "Trabajador",
   user: "Cuenta",
@@ -30,7 +29,6 @@ const SUBJECTS: Record<string, string> = {
   CELEBRATION: "una celebración",
   EVENT: "una celebración",
   GALLERY: "una galería",
-  BUSINESS: "una ficha del directorio",
   IMAGE: "una imagen",
   WORKER: "a un trabajador",
 };

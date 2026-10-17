@@ -4,7 +4,6 @@ import { useEffect, useId, useRef, useState, useSyncExternalStore, type Keyboard
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
-  Buildings,
   CalendarBlank,
   CircleNotch,
   ImagesSquare,
@@ -29,7 +28,6 @@ const TYPE_ICON: Record<SearchResultType, Icon> = {
   PLACE: MapPin,
   CELEBRATION: CalendarBlank,
   GALLERY: ImagesSquare,
-  BUSINESS: Buildings,
   EPISODE: Television,
 };
 

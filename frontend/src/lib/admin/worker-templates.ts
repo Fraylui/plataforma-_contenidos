@@ -18,7 +18,6 @@ export const WORKER_TEMPLATES: WorkerTemplate[] = [
       PLACES: "PUBLISH",
       CELEBRATIONS: "PUBLISH",
       GALLERIES: "PUBLISH",
-      DIRECTORY: "PUBLISH",
       SERIES: "PUBLISH",
       CATEGORIES: "ACCESS",
       STATS: "ACCESS",
@@ -36,14 +35,12 @@ export const WORKER_TEMPLATES: WorkerTemplate[] = [
       PLACES: "PUBLISH",
       CELEBRATIONS: "PUBLISH",
       GALLERIES: "PUBLISH",
-      DIRECTORY: "PUBLISH",
       SERIES: "PUBLISH",
       CATEGORIES: "ACCESS",
       STATS: "ACCESS",
     },
   },
   { id: "GESTOR_CELEBRACIONES", label: "Gestor de celebraciones", description: "Celebraciones y lugares", permissions: { CELEBRATIONS: "PUBLISH", PLACES: "PUBLISH" } },
-  { id: "GESTOR_DIRECTORIO", label: "Gestor de directorio", description: "Directorio y lugares", permissions: { DIRECTORY: "PUBLISH", PLACES: "PUBLISH" } },
   { id: "PUBLICIDAD", label: "Publicidad", description: "Anunciantes, campañas y espacios", permissions: { ADVERTISING: "ACCESS", STATS: "ACCESS" } },
 ];
 
@@ -63,7 +60,6 @@ export const MODULE_LABELS: Record<Module, string> = {
   PLACES: "Lugares",
   CELEBRATIONS: "Celebraciones",
   GALLERIES: "Galerías",
-  DIRECTORY: "Directorio",
   SERIES: "Series",
   CATEGORIES: "Temas",
   STATS: "Estadísticas",
@@ -72,5 +68,5 @@ export const MODULE_LABELS: Record<Module, string> = {
   SETTINGS: "Configuración",
 };
 
-export const CONTENT_MODULES: Module[] = ["PUBLICATIONS", "PLACES", "CELEBRATIONS", "GALLERIES", "DIRECTORY", "SERIES"];
+export const CONTENT_MODULES: Module[] = ["PUBLICATIONS", "PLACES", "CELEBRATIONS", "GALLERIES", "SERIES"];
 export const ACCESS_MODULES: Module[] = ["CATEGORIES", "STATS", "ADVERTISING", "WORKERS", "SETTINGS"];

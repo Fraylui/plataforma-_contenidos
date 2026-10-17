@@ -54,28 +54,6 @@ describe("fromFeedItem", () => {
     expect(item.hasVideo).toBe(true);
   });
 
-  it("convierte un negocio del directorio con carrusel (subida + enlace externo) y su contacto", () => {
-    const item = fromFeedItem(
-      feedItem({
-        type: "BUSINESS",
-        slug: "hostal-plaza",
-        coverImageId: "img-1",
-        images: [
-          { imageId: "img-1", externalUrl: null },
-          { imageId: null, externalUrl: "https://example.com/b.jpg" },
-        ],
-        latitude: -13.16,
-        longitude: -74.22,
-      }),
-    );
-    expect(item.kind).toBe("directorio");
-    expect(item.href).toBe("/directorio/hostal-plaza");
-    expect(item.images).toHaveLength(2);
-    expect(item.images[0].isExternal).toBe(false);
-    expect(item.images[0].url).toContain("/api/v1/images/img-1/file");
-    expect(item.images[1]).toEqual({ url: "https://example.com/b.jpg", isExternal: true });
-    expect(item.latitude).toBe(-13.16);
-  });
 
   it("un evento conserva su fecha de inicio y ordena por ella", () => {
     const item = fromFeedItem(feedItem({ type: "CELEBRATION", slug: "feria", startsAt: "2030-01-10T19:00:00Z" }));

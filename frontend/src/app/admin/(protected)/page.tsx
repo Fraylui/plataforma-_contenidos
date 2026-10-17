@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   robots: "noindex,nofollow",
 };
 
-const CONTENT_HREFS = ["/admin/publicaciones", "/admin/lugares", "/admin/celebraciones", "/admin/galerias", "/admin/directorio"];
+const CONTENT_HREFS = ["/admin/publicaciones", "/admin/lugares", "/admin/celebraciones", "/admin/galerias"];
 const NUMBER = new Intl.NumberFormat("es-PE");
 
 /**

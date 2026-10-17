@@ -284,7 +284,7 @@ body {
 }
 
 /*
- * Texto largo (cuerpo de publicaciones, lugares, eventos, directorio y el
+ * Texto largo (cuerpo de publicaciones, lugares, celebraciones y el
  * editor del panel) con los colores del TEMA, no los de Tailwind Typography.
  * Antes usaba `prose-slate`, que trae grises fijos pensados para fondo
  * blanco: en tema oscuro el cuerpo quedaba gris oscuro sobre fondo oscuro,

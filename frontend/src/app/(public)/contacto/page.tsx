@@ -28,7 +28,7 @@ export default async function ContactPage() {
       title: "Quiénes somos",
       content: (
         <p>
-          {settings.name} es una plataforma de contenidos: publicaciones, lugares, celebraciones, galerías y un directorio,
+          {settings.name} es una plataforma de contenidos: publicaciones, lugares, celebraciones y galerías,
           publicados por nuestro propio equipo.
           {settings.description ? ` ${settings.description}` : ""}
         </p>

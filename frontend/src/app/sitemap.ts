@@ -2,7 +2,6 @@ import type { MetadataRoute } from "next";
 import {
   listActiveCategories,
   listAllPublishedPublicationsForSitemap,
-  listAllPublishedBusinessesForSitemap,
   listAllPublishedCelebrationsForSitemap,
   listAllPublishedGalleriesForSitemap,
   listAllPublishedPlacesForSitemap,
@@ -12,12 +11,11 @@ import { SITE_URL } from "@/lib/site-url";
 import { isCelebrationFinished } from "@/lib/content-labels";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [publications, places, celebrations, galleries, businesses, categories, series] = await Promise.all([
+  const [publications, places, celebrations, galleries, categories, series] = await Promise.all([
     listAllPublishedPublicationsForSitemap(),
     listAllPublishedPlacesForSitemap(),
     listAllPublishedCelebrationsForSitemap(),
     listAllPublishedGalleriesForSitemap(),
-    listAllPublishedBusinessesForSitemap(),
     listActiveCategories(),
     listAllSeriesWithEpisodesForSitemap(),
   ]);
@@ -65,13 +63,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  const businessEntries: MetadataRoute.Sitemap = businesses.map((business) => ({
-    url: `${SITE_URL}/directorio/${business.slug}`,
-    lastModified: business.publishedAt ?? undefined,
-    changeFrequency: "monthly",
-    priority: 0.5,
-  }));
-
   const categoryEntries: MetadataRoute.Sitemap = categories.map((category) => ({
     url: `${SITE_URL}/categorias/${category.slug}`,
     changeFrequency: "weekly",
@@ -105,16 +96,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 0.6,
     },
-    {
-      url: `${SITE_URL}/directorio`,
-      changeFrequency: "weekly",
-      priority: 0.5,
-    },
     ...publicationEntries,
     ...placeEntries,
     ...celebrationEntries,
     ...galleryEntries,
-    ...businessEntries,
     ...categoryEntries,
     ...seriesEntries,
     {

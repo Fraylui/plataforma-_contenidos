@@ -2349,6 +2349,9 @@ Ingreso principal por ahora: **AdSense**; la publicidad directa, cuando el sitio
 - **2. «actualizado hace …»** en el encabezado de una publicación editada al menos 24 h después de publicarse (`updatedTimeFor`).
 - **3. Shorts verticales** (V69): `vertical` en los videos de publicaciones, lugares, celebraciones y directorio; se detecta por el enlace `/shorts/` y se muestran en 9:16. Los videos ya cargados quedan horizontales hasta volver a guardarlos. Todo video vive en YouTube; el sitio solo guarda la referencia.
 - **4. «También te puede interesar»** a mitad de una publicación larga (≥ 6 bloques, `lib/split-body.ts`, nunca corta listas ni citas). Ese contenido sale de «Más como esto» para no repetirse.
+- **Directorio quitado entero** (V71, dueño 2026-10-17: «se ve feo, parece publicidad gratis»). Respaldo previo: `docs/respaldos/directorio-2026-10-17.sql` (fuera de git; 9 fichas). Se borró el módulo en backend (paquete `directory`, tipo BUSINESS, módulo DIRECTORY, plantilla «Gestor de directorio») y frontend (rutas, compositor, tabla, chips, menú, búsqueda, sitemap, estadísticas, e2e). La migración limpia «me gusta», visitas, permisos y la segmentación de anuncios. De paso: el panel de inicio ahora también abre para un trabajador solo de Series (antes mostraba series pero se lo negaba).
+- **«Agendar» → «Recordarme»** en la tarjeta y en el detalle de las celebraciones (antes «Agendar» y «Google Calendar»): guarda la fecha en el calendario del visitante; no usa ninguna API ni cuenta de Google.
+- **Loop 1 de diseño (inicio/feed)**: ver commit fa4df32 (feed sin líneas, tokens `like`/`live`, `lib/prose.ts`, bug de hidratación con `window.location`).
 - **5. «Síguenos en WhatsApp»** al final de cada publicación (V70, Configuración › Contacto › Canal de WhatsApp; solo enlaces `whatsapp.com/channel/…`; vacío = sin botón).
 
 ## 46.8 Tabla de cumplimiento (G.18, 2026-10-16)
@@ -2425,7 +2428,7 @@ No reemplaza una auditoría externa ni la revisión legal (§46.6n.6).
 | Advertencias por rubro: alimentos (Ley 30021), alcohol (Ley 28681), apuestas (Ley 31557) | ✅ | Rubro del anunciante (`AdvertiserIndustry`, V68); el formulario muestra la advertencia exigida (`lib/ads/industry.ts`). La creatividad la arma el anunciante; el panel no puede leer la imagen. |
 | Contrato y comprobante de pago (SUNAT) | ⏳ | Trámite del dueño, fuera del software. |
 | Revisión legal de los textos | ⏳ | Resumen práctico, no asesoría; revisarlo con un abogado antes de la primera campaña cobrada. |
-| Directorio: fichas que parecen avisos | ⏳ | Análisis en Claude Docs (2026-10-16); decisión del dueño pendiente (convertir en «Recomendados» o quitar). |
+| Directorio: fichas que parecían avisos | ✅ | Quitado entero (V71, 2026-10-17); respaldo fuera de git. |
 
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 

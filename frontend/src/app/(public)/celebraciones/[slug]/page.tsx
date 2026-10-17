@@ -206,17 +206,18 @@ export default async function CelebrationPage(props: PageProps<"/celebraciones/[
             <LikeShareBar contentType="celebrations" slug={celebration.slug} initialLikeCount={celebration.likeCount} title={celebration.title}>
               {!finished && (
                 <>
-                  <a href={calendar.google} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL}>
+                  {/* Guarda la fecha en el calendario del visitante (no es publicidad): lo trae de vuelta el día. */}
+                  <a href={calendar.google} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL} title="Guardar en Google Calendar">
                     <CalendarPlus className="h-4 w-4" aria-hidden="true" />
-                    Google Calendar
+                    Recordarme
                   </a>
-                  <a href={calendar.ics} download={`${celebration.slug}.ics`} className={POST_ACTION_PILL}>
+                  <a href={calendar.ics} download={`${celebration.slug}.ics`} className={POST_ACTION_PILL} title="Para iPhone, Outlook y otros calendarios">
                     <DownloadSimple className="h-4 w-4" aria-hidden="true" />
                     Otro calendario
                   </a>
-              </>
-            )}
-          </LikeShareBar>
+                </>
+              )}
+            </LikeShareBar>
           </>
         }
         ad={<AdBlock position="article" section="CELEBRATION" categoryId={celebration.categoryId} layout="band" count={2} />}

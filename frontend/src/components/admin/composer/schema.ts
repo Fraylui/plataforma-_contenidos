@@ -29,7 +29,7 @@ export function coordinateField(min: number, max: number, message: string) {
 
 /**
  * Campos comunes a los 5 tipos de contenido. `title` es el título o el
- * nombre (Lugar y Directorio lo mandan como `name`); mismos límites que los
+ * nombre (Lugar lo manda como `name`); mismos límites que los
  * Request del backend (200 / 500).
  */
 export const baseFields = {

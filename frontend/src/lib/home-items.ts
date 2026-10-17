@@ -38,7 +38,7 @@ export interface HomeItem {
   images: HomeImage[];
   /** Tiene video (ícono en la cuadrícula de Explorar). */
   hasVideo?: boolean;
-  /** Acciones por tipo (Agendar, Cómo llegar, Llamar, Sitio web); null si no aplican. En la Agenda: la próxima vez que toca. */
+  /** Acciones por tipo (Recordarme, Cómo llegar); null si no aplican. En la Agenda: la próxima vez que toca. */
   startsAt?: string | null;
   /** Solo celebraciones. */
   allDay?: boolean | null;
@@ -77,7 +77,6 @@ const FEED_KIND: Record<FeedItem["type"], HomeItemKind> = {
   PLACE: "lugar",
   CELEBRATION: "celebracion",
   GALLERY: "galeria",
-  BUSINESS: "directorio",
   EPISODE: "episodio",
 };
 
@@ -86,7 +85,6 @@ const FEED_HREF_PREFIX: Record<HomeItemKind, string> = {
   lugar: "/lugares",
   celebracion: "/celebraciones",
   galeria: "/galerias",
-  directorio: "/directorio",
   episodio: "/series",
 };
 

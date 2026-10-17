@@ -6,7 +6,7 @@ import type { PlacementRotation, ResolvedRotation } from "@/lib/api/types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const PLACEMENT_KEY = /^[a-z0-9_-]{1,64}$/;
-const SECTION = /^(HOME|PUBLICATION|PLACE|CELEBRATION|GALLERY|BUSINESS|SERIES)$/;
+const SECTION = /^(HOME|PUBLICATION|PLACE|CELEBRATION|GALLERY|SERIES)$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const NO_STORE = { "Cache-Control": "no-store" };
 

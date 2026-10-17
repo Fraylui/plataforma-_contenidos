@@ -7,7 +7,7 @@ import { GridTile } from "./grid-tile";
 /**
  * Vista de un contenido como post de red social (diseño 2026-10-06), igual
  * para los 5 tipos:
- *  - "visual" (lugar, galería, evento, directorio): en escritorio, medio a la
+ *  - "visual" (lugar, galería, celebración): en escritorio, medio a la
  *    izquierda (fijo al hacer scroll) y texto a la derecha, como Instagram.
  *  - "text" (publicaciones, texto largo): una columna cómoda de leer con el
  *    medio arriba.

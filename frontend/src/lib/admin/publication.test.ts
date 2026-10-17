@@ -67,7 +67,7 @@ describe("computePublicationPermissions", () => {
   });
 
   it("el dueño publica en cualquier tipo", () => {
-    expect(computePublicationPermissions({ status: "DRAFT" }, owner, "directory").canPublish).toBe(true);
+    expect(computePublicationPermissions({ status: "DRAFT" }, owner, "galleries").canPublish).toBe(true);
   });
 
   it("el permiso es por módulo: Publicaciones no da Eventos", () => {
@@ -76,6 +76,6 @@ describe("computePublicationPermissions", () => {
 
   it("cada tipo conoce su ruta del panel y su módulo", () => {
     expect(PUBLICATION_KINDS.publications).toMatchObject({ adminPath: "/admin/publicaciones", module: "PUBLICATIONS" });
-    expect(PUBLICATION_KINDS.directory).toMatchObject({ adminPath: "/admin/directorio", module: "DIRECTORY" });
+    expect(PUBLICATION_KINDS.galleries).toMatchObject({ adminPath: "/admin/galerias", module: "GALLERIES" });
   });
 });

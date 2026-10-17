@@ -7,7 +7,7 @@ const FEED_SIZE = 30;
 /**
  * RSS 2.0 de Publicaciones (no de los otros 4 tipos de contenido: es la
  * sección de Publicaciones del sitio, el contenido narrativo más largo —
- * Lugares/Eventos/Galerías/Directorio son más de directorio que de feed). Mismo
+ * Lugares/Celebraciones/Galerías son más de consulta que de feed). Mismo
  * patrón que ads.txt/route.ts y robots.ts/sitemap.ts: ruta generada desde
  * datos reales, no un archivo estático en `public/`. `/api/v1/publications` ya
  * ordena por publishedAt DESC (PublicationPublicController), así que alcanza

@@ -7,17 +7,14 @@ import type { PublicationPermissions } from "@/lib/admin/publication";
 import { PlaceComposer } from "./place-composer";
 import { GalleryComposer } from "./gallery-composer";
 import { CelebrationComposer } from "./celebration-composer";
-import { BusinessComposer } from "./business-composer";
 import { createPlaceAction } from "@/app/admin/(protected)/lugares/actions";
 import { createGalleryAction } from "@/app/admin/(protected)/galerias/actions";
 import { createCelebrationAction } from "@/app/admin/(protected)/celebraciones/actions";
-import { createBusinessAction } from "@/app/admin/(protected)/directorio/actions";
 
 const created = { ok: true, data: { id: "nuevo-1" } };
 vi.mock("@/app/admin/(protected)/lugares/actions", () => ({ createPlaceAction: vi.fn(), updatePlaceAction: vi.fn() }));
 vi.mock("@/app/admin/(protected)/galerias/actions", () => ({ createGalleryAction: vi.fn(), updateGalleryAction: vi.fn() }));
 vi.mock("@/app/admin/(protected)/celebraciones/actions", () => ({ createCelebrationAction: vi.fn(), updateCelebrationAction: vi.fn() }));
-vi.mock("@/app/admin/(protected)/directorio/actions", () => ({ createBusinessAction: vi.fn(), updateBusinessAction: vi.fn() }));
 vi.mock("@/app/admin/(protected)/imagenes/actions", () => ({ uploadImageInlineAction: vi.fn() }));
 vi.mock("@/app/admin/(protected)/publication-actions", () => ({ publicationStepAction: vi.fn().mockResolvedValue({ ok: true }) }));
 vi.mock("./rich-text-editor", () => ({
@@ -167,20 +164,4 @@ describe("Compositor de Celebraciones", () => {
     expect(screen.getByText(/¿Te pagaron o te dieron algo a cambio/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Crear un anuncio/ })).toHaveAttribute("href", "/admin/anunciantes");
   });
-});
-
-
-describe("Compositor del Directorio", () => {
-  it("valida correo y sitio web antes de guardar", async () => {
-    const { container } = render(<BusinessComposer {...common} places={[]} />);
-    await userEvent.type(screen.getByLabelText("Nombre"), "Café del Valle");
-    await userEvent.type(screen.getByLabelText("Texto"), "Café de altura.");
-    await userEvent.type(screen.getByLabelText("Correo"), "hola@");
-    await userEvent.type(screen.getByLabelText("Sitio web"), "cafe.pe");
-    await saveDraft();
-    expect(screen.getByLabelText("Correo")).toHaveAccessibleDescription("Escribe un correo válido.");
-    expect(screen.getByLabelText("Sitio web")).toHaveAccessibleDescription(/https:\/\//);
-    expect(createBusinessAction).not.toHaveBeenCalled();
-    expect(await axe(container)).toHaveNoViolations();
-  }, 15_000);
 });

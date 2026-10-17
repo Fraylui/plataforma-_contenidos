@@ -19,8 +19,8 @@ export default async function TermsOfUsePage() {
       title: "Qué es este sitio",
       content: (
         <p>
-          {settings.name} es una plataforma de contenidos: publicaciones, lugares, celebraciones, galerías y un
-          directorio, publicados por nuestro propio equipo. Al navegar el sitio aceptas estos términos —
+          {settings.name} es una plataforma de contenidos: publicaciones, lugares, celebraciones y galerías,
+          publicados por nuestro propio equipo. Al navegar el sitio aceptas estos términos —
           hoy no hace falta registrarte ni pagar para leer nada.
         </p>
       ),

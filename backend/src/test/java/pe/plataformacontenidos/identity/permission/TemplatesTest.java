@@ -14,10 +14,10 @@ class TemplatesTest {
     @Test
     void templatesMatchTheSpec() {
         assertThat(Templates.of("PUBLICADOR")).isEqualTo(Map.of(
-                PUBLICATIONS, PUBLISH, PLACES, PUBLISH, CELEBRATIONS, PUBLISH, GALLERIES, PUBLISH, DIRECTORY, PUBLISH,
+                PUBLICATIONS, PUBLISH, PLACES, PUBLISH, CELEBRATIONS, PUBLISH, GALLERIES, PUBLISH,
                 SERIES, PUBLISH, CATEGORIES, ACCESS, STATS, ACCESS));
         assertThat(Templates.of("GESTOR_CELEBRACIONES")).isEqualTo(Map.of(CELEBRATIONS, PUBLISH, PLACES, PUBLISH));
-        assertThat(Templates.of("GESTOR_DIRECTORIO")).isEqualTo(Map.of(DIRECTORY, PUBLISH, PLACES, PUBLISH));
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> Templates.of("GESTOR_DIRECTORIO")).isInstanceOf(IllegalArgumentException.class);
         assertThat(Templates.of("PUBLICIDAD")).isEqualTo(Map.of(ADVERTISING, ACCESS, STATS, ACCESS));
         // Administrador: todos los módulos; la auditoría no es un módulo (solo del dueño).
         assertThat(Templates.of("ADMINISTRADOR")).hasSize(Module.values().length)
@@ -33,6 +33,6 @@ class TemplatesTest {
     @Test
     void contentModulesAreTheFiveContentTypes() {
         assertThat(Module.values()).filteredOn(Module::isContent)
-                .containsExactly(PUBLICATIONS, PLACES, CELEBRATIONS, GALLERIES, DIRECTORY, SERIES);
+                .containsExactly(PUBLICATIONS, PLACES, CELEBRATIONS, GALLERIES, SERIES);
     }
 }

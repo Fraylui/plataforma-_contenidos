@@ -5,7 +5,7 @@ import { Check, Heart, PaperPlaneTilt } from "@phosphor-icons/react";
 import { getOrCreateVisitorId } from "@/lib/visitor-id";
 
 /** "episodes" se identifica por id (el slug de un episodio solo es único dentro de su serie). */
-export type LikeableContentType = "publications" | "places" | "celebrations" | "galleries" | "directory" | "episodes";
+export type LikeableContentType = "publications" | "places" | "celebrations" | "galleries" | "episodes";
 
 const CHANGE_EVENT = "like-share-bar-change";
 
@@ -124,7 +124,7 @@ export function useContentReactions({
   return { liked, likeCount, pending, copied, toggleLike, share };
 }
 
-/** Píldora de acción del post (Agendar, Cómo llegar, Llamar…): fondo suave, sin borde. */
+/** Píldora de acción del post (Recordarme, Cómo llegar…): fondo suave, sin borde. */
 export const POST_ACTION_PILL =
   "inline-flex min-h-10 items-center gap-1.5 rounded-full bg-canvas-strong px-4 text-sm font-semibold text-foreground transition-colors hover:bg-accent-soft hover:text-accent";
 

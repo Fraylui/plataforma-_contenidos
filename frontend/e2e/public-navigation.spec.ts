@@ -57,7 +57,6 @@ test.describe("Navegación pública", () => {
     ["/lugares", "Lugares"],
     ["/celebraciones", "Celebraciones"],
     ["/galerias", "Galerías"],
-    ["/directorio", "Directorio"],
     ["/explorar", "Explorar"],
   ] as const) {
     test(`${label} responde 200 con su encabezado y sin patrones de diario`, async ({ page }) => {

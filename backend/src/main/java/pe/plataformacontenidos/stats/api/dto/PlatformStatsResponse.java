@@ -13,7 +13,6 @@ public record PlatformStatsResponse(
         Map<PublicationStatus, Long> placesByStatus,
         Map<PublicationStatus, Long> celebrationsByStatus,
         Map<PublicationStatus, Long> galleriesByStatus,
-        Map<PublicationStatus, Long> businessesByStatus,
         long totalCategories,
         long activeCategories,
         Map<Role, Long> usersByRole,

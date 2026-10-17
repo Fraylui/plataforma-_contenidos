@@ -263,24 +263,20 @@ class FeedIntegrationTest {
     }
 
     @Test
-    void feedIncludesGalleriesAndBusinesses() throws Exception {
+    void feedIncludesGalleries() throws Exception {
         String publisherToken = createUserAndLogin("feed-five-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
         String creatorToken = createUserAndLogin("feed-five-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String categoryId = createCategory(publisherToken, "Feed Cinco");
 
         publishGallery(creatorToken, publisherToken, categoryId, "Feed: galería " + UUID.randomUUID());
-        String businessId = publishBusiness(creatorToken, publisherToken, categoryId, "Feed: negocio " + UUID.randomUUID());
 
         mockMvc.perform(get("/api/v1/feed").param("size", "30").param("type", "GALLERY"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items", not(hasSize(0))))
                 .andExpect(jsonPath("$.items[*].type", everyItem(is("GALLERY"))));
+        // El Directorio se quitó (V71): ya no es un tipo del feed.
         mockMvc.perform(get("/api/v1/feed").param("size", "30").param("type", "BUSINESS"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[?(@.id == '" + businessId + "')].type", hasItem("BUSINESS")))
-                // Sin publicidad gratis: el feed no expone teléfono ni web del negocio.
-                .andExpect(jsonPath("$.items[0].phone").doesNotExist())
-                .andExpect(jsonPath("$.items[0].website").doesNotExist());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -501,21 +497,6 @@ class FeedIntegrationTest {
         return id;
     }
 
-    private String publishBusiness(String creatorToken, String publisherToken, String categoryId, String name)
-            throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/v1/admin/directory")
-                        .header("Authorization", "Bearer " + creatorToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"" + name + "\",\"excerpt\":\"Resumen\","
-                                + "\"body\":\"Cuerpo de prueba con suficiente contenido.\","
-                                + "\"categoryId\":\"" + categoryId + "\",\"businessType\":\"HOTEL\","
-                                + "\"phone\":\"+51 966 123 456\",\"website\":\"https://hostal.example.com\"}"))
-                .andExpect(status().isCreated())
-                .andReturn();
-        String id = textField(result, "id");
-        runWorkflow("/api/v1/admin/directory/" + id, creatorToken, publisherToken);
-        return id;
-    }
 
     private static String externalImage(String name) {
         return "{\"externalUrl\":\"https://example.com/" + name + ".jpg\",\"title\":\"Foto " + name + "\"}";

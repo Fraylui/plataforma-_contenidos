@@ -46,28 +46,20 @@ describe("PostCard", () => {
     expect(header).toHaveTextContent("hace 2 h");
   });
 
-  it("un evento muestra su fecha absoluta y la acción Agendar (Google Calendar)", () => {
+  it("una celebración muestra su fecha absoluta y «Recordarme» (Google Calendar)", () => {
     render(<PostCard item={item({ kind: "celebracion", typeLabel: "Celebración", startsAt: "2030-01-10T19:00:00Z" })} brand={brand} />);
     expect(screen.getByTestId("post-header").textContent).not.toMatch(/hace /);
-    expect(screen.getByRole("link", { name: /Agendar/ })).toHaveAttribute("href", expect.stringContaining("calendar.google.com"));
+    expect(screen.getByRole("link", { name: /Recordarme/ })).toHaveAttribute("href", expect.stringContaining("calendar.google.com"));
   });
 
-  it("un lugar con coordenadas ofrece Cómo llegar; el directorio nunca Llamar ni Sitio web", () => {
-    const { rerender } = render(
+  it("un lugar con coordenadas ofrece Cómo llegar", () => {
+    render(
       <PostCard item={item({ kind: "lugar", typeLabel: "Lugar", latitude: -13.16, longitude: -74.22 })} brand={brand} />,
     );
     expect(screen.getByRole("link", { name: /Cómo llegar/ })).toHaveAttribute(
       "href",
       "https://www.google.com/maps/dir/?api=1&destination=-13.16,-74.22",
     );
-    rerender(
-      <PostCard
-        item={item({ kind: "directorio", typeLabel: "Directorio" })}
-        brand={brand}
-      />,
-    );
-    expect(screen.queryByRole("link", { name: /Llamar/ })).toBeNull();
-    expect(screen.queryByRole("link", { name: /Sitio web/ })).toBeNull();
   });
 
   it("una fecha faltante o inválida no rompe la tarjeta (queda sin fecha)", () => {
@@ -107,7 +99,7 @@ describe("PostCard", () => {
 
   it("publicaciones y galerías no tienen acción extra", () => {
     render(<PostCard item={item({})} brand={brand} />);
-    expect(screen.queryByRole("link", { name: /Agendar|Cómo llegar|Llamar|Sitio web/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Recordarme|Cómo llegar/ })).not.toBeInTheDocument();
   });
 
   it("sin imagen muestra un bloque de marca con el título, nunca un hueco", () => {

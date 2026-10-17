@@ -179,7 +179,7 @@ class WorkerAdminIntegrationTest {
     @Test
     void administratorRunsThePlatformButNotTheAuditNorTheOwner() throws Exception {
         JsonNode created = createWorker("""
-                {"PUBLICATIONS":"PUBLISH","PLACES":"PUBLISH","CELEBRATIONS":"PUBLISH","GALLERIES":"PUBLISH","DIRECTORY":"PUBLISH",
+                {"PUBLICATIONS":"PUBLISH","PLACES":"PUBLISH","CELEBRATIONS":"PUBLISH","GALLERIES":"PUBLISH","SERIES":"PUBLISH",
                  "CATEGORIES":"ACCESS","STATS":"ACCESS","ADVERTISING":"ACCESS","WORKERS":"ACCESS","SETTINGS":"ACCESS"}""");
         String email = created.get("worker").get("email").asText();
         String token = login(email, created.get("temporaryPassword").asText()).get("accessToken").asText();

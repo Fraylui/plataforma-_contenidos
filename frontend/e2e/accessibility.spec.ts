@@ -19,7 +19,7 @@ async function expectNoViolations(page: Page, path: string) {
 }
 
 const PUBLIC_PAGES = [
-  "/", "/explorar", "/buscar?q=ayacucho", "/publicaciones", "/lugares", "/celebraciones", "/galerias", "/directorio",
+  "/", "/explorar", "/buscar?q=ayacucho", "/publicaciones", "/lugares", "/celebraciones", "/galerias",
   "/series", "/en-vivo", "/contacto", "/privacidad", "/terminos", "/no-existe-esta-pagina",
 ];
 
@@ -35,7 +35,6 @@ const DETAILS: [string, string, string][] = [
   ["lugar", "places", "lugares"],
   ["celebración", "celebrations", "celebraciones"],
   ["galería", "galleries", "galerias"],
-  ["ficha del directorio", "directory", "directorio"],
 ];
 
 for (const [label, api, route] of DETAILS) {
@@ -62,7 +61,7 @@ test.describe("Panel con sesión", () => {
 
   const ADMIN_PAGES = [
     "/admin", "/admin/estadisticas", "/admin/publicaciones", "/admin/publicaciones/nuevo", "/admin/lugares",
-    "/admin/celebraciones", "/admin/celebraciones/nuevo", "/admin/galerias", "/admin/directorio", "/admin/series",
+    "/admin/celebraciones", "/admin/celebraciones/nuevo", "/admin/galerias", "/admin/series",
     "/admin/temas", "/admin/imagenes", "/admin/anunciantes", "/admin/espacios", "/admin/trabajadores",
     "/admin/configuracion", "/admin/cuenta",
   ];

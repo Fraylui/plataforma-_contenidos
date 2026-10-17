@@ -6,7 +6,6 @@ describe("sectionFromPath", () => {
     expect(sectionFromPath("/")).toBe("HOME");
     expect(sectionFromPath("/lugares")).toBe("PLACE");
     expect(sectionFromPath("/celebraciones/feria-de-santa-ana")).toBe("CELEBRATION");
-    expect(sectionFromPath("/directorio/hostal-plaza")).toBe("BUSINESS");
   });
 
   it("Series y En vivo comparten la sección de videos", () => {

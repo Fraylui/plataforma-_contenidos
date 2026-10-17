@@ -10,6 +10,5 @@ public enum ContentType {
     PLACE,
     CELEBRATION,
     GALLERY,
-    BUSINESS,
     EPISODE
 }

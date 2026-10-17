@@ -99,7 +99,6 @@ async function publish(adminPath, input) {
 await publish("publications", { ...common, title: "Textiles de Huamanga", excerpt: "Arte que se teje.", body, publicationType: "GENERAL" });
 await publish("places", { ...common, name: "Mirador de Acuchimay", excerpt: "La ciudad desde arriba.", body, latitude: -13.17, longitude: -74.22 });
 await publish("galleries", { ...common, title: "Paisajes de prueba", excerpt: "Una galería." });
-await publish("directory", { ...common, name: "Taller de retablos", excerpt: "Artesanía.", body, businessType: "SHOP", phone: "999888777" });
 const today = new Date().toISOString().slice(0, 10);
 const celebration = await publish("celebrations", {
   ...common,

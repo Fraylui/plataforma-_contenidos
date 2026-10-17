@@ -82,11 +82,10 @@ export function PipelineChart({ stats }: { stats: PlatformStats }) {
 }
 
 const CONTENT_TYPE_ROWS: { label: string; key: keyof Pick<PlatformStats,
-  "placesByStatus" | "celebrationsByStatus" | "galleriesByStatus" | "businessesByStatus"> }[] = [
+  "placesByStatus" | "celebrationsByStatus" | "galleriesByStatus"> }[] = [
   { label: "Lugares", key: "placesByStatus" },
   { label: "Celebraciones", key: "celebrationsByStatus" },
   { label: "Galerías", key: "galleriesByStatus" },
-  { label: "Directorio", key: "businessesByStatus" },
 ];
 
 /** Publicado vs. pendiente por tipo de contenido — barra apilada de 2 tramos, mismo total real. */
@@ -229,7 +228,6 @@ export function TotalDistributionDonut({ stats }: { stats: PlatformStats }) {
     stats.placesByStatus,
     stats.celebrationsByStatus,
     stats.galleriesByStatus,
-    stats.businessesByStatus,
   ];
   const total = rows.reduce((sum, byStatus) => sum + Object.values(byStatus).reduce((s, c) => s + c, 0), 0);
   const published = rows.reduce((sum, byStatus) => sum + (byStatus.PUBLISHED ?? 0), 0);
