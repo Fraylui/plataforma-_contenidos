@@ -90,21 +90,21 @@ export function ImageUploadForm() {
           {dragging ? "Suelta para subir" : "Arrastra tus fotos aquí o haz clic para elegirlas"}
         </p>
         <p className="text-xs text-muted">Puedes elegir varias a la vez · JPG, PNG o WebP</p>
-        <input
-          ref={inputRef}
-          type="file"
-          name="file"
-          accept="image/*"
-          multiple
-          className="sr-only"
-          tabIndex={-1}
-          onChange={(event) => {
-            const files = Array.from(event.target.files ?? []);
-            event.target.value = "";
-            void upload(files);
-          }}
-        />
       </div>
+      {/* Fuera del botón (un control no puede ir dentro de otro) y oculto: el botón de arriba lo abre y lo representa. */}
+      <input
+        ref={inputRef}
+        type="file"
+        name="file"
+        accept="image/*"
+        multiple
+        hidden
+        onChange={(event) => {
+          const files = Array.from(event.target.files ?? []);
+          event.target.value = "";
+          void upload(files);
+        }}
+      />
 
       {items.length > 0 && (
         <ul className="mt-3 space-y-1.5" aria-live="polite">

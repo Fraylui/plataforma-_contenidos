@@ -21,7 +21,8 @@ export function Sparkline({ values }: { values: number[] }) {
   return (
     <div className="h-10" aria-hidden="true">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 2, right: 0, bottom: 2, left: 0 }}>
+        {/* Decorativo: sin la capa de teclado de Recharts (tabindex=0), que dejaría foco dentro de algo oculto. */}
+        <AreaChart data={data} margin={{ top: 2, right: 0, bottom: 2, left: 0 }} accessibilityLayer={false}>
           <YAxis hide domain={[0, "dataMax"]} />
           <Area
             type="monotone"

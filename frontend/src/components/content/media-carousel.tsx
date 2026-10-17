@@ -87,7 +87,8 @@ export function MediaCarousel({
           <CaretRight className="h-4 w-4" weight="bold" aria-hidden="true" />
         </button>
 
-        <div className="absolute right-0 bottom-3 left-0 flex justify-center gap-1.5">
+        {/* Punto visible de 6 px, pero cada botón mide 24 × 24 (WCAG 2.2, 2.5.8 tamaño mínimo del objetivo). */}
+        <div className="absolute right-0 bottom-1 left-0 flex justify-center">
           {slides.map((_, index) => (
             <button
               key={index}
@@ -95,10 +96,13 @@ export function MediaCarousel({
               onClick={() => emblaApi?.scrollTo(index)}
               aria-label={`${dotLabelPrefix} ${index + 1}`}
               aria-current={index === selectedIndex}
-              className={`h-1.5 w-1.5 rounded-full transition-colors ${
-                index === selectedIndex ? "bg-white" : "bg-white/40"
-              }`}
-            />
+              className="flex size-6 cursor-pointer items-center justify-center"
+            >
+              <span
+                aria-hidden="true"
+                className={`size-1.5 rounded-full transition-colors ${index === selectedIndex ? "bg-white" : "bg-white/40"}`}
+              />
+            </button>
           ))}
         </div>
       </div>
