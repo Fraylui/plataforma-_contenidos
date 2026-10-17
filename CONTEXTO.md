@@ -2281,8 +2281,8 @@ Spec: `docs/superpowers/specs/2026-10-07-compositor-y-flujo-design.md` (local).
 16. ~~Retomar el rediseño estilo red social~~ — **hecho** 2026-10-16: revisión completa en Edge de las 19 pantallas públicas (escritorio 1366 y celular 390, sin desborde horizontal). Arreglado: mapa de Lugares bloqueado por la CSP, «Inicio» marcado en Series/En vivo/páginas de información, título duplicado en Series. Los algoritmos de §45.2 siguen esperando su condición de activación (datos reales).
 
 **G. Calidad y cierre (F11)**
-17. E2E: necesita `E2E_ADMIN_EMAIL` / `E2E_ADMIN_PASSWORD` del dueño; `workers.spec` debe ajustarse al menú en acordeón y al modelo sin aprobación.
-18. axe por pantalla, Lighthouse en CI, tabla de cumplimiento (ISO 25010, OWASP ASVS, ISO 27001, Ley 29733).
+17. ~~E2E~~ — **hecho** 2026-10-16: suite al día (119 casos en local) y en CI con contenido sembrado (`scripts/e2e-seed.mjs`) y el dueño de prueba de la base efímera.
+18. ~~axe por pantalla, Lighthouse en CI, tabla de cumplimiento~~ — **hecho** 2026-10-16: WCAG 2.2 AA en 78 casos, Lighthouse en CI, tabla en §46.8.
 
 ### Decisiones pendientes del dueño
 - ¿Unir el PR #22 a `main`? (nada va al VPS todavía).
@@ -2341,6 +2341,69 @@ CI verde en los 12 commits de §46.6n (Vercel sigue fallando; no se usa). Constr
 - Las pruebas de integración (`todayShowsOnlyWhatIsCelebratedWhereTheVisitorIs`, `scopeMustBeACountryCodeAndARegionNeedsItsCountry`) corren en CI.
 - **Pendiente del dueño**: las 5 celebraciones de la base local quedaron como «Todo el mundo» (null). Las peruanas (Fiestas Patrias, etc.) hay que pasarlas a «Perú» en el panel; si no, un visitante de México las vería.
 - **Compromiso aceptado**: un visitante fuera del país del sitio, o de una región con fecha propia, ve un cambio en la tarjeta al cargar (de lo general a lo suyo). Es el precio de mantener las páginas en caché; para la mayoría (Perú sin fecha regional) no cambia nada.
+
+## 46.8 Tabla de cumplimiento (G.18, 2026-10-16)
+
+Estado real de cada control, con su evidencia en el repositorio. ✅ cumple · ⚠️ parcial · ⏳ pendiente.
+No reemplaza una auditoría externa ni la revisión legal (§46.6n.6).
+
+### Accesibilidad — WCAG 2.2 AA
+
+| Control | Estado | Evidencia |
+|---|---|---|
+| Páginas completas sin violaciones axe (A, AA, 2.1 AA, 2.2 AA) | ✅ | `e2e/accessibility.spec.ts`: 14 pantallas públicas, detalle de los 5 tipos, un tema, login y 17 pantallas del panel, en escritorio y celular (78 casos). Corre en CI. |
+| Componentes | ✅ | `vitest-axe` en las pruebas de componentes. |
+| 2.5.8 Tamaño del objetivo (≥ 24 px) | ✅ | Puntos del carrusel (`media-carousel.tsx`), casillas de selección de 44 px. |
+| 2.1.1 Teclado | ✅ | Prueba de recorrido con Tab; foco visible global; controles nativos. |
+| Contraste en claro y oscuro | ✅ | axe en ambos esquemas (regresión visual claro/oscuro); el sitio sigue al dispositivo. |
+
+### Calidad del producto — ISO/IEC 25010
+
+| Característica | Estado | Evidencia |
+|---|---|---|
+| Adecuación funcional | ✅ | pruebas de integración del backend (Testcontainers) y unitarias del frontend en cada CI; e2e en CI con contenido sembrado. |
+| Eficiencia de desempeño | ⚠️ | Lighthouse CI con umbrales «Good» (LCP < 2,5 s, CLS < 0,1). Medición local del 2026-10-06 por debajo en el inicio (§46.6d); se mide en CI en cada cambio. Falta medir en el VPS con contenido real. |
+| Usabilidad | ✅ | WCAG 2.2 AA (arriba); revisión visual en Edge de las 19 pantallas públicas y del panel. |
+| Fiabilidad | ⚠️ | Health checks, reintentos y topes de memoria en Docker. ⏳ Backups: falta la copia externa a R2 y corregir `scripts/backup.sh` (§46.7.5). |
+| Seguridad | ✅/⚠️ | Ver OWASP ASVS. |
+| Mantenibilidad | ✅ | knip (cero código sin uso) y ESLint en CI; tipos estrictos; módulos por dominio; nombres coherentes con la interfaz (Publication, Celebration). |
+| Portabilidad | ✅ | Todo en Docker Compose; configuración por variables de entorno. |
+
+### Seguridad de aplicaciones — OWASP ASVS (nivel 2, controles principales)
+
+| Capítulo | Estado | Evidencia |
+|---|---|---|
+| V2 Autenticación | ⚠️ | BCrypt; política de contraseñas (12+ caracteres); límite de intentos de login por IP; contraseña temporal con cambio obligatorio. **Sin MFA** por decisión del dueño (riesgo aceptado, §46.6d). |
+| V3 Sesiones | ✅ | Cookies `httpOnly`, `SameSite=Lax`, `Secure` en producción; tokens de refresco revocables; las sesiones caen al restablecer la contraseña o desactivar la cuenta. |
+| V4 Control de acceso | ✅ | Permisos por módulo verificados en el servidor en cada petición; rutas del dueño por rol; un solo dueño garantizado en la base (V66). Prueba: `AuthorizationMatrixIntegrationTest`. |
+| V5 Validación y codificación | ✅ | Bean Validation; HTML saneado en el backend (`HtmlSanitizer`); escape de `<` en todo JSON-LD (prueba `json-ld-escape.test.ts`). |
+| V7 Errores y registros | ✅ | Errores RFC 9457 sin trazas internas; id de petición en cada log; auditoría de toda acción del panel y de los accesos denegados. |
+| V8 Protección de datos | ✅ | Sin cuentas de lectores; «me gusta» con un UUID aleatorio; IP de anuncios solo como hash por 26 h. |
+| V12 Archivos | ✅ | Subida de imágenes validada por tipo real y tamaño, con límite por usuario. |
+| V14 Configuración | ⚠️ | CSP, HSTS (nginx), `nosniff`, `Referrer-Policy`, `Permissions-Policy`; `npm audit` y CodeQL en CI. ⏳ CSP con *nonce* para quitar `'unsafe-inline'` (§46.7.2). |
+
+### Seguridad de la información — ISO/IEC 27001:2022 (Anexo A, controles técnicos aplicables)
+
+| Control | Estado | Evidencia |
+|---|---|---|
+| A.5.15 / A.8.2 / A.8.3 Control y restricción de accesos | ✅ | Dueño + trabajadores con módulos asignados; el dueño no puede ser administrado por un trabajador. |
+| A.8.5 Autenticación segura | ⚠️ | Ver V2 (sin MFA). |
+| A.8.12 Prevención de fuga de datos | ✅ | Datos mínimos; nada personal de lectores. |
+| A.8.13 Copias de seguridad | ⏳ | `scripts/backup.sh` con dos fallas conocidas; falta copia externa (§46.7.5–16). |
+| A.8.15 / A.8.16 Registro y monitoreo | ✅ | Auditoría inmutable (nunca se reescribe; los renombres V64/V65 la dejaron intacta), logs JSON con rotación, retención de 365 días. |
+| A.8.25–A.8.29 Desarrollo y pruebas seguros | ✅ | Ramas y PR con CI obligatorio (backend, frontend, e2e, a11y, Lighthouse, CodeQL, `npm audit`). |
+| A.8.9 Gestión de la configuración | ✅ | Infraestructura como código (`infra/`); secretos fuera del repositorio. |
+
+### Protección de datos personales — Ley N.º 29733 y su reglamento (D.S. 016-2024-JUS)
+
+| Obligación | Estado | Evidencia |
+|---|---|---|
+| Inventario y finalidad de los datos | ✅ | Tabla de §46.6d. |
+| Información al titular (política de privacidad) | ⚠️ | `/privacidad` vigente (actualizada 2026-10-16); ⏳ revisarla contra el reglamento D.S. 016-2024-JUS con un abogado. |
+| Consentimiento para cookies no necesarias | ✅ | Aviso con «Aceptar» y «Rechazar» del mismo peso; nada de terceros sin aceptar. |
+| Derechos ARCO | ⚠️ | Explicados en `/privacidad`; ⏳ falta publicar el correo de contacto (Configuración). |
+| Conservación limitada | ✅ | Auditoría 365 días; frecuencia de anuncios 26 h; intentos de login 15 min. |
+| Inscripción del banco de datos (ANPD) | ⏳ | Trámite del dueño, no de código. |
 
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
