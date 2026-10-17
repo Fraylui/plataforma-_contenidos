@@ -30,7 +30,9 @@ module.exports = {
         "categories:accessibility": ["error", { minScore: 0.9 }],
         "categories:seo": ["error", { minScore: 0.9 }],
         "categories:best-practices": ["warn", { minScore: 0.9 }],
-        "largest-contentful-paint": ["error", { maxNumericValue: 2500 }],
+        // Advertencia, no bloqueo (decisión del dueño 2026-10-16): en CI da 3,4–4,2 s por el JavaScript
+        // en CPU lenta; la meta sigue siendo 2,5 s y se trabaja reduciendo el paquete (CONTEXTO §46.8).
+        "largest-contentful-paint": ["warn", { maxNumericValue: 2500 }],
         "cumulative-layout-shift": ["error", { maxNumericValue: 0.1 }],
         // INP no se mide en laboratorio (necesita interacciones reales); el
         // TBT es su indicador en Lighthouse. INP real: Search Console / CrUX.
