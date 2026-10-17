@@ -7,14 +7,14 @@
 module.exports = {
   ci: {
     collect: {
-      // Rediseño 2026-10-06: las pantallas de la plataforma (feed, cuadrícula
-      // y una vista de post). LHCI_DETAIL_URL permite medir otro detalle en
-      // otra base (el slug de ejemplo existe en la base local).
+      // Las pantallas de la plataforma (feed, cuadrícula, una sección y una
+      // vista de post). LHCI_DETAIL_URL: la celebración que crea la semilla de
+      // CI (scripts/e2e-seed.mjs); en local, una de la base local.
       url: [
         "http://localhost:3000/",
         "http://localhost:3000/explorar",
         "http://localhost:3000/lugares",
-        process.env.LHCI_DETAIL_URL ?? "http://localhost:3000/eventos/concierto-de-jazz-en-el-jardin-botanico",
+        process.env.LHCI_DETAIL_URL ?? "http://localhost:3000/celebraciones/dia-mundial-de-la-alimentacion",
       ],
       numberOfRuns: 3,
       // Sin preset = perfil móvil de Lighthouse (celular de gama media, red
