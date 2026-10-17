@@ -12,7 +12,7 @@ export function InlineRelated({ item }: { item: HomeItem }) {
     <aside aria-label="También te puede interesar" className="not-prose my-8">
       <Link
         href={item.href}
-        className="group flex items-center gap-3 rounded-2xl bg-accent-soft px-4 py-3 transition-colors hover:bg-accent-soft/70 focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none"
+        className="group flex items-center gap-3 rounded-card bg-accent-soft px-4 py-3 transition-colors hover:bg-accent-soft/70 focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none"
       >
         <span className="min-w-0 flex-1">
           <span className="block text-xs font-medium text-muted">También te puede interesar · {item.typeLabel}</span>

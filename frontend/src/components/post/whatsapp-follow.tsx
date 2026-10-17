@@ -12,7 +12,7 @@ export function WhatsAppFollow({ channelUrl, siteName }: { channelUrl: string | 
       href={channelUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="not-prose mt-8 flex items-center gap-3 rounded-2xl bg-surface px-4 py-3 shadow-card transition-colors hover:bg-canvas-strong focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none"
+      className="not-prose mt-8 flex items-center gap-3 rounded-card bg-surface px-4 py-3 shadow-card transition-colors hover:bg-canvas-strong focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none"
     >
       <WhatsappLogo aria-hidden="true" weight="fill" className="size-8 shrink-0 text-accent" />
       <span className="min-w-0 flex-1">

@@ -270,8 +270,7 @@ se recarga solo cada 6h para tomar el certificado renovado sin intervención.
 - **Estadísticas básicas** (2026-08-26): `/admin/estadisticas` — artículos
   por estado, publicados últimos 30 días, alcance (categorías/etiquetas/
   geografía), usuarios por rol. Diseño propio (línea editorial como barra
-  de producción), no una tabla más — dirección guardada en
-  `.interface-design/system.md`.
+  de producción), no una tabla más — sistema de diseño en `DESIGN.md`.
 - **CI/CD** (2026-08-26): `.github/workflows/ci.yml` — tests del backend
   (Testcontainers) y build del frontend (lint + typecheck + `next build`
   contra un backend real) en cada push/PR. **Sin remoto de GitHub
