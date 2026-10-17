@@ -15,6 +15,11 @@ import { cn } from "@/lib/utils";
  * el fade-in de cada vuelta se sentía como un parpadeo/aparición no pedida
  * ("que no aparezcan, que simplemente cambien"). Ahí conviene mostrar la
  * imagen de una vez, sin la animación de entrada.
+ *
+ * Con `priority` (la imagen principal de la pantalla) tampoco hay fundido:
+ * la imagen arranca invisible hasta que React hidrata y Chrome no cuenta
+ * para el LCP algo invisible, así que el LCP esperaba ~3 s de JavaScript
+ * aunque la foto ya había llegado (Lighthouse CI, 2026-10-16).
  */
 export function SkeletonImage({
   src,
@@ -35,7 +40,7 @@ export function SkeletonImage({
   const [loaded, setLoaded] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  if (!fade) {
+  if (!fade || priority) {
     return <Image src={src} alt={alt} fill sizes={sizes} className={className} priority={priority} />;
   }
 

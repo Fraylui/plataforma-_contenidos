@@ -2078,7 +2078,7 @@ Estado en la rama `feat/sitio-red-social` al 2026-10-06. ✅ hecho · ⚠️ par
 | 5 detalles `[slug]` | ✅ | `PostView` + `PostFacts` + barra de post + «Más como esto» (9). JSON-LD intacto. |
 | `/contacto` `/privacidad` `/terminos` | ✅ | Pantalla de app: chips de secciones, texto en superficie blanca. |
 | `not-found` (404) y `error` | ✅ | Pantalla de app con Phosphor e Inicio / Explorar / Buscar. |
-| `loading.tsx` | ✅ | Esqueletos de feed, post y cuadrícula. El `app/loading.tsx` raíz queda solo para el panel (proyecto 2). |
+| `loading.tsx` | ✅ | Esqueletos de feed, post y cuadrícula. El `app/loading.tsx` raíz se borró el 2026-10-16: envolvía todo el sitio público en un segmento de streaming y retrasaba el LCP; el panel tiene el suyo. |
 
 ### Panel de administración (34 páginas) — todo ❌, proyecto 2 (46.3-I)
 

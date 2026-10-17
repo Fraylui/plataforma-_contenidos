@@ -45,7 +45,7 @@ export function ContentImageGallery({
     return (
       <figure className={spacing}>
         <div className={`relative ${aspect} w-full overflow-hidden sm:rounded-2xl ${background}`}>
-          <ContentImageDisplay image={image} alt={image.title ?? alt} className="object-cover" />
+          <ContentImageDisplay image={image} alt={image.title ?? alt} className="object-cover" priority />
         </div>
         <MediaCaption title={image.title} caption={image.caption} />
       </figure>
@@ -59,6 +59,7 @@ export function ContentImageGallery({
         image={image}
         alt={image.title ?? `${alt} — fotografía ${index + 1}`}
         className="object-cover"
+        priority={index === 0}
       />
     </div>
   ));
