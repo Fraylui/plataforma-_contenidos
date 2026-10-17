@@ -11,7 +11,7 @@ describe("PostDetailMedia", () => {
   });
 
   it("con solo video no muestra el bloque de marca", () => {
-    render(<PostDetailMedia images={[]} videos={[{ videoId: "abc123def45", title: null, caption: null }]} title="Feria" />);
+    render(<PostDetailMedia images={[]} videos={[{ videoId: "abc123def45", title: null, caption: null, vertical: false }]} title="Feria" />);
     expect(screen.queryByTestId("post-detail-fallback")).toBeNull();
   });
 });

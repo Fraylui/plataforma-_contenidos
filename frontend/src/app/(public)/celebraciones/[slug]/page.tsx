@@ -23,6 +23,7 @@ import { fromFeedItem } from "@/lib/home-items";
 import { AdBlock } from "@/components/legal/ad-block";
 import { SITE_URL } from "@/lib/site-url";
 import type { Category, Celebration } from "@/lib/api/types";
+import { robotsWithLargePreview, shareImageUrl } from "@/lib/share-image";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
 
 /** "Más como esto": 3 filas de la cuadrícula de 3. */
@@ -65,12 +66,12 @@ export async function generateMetadata(props: PageProps<"/celebraciones/[slug]">
     title,
     description,
     alternates: { canonical: celebration.canonicalUrl || `/celebraciones/${slug}` },
-    robots: celebration.robots,
+    robots: robotsWithLargePreview(celebration.robots),
     openGraph: {
       title,
       description,
       type: "website",
-      images: celebration.ogImageUrl ? [celebration.ogImageUrl] : undefined,
+      images: shareImageUrl(celebration) ?? undefined,
       siteName: settings.name,
     },
   };
@@ -93,7 +94,7 @@ function celebrationJsonLd(
     endDate: celebration.endsAt || undefined,
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
-    image: celebration.ogImageUrl ? [celebration.ogImageUrl] : undefined,
+    image: shareImageUrl(celebration) ?? undefined,
     location: venue
       ? { "@type": "Place", name: venue.name, url: venueUrl }
       : { "@type": "VirtualLocation", url },

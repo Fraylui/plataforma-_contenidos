@@ -106,7 +106,8 @@ export function baseInput(values: BaseComposerValues) {
 
 export function videosFromContent(videos: ContentVideo[] | undefined): ContentVideoInput[] {
   return (videos ?? []).map((video) => ({
-    url: `https://www.youtube.com/watch?v=${video.videoId}`,
+    // El link de un Short conserva /shorts/: así sigue vertical al volver a guardar.
+    url: video.vertical ? `https://www.youtube.com/shorts/${video.videoId}` : `https://www.youtube.com/watch?v=${video.videoId}`,
     title: video.title,
     caption: video.caption,
   }));

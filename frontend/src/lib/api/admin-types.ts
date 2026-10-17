@@ -210,6 +210,8 @@ export interface PlatformSettingsInput {
   analyticsId: string | null;
   /** País del sitio (ISO-2). */
   homeCountry: string;
+  /** Canal de WhatsApp (https://whatsapp.com/channel/…); null = sin botón «Síguenos». */
+  whatsappChannelUrl: string | null;
 }
 
 /** Cuerpo de POST /api/v1/admin/ad-placements — ver CreateAdPlacementRequest.java. */

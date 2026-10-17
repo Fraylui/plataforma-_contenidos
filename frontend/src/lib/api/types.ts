@@ -22,6 +22,8 @@ export interface ContentVideo {
   videoId: string;
   title: string | null;
   caption: string | null;
+  /** Short de YouTube: se muestra vertical (9:16). */
+  vertical: boolean;
 }
 
 export interface PublicationSummary {
@@ -303,6 +305,8 @@ export interface PlatformSettings {
   analyticsId: string | null;
   /** País del sitio (ISO-2): qué celebraciones ve quien llega sin ubicación conocida. */
   homeCountry: string;
+  /** Canal de WhatsApp (https://whatsapp.com/channel/…); null = sin botón «Síguenos». */
+  whatsappChannelUrl: string | null;
 }
 
 /** Ver AdPlacementResponse.java — posición de anuncio configurable (CONTEXTO.md sección 43.2). */

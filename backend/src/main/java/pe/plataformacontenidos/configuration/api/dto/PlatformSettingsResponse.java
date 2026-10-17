@@ -23,7 +23,8 @@ public record PlatformSettingsResponse(
         boolean adsenseEnabled,
         String adsenseClientId,
         String analyticsId,
-        String homeCountry) {
+        String homeCountry,
+        String whatsappChannelUrl) {
 
     public static PlatformSettingsResponse from(PlatformSettings settings) {
         return new PlatformSettingsResponse(
@@ -46,6 +47,7 @@ public record PlatformSettingsResponse(
                 settings.isAdsenseEnabled(),
                 settings.getAdsenseClientId(),
                 settings.getAnalyticsId(),
-                settings.getHomeCountry());
+                settings.getHomeCountry(),
+                settings.getWhatsappChannelUrl());
     }
 }

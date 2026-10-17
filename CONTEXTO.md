@@ -2342,6 +2342,15 @@ CI verde en los 12 commits de §46.6n (Vercel sigue fallando; no se usa). Constr
 - **Pendiente del dueño**: las 5 celebraciones de la base local quedaron como «Todo el mundo» (null). Las peruanas (Fiestas Patrias, etc.) hay que pasarlas a «Perú» en el panel; si no, un visitante de México las vería.
 - **Compromiso aceptado**: un visitante fuera del país del sitio, o de una región con fecha propia, ve un cambio en la tarjeta al cargar (de lo general a lo suyo). Es el precio de mantener las páginas en caché; para la mayoría (Perú sin fecha regional) no cambia nada.
 
+### 46.6p Sesión 2026-10-16 (cont.) — publicidad legal y paquete de 5 arreglos de Publicaciones
+Ingreso principal por ahora: **AdSense**; la publicidad directa, cuando el sitio sea conocido (dueño, 2026-10-16). Análisis en Claude Docs: «Directorio y publicidad» (decisión pendiente: «Recomendados» o quitarlo) y «Publicaciones: qué le falta».
+- **Publicidad pagada** (V68): rubro del anunciante con advertencia por ley y confirmación de condiciones en cada guardado. Ver la tabla «Publicidad pagada» en §46.8.
+- **1. Imagen al compartir (bug)**: la página pública solo enviaba `ogImageUrl`; sin él, WhatsApp/Facebook mostraban el enlace sin foto. `lib/share-image.ts` aplica una sola regla a los 5 tipos: imagen elegida, si no la portada, si no la miniatura del video. Además agrega `max-image-preview:large` (Google Discover) a lo indexable. También quita los tres `resolveImageUrl` duplicados.
+- **2. «actualizado hace …»** en el encabezado de una publicación editada al menos 24 h después de publicarse (`updatedTimeFor`).
+- **3. Shorts verticales** (V69): `vertical` en los videos de publicaciones, lugares, celebraciones y directorio; se detecta por el enlace `/shorts/` y se muestran en 9:16. Los videos ya cargados quedan horizontales hasta volver a guardarlos. Todo video vive en YouTube; el sitio solo guarda la referencia.
+- **4. «También te puede interesar»** a mitad de una publicación larga (≥ 6 bloques, `lib/split-body.ts`, nunca corta listas ni citas). Ese contenido sale de «Más como esto» para no repetirse.
+- **5. «Síguenos en WhatsApp»** al final de cada publicación (V70, Configuración › Contacto › Canal de WhatsApp; solo enlaces `whatsapp.com/channel/…`; vacío = sin botón).
+
 ## 46.8 Tabla de cumplimiento (G.18, 2026-10-16)
 
 Estado real de cada control, con su evidencia en el repositorio. ✅ cumple · ⚠️ parcial · ⏳ pendiente.

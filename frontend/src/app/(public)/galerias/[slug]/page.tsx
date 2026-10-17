@@ -10,17 +10,12 @@ import { PostDetailMedia } from "@/components/post/post-detail-media";
 import { headerTimeFor } from "@/components/post/post-header";
 import { KIND_LABEL } from "@/lib/content-kind";
 import { fromFeedItem } from "@/lib/home-items";
-import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
-import type { Category, ContentImage, Gallery } from "@/lib/api/types";
+import type { Category, Gallery } from "@/lib/api/types";
+import { contentImageUrl, robotsWithLargePreview, shareImageUrl } from "@/lib/share-image";
 
 /** "Más como esto": 3 filas de la cuadrícula de 3. */
 const MORE_SIZE = 9;
-
-/** Subida (imageUrl propia) o por enlace externo — nunca ambas, ver ContentImage. */
-function resolveImageUrl(image: ContentImage): string {
-  return image.imageId ? imageUrl(`/api/v1/images/${image.imageId}/file`) : (image.externalUrl ?? "");
-}
 
 async function loadGallery(slug: string) {
   try {
@@ -54,13 +49,13 @@ export async function generateMetadata(props: PageProps<"/galerias/[slug]">): Pr
 
   const title = gallery.seoTitle || gallery.title;
   const description = gallery.metaDescription || gallery.excerpt || undefined;
-  const coverImage = gallery.images[0] ? resolveImageUrl(gallery.images[0]) : gallery.ogImageUrl;
+  const coverImage = shareImageUrl(gallery);
 
   return {
     title,
     description,
     alternates: { canonical: gallery.canonicalUrl || `/galerias/${slug}` },
-    robots: gallery.robots,
+    robots: robotsWithLargePreview(gallery.robots),
     openGraph: {
       title,
       description,
@@ -78,7 +73,7 @@ function galleryJsonLd(gallery: Gallery, category: Category | null, siteName: st
     "@type": "ImageGallery",
     name: gallery.title,
     description: gallery.metaDescription || gallery.excerpt || undefined,
-    image: gallery.images.map(resolveImageUrl),
+    image: gallery.images.map(contentImageUrl).filter(Boolean),
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     ...(category ? { keywords: category.name } : {}),
     publisher: { "@type": "Organization", name: siteName },

@@ -11,7 +11,7 @@ describe("VideoJsonLd", () => {
   it("marca un video de YouTube con miniatura y embed sin cookies", () => {
     const { container } = render(
       <VideoJsonLd
-        videos={[{ videoId: "abc123XYZ00", title: "Recorrido", caption: null }]}
+        videos={[{ videoId: "abc123XYZ00", title: "Recorrido", caption: null, vertical: false }]}
         fallbackTitle="Publicación"
         description="Descripción"
         uploadDate="2026-09-01T10:00:00Z"
@@ -30,7 +30,7 @@ describe("VideoJsonLd", () => {
   it("un título con </script> no puede cerrar el bloque ni inyectar HTML", () => {
     const { container } = render(
       <VideoJsonLd
-        videos={[{ videoId: "abc123XYZ00", title: "</script><img src=x onerror=alert(1)>", caption: null }]}
+        videos={[{ videoId: "abc123XYZ00", title: "</script><img src=x onerror=alert(1)>", caption: null, vertical: false }]}
         fallbackTitle="Publicación"
         description={null}
         uploadDate="2026-09-01T10:00:00Z"
@@ -47,7 +47,7 @@ describe("VideoJsonLd", () => {
       <VideoJsonLd videos={[]} fallbackTitle="X" description={null} uploadDate="2026-09-01T10:00:00Z" />,
     );
     const { container: noDate } = render(
-      <VideoJsonLd videos={[{ videoId: "abc123XYZ00", title: null, caption: null }]} fallbackTitle="X" description={null} uploadDate={null} />,
+      <VideoJsonLd videos={[{ videoId: "abc123XYZ00", title: null, caption: null, vertical: false }]} fallbackTitle="X" description={null} uploadDate={null} />,
     );
     expect(jsonLdOf(noVideos)).toBeNull();
     expect(jsonLdOf(noDate)).toBeNull();

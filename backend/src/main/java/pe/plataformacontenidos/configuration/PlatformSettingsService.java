@@ -62,6 +62,8 @@ public class PlatformSettingsService {
         settings.setAdsenseEnabled(request.adsenseEnabled());
         settings.setAdsenseClientId(request.adsenseClientId());
         settings.setAnalyticsId(request.analyticsId());
+        String channel = request.whatsappChannelUrl();
+        settings.setWhatsappChannelUrl(channel == null || channel.isBlank() ? null : channel.strip());
         if (request.homeCountry() != null) {
             settings.setHomeCountry(request.homeCountry().toUpperCase(Locale.ROOT));
         }

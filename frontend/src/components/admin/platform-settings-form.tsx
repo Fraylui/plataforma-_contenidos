@@ -38,6 +38,7 @@ function toFormState(settings: PlatformSettings): FormState {
     adsenseClientId: settings.adsenseClientId ?? "",
     analyticsId: settings.analyticsId ?? "",
     homeCountry: settings.homeCountry,
+    whatsappChannelUrl: settings.whatsappChannelUrl ?? "",
   };
 }
 
@@ -64,6 +65,7 @@ function toInput(state: FormState): PlatformSettingsInput {
     adsenseClientId: blankToNull(state.adsenseClientId),
     analyticsId: blankToNull(state.analyticsId),
     homeCountry: state.homeCountry,
+    whatsappChannelUrl: blankToNull(state.whatsappChannelUrl),
   };
 }
 
@@ -289,6 +291,17 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
             value={state.contactEmail}
             onChange={(v) => set("contactEmail", v)}
           />
+          <TextField
+            label="Canal de WhatsApp (opcional)"
+            name="whatsappChannelUrl"
+            type="url"
+            value={state.whatsappChannelUrl}
+            onChange={(v) => set("whatsappChannelUrl", v)}
+          />
+          <p className="text-xs text-muted">
+            En WhatsApp: Novedades → tu canal → Compartir enlace. Con el enlace puesto, cada publicación termina con «Síguenos en
+            WhatsApp»; vacío, no se muestra.
+          </p>
         </Section>
 
         <Section id="publicidad" title="Publicidad y AdSense">

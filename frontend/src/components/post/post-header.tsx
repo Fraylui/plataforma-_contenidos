@@ -33,6 +33,24 @@ function postTimeLabel(item: DatedItem): string {
 export interface PostHeaderTime {
   label: string;
   iso: string;
+  /** «actualizado hace 2 d»: solo si cambió bastante después de publicarse (ver updatedTimeFor). */
+  updated?: { label: string; iso: string } | null;
+}
+
+/** Un retoque en las primeras 24 h (una errata) no cuenta como actualización. */
+const UPDATE_MARGIN_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Agrega «actualizado …» a la fecha de una publicación cuando se editó al
+ * menos un día después de publicarse: el lector sabe que el dato es vigente
+ * y Google lo usa como señal de frescura (dateModified ya va en el JSON-LD).
+ */
+export function updatedTimeFor(time: PostHeaderTime | null, updatedAt: string | null | undefined): PostHeaderTime | null {
+  if (!time || !updatedAt) return time;
+  const published = Date.parse(time.iso);
+  const updated = Date.parse(updatedAt);
+  if (Number.isNaN(updated) || updated - published < UPDATE_MARGIN_MS) return time;
+  return { ...time, updated: { label: formatPublicationDate(updatedAt), iso: updatedAt } };
 }
 
 /** Fecha del encabezado ya resuelta para un ítem del feed, o null si no hay una válida. */
@@ -86,6 +104,14 @@ export function PostHeader({
             <time dateTime={time.iso} suppressHydrationWarning>
               {time.label}
             </time>
+          )}
+          {time?.updated && (
+            <>
+              {" · actualizado "}
+              <time dateTime={time.updated.iso} suppressHydrationWarning>
+                {time.updated.label}
+              </time>
+            </>
           )}
         </p>
       </div>

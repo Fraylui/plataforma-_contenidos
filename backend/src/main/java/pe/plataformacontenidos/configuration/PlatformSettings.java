@@ -85,6 +85,10 @@ public class PlatformSettings {
     private String analyticsId;
 
     /** País del sitio (ISO-2): qué celebraciones ve quien llega sin ubicación conocida. */
+    /** Enlace del canal de WhatsApp (https://whatsapp.com/channel/…); null = sin botón. */
+    @Column(name = "whatsapp_channel_url")
+    private String whatsappChannelUrl;
+
     @Column(name = "home_country", nullable = false)
     private String homeCountry = "PE";
 
@@ -253,6 +257,14 @@ public class PlatformSettings {
 
     public void setAnalyticsId(String analyticsId) {
         this.analyticsId = analyticsId;
+    }
+
+    public String getWhatsappChannelUrl() {
+        return whatsappChannelUrl;
+    }
+
+    public void setWhatsappChannelUrl(String whatsappChannelUrl) {
+        this.whatsappChannelUrl = whatsappChannelUrl;
     }
 
     public String getHomeCountry() {

@@ -9,12 +9,14 @@ import { useState } from "react";
  * el dominio -nocookie para no fijar cookies de rastreo antes de que el
  * usuario decida reproducir.
  */
-export function YouTubeEmbed({ videoId, title }: { videoId: string; title: string }) {
+export function YouTubeEmbed({ videoId, title, vertical = false }: { videoId: string; title: string; vertical?: boolean }) {
   const [activated, setActivated] = useState(false);
+  // Un Short va vertical y centrado, del ancho de un celular, como en YouTube.
+  const frame = vertical ? "mx-auto aspect-[9/16] w-full max-w-[360px]" : "aspect-video w-full";
 
   if (activated) {
     return (
-      <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
+      <div className={`${frame} overflow-hidden rounded-lg bg-black`}>
         <iframe
           src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`}
           title={title}
@@ -30,7 +32,7 @@ export function YouTubeEmbed({ videoId, title }: { videoId: string; title: strin
     <button
       type="button"
       onClick={() => setActivated(true)}
-      className="group relative flex aspect-video w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-black"
+      className={`group relative flex ${frame} cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-black`}
       aria-label={`Reproducir video: ${title}`}
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- fuente externa (YouTube), no pasa por next/image */}

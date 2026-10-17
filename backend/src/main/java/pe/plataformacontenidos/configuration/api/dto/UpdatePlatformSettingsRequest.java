@@ -25,5 +25,8 @@ public record UpdatePlatformSettingsRequest(
         String adsenseClientId,
         String analyticsId,
         /** País del sitio, ISO de 2 letras. Ausente = se mantiene el actual. */
-        @Pattern(regexp = "[A-Za-z]{2}", message = "homeCountry debe ser un código de país de 2 letras") String homeCountry) {
+        @Pattern(regexp = "[A-Za-z]{2}", message = "homeCountry debe ser un código de país de 2 letras") String homeCountry,
+        /** Vacío o ausente = sin botón. Solo enlaces de canal: nada de un número personal. */
+        @Pattern(regexp = "\\s*|https://(www\\.)?whatsapp\\.com/channel/[A-Za-z0-9]+/?",
+                message = "Pega el enlace del canal: https://whatsapp.com/channel/…") String whatsappChannelUrl) {
 }

@@ -15,7 +15,7 @@ export function ContentVideoGallery({ videos, title, spacing = "" }: { videos: C
     return (
       <figure className={spacing}>
         <div className="overflow-hidden sm:rounded-2xl">
-          <YouTubeEmbed videoId={video.videoId} title={video.title ?? title} />
+          <YouTubeEmbed videoId={video.videoId} title={video.title ?? title} vertical={video.vertical} />
         </div>
         <MediaCaption title={video.title} caption={video.caption} />
       </figure>
@@ -24,7 +24,7 @@ export function ContentVideoGallery({ videos, title, spacing = "" }: { videos: C
 
   const captions = videos.map((video) => ({ title: video.title, caption: video.caption }));
   const slides = videos.map((video, index) => (
-    <YouTubeEmbed key={video.videoId} videoId={video.videoId} title={video.title ?? `${title} — video ${index + 1}`} />
+    <YouTubeEmbed key={video.videoId} videoId={video.videoId} title={video.title ?? `${title} — video ${index + 1}`} vertical={video.vertical} />
   ));
 
   return (

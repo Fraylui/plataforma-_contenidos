@@ -195,7 +195,7 @@ public class PlaceService {
             }
             String videoId = YouTubeUrlParser.extractVideoId(input.url())
                     .orElseThrow(() -> new InvalidPlaceYouTubeUrlException(input.url()));
-            result.add(new ContentVideo(videoId, input.title(), input.caption()));
+            result.add(new ContentVideo(videoId, input.title(), input.caption(), YouTubeUrlParser.isShort(input.url())));
         }
         return result;
     }

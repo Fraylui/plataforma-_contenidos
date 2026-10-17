@@ -49,7 +49,7 @@ export default async function EpisodePage({ params }: PageProps<"/series/[slug]/
   return (
     <article className="mx-auto w-full max-w-[900px] px-4 py-6">
       <VideoJsonLd
-        videos={[{ videoId: episode.youtubeVideoId, title: episode.title, caption: null }]}
+        videos={[{ videoId: episode.youtubeVideoId, title: episode.title, caption: null, vertical: false }]}
         fallbackTitle={episode.title}
         description={plainExcerpt(episode.notes, episode.description)}
         uploadDate={episode.publishedAt}

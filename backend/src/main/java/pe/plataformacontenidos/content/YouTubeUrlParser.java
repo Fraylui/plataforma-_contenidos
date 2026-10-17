@@ -24,6 +24,11 @@ public final class YouTubeUrlParser {
     private YouTubeUrlParser() {
     }
 
+    /** Un Short (youtube.com/shorts/…) es vertical, 9:16. */
+    public static boolean isShort(String url) {
+        return url != null && url.contains("youtube.com/shorts/");
+    }
+
     public static Optional<String> extractVideoId(String url) {
         if (url == null || url.isBlank()) {
             return Optional.empty();

@@ -10,7 +10,6 @@ import {
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { businessTypeLabel } from "@/lib/content-labels";
-import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
 import { AdBlock } from "@/components/legal/ad-block";
 import { LikeShareBar, POST_ACTION_PILL } from "@/components/content/like-share-bar";
@@ -23,6 +22,7 @@ import { mapsDirections } from "@/components/post/post-actions";
 import { KIND_LABEL } from "@/lib/content-kind";
 import { fromFeedItem } from "@/lib/home-items";
 import type { Business, Category } from "@/lib/api/types";
+import { robotsWithLargePreview, shareImageUrl } from "@/lib/share-image";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
 
 /** "Más como esto": 3 filas de la cuadrícula de 3. */
@@ -65,12 +65,12 @@ export async function generateMetadata(props: PageProps<"/directorio/[slug]">): 
     title,
     description,
     alternates: { canonical: business.canonicalUrl || `/directorio/${slug}` },
-    robots: business.robots,
+    robots: robotsWithLargePreview(business.robots),
     openGraph: {
       title,
       description,
       type: "website",
-      images: business.ogImageUrl ? [business.ogImageUrl] : undefined,
+      images: shareImageUrl(business) ?? undefined,
       siteName: settings.name,
     },
   };
@@ -83,11 +83,7 @@ function businessJsonLd(business: Business, category: Category | null) {
     "@type": "LocalBusiness",
     name: business.name,
     description: business.excerpt || undefined,
-    image: business.images[0]
-      ? (business.images[0].imageId
-          ? imageUrl(`/api/v1/images/${business.images[0].imageId}/file`)
-          : (business.images[0].externalUrl ?? undefined))
-      : undefined,
+    image: shareImageUrl(business) ?? undefined,
     address: business.address || undefined,
     telephone: business.phone || undefined,
     email: business.email || undefined,

@@ -13,18 +13,13 @@ import { headerTimeFor } from "@/components/post/post-header";
 import { mapsDirections } from "@/components/post/post-actions";
 import { KIND_LABEL } from "@/lib/content-kind";
 import { fromFeedItem } from "@/lib/home-items";
-import { imageUrl } from "@/lib/image-url";
 import { SITE_URL } from "@/lib/site-url";
-import type { Category, ContentImage, Place } from "@/lib/api/types";
+import type { Category, Place } from "@/lib/api/types";
+import { contentImageUrl, robotsWithLargePreview, shareImageUrl } from "@/lib/share-image";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
 
 /** "Más como esto": 3 filas de la cuadrícula de 3. */
 const MORE_SIZE = 9;
-
-/** Para metadatos (OpenGraph/JSON-LD): siempre una URL alcanzable desde la web pública, nunca desde el servidor de Next. */
-function resolveImageUrl(image: ContentImage): string {
-  return image.imageId ? imageUrl(`/api/v1/images/${image.imageId}/file`) : (image.externalUrl ?? "");
-}
 
 async function loadPlace(slug: string) {
   try {
@@ -58,14 +53,14 @@ export async function generateMetadata(props: PageProps<"/lugares/[slug]">): Pro
 
   const title = place.seoTitle || place.name;
   const description = place.metaDescription || place.excerpt || undefined;
-  const coverImage = place.images[0] ? resolveImageUrl(place.images[0]) : place.ogImageUrl;
+  const coverImage = shareImageUrl(place);
 
   return {
     title,
     description,
     // Cada lugar es canónico de sí mismo por defecto (sección 15), igual que Publication.
     alternates: { canonical: place.canonicalUrl || `/lugares/${slug}` },
-    robots: place.robots,
+    robots: robotsWithLargePreview(place.robots),
     openGraph: {
       title,
       description,
@@ -83,7 +78,7 @@ function placeJsonLd(place: Place, category: Category | null, siteName: string) 
     "@type": "TouristAttraction",
     name: place.name,
     description: place.metaDescription || place.excerpt || undefined,
-    image: place.images.map(resolveImageUrl),
+    image: place.images.map(contentImageUrl).filter(Boolean),
     geo:
       place.latitude != null && place.longitude != null
         ? { "@type": "GeoCoordinates", latitude: place.latitude, longitude: place.longitude }
