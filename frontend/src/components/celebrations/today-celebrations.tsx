@@ -51,7 +51,8 @@ export function TodayCelebrations({ initial }: { initial: TodayCelebration[] }) 
         className="group relative flex min-h-36 overflow-hidden rounded-card bg-linear-to-br from-accent-fill to-emerald-700 shadow-card focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none"
       >
         {main.coverSrc ? (
-          <SkeletonImage src={main.coverSrc} alt="" className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(min-width: 640px) 630px, 100vw" />
+          // Arriba de todo en el inicio: es la imagen principal de la pantalla (LCP), con prioridad como la primera del feed.
+          <SkeletonImage src={main.coverSrc} alt="" priority className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(min-width: 640px) 630px, 100vw" />
         ) : main.externalCoverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- enlace externo pegado por quien redacta, host arbitrario
           <img src={main.externalCoverUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
