@@ -60,7 +60,7 @@ export function Feed({
 
   let adSlot = 0;
   return (
-    <div className="flex flex-col gap-0 sm:gap-6">
+    <div className="flex flex-col gap-2 sm:gap-6">
       {items.map((item, index) => {
         const position = index + 1;
         const withAd = position % AD_EVERY === 0;
@@ -71,7 +71,7 @@ export function Feed({
             {position === TOP_LIKED_AFTER && topLiked.length >= 3 && (
               <TopLikedList
                 items={topLiked}
-                className="border-b border-border/70 bg-surface p-4 sm:rounded-2xl sm:border xl:hidden"
+                className="bg-surface p-4 sm:rounded-card sm:shadow-card xl:hidden"
               />
             )}
             {withAd && (
@@ -82,8 +82,8 @@ export function Feed({
       })}
 
       {error && (
-        <div className="flex flex-col items-center gap-2 py-6 text-sm text-muted">
-          No se pudo cargar más.
+        <div role="alert" className="flex flex-col items-center gap-2 py-6 text-sm text-muted">
+          No se pudo cargar más. Revisa tu conexión y vuelve a intentar.
           <button type="button" onClick={() => void loadMore()} className="min-h-11 cursor-pointer rounded-full border border-border px-5 font-semibold text-foreground hover:bg-canvas">
             Reintentar
           </button>
@@ -98,7 +98,7 @@ export function Feed({
                 Cargando más publicaciones…
               </span>
               {[0, 1].map((i) => (
-                <div key={i} className="animate-pulse bg-surface sm:rounded-2xl" aria-hidden="true">
+                <div key={i} className="animate-pulse bg-surface sm:rounded-card" aria-hidden="true">
                   <div className="flex items-center gap-3 px-4 py-3">
                     <div className="h-9 w-9 rounded-full bg-canvas-strong" />
                     <div className="h-3 w-32 rounded bg-canvas-strong" />

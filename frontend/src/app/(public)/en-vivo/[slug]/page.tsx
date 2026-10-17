@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLiveBySlug, NotFoundError } from "@/lib/api/client";
 import { formatEventDateTime } from "@/lib/content-labels";
-import { LiveDot } from "@/components/live/live-banner";
+import { LiveLabel } from "@/components/live/live-banner";
 import { LivePlayer } from "@/components/live/live-player";
 import { ShareButton } from "@/components/series/share-button";
 
@@ -37,10 +37,7 @@ export default async function LiveStreamPage({ params }: PageProps<"/en-vivo/[sl
       <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           {stream.status === "LIVE" && (
-            <p className="flex items-center gap-2 text-xs font-bold tracking-wide text-red-600 uppercase dark:text-red-400">
-              <LiveDot />
-              En vivo ahora
-            </p>
+            <LiveLabel as="p" />
           )}
           {stream.status === "SCHEDULED" && (
             <p className="text-xs font-semibold tracking-wide text-accent uppercase">

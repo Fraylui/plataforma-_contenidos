@@ -105,7 +105,7 @@ export function RightColumn({
                   <span className="min-w-0 flex-1">
                     <span className="line-clamp-2 text-[15px] leading-snug font-semibold text-foreground">{item.title}</span>
                     <span className="mt-0.5 flex items-center gap-1 text-[13px] text-muted tabular-nums">
-                      <Heart className="h-3.5 w-3.5 text-red-500" weight="fill" aria-hidden="true" />
+                      <Heart className="h-3.5 w-3.5 text-like" weight="fill" aria-hidden="true" />
                       {item.likeCount.toLocaleString("es")} me gusta
                     </span>
                   </span>

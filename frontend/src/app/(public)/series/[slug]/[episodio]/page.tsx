@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PROSE } from "@/lib/prose";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CaretLeft, CaretRight } from "@phosphor-icons/react/dist/ssr";
@@ -71,7 +72,7 @@ export default async function EpisodePage({ params }: PageProps<"/series/[slug]/
 
       {episode.notes ? (
         <div
-          className="prose prose-theme mt-6 max-w-none prose-headings:font-bold prose-a:text-accent"
+          className={`mt-6 ${PROSE}`}
           dangerouslySetInnerHTML={{ __html: episode.notes }}
         />
       ) : (

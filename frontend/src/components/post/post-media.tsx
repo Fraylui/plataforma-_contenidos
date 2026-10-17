@@ -114,7 +114,7 @@ export function PostMedia({
               e.stopPropagation();
               emblaApi?.scrollPrev();
             }}
-            className="absolute top-1/2 left-2 hidden h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 text-zinc-900 shadow opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 sm:flex"
+            className="absolute top-1/2 left-2 hidden h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-pop opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 sm:flex"
           >
             <CaretLeft className="h-4 w-4" weight="bold" aria-hidden="true" />
           </button>
@@ -125,7 +125,7 @@ export function PostMedia({
               e.stopPropagation();
               emblaApi?.scrollNext();
             }}
-            className="absolute top-1/2 right-2 hidden h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 text-zinc-900 shadow opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 sm:flex"
+            className="absolute top-1/2 right-2 hidden h-9 w-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 text-slate-900 shadow-pop opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 sm:flex"
           >
             <CaretRight className="h-4 w-4" weight="bold" aria-hidden="true" />
           </button>

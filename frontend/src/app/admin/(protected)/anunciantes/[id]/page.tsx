@@ -87,7 +87,7 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
                         <form action={deleteCampaignAction.bind(null, id, campaign.id)}>
                           <button
                             type="submit"
-                            className="text-xs font-medium text-muted underline underline-offset-2 hover:text-red-500"
+                            className="text-xs font-medium text-muted underline underline-offset-2 hover:text-danger-ink"
                           >
                             Eliminar
                           </button>
@@ -104,7 +104,7 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
 
       <section className="border-t border-border pt-6">
         <form action={deleteAdvertiserAction.bind(null, id)}>
-          <button type="submit" className="text-sm font-medium text-red-600 underline underline-offset-2 hover:text-red-500">
+          <button type="submit" className="text-sm font-medium text-danger-ink underline underline-offset-2 hover:text-danger-ink">
             Eliminar anunciante
           </button>
         </form>

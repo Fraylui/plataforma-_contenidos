@@ -277,8 +277,10 @@ class FeedIntegrationTest {
                 .andExpect(jsonPath("$.items[*].type", everyItem(is("GALLERY"))));
         mockMvc.perform(get("/api/v1/feed").param("size", "30").param("type", "BUSINESS"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[?(@.id == '" + businessId + "')].phone", hasItem("+51 966 123 456")))
-                .andExpect(jsonPath("$.items[?(@.id == '" + businessId + "')].website", hasItem("https://hostal.example.com")));
+                .andExpect(jsonPath("$.items[?(@.id == '" + businessId + "')].type", hasItem("BUSINESS")))
+                // Sin publicidad gratis: el feed no expone teléfono ni web del negocio.
+                .andExpect(jsonPath("$.items[0].phone").doesNotExist())
+                .andExpect(jsonPath("$.items[0].website").doesNotExist());
     }
 
     @Test

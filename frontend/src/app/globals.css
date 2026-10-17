@@ -108,6 +108,10 @@
   --danger-soft: color-mix(in srgb, var(--danger) 10%, var(--surface));
   /* Texto rojo (errores, etiqueta Archivado): en claro es --danger. */
   --danger-ink: var(--danger);
+  /* Señales rojas que no son error: el corazón de «me gusta» (rojo de
+     Instagram, ≥ 3:1 como ícono) y «En vivo» (texto AA sobre surface). */
+  --like: #ff3040;
+  --live: #dc2626;
   color-scheme: light;
   --elev-card: 0 1px 2px rgb(15 23 42 / 0.05), 0 1px 3px rgb(15 23 42 / 0.07);
   --elev-pop: 0 10px 24px -6px rgb(15 23 42 / 0.16), 0 2px 6px -2px rgb(15 23 42 / 0.08);
@@ -145,6 +149,8 @@
     --info-soft: color-mix(in srgb, var(--info) 16%, var(--surface));
     --danger-soft: color-mix(in srgb, var(--danger) 18%, var(--surface));
     --danger-ink: #f87171;
+    --like: #ff3040;
+    --live: #f87171;
     color-scheme: dark;
     --elev-card: 0 1px 2px rgb(0 0 0 / 0.35), inset 0 0 0 1px rgb(255 255 255 / 0.04);
     --elev-pop: 0 12px 28px -6px rgb(0 0 0 / 0.55), inset 0 0 0 1px rgb(255 255 255 / 0.06);
@@ -179,6 +185,8 @@
   --color-info-soft: var(--info-soft);
   --color-danger-soft: var(--danger-soft);
   --color-danger-ink: var(--danger-ink);
+  --color-like: var(--like);
+  --color-live: var(--live);
   --radius-control: 10px;
   --radius-card: 16px;
   --radius-modal: 20px;

@@ -6,9 +6,19 @@ import type { LiveStream } from "@/lib/api/types";
 export function LiveDot() {
   return (
     <span className="relative flex size-2.5" aria-hidden="true">
-      <span className="absolute inline-flex size-full rounded-full bg-red-500 opacity-75 motion-safe:animate-ping" />
-      <span className="relative inline-flex size-2.5 rounded-full bg-red-600" />
+      <span className="absolute inline-flex size-full rounded-full bg-live opacity-75 motion-safe:animate-ping" />
+      <span className="relative inline-flex size-2.5 rounded-full bg-live" />
     </span>
+  );
+}
+
+/** «En vivo ahora» con el punto que late: el mismo rótulo en el aviso del feed y en las páginas de En vivo. */
+export function LiveLabel({ as: Tag = "span" }: { as?: "span" | "p" }) {
+  return (
+    <Tag className="flex items-center gap-2 text-xs font-bold tracking-wide text-live uppercase">
+      <LiveDot />
+      En vivo ahora
+    </Tag>
   );
 }
 
@@ -26,10 +36,7 @@ export function LiveBanner({ stream }: { stream: LiveStream }) {
         className="aspect-video w-24 shrink-0 rounded-lg object-cover"
       />
       <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-2 text-xs font-bold tracking-wide text-red-600 uppercase dark:text-red-400">
-          <LiveDot />
-          En vivo ahora
-        </span>
+        <LiveLabel />
         <span className="mt-0.5 block truncate text-sm font-semibold text-foreground">{stream.title}</span>
       </span>
       <CaretRight className="size-5 shrink-0 text-muted" aria-hidden="true" />

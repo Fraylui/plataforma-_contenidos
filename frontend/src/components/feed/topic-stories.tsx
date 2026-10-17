@@ -53,6 +53,8 @@ export function TopicStories({
                         <img
                           src={topic.coverUrl}
                           alt=""
+                          width={60}
+                          height={60}
                           className="h-[3.75rem] w-[3.75rem] rounded-full object-cover"
                         />
                       ) : (

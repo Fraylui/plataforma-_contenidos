@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef } from "react";
+import { useId, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { Check, Heart, PaperPlaneTilt } from "@phosphor-icons/react";
 import type { HomeItem } from "@/lib/home-items";
@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { PostHeader, headerTimeFor, type PostBrand } from "./post-header";
 import { PostMedia } from "./post-media";
 import { typeActions } from "./post-actions";
+
+const noSubscribe = () => () => {};
 
 const ICON_BUTTON =
   "inline-flex h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5 rounded-full px-2 text-foreground transition-colors hover:bg-canvas disabled:cursor-default";
@@ -50,13 +52,15 @@ export function PostCard({
     void toggleLike();
   }
 
-  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  // En el servidor no hay origen: "" y React lo completa al hidratar, sin
+  // diferencia entre el HTML y el cliente (antes leía window en el render).
+  const origin = useSyncExternalStore(noSubscribe, () => window.location.origin, () => "");
   const actions = typeActions(item, `${origin}${item.href}`);
 
   return (
     <article
       aria-labelledby={titleId}
-      className="overflow-hidden border-b border-border/70 bg-surface sm:rounded-2xl sm:border sm:shadow-[0_1px_2px_rgb(0_0_0_/_0.04)]"
+      className="overflow-hidden bg-surface sm:rounded-card sm:shadow-card"
     >
       <PostHeader brand={brand} typeLabel={item.typeLabel} categoryName={categoryName} time={headerTimeFor(item)} />
       <PostMedia images={item.images} title={item.title} href={item.href} onDoubleTap={likeFromDoubleTap} priority={priority} />
@@ -73,11 +77,12 @@ export function PostCard({
           className={ICON_BUTTON}
         >
           <Heart
-            className={cn("h-6 w-6 transition-transform motion-safe:active:scale-90", liked && "text-red-500")}
+            className={cn("h-6 w-6 transition-transform motion-safe:active:scale-90", liked && "text-like")}
             weight={liked ? "fill" : "regular"}
             aria-hidden="true"
           />
-          <span className="text-sm font-semibold tabular-nums">{likeCount}</span>
+          {/* Sin «me gusta» todavía, solo el corazón (como Instagram): un «0» se lee como abandono. */}
+          {likeCount > 0 && <span className="text-sm font-semibold tabular-nums">{likeCount}</span>}
           {/* El nombre accesible incluye el número visible (WCAG 2.5.3); aria-pressed dice si ya está marcado. */}
           {" "}
           <span className="sr-only">Me gusta</span>

@@ -254,7 +254,7 @@ export function CampaignForm({
                       previewClassName="aspect-square w-40"
                     />
                     {photo && photoFit && (
-                      <p role="status" className={`mt-2 text-xs ${photoFit.ok ? "text-accent" : "text-red-600"}`}>
+                      <p role="status" className={`mt-2 text-xs ${photoFit.ok ? "text-accent" : "text-danger-ink"}`}>
                         {photoFit.ok
                           ? `La foto mide ${formatSize(photo.width, photo.height)}: proporción ${photoFit.aspect}, correcta para el feed.`
                           : photoFit.reason === "aspect"
@@ -272,7 +272,7 @@ export function CampaignForm({
                       placeholder="https://www.youtube.com/watch?v=… o un Short"
                       aria-label="Link del video de YouTube"
                     />
-                    <p role="status" className={`mt-2 text-xs ${videoUrl.trim() && !videoId ? "text-red-600" : "text-muted"}`}>
+                    <p role="status" className={`mt-2 text-xs ${videoUrl.trim() && !videoId ? "text-danger-ink" : "text-muted"}`}>
                       {videoUrl.trim() && !videoId
                         ? "Ese link no es de un video de YouTube."
                         : "El video vive en el YouTube del anunciante; aquí solo se enlaza. Carga cuando el visitante lo toca."}
@@ -322,7 +322,7 @@ export function CampaignForm({
               )}
               <CampaignCreativePicker allImages={images} value={creative} onChange={setCreative} onImagesChange={setImages} />
               {placement && creativeSize && fit && (
-                <p role="status" className={`mt-2 text-xs ${fit.ok ? "text-accent" : "text-red-600"}`}>
+                <p role="status" className={`mt-2 text-xs ${fit.ok ? "text-accent" : "text-danger-ink"}`}>
                   {fit.ok
                     ? `La imagen mide ${formatSize(creativeSize.width, creativeSize.height)}: medida correcta${fit.retina ? " y nítida en pantallas de alta densidad" : " (al doble se vería más nítida)"}.`
                     : fit.reason === "aspect"

@@ -165,7 +165,7 @@ export function LikeShareBar({
         className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-foreground transition-colors hover:bg-canvas-strong disabled:opacity-60"
       >
         <Heart
-          className={`h-7 w-7 transition-transform motion-safe:active:scale-90 ${liked ? "text-red-500" : ""}`}
+          className={`h-7 w-7 transition-transform motion-safe:active:scale-90 ${liked ? "text-like" : ""}`}
           weight={liked ? "fill" : "regular"}
           aria-hidden="true"
         />

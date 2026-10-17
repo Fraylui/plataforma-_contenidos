@@ -17,23 +17,12 @@ import { VideoJsonLd } from "@/components/seo/video-json-ld";
 import { InlineRelated } from "@/components/post/inline-related";
 import { WhatsAppFollow } from "@/components/post/whatsapp-follow";
 import { splitBodyInHalf } from "@/lib/split-body";
+import { PROSE } from "@/lib/prose";
 
 /** "Más como esto": 3 filas de la cuadrícula de 3. */
 const MORE_SIZE = 9;
 
-// publication.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
-// de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
-// Cita destacada con borde de acento; imágenes y subtítulos sin líneas ni
-// sombras (la separación es el espacio, como el resto del sitio).
-const PROSE = `prose prose-theme sm:prose-lg max-w-none
-  prose-headings:font-bold prose-headings:tracking-tight
-  prose-h2:mt-10 prose-h2:text-2xl
-  prose-h3:mt-8 prose-h3:text-xl
-  prose-a:text-accent
-  prose-blockquote:border-l-accent prose-blockquote:not-italic prose-blockquote:font-semibold
-  prose-blockquote:text-xl prose-blockquote:leading-snug prose-blockquote:text-foreground
-  prose-blockquote:before:content-none prose-blockquote:after:content-none
-  prose-img:rounded-2xl`;
+// publication.body es HTML ya saneado en el backend (HtmlSanitizer) antes de persistirse.
 
 async function loadPublication(slug: string) {
   try {

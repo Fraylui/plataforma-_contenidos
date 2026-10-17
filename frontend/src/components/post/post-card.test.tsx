@@ -52,7 +52,7 @@ describe("PostCard", () => {
     expect(screen.getByRole("link", { name: /Agendar/ })).toHaveAttribute("href", expect.stringContaining("calendar.google.com"));
   });
 
-  it("un lugar con coordenadas ofrece Cómo llegar; el directorio Llamar y Sitio web", () => {
+  it("un lugar con coordenadas ofrece Cómo llegar; el directorio nunca Llamar ni Sitio web", () => {
     const { rerender } = render(
       <PostCard item={item({ kind: "lugar", typeLabel: "Lugar", latitude: -13.16, longitude: -74.22 })} brand={brand} />,
     );
@@ -62,12 +62,12 @@ describe("PostCard", () => {
     );
     rerender(
       <PostCard
-        item={item({ kind: "directorio", typeLabel: "Directorio", phone: "+51 966 123 456", website: "https://hostal.example.com" })}
+        item={item({ kind: "directorio", typeLabel: "Directorio" })}
         brand={brand}
       />,
     );
-    expect(screen.getByRole("link", { name: /Llamar/ })).toHaveAttribute("href", "tel:+51966123456");
-    expect(screen.getByRole("link", { name: /Sitio web/ })).toHaveAttribute("href", "https://hostal.example.com");
+    expect(screen.queryByRole("link", { name: /Llamar/ })).toBeNull();
+    expect(screen.queryByRole("link", { name: /Sitio web/ })).toBeNull();
   });
 
   it("una fecha faltante o inválida no rompe la tarjeta (queda sin fecha)", () => {
@@ -79,6 +79,11 @@ describe("PostCard", () => {
   it("el nombre accesible de me gusta incluye el número visible (WCAG 2.5.3)", () => {
     render(<PostCard item={item({ likeCount: 12 })} brand={brand} />);
     expect(screen.getByRole("button", { name: "12 Me gusta" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("sin «me gusta» muestra solo el corazón, sin un «0»", () => {
+    render(<PostCard item={item({ likeCount: 0 })} brand={brand} />);
+    expect(screen.getByRole("button", { name: "Me gusta" })).not.toHaveTextContent("0");
   });
 
   it("los puntos del carrusel son fáciles de tocar (objetivo ≥ 24 px, WCAG 2.5.8)", () => {

@@ -36,7 +36,7 @@ export function ScrollRow({ label, children, className }: { label: string; child
   }
 
   const arrow =
-    "absolute top-1/2 z-10 hidden h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-surface text-foreground shadow-md ring-1 ring-border transition-opacity hover:bg-canvas sm:flex";
+    "absolute top-1/2 z-10 hidden h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-surface text-foreground shadow-pop transition-opacity hover:bg-canvas sm:flex";
 
   return (
     <div className={cn("relative", className)}>

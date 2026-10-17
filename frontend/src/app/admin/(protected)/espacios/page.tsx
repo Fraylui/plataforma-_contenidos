@@ -83,7 +83,7 @@ export default async function AdminAdPlacementsPage() {
                       <form action={deleteAdPlacementAction.bind(null, placement.id)}>
                         <button
                           type="submit"
-                          className="text-xs font-medium text-muted underline underline-offset-2 hover:text-red-500"
+                          className="text-xs font-medium text-muted underline underline-offset-2 hover:text-danger-ink"
                         >
                           Eliminar
                         </button>

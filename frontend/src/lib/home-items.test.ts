@@ -23,8 +23,6 @@ function feedItem(overrides: Partial<FeedItem>): FeedItem {
     startsAt: null,
     latitude: null,
     longitude: null,
-    phone: null,
-    website: null,
     seriesSlug: null,
     seriesTitle: null,
     youtubeVideoId: null,
@@ -66,8 +64,6 @@ describe("fromFeedItem", () => {
           { imageId: "img-1", externalUrl: null },
           { imageId: null, externalUrl: "https://example.com/b.jpg" },
         ],
-        phone: "+51 966 123 456",
-        website: "https://hostal.example.com",
         latitude: -13.16,
         longitude: -74.22,
       }),
@@ -78,8 +74,6 @@ describe("fromFeedItem", () => {
     expect(item.images[0].isExternal).toBe(false);
     expect(item.images[0].url).toContain("/api/v1/images/img-1/file");
     expect(item.images[1]).toEqual({ url: "https://example.com/b.jpg", isExternal: true });
-    expect(item.phone).toBe("+51 966 123 456");
-    expect(item.website).toBe("https://hostal.example.com");
     expect(item.latitude).toBe(-13.16);
   });
 

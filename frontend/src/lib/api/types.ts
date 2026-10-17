@@ -408,9 +408,6 @@ export interface FeedItem {
   /** Lugares y directorio. */
   latitude: number | null;
   longitude: number | null;
-  /** Solo directorio. */
-  phone: string | null;
-  website: string | null;
   /** Solo episodios: la URL es /series/{seriesSlug}/{slug}. */
   seriesSlug: string | null;
   seriesTitle: string | null;

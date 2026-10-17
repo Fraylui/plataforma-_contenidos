@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PROSE } from "@/lib/prose";
 import { notFound } from "next/navigation";
 import { NavigationArrow } from "@phosphor-icons/react/dist/ssr";
 import { getCategoryById, getPlatformSettings, getPublishedPlaceBySlug, getRelatedWithFallback } from "@/lib/api/client";
@@ -157,7 +158,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
         body={
           // place.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
           // de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
-          <div className="prose prose-theme max-w-none prose-headings:font-bold prose-a:text-accent" dangerouslySetInnerHTML={{ __html: place.body }} />
+          <div className={PROSE} dangerouslySetInnerHTML={{ __html: place.body }} />
         }
         actions={
           <>

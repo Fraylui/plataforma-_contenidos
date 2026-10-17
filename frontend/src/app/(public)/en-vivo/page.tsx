@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Broadcast } from "@phosphor-icons/react/dist/ssr";
 import { getLiveNow, listUpcomingLive } from "@/lib/api/client";
-import { LiveDot } from "@/components/live/live-banner";
+import { LiveLabel } from "@/components/live/live-banner";
 import { LivePlayer } from "@/components/live/live-player";
 import { UpcomingLiveList } from "@/components/live/upcoming-live-list";
 import { ShareButton } from "@/components/series/share-button";
@@ -24,10 +24,7 @@ export default async function LivePage() {
           <LivePlayer stream={now} />
           <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="flex items-center gap-2 text-xs font-bold tracking-wide text-red-600 uppercase dark:text-red-400">
-                <LiveDot />
-                En vivo ahora
-              </p>
+              <LiveLabel as="p" />
               <h2 className="mt-1 text-title font-bold text-foreground">{now.title}</h2>
               {now.description && <p className="mt-2 text-sm whitespace-pre-line text-muted">{now.description}</p>}
             </div>

@@ -45,8 +45,6 @@ export interface HomeItem {
   recursYearly?: boolean | null;
   latitude?: number | null;
   longitude?: number | null;
-  phone?: string | null;
-  website?: string | null;
 }
 
 export interface HomeImage {
@@ -131,8 +129,6 @@ export function fromFeedItem(item: FeedItem): HomeItem {
     recursYearly: item.recursYearly,
     latitude: item.latitude,
     longitude: item.longitude,
-    phone: item.phone,
-    website: item.website,
   };
 }
 

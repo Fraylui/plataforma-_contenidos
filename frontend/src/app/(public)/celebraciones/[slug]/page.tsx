@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PROSE } from "@/lib/prose";
 import { notFound } from "next/navigation";
 import { CalendarBlank, CalendarPlus, DownloadSimple, GlobeHemisphereWest, MapPin } from "@phosphor-icons/react/dist/ssr";
 import {
@@ -197,7 +198,7 @@ export default async function CelebrationPage(props: PageProps<"/celebraciones/[
         body={
           // celebration.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
           // de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
-          <div className="prose prose-theme max-w-none prose-headings:font-bold prose-a:text-accent" dangerouslySetInnerHTML={{ __html: celebration.body }} />
+          <div className={PROSE} dangerouslySetInnerHTML={{ __html: celebration.body }} />
         }
         actions={
           <>

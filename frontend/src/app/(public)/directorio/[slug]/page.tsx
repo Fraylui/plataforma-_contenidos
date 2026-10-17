@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { PROSE } from "@/lib/prose";
 import { notFound } from "next/navigation";
-import { Envelope, Globe, MapPin, NavigationArrow, Phone, Storefront } from "@phosphor-icons/react/dist/ssr";
+import { MapPin, NavigationArrow, Storefront } from "@phosphor-icons/react/dist/ssr";
 import {
   getCategoryById,
   getPlatformSettings,
@@ -85,9 +86,7 @@ function businessJsonLd(business: Business, category: Category | null) {
     description: business.excerpt || undefined,
     image: shareImageUrl(business) ?? undefined,
     address: business.address || undefined,
-    telephone: business.phone || undefined,
-    email: business.email || undefined,
-    url: business.website || url,
+    url,
     geo:
       business.latitude != null && business.longitude != null
         ? { "@type": "GeoCoordinates", latitude: business.latitude, longitude: business.longitude }
@@ -127,7 +126,6 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
     getRelatedWithFallback({ excludeType: "BUSINESS", excludeId: business.id, categoryId: business.categoryId, size: MORE_SIZE }),
   ]);
 
-  const websiteLabel = business.website ? business.website.replace(/^https?:\/\//, "").replace(/\/$/, "") : null;
   const facts: PostFact[] = [
     { icon: Storefront, label: "Rubro", value: businessTypeLabel(business.businessType) },
     ...(place
@@ -135,9 +133,7 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
       : business.address
         ? [{ icon: MapPin, label: "Dirección", value: business.address }]
         : []),
-    ...(business.phone ? [{ icon: Phone, label: "Teléfono", value: business.phone, href: `tel:${business.phone.replace(/[^\d+]/g, "")}` }] : []),
-    ...(business.email ? [{ icon: Envelope, label: "Correo", value: business.email, href: `mailto:${business.email}` }] : []),
-    ...(business.website && websiteLabel ? [{ icon: Globe, label: "Sitio web", value: websiteLabel, href: business.website, external: true }] : []),
+    // Sin teléfono, correo ni web: el sitio no hace publicidad gratis de negocios (dueño, 2026-10-16).
   ];
   const hasMap = business.latitude != null && business.longitude != null;
 
@@ -175,18 +171,12 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
         body={
           // business.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
           // de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
-          <div className="prose prose-theme max-w-none prose-headings:font-bold prose-a:text-accent" dangerouslySetInnerHTML={{ __html: business.body }} />
+          <div className={PROSE} dangerouslySetInnerHTML={{ __html: business.body }} />
         }
         actions={
           <>
             <ViewBeacon type="BUSINESS" id={business.id} />
             <LikeShareBar contentType="directory" slug={business.slug} initialLikeCount={business.likeCount} title={business.name}>
-              {business.phone && (
-                <a href={`tel:${business.phone.replace(/[^\d+]/g, "")}`} className={POST_ACTION_PILL}>
-                  <Phone className="h-4 w-4" aria-hidden="true" />
-                  Llamar
-                </a>
-              )}
               {hasMap && (
                 <a href={mapsDirections(business.latitude!, business.longitude!)} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL}>
                   <NavigationArrow className="h-4 w-4" aria-hidden="true" />
