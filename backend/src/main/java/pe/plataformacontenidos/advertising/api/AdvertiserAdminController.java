@@ -46,14 +46,14 @@ public class AdvertiserAdminController {
     @ResponseStatus(HttpStatus.CREATED)
     public AdvertiserResponse create(@Valid @RequestBody AdvertiserRequest request) {
         var advertiser = advertiserService.create(request.name(), request.contactEmail(), request.contactPhone(),
-                request.logoImageId());
+                request.logoImageId(), request.industry());
         return AdvertiserResponse.from(advertiser);
     }
 
     @PutMapping("/{id}")
     public AdvertiserResponse update(@PathVariable UUID id, @Valid @RequestBody AdvertiserRequest request) {
         var advertiser = advertiserService.update(id, request.name(), request.contactEmail(), request.contactPhone(),
-                request.logoImageId());
+                request.logoImageId(), request.industry());
         return AdvertiserResponse.from(advertiser);
     }
 

@@ -16,7 +16,7 @@ public record CampaignResponse(UUID id, UUID advertiserId, String placementKey, 
         long impressionCount, long clickCount, long playCount, BigDecimal amount, String currency, int weight,
         List<AdSection> targetSections, List<UUID> targetCategoryIds, List<String> targetCountries,
         List<String> targetRegions, String primaryText, String headline, CallToAction callToAction,
-        String youtubeVideoId, String mediaAspect) {
+        String youtubeVideoId, String mediaAspect, Instant complianceConfirmedAt) {
 
     public static CampaignResponse from(Campaign campaign) {
         var creative = campaign.getCreative();
@@ -31,6 +31,7 @@ public record CampaignResponse(UUID id, UUID advertiserId, String placementKey, 
                 List.copyOf(targeting.categoryIds()), targeting.countries().stream().sorted().toList(),
                 targeting.regions().stream().sorted().toList(), ad == null ? null : ad.primaryText(),
                 ad == null ? null : ad.headline(), ad == null ? null : ad.callToAction(),
-                ad == null ? null : ad.youtubeVideoId(), ad == null ? null : ad.mediaAspect());
+                ad == null ? null : ad.youtubeVideoId(), ad == null ? null : ad.mediaAspect(),
+                campaign.getComplianceConfirmedAt());
     }
 }

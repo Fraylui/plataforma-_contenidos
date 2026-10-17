@@ -118,7 +118,7 @@ public class CampaignService {
     /** Datos comunes de alta y edición; {@code format} null = banner (clientes que no lo mandan). */
     public record CampaignDraft(String placementKey, CampaignFormat format, ContentImageInput creative,
             NativeAdInput nativeAd, String linkUrl, Instant startsAt, Instant endsAt, BigDecimal amount,
-            String currency, Integer weight, CampaignTargeting targeting) {
+            String currency, Integer weight, CampaignTargeting targeting, boolean complianceConfirmed) {
     }
 
     /** Creatividad y nativo ya validados, y la posición donde va. */
@@ -134,6 +134,7 @@ public class CampaignService {
                 draft.startsAt(), draft.endsAt(), draft.amount(), draft.currency(),
                 draft.weight() != null ? draft.weight() : Campaign.DEFAULT_WEIGHT, draft.targeting());
         campaign.setNativeAd(valid.nativeAd());
+        campaign.confirmCompliance();
         return campaignRepository.save(campaign);
     }
 
@@ -147,10 +148,14 @@ public class CampaignService {
                 draft.endsAt(), draft.amount(), draft.currency(),
                 draft.weight() != null ? draft.weight() : campaign.getWeight(), draft.targeting());
         campaign.setNativeAd(valid.nativeAd());
+        campaign.confirmCompliance();
         return campaignRepository.save(campaign);
     }
 
     private ValidatedCreative validate(CampaignDraft draft) {
+        if (!draft.complianceConfirmed()) {
+            throw new CampaignComplianceRequiredException();
+        }
         requireValidSchedule(draft.startsAt(), draft.endsAt());
         requireValidAmount(draft.amount());
         requireExistingCategories(draft.targeting());

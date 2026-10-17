@@ -229,6 +229,9 @@ export interface AdPlacementUpdateInput {
   height: number;
 }
 
+/** Rubro del anunciante — ver AdvertiserIndustry.java y lib/ads/industry.ts. */
+export type AdvertiserIndustry = "GENERAL" | "PROCESSED_FOOD" | "ALCOHOL" | "BETTING";
+
 /** Ver Advertiser.java. */
 export interface Advertiser {
   id: string;
@@ -237,6 +240,7 @@ export interface Advertiser {
   contactPhone: string | null;
   /** Logo de sus anuncios nativos (imagen de la biblioteca); null = iniciales. */
   logoImageId: string | null;
+  industry: AdvertiserIndustry;
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/advertisers — ver AdvertiserRequest.java. */
@@ -245,6 +249,7 @@ export interface AdvertiserInput {
   contactEmail: string | null;
   contactPhone: string | null;
   logoImageId: string | null;
+  industry: AdvertiserIndustry;
 }
 
 /** Ver CampaignResponse.java. La creatividad es XOR: imageId o externalImageUrl, nunca ambas. */
@@ -274,6 +279,8 @@ export interface Campaign extends NativeAdInputFields {
   targetCategoryIds: string[];
   targetCountries: string[];
   targetRegions: string[];
+  /** Última confirmación de las condiciones de la oferta (D.L. 1044, art. 17.3.f); null = campaña anterior a la regla. */
+  complianceConfirmedAt: string | null;
 }
 
 /** Ver CampaignDailyStatResponse.java — un día (UTC) del reporte de una campaña. */
@@ -312,6 +319,8 @@ export interface CampaignInput extends NativeAdInputFields {
   targetCategoryIds: string[];
   targetCountries: string[];
   targetRegions: string[];
+  /** Tiene que ser true en cada guardado: el anuncio muestra vigencia, stock y condiciones. */
+  complianceConfirmed: boolean;
 }
 
 /** Ver PlatformStatsResponse.java (CONTEXTO.md sección 34, estadísticas básicas). */

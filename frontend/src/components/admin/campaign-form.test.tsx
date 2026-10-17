@@ -2,6 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createCampaignAction } from "@/app/admin/(protected)/anunciantes/actions";
+import type { AdvertiserIndustry } from "@/lib/api/admin-types";
 import { CampaignForm } from "./campaign-form";
 
 vi.mock("@/app/admin/(protected)/anunciantes/actions", () => ({
@@ -11,13 +12,14 @@ vi.mock("@/app/admin/(protected)/anunciantes/actions", () => ({
 vi.mock("@/app/admin/(protected)/imagenes/actions", () => ({ uploadImageInlineAction: vi.fn() }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
-function renderForm() {
+function renderForm(industry: AdvertiserIndustry = "GENERAL") {
   return render(
     <CampaignForm
       mode="create"
       advertiserId="adv-1"
       advertiserName="Pollería El Inca"
       advertiserLogoImageId={null}
+      advertiserIndustry={industry}
       placements={[{ id: "p1", key: "lateral", label: "Lateral", adsenseSlotId: null, enabled: true, width: 300, height: 250 }]}
       categories={[]}
       allImages={[]}
@@ -44,6 +46,8 @@ describe("CampaignForm — post en el feed", () => {
     await userEvent.click(screen.getByRole("radio", { name: "Video de YouTube" }));
     await userEvent.type(screen.getByLabelText("Link del video de YouTube"), "https://youtu.be/dQw4w9WgXcQ");
     await userEvent.type(screen.getByLabelText(/Link de destino/), "https://wa.me/51999999999");
+    expect(screen.getByRole("button", { name: "Crear campaña" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("checkbox", { name: /vigencia, el stock y las condiciones/ }));
     await userEvent.click(screen.getByRole("button", { name: "Crear campaña" }));
 
     expect(createCampaignAction).toHaveBeenCalledWith(
@@ -55,8 +59,19 @@ describe("CampaignForm — post en el feed", () => {
         imageId: null,
         primaryText: "2x1 los martes",
         callToAction: "LEARN_MORE",
+        complianceConfirmed: true,
       }),
     );
+  });
+
+  it("un anunciante de rubro regulado ve su advertencia obligatoria antes de guardar", () => {
+    renderForm("ALCOHOL");
+    expect(screen.getByRole("note")).toHaveTextContent("TOMAR BEBIDAS ALCOHÓLICAS EN EXCESO ES DAÑINO");
+  });
+
+  it("un rubro general no muestra advertencia", () => {
+    renderForm();
+    expect(screen.queryByRole("note")).toBeNull();
   });
 
   it("un link que no es de YouTube no deja guardar", async () => {

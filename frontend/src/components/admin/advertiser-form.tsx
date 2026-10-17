@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import type { AdminImage, Advertiser } from "@/lib/api/admin-types";
+import type { AdminImage, Advertiser, AdvertiserIndustry } from "@/lib/api/admin-types";
+import { INDUSTRY_OPTIONS } from "@/lib/ads/industry";
 import {
   createAdvertiserAction,
   updateAdvertiserAction,
   type ActionResult,
 } from "@/app/admin/(protected)/anunciantes/actions";
 import { FormError } from "@/components/admin/ui";
-import { Button, Field, TextInput } from "@/components/ui";
+import { Button, Field, Select, TextInput } from "@/components/ui";
+import { IndustryWarningNotice } from "@/components/admin/industry-warning";
 import { CampaignCreativePicker } from "@/components/admin/campaign-creative-picker";
 
 interface AdvertiserFormProps {
@@ -23,6 +25,7 @@ export function AdvertiserForm({ mode, advertiser, allImages }: AdvertiserFormPr
   const [contactEmail, setContactEmail] = useState(advertiser?.contactEmail ?? "");
   const [contactPhone, setContactPhone] = useState(advertiser?.contactPhone ?? "");
   const [logoImageId, setLogoImageId] = useState<string | null>(advertiser?.logoImageId ?? null);
+  const [industry, setIndustry] = useState<AdvertiserIndustry>(advertiser?.industry ?? "GENERAL");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,6 +37,7 @@ export function AdvertiserForm({ mode, advertiser, allImages }: AdvertiserFormPr
       contactEmail: contactEmail.trim() || null,
       contactPhone: contactPhone.trim() || null,
       logoImageId,
+      industry,
     };
     const result: ActionResult =
       mode === "create" ? await createAdvertiserAction(input) : await updateAdvertiserAction(advertiser!.id, input);
@@ -51,6 +55,17 @@ export function AdvertiserForm({ mode, advertiser, allImages }: AdvertiserFormPr
       <Field label="Nombre del negocio/empresa" name="name">
         <TextInput type="text" value={name} onChange={(e) => setName(e.target.value)} />
       </Field>
+
+      <Field label="Rubro" name="industry" hint="Algunos rubros obligan a llevar una advertencia en el anuncio.">
+        <Select value={industry} onChange={(e) => setIndustry(e.target.value as AdvertiserIndustry)}>
+          {INDUSTRY_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </Select>
+      </Field>
+      <IndustryWarningNotice industry={industry} />
 
       <fieldset className="min-w-0">
         <legend className="mb-1.5 block text-label font-medium text-foreground">Logo (opcional)</legend>

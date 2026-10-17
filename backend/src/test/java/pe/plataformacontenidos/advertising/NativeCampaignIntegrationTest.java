@@ -177,7 +177,7 @@ class NativeCampaignIntegrationTest {
 
     /** `media` son campos JSON extra (foto, video, posición…) que se agregan al cuerpo base. */
     private static String nativeJson(String advertiserId, String media, String linkUrl) {
-        return "{\"advertiserId\":\"" + advertiserId + "\",\"format\":\"NATIVE\","
+        return "{\"advertiserId\":\"" + advertiserId + "\",\"format\":\"NATIVE\",\"complianceConfirmed\":true,"
                 + "\"primaryText\":\"2x1 los martes en todo el menú\",\"headline\":\"Pollo a la brasa\","
                 + "\"callToAction\":\"WHATSAPP\",\"linkUrl\":\"" + linkUrl + "\"," + media + "}";
     }

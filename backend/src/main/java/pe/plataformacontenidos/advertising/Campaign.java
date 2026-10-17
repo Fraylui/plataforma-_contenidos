@@ -110,6 +110,10 @@ public class Campaign {
     @Column(name = "target_regions", nullable = false, columnDefinition = "text[]")
     private String[] targetRegions = new String[0];
 
+    /** Última vez que el dueño confirmó las condiciones de la oferta (D.L. 1044, art. 17.3.f); null = campaña anterior a la regla. */
+    @Column(name = "compliance_confirmed_at")
+    private Instant complianceConfirmedAt;
+
     @Column(name = "impression_count", nullable = false)
     private long impressionCount = 0;
 
@@ -250,6 +254,15 @@ public class Campaign {
         this.weight = weight;
         setTargeting(targeting);
         this.updatedAt = Instant.now();
+    }
+
+    public Instant getComplianceConfirmedAt() {
+        return complianceConfirmedAt;
+    }
+
+    /** Se llama en cada alta y edición: la confirmación vale para la versión guardada del anuncio. */
+    public void confirmCompliance() {
+        this.complianceConfirmedAt = Instant.now();
     }
 
     public void setActive(boolean active) {

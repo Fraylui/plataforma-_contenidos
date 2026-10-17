@@ -2407,6 +2407,17 @@ No reemplaza una auditoría externa ni la revisión legal (§46.6n.6).
 | Conservación limitada | ✅ | Auditoría 365 días; frecuencia de anuncios 26 h; intentos de login 15 min. |
 | Inscripción del banco de datos (ANPD) | ⏳ | Trámite del dueño, no de código. |
 
+### Publicidad pagada — D.L. 1044 y leyes de advertencias (2026-10-16)
+
+| Obligación | Estado | Evidencia |
+|---|---|---|
+| Autenticidad: el anuncio se reconoce como publicidad (art. 16) | ✅ | Banner rotulado «Publicidad» y post nativo «Patrocinado», siempre (`native-ad-post.tsx`, `direct-campaign-banner.tsx`). |
+| Promociones con vigencia, stock y condiciones (art. 17.3.f) | ✅ | Casilla obligatoria en cada guardado de campaña; el backend rechaza sin ella (`CAMPAIGN_COMPLIANCE_REQUIRED`) y guarda la fecha (`compliance_confirmed_at`, V68). |
+| Advertencias por rubro: alimentos (Ley 30021), alcohol (Ley 28681), apuestas (Ley 31557) | ✅ | Rubro del anunciante (`AdvertiserIndustry`, V68); el formulario muestra la advertencia exigida (`lib/ads/industry.ts`). La creatividad la arma el anunciante; el panel no puede leer la imagen. |
+| Contrato y comprobante de pago (SUNAT) | ⏳ | Trámite del dueño, fuera del software. |
+| Revisión legal de los textos | ⏳ | Resumen práctico, no asesoría; revisarlo con un abogado antes de la primera campaña cobrada. |
+| Directorio: fichas que parecen avisos | ⏳ | Análisis en Claude Docs (2026-10-16); decisión del dueño pendiente (convertir en «Recomendados» o quitar). |
+
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
 Ordenadas por prioridad.

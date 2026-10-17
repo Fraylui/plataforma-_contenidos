@@ -22,16 +22,24 @@ public class AdvertiserService {
         this.imageService = imageService;
     }
 
-    public Advertiser create(String name, String contactEmail, String contactPhone, UUID logoImageId) {
+    /** {@code industry} null = GENERAL (clientes que no lo mandan). */
+    public Advertiser create(String name, String contactEmail, String contactPhone, UUID logoImageId,
+            AdvertiserIndustry industry) {
         requireLogo(logoImageId);
-        return advertiserRepository.save(new Advertiser(name, contactEmail, contactPhone, logoImageId));
+        return advertiserRepository.save(
+                new Advertiser(name, contactEmail, contactPhone, logoImageId, orGeneral(industry)));
     }
 
-    public Advertiser update(UUID id, String name, String contactEmail, String contactPhone, UUID logoImageId) {
+    public Advertiser update(UUID id, String name, String contactEmail, String contactPhone, UUID logoImageId,
+            AdvertiserIndustry industry) {
         Advertiser advertiser = getOrThrow(id);
         requireLogo(logoImageId);
-        advertiser.update(name, contactEmail, contactPhone, logoImageId);
+        advertiser.update(name, contactEmail, contactPhone, logoImageId, orGeneral(industry));
         return advertiserRepository.save(advertiser);
+    }
+
+    private static AdvertiserIndustry orGeneral(AdvertiserIndustry industry) {
+        return industry != null ? industry : AdvertiserIndustry.GENERAL;
     }
 
     private void requireLogo(UUID logoImageId) {

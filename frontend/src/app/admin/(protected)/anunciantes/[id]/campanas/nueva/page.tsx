@@ -33,6 +33,7 @@ export default async function NewCampaignPage({ params }: { params: Promise<{ id
           advertiserId={id}
           advertiserName={advertiser.name}
           advertiserLogoImageId={advertiser.logoImageId}
+          advertiserIndustry={advertiser.industry}
           placements={placements}
           categories={categories}
           allImages={images}

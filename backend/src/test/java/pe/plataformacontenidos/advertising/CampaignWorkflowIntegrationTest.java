@@ -4,6 +4,7 @@ import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -264,7 +265,7 @@ class CampaignWorkflowIntegrationTest {
         String advertiserId = createAdvertiser(adminToken, "Hostal Wari");
 
         String body = "{"
-                + "\"advertiserId\":\"" + advertiserId + "\","
+                + "\"advertiserId\":\"" + advertiserId + "\",\"complianceConfirmed\":true,"
                 + "\"placementKey\":\"" + placementKey + "\","
                 + "\"externalImageUrl\":\"https://example.com/banner.jpg\","
                 + "\"linkUrl\":\"https://example.com\","
@@ -281,7 +282,7 @@ class CampaignWorkflowIntegrationTest {
                 .andExpect(jsonPath("$.currency").value("PEN"));
 
         String negativeBody = "{"
-                + "\"advertiserId\":\"" + advertiserId + "\","
+                + "\"advertiserId\":\"" + advertiserId + "\",\"complianceConfirmed\":true,"
                 + "\"placementKey\":\"" + placementKey + "\","
                 + "\"externalImageUrl\":\"https://example.com/banner.jpg\","
                 + "\"linkUrl\":\"https://example.com\","
@@ -294,6 +295,56 @@ class CampaignWorkflowIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(negativeBody))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void campaignRequiresComplianceConfirmationOnEverySave() throws Exception {
+        String adminToken = createUserAndLogin("ads-admin-6@plataforma-contenidos.test");
+        String placementKey = createAdPlacement(adminToken);
+        String advertiserId = createAdvertiser(adminToken, "Bodega Los Andes");
+        String confirmed = campaignJson(advertiserId, placementKey, "https://example.com/banner.jpg", null);
+        String unconfirmed = confirmed.replace("\"complianceConfirmed\":true,", "");
+
+        mockMvc.perform(post("/api/v1/admin/campaigns")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(unconfirmed))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("CAMPAIGN_COMPLIANCE_REQUIRED"));
+
+        String created = mockMvc.perform(post("/api/v1/admin/campaigns")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(confirmed))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.complianceConfirmedAt").isNotEmpty())
+                .andReturn().getResponse().getContentAsString();
+        String id = objectMapper.readTree(created).get("id").asText();
+
+        mockMvc.perform(put("/api/v1/admin/campaigns/" + id)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(unconfirmed))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void advertiserKeepsItsIndustry() throws Exception {
+        String adminToken = createUserAndLogin("ads-admin-7@plataforma-contenidos.test");
+
+        mockMvc.perform(post("/api/v1/admin/advertisers")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Cervecería Wari\",\"industry\":\"ALCOHOL\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.industry").value("ALCOHOL"));
+
+        mockMvc.perform(post("/api/v1/admin/advertisers")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Librería Sin Rubro\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.industry").value("GENERAL"));
     }
 
     @Test
@@ -325,7 +376,7 @@ class CampaignWorkflowIntegrationTest {
         String advertiserId = createAdvertiser(adminToken, "Ferretería San Martín");
 
         String body = "{"
-                + "\"advertiserId\":\"" + advertiserId + "\","
+                + "\"advertiserId\":\"" + advertiserId + "\",\"complianceConfirmed\":true,"
                 + "\"placementKey\":\"" + placementKey + "\","
                 + "\"externalImageUrl\":\"https://example.com/banner.jpg\","
                 + "\"linkUrl\":\"https://example.com\","
@@ -360,6 +411,7 @@ class CampaignWorkflowIntegrationTest {
     private String campaignJson(String advertiserId, String placementKey, String externalImageUrl, UUID imageId) {
         StringBuilder json = new StringBuilder("{");
         json.append("\"advertiserId\":\"").append(advertiserId).append("\",");
+        json.append("\"complianceConfirmed\":true,");
         json.append("\"placementKey\":\"").append(placementKey).append("\",");
         if (externalImageUrl != null) {
             json.append("\"externalImageUrl\":\"").append(externalImageUrl).append("\",");

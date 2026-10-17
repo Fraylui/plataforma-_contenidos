@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { AdminImage, Campaign } from "@/lib/api/admin-types";
+import type { AdminImage, AdvertiserIndustry, Campaign } from "@/lib/api/admin-types";
 import type { AdPlacement, CallToAction, CampaignFormat, Category, ResolvedCampaign } from "@/lib/api/types";
 import { CampaignTargetingFields, splitList } from "@/components/admin/campaign-targeting-fields";
 import { creativeFit, formatSize } from "@/lib/ads/ad-formats";
 import { CALL_TO_ACTIONS } from "@/lib/ads/call-to-action";
+import { industryWarning } from "@/lib/ads/industry";
 import { nativePhotoFit, NATIVE_PHOTO_MIN_WIDTH, videoAspect, youtubeVideoId } from "@/lib/ads/native-media";
 import { imageUrl } from "@/lib/image-url";
 import {
@@ -15,7 +16,8 @@ import {
   type ActionResult,
 } from "@/app/admin/(protected)/anunciantes/actions";
 import { FormError } from "@/components/admin/ui";
-import { Button, Combobox, DateTimeInput, Field, TextArea, TextInput } from "@/components/ui";
+import { Button, Checkbox, Combobox, DateTimeInput, Field, TextArea, TextInput } from "@/components/ui";
+import { IndustryWarningNotice } from "@/components/admin/industry-warning";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { CampaignCreativePicker } from "@/components/admin/campaign-creative-picker";
 import { NativeAdPost } from "@/components/post/native-ad-post";
@@ -69,6 +71,8 @@ interface CampaignFormProps {
   /** Para la vista previa del post: como lo verá el visitante. */
   advertiserName: string;
   advertiserLogoImageId: string | null;
+  /** Rubro del anunciante: si es regulado, el formulario recuerda su advertencia obligatoria. */
+  advertiserIndustry: AdvertiserIndustry;
   placements: AdPlacement[];
   categories: Category[];
   allImages: AdminImage[];
@@ -86,6 +90,7 @@ export function CampaignForm({
   advertiserId,
   advertiserName,
   advertiserLogoImageId,
+  advertiserIndustry,
   placements,
   categories,
   allImages,
@@ -120,6 +125,8 @@ export function CampaignForm({
     countries: (campaign?.targetCountries ?? []).join(", "),
     regions: (campaign?.targetRegions ?? []).join(", "),
   });
+  // Se confirma en cada guardado (D.L. 1044, art. 17.3.f): la confirmación vale para esta versión del anuncio.
+  const [complianceConfirmed, setComplianceConfirmed] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -143,9 +150,11 @@ export function CampaignForm({
   const nativeMediaOk = media === "VIDEO" ? Boolean(videoId) : photoFit?.ok === true;
 
   const hasCreative = Boolean(creative.imageId || creative.externalImageUrl);
-  const canSubmit = isNative
-    ? Boolean(primaryText.trim() && linkUrl.trim() && nativeMediaOk)
-    : Boolean(placementKey && hasCreative && linkUrl.trim() && fit?.ok !== false);
+  const canSubmit =
+    complianceConfirmed &&
+    (isNative
+      ? Boolean(primaryText.trim() && linkUrl.trim() && nativeMediaOk)
+      : Boolean(placementKey && hasCreative && linkUrl.trim() && fit?.ok !== false));
 
   const preview: ResolvedCampaign = {
     id: campaign?.id ?? "vista-previa",
@@ -189,6 +198,7 @@ export function CampaignForm({
       targetCategoryIds: targeting.categoryIds,
       targetCountries: splitList(targeting.countries).map((c) => c.toUpperCase()),
       targetRegions: splitList(targeting.regions),
+      complianceConfirmed,
     };
     const result: ActionResult =
       mode === "create"
@@ -383,6 +393,22 @@ export function CampaignForm({
             />
           </Field>
         </div>
+
+        <FieldGroup label="Antes de publicar">
+          <div className="space-y-3">
+            <IndustryWarningNotice industry={advertiserIndustry} />
+            <Checkbox
+              checked={complianceConfirmed}
+              onChange={(e) => setComplianceConfirmed(e.target.checked)}
+              label="El anuncio muestra la vigencia, el stock y las condiciones de la oferta"
+              description={
+                industryWarning(advertiserIndustry)
+                  ? "Y lleva la advertencia obligatoria de arriba. Lo exige la ley de publicidad (D.L. 1044); se confirma en cada guardado."
+                  : "Si anuncia una promoción, descuento o regalo, lo exige la ley de publicidad (D.L. 1044); se confirma en cada guardado."
+              }
+            />
+          </div>
+        </FieldGroup>
 
         {error && <FormError message={error} />}
         <Button type="submit" disabled={pending || !canSubmit} onClick={handleSubmit}>

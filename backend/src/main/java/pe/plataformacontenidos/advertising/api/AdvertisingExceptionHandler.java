@@ -10,6 +10,7 @@ import pe.plataformacontenidos.advertising.AdPlacementKeyNotFoundException;
 import pe.plataformacontenidos.advertising.AdPlacementNotFoundException;
 import pe.plataformacontenidos.advertising.AdvertiserHasCampaignsException;
 import pe.plataformacontenidos.advertising.AdvertiserNotFoundException;
+import pe.plataformacontenidos.advertising.CampaignComplianceRequiredException;
 import pe.plataformacontenidos.advertising.CampaignNotFoundException;
 import pe.plataformacontenidos.advertising.DuplicateAdPlacementKeyException;
 import pe.plataformacontenidos.advertising.InvalidAdvertiserLogoException;
@@ -39,6 +40,11 @@ public class AdvertisingExceptionHandler {
             InvalidCampaignFormatException.class, InvalidAdvertiserLogoException.class })
     public ResponseEntity<ProblemDetail> handleBadRequest(RuntimeException ex) {
         return Problems.of(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(CampaignComplianceRequiredException.class)
+    public ResponseEntity<ProblemDetail> handleComplianceRequired(CampaignComplianceRequiredException ex) {
+        return Problems.of(HttpStatus.BAD_REQUEST, "CAMPAIGN_COMPLIANCE_REQUIRED", ex.getMessage());
     }
 
     @ExceptionHandler(AdInventoryFullException.class)

@@ -61,6 +61,7 @@ export default async function EditCampaignPage({
           advertiserId={id}
           advertiserName={advertiser.name}
           advertiserLogoImageId={advertiser.logoImageId}
+          advertiserIndustry={advertiser.industry}
           campaign={campaign}
           placements={placements}
           categories={categories}
