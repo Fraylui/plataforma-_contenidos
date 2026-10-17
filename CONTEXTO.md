@@ -2362,12 +2362,14 @@ No reemplaza una auditoría externa ni la revisión legal (§46.6n.6).
 | Característica | Estado | Evidencia |
 |---|---|---|
 | Adecuación funcional | ✅ | pruebas de integración del backend (Testcontainers) y unitarias del frontend en cada CI; e2e en CI con contenido sembrado. |
-| Eficiencia de desempeño | ⚠️ | Lighthouse CI con umbrales «Good» (LCP < 2,5 s, CLS < 0,1). Medición local del 2026-10-06 por debajo en el inicio (§46.6d); se mide en CI en cada cambio. Falta medir en el VPS con contenido real. |
+| Eficiencia de desempeño | ⚠️ | Lighthouse CI en cada cambio (perfil de celular): rendimiento 85–97, CLS 0, TBT < 150 ms (bloqueantes, pasan). **LCP 2,8–4,2 s contra la meta de 2,5 s** (advertencia por decisión del dueño, 2026-10-16). Ver «LCP» abajo. |
 | Usabilidad | ✅ | WCAG 2.2 AA (arriba); revisión visual en Edge de las 19 pantallas públicas y del panel. |
 | Fiabilidad | ⚠️ | Health checks, reintentos y topes de memoria en Docker. ⏳ Backups: falta la copia externa a R2 y corregir `scripts/backup.sh` (§46.7.5). |
 | Seguridad | ✅/⚠️ | Ver OWASP ASVS. |
 | Mantenibilidad | ✅ | knip (cero código sin uso) y ESLint en CI; tipos estrictos; módulos por dominio; nombres coherentes con la interfaz (Publication, Celebration). |
 | Portabilidad | ✅ | Todo en Docker Compose; configuración por variables de entorno. |
+
+**LCP — qué se hizo y qué falta (2026-10-16).** Hecho y medido en CI: foto principal visible sin esperar a JavaScript (`SkeletonImage` sin fundido con `priority`), foto del detalle y de «Hoy se celebra» con prioridad, borrado de `app/loading.tsx` raíz (envolvía todo el sitio en un segmento de streaming), sonner solo en el panel, Radix de Buscar/Más/Información cargado al primer toque, semilla de CI con foto realista. Descartado tras medirlo: quitar los esqueletos `loading.tsx` del sitio (≈ −0,5 s en algunas pantallas, peor en el inicio; no compensa perder el esqueleto al navegar). Lo que queda: ~3 s de «Render Delay» con 257 KB de JS comprimido y ~1,4 s de CPU en el inicio. **Siguiente paso**: analizar el paquete (`next build` con análisis) y el tamaño del RSC en línea, pasar a Server Components lo que no necesita estado, y medir en el VPS con datos reales (CrUX/Search Console es lo que cuenta para Google).
 
 ### Seguridad de aplicaciones — OWASP ASVS (nivel 2, controles principales)
 
