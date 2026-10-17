@@ -2354,6 +2354,17 @@ Ingreso principal por ahora: **AdSense**; la publicidad directa, cuando el sitio
 - **Loop 1 de diseño (inicio/feed)**: ver commit fa4df32 (feed sin líneas, tokens `like`/`live`, `lib/prose.ts`, bug de hidratación con `window.location`).
 - **5. «Síguenos en WhatsApp»** al final de cada publicación (V70, Configuración › Contacto › Canal de WhatsApp; solo enlaces `whatsapp.com/channel/…`; vacío = sin botón).
 
+### 46.6q PAUSA 2026-10-17 — todo lo que falta, en orden
+Estado: todo subido hasta `dd11734` (PR #22). Hecho en esta sesión: §46.6p.
+1. **Verificar CI** de los últimos commits (`gh pr checks 22`); las pruebas de integración del backend solo corren allí.
+2. **Docker local**: reconstruir el backend para aplicar V71 (`cd infra && docker compose --env-file ../.env up -d --build backend`) y comprobar que `/directorio` da 404 y el feed carga.
+3. **Loops de diseño por pantalla** (procedimiento en `DESIGN.md` › Iteration Guide). Hecho: inicio/feed. Faltan, en orden: detalle de publicación (y ver en vivo los 5 arreglos de §46.6p) → explorar → celebraciones → lugares → galerías → series y en vivo → buscar → páginas legales y contacto → panel completo. Ya detectado: `rounded-2xl`/`rounded-xl` y sombras sueltas fuera de los tokens; colores sueltos en los degradados de temas y del riel.
+4. **Bugs, inconsistencias y logs**: anotarlos en cada loop. Logs del frontend (route handlers `/api/*`, server actions, `error.tsx`) con un logger mínimo en JSON y el id de petición; revisar en el backend los jobs programados sin log de error.
+5. **Revisión del backend** por módulo, después del frontend.
+6. **Tareas del dueño**: «Semana Santa en Ayacucho 2027» tiene hora 00:00 en vez de «todo el día»; enlace del canal de WhatsApp en Configuración; volver a guardar las publicaciones con Shorts; fecha de la Canción Ayacuchana; avisar cuándo borrar las campañas demo y el trabajador temporal; abogado y RUC/contador.
+7. **Técnico de antes**: LCP (meta 2,5 s), anuncios (cuartiles, autoplay silenciado, carrusel nativo), CSP con nonce, backups con copia externa, campos sin uso de Configuración.
+8. **En espera**: UTM y visitas por origen, embeds de redes, series de publicaciones, gestor de consentimiento europeo.
+
 ## 46.8 Tabla de cumplimiento (G.18, 2026-10-16)
 
 Estado real de cada control, con su evidencia en el repositorio. ✅ cumple · ⚠️ parcial · ⏳ pendiente.
