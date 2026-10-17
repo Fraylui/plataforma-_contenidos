@@ -5,35 +5,50 @@
 // Components, proxy.ts) — ver src/lib/admin/session.ts para el porqué.
 import "server-only";
 import { headers } from "next/headers";
+import type { PublicationKind, PublicationStep } from "@/lib/admin/publication";
+import { adminListQuery, type AdminListParams } from "@/lib/admin/list-params";
+import { problemMessage } from "./problem";
 import type {
+  AdminContentPage,
   AdminImage,
+  AdminSeries,
   AdminUser,
+  CreateWorkerInput,
+  PlaceOption,
+  ModulePermissions,
+  Worker,
   AdPlacementCreateInput,
   AdPlacementUpdateInput,
   Advertiser,
   AdvertiserInput,
-  ArticleInput,
+  PublicationInput,
   AuditEvent,
   AuditSearchFilters,
-  BusinessInput,
   Campaign,
+  CampaignDailyStat,
   CampaignInput,
   CategoryCreateInput,
   CategoryUpdateInput,
-  CreateUserInput,
-  EventInput,
+  CreateSeriesInput,
+  DashboardRange,
+  DashboardSummary,
+  CelebrationInput,
+  LiveInput,
   GalleryInput,
   PlaceInput,
   PlatformSettingsInput,
   PlatformStats,
+  SeriesSyncResult,
   TokenResponse,
+  UpdateSeriesInput,
 } from "./admin-types";
 import type {
   AdPlacement,
-  Article,
-  Business,
+  Publication,
   Category,
-  Event,
+  Episode,
+  LiveStream,
+  Celebration,
   Gallery,
   PageResponse,
   Place,
@@ -55,12 +70,12 @@ export class AdminApiError extends Error {
 /** El access token dejó de ser válido (expiró o fue revocado): quien llama debe redirigir a login. */
 export class AdminSessionExpiredError extends Error {}
 
+/** Mensaje de un error de la API (RFC 9457, ver lib/api/problem.ts). */
 async function parseErrorMessage(res: Response): Promise<string> {
   try {
-    const body = (await res.json()) as { message?: string };
-    return body.message ?? `Error del backend (${res.status})`;
+    return problemMessage(await res.json(), res.status);
   } catch {
-    return `Error del backend (${res.status})`;
+    return problemMessage(null, res.status);
   }
 }
 
@@ -144,68 +159,36 @@ export function getCurrentUser(accessToken: string): Promise<AdminUser> {
   return authedJson("/api/v1/users/me", accessToken);
 }
 
-// --- Content module: artículos (ArticleAdminController) ---
+// --- Content module: artículos (PublicationAdminController) ---
 
-export function listAdminArticles(accessToken: string): Promise<Article[]> {
-  return authedJson("/api/v1/admin/articles", accessToken);
+export function listAdminPublications(accessToken: string, params: AdminListParams): Promise<AdminContentPage<Publication>> {
+  return authedJson(`/api/v1/admin/publications?${adminListQuery(params)}`, accessToken);
 }
 
-export function getAdminArticle(accessToken: string, id: string): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}`, accessToken);
+export function getAdminPublication(accessToken: string, id: string): Promise<Publication> {
+  return authedJson(`/api/v1/admin/publications/${encodeURIComponent(id)}`, accessToken);
 }
 
-export function createArticle(accessToken: string, input: ArticleInput): Promise<Article> {
-  return authedJson("/api/v1/admin/articles", accessToken, {
+export function createPublication(accessToken: string, input: PublicationInput): Promise<Publication> {
+  return authedJson("/api/v1/admin/publications", accessToken, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
 }
 
-export function updateArticle(accessToken: string, id: string, input: ArticleInput): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}`, accessToken, {
+export function updatePublication(accessToken: string, id: string, input: PublicationInput): Promise<Publication> {
+  return authedJson(`/api/v1/admin/publications/${encodeURIComponent(id)}`, accessToken, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
 }
 
-export function submitArticle(accessToken: string, id: string): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
-}
-
-export function approveArticle(accessToken: string, id: string): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
-}
-
-export function rejectArticle(accessToken: string, id: string, reason: string): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}/reject`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason }),
-  });
-}
-
-export function publishArticle(accessToken: string, id: string): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
-}
-
-export function scheduleArticle(accessToken: string, id: string, scheduledAt: string): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}/schedule`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ scheduledAt }),
-  });
-}
-
-export function archiveArticle(accessToken: string, id: string): Promise<Article> {
-  return authedJson(`/api/v1/admin/articles/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
-}
-
 // --- Places module: lugares (PlaceAdminController, rutas /admin/places) — CONTEXTO.md sección 6 ---
 
-export function listAdminPlaces(accessToken: string): Promise<Place[]> {
-  return authedJson("/api/v1/admin/places", accessToken);
+export function listAdminPlaces(accessToken: string, params: AdminListParams): Promise<AdminContentPage<Place>> {
+  return authedJson(`/api/v1/admin/places?${adminListQuery(params)}`, accessToken);
 }
 
 export function getAdminPlace(accessToken: string, id: string): Promise<Place> {
@@ -228,100 +211,36 @@ export function updatePlace(accessToken: string, id: string, input: PlaceInput):
   });
 }
 
-export function submitPlace(accessToken: string, id: string): Promise<Place> {
-  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
+// --- Módulo de celebraciones (CelebrationAdminController, rutas /admin/celebrations) ---
+
+export function listAdminCelebrations(accessToken: string, params: AdminListParams): Promise<AdminContentPage<Celebration>> {
+  return authedJson(`/api/v1/admin/celebrations?${adminListQuery(params)}`, accessToken);
 }
 
-export function approvePlace(accessToken: string, id: string): Promise<Place> {
-  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
+export function getAdminCelebration(accessToken: string, id: string): Promise<Celebration> {
+  return authedJson(`/api/v1/admin/celebrations/${encodeURIComponent(id)}`, accessToken);
 }
 
-export function rejectPlace(accessToken: string, id: string, reason: string): Promise<Place> {
-  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/reject`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason }),
-  });
-}
-
-export function publishPlace(accessToken: string, id: string): Promise<Place> {
-  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
-}
-
-export function schedulePlace(accessToken: string, id: string, scheduledAt: string): Promise<Place> {
-  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/schedule`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ scheduledAt }),
-  });
-}
-
-export function archivePlace(accessToken: string, id: string): Promise<Place> {
-  return authedJson(`/api/v1/admin/places/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
-}
-
-// --- Events module: eventos (EventAdminController, rutas /admin/events) ---
-
-export function listAdminEvents(accessToken: string): Promise<Event[]> {
-  return authedJson("/api/v1/admin/events", accessToken);
-}
-
-export function getAdminEvent(accessToken: string, id: string): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}`, accessToken);
-}
-
-export function createEvent(accessToken: string, input: EventInput): Promise<Event> {
-  return authedJson("/api/v1/admin/events", accessToken, {
+export function createCelebration(accessToken: string, input: CelebrationInput): Promise<Celebration> {
+  return authedJson("/api/v1/admin/celebrations", accessToken, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
 }
 
-export function updateEvent(accessToken: string, id: string, input: EventInput): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}`, accessToken, {
+export function updateCelebration(accessToken: string, id: string, input: CelebrationInput): Promise<Celebration> {
+  return authedJson(`/api/v1/admin/celebrations/${encodeURIComponent(id)}`, accessToken, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
 }
 
-export function submitEvent(accessToken: string, id: string): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
-}
-
-export function approveEvent(accessToken: string, id: string): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
-}
-
-export function rejectEvent(accessToken: string, id: string, reason: string): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/reject`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason }),
-  });
-}
-
-export function publishEvent(accessToken: string, id: string): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
-}
-
-export function scheduleEvent(accessToken: string, id: string, scheduledAt: string): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/schedule`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ scheduledAt }),
-  });
-}
-
-export function archiveEvent(accessToken: string, id: string): Promise<Event> {
-  return authedJson(`/api/v1/admin/events/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
-}
-
 // --- Galleries module: galerías (GalleryAdminController, rutas /admin/galleries) ---
 
-export function listAdminGalleries(accessToken: string): Promise<Gallery[]> {
-  return authedJson("/api/v1/admin/galleries", accessToken);
+export function listAdminGalleries(accessToken: string, params: AdminListParams): Promise<AdminContentPage<Gallery>> {
+  return authedJson(`/api/v1/admin/galleries?${adminListQuery(params)}`, accessToken);
 }
 
 export function getAdminGallery(accessToken: string, id: string): Promise<Gallery> {
@@ -344,96 +263,6 @@ export function updateGallery(accessToken: string, id: string, input: GalleryInp
   });
 }
 
-export function submitGallery(accessToken: string, id: string): Promise<Gallery> {
-  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
-}
-
-export function approveGallery(accessToken: string, id: string): Promise<Gallery> {
-  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
-}
-
-export function rejectGallery(accessToken: string, id: string, reason: string): Promise<Gallery> {
-  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/reject`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason }),
-  });
-}
-
-export function publishGallery(accessToken: string, id: string): Promise<Gallery> {
-  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
-}
-
-export function scheduleGallery(accessToken: string, id: string, scheduledAt: string): Promise<Gallery> {
-  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/schedule`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ scheduledAt }),
-  });
-}
-
-export function archiveGallery(accessToken: string, id: string): Promise<Gallery> {
-  return authedJson(`/api/v1/admin/galleries/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
-}
-
-// --- Directory module: fichas de directorio (BusinessAdminController, rutas /admin/directory) ---
-
-export function listAdminBusinesses(accessToken: string): Promise<Business[]> {
-  return authedJson("/api/v1/admin/directory", accessToken);
-}
-
-export function getAdminBusiness(accessToken: string, id: string): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}`, accessToken);
-}
-
-export function createBusiness(accessToken: string, input: BusinessInput): Promise<Business> {
-  return authedJson("/api/v1/admin/directory", accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-}
-
-export function updateBusiness(accessToken: string, id: string, input: BusinessInput): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}`, accessToken, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-}
-
-export function submitBusiness(accessToken: string, id: string): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/submit`, accessToken, { method: "POST" });
-}
-
-export function approveBusiness(accessToken: string, id: string): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/approve`, accessToken, { method: "POST" });
-}
-
-export function rejectBusiness(accessToken: string, id: string, reason: string): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/reject`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason }),
-  });
-}
-
-export function publishBusiness(accessToken: string, id: string): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/publish`, accessToken, { method: "POST" });
-}
-
-export function scheduleBusiness(accessToken: string, id: string, scheduledAt: string): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/schedule`, accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ scheduledAt }),
-  });
-}
-
-export function archiveBusiness(accessToken: string, id: string): Promise<Business> {
-  return authedJson(`/api/v1/admin/directory/${encodeURIComponent(id)}/archive`, accessToken, { method: "POST" });
-}
-
 // --- Taxonomy module: categorías (CategoryController, rutas /admin/categories) ---
 
 export function listAdminCategories(accessToken: string): Promise<Category[]> {
@@ -442,11 +271,11 @@ export function listAdminCategories(accessToken: string): Promise<Category[]> {
 
 /**
  * GET /categories (activas, público) sin caché — para selectores dentro de
- * formularios admin (ej. categoría de un artículo). A diferencia de
+ * formularios del panel (ej. tema de una publicación). A diferencia de
  * listActiveCategories() en src/lib/api/client.ts (sitio público, cacheada
  * 300s), acá una categoría recién creada debe poder elegirse de inmediato;
- * además AUTHOR no tiene acceso a /admin/categories (SecurityConfig), así
- * que no puede usarse listAdminCategories() para el formulario de artículo.
+ * además quien solo crea no tiene el módulo Temas, así
+ * que no puede usarse listAdminCategories() para el compositor.
  */
 export async function listActiveCategoriesFresh(): Promise<Category[]> {
   const res = await fetch(`${BACKEND_API_URL}/api/v1/categories`, { cache: "no-store" });
@@ -567,6 +396,11 @@ export function getCampaign(accessToken: string, id: string): Promise<Campaign> 
   return authedJson(`/api/v1/admin/campaigns/${encodeURIComponent(id)}`, accessToken);
 }
 
+/** Impresiones visibles y clics válidos por día (UTC) — ver CampaignAdminController.stats. */
+export function getCampaignStats(accessToken: string, id: string, days = 30): Promise<CampaignDailyStat[]> {
+  return authedJson(`/api/v1/admin/campaigns/${encodeURIComponent(id)}/stats?days=${days}`, accessToken);
+}
+
 export function createCampaign(accessToken: string, input: CampaignInput): Promise<Campaign> {
   return authedJson("/api/v1/admin/campaigns", accessToken, {
     method: "POST",
@@ -627,26 +461,6 @@ export function deleteImage(accessToken: string, id: string): Promise<void> {
 
 // --- Identity module: usuarios (UserAdminController) ---
 
-export function listAdminUsers(accessToken: string): Promise<AdminUser[]> {
-  return authedJson("/api/v1/admin/users", accessToken);
-}
-
-export function createUser(accessToken: string, input: CreateUserInput): Promise<AdminUser> {
-  return authedJson("/api/v1/admin/users", accessToken, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-}
-
-export function activateUser(accessToken: string, id: string): Promise<AdminUser> {
-  return authedJson(`/api/v1/admin/users/${encodeURIComponent(id)}/activate`, accessToken, { method: "POST" });
-}
-
-export function deactivateUser(accessToken: string, id: string): Promise<AdminUser> {
-  return authedJson(`/api/v1/admin/users/${encodeURIComponent(id)}`, accessToken, { method: "DELETE" });
-}
-
 // --- Configuration module: identidad de plataforma (PlatformSettingsAdminController) ---
 
 export function getAdminPlatformSettings(accessToken: string): Promise<PlatformSettings> {
@@ -670,6 +484,106 @@ export function getAdminStats(accessToken: string): Promise<PlatformStats> {
   return authedJson("/api/v1/admin/stats", accessToken);
 }
 
+export function getAdminDashboard(accessToken: string, range: DashboardRange): Promise<DashboardSummary> {
+  return authedJson(`/api/v1/admin/dashboard?range=${range}`, accessToken);
+}
+
+// --- En vivo (LiveAdminController) ---
+
+export function listAdminLive(accessToken: string, page = 0): Promise<PageResponse<LiveStream>> {
+  return authedJson(`/api/v1/admin/live?page=${page}&size=30`, accessToken);
+}
+
+export function getAdminLive(accessToken: string, id: string): Promise<LiveStream> {
+  return authedJson(`/api/v1/admin/live/${encodeURIComponent(id)}`, accessToken);
+}
+
+export function createLive(accessToken: string, input: LiveInput): Promise<LiveStream> {
+  return authedJson("/api/v1/admin/live", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateLive(accessToken: string, id: string, input: LiveInput): Promise<LiveStream> {
+  return authedJson(`/api/v1/admin/live/${encodeURIComponent(id)}`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export type LiveStep = "start" | "end" | "cancel";
+
+export function runLiveStep(accessToken: string, id: string, step: LiveStep): Promise<LiveStream> {
+  return authedJson(`/api/v1/admin/live/${encodeURIComponent(id)}/${step}`, accessToken, { method: "POST" });
+}
+
+// --- Series (SeriesAdminController) ---
+
+export function listAdminSeries(accessToken: string, params: AdminListParams): Promise<PageResponse<AdminSeries>> {
+  return authedJson(`/api/v1/admin/series?${adminListQuery(params)}`, accessToken);
+}
+
+export function getAdminSeries(accessToken: string, id: string): Promise<AdminSeries> {
+  return authedJson(`/api/v1/admin/series/${encodeURIComponent(id)}`, accessToken);
+}
+
+export function createSeries(accessToken: string, input: CreateSeriesInput): Promise<AdminSeries> {
+  return authedJson("/api/v1/admin/series", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateSeries(accessToken: string, id: string, input: UpdateSeriesInput): Promise<AdminSeries> {
+  return authedJson(`/api/v1/admin/series/${encodeURIComponent(id)}`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function syncSeries(accessToken: string, id: string): Promise<SeriesSyncResult> {
+  return authedJson(`/api/v1/admin/series/${encodeURIComponent(id)}/sync`, accessToken, { method: "POST" });
+}
+
+export function listAdminEpisodes(accessToken: string, id: string, page = 0): Promise<PageResponse<Episode>> {
+  return authedJson(`/api/v1/admin/series/${encodeURIComponent(id)}/episodes?page=${page}&size=30`, accessToken);
+}
+
+export function addEpisode(accessToken: string, id: string, input: { videoUrl: string; title?: string }): Promise<Episode> {
+  return authedJson(`/api/v1/admin/series/${encodeURIComponent(id)}/episodes`, accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateEpisode(
+  accessToken: string,
+  id: string,
+  episodeId: string,
+  input: { title?: string; notes?: string },
+): Promise<Episode> {
+  return authedJson(`/api/v1/admin/series/${encodeURIComponent(id)}/episodes/${encodeURIComponent(episodeId)}`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function setEpisodeArchived(accessToken: string, id: string, episodeId: string, archived: boolean): Promise<Episode> {
+  const step = archived ? "archive" : "restore";
+  return authedJson(
+    `/api/v1/admin/series/${encodeURIComponent(id)}/episodes/${encodeURIComponent(episodeId)}/${step}`,
+    accessToken,
+    { method: "POST" },
+  );
+}
+
 // --- Audit module: audit log (AuditController) ---
 
 export function listAdminAuditLog(
@@ -686,4 +600,67 @@ export function listAdminAuditLog(
   params.set("page", String(filters.page ?? 0));
   params.set("size", String(filters.size ?? 20));
   return authedJson(`/api/v1/admin/audit?${params.toString()}`, accessToken);
+}
+
+// --- Trabajadores (solo el dueño; spec 2a §5) ---
+
+export function listWorkers(accessToken: string): Promise<Worker[]> {
+  return authedJson("/api/v1/admin/workers", accessToken);
+}
+
+export function createWorker(accessToken: string, input: CreateWorkerInput): Promise<{ worker: Worker; temporaryPassword: string }> {
+  return authedJson("/api/v1/admin/workers", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateWorkerPermissions(accessToken: string, id: string, permissions: ModulePermissions): Promise<Worker> {
+  return authedJson(`/api/v1/admin/workers/${encodeURIComponent(id)}/permissions`, accessToken, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ permissions }),
+  });
+}
+
+export function resetWorkerPassword(accessToken: string, id: string): Promise<{ temporaryPassword: string }> {
+  return authedJson(`/api/v1/admin/workers/${encodeURIComponent(id)}/reset-password`, accessToken, { method: "POST" });
+}
+
+export function setWorkerActive(accessToken: string, id: string, active: boolean): Promise<Worker> {
+  return authedJson(`/api/v1/admin/workers/${encodeURIComponent(id)}/${active ? "activate" : "deactivate"}`, accessToken, {
+    method: "POST",
+  });
+}
+
+/** Mi cuenta: cambio de la contraseña propia. Devuelve una sesión nueva (las anteriores quedan invalidadas). */
+export function changeOwnPassword(accessToken: string, currentPassword: string, newPassword: string): Promise<TokenResponse> {
+  return authedJson<TokenResponse>("/api/v1/users/me/password", accessToken, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+}
+
+/** Lugares para elegir en Celebraciones (no exige el módulo Lugares). */
+export function listPlaceOptions(accessToken: string): Promise<PlaceOption[]> {
+  return authedJson("/api/v1/admin/place-options", accessToken);
+}
+
+/**
+ * Un paso del flujo de publicación, igual para los 5 tipos de contenido
+ * (POST /api/v1/admin/{tipo}/{id}/{paso}). `scheduledAt` para programar.
+ */
+export function runPublicationStep(
+  accessToken: string,
+  kind: PublicationKind,
+  id: string,
+  step: PublicationStep,
+  body?: { scheduledAt?: string },
+): Promise<unknown> {
+  return authedJson(`/api/v1/admin/${kind}/${encodeURIComponent(id)}/${step}`, accessToken, {
+    method: "POST",
+    ...(body ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {}),
+  });
 }

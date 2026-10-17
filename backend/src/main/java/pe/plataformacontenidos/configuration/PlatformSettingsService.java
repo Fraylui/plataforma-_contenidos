@@ -1,6 +1,7 @@
 package pe.plataformacontenidos.configuration;
 
 import java.time.Instant;
+import java.util.Locale;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import pe.plataformacontenidos.audit.AuditResult;
@@ -50,7 +51,6 @@ public class PlatformSettingsService {
         settings.setSecondaryColor(request.secondaryColor());
         settings.setBackgroundColor(request.backgroundColor());
         settings.setFontFamily(request.fontFamily());
-        settings.setTheme(request.theme());
 
         settings.setSeoDefaultTitle(request.seoDefaultTitle());
         settings.setSeoDefaultDescription(request.seoDefaultDescription());
@@ -62,6 +62,11 @@ public class PlatformSettingsService {
         settings.setAdsenseEnabled(request.adsenseEnabled());
         settings.setAdsenseClientId(request.adsenseClientId());
         settings.setAnalyticsId(request.analyticsId());
+        String channel = request.whatsappChannelUrl();
+        settings.setWhatsappChannelUrl(channel == null || channel.isBlank() ? null : channel.strip());
+        if (request.homeCountry() != null) {
+            settings.setHomeCountry(request.homeCountry().toUpperCase(Locale.ROOT));
+        }
 
         settings.setUpdatedAt(Instant.now());
         settings.setUpdatedBy(actingAdminId);

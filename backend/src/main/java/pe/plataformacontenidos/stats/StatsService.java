@@ -8,11 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
-import pe.plataformacontenidos.content.ArticleService;
-import pe.plataformacontenidos.directory.BusinessService;
-import pe.plataformacontenidos.events.EventService;
+import pe.plataformacontenidos.content.PublicationService;
+import pe.plataformacontenidos.celebrations.CelebrationService;
 import pe.plataformacontenidos.galleries.GalleryService;
-import pe.plataformacontenidos.identity.UserAdminService;
+import pe.plataformacontenidos.identity.WorkerService;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.stats.api.dto.DailyCountResponse;
 import pe.plataformacontenidos.stats.api.dto.PlatformStatsResponse;
@@ -30,40 +29,37 @@ public class StatsService {
 
     private static final int RECENT_WINDOW_DAYS = 30;
 
-    private final ArticleService articleService;
+    private final PublicationService publicationService;
     private final PlaceService placeService;
-    private final EventService eventService;
+    private final CelebrationService celebrationService;
     private final GalleryService galleryService;
-    private final BusinessService businessService;
     private final CategoryService categoryService;
-    private final UserAdminService userAdminService;
+    private final WorkerService workerService;
 
-    public StatsService(ArticleService articleService, PlaceService placeService, EventService eventService,
-            GalleryService galleryService, BusinessService businessService,
-            CategoryService categoryService, UserAdminService userAdminService) {
-        this.articleService = articleService;
+    public StatsService(PublicationService publicationService, PlaceService placeService, CelebrationService celebrationService,
+            GalleryService galleryService,
+            CategoryService categoryService, WorkerService workerService) {
+        this.publicationService = publicationService;
         this.placeService = placeService;
-        this.eventService = eventService;
+        this.celebrationService = celebrationService;
         this.galleryService = galleryService;
-        this.businessService = businessService;
         this.categoryService = categoryService;
-        this.userAdminService = userAdminService;
+        this.workerService = workerService;
     }
 
     public PlatformStatsResponse snapshot() {
         Instant recentThreshold = Instant.now().minus(RECENT_WINDOW_DAYS, ChronoUnit.DAYS);
         return new PlatformStatsResponse(
-                articleService.countByStatus(),
-                articleService.countPublishedSince(recentThreshold),
-                trend(articleService.publishedCountsByDaySince(recentThreshold)),
+                publicationService.countByStatus(),
+                publicationService.countPublishedSince(recentThreshold),
+                trend(publicationService.publishedCountsByDaySince(recentThreshold)),
                 placeService.countByStatus(),
-                eventService.countByStatus(),
+                celebrationService.countByStatus(),
                 galleryService.countByStatus(),
-                businessService.countByStatus(),
                 categoryService.countAll(),
                 categoryService.countActive(),
-                userAdminService.countByRole(),
-                userAdminService.countActive());
+                workerService.countByRole(),
+                workerService.countActive());
     }
 
     /** Completa con 0 los días sin publicaciones — el gráfico de tendencia necesita los RECENT_WINDOW_DAYS puntos, no solo los que tuvieron actividad. */

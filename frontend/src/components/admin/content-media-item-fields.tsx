@@ -1,7 +1,7 @@
 "use client";
 
-import { X } from "lucide-react";
-import { formInputClass } from "@/components/admin/ui";
+import { X } from "@phosphor-icons/react";
+import { TextInput } from "@/components/ui";
 
 /**
  * Campos de título + pie de foto compartidos por cada imagen/video
@@ -50,21 +50,21 @@ export function ContentMediaItemFields({
             </button>
           )}
         </div>
-        <input
+        <TextInput
           type="text"
           value={title}
           disabled={disabled}
           onChange={(e) => onTitleChange(e.target.value)}
           placeholder="Título (opcional)"
-          className={`${formInputClass} h-8 text-sm`}
+          className="h-8 text-sm"
         />
-        <input
+        <TextInput
           type="text"
           value={caption}
           disabled={disabled}
           onChange={(e) => onCaptionChange(e.target.value)}
           placeholder="Pie de foto (opcional)"
-          className={`${formInputClass} h-8 text-sm`}
+          className="h-8 text-sm"
         />
       </div>
     </li>

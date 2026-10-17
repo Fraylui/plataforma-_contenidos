@@ -7,7 +7,7 @@ import { PlatformSettingsForm } from "@/components/admin/platform-settings-form"
 import { AdminPageHeader } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
-  title: "Configuración de plataforma",
+  title: "Configuración del sitio",
   robots: "noindex,nofollow",
 };
 
@@ -19,8 +19,8 @@ export default async function AdminConfigurationPage() {
   return (
     <div>
       <AdminPageHeader
-        title="Configuración de plataforma"
-        description="Identidad, apariencia, SEO por defecto, redes y contacto. Se aplica en todo el sitio sin redeploy (CONTEXTO.md sección 14)."
+        title="Configuración del sitio"
+        description="Nombre, logo, apariencia, cómo se ve en Google y al compartir, contacto y publicidad. Los cambios se ven en el sitio al guardar."
       />
       <div className="mt-6">
         <PlatformSettingsForm settings={result.data} />

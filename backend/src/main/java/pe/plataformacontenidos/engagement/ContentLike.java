@@ -11,7 +11,11 @@ import java.time.Instant;
 import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
 
-/** Un "me gusta" anónimo de un lector sobre cualquier tipo de contenido — ver V29__content_likes.sql. */
+/**
+ * Un "me gusta" anónimo de un lector sobre cualquier tipo de contenido — ver
+ * V29__content_likes.sql. Se crea y borra con consultas atómicas de
+ * ContentLikeRepository (doble toque simultáneo), no con save/delete.
+ */
 @Entity
 @Table(name = "content_likes", schema = "engagement")
 public class ContentLike {
@@ -38,11 +42,6 @@ public class ContentLike {
         // JPA
     }
 
-    public ContentLike(ContentType contentType, UUID contentId, UUID visitorId) {
-        this.contentType = contentType;
-        this.contentId = contentId;
-        this.visitorId = visitorId;
-    }
 
     public UUID getId() {
         return id;

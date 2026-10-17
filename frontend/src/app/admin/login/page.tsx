@@ -27,7 +27,7 @@ export default async function AdminLoginPage(props: PageProps<"/admin/login">) {
           <span className="text-sm font-medium tracking-tight text-foreground">{settings.name}</span>
         </div>
 
-        <div className="rounded-xl border border-border bg-surface p-8 shadow-sm">
+        <div className="rounded-card bg-surface shadow-card p-8 shadow-sm">
           <h1 className="text-lg font-semibold tracking-tight text-foreground">Iniciar sesión</h1>
           <p className="mt-1 text-sm text-muted">Acceso restringido al equipo de la plataforma.</p>
 

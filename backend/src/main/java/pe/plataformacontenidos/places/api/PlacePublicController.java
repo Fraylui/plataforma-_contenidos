@@ -14,7 +14,7 @@ import pe.plataformacontenidos.engagement.ContentType;
 import pe.plataformacontenidos.engagement.LikeResponse;
 import pe.plataformacontenidos.places.Place;
 import pe.plataformacontenidos.places.PlaceService;
-import pe.plataformacontenidos.places.api.dto.PageResponse;
+import pe.plataformacontenidos.shared.PageResponse;
 import pe.plataformacontenidos.places.api.dto.PlaceResponse;
 import pe.plataformacontenidos.places.api.dto.PlaceSummaryResponse;
 
@@ -58,7 +58,7 @@ public class PlacePublicController {
         return PlaceResponse.from(place, likeCount);
     }
 
-    /** Usado por Events para resolver el nombre/slug de un lugar vinculado (placeId) — ver EventResponse.placeId. */
+    /** Usado por Celebrations para resolver el nombre/slug de un lugar vinculado (placeId) — ver CelebrationResponse.placeId. */
     @GetMapping("/by-id/{id}")
     public PlaceSummaryResponse getById(@PathVariable UUID id) {
         Place place = placeService.getPublishedById(id);

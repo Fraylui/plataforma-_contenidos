@@ -25,14 +25,14 @@ export default async function AdminAdvertisersPage() {
     <div>
       <AdminPageHeader
         title="Anunciantes"
-        description="Empresas/negocios locales que compran publicidad directa (banner), a diferencia de AdSense."
+        description="Negocios que compran publicidad directa (banner o anuncio nativo en el feed), aparte de AdSense."
         action={{ href: "/admin/anunciantes/nuevo", label: "Nuevo anunciante" }}
       />
 
       {advertisers.length === 0 ? (
         <EmptyState title="Todavía no hay anunciantes" />
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface">
+        <div className="mt-6 overflow-x-auto rounded-card bg-surface shadow-card">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead className="border-b border-border">
               <tr>

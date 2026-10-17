@@ -1,33 +1,32 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays } from "lucide-react";
-import {
-  getArticleNeighbors,
-  getCategoryById,
-  getPlatformSettings,
-  getPublishedArticleBySlug,
-  getRelatedWithFallback,
-  listActiveCategories,
-} from "@/lib/api/client";
+import { getCategoryById, getPlatformSettings, getPublishedPublicationBySlug, getRelatedWithFallback } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { estimateReadingTime, formatArticleDate, formatPublishedDate } from "@/lib/content-labels";
 import { LikeShareBar } from "@/components/content/like-share-bar";
-import { NeighborNav } from "@/components/article/neighbor-nav";
-import { ReadingProgressBar } from "@/components/article/reading-progress-bar";
-import { DetailSidebar } from "@/components/content/detail-sidebar";
-import { ContentImageGallery } from "@/components/content/content-image-gallery";
-import { ContentVideoGallery } from "@/components/content/content-video-gallery";
+import { ViewBeacon } from "@/components/content/view-beacon";
 import { AdBlock } from "@/components/legal/ad-block";
+import { PostView } from "@/components/post/post-view";
+import { PostDetailMedia } from "@/components/post/post-detail-media";
+import { headerTimeFor, updatedTimeFor } from "@/components/post/post-header";
+import { KIND_LABEL } from "@/lib/content-kind";
+import { fromFeedItem } from "@/lib/home-items";
 import { SITE_URL } from "@/lib/site-url";
-import type { Article, Category } from "@/lib/api/types";
+import type { Publication, Category } from "@/lib/api/types";
+import { contentImageUrl, robotsWithLargePreview, shareImageUrl } from "@/lib/share-image";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
+import { InlineRelated } from "@/components/post/inline-related";
+import { WhatsAppFollow } from "@/components/post/whatsapp-follow";
+import { splitBodyInHalf } from "@/lib/split-body";
+import { PROSE } from "@/lib/prose";
 
-const RELATED_SIZE = 6;
+/** "Más como esto": 3 filas de la cuadrícula de 3. */
+const MORE_SIZE = 9;
 
-async function loadArticle(slug: string) {
+// publication.body es HTML ya saneado en el backend (HtmlSanitizer) antes de persistirse.
+
+async function loadPublication(slug: string) {
   try {
-    return await getPublishedArticleBySlug(slug);
+    return await getPublishedPublicationBySlug(slug);
   } catch (error) {
     if (error instanceof NotFoundError) {
       notFound();
@@ -47,16 +46,17 @@ export function generateStaticParams() {
 
 export async function generateMetadata(props: PageProps<"/publicaciones/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
-  let article;
+  let publication;
   try {
-    article = await getPublishedArticleBySlug(slug);
+    publication = await getPublishedPublicationBySlug(slug);
   } catch {
     return {};
   }
   const settings = await getPlatformSettings();
 
-  const title = article.seoTitle || article.title;
-  const description = article.metaDescription || article.excerpt || undefined;
+  const title = publication.seoTitle || publication.title;
+  const description = publication.metaDescription || publication.excerpt || undefined;
+  const shareImage = shareImageUrl(publication);
 
   return {
     title,
@@ -64,29 +64,36 @@ export async function generateMetadata(props: PageProps<"/publicaciones/[slug]">
     // Por defecto, cada artículo es canónico de sí mismo (sección 15); solo
     // se sobreescribe si el editor definió explícitamente otra URL canónica
     // (ej. republicación de contenido originado en otro sitio).
-    alternates: { canonical: article.canonicalUrl || `/publicaciones/${slug}` },
-    robots: article.robots,
+    alternates: { canonical: publication.canonicalUrl || `/publicaciones/${slug}` },
+    robots: robotsWithLargePreview(publication.robots),
     openGraph: {
       title,
       description,
       type: "article",
-      images: article.ogImageUrl ? [article.ogImageUrl] : undefined,
-      publishedTime: article.publishedAt ?? undefined,
+      images: shareImage ? [shareImage] : undefined,
+      publishedTime: publication.publishedAt ?? undefined,
       siteName: settings.name,
     },
   };
 }
 
-function articleJsonLd(article: Article, category: Category | null, siteName: string) {
-  const url = article.canonicalUrl || `${SITE_URL}/publicaciones/${article.slug}`;
+/** Todas las fotos de la publicación (Google elige la proporción que necesita); si no hay, la de compartir. */
+function jsonLdImages(publication: Publication): string[] | undefined {
+  const photos = publication.images.map(contentImageUrl).filter((url): url is string => Boolean(url));
+  const fallback = shareImageUrl(publication);
+  return photos.length > 0 ? photos : fallback ? [fallback] : undefined;
+}
+
+function publicationJsonLd(publication: Publication, category: Category | null, siteName: string) {
+  const url = publication.canonicalUrl || `${SITE_URL}/publicaciones/${publication.slug}`;
   return {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: article.seoTitle || article.title,
-    description: article.metaDescription || article.excerpt || undefined,
-    image: article.ogImageUrl ? [article.ogImageUrl] : undefined,
-    datePublished: article.publishedAt ?? undefined,
-    dateModified: article.updatedAt ?? article.publishedAt ?? undefined,
+    headline: publication.seoTitle || publication.title,
+    description: publication.metaDescription || publication.excerpt || undefined,
+    image: jsonLdImages(publication),
+    datePublished: publication.publishedAt ?? undefined,
+    dateModified: publication.updatedAt ?? publication.publishedAt ?? undefined,
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     articleSection: category?.name,
     publisher: {
@@ -96,11 +103,11 @@ function articleJsonLd(article: Article, category: Category | null, siteName: st
   };
 }
 
-function breadcrumbJsonLd(article: Article, category: Category | null) {
+function breadcrumbJsonLd(publication: Publication, category: Category | null) {
   const items = [
     { name: "Inicio", url: SITE_URL },
     ...(category ? [{ name: category.name, url: `${SITE_URL}/categorias/${category.slug}` }] : []),
-    { name: article.title, url: `${SITE_URL}/publicaciones/${article.slug}` },
+    { name: publication.title, url: `${SITE_URL}/publicaciones/${publication.slug}` },
   ];
   return {
     "@context": "https://schema.org",
@@ -114,157 +121,70 @@ function breadcrumbJsonLd(article: Article, category: Category | null) {
   };
 }
 
-export default async function ArticlePage(props: PageProps<"/publicaciones/[slug]">) {
+export default async function PublicationPage(props: PageProps<"/publicaciones/[slug]">) {
   const { slug } = await props.params;
-  const article = await loadArticle(slug);
+  const publication = await loadPublication(slug);
 
-  const [category, settings, neighbors, categories] = await Promise.all([
-    getCategoryById(article.categoryId).catch(() => null),
+  const [category, settings, relatedPage] = await Promise.all([
+    getCategoryById(publication.categoryId).catch(() => null),
     getPlatformSettings(),
-    getArticleNeighbors(slug).catch(() => ({ previous: null, next: null })),
-    listActiveCategories(),
+    getRelatedWithFallback({ excludeType: "PUBLICATION", excludeId: publication.id, categoryId: publication.categoryId, size: MORE_SIZE }),
   ]);
-  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
-
-  const { related, more } = await getRelatedWithFallback({
-    excludeType: "ARTICLE",
-    excludeId: article.id,
-    categoryId: article.categoryId,
-    size: RELATED_SIZE,
-  });
-  const relatedTitle = `Relacionado con ${category?.name ?? "esto"}`;
-
-  const hasSidebar = related.length > 0 || more.length > 0;
+  const hasMedia = publication.images.length > 0 || publication.videos.length > 0;
+  const moreItems = [...relatedPage.related, ...relatedPage.more].map(fromFeedItem);
+  // Texto largo: el primer relacionado va a mitad del texto (y sale de «Más como esto» para no repetirse).
+  const halves = moreItems.length > 0 ? splitBodyInHalf(publication.body) : null;
+  const inline = halves ? moreItems[0] : null;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
-      <ReadingProgressBar />
+    <>
       <VideoJsonLd
-        videos={article.videos}
-        fallbackTitle={article.title}
-        description={article.metaDescription || article.excerpt}
-        uploadDate={article.publishedAt}
+        videos={publication.videos}
+        fallbackTitle={publication.title}
+        description={publication.metaDescription || publication.excerpt}
+        uploadDate={publication.publishedAt}
       />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(articleJsonLd(article, category, settings.name)).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(publicationJsonLd(publication, category, settings.name)).replace(/</g, "\\u003c"),
         }}
       />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(breadcrumbJsonLd(article, category)).replace(/</g, "\\u003c"),
+          __html: JSON.stringify(breadcrumbJsonLd(publication, category)).replace(/</g, "\\u003c"),
         }}
       />
 
-      <div className={hasSidebar ? "lg:grid lg:grid-cols-12 lg:gap-12" : undefined}>
-        <article className={`mx-auto max-w-3xl ${hasSidebar ? "lg:col-span-8 lg:mx-0 lg:max-w-none" : ""}`}>
-          <nav aria-label="Breadcrumb" className="mb-4 flex max-w-[280px] items-center gap-2 truncate text-xs text-muted sm:max-w-none">
-            <ol className="flex flex-wrap items-center gap-1.5 truncate">
-              <li>
-                <Link href="/" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-                  Inicio
-                </Link>
-              </li>
-              <li aria-hidden="true">/</li>
-              {category && (
-                <>
-                  <li>
-                    <Link href={`/categorias/${category.slug}`} className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-                      {category.name}
-                    </Link>
-                  </li>
-                  <li aria-hidden="true">/</li>
-                </>
-              )}
-              <li className="max-w-[12rem] truncate text-foreground/80 sm:max-w-[24rem]" aria-current="page">
-                {article.title}
-              </li>
-            </ol>
-          </nav>
-
-          {category && (
-            <div className="text-xs font-medium tracking-wide text-accent uppercase">
-              <span>{category.name}</span>
-            </div>
-          )}
-
-          <h1 className="mt-4 text-2xl leading-tight font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            {article.title}
-          </h1>
-
-          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border pb-6 text-xs text-muted sm:text-sm">
-            {article.publishedAt && (
-              <span className="inline-flex items-center gap-1.5">
-                <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
-                <time dateTime={article.publishedAt} title={formatPublishedDate(article.publishedAt)}>
-                  {formatArticleDate(article.publishedAt)}
-                </time>
-              </span>
+      <PostView
+        variant="text"
+        brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}
+        typeLabel={KIND_LABEL.publicacion}
+        categoryName={category?.name}
+        time={updatedTimeFor(headerTimeFor({ kind: "publicacion", sortDate: publication.publishedAt ?? "" }), publication.updatedAt)}
+        title={publication.title}
+        // Texto largo: sin fotos ni videos no hace falta el bloque de marca, el título ya encabeza.
+        media={hasMedia ? <PostDetailMedia images={publication.images} videos={publication.videos} title={publication.title} aspect="aspect-video" /> : null}
+        excerpt={publication.excerpt}
+        body={
+          <>
+            {halves && inline ? (
+              <>
+                <div className={PROSE} dangerouslySetInnerHTML={{ __html: halves[0] }} />
+                <InlineRelated item={inline} />
+                <div className={PROSE} dangerouslySetInnerHTML={{ __html: halves[1] }} />
+              </>
+            ) : (
+              <div className={PROSE} dangerouslySetInnerHTML={{ __html: publication.body }} />
             )}
-            {article.publishedAt && article.updatedAt
-              && new Date(article.updatedAt).getTime() - new Date(article.publishedAt).getTime() > 5 * 60 * 1000 && (
-              <span>
-                Actualizado el{" "}
-                <time dateTime={article.updatedAt} title={formatPublishedDate(article.updatedAt)}>
-                  {formatPublishedDate(article.updatedAt)}
-                </time>
-              </span>
-            )}
-            <span>{estimateReadingTime(article.body)}</span>
-          </div>
-
-          <ContentImageGallery images={article.images} alt={article.title} />
-
-          <ContentVideoGallery videos={article.videos} title={article.title} />
-
-          {article.excerpt && (
-            <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">
-              {article.excerpt}
-            </p>
-          )}
-
-          {/* article.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
-              de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
-              Overrides sobre el prose por defecto de Tailwind Typography: cita destacada
-              (sin comillas decorativas, borde en --accent, tamaño mayor en vez del
-              italic/borde gris genérico), separador sutil antes de cada H2 para marcar
-              secciones largas, e imágenes con el mismo borde/sombra que el resto del
-              sitio (ContentCard, galería de portada) en vez de solo `rounded-md`. */}
-          <div
-            className="prose prose-theme sm:prose-lg mt-6 max-w-none
-              prose-headings:font-bold prose-headings:tracking-tight
-              prose-h2:mt-12 prose-h2:border-t prose-h2:border-border prose-h2:pt-8 prose-h2:text-2xl
-              prose-h3:mt-8 prose-h3:text-xl
-              prose-a:text-accent
-              prose-blockquote:border-l-accent prose-blockquote:not-italic prose-blockquote:font-semibold
-              prose-blockquote:text-xl prose-blockquote:leading-snug prose-blockquote:text-foreground
-              prose-blockquote:before:content-none prose-blockquote:after:content-none
-              prose-img:rounded-2xl prose-img:border prose-img:border-foreground/[0.06]
-              prose-img:shadow-[0_1px_2px_rgb(0_0_0_/_0.04),0_8px_20px_-12px_rgb(0_0_0_/_0.08)]"
-            dangerouslySetInnerHTML={{ __html: article.body }}
-          />
-
-          <div className="mt-10">
-            <AdBlock position="article" />
-          </div>
-
-          <LikeShareBar contentType="articles" slug={article.slug} initialLikeCount={article.likeCount} title={article.title} />
-
-          <NeighborNav neighbors={neighbors} />
-        </article>
-
-        {hasSidebar && (
-          <DetailSidebar
-            related={related}
-            more={more}
-            relatedTitle={relatedTitle}
-            categoryNames={categoryNames}
-            currentId={article.id}
-          />
-        )}
-      </div>
-    </div>
+            <WhatsAppFollow channelUrl={settings.whatsappChannelUrl} siteName={settings.name} />
+          </>
+        }
+        actions={<><ViewBeacon type="PUBLICATION" id={publication.id} /><LikeShareBar contentType="publications" slug={publication.slug} initialLikeCount={publication.likeCount} title={publication.title} /></>}
+        ad={<AdBlock position="article" section="PUBLICATION" categoryId={publication.categoryId} layout="band" count={2} />}
+        more={inline ? moreItems.slice(1) : moreItems}
+      />
+    </>
   );
 }

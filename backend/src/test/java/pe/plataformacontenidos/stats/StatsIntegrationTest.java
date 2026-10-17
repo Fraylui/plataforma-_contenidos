@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.stats;
 
+import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -16,7 +17,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.TestProfile;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.JsonNode;
@@ -39,42 +40,45 @@ class StatsIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private WorkerPermissionRepository workerPermissions;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void reflectsCreatedCategoryAndArticleCounts() throws Exception {
-        String editorToken = createUserAndLogin("stats-editor@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("stats-author@plataforma-contenidos.test", Role.AUTHOR);
+    void reflectsCreatedCategoryAndPublicationCounts() throws Exception {
+        String publisherToken = createUserAndLogin("stats-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String creatorToken = createUserAndLogin("stats-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
 
         MvcResult categoryResult = mockMvc.perform(post("/api/v1/admin/categories")
-                        .header("Authorization", "Bearer " + editorToken)
+                        .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Categoría Stats Test\"}"))
                 .andExpect(status().isCreated())
                 .andReturn();
         String categoryId = textField(categoryResult, "id");
 
-        mockMvc.perform(post("/api/v1/admin/articles")
-                        .header("Authorization", "Bearer " + authorToken)
+        mockMvc.perform(post("/api/v1/admin/publications")
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Artículo para estadísticas\",\"excerpt\":\"Resumen\","
-                                + "\"body\":\"Cuerpo suficientemente largo.\",\"articleType\":\"ARTICULO\","
+                                + "\"body\":\"Cuerpo suficientemente largo.\",\"publicationType\":\"GENERAL\","
                                 + "\"categoryId\":\"" + categoryId + "\"}"))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(get("/api/v1/admin/stats").header("Authorization", "Bearer " + editorToken))
+        mockMvc.perform(get("/api/v1/admin/stats").header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.articlesByStatus.DRAFT").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
+                .andExpect(jsonPath("$.publicationsByStatus.DRAFT").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
                 .andExpect(jsonPath("$.totalCategories").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
-                .andExpect(jsonPath("$.usersByRole.EDITOR").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)))
-                .andExpect(jsonPath("$.usersByRole.AUTHOR").value(org.hamcrest.Matchers.greaterThanOrEqualTo(1)));
+                // Roles de 2a: dueño y trabajador (el alcance de cada trabajador está en sus permisos).
+                .andExpect(jsonPath("$.usersByRole.WORKER").value(org.hamcrest.Matchers.greaterThanOrEqualTo(2)));
     }
 
     @Test
-    void authorCannotAccessStats() throws Exception {
-        String authorToken = createUserAndLogin("stats-author-2@plataforma-contenidos.test", Role.AUTHOR);
+    void creatorCannotAccessStats() throws Exception {
+        String creatorToken = createUserAndLogin("stats-creador-2@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
 
-        mockMvc.perform(get("/api/v1/admin/stats").header("Authorization", "Bearer " + authorToken))
+        mockMvc.perform(get("/api/v1/admin/stats").header("Authorization", "Bearer " + creatorToken))
                 .andExpect(status().isForbidden());
     }
 
@@ -88,10 +92,10 @@ class StatsIntegrationTest {
         return json.get(field).asText();
     }
 
-    private String createUserAndLogin(String email, Role role) throws Exception {
+    private String createUserAndLogin(String email, TestProfile role) throws Exception {
         String password = "SomeStrongPassword123!";
-        userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
-
+        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
+        role.grant(workerPermissions, created.getId());
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))

@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { getAdvertiser, listCampaigns } from "@/lib/api/admin-client";
+import { getAdvertiser, listAdminImages, listCampaigns } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdvertiserForm } from "@/components/admin/advertiser-form";
-import { AdminPageHeader, EmptyState, StatusPill } from "@/components/admin/ui";
+import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
 import { formatEventDateTime } from "@/lib/content-labels";
 import { deleteAdvertiserAction, deleteCampaignAction, setCampaignActiveAction } from "../actions";
+import { Badge } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Anunciante",
@@ -19,28 +20,28 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
   const { accessToken } = await requireAdminUser();
   const result = await fetchOrAccessDenied(async () => {
     const advertiser = await getAdvertiser(accessToken, id);
-    const campaigns = await listCampaigns(accessToken, id);
-    return { advertiser, campaigns };
+    const [campaigns, images] = await Promise.all([listCampaigns(accessToken, id), listAdminImages(accessToken)]);
+    return { advertiser, campaigns, images };
   });
   if ("denied" in result) return <AccessDenied />;
-  const { advertiser, campaigns } = result.data;
+  const { advertiser, campaigns, images } = result.data;
 
   return (
     <div className="space-y-6">
       <AdminPageHeader title={advertiser.name} action={{ href: `/admin/anunciantes/${id}/campanas/nueva`, label: "Nueva campaña" }} />
 
-      <AdvertiserForm mode="edit" advertiser={advertiser} />
+      <AdvertiserForm mode="edit" advertiser={advertiser} allImages={images} />
 
       <section>
         <h2 className="text-lg font-semibold text-foreground">Campañas</h2>
         {campaigns.length === 0 ? (
           <EmptyState title="Todavía no tiene campañas" />
         ) : (
-          <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-surface">
+          <div className="mt-4 overflow-x-auto rounded-card bg-surface shadow-card">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="border-b border-border">
                 <tr>
-                  <th className="px-4 py-3 font-medium text-muted">Posición</th>
+                  <th className="px-4 py-3 font-medium text-muted">Formato</th>
                   <th className="px-4 py-3 font-medium text-muted">Vigencia</th>
                   <th className="px-4 py-3 font-medium text-muted">Estado</th>
                   <th className="px-4 py-3 font-medium text-muted">Cobrado</th>
@@ -57,7 +58,7 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
                         href={`/admin/anunciantes/${id}/campanas/${campaign.id}`}
                         className="font-medium text-foreground hover:text-accent hover:underline"
                       >
-                        <code className="text-xs">{campaign.placementKey}</code>
+                        {campaign.format === "NATIVE" ? "Post en el feed" : <code className="text-xs">{campaign.placementKey}</code>}
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-xs text-muted">
@@ -66,7 +67,7 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
                       {campaign.endsAt ? formatEventDateTime(campaign.endsAt) : "sin fin"}
                     </td>
                     <td className="px-4 py-3">
-                      <StatusPill tone={campaign.active ? "success" : "neutral"} label={campaign.active ? "Activa" : "Inactiva"} />
+                      <Badge tone={campaign.active ? "success" : "neutral"} dot>{campaign.active ? "Activa" : "Inactiva"}</Badge>
                     </td>
                     <td className="px-4 py-3 text-muted">
                       {campaign.amount != null ? `${campaign.currency ?? ""} ${campaign.amount.toFixed(2)}` : "—"}
@@ -86,7 +87,7 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
                         <form action={deleteCampaignAction.bind(null, id, campaign.id)}>
                           <button
                             type="submit"
-                            className="text-xs font-medium text-muted underline underline-offset-2 hover:text-red-500"
+                            className="text-xs font-medium text-muted underline underline-offset-2 hover:text-danger-ink"
                           >
                             Eliminar
                           </button>
@@ -103,7 +104,7 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
 
       <section className="border-t border-border pt-6">
         <form action={deleteAdvertiserAction.bind(null, id)}>
-          <button type="submit" className="text-sm font-medium text-red-600 underline underline-offset-2 hover:text-red-500">
+          <button type="submit" className="text-sm font-medium text-danger-ink underline underline-offset-2 hover:text-danger-ink">
             Eliminar anunciante
           </button>
         </form>

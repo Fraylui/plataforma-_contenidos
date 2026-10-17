@@ -53,9 +53,10 @@ jobs:
           retention-days: 7
 
   frontend:
-    name: Frontend (lint + typecheck + build)
+    name: Frontend (lint + typecheck + build + e2e + Lighthouse)
     runs-on: ubuntu-latest
     needs: backend
+    timeout-minutes: 45
     services:
       postgres:
         image: postgres:16-alpine
@@ -91,6 +92,11 @@ jobs:
       BACKEND_API_URL: http://localhost:8080
       SITE_URL: http://localhost:3000
       NEXT_PUBLIC_BACKEND_ASSET_URL: http://localhost:8080
+      # Dueño de prueba que crea IdentityBootstrap en esta base efímera; lo usan la semilla y las e2e.
+      BOOTSTRAP_ADMIN_EMAIL: dueno-ci@plataforma-contenidos.test
+      BOOTSTRAP_ADMIN_PASSWORD: ci-only-owner-password-2026
+      E2E_ADMIN_EMAIL: dueno-ci@plataforma-contenidos.test
+      E2E_ADMIN_PASSWORD: ci-only-owner-password-2026
     steps:
       - uses: actions/checkout@v4
 
@@ -131,6 +137,11 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      # Antes del build: las páginas estáticas se generan con este contenido.
+      - name: Seed e2e content
+        working-directory: frontend
+        run: node scripts/e2e-seed.mjs
+
       # Dependency scanning (sección 27/35.3): falla el build si una
       # dependencia de PRODUCCIÓN tiene una vulnerabilidad conocida alta o
       # crítica. --omit=dev porque devDependencies (linters, test runner)
@@ -144,9 +155,15 @@ jobs:
         working-directory: frontend
         run: npm run lint
 
+      - name: Unused files and exports (knip)
+        working-directory: frontend
+        run: npm run lint:unused
+
       - name: Typecheck
         working-directory: frontend
-        run: npx tsc --noEmit
+        # PageProps/LayoutProps son tipos globales que genera Next; en un clon
+        # limpio no existen hasta generarlos (fallaba desde 2026-09).
+        run: npx next typegen && npx tsc --noEmit
 
       - name: Unit tests
         working-directory: frontend
@@ -155,3 +172,42 @@ jobs:
       - name: Build
         working-directory: frontend
         run: npm run build
+
+      - name: Start frontend
+        working-directory: frontend
+        run: |
+          nohup npm start > frontend.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3000/ > /dev/null && exit 0
+            sleep 2
+          done
+          echo "El frontend no respondió a tiempo"; cat frontend.log; exit 1
+
+      - name: Install Playwright (Chromium)
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      # De punta a punta + WCAG 2.2 AA por pantalla (G.17–18). La regresión
+      # visual se corre en local: sus referencias son capturas de Windows.
+      - name: E2E y accesibilidad
+        working-directory: frontend
+        run: npx playwright test --project=chromium --grep-invert "Regresión visual"
+
+      # Core Web Vitals en laboratorio (perfil de celular). LHCI_DETAIL_URL lo escribe la semilla.
+      - name: Lighthouse
+        working-directory: frontend
+        run: npx lhci autorun
+
+      - name: Publish e2e and Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-lighthouse-reports
+          # .lighthouseci es una carpeta oculta: sin esto upload-artifact la omite.
+          include-hidden-files: true
+          path: |
+            frontend/playwright-report
+            frontend/.lighthouseci
+            frontend/frontend.log
+            backend/backend.log
+          retention-days: 7

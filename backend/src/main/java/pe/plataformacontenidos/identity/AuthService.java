@@ -42,6 +42,7 @@ public class AuthService {
         Optional<User> maybeUser = userRepository.findByEmailIgnoreCase(email);
         boolean validPassword = maybeUser.isPresent()
                 && maybeUser.get().isActive()
+                && PasswordPolicy.fitsHashLimit(rawPassword)
                 && passwordEncoder.matches(rawPassword, maybeUser.get().getPasswordHash());
 
         if (!validPassword) {
@@ -63,15 +64,20 @@ public class AuthService {
     }
 
     public TokenPair refresh(String refreshToken, String ipAddress) {
-        Optional<UUID> userId = refreshTokenService.consume(refreshToken);
-        if (userId.isEmpty()) {
+        Optional<RefreshTokenService.Issued> issued = refreshTokenService.consume(refreshToken);
+        if (issued.isEmpty()) {
             auditService.record("TOKEN_REFRESH_INVALID", AuditResult.FAILURE, null, null, "refresh_token", null, ipAddress);
             throw new InvalidCredentialsException();
         }
 
-        User user = userRepository.findById(userId.get())
+        User user = userRepository.findById(issued.get().userId())
                 .filter(User::isActive)
                 .orElseThrow(InvalidCredentialsException::new);
+        // Sesión emitida antes de un cambio/restablecimiento de contraseña o de una desactivación: ya no vale.
+        if (user.getSessionsValidAfter() != null && issued.get().issuedAt().isBefore(user.getSessionsValidAfter())) {
+            auditService.record("TOKEN_REFRESH_INVALID", AuditResult.FAILURE, user.getId(), user.getEmail(), "refresh_token", null, ipAddress);
+            throw new InvalidCredentialsException();
+        }
 
         auditService.record("TOKEN_REFRESHED", AuditResult.SUCCESS, user.getId(), user.getEmail(), "user",
                 user.getId().toString(), ipAddress);
@@ -83,7 +89,7 @@ public class AuthService {
         refreshTokenService.revoke(refreshToken);
     }
 
-    private TokenPair issueTokenPair(User user) {
+    TokenPair issueTokenPair(User user) {
         String accessToken = jwtService.issueAccessToken(user.getId(), user.getRole());
         String refreshToken = refreshTokenService.issue(user.getId());
         return new TokenPair(accessToken, refreshToken);

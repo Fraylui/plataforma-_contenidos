@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.taxonomy;
 
+import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -17,7 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.permission.TestProfile;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import tools.jackson.databind.ObjectMapper;
@@ -38,21 +39,24 @@ class CategoryFlowIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private WorkerPermissionRepository workerPermissions;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Test
-    void editorCanCreateCategoryAuthorCannotAndPublicSeesOnlyActive() throws Exception {
-        String editorToken = createUserAndLogin("cat-editor@plataforma-contenidos.test", Role.EDITOR);
-        String authorToken = createUserAndLogin("cat-author@plataforma-contenidos.test", Role.AUTHOR);
+    void publisherCanCreateCategoryCreatorCannotAndPublicSeesOnlyActive() throws Exception {
+        String publisherToken = createUserAndLogin("cat-publicador@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String creatorToken = createUserAndLogin("cat-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
 
         mockMvc.perform(post("/api/v1/admin/categories")
-                        .header("Authorization", "Bearer " + authorToken)
+                        .header("Authorization", "Bearer " + creatorToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Turismo\"}"))
                 .andExpect(status().isForbidden());
 
         MvcResult createResult = mockMvc.perform(post("/api/v1/admin/categories")
-                        .header("Authorization", "Bearer " + editorToken)
+                        .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Turismo\"}"))
                 .andExpect(status().isCreated())
@@ -74,12 +78,12 @@ class CategoryFlowIntegrationTest {
                 .andExpect(status().isNotFound());
 
         mockMvc.perform(post("/api/v1/admin/categories/" + categoryId + "/activate")
-                        .header("Authorization", "Bearer " + editorToken))
+                        .header("Authorization", "Bearer " + publisherToken))
                 .andExpect(status().isOk());
 
         // Desactivar: ya no aparece en el listado público, pero sigue existiendo
         mockMvc.perform(put("/api/v1/admin/categories/" + categoryId)
-                        .header("Authorization", "Bearer " + editorToken)
+                        .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Turismo\",\"sortOrder\":1}"))
                 .andExpect(status().isOk());
@@ -87,16 +91,16 @@ class CategoryFlowIntegrationTest {
 
     @Test
     void categoryNameMustBeUniqueIgnoringCase() throws Exception {
-        String editorToken = createUserAndLogin("cat-dup@plataforma-contenidos.test", Role.EDITOR);
+        String publisherToken = createUserAndLogin("cat-dup@plataforma-contenidos.test", TestProfile.PUBLICADOR);
 
         mockMvc.perform(post("/api/v1/admin/categories")
-                        .header("Authorization", "Bearer " + editorToken)
+                        .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Gastronomía Unicidad Test\"}"))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(post("/api/v1/admin/categories")
-                        .header("Authorization", "Bearer " + editorToken)
+                        .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"gastronomía unicidad test\"}"))
                 .andExpect(status().isConflict());
@@ -104,10 +108,10 @@ class CategoryFlowIntegrationTest {
 
     @Test
     void categoryCannotBeItsOwnParent() throws Exception {
-        String editorToken = createUserAndLogin("cat-hierarchy@plataforma-contenidos.test", Role.EDITOR);
+        String publisherToken = createUserAndLogin("cat-hierarchy@plataforma-contenidos.test", TestProfile.PUBLICADOR);
 
         MvcResult createResult = mockMvc.perform(post("/api/v1/admin/categories")
-                        .header("Authorization", "Bearer " + editorToken)
+                        .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Cultura\"}"))
                 .andExpect(status().isCreated())
@@ -115,16 +119,16 @@ class CategoryFlowIntegrationTest {
         String categoryId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asText();
 
         mockMvc.perform(put("/api/v1/admin/categories/" + categoryId)
-                        .header("Authorization", "Bearer " + editorToken)
+                        .header("Authorization", "Bearer " + publisherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Cultura\",\"parentId\":\"" + categoryId + "\",\"sortOrder\":0}"))
                 .andExpect(status().isConflict());
     }
 
-    private String createUserAndLogin(String email, Role role) throws Exception {
+    private String createUserAndLogin(String email, TestProfile role) throws Exception {
         String password = "SomeStrongPassword123!";
-        userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
-
+        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
+        role.grant(workerPermissions, created.getId());
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))

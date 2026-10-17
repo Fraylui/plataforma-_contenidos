@@ -1,0 +1,37 @@
+package pe.plataformacontenidos.celebrations;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.ContentVideoInput;
+
+/**
+ * Entrada de creación/edición de evento, ya validada en el DTO de API.
+ * placeId, venueName y endsAt son opcionales. Cada imagen es subida o por
+ * enlace externo (ver ContentImageInput); cada video trae la URL pegada
+ * por quien redacta (sección 8) — CelebrationService la convierte a Video ID
+ * antes de guardar, igual que Publication/Place.
+ */
+public record CelebrationInput(
+        String title,
+        String excerpt,
+        String body,
+        UUID categoryId,
+        UUID placeId,
+        String venueName,
+        Instant startsAt,
+        Instant endsAt,
+        List<ContentImageInput> images,
+        String seoTitle,
+        String metaDescription,
+        String canonicalUrl,
+        String ogImageUrl,
+        List<ContentVideoInput> videos,
+        String robots,
+        boolean recursYearly,
+        boolean allDay,
+        Integer sinceYear,
+        String scopeCountry,
+        String scopeRegion) {
+}

@@ -15,7 +15,6 @@ public record PlatformSettingsResponse(
         String secondaryColor,
         String backgroundColor,
         String fontFamily,
-        String theme,
         String seoDefaultTitle,
         String seoDefaultDescription,
         String seoDefaultImageUrl,
@@ -23,7 +22,9 @@ public record PlatformSettingsResponse(
         String contactEmail,
         boolean adsenseEnabled,
         String adsenseClientId,
-        String analyticsId) {
+        String analyticsId,
+        String homeCountry,
+        String whatsappChannelUrl) {
 
     public static PlatformSettingsResponse from(PlatformSettings settings) {
         return new PlatformSettingsResponse(
@@ -38,7 +39,6 @@ public record PlatformSettingsResponse(
                 settings.getSecondaryColor(),
                 settings.getBackgroundColor(),
                 settings.getFontFamily(),
-                settings.getTheme(),
                 settings.getSeoDefaultTitle(),
                 settings.getSeoDefaultDescription(),
                 settings.getSeoDefaultImageUrl(),
@@ -46,6 +46,8 @@ public record PlatformSettingsResponse(
                 settings.getContactEmail(),
                 settings.isAdsenseEnabled(),
                 settings.getAdsenseClientId(),
-                settings.getAnalyticsId());
+                settings.getAnalyticsId(),
+                settings.getHomeCountry(),
+                settings.getWhatsappChannelUrl());
     }
 }

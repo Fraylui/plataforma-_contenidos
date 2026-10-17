@@ -59,8 +59,6 @@ public class PlatformSettings {
     @Column(name = "font_family")
     private String fontFamily;
 
-    @Column(nullable = false)
-    private String theme;
 
     @Column(name = "seo_default_title")
     private String seoDefaultTitle;
@@ -85,6 +83,14 @@ public class PlatformSettings {
 
     @Column(name = "analytics_id")
     private String analyticsId;
+
+    /** País del sitio (ISO-2): qué celebraciones ve quien llega sin ubicación conocida. */
+    /** Enlace del canal de WhatsApp (https://whatsapp.com/channel/…); null = sin botón. */
+    @Column(name = "whatsapp_channel_url")
+    private String whatsappChannelUrl;
+
+    @Column(name = "home_country", nullable = false)
+    private String homeCountry = "PE";
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
@@ -188,13 +194,6 @@ public class PlatformSettings {
         this.fontFamily = fontFamily;
     }
 
-    public String getTheme() {
-        return theme;
-    }
-
-    public void setTheme(String theme) {
-        this.theme = theme;
-    }
 
     public String getSeoDefaultTitle() {
         return seoDefaultTitle;
@@ -258,6 +257,22 @@ public class PlatformSettings {
 
     public void setAnalyticsId(String analyticsId) {
         this.analyticsId = analyticsId;
+    }
+
+    public String getWhatsappChannelUrl() {
+        return whatsappChannelUrl;
+    }
+
+    public void setWhatsappChannelUrl(String whatsappChannelUrl) {
+        this.whatsappChannelUrl = whatsappChannelUrl;
+    }
+
+    public String getHomeCountry() {
+        return homeCountry;
+    }
+
+    public void setHomeCountry(String homeCountry) {
+        this.homeCountry = homeCountry;
     }
 
     public Instant getUpdatedAt() {

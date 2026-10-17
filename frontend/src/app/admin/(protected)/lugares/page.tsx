@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { listAdminPlaces } from "@/lib/api/admin-client";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
+import { parseAdminListParams } from "@/lib/admin/list-params";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
 import { PlacesTable } from "@/components/admin/places-table";
@@ -11,21 +12,22 @@ export const metadata: Metadata = {
   robots: "noindex,nofollow",
 };
 
-export default async function AdminPlacesPage() {
+export default async function AdminPlacesPage(props: PageProps<"/admin/lugares">) {
   const { user, accessToken } = await requireAdminUser();
-  const result = await fetchOrAccessDenied(() => listAdminPlaces(accessToken));
+  const params = parseAdminListParams(await props.searchParams);
+  const result = await fetchOrAccessDenied(() => listAdminPlaces(accessToken, params));
   if ("denied" in result) return <AccessDenied />;
-  const sorted = [...result.data].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const isEmpty = result.data.totalElements === 0 && !params.q && !params.status;
 
   return (
     <div>
       <AdminPageHeader title="Lugares" action={{ href: "/admin/lugares/nuevo", label: "Nuevo lugar" }} />
 
-      {sorted.length === 0 ? (
-        <EmptyState title="Todavía no hay lugares" description="Crea el primero para empezar." />
+      {isEmpty ? (
+        <EmptyState title="Todavía no hay lugares" description="Crea el primero para empezar." action={{ href: "/admin/lugares/nuevo", label: "Crear lugar" }} />
       ) : (
         <div className="mt-6">
-          <PlacesTable places={sorted} currentUser={user} />
+          <PlacesTable page={result.data} currentUser={user} />
         </div>
       )}
     </div>

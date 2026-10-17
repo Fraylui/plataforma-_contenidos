@@ -47,6 +47,10 @@ public class AuditEvent {
     @Column(nullable = false, updatable = false)
     private String result;
 
+    /** Detalle opcional (p. ej. permisos antes → después), V49. */
+    @Column(updatable = false)
+    private String details;
+
     protected AuditEvent() {
         // JPA
     }
@@ -59,6 +63,11 @@ public class AuditEvent {
         this.resourceId = builder.resourceId;
         this.ipAddress = builder.ipAddress;
         this.result = builder.result.name();
+        this.details = builder.details;
+    }
+
+    public String getDetails() {
+        return details;
     }
 
     public static Builder builder(String action, AuditResult result) {
@@ -109,6 +118,7 @@ public class AuditEvent {
         private String resourceType;
         private String resourceId;
         private String ipAddress;
+        private String details;
 
         private Builder(String action, AuditResult result) {
             this.action = action;
@@ -129,6 +139,11 @@ public class AuditEvent {
 
         public Builder ipAddress(String ipAddress) {
             this.ipAddress = ipAddress;
+            return this;
+        }
+
+        public Builder details(String details) {
+            this.details = details;
             return this;
         }
 

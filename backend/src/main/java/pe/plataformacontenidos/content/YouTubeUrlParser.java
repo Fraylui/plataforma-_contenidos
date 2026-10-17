@@ -11,16 +11,22 @@ import java.util.regex.Pattern;
  */
 public final class YouTubeUrlParser {
 
-    private static final Pattern VIDEO_ID = Pattern.compile("^[a-zA-Z0-9_-]{11}$");
 
     private static final Pattern[] URL_PATTERNS = {
             Pattern.compile("(?:youtube\\.com/watch\\?v=)([a-zA-Z0-9_-]{11})"),
             Pattern.compile("(?:youtu\\.be/)([a-zA-Z0-9_-]{11})"),
             Pattern.compile("(?:youtube\\.com/embed/)([a-zA-Z0-9_-]{11})"),
             Pattern.compile("(?:youtube\\.com/shorts/)([a-zA-Z0-9_-]{11})"),
+            // Transmisiones en vivo: youtube.com/live/{id}
+            Pattern.compile("(?:youtube\\.com/live/)([a-zA-Z0-9_-]{11})"),
     };
 
     private YouTubeUrlParser() {
+    }
+
+    /** Un Short (youtube.com/shorts/…) es vertical, 9:16. */
+    public static boolean isShort(String url) {
+        return url != null && url.contains("youtube.com/shorts/");
     }
 
     public static Optional<String> extractVideoId(String url) {
@@ -34,9 +40,5 @@ public final class YouTubeUrlParser {
             }
         }
         return Optional.empty();
-    }
-
-    public static boolean isValidVideoId(String videoId) {
-        return videoId != null && VIDEO_ID.matcher(videoId).matches();
     }
 }

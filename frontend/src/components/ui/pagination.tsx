@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CaretLeft, CaretRight } from "@phosphor-icons/react/dist/ssr";
 
 /**
  * Paginación server-rendered (links normales, sin JS) — mismo patrón ya
- * probado en app/admin/(protected)/auditoria/page.tsx, generalizado para
+ * probado en app/admin/(protected)/actividad/page.tsx, generalizado para
  * el sitio público. `page` es 0-indexado (como PageResponse del backend);
  * `buildHref` arma la URL completa para una página dada, dejando que cada
  * pantalla decida qué otros query params conservar (filtros, etc.).
@@ -28,12 +28,12 @@ export function Pagination({
     <div className="mt-10 flex items-center justify-between gap-4">
       {page > 0 ? (
         <Link href={buildHref(page - 1)} className={BTN}>
-          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          <CaretLeft className="h-4 w-4" aria-hidden="true" />
           Anterior
         </Link>
       ) : (
         <span aria-hidden="true" className={BTN_DISABLED}>
-          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          <CaretLeft className="h-4 w-4" aria-hidden="true" />
           Anterior
         </span>
       )}
@@ -45,12 +45,12 @@ export function Pagination({
       {page + 1 < totalPages ? (
         <Link href={buildHref(page + 1)} className={BTN}>
           Siguiente
-          <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          <CaretRight className="h-4 w-4" aria-hidden="true" />
         </Link>
       ) : (
         <span aria-hidden="true" className={BTN_DISABLED}>
           Siguiente
-          <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          <CaretRight className="h-4 w-4" aria-hidden="true" />
         </span>
       )}
     </div>

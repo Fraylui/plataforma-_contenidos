@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
-import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.shared.FixedWindowRateLimiter;
 
 @Service
@@ -56,16 +55,16 @@ public class ImageService {
         return saved;
     }
 
-    public Image updateAltText(UUID imageId, String altText, UUID actingUserId, Role actingRole) {
+    public Image updateAltText(UUID imageId, String altText, UUID actingUserId, boolean canManageAll) {
         Image image = getOrThrow(imageId);
-        requireOwnerOrEditor(image, actingUserId, actingRole);
+        requireOwnerOrManager(image, actingUserId, canManageAll);
         image.setAltText(altText);
         return imageRepository.save(image);
     }
 
-    public void delete(UUID imageId, UUID actingUserId, Role actingRole) {
+    public void delete(UUID imageId, UUID actingUserId, boolean canManageAll) {
         Image image = getOrThrow(imageId);
-        requireOwnerOrEditor(image, actingUserId, actingRole);
+        requireOwnerOrManager(image, actingUserId, canManageAll);
         storageService.delete(image.getStoredFilename());
         imageRepository.delete(image);
         auditService.record("IMAGE_DELETED", AuditResult.SUCCESS, actingUserId, null, "image", imageId.toString(),
@@ -81,22 +80,19 @@ public class ImageService {
         return storageService.load(image.getStoredFilename());
     }
 
-    public List<Image> listForAdmin(UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
+    public List<Image> listForAdmin(UUID actingUserId, boolean canManageAll) {
+        if (canManageAll) {
             return imageRepository.findAll();
         }
         return imageRepository.findByUploadedByOrderByCreatedAtDesc(actingUserId);
     }
 
-    private void requireOwnerOrEditor(Image image, UUID actingUserId, Role actingRole) {
-        if (!isEditorOrAbove(actingRole) && !image.isOwnedBy(actingUserId)) {
+    private void requireOwnerOrManager(Image image, UUID actingUserId, boolean canManageAll) {
+        if (!canManageAll && !image.isOwnedBy(actingUserId)) {
             throw new ImageAccessDeniedException();
         }
     }
 
-    private boolean isEditorOrAbove(Role role) {
-        return role == Role.EDITOR || role == Role.ADMIN || role == Role.SUPER_ADMIN;
-    }
 
     private String sanitizeFilename(String originalFilename) {
         if (originalFilename == null || originalFilename.isBlank()) {

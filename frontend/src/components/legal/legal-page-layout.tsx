@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 export interface LegalSection {
@@ -8,13 +7,11 @@ export interface LegalSection {
 }
 
 /**
- * Estructura compartida por /privacidad y /terminos — mismo tratamiento
- * tipográfico que un artículo (max-w-[70ch]) para que un documento legal
- * no se sienta como un cuerpo extraño dentro del sitio.
- * Índice como línea de enlaces envueltos, no una caja con recuadro y
- * numeración — se siente más liviano, sobre todo en mobile (ver memoria de
- * feedback de esta sesión: las páginas legales no debían sentirse como
- * documentación técnica).
+ * Páginas de información (Contacto, Privacidad, Términos) con forma de
+ * pantalla de app, como la ayuda de Instagram o Facebook: título, fecha de
+ * actualización, accesos a cada sección como chips y el texto en una
+ * superficie blanca de lectura cómoda (70 caracteres). Sin ruta visible ni
+ * bordes.
  */
 export function LegalPageLayout({
   title,
@@ -26,42 +23,31 @@ export function LegalPageLayout({
   sections: LegalSection[];
 }) {
   return (
-    <article className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-      <nav aria-label="Breadcrumb" className="text-xs text-muted">
-        <ol className="flex flex-wrap items-center gap-1.5">
-          <li>
-            <Link href="/" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-              Inicio
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li className="text-foreground/80" aria-current="page">
-            {title}
-          </li>
-        </ol>
-      </nav>
+    <article className="mx-auto w-full max-w-[680px] py-4 sm:px-4 sm:py-6">
+      <header className="px-4 sm:px-0">
+        <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">{title}</h1>
+        <p className="mt-1 text-sm text-muted">Actualizado el {updatedAt}</p>
+      </header>
 
-      <h1 className="mt-3 text-2xl font-semibold leading-tight text-foreground sm:text-3xl">{title}</h1>
-      <p className="mt-1.5 text-sm text-muted">Última actualización: {updatedAt}</p>
-
-      <nav aria-label="Contenido" className="mt-6 flex flex-wrap gap-x-2 gap-y-1 text-sm text-muted">
-        {sections.map((section, index) => (
-          <span key={section.id} className="flex items-center gap-2">
-            <a href={`#${section.id}`} className="-my-2 inline-block py-2 hover:text-accent hover:underline">
+      {sections.length > 1 && (
+        <nav aria-label="Secciones de la página" className="no-scrollbar mt-4 flex gap-2 overflow-x-auto px-4 sm:px-0">
+          {sections.map((section) => (
+            <a
+              key={section.id}
+              href={`#${section.id}`}
+              className="inline-flex min-h-9 shrink-0 items-center rounded-full bg-canvas-strong px-4 text-sm font-semibold text-foreground transition-colors hover:bg-accent-soft hover:text-accent"
+            >
               {section.title}
             </a>
-            {index < sections.length - 1 && <span aria-hidden="true">·</span>}
-          </span>
-        ))}
-      </nav>
+          ))}
+        </nav>
+      )}
 
-      <div className="mt-8 space-y-8">
+      <div className="mt-4 space-y-8 bg-surface px-4 py-6 sm:rounded-2xl sm:px-6">
         {sections.map((section) => (
-          <section key={section.id} id={section.id} className="scroll-mt-6">
-            <h2 className="text-lg font-semibold text-foreground">{section.title}</h2>
-            <div className="mt-2 max-w-[70ch] space-y-3 text-base leading-relaxed text-foreground/90">
-              {section.content}
-            </div>
+          <section key={section.id} id={section.id} className="scroll-mt-20">
+            <h2 className="text-[17px] font-bold text-foreground">{section.title}</h2>
+            <div className="mt-2 max-w-[70ch] space-y-3 text-[15px] leading-relaxed text-foreground/90">{section.content}</div>
           </section>
         ))}
       </div>

@@ -5,9 +5,11 @@ import Link from "next/link";
 import type { PlatformSettings } from "@/lib/api/types";
 import type { PlatformSettingsInput } from "@/lib/api/admin-types";
 import { updatePlatformSettingsAction } from "@/app/admin/(protected)/configuracion/actions";
-import { AdminButton, Combobox, FormError, FormField, formInputClass } from "@/components/admin/ui";
+import { FormError } from "@/components/admin/ui";
+import { Button, Card, Checkbox, Combobox, Field, TextArea, TextInput } from "@/components/ui";
 import { InlineImageUpload } from "@/components/admin/inline-image-upload";
 import { imageUrl } from "@/lib/image-url";
+import { COUNTRY_OPTIONS } from "@/lib/countries";
 import type { AdminImage } from "@/lib/api/admin-types";
 
 type FormState = {
@@ -27,7 +29,6 @@ function toFormState(settings: PlatformSettings): FormState {
     secondaryColor: settings.secondaryColor ?? "",
     backgroundColor: settings.backgroundColor ?? "",
     fontFamily: settings.fontFamily ?? "",
-    theme: settings.theme,
     seoDefaultTitle: settings.seoDefaultTitle ?? "",
     seoDefaultDescription: settings.seoDefaultDescription ?? "",
     seoDefaultImageUrl: settings.seoDefaultImageUrl ?? "",
@@ -36,6 +37,8 @@ function toFormState(settings: PlatformSettings): FormState {
     adsenseEnabled: settings.adsenseEnabled,
     adsenseClientId: settings.adsenseClientId ?? "",
     analyticsId: settings.analyticsId ?? "",
+    homeCountry: settings.homeCountry,
+    whatsappChannelUrl: settings.whatsappChannelUrl ?? "",
   };
 }
 
@@ -53,7 +56,6 @@ function toInput(state: FormState): PlatformSettingsInput {
     secondaryColor: blankToNull(state.secondaryColor),
     backgroundColor: blankToNull(state.backgroundColor),
     fontFamily: blankToNull(state.fontFamily),
-    theme: state.theme as PlatformSettingsInput["theme"],
     seoDefaultTitle: blankToNull(state.seoDefaultTitle),
     seoDefaultDescription: blankToNull(state.seoDefaultDescription),
     seoDefaultImageUrl: blankToNull(state.seoDefaultImageUrl),
@@ -62,6 +64,8 @@ function toInput(state: FormState): PlatformSettingsInput {
     adsenseEnabled: state.adsenseEnabled,
     adsenseClientId: blankToNull(state.adsenseClientId),
     analyticsId: blankToNull(state.analyticsId),
+    homeCountry: state.homeCountry,
+    whatsappChannelUrl: blankToNull(state.whatsappChannelUrl),
   };
 }
 
@@ -79,9 +83,9 @@ function TextField({
   type?: string;
 }) {
   return (
-    <FormField label={label} name={name}>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className={formInputClass} />
-    </FormField>
+    <Field label={label} name={name}>
+      <TextInput type={type} value={value} onChange={(e) => onChange(e.target.value)} />
+    </Field>
   );
 }
 
@@ -108,24 +112,24 @@ function ImageUrlField({
   }
 
   return (
-    <FormField label={label} name={name}>
+    <Field label={label} name={name}>
       <div className="flex flex-wrap items-center gap-2">
         {value && (
           // eslint-disable-next-line @next/next/no-img-element -- vista previa de una URL arbitraria, no un asset local
           <img src={value} alt="" className="h-9 w-9 shrink-0 rounded border border-border object-contain" />
         )}
-        <input
+        <TextInput
           id={name}
           name={name}
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="URL de la imagen"
-          className={`${formInputClass} flex-1`}
+          className="flex-1"
         />
         <InlineImageUpload onUploaded={handleUploaded} compact />
       </div>
-    </FormField>
+    </Field>
   );
 }
 
@@ -159,18 +163,18 @@ function SharePreview({ title, description, imageUrl, siteName }: { title: strin
 
 const NAV_ITEMS = [
   { id: "identidad", label: "Identidad" },
-  { id: "apariencia", label: "Apariencia" },
   { id: "seo", label: "SEO por defecto" },
   { id: "contacto", label: "Contacto" },
-  { id: "monetizacion", label: "Monetización" },
+  { id: "publicidad", label: "Publicidad y AdSense" },
 ] as const;
 
-/** Misma tarjeta que el resto del panel (article-form.tsx, place-form.tsx, ...): border-border/60 bg-surface, sin shadow. */
+/** Una sección del formulario: la misma Card del resto del panel, con ancla para el índice de la izquierda. */
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
-    <div id={id} className="scroll-mt-24 rounded-xl border border-border/60 bg-surface p-5">
-      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
+    <div id={id} className="scroll-mt-24">
+      <Card title={title}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
+      </Card>
     </div>
   );
 }
@@ -230,29 +234,22 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
             value={state.ogImageUrl}
             onChange={(v) => set("ogImageUrl", v)}
           />
-          <FormField label="Descripción" name="description">
-            <textarea
+          <Field label="Descripción" name="description">
+            <TextArea
               value={state.description}
               onChange={(e) => set("description", e.target.value)}
               rows={2}
-              className={formInputClass}
             />
-          </FormField>
+          </Field>
+          <Field
+            label="País del sitio"
+            name="homeCountry"
+            hint="Quien entra sin ubicación conocida (VPN) ve en «Hoy se celebra» lo mundial y lo de este país."
+          >
+            <Combobox options={COUNTRY_OPTIONS} value={state.homeCountry} onSelect={(id) => id && set("homeCountry", id)} placeholder="Buscar un país" />
+          </Field>
         </Section>
 
-        <Section id="apariencia" title="Apariencia">
-          <FormField label="Tema" name="theme">
-            <Combobox
-              options={[
-                { id: "AUTO", label: "Auto (según el sistema)" },
-                { id: "LIGHT", label: "Claro" },
-                { id: "DARK", label: "Oscuro" },
-              ]}
-              value={state.theme}
-              onSelect={(id) => id && set("theme", id as FormState["theme"])}
-            />
-          </FormField>
-        </Section>
 
         <Section id="seo" title="SEO por defecto">
           <TextField label="Título por defecto" name="seoDefaultTitle" value={state.seoDefaultTitle} onChange={(v) => set("seoDefaultTitle", v)} />
@@ -262,14 +259,13 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
             value={state.seoDefaultImageUrl}
             onChange={(v) => set("seoDefaultImageUrl", v)}
           />
-          <FormField label="Meta descripción por defecto" name="seoDefaultDescription">
-            <textarea
+          <Field label="Meta descripción por defecto" name="seoDefaultDescription">
+            <TextArea
               value={state.seoDefaultDescription}
               onChange={(e) => set("seoDefaultDescription", e.target.value)}
               rows={2}
-              className={formInputClass}
             />
-          </FormField>
+          </Field>
           <TextField
             label="Google Search Console (verificación)"
             name="googleSearchConsoleVerification"
@@ -295,19 +291,26 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
             value={state.contactEmail}
             onChange={(v) => set("contactEmail", v)}
           />
+          <TextField
+            label="Canal de WhatsApp (opcional)"
+            name="whatsappChannelUrl"
+            type="url"
+            value={state.whatsappChannelUrl}
+            onChange={(v) => set("whatsappChannelUrl", v)}
+          />
+          <p className="text-xs text-muted">
+            En WhatsApp: Novedades → tu canal → Compartir enlace. Con el enlace puesto, cada publicación termina con «Síguenos en
+            WhatsApp»; vacío, no se muestra.
+          </p>
         </Section>
 
-        <Section id="monetizacion" title="Monetización">
-          <label className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <input
-              type="checkbox"
-              name="adsenseEnabled"
-              checked={state.adsenseEnabled}
-              onChange={(e) => set("adsenseEnabled", e.target.checked)}
-              className="h-4 w-4 rounded border-border"
-            />
-            AdSense habilitado
-          </label>
+        <Section id="publicidad" title="Publicidad y AdSense">
+          <Checkbox
+            name="adsenseEnabled"
+            label="AdSense habilitado"
+            checked={state.adsenseEnabled}
+            onChange={(e) => set("adsenseEnabled", e.target.checked)}
+          />
           <TextField
             label="AdSense Client ID"
             name="adsenseClientId"
@@ -317,7 +320,7 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
           <TextField label="Analytics ID" name="analyticsId" value={state.analyticsId} onChange={(v) => set("analyticsId", v)} />
           <p className="text-xs text-muted">
             Las posiciones/slots de anuncio se gestionan en{" "}
-            <Link href="/admin/publicidad" className="underline underline-offset-2 hover:text-accent">
+            <Link href="/admin/espacios" className="underline underline-offset-2 hover:text-accent">
               Publicidad
             </Link>
             .
@@ -331,9 +334,9 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
           </p>
         )}
 
-        <AdminButton type="submit" disabled={pending || !state.name.trim()}>
+        <Button type="submit" disabled={pending || !state.name.trim()}>
           {pending ? "Guardando…" : "Guardar cambios"}
-        </AdminButton>
+        </Button>
       </div>
     </form>
   );

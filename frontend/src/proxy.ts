@@ -19,7 +19,8 @@ const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname === "/admin/login") {
+  // /admin/muestra/** (sistema de diseño y compositor con datos de ejemplo) en producción no existe.
+  if (pathname === "/admin/login" || (process.env.NODE_ENV !== "production" && (pathname === "/admin/muestra" || pathname.startsWith("/admin/muestra/")))) {
     return NextResponse.next();
   }
 

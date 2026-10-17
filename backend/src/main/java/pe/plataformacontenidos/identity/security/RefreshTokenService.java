@@ -24,6 +24,8 @@ import org.springframework.stereotype.Service;
 public class RefreshTokenService {
 
     private static final String KEY_PREFIX = "refresh_token:";
+    /** Índice de sesiones por usuario, para cerrarlas todas (desactivar, restablecer o cambiar contraseña). */
+    private static final String USER_INDEX_PREFIX = "refresh_tokens_of:";
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final StringRedisTemplate redisTemplate;
@@ -36,26 +38,46 @@ public class RefreshTokenService {
 
     public String issue(UUID userId) {
         String token = generateOpaqueToken();
-        redisTemplate.opsForValue().set(
-                KEY_PREFIX + hash(token),
-                userId.toString(),
-                Duration.ofDays(properties.refreshTokenTtlDays()));
+        String tokenHash = hash(token);
+        Duration ttl = Duration.ofDays(properties.refreshTokenTtlDays());
+        // userId|emitido (ms): AuthService.refresh rechaza las emitidas antes de users.sessions_valid_after.
+        redisTemplate.opsForValue().set(KEY_PREFIX + tokenHash, userId + "|" + System.currentTimeMillis(), ttl);
+        redisTemplate.opsForSet().add(USER_INDEX_PREFIX + userId, tokenHash);
+        redisTemplate.expire(USER_INDEX_PREFIX + userId, ttl);
         return token;
     }
 
-    /** Consume (invalida) el token presentado y devuelve el userId si era válido. */
-    public Optional<UUID> consume(String token) {
+    /** Sesión consumida: de quién y cuándo se emitió (las anteriores al índice cuentan como emitidas en 1970). */
+    public record Issued(UUID userId, java.time.Instant issuedAt) {
+    }
+
+    /** Consume (invalida) el token presentado y devuelve de quién era y cuándo se emitió, si era válido. */
+    public Optional<Issued> consume(String token) {
         String key = KEY_PREFIX + hash(token);
-        String userId = redisTemplate.opsForValue().get(key);
-        if (userId == null) {
+        String value = redisTemplate.opsForValue().get(key);
+        if (value == null) {
             return Optional.empty();
         }
         redisTemplate.delete(key);
-        return Optional.of(UUID.fromString(userId));
+        String[] parts = value.split("\\|", 2);
+        UUID userId = UUID.fromString(parts[0]);
+        java.time.Instant issuedAt = parts.length == 2 ? java.time.Instant.ofEpochMilli(Long.parseLong(parts[1])) : java.time.Instant.EPOCH;
+        redisTemplate.opsForSet().remove(USER_INDEX_PREFIX + userId, hash(token));
+        return Optional.of(new Issued(userId, issuedAt));
     }
 
     public void revoke(String token) {
         redisTemplate.delete(KEY_PREFIX + hash(token));
+    }
+
+    /** Cierra todas las sesiones de un usuario (sus refresh tokens dejan de servir). */
+    public void revokeAll(UUID userId) {
+        String index = USER_INDEX_PREFIX + userId;
+        var hashes = redisTemplate.opsForSet().members(index);
+        if (hashes != null) {
+            hashes.forEach(h -> redisTemplate.delete(KEY_PREFIX + h));
+        }
+        redisTemplate.delete(index);
     }
 
     private static String generateOpaqueToken() {

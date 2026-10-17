@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { listActiveCategories, searchContent } from "@/lib/api/client";
 import type { SearchResultType } from "@/lib/api/types";
-import { SearchResultCard } from "@/components/search/search-result-card";
+import { fromSearchResult } from "@/lib/home-items";
+import { GridTile } from "@/components/post/grid-tile";
 import { SearchSuggestions } from "@/components/search/search-suggestions";
-import { FilterMenu } from "@/components/filters/filter-menu";
-import { ListingHeader } from "@/components/layout/listing-header";
-import { EventDateRangeFilter } from "@/components/search/event-date-range-filter";
+import { FilterChips } from "@/components/feed/filter-chips";
+import { MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
+import { CelebrationDateRangeFilter } from "@/components/search/celebration-date-range-filter";
 import { Pagination } from "@/components/ui/pagination";
 
 /** Con menos resultados que esto, la búsqueda sugiere temas y lo más reciente. */
@@ -15,11 +16,11 @@ const PAGE_SIZE = 24;
 const BASE_PATH = "/buscar";
 
 const TYPE_OPTIONS: { value: SearchResultType; label: string }[] = [
-  { value: "ARTICLE", label: "Publicaciones" },
+  { value: "PUBLICATION", label: "Publicaciones" },
   { value: "PLACE", label: "Lugares" },
-  { value: "EVENT", label: "Eventos" },
+  { value: "CELEBRATION", label: "Celebraciones" },
   { value: "GALLERY", label: "Galerías" },
-  { value: "BUSINESS", label: "Directorio" },
+  { value: "EPISODE", label: "Episodios" },
 ];
 
 export const metadata: Metadata = {
@@ -39,8 +40,8 @@ function buildHref(
   const params = new URLSearchParams({ q: query });
   if (type) params.set("type", type);
   if (categoryId) params.set("categoryId", categoryId);
-  if (type === "EVENT" && from) params.set("from", from);
-  if (type === "EVENT" && to) params.set("to", to);
+  if (type === "CELEBRATION" && from) params.set("from", from);
+  if (type === "CELEBRATION" && to) params.set("to", to);
   if (page > 0) params.set("page", String(page));
   return `${BASE_PATH}?${params.toString()}`;
 }
@@ -50,11 +51,11 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
     await props.searchParams;
   const query = typeof q === "string" ? q : "";
   const type =
-    typeParam === "ARTICLE" ||
+    typeParam === "PUBLICATION" ||
     typeParam === "PLACE" ||
-    typeParam === "EVENT" ||
+    typeParam === "CELEBRATION" ||
     typeParam === "GALLERY" ||
-    typeParam === "BUSINESS"
+    typeParam === "EPISODE"
       ? typeParam
       : null;
   const page = typeof pageParam === "string" ? Math.max(0, parseInt(pageParam, 10) || 0) : 0;
@@ -64,8 +65,8 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
   // la fecha simple (más limpia para compartir/editar a mano).
   const from = typeof fromParam === "string" && fromParam ? fromParam : null;
   const to = typeof toParam === "string" && toParam ? toParam : null;
-  const fromInstant = type === "EVENT" && from ? `${from}T00:00:00Z` : undefined;
-  const toInstant = type === "EVENT" && to ? `${to}T23:59:59Z` : undefined;
+  const fromInstant = type === "CELEBRATION" && from ? `${from}T00:00:00Z` : undefined;
+  const toInstant = type === "CELEBRATION" && to ? `${to}T23:59:59Z` : undefined;
 
   const [result, categories] = await Promise.all([
     query
@@ -80,53 +81,63 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
       : Promise.resolve(null),
     listActiveCategories(),
   ]);
-  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
+
+  const typeChips = [
+    { label: "Todo", href: buildHref(query, null, categoryId, null, null, 0), active: type === null },
+    ...TYPE_OPTIONS.map((option) => ({
+      label: option.label,
+      href: buildHref(query, option.value, categoryId, null, null, 0),
+      active: type === option.value,
+    })),
+  ];
+  const topicChips = [
+    { label: "Todos los temas", href: buildHref(query, type, null, from, to, 0), active: categoryId === null },
+    ...categories.map((c) => ({ label: c.name, href: buildHref(query, type, c.id, from, to, 0), active: categoryId === c.id })),
+  ];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      {/* Sin campo de búsqueda propio a propósito: el buscador del header ya
-          está siempre visible arriba y manda a esta misma página al
-          escribir y dar Enter — tener otro cuadro igual acá abajo era
-          literalmente el mismo control repetido dos veces en la misma
-          pantalla (encontrado probando el buscador real). Para cambiar de
-          término, se usa el del header. */}
-      <ListingHeader
-        title={query ? `Resultados para «${query}»` : "Buscar"}
-        count={
-          query && result ? `${result.totalElements.toLocaleString("es")} ${result.totalElements === 1 ? "resultado" : "resultados"}` : null
-        }
-      >
-        {/* Dos desplegables compactos, no chips fijas: antes esto eran dos
-            filas apiladas (tipo Y categoría, cada una con hasta 7 pastillas)
-            más selectores de geografía en cascada — se sentía un
-            formulario, no una búsqueda. */}
-        {query && (
-          <>
-            <FilterMenu
-              label="Todo el contenido"
-              allLabel="Todo el contenido"
-              options={TYPE_OPTIONS}
-              activeValue={type}
-              paramName="type"
-              basePath={BASE_PATH}
-              extraParams={{ q: query, ...(categoryId ? { categoryId } : {}) }}
-            />
-            <FilterMenu
-              label="Filtrar por tema"
-              allLabel="Todas las categorías"
-              options={categories.map((c) => ({ value: c.id, label: c.name }))}
-              activeValue={categoryId}
-              paramName="categoryId"
-              basePath={BASE_PATH}
-              extraParams={{ q: query, ...(type ? { type } : {}) }}
-            />
-          </>
-        )}
-      </ListingHeader>
+    <div className="mx-auto w-full max-w-[935px] px-4 py-5 sm:py-6">
+      {/* Pestaña "Buscar" en celular: campo propio arriba, como el buscador de
+          Instagram (la barra superior en celular solo tiene una lupa). En
+          escritorio el buscador ya está siempre visible arriba. Formulario
+          GET: funciona sin JavaScript. */}
+      <form action={BASE_PATH} role="search" className="mb-4 sm:hidden">
+        <label htmlFor="buscar-q" className="sr-only">
+          Buscar contenido
+        </label>
+        <div className="flex h-11 items-center rounded-full bg-canvas-strong focus-within:ring-4 focus-within:ring-accent/15">
+          <MagnifyingGlass className="ml-4 h-5 w-5 shrink-0 text-muted" aria-hidden="true" />
+          <input
+            id="buscar-q"
+            name="q"
+            type="search"
+            defaultValue={query}
+            enterKeyHint="search"
+            placeholder="Buscar lugares, celebraciones, publicaciones…"
+            className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm text-foreground placeholder-muted outline-none"
+          />
+        </div>
+      </form>
 
-      {query && type === "EVENT" && (
+      {query && (
+        <div className="mb-4">
+          <h1 className="text-lg font-bold text-foreground sm:text-xl">
+            «{query}»
+            {result && (
+              <span className="ml-2 text-sm font-medium text-muted">
+                {result.totalElements.toLocaleString("es")} {result.totalElements === 1 ? "resultado" : "resultados"}
+              </span>
+            )}
+          </h1>
+          <FilterChips label="Tipo de contenido" options={typeChips} className="mt-3" />
+          <FilterChips label="Tema" options={topicChips} className="mt-1" />
+        </div>
+      )}
+      {!query && <h1 className="sr-only">Buscar</h1>}
+
+      {query && type === "CELEBRATION" && (
         <div className="mt-4">
-          <EventDateRangeFilter
+          <CelebrationDateRangeFilter
             q={query}
             categoryId={categoryId}
             from={from}
@@ -138,21 +149,19 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
 
       <section className="mt-8" aria-label="Resultados de búsqueda">
         {!query ? (
-          <p className="rounded-lg border border-dashed border-border px-6 py-16 text-center text-sm text-muted">
-            Escribe algo en el buscador de arriba para buscar en todo el contenido publicado.
+          <p className="px-6 py-16 text-center text-sm text-muted">
+            Busca lugares, celebraciones, publicaciones, galerías o negocios.
           </p>
         ) : result && result.items.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {/* Cuadrícula de 3 como Explorar (Instagram), sin tarjetas con antetítulo. */}
+            <ul aria-label="Resultados" className="grid grid-cols-3 gap-0.5 sm:gap-1">
               {result.items.map((item) => (
-                <SearchResultCard
-                  key={`${item.contentType}-${item.id}`}
-                  result={item}
-                  query={query}
-                  categoryName={item.categoryId ? categoryNames[item.categoryId] : undefined}
-                />
+                <li key={`${item.contentType}-${item.id}`}>
+                  <GridTile item={fromSearchResult(item)} />
+                </li>
               ))}
-            </div>
+            </ul>
             <Pagination
               page={result.page}
               totalPages={result.totalPages}
@@ -160,7 +169,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
             />
           </>
         ) : (
-          <p className="rounded-lg border border-dashed border-border px-6 py-10 text-center text-sm text-muted">
+          <p className="px-6 py-10 text-center text-sm text-muted">
             Sin resultados para «{query}». Prueba con otras palabras o explora estas sugerencias.
           </p>
         )}
@@ -170,7 +179,6 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
           <SearchSuggestions
             query={query}
             categories={categories}
-            categoryNames={categoryNames}
             excludeIds={result.items.map((item) => item.id)}
             hasResults={result.items.length > 0}
           />

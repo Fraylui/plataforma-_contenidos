@@ -24,6 +24,12 @@ class YouTubeUrlParserTest {
     }
 
     @Test
+    void extractsIdFromLiveUrl() {
+        assertThat(YouTubeUrlParser.extractVideoId("https://www.youtube.com/live/dQw4w9WgXcQ?si=abc"))
+                .contains("dQw4w9WgXcQ");
+    }
+
+    @Test
     void extractsIdFromShortsUrl() {
         assertThat(YouTubeUrlParser.extractVideoId("https://www.youtube.com/shorts/dQw4w9WgXcQ"))
                 .contains("dQw4w9WgXcQ");
@@ -44,12 +50,5 @@ class YouTubeUrlParserTest {
     void rejectsBlankOrNull() {
         assertThat(YouTubeUrlParser.extractVideoId("")).isEmpty();
         assertThat(YouTubeUrlParser.extractVideoId(null)).isEmpty();
-    }
-
-    @Test
-    void validatesVideoIdFormat() {
-        assertThat(YouTubeUrlParser.isValidVideoId("dQw4w9WgXcQ")).isTrue();
-        assertThat(YouTubeUrlParser.isValidVideoId("demasiado-largo-para-ser-un-id")).isFalse();
-        assertThat(YouTubeUrlParser.isValidVideoId(null)).isFalse();
     }
 }

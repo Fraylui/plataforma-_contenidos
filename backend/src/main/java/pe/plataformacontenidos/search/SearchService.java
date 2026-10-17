@@ -9,13 +9,13 @@ import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import pe.plataformacontenidos.content.ArticleService;
-import pe.plataformacontenidos.directory.BusinessService;
-import pe.plataformacontenidos.events.EventService;
+import pe.plataformacontenidos.content.PublicationService;
+import pe.plataformacontenidos.celebrations.CelebrationService;
 import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.search.api.dto.SearchPageResponse;
 import pe.plataformacontenidos.search.api.dto.SearchResultResponse;
+import pe.plataformacontenidos.series.SeriesService;
 import pe.plataformacontenidos.taxonomy.CategoryService;
 
 /**
@@ -26,7 +26,7 @@ import pe.plataformacontenidos.taxonomy.CategoryService;
  * contenido distintos ese puntaje no es directamente comparable (viene de
  * columnas tsvector separadas), así que la fusión ordena por fecha de
  * publicación — más simple y honesto que fingir una relevancia cruzada que
- * no existe. categoryId es el único filtro fino que aplica a los 6 tipos;
+ * no existe. categoryId es el único filtro fino que aplica a todos los tipos;
  * from/to (rango de fechas) solo tiene efecto en Evento, que es el único con
  * una fecha propia con sentido de filtro.
  */
@@ -39,20 +39,21 @@ public class SearchService {
     // (sección 16), no de optimizar este merge.
     private static final int MERGE_FETCH_LIMIT = 200;
 
-    private final ArticleService articleService;
+    private final PublicationService publicationService;
     private final PlaceService placeService;
-    private final EventService eventService;
+    private final CelebrationService celebrationService;
     private final GalleryService galleryService;
-    private final BusinessService businessService;
+    private final SeriesService seriesService;
     private final CategoryService categoryService;
 
-    public SearchService(ArticleService articleService, PlaceService placeService, EventService eventService,
-            GalleryService galleryService, BusinessService businessService, CategoryService categoryService) {
-        this.articleService = articleService;
+    public SearchService(PublicationService publicationService, PlaceService placeService, CelebrationService celebrationService,
+            GalleryService galleryService, SeriesService seriesService,
+            CategoryService categoryService) {
+        this.publicationService = publicationService;
         this.placeService = placeService;
-        this.eventService = eventService;
+        this.celebrationService = celebrationService;
         this.galleryService = galleryService;
-        this.businessService = businessService;
+        this.seriesService = seriesService;
         this.categoryService = categoryService;
     }
 
@@ -64,25 +65,25 @@ public class SearchService {
         }
 
         List<SearchResultResponse> combined = new ArrayList<>();
-        if (type == null || type == SearchResultType.ARTICLE) {
-            articleService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
-                    .forEach(a -> combined.add(SearchResultResponse.fromArticle(a)));
+        if (type == null || type == SearchResultType.PUBLICATION) {
+            publicationService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
+                    .forEach(a -> combined.add(SearchResultResponse.fromPublication(a)));
         }
         if (type == null || type == SearchResultType.PLACE) {
             placeService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
                     .forEach(p -> combined.add(SearchResultResponse.fromPlace(p)));
         }
-        if (type == null || type == SearchResultType.EVENT) {
-            eventService.search(query, categoryId, from, to, PageRequest.of(0, MERGE_FETCH_LIMIT))
-                    .forEach(e -> combined.add(SearchResultResponse.fromEvent(e)));
+        if (type == null || type == SearchResultType.CELEBRATION) {
+            celebrationService.search(query, categoryId, from, to, PageRequest.of(0, MERGE_FETCH_LIMIT))
+                    .forEach(e -> combined.add(SearchResultResponse.fromCelebration(e)));
         }
         if (type == null || type == SearchResultType.GALLERY) {
             galleryService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
                     .forEach(g -> combined.add(SearchResultResponse.fromGallery(g)));
         }
-        if (type == null || type == SearchResultType.BUSINESS) {
-            businessService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
-                    .forEach(b -> combined.add(SearchResultResponse.fromBusiness(b)));
+        if (type == null || type == SearchResultType.EPISODE) {
+            seriesService.search(query, categoryId, PageRequest.of(0, MERGE_FETCH_LIMIT))
+                    .forEach(e -> combined.add(SearchResultResponse.fromEpisode(e.episode(), e.series())));
         }
         addCategoryMatches(combined, query, type, categoryId, from, to);
         combined.sort(Comparator.comparing(SearchResultResponse::publishedAt).reversed());
@@ -118,30 +119,30 @@ public class SearchService {
         PageRequest pageable = PageRequest.of(0, MERGE_FETCH_LIMIT);
 
         for (UUID id : categoryIds) {
-            if (type == null || type == SearchResultType.ARTICLE) {
-                articleService.listPublished(id, pageable)
-                        .forEach(a -> addIfNew(combined, seen, SearchResultResponse.fromArticle(a)));
+            if (type == null || type == SearchResultType.PUBLICATION) {
+                publicationService.listPublished(id, pageable)
+                        .forEach(a -> addIfNew(combined, seen, SearchResultResponse.fromPublication(a)));
             }
             if (type == null || type == SearchResultType.PLACE) {
                 placeService.listPublished(id, pageable)
                         .forEach(p -> addIfNew(combined, seen, SearchResultResponse.fromPlace(p)));
             }
-            if (type == null || type == SearchResultType.EVENT) {
+            if (type == null || type == SearchResultType.CELEBRATION) {
                 // Próximos y pasados: la búsqueda de texto tampoco distingue.
                 for (boolean upcoming : new boolean[] {true, false}) {
-                    eventService.listPublished(id, upcoming, pageable).stream()
-                            .filter(e -> from == null || !e.getStartsAt().isBefore(from))
-                            .filter(e -> to == null || !e.getStartsAt().isAfter(to))
-                            .forEach(e -> addIfNew(combined, seen, SearchResultResponse.fromEvent(e)));
+                    celebrationService.listPublished(id, upcoming, pageable).stream()
+                            .filter(e -> from == null || !e.getNextOccurrence().isBefore(from))
+                            .filter(e -> to == null || !e.getNextOccurrence().isAfter(to))
+                            .forEach(e -> addIfNew(combined, seen, SearchResultResponse.fromCelebration(e)));
                 }
             }
             if (type == null || type == SearchResultType.GALLERY) {
                 galleryService.listPublished(id, pageable)
                         .forEach(g -> addIfNew(combined, seen, SearchResultResponse.fromGallery(g)));
             }
-            if (type == null || type == SearchResultType.BUSINESS) {
-                businessService.listPublished(id, null, pageable)
-                        .forEach(b -> addIfNew(combined, seen, SearchResultResponse.fromBusiness(b)));
+            if (type == null || type == SearchResultType.EPISODE) {
+                seriesService.listPublishedForFeed(id, pageable)
+                        .forEach(e -> addIfNew(combined, seen, SearchResultResponse.fromEpisode(e.episode(), e.series())));
             }
         }
     }

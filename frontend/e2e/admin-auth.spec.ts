@@ -10,7 +10,7 @@ const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD ?? "";
 
 async function fillLoginForm(page: Page): Promise<void> {
   await page.getByLabel("Correo electrónico").fill(ADMIN_EMAIL);
-  await page.getByLabel("Contraseña").fill(ADMIN_PASSWORD);
+  await page.getByLabel("Contraseña", { exact: true }).fill(ADMIN_PASSWORD);
   await page.getByRole("button", { name: "Iniciar sesión" }).click();
 }
 
@@ -23,7 +23,7 @@ test.describe("Autenticación admin", () => {
   test("login con credenciales incorrectas muestra error y no redirige", async ({ page }) => {
     await page.goto("/admin/login");
     await page.getByLabel("Correo electrónico").fill("no-existe@plataforma-contenidos.test");
-    await page.getByLabel("Contraseña").fill("ContraseñaIncorrecta123!");
+    await page.getByLabel("Contraseña", { exact: true }).fill("ContraseñaIncorrecta123!");
     await page.getByRole("button", { name: "Iniciar sesión" }).click();
     await expect(page.getByRole("alert")).toBeVisible();
     await expect(page).toHaveURL(/\/admin\/login/);
@@ -41,9 +41,9 @@ test.describe("Autenticación admin", () => {
   });
 
   test("tras iniciar sesión, /admin/login redirige al destino solicitado originalmente", async ({ page }) => {
-    await page.goto("/admin/eventos");
-    await expect(page).toHaveURL(/from=%2Fadmin%2Feventos/);
+    await page.goto("/admin/celebraciones");
+    await expect(page).toHaveURL(/from=%2Fadmin%2Fcelebraciones/);
     await fillLoginForm(page);
-    await expect(page).toHaveURL(/\/admin\/eventos/, { timeout: 10_000 });
+    await expect(page).toHaveURL(/\/admin\/celebraciones/, { timeout: 10_000 });
   });
 });

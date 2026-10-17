@@ -1,5 +1,5 @@
 import type { ContentVideo } from "@/lib/api/types";
-import { YouTubeEmbed } from "@/components/article/youtube-embed";
+import { YouTubeEmbed } from "@/components/content/youtube-embed";
 import { MediaCarousel, MediaCaption } from "./media-carousel";
 
 /**
@@ -7,15 +7,15 @@ import { MediaCarousel, MediaCaption } from "./media-carousel";
  * ContentImageGallery: un solo video se muestra fijo, varios se navegan
  * como carrusel (ver MediaCarousel).
  */
-export function ContentVideoGallery({ videos, title }: { videos: ContentVideo[]; title: string }) {
+export function ContentVideoGallery({ videos, title, spacing = "" }: { videos: ContentVideo[]; title: string; spacing?: string }) {
   if (videos.length === 0) return null;
 
   if (videos.length === 1) {
     const video = videos[0];
     return (
-      <figure className="my-8">
-        <div className="overflow-hidden rounded-2xl border border-border shadow-lg">
-          <YouTubeEmbed videoId={video.videoId} title={video.title ?? title} />
+      <figure className={spacing}>
+        <div className="overflow-hidden sm:rounded-2xl">
+          <YouTubeEmbed videoId={video.videoId} title={video.title ?? title} vertical={video.vertical} />
         </div>
         <MediaCaption title={video.title} caption={video.caption} />
       </figure>
@@ -24,12 +24,12 @@ export function ContentVideoGallery({ videos, title }: { videos: ContentVideo[];
 
   const captions = videos.map((video) => ({ title: video.title, caption: video.caption }));
   const slides = videos.map((video, index) => (
-    <YouTubeEmbed key={video.videoId} videoId={video.videoId} title={video.title ?? `${title} — video ${index + 1}`} />
+    <YouTubeEmbed key={video.videoId} videoId={video.videoId} title={video.title ?? `${title} — video ${index + 1}`} vertical={video.vertical} />
   ));
 
   return (
     <MediaCarousel
-      spacing="my-8"
+      spacing={spacing}
       background=""
       slides={slides}
       captions={captions}

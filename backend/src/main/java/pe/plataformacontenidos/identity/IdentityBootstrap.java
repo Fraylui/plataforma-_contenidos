@@ -9,7 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 /**
- * Crea el primer SUPER_ADMIN al arrancar, solo si todavía no existe ninguno.
+ * Crea la cuenta del dueño al arrancar, solo si todavía no existe ninguno.
  * Las credenciales nunca están en el código: vienen de variables de entorno
  * (BOOTSTRAP_ADMIN_EMAIL / BOOTSTRAP_ADMIN_PASSWORD). Si no están definidas,
  * simplemente no hace nada (no rompe arranques normales una vez bootstrapeado).
@@ -35,19 +35,19 @@ public class IdentityBootstrap implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (userRepository.existsByRole(Role.SUPER_ADMIN)) {
+        if (userRepository.existsByRole(Role.OWNER)) {
             return;
         }
 
         if (bootstrapEmail.isBlank() || bootstrapPassword.isBlank()) {
-            log.warn("No existe SUPER_ADMIN y no se definieron BOOTSTRAP_ADMIN_EMAIL / "
+            log.warn("No existe la cuenta del dueño y no se definieron BOOTSTRAP_ADMIN_EMAIL / "
                     + "BOOTSTRAP_ADMIN_PASSWORD: el sistema queda sin administrador hasta que se configuren.");
             return;
         }
 
         User admin = new User(bootstrapEmail, passwordEncoder.encode(bootstrapPassword),
-                "Administrador", "Inicial", Role.SUPER_ADMIN);
+                "Administrador", "Inicial", Role.OWNER);
         userRepository.save(admin);
-        log.info("SUPER_ADMIN inicial creado para {}", bootstrapEmail);
+        log.info("Cuenta del dueño creada para {}", bootstrapEmail);
     }
 }

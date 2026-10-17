@@ -1,5 +1,7 @@
 package pe.plataformacontenidos.places;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -10,25 +12,24 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface PlaceRepository extends JpaRepository<Place, UUID> {
+public interface PlaceRepository extends JpaRepository<Place, UUID>, JpaSpecificationExecutor<Place> {
 
-    Optional<Place> findBySlugAndStatus(String slug, PlaceStatus status);
+    Optional<Place> findBySlugAndStatus(String slug, PublicationStatus status);
 
     boolean existsBySlug(String slug);
 
-    Page<Place> findByStatus(PlaceStatus status, Pageable pageable);
+    Page<Place> findByStatus(PublicationStatus status, Pageable pageable);
 
-    Page<Place> findByStatusAndCategoryId(PlaceStatus status, UUID categoryId, Pageable pageable);
+    Page<Place> findByStatusAndCategoryId(PublicationStatus status, UUID categoryId, Pageable pageable);
 
-    List<Place> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 
-    List<Place> findByStatusAndScheduledAtBefore(PlaceStatus status, Instant threshold);
+    List<Place> findByStatusAndScheduledAtBefore(PublicationStatus status, Instant threshold);
 
-    long countByStatus(PlaceStatus status);
+    long countByStatus(PublicationStatus status);
 
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre lugares
-     * publicados — mismo patrón que ArticleRepository.search
+     * publicados — mismo patrón que PublicationRepository.search
      * (V15__place_search.sql, unaccent en V36__search_unaccent.sql).
      */
     @Query(value = """

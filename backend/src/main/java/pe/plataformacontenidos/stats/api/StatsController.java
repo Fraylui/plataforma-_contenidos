@@ -1,5 +1,8 @@
 package pe.plataformacontenidos.stats.api;
 
+import pe.plataformacontenidos.identity.permission.AccessLevel;
+import pe.plataformacontenidos.identity.permission.Module;
+import pe.plataformacontenidos.identity.permission.RequiresModule;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -8,6 +11,7 @@ import pe.plataformacontenidos.stats.api.dto.PlatformStatsResponse;
 
 /** Panel de estadísticas básicas (CONTEXTO.md sección 11/34). Restringido en SecurityConfig. */
 @RestController
+@RequiresModule(value = Module.STATS, level = AccessLevel.ACCESS)
 @RequestMapping("/api/v1/admin/stats")
 public class StatsController {
 

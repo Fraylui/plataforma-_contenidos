@@ -119,7 +119,7 @@ def main():
                 "texto, imágenes, categorías, etiquetas y ubicación geográfica en una página real.\n\n"
                 "Cuando exista contenido real, esta guía de muestra debe eliminarse."
             ),
-            "articleType": "GUIA",
+            "publicationType": "GUIA",
             "categoryId": categories["Turismo"],
             "geographyId": huamanga,
             "tagNames": ["prueba", "turismo"],
@@ -135,7 +135,7 @@ def main():
                 "Texto de relleno para revisar el ritmo de lectura, el ancho de línea y el "
                 "espaciado tipográfico en la página de detalle."
             ),
-            "articleType": "HISTORIA",
+            "publicationType": "HISTORIA",
             "categoryId": categories["Cultura"],
             "tagNames": ["prueba", "cultura", "tradiciones"],
             "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
@@ -147,7 +147,7 @@ def main():
                 "Guía de EJEMPLO en la categoría Tecnología, para verificar que el filtrado por "
                 "categoría en el listado público funciona con más de un tema."
             ),
-            "articleType": "TUTORIAL",
+            "publicationType": "TUTORIAL",
             "categoryId": categories["Tecnología"],
             "tagNames": ["prueba", "tecnologia", "remoto"],
         },
@@ -158,7 +158,7 @@ def main():
                 "Ranking de EJEMPLO para probar el tipo de contenido RANKING junto con "
                 "geographyId apuntando a una región distinta (Cusco)."
             ),
-            "articleType": "RANKING",
+            "publicationType": "RANKING",
             "categoryId": categories["Gastronomía"],
             "geographyId": cusco,
             "tagNames": ["prueba", "gastronomia", "cusco"],
@@ -170,7 +170,7 @@ def main():
                 "Guía de EJEMPLO sobre caminatas cortas, usada para probar la combinación "
                 "categoría Naturaleza + región Arequipa en el listado público."
             ),
-            "articleType": "GUIA",
+            "publicationType": "GUIA",
             "categoryId": categories["Naturaleza"],
             "geographyId": arequipa,
             "tagNames": ["prueba", "naturaleza", "arequipa"],
@@ -202,7 +202,7 @@ def main():
                 "paginación, filtros y rendimiento del listado público con más registros.\n\n"
                 "Cuando exista contenido real, esta publicación de muestra debe eliminarse."
             ),
-            "articleType": article_type,
+            "publicationType": article_type,
             "categoryId": categories[category_name],
             "tagNames": ["prueba", "volumen"],
         }
@@ -211,8 +211,8 @@ def main():
         articles.append(article_input)
 
     for article_input in articles:
-        created = request("POST", "/api/v1/admin/articles", token=editor_token, body=article_input)
-        publish_workflow(editor_token, "/api/v1/admin/articles", created["id"])
+        created = request("POST", "/api/v1/admin/publications", token=editor_token, body=article_input)
+        publish_workflow(editor_token, "/api/v1/admin/publications", created["id"])
         print(f"Publicación publicada: {created['title']} -> slug={created['slug']}")
 
     places = [
@@ -291,8 +291,8 @@ def main():
     ]
 
     for event_input in events:
-        created = request("POST", "/api/v1/admin/events", token=editor_token, body=event_input)
-        publish_workflow(editor_token, "/api/v1/admin/events", created["id"])
+        created = request("POST", "/api/v1/admin/celebrations", token=editor_token, body=event_input)
+        publish_workflow(editor_token, "/api/v1/admin/celebrations", created["id"])
         print(f"Evento publicado: {created['title']} -> slug={created['slug']}")
 
     print("\nSeed de datos de prueba completo.")

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getFeed } from "@/lib/api/client";
 import type { Category } from "@/lib/api/types";
 import { fromFeedItem } from "@/lib/home-items";
-import { ContentCard } from "@/components/home/content-card";
+import { GridTile } from "@/components/post/grid-tile";
 
 const RECENT_SIZE = 6;
 const MAX_TOPICS = 6;
@@ -38,13 +38,11 @@ function matchingTopics(query: string, categories: Category[]): Category[] {
 export async function SearchSuggestions({
   query,
   categories,
-  categoryNames,
   excludeIds,
   hasResults,
 }: {
   query: string;
   categories: Category[];
-  categoryNames: Record<string, string>;
   excludeIds: string[];
   hasResults: boolean;
 }) {
@@ -56,7 +54,7 @@ export async function SearchSuggestions({
   if (topics.length === 0 && recent.length === 0) return null;
 
   return (
-    <div className={hasResults ? "mt-14 border-t border-foreground/[0.06] pt-10" : "mt-8"}>
+    <div className={hasResults ? "mt-12" : "mt-8"}>
       {topics.length > 0 && (
         <section aria-labelledby="temas-sugeridos">
           <h2 id="temas-sugeridos" className="text-sm font-bold tracking-tight text-foreground">
@@ -67,7 +65,7 @@ export async function SearchSuggestions({
               <li key={topic.id}>
                 <Link
                   href={`/categorias/${topic.slug}`}
-                  className="inline-flex min-h-10 items-center rounded-full border border-foreground/[0.08] bg-surface px-4 text-sm font-semibold text-foreground transition-colors hover:border-accent hover:bg-accent-soft hover:text-accent"
+                  className="inline-flex min-h-10 items-center rounded-full bg-canvas-strong px-4 text-sm font-semibold text-foreground transition-colors hover:bg-accent-soft hover:text-accent"
                 >
                   {topic.name}
                 </Link>
@@ -82,11 +80,14 @@ export async function SearchSuggestions({
           <h2 id="lo-mas-reciente" className="text-sm font-bold tracking-tight text-foreground">
             {hasResults ? "También te puede interesar" : "Mientras tanto, lo más reciente"}
           </h2>
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {/* Misma cuadrícula de 3 que Explorar y los resultados. */}
+          <ul className="mt-3 grid grid-cols-3 gap-0.5 sm:gap-1">
             {recent.map((item) => (
-              <ContentCard key={item.id} item={item} categoryName={categoryNames[item.categoryId]} />
+              <li key={item.id}>
+                <GridTile item={item} />
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       )}
     </div>

@@ -3,19 +3,26 @@ package pe.plataformacontenidos.advertising;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.Set;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.type.SqlTypes;
 import pe.plataformacontenidos.shared.ContentImage;
 
 /**
  * Banner directo vendido a un {@link Advertiser} para una posición existente
  * (`placementKey`, referencia libre a AdPlacement.key — igual que
- * Article.categoryId, sin FK entre schemas de dominio, validado en
+ * Publication.categoryId, sin FK entre schemas de dominio, validado en
  * CampaignService). Mientras haya una campaña activa y vigente para una
  * posición, AdBlock la muestra en vez de caer a AdSense (frontend).
  * `creative` reutiliza el mismo patrón XOR (subida o enlace externo) que
@@ -24,6 +31,9 @@ import pe.plataformacontenidos.shared.ContentImage;
 @Entity
 @Table(name = "campaigns", schema = "advertising")
 public class Campaign {
+
+    /** Peso de rotación por defecto, a mitad de la escala 1–10 (ver CampaignRotation). */
+    public static final int DEFAULT_WEIGHT = 5;
 
     @Id
     @GeneratedValue
@@ -36,8 +46,29 @@ public class Campaign {
     @Column(name = "placement_key", nullable = false)
     private String placementKey;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CampaignFormat format = CampaignFormat.BANNER;
+
+    /** Banner: siempre. Nativo: la foto (null si el medio es un video de YouTube). */
     @Embedded
     private ContentImage creative;
+
+    // Solo anuncio nativo (ver NativeAd); null en banners.
+    @Column(name = "primary_text")
+    private String primaryText;
+
+    private String headline;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "call_to_action")
+    private CallToAction callToAction;
+
+    @Column(name = "youtube_video_id")
+    private String youtubeVideoId;
+
+    @Column(name = "media_aspect")
+    private String mediaAspect;
 
     @Column(name = "link_url", nullable = false)
     private String linkUrl;
@@ -58,11 +89,39 @@ public class Campaign {
     @Column(nullable = false)
     private boolean active = true;
 
+    /** 1–10: con varias campañas en la misma posición, cuánto más seguido sale esta (selección ponderada). */
+    @Column(nullable = false)
+    private int weight = DEFAULT_WEIGHT;
+
+    // Segmentación (ver CampaignTargeting): arrays de Postgres, vacíos = sin restricción.
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "target_sections", nullable = false, columnDefinition = "text[]")
+    private String[] targetSections = new String[0];
+
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "target_category_ids", nullable = false, columnDefinition = "uuid[]")
+    private UUID[] targetCategoryIds = new UUID[0];
+
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "target_countries", nullable = false, columnDefinition = "text[]")
+    private String[] targetCountries = new String[0];
+
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "target_regions", nullable = false, columnDefinition = "text[]")
+    private String[] targetRegions = new String[0];
+
+    /** Última vez que el dueño confirmó las condiciones de la oferta (D.L. 1044, art. 17.3.f); null = campaña anterior a la regla. */
+    @Column(name = "compliance_confirmed_at")
+    private Instant complianceConfirmedAt;
+
     @Column(name = "impression_count", nullable = false)
     private long impressionCount = 0;
 
     @Column(name = "click_count", nullable = false)
     private long clickCount = 0;
+
+    @Column(name = "play_count", nullable = false)
+    private long playCount = 0;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
@@ -75,7 +134,7 @@ public class Campaign {
     }
 
     public Campaign(UUID advertiserId, String placementKey, ContentImage creative, String linkUrl, Instant startsAt,
-            Instant endsAt, BigDecimal amount, String currency) {
+            Instant endsAt, BigDecimal amount, String currency, int weight, CampaignTargeting targeting) {
         this.advertiserId = advertiserId;
         this.placementKey = placementKey;
         this.creative = creative;
@@ -84,6 +143,8 @@ public class Campaign {
         this.endsAt = endsAt;
         this.amount = amount;
         this.currency = currency;
+        this.weight = weight;
+        setTargeting(targeting);
     }
 
     public UUID getId() {
@@ -98,8 +159,30 @@ public class Campaign {
         return placementKey;
     }
 
+    public CampaignFormat getFormat() {
+        return format;
+    }
+
+    /** Banner: la imagen. Nativo: la foto, o null si el medio es un video. */
     public ContentImage getCreative() {
         return creative;
+    }
+
+    /** null si es un banner. */
+    public NativeAd getNativeAd() {
+        return format == CampaignFormat.NATIVE
+                ? new NativeAd(primaryText, headline, callToAction, youtubeVideoId, mediaAspect)
+                : null;
+    }
+
+    /** Banner ({@code nativeAd} null) o nativo; la creatividad la fijan el constructor y {@link #update}. */
+    public void setNativeAd(NativeAd nativeAd) {
+        this.format = nativeAd == null ? CampaignFormat.BANNER : CampaignFormat.NATIVE;
+        this.primaryText = nativeAd == null ? null : nativeAd.primaryText();
+        this.headline = nativeAd == null ? null : nativeAd.headline();
+        this.callToAction = nativeAd == null ? null : nativeAd.callToAction();
+        this.youtubeVideoId = nativeAd == null ? null : nativeAd.youtubeVideoId();
+        this.mediaAspect = nativeAd == null ? null : nativeAd.mediaAspect();
     }
 
     public String getLinkUrl() {
@@ -126,6 +209,23 @@ public class Campaign {
         return active;
     }
 
+    public int getWeight() {
+        return weight;
+    }
+
+    public CampaignTargeting getTargeting() {
+        return new CampaignTargeting(
+                Arrays.stream(targetSections).map(AdSection::valueOf).collect(Collectors.toSet()),
+                Set.of(targetCategoryIds), Set.of(targetCountries), Set.of(targetRegions));
+    }
+
+    private void setTargeting(CampaignTargeting targeting) {
+        this.targetSections = targeting.sections().stream().map(Enum::name).sorted().toArray(String[]::new);
+        this.targetCategoryIds = targeting.categoryIds().toArray(UUID[]::new);
+        this.targetCountries = targeting.countries().stream().sorted().toArray(String[]::new);
+        this.targetRegions = targeting.regions().stream().sorted().toArray(String[]::new);
+    }
+
     public long getImpressionCount() {
         return impressionCount;
     }
@@ -134,12 +234,16 @@ public class Campaign {
         return clickCount;
     }
 
+    public long getPlayCount() {
+        return playCount;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
 
     public void update(String placementKey, ContentImage creative, String linkUrl, Instant startsAt,
-            Instant endsAt, BigDecimal amount, String currency) {
+            Instant endsAt, BigDecimal amount, String currency, int weight, CampaignTargeting targeting) {
         this.placementKey = placementKey;
         this.creative = creative;
         this.linkUrl = linkUrl;
@@ -147,20 +251,23 @@ public class Campaign {
         this.endsAt = endsAt;
         this.amount = amount;
         this.currency = currency;
+        this.weight = weight;
+        setTargeting(targeting);
         this.updatedAt = Instant.now();
+    }
+
+    public Instant getComplianceConfirmedAt() {
+        return complianceConfirmedAt;
+    }
+
+    /** Se llama en cada alta y edición: la confirmación vale para la versión guardada del anuncio. */
+    public void confirmCompliance() {
+        this.complianceConfirmedAt = Instant.now();
     }
 
     public void setActive(boolean active) {
         this.active = active;
         this.updatedAt = Instant.now();
-    }
-
-    public void recordImpression() {
-        this.impressionCount++;
-    }
-
-    public void recordClick() {
-        this.clickCount++;
     }
 
     /** Vigente = activa y, si tiene fechas, dentro del rango. Sin fechas de inicio/fin, corre indefinidamente. */

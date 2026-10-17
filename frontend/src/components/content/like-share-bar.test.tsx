@@ -3,9 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { axe } from "vitest-axe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LikeShareBar } from "./like-share-bar";
-import { CardActions } from "./card-actions";
 
-const props = { contentType: "articles" as const, slug: "mi-articulo", initialLikeCount: 7, title: "Mi publicación" };
+const props = { contentType: "publications" as const, slug: "mi-articulo", initialLikeCount: 7, title: "Mi publicación" };
 
 describe("LikeShareBar (integración de componente: fetch, localStorage, Web Share API/clipboard)", () => {
   beforeEach(() => {
@@ -23,6 +22,16 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
     expect(await axe(container)).toHaveNoViolations();
   });
 
+  it("barra de post (Instagram): sin bordes ni cajas y con las acciones del tipo al lado", () => {
+    const { container } = render(
+      <LikeShareBar {...props}>
+        <a href="https://maps.example">Cómo llegar</a>
+      </LikeShareBar>,
+    );
+    expect(container.querySelector("[class*='border']")).toBeNull();
+    expect(screen.getByRole("link", { name: "Cómo llegar" })).toBeInTheDocument();
+  });
+
   it("Me gusta llama al endpoint con el visitorId, actualiza el conteo y recuerda el estado", async () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockResolvedValue(
@@ -34,9 +43,9 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
 
     await waitFor(() => expect(screen.getByRole("button", { name: /8\s*Me gusta/ })).toHaveAttribute("aria-pressed", "true"));
     const url = vi.mocked(fetch).mock.calls[0][0] as string;
-    expect(url).toMatch(/^\/api\/content\/articles\/mi-articulo\/like\?visitorId=[0-9a-f-]{36}$/);
+    expect(url).toMatch(/^\/api\/content\/publications\/mi-articulo\/like\?visitorId=[0-9a-f-]{36}$/);
     expect(vi.mocked(fetch).mock.calls[0][1]).toMatchObject({ method: "POST" });
-    expect(localStorage.getItem("liked:articles:mi-articulo")).toBe("1");
+    expect(localStorage.getItem("liked:publications:mi-articulo")).toBe("1");
     // El visitorId se persiste para deduplicar en el backend.
     expect(localStorage.getItem("visitor-id")).toMatch(/[0-9a-f-]{36}/);
   });
@@ -50,7 +59,7 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
 
     await waitFor(() => expect(screen.getByRole("button", { name: /Me gusta/ })).toBeEnabled());
     expect(screen.getByRole("button", { name: /7\s*Me gusta/ })).toHaveAttribute("aria-pressed", "false");
-    expect(localStorage.getItem("liked:articles:mi-articulo")).toBeNull();
+    expect(localStorage.getItem("liked:publications:mi-articulo")).toBeNull();
   });
 
   it("Compartir usa el diálogo nativo cuando existe", async () => {
@@ -76,24 +85,5 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
 
     expect(writeText).toHaveBeenCalledWith(window.location.href);
     expect(await screen.findByText("Enlace copiado")).toBeInTheDocument();
-  });
-});
-
-describe("CardActions (versión compacta: sí usa Web Share API cuando existe)", () => {
-  const cardProps = { ...props, path: "/publicaciones/mi-articulo" };
-
-  it("con Web Share API usa el diálogo nativo", async () => {
-    const user = userEvent.setup();
-    const share = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, "share", { value: share, configurable: true });
-    render(<CardActions {...cardProps} />);
-
-    await user.click(screen.getByRole("button", { name: "Compartir" }));
-
-    expect(share).toHaveBeenCalledWith({
-      title: "Mi publicación",
-      url: new URL("/publicaciones/mi-articulo", window.location.origin).toString(),
-    });
-    Object.defineProperty(navigator, "share", { value: undefined, configurable: true });
   });
 });

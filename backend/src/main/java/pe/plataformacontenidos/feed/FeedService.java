@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,19 +15,25 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import pe.plataformacontenidos.content.Article;
-import pe.plataformacontenidos.content.ArticleService;
+import pe.plataformacontenidos.content.Publication;
+import pe.plataformacontenidos.content.PublicationService;
 import pe.plataformacontenidos.engagement.ContentLikeService;
 import pe.plataformacontenidos.engagement.ContentType;
-import pe.plataformacontenidos.events.Event;
-import pe.plataformacontenidos.events.EventService;
+import pe.plataformacontenidos.celebrations.Celebration;
+import pe.plataformacontenidos.celebrations.CelebrationService;
 import pe.plataformacontenidos.feed.api.dto.FeedItemResponse;
 import pe.plataformacontenidos.feed.api.dto.FeedPageResponse;
+import pe.plataformacontenidos.feed.api.dto.FeedTopicResponse;
+import pe.plataformacontenidos.taxonomy.Category;
+import pe.plataformacontenidos.galleries.Gallery;
+import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.places.Place;
 import pe.plataformacontenidos.places.PlaceService;
+import pe.plataformacontenidos.series.SeriesService;
+import pe.plataformacontenidos.taxonomy.CategoryService;
 
 /**
- * Feed unificado del home (Publicaciones + Lugares + Eventos), pensado para
+ * Feed unificado (Publicaciones, Lugares, Eventos, Galerías, Directorio y episodios de Series), pensado para
  * scroll infinito sin repetir contenido y sin que un solo tipo/categoría
  * domine la vista. Mismo principio arquitectónico que search.SearchService
  * (CONTEXTO.md sección 16 y 38): se agrega en memoria llamando a los
@@ -48,59 +55,92 @@ public class FeedService {
     // la señal es un motor de búsqueda/recomendación real, no optimizar esto.
     private static final int CANDIDATE_POOL_LIMIT = 200;
     private static final int RELATED_POOL_LIMIT = 40;
+    // Episodios: el orden (más nuevo primero) ya viene en la consulta, sin Sort de Spring Data.
+    private static final Pageable EPISODE_POOL = PageRequest.of(0, CANDIDATE_POOL_LIMIT);
     // Techo defensivo de excludeIds que acepta un request (OWASP A05 —
     // evita que un cliente hostil fuerce un IN (...) o un filtrado en
     // memoria de tamaño arbitrario).
     private static final int MAX_EXCLUDE_IDS = 300;
 
-    private final ArticleService articleService;
+    private final PublicationService publicationService;
     private final PlaceService placeService;
-    private final EventService eventService;
+    private final CelebrationService celebrationService;
+    private final GalleryService galleryService;
+    private final CategoryService categoryService;
     private final ContentLikeService contentLikeService;
+    private final FeedCandidateCache candidateCache;
+    private final SeriesService seriesService;
 
-    public FeedService(ArticleService articleService, PlaceService placeService, EventService eventService,
-            ContentLikeService contentLikeService) {
-        this.articleService = articleService;
+    public FeedService(PublicationService publicationService, PlaceService placeService, CelebrationService celebrationService,
+            GalleryService galleryService, CategoryService categoryService,
+            ContentLikeService contentLikeService, FeedCandidateCache candidateCache, SeriesService seriesService) {
+        this.publicationService = publicationService;
         this.placeService = placeService;
-        this.eventService = eventService;
+        this.celebrationService = celebrationService;
+        this.galleryService = galleryService;
+        this.categoryService = categoryService;
         this.contentLikeService = contentLikeService;
+        this.candidateCache = candidateCache;
+        this.seriesService = seriesService;
     }
 
     /** Tipos que forman parte del feed (las pestañas del home solo pueden pedir uno de estos). */
-    public static final Set<ContentType> FEED_TYPES = Set.of(ContentType.ARTICLE, ContentType.PLACE, ContentType.EVENT);
+    public static final Set<ContentType> FEED_TYPES = Set.of(ContentType.PUBLICATION, ContentType.PLACE, ContentType.CELEBRATION,
+            ContentType.GALLERY, ContentType.EPISODE);
 
     /**
      * {@code type} null = todos los tipos mezclados ("Para ti"); si no, solo
      * ese tipo (pestañas del home). Mismo orden y antirrepetición en ambos
      * casos; con un solo tipo no se consulta a los otros servicios.
+     *
+     * <p>{@code categoryId}: solo ese tema y sus subtemas (círculos de temas,
+     * páginas de tema). {@code upcoming} con {@code type=CELEBRATION}: Celebraciones —
+     * próximos eventos por fecha de inicio, sin diversificar (en una agenda
+     * el orden útil es el cronológico).
      */
-    public FeedPageResponse getFeed(int size, List<UUID> excludeIds, String seed, ContentType type) {
+    public FeedPageResponse getFeed(int size, List<UUID> excludeIds, String seed, ContentType type, UUID categoryId,
+            boolean upcoming) {
         if (type != null && !FEED_TYPES.contains(type)) {
             throw new InvalidFeedTypeException(type);
         }
         Set<UUID> excluded = boundedExcludeSet(excludeIds);
-        Pageable pageable = PageRequest.of(0, CANDIDATE_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
-
-        List<Article> articles = includes(type, ContentType.ARTICLE)
-                ? articleService.listPublished(null, pageable).getContent().stream()
-                        .filter(a -> !excluded.contains(a.getId())).toList()
-                : List.of();
-        List<Place> places = includes(type, ContentType.PLACE)
-                ? placeService.listPublished(null, pageable).getContent().stream()
-                        .filter(p -> !excluded.contains(p.getId())).toList()
-                : List.of();
-        // Solo próximos: un feed de descubrimiento no debe recomendar eventos que ya pasaron.
-        List<Event> events = includes(type, ContentType.EVENT)
-                ? eventService.listPublished(null, true, pageable).getContent().stream()
-                        .filter(e -> !excluded.contains(e.getId())).toList()
-                : List.of();
-
-        List<FeedItemResponse> pool = buildPool(articles, places, events);
-        List<FeedItemResponse> ordered = diversify(pool, seed);
+        List<FeedItemResponse> pool = candidateCache.candidates(type, () -> buildCandidates(type)).stream()
+                .filter(item -> !excluded.contains(item.id()))
+                .toList();
+        if (categoryId != null) {
+            Set<UUID> topic = categoryService.descendants(categoryId);
+            pool = pool.stream().filter(item -> topic.contains(item.categoryId())).toList();
+        }
+        List<FeedItemResponse> ordered = upcoming && type == ContentType.CELEBRATION
+                ? pool.stream().sorted(Comparator.comparing(FeedItemResponse::startsAt,
+                        Comparator.nullsLast(Comparator.naturalOrder()))).toList()
+                : diversify(pool, seed);
 
         List<FeedItemResponse> page = ordered.stream().limit(size).toList();
         boolean hasMore = ordered.size() > page.size();
         return new FeedPageResponse(page, hasMore);
+    }
+
+    /** Candidatos de un tipo (o de todos) sin filtrar: los mismos para cualquier visitante (ver FeedCandidateCache). */
+    private List<FeedItemResponse> buildCandidates(ContentType type) {
+        Pageable pageable = PageRequest.of(0, CANDIDATE_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
+        List<Publication> publications = includes(type, ContentType.PUBLICATION)
+                ? publicationService.listPublished(null, pageable).getContent()
+                : List.of();
+        List<Place> places = includes(type, ContentType.PLACE)
+                ? placeService.listPublished(null, pageable).getContent()
+                : List.of();
+        // Solo próximos: un feed de descubrimiento no debe recomendar eventos que ya pasaron.
+        List<Celebration> celebrations = includes(type, ContentType.CELEBRATION)
+                ? celebrationService.listPublished(null, true, pageable).getContent()
+                : List.of();
+        List<Gallery> galleries = includes(type, ContentType.GALLERY)
+                ? galleryService.listPublished(null, pageable).getContent()
+                : List.of();
+        List<SeriesService.FeedEpisode> episodes = includes(type, ContentType.EPISODE)
+                ? seriesService.listPublishedForFeed(null, EPISODE_POOL)
+                : List.of();
+        return buildPool(publications, places, celebrations, galleries, episodes);
     }
 
     private static boolean includes(ContentType requested, ContentType candidate) {
@@ -118,15 +158,97 @@ public class FeedService {
     public List<FeedItemResponse> getTopLiked(int size) {
         Pageable pageable = PageRequest.of(0, CANDIDATE_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
         List<FeedItemResponse> pool = buildPool(
-                articleService.listPublished(null, pageable).getContent(),
+                publicationService.listPublished(null, pageable).getContent(),
                 placeService.listPublished(null, pageable).getContent(),
-                eventService.listPublished(null, true, pageable).getContent());
+                celebrationService.listPublished(null, true, pageable).getContent(),
+                galleryService.listPublished(null, pageable).getContent(),
+                seriesService.listPublishedForFeed(null, EPISODE_POOL));
         return pool.stream()
                 .filter(item -> item.likeCount() > 0)
                 .sorted(Comparator.comparingLong(FeedItemResponse::likeCount).reversed()
                         .thenComparing(FeedItemResponse::publishedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                 .limit(Math.max(size, 1))
                 .toList();
+    }
+
+    /**
+     * Círculos de temas del feed: solo temas raíz activos con contenido
+     * publicado (propio o de sus subtemas). Orden por actividad de la semana
+     * — `publicados_7d + 0.5 · me_gusta_7d` (algoritmo B de CONTEXTO §45.2) —
+     * y, a igualdad, por el orden del panel. Portada: la imagen del contenido
+     * más reciente que tenga una (cero trabajo de carga para el admin).
+     */
+    public List<FeedTopicResponse> getTopics() {
+        Instant now = Instant.now();
+        Instant weekAgo = now.minus(Duration.ofDays(7));
+        Instant newSince = now.minus(Duration.ofHours(NEW_TOPIC_HOURS));
+        Pageable pageable = PageRequest.of(0, CANDIDATE_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
+        List<FeedItemResponse> pool = buildPool(
+                publicationService.listPublished(null, pageable).getContent(),
+                placeService.listPublished(null, pageable).getContent(),
+                celebrationService.listPublished(null, true, pageable).getContent(),
+                galleryService.listPublished(null, pageable).getContent(),
+                seriesService.listPublishedForFeed(null, EPISODE_POOL));
+
+        Map<UUID, Category> byId = new HashMap<>();
+        categoryService.listAll().forEach(c -> byId.put(c.getId(), c));
+        Map<UUID, List<FeedItemResponse>> byRoot = new LinkedHashMap<>();
+        for (FeedItemResponse item : pool) {
+            Category root = rootOf(item.categoryId(), byId);
+            if (root != null && root.isActive()) {
+                byRoot.computeIfAbsent(root.getId(), k -> new ArrayList<>()).add(item);
+            }
+        }
+
+        Map<UUID, Long> weeklyLikes = weeklyLikes(pool, weekAgo);
+        Map<UUID, Double> activity = new HashMap<>();
+        byRoot.forEach((rootId, items) -> activity.put(rootId, items.stream()
+                .mapToDouble(i -> (isAfter(i.publishedAt(), weekAgo) ? 1 : 0) + 0.5 * weeklyLikes.getOrDefault(i.id(), 0L))
+                .sum()));
+
+        return byRoot.entrySet().stream()
+                .sorted(Comparator.comparingDouble((Map.Entry<UUID, List<FeedItemResponse>> e) -> activity.get(e.getKey()))
+                        .reversed()
+                        .thenComparingInt(e -> byId.get(e.getKey()).getSortOrder()))
+                .map(e -> toTopic(byId.get(e.getKey()), e.getValue(), newSince))
+                .toList();
+    }
+
+    private static final int NEW_TOPIC_HOURS = 48;
+
+    private static Category rootOf(UUID categoryId, Map<UUID, Category> byId) {
+        Category current = categoryId == null ? null : byId.get(categoryId);
+        Set<UUID> seen = new HashSet<>();
+        while (current != null && current.getParentId() != null && seen.add(current.getId())) {
+            current = byId.get(current.getParentId());
+        }
+        return current;
+    }
+
+    private Map<UUID, Long> weeklyLikes(List<FeedItemResponse> pool, Instant since) {
+        Map<UUID, Long> likes = new HashMap<>();
+        for (ContentType type : FEED_TYPES) {
+            List<UUID> ids = pool.stream().filter(i -> i.type() == type).map(FeedItemResponse::id).toList();
+            likes.putAll(contentLikeService.countLikesSince(type, ids, since));
+        }
+        return likes;
+    }
+
+    private static boolean isAfter(Instant instant, Instant threshold) {
+        return instant != null && instant.isAfter(threshold);
+    }
+
+    private static FeedTopicResponse toTopic(Category category, List<FeedItemResponse> items, Instant newSince) {
+        Comparator<FeedItemResponse> newestFirst = Comparator.comparing(FeedItemResponse::publishedAt,
+                Comparator.nullsLast(Comparator.reverseOrder()));
+        FeedItemResponse cover = items.stream()
+                .filter(i -> i.coverImageId() != null || i.coverImageUrl() != null)
+                .sorted(newestFirst)
+                .findFirst()
+                .orElse(null);
+        boolean hasNew = items.stream().anyMatch(i -> isAfter(i.publishedAt(), newSince));
+        return new FeedTopicResponse(category.getId(), category.getName(), category.getSlug(),
+                cover == null ? null : cover.coverImageId(), cover == null ? null : cover.coverImageUrl(), hasNew);
     }
 
     /**
@@ -142,11 +264,14 @@ public class FeedService {
         }
         Pageable pageable = PageRequest.of(0, RELATED_POOL_LIMIT, Sort.by(Sort.Direction.DESC, "publishedAt"));
 
-        List<Article> articles = articleService.listPublished(categoryId, pageable).getContent();
+        List<Publication> publications = publicationService.listPublished(categoryId, pageable).getContent();
         List<Place> places = placeService.listPublished(categoryId, pageable).getContent();
-        List<Event> events = eventService.listPublished(categoryId, true, pageable).getContent();
+        List<Celebration> celebrations = celebrationService.listPublished(categoryId, true, pageable).getContent();
+        List<Gallery> galleries = galleryService.listPublished(categoryId, pageable).getContent();
+        List<SeriesService.FeedEpisode> episodes = seriesService.listPublishedForFeed(categoryId,
+                PageRequest.of(0, RELATED_POOL_LIMIT));
 
-        List<FeedItemResponse> pool = buildPool(articles, places, events).stream()
+        List<FeedItemResponse> pool = buildPool(publications, places, celebrations, galleries, episodes).stream()
                 .filter(item -> !(item.type() == excludeType && item.id().equals(excludeId)))
                 .toList();
 
@@ -157,18 +282,27 @@ public class FeedService {
                 .toList();
     }
 
-    private List<FeedItemResponse> buildPool(List<Article> articles, List<Place> places, List<Event> events) {
-        Map<UUID, Long> articleLikes = contentLikeService.countLikes(ContentType.ARTICLE,
-                articles.stream().map(Article::getId).toList());
+    private List<FeedItemResponse> buildPool(List<Publication> publications, List<Place> places, List<Celebration> celebrations,
+            List<Gallery> galleries, List<SeriesService.FeedEpisode> episodes) {
+        Map<UUID, Long> publicationLikes = contentLikeService.countLikes(ContentType.PUBLICATION,
+                publications.stream().map(Publication::getId).toList());
         Map<UUID, Long> placeLikes = contentLikeService.countLikes(ContentType.PLACE,
                 places.stream().map(Place::getId).toList());
-        Map<UUID, Long> eventLikes = contentLikeService.countLikes(ContentType.EVENT,
-                events.stream().map(Event::getId).toList());
+        Map<UUID, Long> celebrationLikes = contentLikeService.countLikes(ContentType.CELEBRATION,
+                celebrations.stream().map(Celebration::getId).toList());
+        Map<UUID, Long> galleryLikes = contentLikeService.countLikes(ContentType.GALLERY,
+                galleries.stream().map(Gallery::getId).toList());
+        Map<UUID, Long> episodeLikes = contentLikeService.countLikes(ContentType.EPISODE,
+                episodes.stream().map(e -> e.episode().getId()).toList());
 
-        List<FeedItemResponse> pool = new ArrayList<>(articles.size() + places.size() + events.size());
-        articles.forEach(a -> pool.add(FeedItemResponse.fromArticle(a, articleLikes.getOrDefault(a.getId(), 0L))));
+        List<FeedItemResponse> pool = new ArrayList<>(
+                publications.size() + places.size() + celebrations.size() + galleries.size() + episodes.size());
+        publications.forEach(a -> pool.add(FeedItemResponse.fromPublication(a, publicationLikes.getOrDefault(a.getId(), 0L))));
         places.forEach(p -> pool.add(FeedItemResponse.fromPlace(p, placeLikes.getOrDefault(p.getId(), 0L))));
-        events.forEach(e -> pool.add(FeedItemResponse.fromEvent(e, eventLikes.getOrDefault(e.getId(), 0L))));
+        celebrations.forEach(e -> pool.add(FeedItemResponse.fromCelebration(e, celebrationLikes.getOrDefault(e.getId(), 0L))));
+        galleries.forEach(g -> pool.add(FeedItemResponse.fromGallery(g, galleryLikes.getOrDefault(g.getId(), 0L))));
+        episodes.forEach(e -> pool.add(FeedItemResponse.fromEpisode(e.episode(), e.series(),
+                episodeLikes.getOrDefault(e.episode().getId(), 0L))));
         return pool;
     }
 

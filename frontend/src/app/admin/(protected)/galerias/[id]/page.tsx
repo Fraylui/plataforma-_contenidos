@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { AccessDenied } from "@/components/admin/access-denied";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { AdminApiError, getAdminGallery, listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
-import { getCategoryById } from "@/lib/api/client";
-import { computeGalleryPermissions } from "@/lib/admin/gallery-permissions";
-import { GalleryForm } from "@/components/admin/gallery-form";
+import { getCategoryById, getPlatformSettings } from "@/lib/api/client";
+import { computePublicationPermissions } from "@/lib/admin/publication";
+import { GalleryComposer } from "@/components/admin/gallery-composer";
+import { AdminPageHeader } from "@/components/admin/ui";
 import type { Category } from "@/lib/api/types";
 
 export const metadata: Metadata = {
@@ -31,21 +33,29 @@ export default async function EditGalleryPage(props: PageProps<"/admin/galerias/
       notFound();
     }
     if (error instanceof AdminApiError && error.status === 403) {
-      return <p className="text-sm text-muted">No tienes acceso para ver esta galería (pertenece a otro autor).</p>;
+      return <AccessDenied />;
     }
     throw error;
   }
 
-  const [activeCategories, allImages] = await Promise.all([listActiveCategoriesFresh(), listAdminImages(accessToken)]);
+  const [activeCategories, allImages, settings] = await Promise.all([
+    listActiveCategoriesFresh(),
+    listAdminImages(accessToken),
+    getPlatformSettings(),
+  ]);
   const categories = await resolveCategories(activeCategories, gallery.categoryId);
-  const permissions = computeGalleryPermissions(gallery, user);
+  const permissions = computePublicationPermissions(gallery, user, "galleries");
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-foreground">{gallery.title}</h1>
-      <div className="mt-6">
-        <GalleryForm mode="edit" gallery={gallery} categories={categories} allImages={allImages} permissions={permissions} />
-      </div>
+    <div className="space-y-6">
+      <AdminPageHeader title={gallery.title} back={{ href: "/admin/galerias", label: "Galerías" }} />
+      <GalleryComposer
+        gallery={gallery}
+        categories={categories}
+        allImages={allImages}
+        permissions={permissions}
+        siteName={settings.name}
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { AdminImage } from "@/lib/api/admin-types";
-import { uploadImageInlineAction } from "@/app/admin/(protected)/medios/actions";
+import { uploadImageInlineAction } from "@/app/admin/(protected)/imagenes/actions";
 
 /**
  * Botón de subida embebido en los selectores de imagen (Foto destacada,

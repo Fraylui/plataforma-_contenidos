@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { AccessDenied } from "@/components/admin/access-denied";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { AdminApiError, getAdminArticle, listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
-import { getCategoryById } from "@/lib/api/client";
-import { computeArticlePermissions } from "@/lib/admin/article-permissions";
-import { ArticleForm } from "@/components/admin/article-form";
+import { AdminApiError, getAdminPublication, listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
+import { getCategoryById, getPlatformSettings } from "@/lib/api/client";
+import { computePublicationPermissions } from "@/lib/admin/publication";
+import { PublicationComposer } from "@/components/admin/publication-composer";
+import { AdminPageHeader } from "@/components/admin/ui";
 import type { Category } from "@/lib/api/types";
 
 export const metadata: Metadata = {
@@ -19,44 +21,41 @@ async function resolveCategories(activeCategories: Category[], categoryId: strin
   return current ? [current, ...activeCategories] : activeCategories;
 }
 
-export default async function EditArticlePage(props: PageProps<"/admin/publicaciones/[id]">) {
+export default async function EditPublicationPage(props: PageProps<"/admin/publicaciones/[id]">) {
   const { id } = await props.params;
   const { user, accessToken } = await requireAdminUser();
 
-  let article;
+  let publication;
   try {
-    article = await getAdminArticle(accessToken, id);
+    publication = await getAdminPublication(accessToken, id);
   } catch (error) {
     if (error instanceof AdminApiError && error.status === 404) {
       notFound();
     }
     if (error instanceof AdminApiError && error.status === 403) {
-      return (
-        <p className="text-sm text-muted">No tienes acceso para ver esta publicación (pertenece a otro autor).</p>
-      );
+      return <AccessDenied />;
     }
     throw error;
   }
 
-  const [activeCategories, allImages] = await Promise.all([
+  const [activeCategories, allImages, settings] = await Promise.all([
     listActiveCategoriesFresh(),
     listAdminImages(accessToken),
+    getPlatformSettings(),
   ]);
-  const categories = await resolveCategories(activeCategories, article.categoryId);
-  const permissions = computeArticlePermissions(article, user);
+  const categories = await resolveCategories(activeCategories, publication.categoryId);
+  const permissions = computePublicationPermissions(publication, user, "publications");
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-foreground">{article.title}</h1>
-      <div className="mt-6">
-        <ArticleForm
-          mode="edit"
-          article={article}
-          categories={categories}
-          allImages={allImages}
-          permissions={permissions}
-        />
-      </div>
+    <div className="space-y-6">
+      <AdminPageHeader title={publication.title} back={{ href: "/admin/publicaciones", label: "Publicaciones" }} />
+      <PublicationComposer
+        publication={publication}
+        categories={categories}
+        allImages={allImages}
+        permissions={permissions}
+        siteName={settings.name}
+      />
     </div>
   );
 }

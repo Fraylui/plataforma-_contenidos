@@ -49,6 +49,14 @@ public class User {
     @Column(name = "last_login_at")
     private Instant lastLoginAt;
 
+    /** Contraseña temporal pendiente de cambio: solo puede cambiarla (spec 2a §4.3). */
+    @Column(name = "must_change_password", nullable = false)
+    private boolean mustChangePassword;
+
+    /** Sesiones (refresh tokens) emitidas antes de este instante ya no valen (V51). */
+    @Column(name = "sessions_valid_after")
+    private Instant sessionsValidAfter;
+
     protected User() {
         // JPA
     }
@@ -81,8 +89,22 @@ public class User {
         return lastName;
     }
 
-    public String getFullName() {
-        return firstName + " " + lastName;
+    public Instant getSessionsValidAfter() {
+        return sessionsValidAfter;
+    }
+
+    /**
+     * Invalida todas las sesiones emitidas hasta ahora (cambio o
+     * restablecimiento de contraseña, desactivación), aunque no estén en el
+     * índice de Redis — p. ej. emitidas antes de que existiera.
+     */
+    public void invalidateSessions(Instant when) {
+        // Milisegundos: la misma precisión con que se sella cada sesión (RefreshTokenService).
+        this.sessionsValidAfter = when.truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
+    }
+
+    public boolean isMustChangePassword() {
+        return mustChangePassword;
     }
 
     public Role getRole() {
@@ -108,6 +130,20 @@ public class User {
 
     public Instant getLastLoginAt() {
         return lastLoginAt;
+    }
+
+    /** Cambio de contraseña por el propio usuario: deja de ser temporal. */
+    public void changePassword(String newPasswordHash) {
+        this.passwordHash = newPasswordHash;
+        this.mustChangePassword = false;
+        this.updatedAt = Instant.now();
+    }
+
+    /** Contraseña temporal puesta por el dueño: el próximo ingreso obliga a cambiarla. */
+    public void setTemporaryPassword(String passwordHash) {
+        this.passwordHash = passwordHash;
+        this.mustChangePassword = true;
+        this.updatedAt = Instant.now();
     }
 
     public void recordLogin(Instant when) {

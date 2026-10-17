@@ -28,7 +28,7 @@ export default async function ContactPage() {
       title: "Quiénes somos",
       content: (
         <p>
-          {settings.name} es una plataforma de contenidos: publicaciones, lugares, eventos, galerías y un directorio,
+          {settings.name} es una plataforma de contenidos: publicaciones, lugares, celebraciones y galerías,
           publicados por nuestro propio equipo.
           {settings.description ? ` ${settings.description}` : ""}
         </p>
@@ -51,7 +51,7 @@ export default async function ContactPage() {
               <a href={mail("Propuesta de contenido")} className="text-accent underline underline-offset-2">
                 Propuesta de contenido
               </a>{" "}
-              — un lugar, evento o historia que deberíamos cubrir.
+              — un lugar, celebración o historia que debería estar aquí.
             </li>
             <li>
               <a href={mail("Corrección")} className="text-accent underline underline-offset-2">

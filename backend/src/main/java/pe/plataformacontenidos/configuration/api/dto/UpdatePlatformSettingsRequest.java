@@ -16,7 +16,6 @@ public record UpdatePlatformSettingsRequest(
         String secondaryColor,
         String backgroundColor,
         String fontFamily,
-        @NotBlank @Pattern(regexp = "LIGHT|DARK|AUTO", message = "theme debe ser LIGHT, DARK o AUTO") String theme,
         String seoDefaultTitle,
         String seoDefaultDescription,
         String seoDefaultImageUrl,
@@ -24,5 +23,10 @@ public record UpdatePlatformSettingsRequest(
         @Email String contactEmail,
         boolean adsenseEnabled,
         String adsenseClientId,
-        String analyticsId) {
+        String analyticsId,
+        /** País del sitio, ISO de 2 letras. Ausente = se mantiene el actual. */
+        @Pattern(regexp = "[A-Za-z]{2}", message = "homeCountry debe ser un código de país de 2 letras") String homeCountry,
+        /** Vacío o ausente = sin botón. Solo enlaces de canal: nada de un número personal. */
+        @Pattern(regexp = "\\s*|https://(www\\.)?whatsapp\\.com/channel/[A-Za-z0-9]+/?",
+                message = "Pega el enlace del canal: https://whatsapp.com/channel/…") String whatsappChannelUrl) {
 }

@@ -1,73 +1,46 @@
-import type { ArticleStatus, ArticleType, BusinessType, SearchResultType } from "@/lib/api/types";
+import type { PublicationType, SearchResult, SearchResultType, PublicationStatus } from "@/lib/api/types";
+import type { BadgeTone } from "@/components/ui";
+import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
-const ARTICLE_TYPE_LABELS: Record<ArticleType, string> = {
-  ARTICULO: "General",
-  NOTICIA: "Noticia",
-  REPORTAJE: "Reportaje",
-  CRONICA: "Crónica",
+const PUBLICATION_TYPE_LABELS: Record<PublicationType, string> = {
+  GENERAL: "General",
   GUIA: "Guía",
-  ENTREVISTA: "Entrevista",
-  HISTORIA: "Historia",
-  RANKING: "Ranking",
+  LISTA: "Lista",
   TUTORIAL: "Tutorial",
-  OPINION: "Opinión",
+  HISTORIA: "Historia",
 };
 
-export function articleTypeLabel(type: ArticleType): string {
-  return ARTICLE_TYPE_LABELS[type];
+export function publicationTypeLabel(type: PublicationType): string {
+  return PUBLICATION_TYPE_LABELS[type];
 }
 
-const ARTICLE_STATUS_LABELS: Record<ArticleStatus, string> = {
+const PUBLICATION_STATUS_LABELS: Record<PublicationStatus, string> = {
   DRAFT: "Borrador",
-  IN_REVIEW: "En revisión",
-  APPROVED: "Aprobado",
   SCHEDULED: "Programado",
   PUBLISHED: "Publicado",
   ARCHIVED: "Archivado",
-  REJECTED: "Rechazado",
 };
 
-export function articleStatusLabel(status: ArticleStatus): string {
-  return ARTICLE_STATUS_LABELS[status];
+export function publicationStatusLabel(status: PublicationStatus): string {
+  return PUBLICATION_STATUS_LABELS[status];
 }
 
-// Tono del badge de estado en el panel admin — ver ArticleStatus (backend:
-// ArticleStatus.java, sección 12 de CONTEXTO.md).
-const ARTICLE_STATUS_TONE: Record<ArticleStatus, "neutral" | "warning" | "success" | "danger"> = {
+// Color de la etiqueta de estado (Badge) — backend: shared.publishing.PublicationStatus.
+const PUBLICATION_STATUS_TONE: Record<PublicationStatus, BadgeTone> = {
   DRAFT: "neutral",
-  IN_REVIEW: "warning",
-  APPROVED: "warning",
   SCHEDULED: "warning",
   PUBLISHED: "success",
   ARCHIVED: "neutral",
-  REJECTED: "danger",
 };
 
-export function articleStatusTone(status: ArticleStatus): "neutral" | "warning" | "success" | "danger" {
-  return ARTICLE_STATUS_TONE[status];
-}
-
-const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
-  RESTAURANT: "Restaurante",
-  HOTEL: "Hotel",
-  SERVICE: "Servicio",
-  SHOP: "Tienda",
-  OTHER: "Otro",
-};
-
-export function businessTypeLabel(type: BusinessType): string {
-  return BUSINESS_TYPE_LABELS[type];
-}
-
-/** "ARTICLE_PUBLISHED" -> "Article published" — sin diccionario por código de auditoría (docenas de valores, ver AuditService.record en el backend), solo legible. */
-export function humanizeAuditAction(action: string): string {
-  const words = action.toLowerCase().replace(/_/g, " ");
-  return words.charAt(0).toUpperCase() + words.slice(1);
+export function publicationStatusTone(status: PublicationStatus): BadgeTone {
+  return PUBLICATION_STATUS_TONE[status];
 }
 
 export function formatPublishedDate(iso: string | null): string {
   if (!iso) return "";
   return new Intl.DateTimeFormat("es-PE", {
+    timeZone: SITE_TIME_ZONE,
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -75,16 +48,16 @@ export function formatPublishedDate(iso: string | null): string {
 }
 
 /**
- * Fecha de publicación de Artículo: tiempo relativo que se extiende
+ * Fecha de publicación de Publicación: tiempo relativo que se extiende
  * indefinidamente (segundos→minutos→horas→días→meses→años), nunca fecha
  * absoluta, nunca vacío — mismo patrón que usan YouTube/Reddit/GitHub, a
  * pedido explícito del usuario tras comparar con otros sitios grandes.
- * Solo para Artículo: es el único tipo de contenido donde "qué tan
+ * Solo para Publicación: es el único tipo de contenido donde "qué tan
  * reciente es" sigue siendo la señal relevante después de publicado (a
- * diferencia de Lugar/Galería, atemporales, o Evento, donde la fecha es
- * de agenda, no de antigüedad — ver formatEventDateTime).
+ * diferencia de Lugar/Galería, atemporales, o Celebración, donde la fecha es
+ * de calendario, no de antigüedad — ver formatEventDateTime).
  */
-export function formatArticleDate(iso: string | null): string {
+export function formatPublicationDate(iso: string | null): string {
   if (!iso) return "";
   const date = new Date(iso);
   const diffMs = Date.now() - date.getTime();
@@ -106,11 +79,12 @@ export function formatArticleDate(iso: string | null): string {
 /**
  * Fecha corta absoluta ("sáb 29 ago 2026") para Lugar/Galería en el
  * home: contenido atemporal donde "hace 3 meses" no aporta (ver
- * formatArticleDate, que sí es relativa a propósito para Publicaciones).
+ * formatPublicationDate, que sí es relativa a propósito para Publicaciones).
  */
 export function formatShortDate(iso: string | null): string {
   if (!iso) return "";
   return new Intl.DateTimeFormat("es-PE", {
+    timeZone: SITE_TIME_ZONE,
     weekday: "short",
     day: "numeric",
     month: "short",
@@ -119,15 +93,16 @@ export function formatShortDate(iso: string | null): string {
 }
 
 /**
- * Fecha y hora de un Evento — siempre absoluta ("vie 12 dic, 7:00 p. m."),
+ * Fecha y hora de un Celebración — siempre absoluta ("vie 12 dic, 7:00 p. m."),
  * nunca relativa ("hace 3 días", "en 5 horas"): a diferencia de la fecha de
- * publicación de Artículo/Lugar (un dato secundario de "qué tan viejo es
+ * publicación de Publicación/Lugar (un dato secundario de "qué tan viejo es
  * esto"), la fecha de un evento es información que el usuario necesita para
  * decidir si asiste — mismo criterio que usan Eventbrite/Meetup/Atlas
  * Obscura.
  */
 export function formatEventDateTime(iso: string): string {
   return new Intl.DateTimeFormat("es-PE", {
+    timeZone: SITE_TIME_ZONE,
     weekday: "short",
     day: "numeric",
     month: "short",
@@ -136,16 +111,15 @@ export function formatEventDateTime(iso: string): string {
   }).format(new Date(iso));
 }
 
-/** Un evento se considera finalizado cuando pasó endsAt (o startsAt si no tiene hora de fin). */
+/** Una fecha única terminó cuando pasó endsAt (o startsAt); las que se repiten cada año nunca terminan. */
 // Ver SearchResultResponse.java (CONTEXTO.md sección 16) — un solo lugar para
-// la etiqueta y la ruta de cada tipo buscable, en vez de repetir el mapa en
-// SearchResultCard y en el buscador con sugerencias en vivo del header.
+// la etiqueta y la ruta de cada tipo buscable (buscador con sugerencias en vivo).
 const SEARCH_RESULT_TYPE_LABEL: Record<SearchResultType, string> = {
-  ARTICLE: "Publicación",
+  PUBLICATION: "Publicación",
   PLACE: "Lugar",
-  EVENT: "Evento",
+  CELEBRATION: "Celebración",
   GALLERY: "Galería",
-  BUSINESS: "Directorio",
+  EPISODE: "Episodio",
 };
 
 export function searchResultTypeLabel(type: SearchResultType): string {
@@ -153,31 +127,22 @@ export function searchResultTypeLabel(type: SearchResultType): string {
 }
 
 const SEARCH_RESULT_TYPE_PATH: Record<SearchResultType, string> = {
-  ARTICLE: "publicaciones",
+  PUBLICATION: "publicaciones",
   PLACE: "lugares",
-  EVENT: "eventos",
+  CELEBRATION: "celebraciones",
   GALLERY: "galerias",
-  BUSINESS: "directorio",
+  EPISODE: "series",
 };
 
-export function searchResultHref(type: SearchResultType, slug: string): string {
-  return `/${SEARCH_RESULT_TYPE_PATH[type]}/${slug}`;
+/** Un episodio vive dentro de su serie: /series/{seriesSlug}/{slug}. */
+export function searchResultHref(result: Pick<SearchResult, "contentType" | "slug" | "seriesSlug">): string {
+  if (result.contentType === "EPISODE") return `/series/${result.seriesSlug}/${result.slug}`;
+  return `/${SEARCH_RESULT_TYPE_PATH[result.contentType]}/${result.slug}`;
 }
 
-/**
- * Tiempo de lectura estimado del cuerpo de una Publicación (200 palabras/min,
- * promedio estándar en español) — se calcula sobre el HTML ya sanitizado,
- * sin depender de un campo aparte en el backend. Redondea siempre hacia
- * arriba y nunca baja de 1 min, para no mostrar "0 min" en textos cortos.
- */
-export function estimateReadingTime(html: string): string {
-  const text = html.replace(/<[^>]+>/g, " ");
-  const words = text.split(/\s+/).filter(Boolean).length;
-  const minutes = Math.max(1, Math.round(words / 200));
-  return `${minutes} min de lectura`;
-}
-
-export function isEventFinished(event: { startsAt: string; endsAt: string | null }): boolean {
-  const reference = event.endsAt ?? event.startsAt;
+export function isCelebrationFinished(event: { startsAt: string; endsAt: string | null; recursYearly?: boolean; allDay?: boolean }): boolean {
+  if (event.recursYearly) return false;
+  // Todo el día: termina al acabar ese día, no a su medianoche de inicio.
+  const reference = event.endsAt ?? (event.allDay ? new Date(new Date(event.startsAt).getTime() + 86_400_000).toISOString() : event.startsAt);
   return new Date(reference).getTime() < Date.now();
 }

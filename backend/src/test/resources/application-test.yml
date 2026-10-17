@@ -11,3 +11,6 @@ app:
     max-stored-dimension-pixels: 2560
     upload-max-attempts: 1000
     upload-window-minutes: 15
+# Las pruebas vuelcan las visitas a mano (ContentViewIntegrationTest), sin la tarea periódica.
+engagement:
+  views-flush-ms: 3600000

@@ -21,14 +21,19 @@ public class ContentVideo {
     @Column(name = "caption")
     private String caption;
 
+    /** Short de YouTube (9:16): el detalle lo muestra vertical. */
+    @Column(name = "vertical", nullable = false)
+    private boolean vertical;
+
     protected ContentVideo() {
         // JPA
     }
 
-    public ContentVideo(String videoId, String title, String caption) {
+    public ContentVideo(String videoId, String title, String caption, boolean vertical) {
         this.videoId = videoId;
         this.title = title;
         this.caption = caption;
+        this.vertical = vertical;
     }
 
     public String getVideoId() {
@@ -41,5 +46,9 @@ public class ContentVideo {
 
     public String getCaption() {
         return caption;
+    }
+
+    public boolean isVertical() {
+        return vertical;
     }
 }
