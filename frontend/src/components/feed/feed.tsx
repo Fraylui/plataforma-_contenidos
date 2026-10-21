@@ -6,12 +6,15 @@ import type { AdSection } from "@/lib/ads/ad-context";
 import { AdBlockClient } from "@/components/legal/ad-block-client";
 import { TopLikedList } from "@/components/content/top-liked-list";
 import { PostCard } from "@/components/post/post-card";
+import { FeatureCard } from "@/components/post/feature-card";
 import type { PostBrand } from "@/components/post/post-header";
 import { useFeedPages, type FeedFilter } from "./use-feed-pages";
 
 const PAGE_SIZE = 12;
 /** Un anuncio cada 6 posts y nunca antes del 6º (~14 %, tope Better Ads 30 %). */
 const AD_EVERY = 6;
+/** Cada cuántos posts va uno destacado (alto, título sobre la foto): ritmo, no tarjetas iguales. */
+const FEATURE_EVERY = 5;
 /** Después de qué post va "Lo más gustado" en celular (en escritorio vive en la columna derecha). */
 const TOP_LIKED_AFTER = 3;
 
@@ -67,7 +70,11 @@ export function Feed({
         const slot = withAd ? adSlot++ : -1;
         return (
           <Fragment key={item.id}>
-            <PostCard item={item} brand={brand} categoryName={categoryNames[item.categoryId]} priority={index === 0} />
+            {position % FEATURE_EVERY === 0 && item.images.length > 0 ? (
+              <FeatureCard item={item} categoryName={categoryNames[item.categoryId]} />
+            ) : (
+              <PostCard item={item} brand={brand} categoryName={categoryNames[item.categoryId]} priority={index === 0} />
+            )}
             {position === TOP_LIKED_AFTER && topLiked.length >= 3 && (
               <TopLikedList
                 items={topLiked}

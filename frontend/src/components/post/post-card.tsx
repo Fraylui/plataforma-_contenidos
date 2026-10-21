@@ -9,6 +9,8 @@ import { useContentReactions } from "@/components/content/like-share-bar";
 import { cn } from "@/lib/utils";
 import { PostHeader, headerTimeFor, type PostBrand } from "./post-header";
 import { PostMedia } from "./post-media";
+import { GalleryMosaic } from "./gallery-mosaic";
+import { CelebrationStamp } from "./immersive/celebration-stamp";
 import { typeActions } from "./post-actions";
 
 const noSubscribe = () => () => {};
@@ -63,7 +65,18 @@ export function PostCard({
       className="overflow-hidden bg-surface sm:rounded-card sm:shadow-card"
     >
       <PostHeader brand={brand} typeLabel={item.typeLabel} categoryName={categoryName} time={headerTimeFor(item)} />
-      <PostMedia images={item.images} title={item.title} href={item.href} onDoubleTap={likeFromDoubleTap} priority={priority} />
+      {item.kind === "galeria" && item.images.length >= 3 ? (
+        <GalleryMosaic images={item.images} title={item.title} href={item.href} priority={priority} />
+      ) : (
+        <PostMedia
+          images={item.images}
+          title={item.title}
+          href={item.href}
+          onDoubleTap={likeFromDoubleTap}
+          priority={priority}
+          overlay={item.kind === "celebracion" && item.startsAt ? <CelebrationStamp nextAt={item.startsAt} /> : undefined}
+        />
+      )}
 
       <div className="flex items-center gap-1 px-2 pt-1.5">
         <button

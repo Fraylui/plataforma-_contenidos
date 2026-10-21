@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import useEmblaCarousel from "embla-carousel-react";
 import { CaretLeft, CaretRight, Heart } from "@phosphor-icons/react";
@@ -24,12 +24,15 @@ export function PostMedia({
   href,
   onDoubleTap,
   priority = false,
+  overlay,
 }: {
   images: HomeImage[];
   title: string;
   href: string;
   onDoubleTap: () => void;
   priority?: boolean;
+  /** Sello sobre la foto, arriba a la izquierda (la fecha de una celebración). */
+  overlay?: ReactNode;
 }) {
   const router = useRouter();
   const tapTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -68,6 +71,7 @@ export function PostMedia({
       onDoubleClick={handleDoubleClick}
       className="group relative aspect-square cursor-pointer touch-manipulation overflow-hidden bg-canvas-strong select-none"
     >
+      {overlay && <div className="pointer-events-none absolute top-3 left-3 z-10">{overlay}</div>}
       {images.length === 0 ? (
         <div data-testid="post-media-fallback" className="flex h-full items-center justify-center bg-linear-to-br from-accent-soft to-canvas-strong p-8">
           <p className="text-center text-2xl leading-tight font-extrabold text-balance text-foreground">{title}</p>

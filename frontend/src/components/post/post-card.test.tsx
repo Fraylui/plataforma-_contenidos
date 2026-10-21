@@ -133,4 +133,24 @@ describe("PostCard", () => {
     expect(screen.getByRole("heading", { level: 2, name: "Ruta del café" })).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it("una celebración lleva su sello de fecha sobre la foto, como en el detalle", () => {
+    render(
+      <PostCard
+        item={item({ kind: "celebracion", typeLabel: "Celebración", href: "/celebraciones/feria", startsAt: "2027-07-28T05:00:00Z", recursYearly: true })}
+        brand={brand}
+      />,
+    );
+    expect(screen.getByTestId("celebration-stamp")).toHaveTextContent("28");
+    expect(screen.getByTestId("celebration-stamp")).toHaveTextContent("jul");
+  });
+
+  it("una galería de 3 fotos o más se ve como mosaico con cuántas fotos tiene", () => {
+    const images = ["a", "b", "c", "d", "e"].map((n) => ({ url: `https://example.com/${n}.jpg`, isExternal: true }));
+    render(<PostCard item={item({ kind: "galeria", typeLabel: "Galería", href: "/galerias/fiesta", images })} brand={brand} />);
+    const mosaic = screen.getByRole("link", { name: /Ver las 5 fotos/ });
+    expect(mosaic).toHaveAttribute("href", "/galerias/fiesta");
+    expect(mosaic.querySelectorAll("img")).toHaveLength(3);
+    expect(mosaic).toHaveTextContent("+2");
+  });
 });

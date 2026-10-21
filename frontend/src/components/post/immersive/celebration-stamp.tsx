@@ -14,7 +14,7 @@ export function CelebrationStamp({ nextAt }: { nextAt: string }) {
   const { day, month } = celebrationDateParts(nextAt);
   const countdown = useSyncExternalStore(noSubscription, () => countdownLabel(nextAt, new Date()), () => null);
   return (
-    <div className="flex items-center gap-3">
+    <div data-testid="celebration-stamp" className="flex items-center gap-3">
       <div className="flex w-16 flex-col items-center overflow-hidden rounded-control bg-surface text-foreground shadow-card">
         {/* En minúscula como los cuadritos de fecha del feed («31 oct»): no es un antetítulo. */}
         <span className="w-full bg-accent-fill py-0.5 text-center text-xs font-bold text-accent-foreground">

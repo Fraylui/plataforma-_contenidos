@@ -96,3 +96,36 @@ describe("Feed", () => {
     expect(screen.getByText("Todavía no hay publicaciones.")).toBeInTheDocument();
   });
 });
+
+describe("Feed con ritmo (Inicio 2026-10-21)", () => {
+  function withPhoto(n: number): HomeItem {
+    return { ...post(n), images: [{ url: `https://example.com/${n}.jpg`, isExternal: true }], imageUrl: `https://example.com/${n}.jpg`, imageIsExternal: true };
+  }
+
+  it("cada 5.ª con foto va destacada, alta y con el título sobre la foto", () => {
+    render(
+      <Feed
+        initialItems={[1, 2, 3, 4, 5, 6, 7].map(withPhoto)}
+        initialHasMore={false}
+        seed="s"
+        filter={{}}
+        brand={brand}
+        categoryNames={{ c1: "Turismo" }}
+        feedAd={null}
+      />,
+    );
+    const featured = screen.getAllByTestId("feature-card");
+    expect(featured).toHaveLength(1);
+    expect(featured[0]).toHaveAttribute("href", "/lugares/lugar-5");
+    expect(featured[0]).toHaveTextContent("Lugar 5");
+    expect(featured[0]).toHaveTextContent("Turismo");
+  });
+
+  it("sin foto no se destaca (sería un bloque vacío)", () => {
+    render(
+      <Feed initialItems={[1, 2, 3, 4, 5].map(post)} initialHasMore={false} seed="s" filter={{}} brand={brand} categoryNames={{}} feedAd={null} />,
+    );
+    expect(screen.queryByTestId("feature-card")).toBeNull();
+  });
+});
+
