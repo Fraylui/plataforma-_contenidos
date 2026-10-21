@@ -1,41 +1,17 @@
-const TOP_LEVEL: Record<string, string> = {
-  "/": "Inicio",
-  "/explorar": "Explorar",
-  "/buscar": "Buscar",
-  "/celebraciones": "Celebraciones",
-  "/publicaciones": "Publicaciones",
-  "/lugares": "Lugares",
-  "/galerias": "Galerías",
-  "/series": "Series",
-  "/en-vivo": "En vivo",
-};
+/** Pestañas y secciones: se llega desde el menú, no llevan flecha. */
+const TOP_LEVEL = new Set(["/", "/explorar", "/buscar", "/celebraciones", "/publicaciones", "/lugares", "/galerias", "/series", "/en-vivo"]);
 
-const DETAIL: Record<string, string> = {
-  "/publicaciones": "Publicación",
-  "/lugares": "Lugar",
-  "/celebraciones": "Celebración",
-  "/galerias": "Galería",
-  "/series": "Serie",
-  "/en-vivo": "En vivo",
-  "/categorias": "Tema",
-};
-
-const STATIC_PAGES: Record<string, string> = {
-  "/contacto": "Contacto",
-  "/privacidad": "Privacidad",
-  "/terminos": "Términos",
-};
+/** Detalles que vuelven a su sección (un tema vuelve al inicio: no hay listado de temas propio). */
+const SECTIONS_WITH_DETAIL = new Set(["/publicaciones", "/lugares", "/celebraciones", "/galerias", "/series", "/en-vivo"]);
 
 /**
- * Título de la franja superior según la ruta, como el encabezado de X:
- * el nombre de la pantalla, y en un detalle el tipo de contenido con una
- * flecha para volver a su sección. Los temas vuelven al inicio (no hay
- * listado de temas propio: son los círculos del feed).
+ * A dónde lleva la flecha de volver de la franja superior; null = sin flecha.
+ * La franja ya no repite el nombre de la pantalla (dueño 2026-10-21: «arriba
+ * de los contenidos se ven feos»): el menú marca dónde estás y el contenido
+ * tiene su propio título.
  */
-export function pageTitle(pathname: string): { title: string; back: string | null } {
-  if (TOP_LEVEL[pathname]) return { title: TOP_LEVEL[pathname], back: null };
-  if (STATIC_PAGES[pathname]) return { title: STATIC_PAGES[pathname], back: "/" };
+export function backHref(pathname: string): string | null {
+  if (TOP_LEVEL.has(pathname)) return null;
   const section = `/${pathname.split("/")[1] ?? ""}`;
-  if (DETAIL[section]) return { title: DETAIL[section], back: section === "/categorias" ? "/" : section };
-  return { title: "", back: "/" };
+  return SECTIONS_WITH_DETAIL.has(section) ? section : "/";
 }

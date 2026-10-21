@@ -1,23 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { pageTitle } from "./page-title";
+import { backHref } from "./page-title";
 
-describe("pageTitle", () => {
-  it("pestañas y secciones: solo el título", () => {
-    expect(pageTitle("/")).toEqual({ title: "Inicio", back: null });
-    expect(pageTitle("/explorar")).toEqual({ title: "Explorar", back: null });
-    expect(pageTitle("/celebraciones")).toEqual({ title: "Celebraciones", back: null });
-    expect(pageTitle("/lugares")).toEqual({ title: "Lugares", back: null });
+// Sin títulos de pantalla en la franja superior (dueño 2026-10-21: «arriba de los contenidos se ven feos»);
+// solo la flecha para volver, y a dónde lleva.
+describe("backHref", () => {
+  it("pestañas y secciones: sin flecha", () => {
+    for (const path of ["/", "/explorar", "/buscar", "/celebraciones", "/lugares", "/publicaciones", "/series", "/en-vivo"]) {
+      expect(backHref(path)).toBeNull();
+    }
   });
 
-  it("detalle: título del tipo y flecha a su sección", () => {
-    expect(pageTitle("/lugares/mirador")).toEqual({ title: "Lugar", back: "/lugares" });
-    expect(pageTitle("/celebraciones/feria")).toEqual({ title: "Celebración", back: "/celebraciones" });
-    expect(pageTitle("/publicaciones/ruta")).toEqual({ title: "Publicación", back: "/publicaciones" });
-    expect(pageTitle("/categorias/turismo")).toEqual({ title: "Tema", back: "/" });
+  it("detalle: vuelve a su sección (un tema, al inicio)", () => {
+    expect(backHref("/lugares/mirador")).toBe("/lugares");
+    expect(backHref("/celebraciones/feria")).toBe("/celebraciones");
+    expect(backHref("/publicaciones/ruta")).toBe("/publicaciones");
+    expect(backHref("/categorias/turismo")).toBe("/");
   });
 
-  it("páginas legales y desconocidas", () => {
-    expect(pageTitle("/privacidad")).toEqual({ title: "Privacidad", back: "/" });
-    expect(pageTitle("/algo-raro")).toEqual({ title: "", back: "/" });
+  it("páginas legales y desconocidas: vuelven al inicio", () => {
+    expect(backHref("/privacidad")).toBe("/");
+    expect(backHref("/algo-raro")).toBe("/");
   });
 });
