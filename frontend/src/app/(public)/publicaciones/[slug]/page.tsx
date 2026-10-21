@@ -10,7 +10,7 @@ import { heroCover } from "@/components/post/immersive/immersive-hero";
 import { PostDetailMedia } from "@/components/post/post-detail-media";
 import { headerTimeFor, updatedTimeFor } from "@/components/post/post-header";
 import { KIND_LABEL } from "@/lib/content-kind";
-import { fromFeedItem } from "@/lib/home-items";
+import { fromFeedItem, splitUpNext } from "@/lib/home-items";
 import { SITE_URL } from "@/lib/site-url";
 import type { Publication, Category } from "@/lib/api/types";
 import { contentImageUrl, robotsWithLargePreview, shareImageUrl } from "@/lib/share-image";
@@ -139,9 +139,7 @@ export default async function PublicationPage(props: PageProps<"/publicaciones/[
   // Texto largo: el primer relacionado va a mitad del texto (y sale de «Más como esto» para no repetirse).
   const halves = moreItems.length > 0 ? splitBodyInHalf(publication.body) : null;
   const inline = halves ? moreItems[0] : null;
-  // El siguiente (relacionado del mismo tema primero) es «Sigue»; el resto queda en «Más como esto».
-  const rest = inline ? moreItems.slice(1) : moreItems;
-  const upNext = rest[0] ?? null;
+  const { upNext, more } = splitUpNext(inline ? moreItems.slice(1) : moreItems);
 
   return (
     <>
@@ -192,7 +190,7 @@ export default async function PublicationPage(props: PageProps<"/publicaciones/[
         reactions={<FloatingReactions contentType="publications" slug={publication.slug} initialLikeCount={publication.likeCount} title={publication.title} />}
         upNext={upNext}
         ad={<AdBlock position="article" section="PUBLICATION" categoryId={publication.categoryId} layout="band" count={2} />}
-        more={rest.slice(1)}
+        more={more}
       />
     </>
   );

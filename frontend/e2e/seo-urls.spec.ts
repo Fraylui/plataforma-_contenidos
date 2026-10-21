@@ -28,6 +28,7 @@ for (const type of TYPES) {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toHaveCount(0);
     await expect(page.getByText(/min de lectura/)).toHaveCount(0);
-    await expect(page.getByRole("region", { name: "Acciones" })).toBeVisible();
+    // Me gusta/compartir: barra «Acciones» o, en el detalle inmersivo (2026-10-21), botones flotantes «Reacciones».
+    await expect(page.getByRole("region", { name: "Acciones" }).or(page.getByRole("group", { name: "Reacciones" }))).toBeVisible();
   });
 }

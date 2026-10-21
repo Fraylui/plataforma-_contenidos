@@ -2,14 +2,15 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCategoryById, getPlatformSettings, getPublishedGalleryBySlug, getRelatedWithFallback } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { LikeShareBar } from "@/components/content/like-share-bar";
+import { FloatingReactions } from "@/components/post/immersive/floating-reactions";
+import { heroCover } from "@/components/post/immersive/immersive-hero";
 import { ViewBeacon } from "@/components/content/view-beacon";
 import { AdBlock } from "@/components/legal/ad-block";
 import { PostView } from "@/components/post/post-view";
 import { PostDetailMedia } from "@/components/post/post-detail-media";
 import { headerTimeFor } from "@/components/post/post-header";
 import { KIND_LABEL } from "@/lib/content-kind";
-import { fromFeedItem } from "@/lib/home-items";
+import { fromFeedItem, splitUpNext } from "@/lib/home-items";
 import { SITE_URL } from "@/lib/site-url";
 import type { Category, Gallery } from "@/lib/api/types";
 import { contentImageUrl, robotsWithLargePreview, shareImageUrl } from "@/lib/share-image";
@@ -108,6 +109,7 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
     getPlatformSettings(),
     getRelatedWithFallback({ excludeType: "GALLERY", excludeId: gallery.id, categoryId: gallery.categoryId, size: MORE_SIZE }),
   ]);
+  const { upNext, more } = splitUpNext([...relatedPage.related, ...relatedPage.more].map(fromFeedItem));
 
   return (
     <>
@@ -125,17 +127,20 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
       />
 
       <PostView
-        variant="visual"
+        variant="immersive"
+        cover={heroCover(gallery.images, [])}
         brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}
         typeLabel={KIND_LABEL.galeria}
         categoryName={category?.name}
         time={headerTimeFor({ kind: "galeria", sortDate: gallery.publishedAt ?? "" })}
         title={gallery.title}
-        media={<PostDetailMedia images={gallery.images} videos={[]} title={gallery.title} />}
+        media={gallery.images.length > 1 ? <PostDetailMedia images={gallery.images.slice(1)} videos={[]} title={gallery.title} /> : null}
         excerpt={gallery.excerpt}
-        actions={<><ViewBeacon type="GALLERY" id={gallery.id} /><LikeShareBar contentType="galleries" slug={gallery.slug} initialLikeCount={gallery.likeCount} title={gallery.title} /></>}
+        actions={<ViewBeacon type="GALLERY" id={gallery.id} />}
+        reactions={<FloatingReactions contentType="galleries" slug={gallery.slug} initialLikeCount={gallery.likeCount} title={gallery.title} />}
+        upNext={upNext}
         ad={<AdBlock position="article" section="GALLERY" categoryId={gallery.categoryId} layout="band" count={2} />}
-        more={[...relatedPage.related, ...relatedPage.more].map(fromFeedItem)}
+        more={more}
       />
     </>
   );

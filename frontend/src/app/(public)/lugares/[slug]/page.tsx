@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import { NavigationArrow } from "@phosphor-icons/react/dist/ssr";
 import { getCategoryById, getPlatformSettings, getPublishedPlaceBySlug, getRelatedWithFallback } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { LikeShareBar, POST_ACTION_PILL } from "@/components/content/like-share-bar";
+import { POST_ACTION_PILL } from "@/components/content/like-share-bar";
+import { FloatingReactions } from "@/components/post/immersive/floating-reactions";
+import { heroCover } from "@/components/post/immersive/immersive-hero";
 import { ViewBeacon } from "@/components/content/view-beacon";
 import { AdBlock } from "@/components/legal/ad-block";
 import { PostView } from "@/components/post/post-view";
@@ -13,7 +15,7 @@ import { PostFacts } from "@/components/post/post-facts";
 import { headerTimeFor } from "@/components/post/post-header";
 import { mapsDirections } from "@/components/post/post-actions";
 import { KIND_LABEL } from "@/lib/content-kind";
-import { fromFeedItem } from "@/lib/home-items";
+import { fromFeedItem, splitUpNext } from "@/lib/home-items";
 import { SITE_URL } from "@/lib/site-url";
 import type { Category, Place } from "@/lib/api/types";
 import { contentImageUrl, robotsWithLargePreview, shareImageUrl } from "@/lib/share-image";
@@ -118,6 +120,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
     getPlatformSettings(),
     getRelatedWithFallback({ excludeType: "PLACE", excludeId: place.id, categoryId: place.categoryId, size: MORE_SIZE }),
   ]);
+  const { upNext, more } = splitUpNext([...relatedPage.related, ...relatedPage.more].map(fromFeedItem));
 
   const map =
     place.latitude != null && place.longitude != null
@@ -146,13 +149,18 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
       />
 
       <PostView
-        variant="visual"
+        variant="immersive"
+        cover={heroCover(place.images, place.videos)}
         brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}
         typeLabel={KIND_LABEL.lugar}
         categoryName={category?.name}
         time={headerTimeFor({ kind: "lugar", sortDate: place.publishedAt ?? "" })}
         title={place.name}
-        media={<PostDetailMedia images={place.images} videos={place.videos} title={place.name} />}
+        media={
+          place.images.length > 1 || place.videos.length > 0 ? (
+            <PostDetailMedia images={place.images.slice(1)} videos={place.videos} title={place.name} />
+          ) : null
+        }
         excerpt={place.excerpt}
         facts={map ? <PostFacts facts={[]} map={map} /> : undefined}
         body={
@@ -163,18 +171,20 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
         actions={
           <>
             <ViewBeacon type="PLACE" id={place.id} />
-            <LikeShareBar contentType="places" slug={place.slug} initialLikeCount={place.likeCount} title={place.name}>
-              {map && (
+            {map && (
+              <div className="mt-6 px-4 sm:px-0">
                 <a href={mapsDirections(map.latitude, map.longitude)} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL}>
                   <NavigationArrow className="h-4 w-4" aria-hidden="true" />
                   Cómo llegar
                 </a>
-              )}
-            </LikeShareBar>
+              </div>
+            )}
           </>
         }
+        reactions={<FloatingReactions contentType="places" slug={place.slug} initialLikeCount={place.likeCount} title={place.name} />}
+        upNext={upNext}
         ad={<AdBlock position="article" section="PLACE" categoryId={place.categoryId} layout="band" count={2} />}
-        more={[...relatedPage.related, ...relatedPage.more].map(fromFeedItem)}
+        more={more}
       />
     </>
   );

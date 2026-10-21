@@ -159,3 +159,11 @@ export function fromSearchResult(r: SearchResult): HomeItem {
   };
 }
 
+
+/**
+ * Detalle inmersivo: el primer relacionado (mismo tema primero) es «Sigue»,
+ * la portada siguiente; el resto va a «Más como esto».
+ */
+export function splitUpNext(items: HomeItem[]): { upNext: HomeItem | null; more: HomeItem[] } {
+  return { upNext: items[0] ?? null, more: items.slice(1) };
+}

@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import type { FeedItem } from "@/lib/api/types";
+import type { HomeItem } from "./home-items";
 
 vi.mock("server-only", () => ({}));
 
-const { fromFeedItem } = await import("./home-items");
+const { fromFeedItem, splitUpNext } = await import("./home-items");
 
 function feedItem(overrides: Partial<FeedItem>): FeedItem {
   return {
@@ -111,5 +112,19 @@ describe("fromSearchResult", () => {
       seriesSlug: "viajes",
     });
     expect(item).toMatchObject({ kind: "episodio", href: "/series/viajes/episodio-1", likeKey: "ep1", typeLabel: "Episodio" });
+  });
+});
+
+describe("splitUpNext", () => {
+  const items = ["a", "b", "c"].map((id) => ({ id }) as HomeItem);
+
+  it("el primero es «Sigue» y el resto va a «Más como esto»", () => {
+    const { upNext, more } = splitUpNext(items);
+    expect(upNext?.id).toBe("a");
+    expect(more.map((item) => item.id)).toEqual(["b", "c"]);
+  });
+
+  it("sin relacionados no hay «Sigue»", () => {
+    expect(splitUpNext([])).toEqual({ upNext: null, more: [] });
   });
 });
