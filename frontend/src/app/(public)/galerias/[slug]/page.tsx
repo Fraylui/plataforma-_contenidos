@@ -4,10 +4,10 @@ import { getCategoryById, getPlatformSettings, getPublishedGalleryBySlug, getRel
 import { NotFoundError } from "@/lib/api/client";
 import { FloatingReactions } from "@/components/post/immersive/floating-reactions";
 import { heroCover } from "@/components/post/immersive/immersive-hero";
+import { PhotoStack } from "@/components/post/immersive/photo-stack";
 import { ViewBeacon } from "@/components/content/view-beacon";
 import { AdBlock } from "@/components/legal/ad-block";
 import { PostView } from "@/components/post/post-view";
-import { PostDetailMedia } from "@/components/post/post-detail-media";
 import { headerTimeFor } from "@/components/post/post-header";
 import { KIND_LABEL } from "@/lib/content-kind";
 import { fromFeedItem, splitUpNext } from "@/lib/home-items";
@@ -134,7 +134,8 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
         categoryName={category?.name}
         time={headerTimeFor({ kind: "galeria", sortDate: gallery.publishedAt ?? "" })}
         title={gallery.title}
-        media={gallery.images.length > 1 ? <PostDetailMedia images={gallery.images.slice(1)} videos={[]} title={gallery.title} /> : null}
+        // Las fotos en vertical (no carrusel): una galería se recorre bajando, como Instagram.
+        media={<PhotoStack images={gallery.images.slice(1)} alt={gallery.title} />}
         excerpt={gallery.excerpt}
         actions={<ViewBeacon type="GALLERY" id={gallery.id} />}
         reactions={<FloatingReactions contentType="galleries" slug={gallery.slug} initialLikeCount={gallery.likeCount} title={gallery.title} />}
