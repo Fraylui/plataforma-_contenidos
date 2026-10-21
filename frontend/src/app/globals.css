@@ -59,12 +59,14 @@
      «curiosidad»: entusiasmo, aventura y calidez —viajes, curiosidades,
      celebraciones— y resalta sobre fotos de naturaleza, donde el verde se
      perdía. Dos tonos del mismo matiz, medidos con la fórmula WCAG:
-       --accent      texto/enlaces/bordes: #c2410c → 5.18 sobre blanco,
-                     4.62 sobre el lienzo.
+       --accent      texto/enlaces/bordes: #b3390b → 5.99 sobre blanco,
+                     5.34 sobre el lienzo y 4.74 sobre su propio tinte
+                     suave (accent-soft: el ítem activo del panel; #c2410c
+                     daba 4.14 ahí y axe lo marcó).
        --accent-fill rellenos (botones, píldoras, pestaña activa): #ff6b2c
                      con texto oscuro encima → 6.28. Separado del rojo de
                      «me gusta» (#ff3040) para no confundirse. */
-  --accent: #c2410c;
+  --accent: #b3390b;
   --accent-fill: #ff6b2c;
   --accent-foreground: #0f172a;
   /* Degradado de marca (anillos de temas, tarjetas destacadas): naranja →

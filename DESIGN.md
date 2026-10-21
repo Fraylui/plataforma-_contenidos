@@ -26,7 +26,7 @@ componente.
 ### Brand & Accent
 | Token | Claro | Oscuro | Uso |
 |---|---|---|---|
-| `accent` | `#c2410c` | `#ff8a4c` | Texto, enlaces, íconos activos, bordes de marca |
+| `accent` | `#b3390b` | `#ff8a4c` | Texto, enlaces, íconos activos, bordes de marca |
 | `accent-fill` | `#ff6b2c` | `#ff6b2c` | Rellenos: botón primario, píldora activa, pestaña activa |
 | `accent-foreground` | `#0f172a` | `#0f172a` | Texto sobre `accent-fill` (oscuro, nunca blanco) |
 | `accent-soft` | accent 15 % sobre surface | 18 % | Fondos suaves de marca (avisos, chips, tarjeta relacionada) |

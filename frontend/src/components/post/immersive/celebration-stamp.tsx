@@ -16,7 +16,8 @@ export function CelebrationStamp({ nextAt }: { nextAt: string }) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex w-16 flex-col items-center overflow-hidden rounded-control bg-surface text-foreground shadow-card">
-        <span className="w-full bg-accent-fill py-0.5 text-center text-[11px] font-bold tracking-wide text-accent-foreground uppercase">
+        {/* En minúscula como los cuadritos de fecha del feed («31 oct»): no es un antetítulo. */}
+        <span className="w-full bg-accent-fill py-0.5 text-center text-xs font-bold text-accent-foreground">
           {month}
         </span>
         <span className="py-1 text-3xl leading-none font-black tabular-nums">{day}</span>

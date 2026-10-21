@@ -57,7 +57,7 @@ test("el dueño crea un trabajador y este solo ve sus módulos", async ({ browse
   await expect(menu).toBeVisible({ timeout: 10_000 });
   // Menú en acordeón: solo el grupo de la página actual está abierto; se abre «Contenido» para ver sus secciones.
   await menu.getByRole("button", { name: "Contenido" }).click();
-  await expect(menu.getByRole("link")).toHaveText(["Inicio", "Lugares", "Celebraciones", "Imágenes"]);
+  await expect(menu.getByRole("link")).toHaveText(["Inicio", "Lugares", "Celebraciones", "Imágenes", "Qué se puede publicar"]);
   await expect(menu.getByRole("button", { name: "Publicidad" })).toHaveCount(0);
 
   await worker.goto("/admin/trabajadores");
