@@ -1,5 +1,5 @@
 import { ImageSquare } from "@phosphor-icons/react/dist/ssr";
-import { BrokenImageNotice, PreviewImage } from "./preview-image";
+import { BrokenImageNotice, PreviewImage } from "@/components/ui/preview-image";
 
 /** Lo que Google suele mostrar antes de cortar (aprox.; depende del ancho de las letras). */
 export const TITLE_MAX = 60;

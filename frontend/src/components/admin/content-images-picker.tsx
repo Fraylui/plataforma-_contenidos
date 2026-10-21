@@ -9,7 +9,7 @@ import { InlineImageUpload } from "./inline-image-upload";
 import { ContentMediaItemFields } from "./content-media-item-fields";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/admin/ui";
 import { Button, TextInput } from "@/components/ui";
-import { BrokenImageNotice, PreviewImage } from "./preview-image";
+import { BrokenImageNotice, PreviewImage } from "@/components/ui/preview-image";
 
 /**
  * Etiqueta corta de un enlace: dominio … archivo. Los enlaces de un mismo

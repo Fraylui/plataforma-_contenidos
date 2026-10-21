@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { WarningCircle } from "@phosphor-icons/react";
 
 /**
- * Imagen de las vistas previas del panel que no muestra el ícono roto del
+ * Imagen (vistas previas del panel, portada inmersiva) que no muestra el ícono roto del
  * navegador: si el enlace no carga, muestra `fallback` y avisa con
  * `onError`. También detecta lo que falló antes de hidratar (el evento ya
  * pasó: imagen completa sin ancho).
@@ -15,11 +15,14 @@ export function PreviewImage({
   fallback,
   onError,
   className = "size-full object-cover",
+  priority = false,
 }: {
   src: string;
   fallback: ReactNode;
   onError?: () => void;
   className?: string;
+  /** Imagen principal de la página (LCP): se pide primero y sin carga diferida. */
+  priority?: boolean;
 }) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const ref = useRef<HTMLImageElement>(null);
@@ -43,6 +46,7 @@ export function PreviewImage({
       src={src}
       alt=""
       className={className}
+      {...(priority ? { fetchPriority: "high" as const, loading: "eager" as const } : { loading: "lazy" as const })}
       onError={() => {
         setFailedSrc(src);
         onError?.();

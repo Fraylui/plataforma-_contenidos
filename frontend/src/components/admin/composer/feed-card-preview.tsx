@@ -5,7 +5,7 @@ import { ImageSquare } from "@phosphor-icons/react";
 import type { Category } from "@/lib/api/types";
 import { Card } from "@/components/ui";
 import type { BaseComposerValues } from "./schema";
-import { BrokenImageNotice, PreviewImage } from "../preview-image";
+import { BrokenImageNotice, PreviewImage } from "@/components/ui/preview-image";
 
 /** Cómo se verá la tarjeta en el feed mientras se escribe (sin me gusta ni compartir: aún no existe). */
 export function FeedCardPreview({

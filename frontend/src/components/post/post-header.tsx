@@ -71,13 +71,18 @@ export function PostHeader({
   categoryName,
   time,
   className,
+  onImage = false,
 }: {
   brand: PostBrand;
   typeLabel: string;
   categoryName?: string;
   time: PostHeaderTime | null;
   className?: string;
+  /** Sobre una foto con degradado (portada inmersiva): texto blanco en vez de los tonos del lienzo. */
+  onImage?: boolean;
 }) {
+  const strong = onImage ? "text-white" : "text-foreground";
+  const soft = onImage ? "text-white/80" : "text-muted";
   return (
     <header data-testid="post-header" className={className ?? "flex items-center gap-3 px-4 py-3"}>
       {brand.logoUrl ? (
@@ -90,10 +95,10 @@ export function PostHeader({
       )}
       <div className="min-w-0 leading-tight">
         <p className="truncate text-sm">
-          <span className="font-bold text-foreground">{brand.name}</span>
-          <span className="text-muted"> · {typeLabel}</span>
+          <span className={`font-bold ${strong}`}>{brand.name}</span>
+          <span className={soft}> · {typeLabel}</span>
         </p>
-        <p className="truncate text-xs text-muted">
+        <p className={`truncate text-xs ${soft}`}>
           {categoryName && (
             <>
               {categoryName}
