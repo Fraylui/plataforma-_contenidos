@@ -14,8 +14,11 @@ const ADORNMENT = "absolute inset-y-0 flex items-center text-sm text-muted [&_sv
 
 export const TextInput = markFieldControl(function TextInput({ leading, trailing, invalid, className, ...rest }: TextInputProps) {
   const adorned = leading != null || trailing != null;
+  // Correos y enlaces: sin corrector ni mayúscula inicial en el celular (se pueden pisar desde fuera).
+  const literal = rest.type === "email" || rest.type === "url";
   const input = (
     <input
+      {...(literal && { spellCheck: false, autoCapitalize: "none" })}
       {...rest}
       aria-invalid={invalid || rest["aria-invalid"] || undefined}
       className={cn(fieldClass, leading != null && "pl-9", trailing != null && "pr-12", !adorned && className)}

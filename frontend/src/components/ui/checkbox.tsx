@@ -29,7 +29,7 @@ function Choice({ type, label, description, className, id, ...rest }: ChoiceProp
           <svg
             aria-hidden="true"
             viewBox="0 0 16 16"
-            className="pointer-events-none absolute inset-0 m-auto size-3 scale-50 text-accent-foreground opacity-0 transition-all duration-150 peer-checked:scale-100 peer-checked:opacity-100"
+            className="pointer-events-none absolute inset-0 m-auto size-3 scale-50 text-accent-foreground opacity-0 transition-[opacity,scale] duration-150 peer-checked:scale-100 peer-checked:opacity-100"
           >
             <path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

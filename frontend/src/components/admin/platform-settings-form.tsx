@@ -84,7 +84,8 @@ function TextField({
 }) {
   return (
     <Field label={label} name={name}>
-      <TextInput type={type} value={value} onChange={(e) => onChange(e.target.value)} />
+      {/* Datos del sitio, no de quien edita: el navegador no debe proponer los suyos. */}
+      <TextInput type={type} autoComplete="off" value={value} onChange={(e) => onChange(e.target.value)} />
     </Field>
   );
 }

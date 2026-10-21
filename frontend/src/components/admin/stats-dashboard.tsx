@@ -147,7 +147,7 @@ function RatioRow({ label, active, total }: { label: string; active: number; tot
         </span>
       </div>
       <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-background">
-        <div className="h-full rounded-full bg-accent-fill transition-all" style={{ width: `${pct}%` }} />
+        <div className="h-full rounded-full bg-accent-fill transition-[width] motion-reduce:transition-none" style={{ width: `${pct}%` }} />
       </div>
     </li>
   );

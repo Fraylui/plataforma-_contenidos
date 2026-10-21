@@ -86,6 +86,7 @@ export function AdvertiserForm({ mode, advertiser, allImages }: AdvertiserFormPr
       <Field label="Email de contacto (opcional)" name="contactEmail">
         <TextInput
           type="email"
+          autoComplete="off"
           value={contactEmail}
           onChange={(e) => setContactEmail(e.target.value)}
         />

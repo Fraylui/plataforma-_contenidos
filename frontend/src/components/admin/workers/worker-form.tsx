@@ -82,7 +82,7 @@ export function WorkerForm({ worker }: { worker?: Worker }) {
           </Field>
           <div className="sm:col-span-2">
             <Field label="Correo" name="email">
-              <TextInput id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={editing} required />
+              <TextInput id="email" type="email" autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} disabled={editing} required />
             </Field>
           </div>
         </div>
