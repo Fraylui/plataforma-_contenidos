@@ -26,12 +26,19 @@ componente.
 ### Brand & Accent
 | Token | Claro | Oscuro | Uso |
 |---|---|---|---|
-| `accent` | `#06752b` | `#0bda51` | Texto, enlaces, íconos activos, bordes de marca |
-| `accent-fill` | `#0bda51` | `#0bda51` | Rellenos: botón primario, píldora activa, pestaña activa |
+| `accent` | `#c2410c` | `#ff8a4c` | Texto, enlaces, íconos activos, bordes de marca |
+| `accent-fill` | `#ff6b2c` | `#ff6b2c` | Rellenos: botón primario, píldora activa, pestaña activa |
 | `accent-foreground` | `#0f172a` | `#0f172a` | Texto sobre `accent-fill` (oscuro, nunca blanco) |
 | `accent-soft` | accent 15 % sobre surface | 18 % | Fondos suaves de marca (avisos, chips, tarjeta relacionada) |
+| `brand-from` → `brand-to` | `#ff6b2c` → `#e1306c` | igual | Degradado de marca: anillos de temas, tarjetas destacadas |
+| `info` | `#4338ca` | `#a5b4fc` | Índigo: enlaces e información (confianza, conocimiento) |
 
-Un solo matiz verde. La jerarquía se hace con intensidad, nunca con un segundo color.
+Naranja «curiosidad» (2026-10-21, reemplaza al verde): entusiasmo, aventura y
+calidez para viajes, curiosidades y celebraciones; resalta sobre fotos de
+naturaleza. La jerarquía se hace con intensidad del naranja; el índigo solo
+para información y el degradado solo en momentos de marca. Cada sección
+conserva su color propio en el menú (Publicaciones azul, Lugares turquesa,
+Galerías rosa, Celebraciones violeta, Series rojo).
 
 ### Surface
 | Token | Claro | Uso |
@@ -42,7 +49,7 @@ Un solo matiz verde. La jerarquía se hace con intensidad, nunca con un segundo 
 | `surface` | `#ffffff` | Tarjetas, menús, hojas |
 | `field` / `field-hover` / `field-border` | `#f1f5f9` … | Campos de formulario (un tono bajo la tarjeta, borde translúcido) |
 
-En oscuro el lienzo lleva 6 % del verde sobre slate-900; las tarjetas son slate-800.
+En oscuro el lienzo lleva 6 % de índigo sobre slate-900; las tarjetas son slate-800.
 
 ### Text
 `foreground` (slate-900 / slate-100) y `muted` (slate-600 / slate-400, ≥ 6.7:1 sobre

@@ -20,13 +20,13 @@ import type { DailyCount, PlatformStats, Role } from "@/lib/api/admin-types";
 import { publicationStatusLabel } from "@/lib/content-labels";
 import { roleLabel } from "@/lib/admin/role-labels";
 
-// Rampa secuencial de un solo tono (verde de marca), clara -> oscura, la
-// última parada calza con --accent (#06752b, ver globals.css) para que
+// Rampa secuencial de un solo tono (naranja de marca), clara -> oscura, la
+// última parada calza con --accent (#c2410c, ver globals.css) para que
 // "Publicado" se vea igual acá que en cualquier otro badge/botón del sitio.
 const PIPELINE_RAMP: Record<PublicationStatus, string> = {
-  DRAFT: "#bbf7d0",
-  SCHEDULED: "#22c55e",
-  PUBLISHED: "#06752b",
+  DRAFT: "#fed7aa",
+  SCHEDULED: "#fb923c",
+  PUBLISHED: "#c2410c",
   ARCHIVED: "#d4d4d8",
 };
 

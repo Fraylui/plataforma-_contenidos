@@ -23,7 +23,7 @@ export interface ShellBrand {
  */
 const SECTIONS: { href: string; label: string; icon: Icon; tile: string }[] = [
   { href: "/publicaciones", label: "Publicaciones", icon: Notepad, tile: "bg-linear-to-br from-sky-500 to-blue-600" },
-  { href: "/lugares", label: "Lugares", icon: MapPin, tile: "bg-linear-to-br from-emerald-500 to-teal-600" },
+  { href: "/lugares", label: "Lugares", icon: MapPin, tile: "bg-linear-to-br from-teal-500 to-cyan-600" },
   { href: "/series", label: "Series", icon: Television, tile: "bg-linear-to-br from-rose-500 to-red-600" },
   { href: "/galerias", label: "Galerías", icon: ImagesSquare, tile: "bg-linear-to-br from-fuchsia-500 to-pink-600" },
   { href: "/celebraciones", label: "Celebraciones", icon: Confetti, tile: "bg-linear-to-br from-violet-500 to-purple-600" },
@@ -194,7 +194,7 @@ export function LeftRail({
                     className={cn(
                       ITEM_ICON,
                       "rounded-full p-[2px]",
-                      topic.hasNew ? "bg-linear-to-tr from-accent-fill via-emerald-400 to-lime-300" : "bg-border",
+                      topic.hasNew ? "bg-linear-to-tr from-brand-from to-brand-to" : "bg-border",
                     )}
                   >
                     <span className="block rounded-full bg-surface p-[2px]">

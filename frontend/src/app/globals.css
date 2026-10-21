@@ -55,25 +55,22 @@
      del 4.5:1 exigido — antes el ajuste anterior apenas rozaba el mínimo). */
   --muted: #475569;
   --border: #e2e8f0;
-  /* green-800, no green-700: el 700 (#15803d) pasaba AA (4.5:1+) contra
-     --surface/--background (audit original) pero solo 4.44:1 contra
-     --canvas (#e9f4ec, sumado después en el rediseño de home de 2026-09) —
-     bajo el 4.5:1 exigido para texto normal. Afectaba el chip "Tipo ·
-     Categoría" de las 6 páginas de detalle público, que se apoya
-     directamente sobre el lienzo. green-800 despeja el peor caso
-     (--canvas) con margen (6.32:1) sin oscurecer visiblemente el verde de
-     marca (hallado con axe-core en e2e/accessibility.spec.ts). */
-  /* Verde de marca en DOS tonos del mismo matiz (#0BDA51), cada uno para su
-     trabajo — un solo verde no puede ser vibrante Y legible como texto sobre
-     blanco (medido con la fórmula WCAG: #0BDA51 sobre blanco da 1.88):
-       --accent      texto/enlaces/bordes: #06752b → 5.85 sobre blanco,
-                     5.19 sobre el lienzo verde. Antes #166534, un verde
-                     bosque tan oscuro que casi no se notaba como color.
-       --accent-fill rellenos (botones, píldoras, pestaña activa): #0BDA51
-                     vibrante con texto oscuro encima → 9.49. */
-  --accent: #06752b;
-  --accent-fill: #0bda51;
+  /* Marca (2026-10-21, decisión del dueño: fuera el verde). Naranja
+     «curiosidad»: entusiasmo, aventura y calidez —viajes, curiosidades,
+     celebraciones— y resalta sobre fotos de naturaleza, donde el verde se
+     perdía. Dos tonos del mismo matiz, medidos con la fórmula WCAG:
+       --accent      texto/enlaces/bordes: #c2410c → 5.18 sobre blanco,
+                     4.62 sobre el lienzo.
+       --accent-fill rellenos (botones, píldoras, pestaña activa): #ff6b2c
+                     con texto oscuro encima → 6.28. Separado del rojo de
+                     «me gusta» (#ff3040) para no confundirse. */
+  --accent: #c2410c;
+  --accent-fill: #ff6b2c;
   --accent-foreground: #0f172a;
+  /* Degradado de marca (anillos de temas, tarjetas destacadas): naranja →
+     magenta, la energía de creador de Instagram/TikTok. */
+  --brand-from: #ff6b2c;
+  --brand-to: #e1306c;
   /* Derivado de --accent, no un valor fijo: así una marca personalizada
      (primaryColor en Configuración de plataforma) también obtiene un tinte
      suave coherente sin tener que recalcularlo a mano. */
@@ -101,7 +98,8 @@
   --ring: color-mix(in srgb, var(--accent-fill) 38%, transparent);
   --success: #047857;
   --warning: #92400e;
-  --info: #1d4ed8;
+  /* Índigo: confianza y conocimiento (enlaces, avisos de información). 7.9 sobre blanco. */
+  --info: #4338ca;
   --success-soft: color-mix(in srgb, var(--success) 12%, var(--surface));
   --warning-soft: color-mix(in srgb, #f59e0b 18%, var(--surface));
   --info-soft: color-mix(in srgb, var(--info) 10%, var(--surface));
@@ -126,24 +124,25 @@
     --foreground: #f1f5f9;
     --muted: #94a3b8;
     --border: #334155;
-    /* Oscuro: el mismo #0BDA51 sirve de texto (9.49 sobre el fondo, 7.78
-       sobre tarjetas) y de relleno con texto oscuro encima (9.49). */
-    --accent: #0bda51;
-    --accent-fill: #0bda51;
+    /* Oscuro: texto naranja claro (#ff8a4c: 6.26 sobre tarjetas, 7.64 sobre
+       el fondo) y el mismo relleno con texto oscuro encima (6.28). */
+    --accent: #ff8a4c;
+    --accent-fill: #ff6b2c;
     --accent-foreground: #0f172a;
     --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
     --danger: #dc2626;
     --danger-foreground: #ffffff;
-    --canvas: color-mix(in srgb, #0bda51 6%, #0f172a);
-    --canvas-strong: color-mix(in srgb, #0bda51 8%, #1e293b);
-    --canvas-border: color-mix(in srgb, #0bda51 10%, #334155);
+    /* Lienzo con un tinte índigo apenas visible (antes verde). */
+    --canvas: color-mix(in srgb, #4338ca 6%, #0f172a);
+    --canvas-strong: color-mix(in srgb, #4338ca 8%, #1e293b);
+    --canvas-border: color-mix(in srgb, #4338ca 10%, #334155);
     --field: #0f172a;
     --field-hover: #131d33;
     --field-border: rgb(255 255 255 / 0.08);
     --ring: color-mix(in srgb, var(--accent-fill) 40%, transparent);
     --success: #34d399;
     --warning: #fbbf24;
-    --info: #60a5fa;
+    --info: #a5b4fc;
     --success-soft: color-mix(in srgb, var(--success) 16%, var(--surface));
     --warning-soft: color-mix(in srgb, var(--warning) 16%, var(--surface));
     --info-soft: color-mix(in srgb, var(--info) 16%, var(--surface));
@@ -186,6 +185,8 @@
   --color-danger-soft: var(--danger-soft);
   --color-danger-ink: var(--danger-ink);
   --color-like: var(--like);
+  --color-brand-from: var(--brand-from);
+  --color-brand-to: var(--brand-to);
   --color-live: var(--live);
   --radius-control: 10px;
   --radius-card: 16px;

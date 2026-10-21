@@ -48,7 +48,7 @@ export function TodayCelebrations({ initial }: { initial: TodayCelebration[] }) 
     <section aria-labelledby="hoy-se-celebra" className="mb-3">
       <Link
         href={`/celebraciones/${main.slug}`}
-        className="group relative flex min-h-36 overflow-hidden rounded-card bg-linear-to-br from-accent-fill to-emerald-700 shadow-card focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none"
+        className="group relative flex min-h-36 overflow-hidden rounded-card bg-linear-to-br from-brand-from to-brand-to shadow-card focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none"
       >
         {main.coverSrc ? (
           // Arriba de todo en el inicio: es la imagen principal de la pantalla (LCP), con prioridad como la primera del feed.

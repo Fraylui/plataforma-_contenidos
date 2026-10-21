@@ -42,7 +42,7 @@ export function TopicStories({
                     className={cn(
                       "rounded-full p-[3px] transition-transform group-active:scale-95 motion-reduce:transform-none",
                       topic.hasNew
-                        ? "bg-linear-to-tr from-accent-fill via-emerald-400 to-lime-300"
+                        ? "bg-linear-to-tr from-brand-from to-brand-to"
                         : "bg-border",
                       active && "outline-2 outline-offset-2 outline-foreground",
                     )}
