@@ -43,3 +43,15 @@ export function adContextQuery(context: AdContext): string {
   const query = params.toString();
   return query ? `&${query}` : "";
 }
+
+/** Detalle de un contenido: /publicaciones/x, /lugares/x, /galerias/x, /celebraciones/x. */
+const CONTENT_DETAIL = /^\/(publicaciones|lugares|galerias|celebraciones)\/[^/]+\/?$/;
+
+/**
+ * El anuncio fijo de abajo no va en el detalle de un contenido: ahí ya hay
+ * uno dentro del texto y dos a la vez tapaban la lectura en el celular
+ * (decisión del dueño 2026-10-21: un solo anuncio por detalle).
+ */
+export function anchorAdAllowed(pathname: string): boolean {
+  return !CONTENT_DETAIL.test(pathname);
+}

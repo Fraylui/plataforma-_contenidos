@@ -6,7 +6,7 @@ import { DirectCampaignBanner } from "@/components/legal/direct-campaign-banner"
 import { usePlannedCampaign } from "@/components/legal/use-ad-rotation";
 import { getCookieConsent, subscribeToCookieConsent } from "@/lib/cookie-consent";
 import { usePathname } from "next/navigation";
-import { sectionFromPath } from "@/lib/ads/ad-context";
+import { anchorAdAllowed, sectionFromPath } from "@/lib/ads/ad-context";
 
 const getServerSnapshot = () => null;
 
@@ -25,9 +25,11 @@ const getServerSnapshot = () => null;
  */
 export function AnchorAdSlot() {
   const consent = useSyncExternalStore(subscribeToCookieConsent, getCookieConsent, getServerSnapshot);
-  const section = sectionFromPath(usePathname());
-  const planned = usePlannedCampaign("anchor", 0, consent !== null, { section });
-  if (!planned?.campaign) return null;
+  const pathname = usePathname();
+  const allowed = anchorAdAllowed(pathname);
+  // Sin pedir campaña donde no va (el detalle ya tiene su anuncio en el texto).
+  const planned = usePlannedCampaign("anchor", 0, consent !== null && allowed, { section: sectionFromPath(pathname) });
+  if (!allowed || !planned?.campaign) return null;
   const { rotation, campaign } = planned;
   return (
     <StickyAnchorAd width={rotation.width}>
