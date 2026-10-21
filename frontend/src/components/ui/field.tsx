@@ -64,7 +64,8 @@ export function Field({
           <span className="block">{labelText}</span>
           {child}
         </label>
-        <FieldMessages hint={hint} error={error} />
+        {/* Sin control al que asociarlo por aria-describedby: el error se anuncia al aparecer. */}
+        <FieldMessages hint={hint} error={error} announceError />
       </div>
     );
   }
@@ -91,7 +92,19 @@ export function Field({
   );
 }
 
-function FieldMessages({ hint, hintId, error, errorId }: { hint?: ReactNode; hintId?: string; error?: string | null; errorId?: string }) {
+function FieldMessages({
+  hint,
+  hintId,
+  error,
+  errorId,
+  announceError = false,
+}: {
+  hint?: ReactNode;
+  hintId?: string;
+  error?: string | null;
+  errorId?: string;
+  announceError?: boolean;
+}) {
   return (
     <>
       {hint && (
@@ -100,7 +113,7 @@ function FieldMessages({ hint, hintId, error, errorId }: { hint?: ReactNode; hin
         </p>
       )}
       {error && (
-        <p id={errorId} className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-danger-ink">
+        <p id={errorId} role={announceError ? "alert" : undefined} className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-danger-ink">
           <WarningCircle weight="fill" aria-hidden="true" className="size-3.5 shrink-0" />
           {error}
         </p>

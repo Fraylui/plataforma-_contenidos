@@ -79,4 +79,13 @@ describe("Field", () => {
     expect(screen.getByLabelText("Texto")).toHaveAttribute("name", "body");
     expect(screen.getByLabelText("Resumen").tagName).toBe("TEXTAREA");
   });
+
+  it("un campo compuesto (sin control que conectar) anuncia su error al aparecer", () => {
+    render(
+      <Field label="Texto" name="body" error="Escribe el texto.">
+        <div contentEditable />
+      </Field>,
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent("Escribe el texto.");
+  });
 });
