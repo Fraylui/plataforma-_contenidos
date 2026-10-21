@@ -11,9 +11,9 @@ import pe.plataformacontenidos.identity.permission.RequiresAnyModule;
 import pe.plataformacontenidos.places.PlaceRepository;
 
 /**
- * Lugares para elegir en los formularios de Eventos y Directorio (spec 2a,
+ * Lugares para elegir en el formulario de Celebraciones (spec 2a,
  * hallazgo de la revisión final): solo id y nombre de los lugares no
- * archivados, para cualquiera con acceso a Lugares, Eventos o Directorio.
+ * archivados, para cualquiera con acceso a Lugares o Celebraciones.
  * Antes esos formularios pedían el listado de Lugares, que exige ese
  * módulo, y fallaban para un trabajador sin él.
  */

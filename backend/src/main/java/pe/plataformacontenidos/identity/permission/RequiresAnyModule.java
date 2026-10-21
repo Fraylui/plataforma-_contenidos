@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Endpoint del panel que sirve a varios módulos: basta con tener acceso
  * (CREATE o más) a cualquiera de ellos. Ej.: las opciones de lugar las usan
- * Lugares, Eventos y Directorio. Lo evalúa ModuleAccessInterceptor.
+ * Lugares y Celebraciones. Lo evalúa ModuleAccessInterceptor.
  */
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)

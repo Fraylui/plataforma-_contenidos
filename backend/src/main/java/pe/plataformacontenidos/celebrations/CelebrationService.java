@@ -35,7 +35,7 @@ import pe.plataformacontenidos.shared.publishing.InvalidPublicationTransitionExc
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
 /**
- * Orquesta el ciclo de publicación de Eventos (CONTEXTO.md sección 12), mismo
+ * Orquesta el ciclo de publicación de Celebraciones (CONTEXTO.md sección 12), mismo
  * patrón que PublicationService/PlaceService. La autorización a nivel de objeto
  * vive acá (SecurityConfig solo decide quién llega al endpoint).
  */

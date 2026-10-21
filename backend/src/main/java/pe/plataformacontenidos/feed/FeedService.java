@@ -33,7 +33,7 @@ import pe.plataformacontenidos.series.SeriesService;
 import pe.plataformacontenidos.taxonomy.CategoryService;
 
 /**
- * Feed unificado (Publicaciones, Lugares, Eventos, Galerías, Directorio y episodios de Series), pensado para
+ * Feed unificado (Publicaciones, Lugares, Celebraciones, Galerías y episodios de Series), pensado para
  * scroll infinito sin repetir contenido y sin que un solo tipo/categoría
  * domine la vista. Mismo principio arquitectónico que search.SearchService
  * (CONTEXTO.md sección 16 y 38): se agrega en memoria llamando a los
@@ -255,7 +255,7 @@ public class FeedService {
      * Relacionados para la vista de detalle: misma categoría, filtrado por
      * DB. Deliberadamente mezcla los 3 tipos de contenido en vez de
      * devolver solo el mismo tipo — el objetivo es que quien lee una
-     * Publicación descubra también Lugares/Eventos relacionados, no quedarse
+     * Publicación descubra también Lugares/Celebraciones relacionados, no quedarse
      * encerrado en un solo módulo.
      */
     public List<FeedItemResponse> getRelated(ContentType excludeType, UUID excludeId, UUID categoryId, int size) {

@@ -1,8 +1,8 @@
 package pe.plataformacontenidos.shared.publishing;
 
 /**
- * Estados de cualquier contenido (Publicación, Lugar, Evento, Galería,
- * Directorio). Flujo de plataforma: quien tiene el módulo publica directo,
+ * Estados de cualquier contenido (Publicación, Lugar, Celebración, Galería,
+ * Serie). Flujo de plataforma: quien tiene el módulo publica directo,
  * sin paso de aprobación (decisión del dueño 2026-10-15, V54). El texto para la persona está en
  * {@link #label()}.
  */

@@ -43,7 +43,7 @@ public record AdminListQuery(String q, PublicationStatus status, String sort, in
         size = size < 1 ? DEFAULT_SIZE : Math.min(size, MAX_SIZE);
     }
 
-    /** {@code extraSortable}: campos propios del tipo que también se pueden ordenar (ej. startsAt en Eventos). */
+    /** {@code extraSortable}: campos propios del tipo que también se pueden ordenar (ej. startsAt en Celebraciones). */
     public Pageable pageable(String titleField, String... extraSortable) {
         Sort order = Sort.by(Sort.Direction.DESC, "createdAt");
         if (sort != null) {

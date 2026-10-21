@@ -30,7 +30,7 @@ import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;
 
 /**
- * CRUD de contenido + transiciones de workflow para Eventos — mismo patrón que
+ * CRUD de contenido + transiciones de workflow para Celebraciones — mismo patrón que
  * PlaceAdminController. La autorización fina vive en CelebrationService.
  */
 @RestController

@@ -75,7 +75,7 @@ public class Publication extends PublishableContent {
      * Imágenes de la publicación: subidas (Media, sección 38) o por enlace
      * externo — nunca ambas por ítem (ver ContentImage). La primera de la
      * lista es la portada para tarjetas/feed, mismo criterio que
-     * Lugares/Eventos.
+     * Lugares/Celebraciones.
      */
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "publication_images", schema = "content", joinColumns = @JoinColumn(name = "publication_id"))

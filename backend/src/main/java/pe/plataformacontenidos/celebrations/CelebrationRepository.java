@@ -24,7 +24,7 @@ public interface CelebrationRepository extends JpaRepository<Celebration, UUID>,
     long countByStatus(PublicationStatus status);
 
     /**
-     * Eventos próximos (starts_at >= now), del más cercano al más lejano —
+     * Celebraciones próximas (starts_at >= now), del más cercano al más lejano —
      * la razón de ser de este módulo frente a Publication/Place, que ordenan por
      * published_at (CONTEXTO.md: separar activamente lo vigente de lo pasado
      * en vez de un muro cronológico único). categoryId opcional vía
