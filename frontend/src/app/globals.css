@@ -344,3 +344,14 @@ body {
     animation-timeline: scroll(root block);
   }
 }
+@supports (animation-timeline: view()) {
+  /* UpNext: la barra se llena mientras el tramo «Sigue bajando» entra en pantalla. */
+  .up-next-track {
+    view-timeline-name: --up-next;
+  }
+  .up-next-fill {
+    animation: fill-x linear both;
+    animation-timeline: --up-next;
+    animation-range: entry 0% entry 100%;
+  }
+}
