@@ -345,8 +345,8 @@ body {
   }
 }
 @supports (animation-timeline: view()) {
-  /* UpNext: la barra se llena mientras el tramo «Sigue bajando» entra en pantalla. */
-  .up-next-track {
+  /* UpNext: la barra se llena mientras la portada siguiente sube y llena la pantalla. */
+  .up-next-card {
     view-timeline-name: --up-next;
   }
   .up-next-fill {

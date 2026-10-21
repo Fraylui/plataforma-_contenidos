@@ -2,14 +2,14 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ImmersiveHero } from "./immersive-hero";
 
-const header = () => <p>Ecos del Camino · Publicación</p>;
+const header = { brand: { name: "Ecos del Camino", logoUrl: null }, typeLabel: "Publicación", categoryName: "Gastronomía", time: null };
 
 describe("ImmersiveHero", () => {
   it("sin portada muestra el título como h1 sobre el fondo de acento, sin imagen", () => {
     const { container } = render(<ImmersiveHero coverUrl={null} title="Mercado de Huamanga" header={header} />);
     expect(screen.getByRole("heading", { level: 1, name: "Mercado de Huamanga" })).toBeInTheDocument();
     expect(container.querySelector("img")).toBeNull();
-    expect(screen.getByText("Ecos del Camino · Publicación")).toBeInTheDocument();
+    expect(screen.getByText("Ecos del Camino")).toBeInTheDocument();
   });
 
   it("con portada la carga primero (LCP) y el título va encima", () => {

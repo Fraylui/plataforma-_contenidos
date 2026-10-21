@@ -1,7 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { HomeItem } from "@/lib/home-items";
-import { ADVANCE_HOLD_MS, UpNext } from "./up-next";
+import { ADVANCE_HOLD_MS, ADVANCE_RATIO, UpNext } from "./up-next";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
@@ -24,7 +24,7 @@ const next = {
   images: [],
 } as HomeItem;
 
-let trigger: (entries: { isIntersecting: boolean }[]) => void = () => {};
+let trigger: (entries: { isIntersecting: boolean; intersectionRatio: number }[]) => void = () => {};
 
 beforeEach(() => {
   push.mockReset();
@@ -59,18 +59,25 @@ describe("UpNext", () => {
     expect(screen.getByRole("link", { name: /El mercado central de Huamanga/ })).toHaveAttribute("href", next.href);
   });
 
-  it("pasa a la siguiente solo si la persona siguió bajando hasta el final y se quedó ahí", () => {
+  it("ver la tarjeta asomando no navega: hace falta que la portada llene la pantalla", () => {
     render(<UpNext item={next} />);
-    act(() => trigger([{ isIntersecting: true }]));
+    act(() => trigger([{ isIntersecting: true, intersectionRatio: 0.6 }]));
+    act(() => vi.advanceTimersByTime(2000));
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("pasa a la siguiente cuando la persona la subió hasta llenar la pantalla y se quedó ahí", () => {
+    render(<UpNext item={next} />);
+    act(() => trigger([{ isIntersecting: true, intersectionRatio: ADVANCE_RATIO }]));
     act(() => vi.advanceTimersByTime(ADVANCE_HOLD_MS));
     expect(push).toHaveBeenCalledWith(next.href);
   });
 
   it("si vuelve a subir antes de tiempo no navega", () => {
     render(<UpNext item={next} />);
-    act(() => trigger([{ isIntersecting: true }]));
+    act(() => trigger([{ isIntersecting: true, intersectionRatio: ADVANCE_RATIO }]));
     act(() => vi.advanceTimersByTime(ADVANCE_HOLD_MS - 100));
-    act(() => trigger([{ isIntersecting: false }]));
+    act(() => trigger([{ isIntersecting: true, intersectionRatio: 0.5 }]));
     act(() => vi.advanceTimersByTime(1000));
     expect(push).not.toHaveBeenCalled();
   });

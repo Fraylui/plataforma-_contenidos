@@ -1,9 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import { axe } from "vitest-axe";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { HomeItem } from "@/lib/home-items";
 import { PostView } from "./post-view";
 import { GridTile } from "./grid-tile";
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 const brand = { name: "Ecos", logoUrl: null };
 
@@ -69,6 +71,60 @@ describe("PostView", () => {
   it("es accesible", async () => {
     const { container } = view("text");
     expect(await axe(container)).toHaveNoViolations();
+  });
+});
+
+describe("PostView inmersivo", () => {
+  function immersive() {
+    return render(
+      <PostView
+        variant="immersive"
+        brand={brand}
+        typeLabel="Publicación"
+        categoryName="Gastronomía"
+        time={{ label: "hace 2 d", iso: "2026-10-19T00:00:00Z" }}
+        title="El mercado central de Huamanga"
+        coverUrl="https://example.com/portada.jpg"
+        media={<div data-testid="media" />}
+        excerpt="Un recorrido por los puestos."
+        body={<p>Texto largo.</p>}
+        actions={null}
+        reactions={<div data-testid="reactions" />}
+        upNext={tile({ id: "2", title: "Siguiente publicación", href: "/publicaciones/siguiente" })}
+        more={[tile({ id: "3", title: "Otro" })]}
+      />,
+    );
+  }
+
+  it("abre con la portada y un solo h1, y termina con «Sigue» después de «Más como esto»", async () => {
+    const { container } = immersive();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("El mercado central de Huamanga");
+    expect(screen.getByTestId("reactions")).toBeInTheDocument();
+    const sigue = screen.getByRole("region", { name: "Sigue" });
+    const mas = screen.getByRole("region", { name: "Más como esto" });
+    expect(mas.compareDocumentPosition(sigue) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(await axe(container)).toHaveNoViolations();
+  });
+});
+
+describe("Más como esto", () => {
+  it("muestra filas completas de 3 (sin hueco al final)", () => {
+    const items = Array.from({ length: 8 }, (_, i) => tile({ id: String(i), title: `Item ${i}` }));
+    render(
+      <PostView
+        variant="text"
+        brand={brand}
+        typeLabel="Publicación"
+        time={null}
+        title="Algo"
+        media={null}
+        actions={null}
+        more={items}
+      />,
+    );
+    const grid = screen.getByRole("region", { name: "Más como esto" });
+    expect(grid.querySelectorAll("li")).toHaveLength(6);
   });
 });
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, type ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 import { PreviewImage } from "@/components/ui/preview-image";
+import { PostHeader } from "../post-header";
 
 /**
  * Portada inmersiva del detalle (spec 2026-10-21): la foto ocupa la pantalla
@@ -17,8 +18,12 @@ export function ImmersiveHero({
 }: {
   coverUrl: string | null;
   title: string;
-  /** Encabezado del post (marca, tipo, tema, hora); recibe si va sobre foto para elegir el color. */
-  header: (onImage: boolean) => ReactNode;
+  /**
+   * Datos del encabezado (marca, tipo, tema, hora), no un nodo ni una función:
+   * este componente es de cliente y elige el color según si hay foto, y desde
+   * un componente de servidor solo se le pueden pasar datos serializables.
+   */
+  header: Omit<ComponentProps<typeof PostHeader>, "onImage" | "className">;
 }) {
   const [failed, setFailed] = useState(false);
   const photo = coverUrl != null && !failed;
@@ -43,7 +48,7 @@ export function ImmersiveHero({
         </>
       )}
       <div className="relative space-y-3 p-5 sm:p-8">
-        {header(photo)}
+        <PostHeader {...header} onImage={photo} className="flex items-center gap-3" />
         <h1
           className={cn(
             "text-[clamp(1.75rem,6vw,3rem)] leading-[1.08] font-extrabold tracking-tight text-balance",

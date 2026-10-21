@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCategoryById, getPlatformSettings, getPublishedPublicationBySlug, getRelatedWithFallback } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { LikeShareBar } from "@/components/content/like-share-bar";
 import { ViewBeacon } from "@/components/content/view-beacon";
 import { AdBlock } from "@/components/legal/ad-block";
 import { PostView } from "@/components/post/post-view";
+import { FloatingReactions } from "@/components/post/immersive/floating-reactions";
 import { PostDetailMedia } from "@/components/post/post-detail-media";
 import { headerTimeFor, updatedTimeFor } from "@/components/post/post-header";
 import { KIND_LABEL } from "@/lib/content-kind";
@@ -130,11 +130,17 @@ export default async function PublicationPage(props: PageProps<"/publicaciones/[
     getPlatformSettings(),
     getRelatedWithFallback({ excludeType: "PUBLICATION", excludeId: publication.id, categoryId: publication.categoryId, size: MORE_SIZE }),
   ]);
-  const hasMedia = publication.images.length > 0 || publication.videos.length > 0;
+  // Portada inmersiva: la primera foto o, si solo hay video, su miniatura; debajo va el resto del medio.
+  const coverUrl = shareImageUrl({ ogImageUrl: null, images: publication.images, videos: publication.videos });
+  const restImages = publication.images.slice(1);
+  const hasMoreMedia = restImages.length > 0 || publication.videos.length > 0;
   const moreItems = [...relatedPage.related, ...relatedPage.more].map(fromFeedItem);
   // Texto largo: el primer relacionado va a mitad del texto (y sale de «Más como esto» para no repetirse).
   const halves = moreItems.length > 0 ? splitBodyInHalf(publication.body) : null;
   const inline = halves ? moreItems[0] : null;
+  // El siguiente (relacionado del mismo tema primero) es «Sigue»; el resto queda en «Más como esto».
+  const rest = inline ? moreItems.slice(1) : moreItems;
+  const upNext = rest[0] ?? null;
 
   return (
     <>
@@ -158,14 +164,14 @@ export default async function PublicationPage(props: PageProps<"/publicaciones/[
       />
 
       <PostView
-        variant="text"
+        variant="immersive"
+        coverUrl={coverUrl}
         brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}
         typeLabel={KIND_LABEL.publicacion}
         categoryName={category?.name}
         time={updatedTimeFor(headerTimeFor({ kind: "publicacion", sortDate: publication.publishedAt ?? "" }), publication.updatedAt)}
         title={publication.title}
-        // Texto largo: sin fotos ni videos no hace falta el bloque de marca, el título ya encabeza.
-        media={hasMedia ? <PostDetailMedia images={publication.images} videos={publication.videos} title={publication.title} aspect="aspect-video" /> : null}
+        media={hasMoreMedia ? <PostDetailMedia images={restImages} videos={publication.videos} title={publication.title} aspect="aspect-video" /> : null}
         excerpt={publication.excerpt}
         body={
           <>
@@ -181,9 +187,11 @@ export default async function PublicationPage(props: PageProps<"/publicaciones/[
             <WhatsAppFollow channelUrl={settings.whatsappChannelUrl} siteName={settings.name} />
           </>
         }
-        actions={<><ViewBeacon type="PUBLICATION" id={publication.id} /><LikeShareBar contentType="publications" slug={publication.slug} initialLikeCount={publication.likeCount} title={publication.title} /></>}
+        actions={<ViewBeacon type="PUBLICATION" id={publication.id} />}
+        reactions={<FloatingReactions contentType="publications" slug={publication.slug} initialLikeCount={publication.likeCount} title={publication.title} />}
+        upNext={upNext}
         ad={<AdBlock position="article" section="PUBLICATION" categoryId={publication.categoryId} layout="band" count={2} />}
-        more={inline ? moreItems.slice(1) : moreItems}
+        more={rest.slice(1)}
       />
     </>
   );

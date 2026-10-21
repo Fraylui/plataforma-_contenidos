@@ -3,6 +3,9 @@ import type { HomeItem } from "@/lib/home-items";
 import { cn } from "@/lib/utils";
 import { PostHeader, type PostBrand, type PostHeaderTime } from "./post-header";
 import { GridTile } from "./grid-tile";
+import { ImmersiveHero } from "./immersive/immersive-hero";
+import { ReadingProgress } from "./immersive/reading-progress";
+import { UpNext } from "./immersive/up-next";
 
 /**
  * Vista de un contenido como post de red social (diseño 2026-10-06), igual
@@ -15,6 +18,9 @@ import { GridTile } from "./grid-tile";
  * (sobre la barra de pestañas) y el texto como pie. Sin ruta visible, sin
  * "min de lectura", sin antetítulo ni entradilla en negrita (eso era un
  * diario); la ruta sigue para Google en el JSON-LD de cada página.
+ *  - "immersive" (spec 2026-10-21, publicaciones): portada a pantalla con el
+ *    título encima, barra de progreso, reacciones flotantes (`reactions`),
+ *    «Más como esto» y al final «Sigue» (`upNext`), la portada siguiente.
  */
 export function PostView({
   variant,
@@ -30,8 +36,11 @@ export function PostView({
   actions,
   ad,
   more = [],
+  coverUrl = null,
+  reactions,
+  upNext = null,
 }: {
-  variant: "visual" | "text";
+  variant: "visual" | "text" | "immersive";
   brand: PostBrand;
   typeLabel: string;
   categoryName?: string;
@@ -44,7 +53,57 @@ export function PostView({
   actions: ReactNode;
   ad?: ReactNode;
   more?: HomeItem[];
+  /** Solo "immersive": portada (primera foto o miniatura del video). */
+  coverUrl?: string | null;
+  /** Solo "immersive": me gusta y compartir flotantes. */
+  reactions?: ReactNode;
+  /** Solo "immersive": la siguiente publicación. */
+  upNext?: HomeItem | null;
 }) {
+  // Filas completas de 3: un hueco al final de la grilla se lee como abandono.
+  const tiles = more.length >= 3 ? more.slice(0, more.length - (more.length % 3)) : more;
+  const moreSection = tiles.length > 0 && (
+    <section aria-label="Más como esto" className="mt-10">
+      <h2 className="px-4 text-base font-bold text-foreground sm:px-0">Más como esto</h2>
+      <ul className="mt-3 grid grid-cols-3 gap-0.5 sm:gap-1">
+        {tiles.map((item) => (
+          <li key={item.id}>
+            <GridTile item={item} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+
+  if (variant === "immersive") {
+    return (
+      <div className="mx-auto w-full max-w-[1040px] pb-8 sm:px-4 sm:pt-4">
+        <ReadingProgress />
+        <article className="mx-auto max-w-[760px]">
+          <ImmersiveHero
+            coverUrl={coverUrl}
+            title={title}
+            header={{ brand, typeLabel, categoryName, time }}
+          />
+          <div className="mx-auto max-w-[680px] pt-6">
+            {facts && <div className="px-4 sm:px-0">{facts}</div>}
+            {excerpt && <p className="mt-2 px-4 text-lg leading-relaxed font-medium text-foreground sm:px-0">{excerpt}</p>}
+            {media && <div className="mt-6">{media}</div>}
+            {body && <div className="mt-6 px-4 sm:px-0">{body}</div>}
+            {actions}
+            {ad && <div className="mt-8 px-4 sm:px-0">{ad}</div>}
+          </div>
+        </article>
+        {reactions}
+        <div className="mx-auto max-w-[760px]">
+          {moreSection}
+          {/* Al final de todo: subirla hasta llenar la pantalla es la intención de pasar. */}
+          <UpNext item={upNext} />
+        </div>
+      </div>
+    );
+  }
+
   const visual = variant === "visual";
   const header = <PostHeader brand={brand} typeLabel={typeLabel} categoryName={categoryName} time={time} className="flex items-center gap-3 px-4 py-3 sm:px-0" />;
   const text = (
@@ -80,18 +139,7 @@ export function PostView({
         <div className={cn("min-w-0 pt-1", visual && "lg:col-start-2 lg:row-start-2")}>{text}</div>
       </article>
 
-      {more.length > 0 && (
-        <section aria-label="Más como esto" className="mt-10">
-          <h2 className="px-4 text-base font-bold text-foreground sm:px-0">Más como esto</h2>
-          <ul className="mt-3 grid grid-cols-3 gap-0.5 sm:gap-1">
-            {more.map((item) => (
-              <li key={item.id}>
-                <GridTile item={item} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {moreSection}
     </div>
   );
 }
