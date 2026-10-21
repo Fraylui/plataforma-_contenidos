@@ -321,3 +321,26 @@ body {
   80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
 }
+
+/* Me gusta flotante del detalle inmersivo: un «pop» corto al marcarlo (solo
+   transform, motion-safe en el componente). */
+@keyframes like-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+
+/* Barra de progreso de lectura (ReadingProgress) y del «Sigue» (UpNext):
+   CSS puro con scroll-driven animations, sin JS. Donde no hay soporte la
+   barra queda vacía (scale-x-0) y no estorba. */
+/* Anima la propiedad `scale` (no transform): es la que fija scale-x-0 en Tailwind 4. */
+@keyframes fill-x {
+  from { scale: 0 1; }
+  to { scale: 1 1; }
+}
+@supports (animation-timeline: scroll()) {
+  .reading-progress {
+    animation: fill-x linear both;
+    animation-timeline: scroll(root block);
+  }
+}
