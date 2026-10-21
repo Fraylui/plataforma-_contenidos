@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.taxonomy.CategoryService;
@@ -36,9 +37,14 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
+    /**
+     * Público. Con {@code withContent=true} (el sitio) solo los temas con algo
+     * publicado; sin él (el panel, al elegir tema) todos los activos.
+     */
     @GetMapping("/categories")
-    public List<CategoryResponse> listActive() {
-        return categoryService.listActive().stream().map(CategoryResponse::from).toList();
+    public List<CategoryResponse> listActive(@RequestParam(defaultValue = "false") boolean withContent) {
+        var categories = withContent ? categoryService.listActiveWithContent() : categoryService.listActive();
+        return categories.stream().map(CategoryResponse::from).toList();
     }
 
     /** Público: el frontend necesita resolver categoryId -> nombre/slug al renderizar un artículo. */

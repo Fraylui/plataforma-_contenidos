@@ -407,6 +407,15 @@ export function listActiveCategories(): Promise<Category[]> {
   return apiFetch(`/api/v1/categories`, 300);
 }
 
+/**
+ * Los temas que ve el visitante: solo los que tienen algo publicado (y sus
+ * padres). Decisión del dueño 2026-10-21: un tema vacío no se muestra. Para
+ * traducir un id a nombre sigue sirviendo listActiveCategories.
+ */
+export function listCategoriesWithContent(): Promise<Category[]> {
+  return apiFetch(`/api/v1/categories?withContent=true`, 300);
+}
+
 export function getCategoryById(id: string): Promise<Category> {
   return apiFetch(`/api/v1/categories/${encodeURIComponent(id)}`, 300);
 }
@@ -417,8 +426,9 @@ export function getCategoryById(id: string): Promise<Category> {
  * que no justifica un endpoint nuevo. `listActiveCategories()` ya cachea
  * 300s, así que esto no golpea el backend en cada llamada.
  */
+/** Página pública de un tema: un tema sin contenido no existe para el visitante (404). */
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
-  const categories = await listActiveCategories();
+  const categories = await listCategoriesWithContent();
   return categories.find((c) => c.slug === slug) ?? null;
 }
 

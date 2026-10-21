@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { listActiveCategories, searchContent } from "@/lib/api/client";
+import { listCategoriesWithContent, searchContent } from "@/lib/api/client";
 import type { SearchResultType } from "@/lib/api/types";
 import { fromSearchResult } from "@/lib/home-items";
 import { GridTile } from "@/components/post/grid-tile";
@@ -79,7 +79,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
           to: toInstant,
         })
       : Promise.resolve(null),
-    listActiveCategories(),
+    listCategoriesWithContent(),
   ]);
 
   const typeChips = [

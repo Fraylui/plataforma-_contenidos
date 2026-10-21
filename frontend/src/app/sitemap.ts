@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import {
-  listActiveCategories,
+  listCategoriesWithContent,
   listAllPublishedPublicationsForSitemap,
   listAllPublishedCelebrationsForSitemap,
   listAllPublishedGalleriesForSitemap,
@@ -16,7 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     listAllPublishedPlacesForSitemap(),
     listAllPublishedCelebrationsForSitemap(),
     listAllPublishedGalleriesForSitemap(),
-    listActiveCategories(),
+    listCategoriesWithContent(),
     listAllSeriesWithEpisodesForSitemap(),
   ]);
 

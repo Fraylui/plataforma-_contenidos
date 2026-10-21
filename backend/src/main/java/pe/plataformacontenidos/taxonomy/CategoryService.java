@@ -16,9 +16,11 @@ import pe.plataformacontenidos.shared.Slugify;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final CategoriesWithContent categoriesWithContent;
 
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository, CategoriesWithContent categoriesWithContent) {
         this.categoryRepository = categoryRepository;
+        this.categoriesWithContent = categoriesWithContent;
     }
 
     public Category create(String name, String description, UUID parentId) {
@@ -52,6 +54,25 @@ public class CategoryService {
 
     public List<Category> listActive() {
         return categoryRepository.findByActiveTrueOrderBySortOrderAsc();
+    }
+
+    /**
+     * Activos con algo publicado, más los padres de esos (el árbol no se corta
+     * aunque el padre no tenga contenido propio). Lo que ve el visitante.
+     */
+    public List<Category> listActiveWithContent() {
+        List<Category> active = listActive();
+        Map<UUID, Category> byId = new HashMap<>();
+        active.forEach(category -> byId.put(category.getId(), category));
+        Set<UUID> visible = new HashSet<>();
+        for (UUID id : categoriesWithContent.ids()) {
+            // Sube por los padres activos hasta la raíz (o hasta uno ya visto).
+            Category current = byId.get(id);
+            while (current != null && visible.add(current.getId())) {
+                current = current.getParentId() == null ? null : byId.get(current.getParentId());
+            }
+        }
+        return active.stream().filter(category -> visible.contains(category.getId())).toList();
     }
 
     public List<Category> listAll() {
