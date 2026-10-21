@@ -39,6 +39,7 @@ export function PostView({
   cover = null,
   reactions,
   upNext = null,
+  heroBadge,
 }: {
   variant: "visual" | "text" | "immersive";
   brand: PostBrand;
@@ -59,6 +60,8 @@ export function PostView({
   reactions?: ReactNode;
   /** Solo "immersive": la siguiente publicación. */
   upNext?: HomeItem | null;
+  /** Solo "immersive": sello sobre la portada (fecha de una celebración). */
+  heroBadge?: ReactNode;
 }) {
   // Filas completas de 3: un hueco al final de la grilla se lee como abandono.
   const tiles = more.length >= 3 ? more.slice(0, more.length - (more.length % 3)) : more;
@@ -82,6 +85,7 @@ export function PostView({
         <article className="mx-auto max-w-[760px]">
           <ImmersiveHero
             cover={cover}
+            badge={heroBadge}
             title={title}
             header={{ brand, typeLabel, categoryName, time }}
           />

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { celebrationDateParts, formatCelebrationDate, siteDateString, siteMidnightIso } from "./celebration-date";
+import { celebrationDateParts, countdownLabel, formatCelebrationDate, siteDateString, siteMidnightIso } from "./celebration-date";
 
 // Medianoche de Lima (UTC-5) = 05:00 UTC.
 const JULY_28 = "2027-07-28T05:00:00Z";
@@ -38,5 +38,24 @@ describe("zona del sitio para fechas de todo el día", () => {
 describe("celebrationDateParts", () => {
   it("día y mes corto para el cuadrito de la fecha (zona de Lima)", () => {
     expect(celebrationDateParts(JULY_28)).toEqual({ day: "28", month: "jul" });
+  });
+});
+
+describe("countdownLabel", () => {
+  // Lima (UTC−5): 2026-10-21 10:00 local = 15:00 UTC.
+  const now = new Date("2026-10-21T15:00:00Z");
+
+  it("hoy, mañana y los días que faltan, contados en días del sitio", () => {
+    expect(countdownLabel("2026-10-21T05:00:00Z", now)).toBe("¡Es hoy!");
+    expect(countdownLabel("2026-10-22T05:00:00Z", now)).toBe("Mañana");
+    expect(countdownLabel("2026-11-01T05:00:00Z", now)).toBe("Faltan 11 días");
+  });
+
+  it("a las 23:30 de Lima ya es «mañana» lo del día siguiente, aunque en UTC sea otro día", () => {
+    expect(countdownLabel("2026-10-22T05:00:00Z", new Date("2026-10-22T04:30:00Z"))).toBe("Mañana");
+  });
+
+  it("lo que ya pasó no tiene cuenta regresiva", () => {
+    expect(countdownLabel("2026-10-20T05:00:00Z", now)).toBeNull();
   });
 });

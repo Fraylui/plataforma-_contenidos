@@ -66,3 +66,19 @@ export function celebrationDateParts(iso: string): { day: string; month: string 
   const date = new Date(iso);
   return { day: DAY.format(date), month: SHORT_MONTH.format(date).replace(".", "").toLowerCase() };
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Cuenta regresiva de una celebración («¡Es hoy!», «Mañana», «Faltan 11
+ * días»), en días de calendario del sitio (no del navegador ni de UTC).
+ * Null si ya pasó.
+ */
+export function countdownLabel(nextAtIso: string, now: Date): string | null {
+  const day = (iso: string) => Date.parse(`${siteDateString(iso)}T00:00:00Z`);
+  const days = Math.round((day(nextAtIso) - day(now.toISOString())) / DAY_MS);
+  if (days < 0) return null;
+  if (days === 0) return "¡Es hoy!";
+  if (days === 1) return "Mañana";
+  return `Faltan ${days} días`;
+}

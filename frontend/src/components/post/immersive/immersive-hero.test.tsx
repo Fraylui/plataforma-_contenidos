@@ -30,4 +30,9 @@ describe("ImmersiveHero", () => {
     expect(container.querySelector("img")).toBeNull();
     expect(screen.getByRole("heading", { level: 1, name: "Mercado" })).toBeInTheDocument();
   });
+
+  it("muestra el sello (p. ej. la fecha de una celebración) sobre la portada", () => {
+    render(<ImmersiveHero cover={null} title="Fiestas Patrias" header={header} badge={<span>28 jul</span>} />);
+    expect(screen.getByText("28 jul")).toBeInTheDocument();
+  });
 });

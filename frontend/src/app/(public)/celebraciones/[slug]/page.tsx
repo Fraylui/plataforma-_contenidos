@@ -13,14 +13,18 @@ import { NotFoundError } from "@/lib/api/client";
 import { formatEventDateTime, isCelebrationFinished } from "@/lib/content-labels";
 import { formatCelebrationDate } from "@/lib/celebration-date";
 import { celebrationPlace } from "@/lib/countries";
-import { LikeShareBar, POST_ACTION_PILL } from "@/components/content/like-share-bar";
+import { POST_ACTION_PILL } from "@/components/content/like-share-bar";
+import { FloatingReactions } from "@/components/post/immersive/floating-reactions";
+import { heroCover } from "@/components/post/immersive/immersive-hero";
+import { CelebrationStamp } from "@/components/post/immersive/celebration-stamp";
+import { buttonClass } from "@/components/ui";
 import { ViewBeacon } from "@/components/content/view-beacon";
 import { PostView } from "@/components/post/post-view";
 import { PostDetailMedia } from "@/components/post/post-detail-media";
 import { PostFacts, type PostFact } from "@/components/post/post-facts";
 import { calendarLinks } from "@/components/post/calendar-link";
 import { KIND_LABEL } from "@/lib/content-kind";
-import { fromFeedItem } from "@/lib/home-items";
+import { fromFeedItem, splitUpNext } from "@/lib/home-items";
 import { AdBlock } from "@/components/legal/ad-block";
 import { SITE_URL } from "@/lib/site-url";
 import type { Category, Celebration } from "@/lib/api/types";
@@ -150,6 +154,7 @@ export default async function CelebrationPage(props: PageProps<"/celebraciones/[
     url: `${SITE_URL}/celebraciones/${celebration.slug}`,
     location: where,
   });
+  const { upNext, more } = splitUpNext([...relatedPage.related, ...relatedPage.more].map(fromFeedItem));
   const facts: PostFact[] = [
     { icon: CalendarBlank, label: celebration.recursYearly ? "Cada año" : finished ? "Fue" : "Cuándo", value: when },
     { icon: GlobeHemisphereWest, label: "Se celebra en", value: celebrationPlace(celebration.scopeCountry, celebration.scopeRegion) },
@@ -185,14 +190,20 @@ export default async function CelebrationPage(props: PageProps<"/celebraciones/[
       />
 
       <PostView
-        variant="visual"
+        variant="immersive"
+        cover={heroCover(celebration.images, celebration.videos)}
+        heroBadge={finished ? undefined : <CelebrationStamp nextAt={celebration.nextOccurrenceAt} />}
         brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}
         typeLabel={KIND_LABEL.celebracion}
         categoryName={category?.name}
         // La fecha va en los datos ("Cuándo" / "Cada año"), no repetida en el encabezado.
         time={null}
         title={celebration.title}
-        media={<PostDetailMedia images={celebration.images} videos={celebration.videos} title={celebration.title} />}
+        media={
+          celebration.images.length > 1 || celebration.videos.length > 0 ? (
+            <PostDetailMedia images={celebration.images.slice(1)} videos={celebration.videos} title={celebration.title} />
+          ) : null
+        }
         excerpt={celebration.excerpt}
         facts={<PostFacts facts={facts} />}
         body={
@@ -203,25 +214,27 @@ export default async function CelebrationPage(props: PageProps<"/celebraciones/[
         actions={
           <>
             <ViewBeacon type="CELEBRATION" id={celebration.id} />
-            <LikeShareBar contentType="celebrations" slug={celebration.slug} initialLikeCount={celebration.likeCount} title={celebration.title}>
-              {!finished && (
-                <>
-                  {/* Guarda la fecha en el calendario del visitante (no es publicidad): lo trae de vuelta el día. */}
-                  <a href={calendar.google} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL} title="Guardar en Google Calendar">
-                    <CalendarPlus className="h-4 w-4" aria-hidden="true" />
-                    Recordarme
-                  </a>
-                  <a href={calendar.ics} download={`${celebration.slug}.ics`} className={POST_ACTION_PILL} title="Para iPhone, Outlook y otros calendarios">
-                    <DownloadSimple className="h-4 w-4" aria-hidden="true" />
-                    Otro calendario
-                  </a>
-                </>
-              )}
-            </LikeShareBar>
+            {!finished && (
+              // Guarda la fecha en el calendario del visitante (no es publicidad): lo trae de vuelta el día.
+              <div className="mt-6 flex flex-wrap gap-2 px-4 sm:px-0">
+                <a href={calendar.google} target="_blank" rel="noopener noreferrer" className={buttonClass("primary", "lg")} title="Guardar en Google Calendar">
+                  <CalendarPlus aria-hidden="true" />
+                  Recordarme
+                </a>
+                <a href={calendar.ics} download={`${celebration.slug}.ics`} className={POST_ACTION_PILL} title="Para iPhone, Outlook y otros calendarios">
+                  <DownloadSimple className="h-4 w-4" aria-hidden="true" />
+                  Otro calendario
+                </a>
+              </div>
+            )}
           </>
         }
+        reactions={
+          <FloatingReactions contentType="celebrations" slug={celebration.slug} initialLikeCount={celebration.likeCount} title={celebration.title} />
+        }
         ad={<AdBlock position="article" section="CELEBRATION" categoryId={celebration.categoryId} layout="band" count={2} />}
-        more={[...relatedPage.related, ...relatedPage.more].map(fromFeedItem)}
+        upNext={upNext}
+        more={more}
       />
     </>
   );

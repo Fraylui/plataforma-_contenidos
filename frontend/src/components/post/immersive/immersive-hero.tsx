@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import type { ContentImage, ContentVideo } from "@/lib/api/types";
 import { ContentImageDisplay } from "@/components/content/content-image-display";
 import { PreviewImage } from "@/components/ui/preview-image";
@@ -29,8 +29,11 @@ export function ImmersiveHero({
   cover,
   title,
   header,
+  badge,
 }: {
   cover: HeroCover | null;
+  /** Sello arriba a la izquierda (p. ej. la fecha y la cuenta regresiva de una celebración). */
+  badge?: ReactNode;
   title: string;
   /** Datos del encabezado (marca, tipo, tema, hora). */
   header: Omit<ComponentProps<typeof PostHeader>, "onImage" | "className">;
@@ -59,6 +62,7 @@ export function ImmersiveHero({
       )}
       {/* Degradado: el texto blanco se lee sobre cualquier foto (y si la foto no cargó). */}
       {photo && <div aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-black/85 via-black/35 to-transparent" />}
+      {badge && <div className="absolute top-4 left-4 sm:top-6 sm:left-6">{badge}</div>}
       <div className="relative space-y-3 p-5 sm:p-8">
         <PostHeader {...header} onImage={photo} className="flex items-center gap-3" />
         <h1
