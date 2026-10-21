@@ -6,7 +6,7 @@ import type { AdminImage } from "@/lib/api/admin-types";
 import type { Category, ContentImage } from "@/lib/api/types";
 import { imageUrl } from "@/lib/image-url";
 import { FormError } from "@/components/admin/ui";
-import { Card, Combobox, Field, TextArea, TextInput } from "@/components/ui";
+import { Card, Combobox, Field, TextArea } from "@/components/ui";
 import { ContentImagesPicker } from "../content-images-picker";
 import { VideoLinksEditor } from "../video-links-editor";
 import { RichTextEditor } from "../rich-text-editor";
