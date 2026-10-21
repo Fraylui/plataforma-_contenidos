@@ -58,6 +58,14 @@ describe("PublicationComposer", () => {
     expect(createPublicationAction).not.toHaveBeenCalled();
   });
 
+  it("avisa cuando Google va a cortar el título, sin bloquear", async () => {
+    renderNew();
+    const title = "Semana Santa en Ayacucho 2027: guía de procesiones, horarios y rutas";
+    await userEvent.type(screen.getByLabelText("Título"), title);
+    await userEvent.click(screen.getByRole("button", { name: /Cómo se ve al compartir/ }));
+    expect(screen.getByText(new RegExp(`Google cortará el título \\(${title.length} caracteres; muestra unos 60\\)`))).toBeInTheDocument();
+  });
+
   it("el tema empieza vacío, explica por qué elegirlo y no deja guardar sin él", async () => {
     renderNew();
     const topic = screen.getByRole("combobox", { name: "Tema" });

@@ -94,8 +94,9 @@ export function MediaCard({
   );
 }
 
+// Crece con el texto (field-sizing): un título largo se lee entero mientras se escribe.
 const TITLE_CLASS =
-  "h-auto border-0 bg-transparent px-0 py-1 text-[28px] leading-tight font-bold tracking-tight " +
+  "h-auto min-h-0 resize-none overflow-hidden field-sizing-content border-0 bg-transparent px-0 py-1 text-[28px] leading-tight font-bold tracking-tight " +
   "placeholder:text-muted/50 hover:bg-transparent focus:border-0 focus:bg-transparent focus:ring-0";
 
 /** Título grande, descripción corta con contador y, si el tipo lo tiene, el texto. */
@@ -121,7 +122,15 @@ export function WritingCard({
   return (
     <Card>
       <Field label={titleLabel} name="title" hideLabel error={errors.title?.message}>
-        <TextInput placeholder={titlePlaceholder} disabled={readOnly} className={TITLE_CLASS} {...register("title")} />
+        <TextArea
+          rows={1}
+          placeholder={titlePlaceholder}
+          disabled={readOnly}
+          className={TITLE_CLASS}
+          // Un título es una línea: Enter no agrega saltos.
+          onKeyDown={(event) => event.key === "Enter" && event.preventDefault()}
+          {...register("title")}
+        />
       </Field>
       <Field label="Descripción corta" name="excerpt" hint="Una o dos frases que inviten a abrirla." error={errors.excerpt?.message}>
         <TextArea

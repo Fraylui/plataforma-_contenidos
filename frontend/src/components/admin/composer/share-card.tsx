@@ -2,7 +2,7 @@
 
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { CollapsibleCard, Combobox, Field, TextArea, TextInput } from "@/components/ui";
-import { SharePreview, shareText } from "../share-preview";
+import { DESCRIPTION_MAX, SharePreview, TITLE_MAX, shareText } from "../share-preview";
 import { ROBOTS_OPTIONS, type BaseComposerValues } from "./schema";
 
 /**
@@ -29,10 +29,22 @@ export function ShareCard({
     name: ["title", "excerpt", "seoTitle", "metaDescription", "ogImageUrl"],
   }) as string[];
   const share = shareText({ title: title ?? "", excerpt: excerpt ?? "", seoTitle: seoTitle ?? "", metaDescription: metaDescription ?? "" });
+  // Aviso, no bloqueo: Google corta, pero el texto completo sigue sirviendo en el sitio.
+  const fullTitle = (seoTitle?.trim() || title || "").trim();
+  const fullDescription = (metaDescription?.trim() || excerpt || "").replace(/\s+/g, " ").trim();
+  const cutWarnings = [
+    fullTitle.length > TITLE_MAX && `el título (${fullTitle.length} caracteres; muestra unos ${TITLE_MAX})`,
+    fullDescription.length > DESCRIPTION_MAX && `la descripción (${fullDescription.length}; muestra unos ${DESCRIPTION_MAX})`,
+  ].filter(Boolean);
 
   return (
     <CollapsibleCard title="Cómo se ve al compartir">
       <SharePreview siteName={siteName} path={path} title={share.title} description={share.description} imageUrl={ogImageUrl?.trim() || coverUrl} />
+      {cutWarnings.length > 0 && (
+        <p className="rounded-control bg-warning-soft px-3 py-2 text-sm text-foreground">
+          Google cortará {cutWarnings.join(" y ")}. Si quieres elegir qué se lee, escribe una versión más corta abajo.
+        </p>
+      )}
       <p className="text-sm text-muted">
         Se arma solo con el título, la descripción corta y la portada. Cámbialo solo si quieres otro texto para redes y buscadores.
       </p>

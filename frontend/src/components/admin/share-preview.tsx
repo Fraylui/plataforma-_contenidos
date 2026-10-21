@@ -1,8 +1,9 @@
-/* eslint-disable @next/next/no-img-element -- vista previa con URLs arbitrarias (externas o del backend), sin optimizar */
 import { ImageSquare } from "@phosphor-icons/react/dist/ssr";
+import { BrokenImageNotice, PreviewImage } from "./preview-image";
 
-const TITLE_MAX = 60;
-const DESCRIPTION_MAX = 160;
+/** Lo que Google suele mostrar antes de cortar (aprox.; depende del ancho de las letras). */
+export const TITLE_MAX = 60;
+export const DESCRIPTION_MAX = 160;
 
 function clip(text: string, max: number): string {
   const clean = text.replace(/\s+/g, " ").trim();
@@ -48,7 +49,7 @@ export function SharePreview({
         <div className="overflow-hidden rounded-control bg-field">
           <div className="flex aspect-[1.91/1] items-center justify-center bg-canvas-strong">
             {imageUrl ? (
-              <img src={imageUrl} alt="" className="size-full object-cover" />
+              <PreviewImage src={imageUrl} fallback={<BrokenImageNotice />} />
             ) : (
               <p className="flex items-center gap-2 px-4 text-center text-xs text-muted">
                 <ImageSquare aria-hidden="true" className="size-4 shrink-0" />

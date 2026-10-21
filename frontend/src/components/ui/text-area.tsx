@@ -4,10 +4,14 @@ import { useState, type ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 import { fieldClass, markFieldControl } from "./field-styles";
 
-type TextAreaProps = ComponentProps<"textarea"> & { invalid?: boolean };
+type TextAreaProps = ComponentProps<"textarea"> & {
+  invalid?: boolean;
+  /** Mostrar el contador "n/máx" cuando hay `maxLength` (por defecto sí; no en campos breves repetidos). */
+  counter?: boolean;
+};
 
 /** Área de texto; con `maxLength` muestra un contador "n/máx" que parte del valor inicial. */
-export const TextArea = markFieldControl(function TextArea({ invalid, className, onChange, ...rest }: TextAreaProps) {
+export const TextArea = markFieldControl(function TextArea({ invalid, counter = true, className, onChange, ...rest }: TextAreaProps) {
   const [uncontrolledLength, setUncontrolledLength] = useState(String(rest.defaultValue ?? "").length);
   const length = rest.value != null ? String(rest.value).length : uncontrolledLength;
 
@@ -22,7 +26,7 @@ export const TextArea = markFieldControl(function TextArea({ invalid, className,
       className={cn(fieldClass, "h-auto min-h-24 resize-y py-2.5 leading-relaxed", className)}
     />
   );
-  if (rest.maxLength == null) return textarea;
+  if (rest.maxLength == null || !counter) return textarea;
   const nearLimit = length >= rest.maxLength * 0.9;
   return (
     <div>

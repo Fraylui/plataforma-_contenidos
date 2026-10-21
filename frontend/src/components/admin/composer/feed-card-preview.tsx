@@ -1,11 +1,11 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element -- vista previa de la portada: URL subida o externa, sin optimizar */
 import { useWatch } from "react-hook-form";
 import { ImageSquare } from "@phosphor-icons/react";
 import type { Category } from "@/lib/api/types";
 import { Card } from "@/components/ui";
 import type { BaseComposerValues } from "./schema";
+import { BrokenImageNotice, PreviewImage } from "../preview-image";
 
 /** Cómo se verá la tarjeta en el feed mientras se escribe (sin me gusta ni compartir: aún no existe). */
 export function FeedCardPreview({
@@ -31,7 +31,7 @@ export function FeedCardPreview({
         </p>
         <div className="flex aspect-square items-center justify-center bg-canvas-strong">
           {coverUrl ? (
-            <img src={coverUrl} alt="" className="size-full object-cover" />
+            <PreviewImage src={coverUrl} fallback={<BrokenImageNotice />} />
           ) : (
             <ImageSquare aria-hidden="true" className="size-10 text-muted/60" />
           )}

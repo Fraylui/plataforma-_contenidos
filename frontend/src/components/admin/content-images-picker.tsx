@@ -9,6 +9,21 @@ import { InlineImageUpload } from "./inline-image-upload";
 import { ContentMediaItemFields } from "./content-media-item-fields";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/admin/ui";
 import { Button, TextInput } from "@/components/ui";
+import { BrokenImageNotice, PreviewImage } from "./preview-image";
+
+/**
+ * Etiqueta corta de un enlace: dominio … archivo. Los enlaces de un mismo
+ * sitio comparten el principio, así que cortar al final los dejaba iguales.
+ */
+export function shortImageLabel(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const file = decodeURIComponent(parsed.pathname.split("/").filter(Boolean).pop() ?? "");
+    return file ? `${parsed.hostname} … ${file}` : parsed.hostname;
+  } catch {
+    return url;
+  }
+}
 
 /**
  * Selector de imágenes de contenido (Publicaciones/Lugares/Celebraciones):
@@ -32,6 +47,8 @@ export function ContentImagesPicker({
   const [images, setImages] = useState(allImages);
   const [externalUrlDraft, setExternalUrlDraft] = useState("");
   const [libraryOpen, setLibraryOpen] = useState(false);
+  // Enlaces que no cargaron: se avisa en su fila en vez de mostrar un ícono roto.
+  const [brokenSrcs, setBrokenSrcs] = useState<string[]>([]);
 
   function uploadedIndex(imageId: string): number {
     return value.findIndex((v) => v.imageId === imageId);
@@ -155,7 +172,7 @@ export function ContentImagesPicker({
       {value.length > 0 && (
         <>
           <p className="text-xs text-muted">
-            {value.length} imagen{value.length === 1 ? "" : "es"} seleccionada{value.length === 1 ? "" : "s"} — la
+            {value.length} {value.length === 1 ? "imagen seleccionada" : "imágenes seleccionadas"} — la
             primera es la portada. Título y pie de foto son opcionales.
           </p>
           <ul className="space-y-2">
@@ -166,7 +183,13 @@ export function ContentImagesPicker({
                 <ContentMediaItemFields
                   key={`${item.imageId ?? item.externalUrl}-${index}`}
                   index={index}
-                  label={item.externalUrl ?? uploaded?.originalFilename ?? "Imagen subida"}
+                  label={item.externalUrl ? shortImageLabel(item.externalUrl) : (uploaded?.originalFilename ?? "Imagen subida")}
+                  fullLabel={item.externalUrl ?? undefined}
+                  warning={
+                    thumbnailSrc && brokenSrcs.includes(thumbnailSrc)
+                      ? "No se pudo cargar esta imagen. Revisa el enlace: así se vería rota en el sitio."
+                      : null
+                  }
                   title={item.title ?? ""}
                   caption={item.caption ?? ""}
                   onTitleChange={(title) => updateAt(index, { title: title || null })}
@@ -175,8 +198,11 @@ export function ContentImagesPicker({
                   disabled={disabled}
                   thumbnail={
                     thumbnailSrc ? (
-                      // eslint-disable-next-line @next/next/no-img-element -- miniatura de un host externo o propio, según el ítem
-                      <img src={thumbnailSrc} alt="" className="h-full w-full object-cover" />
+                      <PreviewImage
+                        src={thumbnailSrc}
+                        fallback={<BrokenImageNotice compact />}
+                        onError={() => setBrokenSrcs((prev) => (prev.includes(thumbnailSrc) ? prev : [...prev, thumbnailSrc]))}
+                      />
                     ) : undefined
                   }
                 />
