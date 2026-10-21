@@ -53,6 +53,9 @@ class MediaFlowIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
     @Test
     void creatorUploadsValidPngAndItIsPubliclyServable() throws Exception {
         String creatorToken = createUserAndLogin("media-creador@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
@@ -125,6 +128,23 @@ class MediaFlowIntegrationTest {
 
         mockMvc.perform(get("/api/v1/images/" + imageId + "/file"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void anImageInUseCannotBeDeleted() throws Exception {
+        String publisherToken = createUserAndLogin("media-en-uso@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String imageId = uploadPng(publisherToken, 20, 20);
+        // En uso como logo de un anunciante (el mismo conteo cubre fotos de contenido, portadas, texto y ajustes).
+        jdbc.update("INSERT INTO advertising.advertisers (name, logo_image_id) VALUES ('Logo en uso', CAST(? AS uuid))", imageId);
+
+        mockMvc.perform(delete("/api/v1/admin/images/" + imageId).header("Authorization", "Bearer " + publisherToken))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value(org.hamcrest.Matchers.containsString("se usa en 1 lugar")));
+        mockMvc.perform(get("/api/v1/images/" + imageId + "/file")).andExpect(status().isOk());
+
+        jdbc.update("DELETE FROM advertising.advertisers WHERE logo_image_id = CAST(? AS uuid)", imageId);
+        mockMvc.perform(delete("/api/v1/admin/images/" + imageId).header("Authorization", "Bearer " + publisherToken))
+                .andExpect(status().isOk());
     }
 
     @Test

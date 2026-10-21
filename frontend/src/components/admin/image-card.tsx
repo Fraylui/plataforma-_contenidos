@@ -81,7 +81,7 @@ export function ImageCard({ image, canManage }: { image: AdminImage; canManage: 
               <Button size="sm" variant="secondary" disabled={pending} onClick={handleSaveAlt} className="flex-1">
                 Guardar
               </Button>
-              {/* Borrar no se deshace y el backend no revisa si alguna publicación la usa: se confirma. */}
+              {/* Borrar no se deshace: se confirma. Si está en uso, el backend lo impide (409) y se muestra por qué. */}
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button size="sm" variant="ghost" disabled={pending} className="text-danger-ink hover:bg-danger-soft">
@@ -91,7 +91,7 @@ export function ImageCard({ image, canManage }: { image: AdminImage; canManage: 
                 <AlertDialogContent>
                   <AlertDialogTitle>¿Eliminar esta imagen?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Si alguna publicación o anuncio la usa, dejará de verse en el sitio. No se puede deshacer.
+                    No se puede deshacer. Si algún contenido o anuncio la usa, no se eliminará hasta que la quites de ahí.
                   </AlertDialogDescription>
                   <AlertDialogFooter>
                     <AlertDialogCancel asChild>

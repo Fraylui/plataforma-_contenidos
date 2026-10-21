@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import pe.plataformacontenidos.shared.api.Problems;
 import pe.plataformacontenidos.media.ImageAccessDeniedException;
+import pe.plataformacontenidos.media.ImageInUseException;
 import pe.plataformacontenidos.media.ImageNotFoundException;
 import pe.plataformacontenidos.media.InvalidImageException;
 import pe.plataformacontenidos.media.TooManyUploadsException;
@@ -23,6 +24,11 @@ public class MediaExceptionHandler {
     @ExceptionHandler(ImageAccessDeniedException.class)
     public ResponseEntity<ProblemDetail> handleAccessDenied(ImageAccessDeniedException ex) {
         return Problems.of(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(ImageInUseException.class)
+    public ResponseEntity<ProblemDetail> handleInUse(ImageInUseException ex) {
+        return Problems.of(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(InvalidImageException.class)

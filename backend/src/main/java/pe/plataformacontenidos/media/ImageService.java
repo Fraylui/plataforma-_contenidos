@@ -23,16 +23,18 @@ public class ImageService {
     private final FixedWindowRateLimiter rateLimiter;
     private final MediaProperties properties;
     private final AuditService auditService;
+    private final ImageUsages imageUsages;
 
     public ImageService(ImageRepository imageRepository, StorageService storageService,
             ImageProcessor imageProcessor, FixedWindowRateLimiter rateLimiter, MediaProperties properties,
-            AuditService auditService) {
+            AuditService auditService, ImageUsages imageUsages) {
         this.imageRepository = imageRepository;
         this.storageService = storageService;
         this.imageProcessor = imageProcessor;
         this.rateLimiter = rateLimiter;
         this.properties = properties;
         this.auditService = auditService;
+        this.imageUsages = imageUsages;
     }
 
     public Image upload(byte[] rawBytes, String originalFilename, String altText, ImagePurpose purpose,
@@ -66,6 +68,10 @@ public class ImageService {
     public void delete(UUID imageId, UUID actingUserId, boolean canManageAll) {
         Image image = getOrThrow(imageId);
         requireOwnerOrManager(image, actingUserId, canManageAll);
+        long usages = imageUsages.count(imageId);
+        if (usages > 0) {
+            throw new ImageInUseException(usages);
+        }
         storageService.delete(image.getStoredFilename());
         imageRepository.delete(image);
         auditService.record("IMAGE_DELETED", AuditResult.SUCCESS, actingUserId, null, "image", imageId.toString(),
