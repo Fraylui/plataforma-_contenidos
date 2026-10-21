@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { Controller, FormProvider, useFormContext, useWatch } from "react-hook-form";
 import { z } from "zod";
 import type { AdminImage, CelebrationInput, PlaceOption } from "@/lib/api/admin-types";
@@ -187,7 +186,6 @@ function CelebrationBody({
       readOnlyNotice={readOnly ? "Esta celebración no se puede editar en su estado actual. Puedes verla tal cual está." : null}
       main={
         <>
-          <PaidContentRule />
           <MediaCard allImages={allImages} readOnly={readOnly} />
           <WritingCard excerptDefault={celebration?.excerpt ?? ""} allImages={allImages} readOnly={readOnly} />
           <WhenAndWhereCard places={places} readOnly={readOnly} />
@@ -223,22 +221,6 @@ function CelebrationBody({
         </>
       }
     />
-  );
-}
-
-/**
- * La regla que separa contenido de publicidad (D.L. 1044, principio de
- * autenticidad): si hubo pago o canje, va como anuncio «Patrocinado».
- */
-function PaidContentRule() {
-  return (
-    <p className="rounded-card bg-accent-soft px-4 py-3 text-sm text-foreground">
-      <strong className="font-semibold">¿Te pagaron o te dieron algo a cambio</strong> (entradas, canje, un descuento)? Entonces
-      no es una celebración: es publicidad y tiene que salir como «Patrocinado».{" "}
-      <Link href="/admin/anunciantes" className="font-semibold text-accent underline underline-offset-2">
-        Crear un anuncio
-      </Link>
-    </p>
   );
 }
 

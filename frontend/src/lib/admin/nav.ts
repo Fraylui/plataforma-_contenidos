@@ -1,5 +1,5 @@
 import type { Icon } from "@phosphor-icons/react";
-import { ChartBar, Buildings, CalendarDots, Article, TreeStructure, House, Image as ImageIcon, Images, MapPin, Megaphone, GearSix, ShieldCheck, Television, Broadcast, UserCircle, Users } from "@phosphor-icons/react/dist/ssr";
+import { ChartBar, Buildings, CalendarDots, Article, TreeStructure, House, Image as ImageIcon, Images, MapPin, Megaphone, GearSix, Scales, ShieldCheck, Television, Broadcast, UserCircle, Users } from "@phosphor-icons/react/dist/ssr";
 import type { AdminUser, Module } from "@/lib/api/admin-types";
 import { canAccess, isOwner } from "./permissions";
 
@@ -89,6 +89,8 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     group: "contenido",
     icon: ImageIcon,
   },
+  // Qué se puede publicar (dueño 2026-10-21): para cualquiera que publique.
+  { href: "/admin/guia", label: "Qué se puede publicar", group: "contenido", icon: Scales },
   {
     href: "/admin/trabajadores",
     label: "Trabajadores",

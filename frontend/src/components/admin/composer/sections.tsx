@@ -10,6 +10,7 @@ import { Card, Combobox, Field, TextArea } from "@/components/ui";
 import { ContentImagesPicker } from "../content-images-picker";
 import { VideoLinksEditor } from "../video-links-editor";
 import { RichTextEditor } from "../rich-text-editor";
+import { PublishRulesCard } from "../guide/content-guide";
 import type { BaseComposerValues } from "./schema";
 
 /**
@@ -46,6 +47,8 @@ export function ComposerShell({
           {publish}
         </div>
         {aside}
+        {/* Qué se puede publicar (dueño 2026-10-21): en los cuatro tipos, al lado de Publicar. */}
+        <PublishRulesCard />
       </aside>
     </form>
   );
