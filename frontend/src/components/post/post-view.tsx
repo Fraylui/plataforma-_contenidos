@@ -3,7 +3,7 @@ import type { HomeItem } from "@/lib/home-items";
 import { cn } from "@/lib/utils";
 import { PostHeader, type PostBrand, type PostHeaderTime } from "./post-header";
 import { GridTile } from "./grid-tile";
-import { ImmersiveHero } from "./immersive/immersive-hero";
+import { ImmersiveHero, type HeroCover } from "./immersive/immersive-hero";
 import { ReadingProgress } from "./immersive/reading-progress";
 import { UpNext } from "./immersive/up-next";
 
@@ -36,7 +36,7 @@ export function PostView({
   actions,
   ad,
   more = [],
-  coverUrl = null,
+  cover = null,
   reactions,
   upNext = null,
 }: {
@@ -53,8 +53,8 @@ export function PostView({
   actions: ReactNode;
   ad?: ReactNode;
   more?: HomeItem[];
-  /** Solo "immersive": portada (primera foto o miniatura del video). */
-  coverUrl?: string | null;
+  /** Solo "immersive": portada (primera foto o miniatura del video, ver heroCover). */
+  cover?: HeroCover | null;
   /** Solo "immersive": me gusta y compartir flotantes. */
   reactions?: ReactNode;
   /** Solo "immersive": la siguiente publicación. */
@@ -81,7 +81,7 @@ export function PostView({
         <ReadingProgress />
         <article className="mx-auto max-w-[760px]">
           <ImmersiveHero
-            coverUrl={coverUrl}
+            cover={cover}
             title={title}
             header={{ brand, typeLabel, categoryName, time }}
           />

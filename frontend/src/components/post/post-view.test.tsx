@@ -5,6 +5,7 @@ import type { HomeItem } from "@/lib/home-items";
 import { PostView } from "./post-view";
 import { GridTile } from "./grid-tile";
 
+vi.mock("server-only", () => ({}));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 const brand = { name: "Ecos", logoUrl: null };
@@ -84,7 +85,7 @@ describe("PostView inmersivo", () => {
         categoryName="Gastronomía"
         time={{ label: "hace 2 d", iso: "2026-10-19T00:00:00Z" }}
         title="El mercado central de Huamanga"
-        coverUrl="https://example.com/portada.jpg"
+        cover={{ kind: "url", url: "https://example.com/portada.jpg" }}
         media={<div data-testid="media" />}
         excerpt="Un recorrido por los puestos."
         body={<p>Texto largo.</p>}

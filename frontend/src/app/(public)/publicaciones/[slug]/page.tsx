@@ -6,6 +6,7 @@ import { ViewBeacon } from "@/components/content/view-beacon";
 import { AdBlock } from "@/components/legal/ad-block";
 import { PostView } from "@/components/post/post-view";
 import { FloatingReactions } from "@/components/post/immersive/floating-reactions";
+import { heroCover } from "@/components/post/immersive/immersive-hero";
 import { PostDetailMedia } from "@/components/post/post-detail-media";
 import { headerTimeFor, updatedTimeFor } from "@/components/post/post-header";
 import { KIND_LABEL } from "@/lib/content-kind";
@@ -131,7 +132,7 @@ export default async function PublicationPage(props: PageProps<"/publicaciones/[
     getRelatedWithFallback({ excludeType: "PUBLICATION", excludeId: publication.id, categoryId: publication.categoryId, size: MORE_SIZE }),
   ]);
   // Portada inmersiva: la primera foto o, si solo hay video, su miniatura; debajo va el resto del medio.
-  const coverUrl = shareImageUrl({ ogImageUrl: null, images: publication.images, videos: publication.videos });
+  const cover = heroCover(publication.images, publication.videos);
   const restImages = publication.images.slice(1);
   const hasMoreMedia = restImages.length > 0 || publication.videos.length > 0;
   const moreItems = [...relatedPage.related, ...relatedPage.more].map(fromFeedItem);
@@ -165,7 +166,7 @@ export default async function PublicationPage(props: PageProps<"/publicaciones/[
 
       <PostView
         variant="immersive"
-        coverUrl={coverUrl}
+        cover={cover}
         brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}
         typeLabel={KIND_LABEL.publicacion}
         categoryName={category?.name}

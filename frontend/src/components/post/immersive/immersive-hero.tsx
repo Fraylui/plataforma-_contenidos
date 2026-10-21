@@ -1,32 +1,41 @@
-"use client";
-
-import { useState, type ComponentProps } from "react";
-import { cn } from "@/lib/utils";
+import type { ComponentProps } from "react";
+import type { ContentImage, ContentVideo } from "@/lib/api/types";
+import { ContentImageDisplay } from "@/components/content/content-image-display";
 import { PreviewImage } from "@/components/ui/preview-image";
+import { cn } from "@/lib/utils";
 import { PostHeader } from "../post-header";
+
+/** Portada del detalle: foto subida (pasa por next/image) o una URL (enlace externo o miniatura de YouTube). */
+export type HeroCover = { kind: "uploaded"; imageId: string } | { kind: "url"; url: string };
+
+/** La primera foto o, si solo hay video, su miniatura de YouTube. */
+export function heroCover(images: ContentImage[], videos: ContentVideo[]): HeroCover | null {
+  const first = images[0];
+  if (first?.imageId) return { kind: "uploaded", imageId: first.imageId };
+  if (first?.externalUrl) return { kind: "url", url: first.externalUrl };
+  const video = videos[0];
+  return video ? { kind: "url", url: `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg` } : null;
+}
 
 /**
  * Portada inmersiva del detalle (spec 2026-10-21): la foto ocupa la pantalla
  * y el título va encima, sobre un degradado, como una portada de NatGeo o un
- * Reel. Sin foto (o si no carga) queda el fondo de acento con el título: la
- * página nunca abre con un hueco ni con un ícono roto.
+ * Reel. Componente de servidor: la foto subida pasa por next/image con
+ * prioridad (es el LCP de la página); un enlace externo que no carga deja el
+ * degradado oscuro con el título legible, nunca un ícono roto. Sin portada,
+ * fondo de acento con el título.
  */
 export function ImmersiveHero({
-  coverUrl,
+  cover,
   title,
   header,
 }: {
-  coverUrl: string | null;
+  cover: HeroCover | null;
   title: string;
-  /**
-   * Datos del encabezado (marca, tipo, tema, hora), no un nodo ni una función:
-   * este componente es de cliente y elige el color según si hay foto, y desde
-   * un componente de servidor solo se le pueden pasar datos serializables.
-   */
+  /** Datos del encabezado (marca, tipo, tema, hora). */
   header: Omit<ComponentProps<typeof PostHeader>, "onImage" | "className">;
 }) {
-  const [failed, setFailed] = useState(false);
-  const photo = coverUrl != null && !failed;
+  const photo = cover != null;
   return (
     <div
       className={cn(
@@ -34,19 +43,22 @@ export function ImmersiveHero({
         photo ? "bg-canvas-strong" : "bg-linear-to-br from-accent-soft to-canvas-strong",
       )}
     >
-      {photo && (
-        <>
-          <PreviewImage
-            src={coverUrl}
+      {cover?.kind === "uploaded" && (
+        <div className="absolute inset-0">
+          <ContentImageDisplay
+            image={{ imageId: cover.imageId, externalUrl: null, title: null, caption: null }}
+            alt=""
             priority
-            fallback={null}
-            onError={() => setFailed(true)}
-            className="absolute inset-0 size-full object-cover"
+            sizes="(min-width: 1024px) 760px, 100vw"
+            className="object-cover"
           />
-          {/* Degradado: el texto blanco se lee sobre cualquier foto (contraste ≥ 4.5:1 abajo). */}
-          <div aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-black/85 via-black/35 to-transparent" />
-        </>
+        </div>
       )}
+      {cover?.kind === "url" && (
+        <PreviewImage src={cover.url} priority fallback={null} className="absolute inset-0 size-full object-cover" />
+      )}
+      {/* Degradado: el texto blanco se lee sobre cualquier foto (y si la foto no cargó). */}
+      {photo && <div aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-black/85 via-black/35 to-transparent" />}
       <div className="relative space-y-3 p-5 sm:p-8">
         <PostHeader {...header} onImage={photo} className="flex items-center gap-3" />
         <h1
