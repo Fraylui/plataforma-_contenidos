@@ -256,7 +256,7 @@ function WhenAndWhereCard({ places, readOnly }: { places: PlaceOption[]; readOnl
   });
   const { errors } = formState;
   return (
-    <Card title="Cuándo y dónde">
+    <Card title="Fecha y lugar">
       <SegmentedControl
         label="Cada cuánto"
         options={RECURRENCE_OPTIONS}
