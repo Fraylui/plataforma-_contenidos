@@ -12,7 +12,7 @@ interface LocationValues {
 }
 
 /** Ubicación en el mapa (clic para poner el pin) y coordenadas a mano; ambas opcionales. */
-export function LocationFields({ readOnly }: { readOnly: boolean }) {
+export function LocationFields({ readOnly, startAt }: { readOnly: boolean; startAt?: [number, number] | null }) {
   const { register, setValue, formState } = useFormContext<LocationValues>();
   const [latitude, longitude] = useWatch<LocationValues>({ name: ["latitude", "longitude"] }) as string[];
   const { errors } = formState;
@@ -26,6 +26,7 @@ export function LocationFields({ readOnly }: { readOnly: boolean }) {
             latitude={latitude ?? ""}
             longitude={longitude ?? ""}
             disabled={readOnly}
+            startAt={startAt}
             onChange={(lat, lng) => {
               setValue("latitude", lat, { shouldDirty: true, shouldValidate: true });
               setValue("longitude", lng, { shouldDirty: true, shouldValidate: true });

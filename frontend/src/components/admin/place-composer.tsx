@@ -53,10 +53,12 @@ interface PlaceComposerProps {
   place?: Place;
   permissions: PublicationPermissions;
   siteName: string;
+  /** Dónde empieza el mapa si este lugar aún no tiene pin (el último lugar con coordenadas). */
+  mapStartAt?: [number, number] | null;
 }
 
 /** Compositor de Lugares: fotos, nombre, descripción, texto y ubicación en el mapa. */
-export function PlaceComposer({ categories, allImages, place, permissions, siteName }: PlaceComposerProps) {
+export function PlaceComposer({ categories, allImages, place, permissions, siteName, mapStartAt }: PlaceComposerProps) {
   const status = place?.status ?? "DRAFT";
   const readOnly = !permissions.canEdit;
   const { form, id, save, saving, savedAt, error } = useComposer({
@@ -80,7 +82,7 @@ export function PlaceComposer({ categories, allImages, place, permissions, siteN
   return (
     <FormProvider {...form}>
       <PlaceBody
-        {...{ categories, allImages, place, siteName, readOnly, error }}
+        {...{ categories, allImages, place, siteName, mapStartAt, readOnly, error }}
         publish={
           <PublishPanel
             kind="places"
@@ -102,6 +104,7 @@ function PlaceBody({
   allImages,
   place,
   siteName,
+  mapStartAt,
   readOnly,
   error,
   publish,
@@ -122,7 +125,7 @@ function PlaceBody({
             readOnly={readOnly}
           />
           <Card title="Ubicación">
-            <LocationFields readOnly={readOnly} />
+            <LocationFields readOnly={readOnly} startAt={mapStartAt} />
           </Card>
           <ShareCard
             siteName={siteName}
