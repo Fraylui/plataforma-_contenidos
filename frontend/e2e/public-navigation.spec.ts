@@ -1,8 +1,13 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 /** Escapa todo lo especial de una expresión regular (CodeQL: escapar solo "/" quedaba incompleto). */
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+}
+
+/** Visitante que ya respondió el aviso de cookies: el aviso fijo no tapa lo que se pulsa. */
+async function skipCookieNotice(page: Page): Promise<void> {
+  await page.addInitScript(() => localStorage.setItem("cookie-consent", "rejected"));
 }
 
 /**
@@ -27,6 +32,7 @@ test.describe("Navegación pública", () => {
   });
 
   test("desde el listado se navega al detalle de una publicación", async ({ page }) => {
+    await skipCookieNotice(page);
     await page.goto("/publicaciones");
     const firstLink = page.locator("a[href^='/publicaciones/']").first();
     const href = await firstLink.getAttribute("href");
@@ -36,6 +42,7 @@ test.describe("Navegación pública", () => {
   });
 
   test("me gusta en el detalle incrementa el contador y persiste tras recargar", async ({ page }) => {
+    await skipCookieNotice(page);
     await page.goto("/publicaciones");
     const firstLink = page.locator("a[href^='/publicaciones/']").first();
     await firstLink.click();
