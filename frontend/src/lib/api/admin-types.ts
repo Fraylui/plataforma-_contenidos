@@ -2,7 +2,7 @@ import type { AdSection } from "@/lib/ads/ad-context";
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
 import type { PublicationStatus, PublicationType, ContentImage, FeedItemType } from "./types";
-import type { CallToAction, CampaignFormat, NativeMediaAspect } from "./types";
+import type { CallToAction, CampaignFormat, NativeMediaAspect, PlatformSettings } from "./types";
 
 /** Cuerpo de un video en PublicationInput/PlaceInput/CelebrationInput — ver ContentVideoInput.java. */
 export interface ContentVideoInput {
@@ -163,32 +163,8 @@ export interface CategoryUpdateInput extends CategoryCreateInput {
 
 /** Cuerpo de POST /api/v1/admin/users — ver CreateUserRequest.java. */
 
-/** Cuerpo de PUT /api/v1/admin/platform-settings — ver UpdatePlatformSettingsRequest.java. */
-export interface PlatformSettingsInput {
-  name: string;
-  shortName: string | null;
-  description: string | null;
-  logoUrl: string | null;
-  logoDarkUrl: string | null;
-  faviconUrl: string | null;
-  ogImageUrl: string | null;
-  primaryColor: string | null;
-  secondaryColor: string | null;
-  backgroundColor: string | null;
-  fontFamily: string | null;
-  seoDefaultTitle: string | null;
-  seoDefaultDescription: string | null;
-  seoDefaultImageUrl: string | null;
-  googleSearchConsoleVerification: string | null;
-  contactEmail: string | null;
-  adsenseEnabled: boolean;
-  adsenseClientId: string | null;
-  analyticsId: string | null;
-  /** País del sitio (ISO-2). */
-  homeCountry: string;
-  /** Canal de WhatsApp (https://whatsapp.com/channel/…); null = sin botón «Síguenos». */
-  whatsappChannelUrl: string | null;
-}
+/** Cuerpo de PUT /api/v1/admin/platform-settings: la misma forma que la lectura (UpdatePlatformSettingsRequest.java). */
+export type PlatformSettingsInput = PlatformSettings;
 
 /** Cuerpo de POST /api/v1/admin/ad-placements — ver CreateAdPlacementRequest.java. */
 export interface AdPlacementCreateInput {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowLeft } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "./brand-logo";
 import type { ShellBrand } from "./left-rail";
 import { pageTitle } from "./page-title";
 
@@ -31,8 +32,7 @@ export function TopBarTitle({ brand }: { brand: ShellBrand }) {
       {home && (
         <Link href="/" className="flex min-w-0 items-center gap-2 lg:hidden">
           {brand.logoUrl && (
-            // eslint-disable-next-line @next/next/no-img-element -- logo definido en Configuración, host arbitrario
-            <img src={brand.logoUrl} alt="" className="h-8 w-8 shrink-0 rounded-lg object-cover" />
+            <BrandLogo logoUrl={brand.logoUrl} logoDarkUrl={brand.logoDarkUrl} className="h-8 w-8 shrink-0 rounded-lg object-cover" />
           )}
           <span className="truncate text-lg font-extrabold tracking-tight text-foreground">{brand.name}</span>
         </Link>

@@ -86,3 +86,27 @@ describe("LeftRail", () => {
     expect(screen.getByRole("link", { name: "Explorar" })).toHaveAttribute("aria-current", "page");
   });
 });
+
+describe("Nuestras redes («Síguenos»)", () => {
+  const social = [{ key: "instagram" as const, label: "Instagram", url: "https://instagram.com/ecos" }];
+
+  it("el menú lateral las muestra al pie", () => {
+    render(<LeftRail brand={brand} social={social} />);
+    expect(screen.getByRole("link", { name: "Ecos del Camino en Instagram" })).toHaveAttribute("href", "https://instagram.com/ecos");
+  });
+
+  it("en el celular están en la hoja «Más»", async () => {
+    render(<BottomTabBar brandName="Ecos del Camino" social={social} />);
+    await userEvent.click(screen.getByRole("button", { name: "Más" }));
+    const sheet = await screen.findByRole("dialog", { name: "Más" });
+    expect(sheet).toContainElement(screen.getByRole("link", { name: "Ecos del Camino en Instagram" }));
+  });
+});
+
+describe("Logo para modo oscuro", () => {
+  it("si está configurado, el navegador lo usa en modo oscuro", () => {
+    const { container } = render(<LeftRail brand={{ name: "Ecos", logoUrl: "/logo.png", logoDarkUrl: "/logo-claro.png" }} />);
+    const source = container.querySelector('source[media="(prefers-color-scheme: dark)"]');
+    expect(source).toHaveAttribute("srcset", "/logo-claro.png");
+  });
+});

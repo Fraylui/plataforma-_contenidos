@@ -40,21 +40,13 @@ public class PlatformSettingsService {
         PlatformSettings settings = get();
 
         settings.setName(request.name());
-        settings.setShortName(request.shortName());
         settings.setDescription(request.description());
         settings.setLogoUrl(request.logoUrl());
         settings.setLogoDarkUrl(request.logoDarkUrl());
         settings.setFaviconUrl(request.faviconUrl());
         settings.setOgImageUrl(request.ogImageUrl());
 
-        settings.setPrimaryColor(request.primaryColor());
-        settings.setSecondaryColor(request.secondaryColor());
-        settings.setBackgroundColor(request.backgroundColor());
-        settings.setFontFamily(request.fontFamily());
-
         settings.setSeoDefaultTitle(request.seoDefaultTitle());
-        settings.setSeoDefaultDescription(request.seoDefaultDescription());
-        settings.setSeoDefaultImageUrl(request.seoDefaultImageUrl());
         settings.setGoogleSearchConsoleVerification(request.googleSearchConsoleVerification());
 
         settings.setContactEmail(request.contactEmail());
@@ -62,8 +54,12 @@ public class PlatformSettingsService {
         settings.setAdsenseEnabled(request.adsenseEnabled());
         settings.setAdsenseClientId(request.adsenseClientId());
         settings.setAnalyticsId(request.analyticsId());
-        String channel = request.whatsappChannelUrl();
-        settings.setWhatsappChannelUrl(channel == null || channel.isBlank() ? null : channel.strip());
+        settings.setWhatsappChannelUrl(link(request.whatsappChannelUrl()));
+        settings.setYoutubeUrl(link(request.youtubeUrl()));
+        settings.setInstagramUrl(link(request.instagramUrl()));
+        settings.setTiktokUrl(link(request.tiktokUrl()));
+        settings.setFacebookUrl(link(request.facebookUrl()));
+        settings.setXUrl(link(request.xUrl()));
         if (request.homeCountry() != null) {
             settings.setHomeCountry(request.homeCountry().toUpperCase(Locale.ROOT));
         }
@@ -78,5 +74,10 @@ public class PlatformSettingsService {
                 "platform_settings", saved.getId().toString(), ipAddress);
 
         return saved;
+    }
+
+    /** Enlace opcional: vacío = null (no se muestra), si no, sin espacios alrededor. */
+    private static String link(String value) {
+        return value == null || value.isBlank() ? null : value.strip();
     }
 }

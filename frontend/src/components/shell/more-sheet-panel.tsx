@@ -4,6 +4,8 @@ import Link from "next/link";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "@phosphor-icons/react";
 import { MORE_LINKS } from "./shell-nav";
+import { SocialFollow } from "./social-follow";
+import type { SocialKey } from "@/lib/social-links";
 
 /** En el celular, el archivo de Celebraciones (sin pestaña propia, modelo Google) se encuentra aquí. */
 const SHEET_LINKS = [{ href: "/celebraciones", label: "Celebraciones" }, ...MORE_LINKS];
@@ -16,7 +18,11 @@ export default function MoreSheetPanel({
   open,
   onOpenChange,
   onClosed,
+  brandName,
+  social,
 }: {
+  brandName: string;
+  social: { key: SocialKey; label: string; url: string }[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Devuelve el foco al botón «Más» (vive en more-sheet.tsx, no acá). */
@@ -60,6 +66,7 @@ export default function MoreSheetPanel({
               ))}
             </ul>
           </nav>
+          <SocialFollow brandName={brandName} links={social} className="mt-5" />
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

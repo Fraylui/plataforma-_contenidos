@@ -20,7 +20,7 @@ export default async function AdminConfigurationPage() {
     <div>
       <AdminPageHeader
         title="Configuración del sitio"
-        description="Nombre, logo, apariencia, cómo se ve en Google y al compartir, contacto y publicidad. Los cambios se ven en el sitio al guardar."
+        description="Marca, cómo se ve al compartir, nuestras redes, contacto e ingresos. Los cambios se ven en el sitio al guardar."
       />
       <div className="mt-6">
         <PlatformSettingsForm settings={result.data} />

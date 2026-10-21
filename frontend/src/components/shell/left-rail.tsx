@@ -5,6 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Confetti, CaretDown, ImagesSquare, MapPin, Notepad, Television, type Icon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
+import { SocialFollow } from "./social-follow";
+import { BrandLogo } from "./brand-logo";
+import type { SocialKey } from "@/lib/social-links";
 import type { TopicStory } from "@/components/feed/topic-stories";
 import { InfoMenu } from "./info-menu";
 import { SearchDrawer } from "./search-drawer";
@@ -13,6 +16,8 @@ import { MORE_LINKS, activeTab, SHELL_NAV } from "./shell-nav";
 export interface ShellBrand {
   name: string;
   logoUrl: string | null;
+  /** Versión para modo oscuro (Configuración → Marca); null = el mismo logo. */
+  logoDarkUrl?: string | null;
 }
 
 /**
@@ -81,8 +86,11 @@ export function LeftRail({
   sections = {},
   topics = [],
   categoryNames = {},
+  social = [],
 }: {
   brand: ShellBrand;
+  /** Redes oficiales (Configuración → Nuestras redes) para «Síguenos». */
+  social?: { key: SocialKey; label: string; url: string }[];
   /** Qué secciones tienen contenido (getPrimaryNavVisibility). */
   sections?: Record<string, boolean>;
   topics?: TopicStory[];
@@ -107,8 +115,7 @@ export function LeftRail({
         aria-label={brand.name}
       >
         {brand.logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- logo definido en Configuración, host arbitrario
-          <img src={brand.logoUrl} alt="" className="h-9 w-9 shrink-0 rounded-xl object-cover" />
+          <BrandLogo logoUrl={brand.logoUrl} logoDarkUrl={brand.logoDarkUrl} className="h-9 w-9 shrink-0 rounded-xl object-cover" />
         ) : (
           <span
             aria-hidden="true"
@@ -235,6 +242,7 @@ export function LeftRail({
 
       {/* Pie a la vista desde 1280 px, como la columna de Facebook: enlaces legales. */}
       <div className="mt-4 hidden px-1 xl:block">
+        <SocialFollow brandName={brand.name} links={social} className="mb-4 px-2" />
         <footer className="px-2 text-xs leading-relaxed text-muted">
           <nav aria-label="Legal" className="flex flex-wrap gap-x-1">
             {MORE_LINKS.map((link, i) => (

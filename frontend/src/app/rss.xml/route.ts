@@ -19,8 +19,8 @@ export async function GET() {
     listPublishedPublications({ page: 0, size: FEED_SIZE }),
   ]);
 
-  const siteName = settings.shortName || settings.name;
-  const description = settings.seoDefaultDescription || settings.description || siteName;
+  const siteName = settings.name;
+  const description = settings.description || siteName;
 
   const items = page.items
     .map((publication) => {

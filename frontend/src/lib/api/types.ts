@@ -237,19 +237,16 @@ export interface Gallery {
 /** Ver PlatformSettingsResponse.java (CONTEXTO.md sección 14). */
 export interface PlatformSettings {
   name: string;
-  shortName: string | null;
+  /** Una o dos frases: inicio del sitio en Google, al compartir y en el RSS. */
   description: string | null;
   logoUrl: string | null;
+  /** Versión del logo para el modo oscuro (null = el mismo logo). */
   logoDarkUrl: string | null;
   faviconUrl: string | null;
+  /** Imagen al compartir el sitio (y respaldo de contenidos sin foto). */
   ogImageUrl: string | null;
-  primaryColor: string | null;
-  secondaryColor: string | null;
-  backgroundColor: string | null;
-  fontFamily: string | null;
+  /** Título en Google si debe ser distinto del nombre. */
   seoDefaultTitle: string | null;
-  seoDefaultDescription: string | null;
-  seoDefaultImageUrl: string | null;
   googleSearchConsoleVerification: string | null;
   contactEmail: string | null;
   adsenseEnabled: boolean;
@@ -259,6 +256,12 @@ export interface PlatformSettings {
   homeCountry: string;
   /** Canal de WhatsApp (https://whatsapp.com/channel/…); null = sin botón «Síguenos». */
   whatsappChannelUrl: string | null;
+  /** Redes oficiales (V73): solo enlaces; null = no se muestra. Ver lib/social-links.ts. */
+  youtubeUrl: string | null;
+  instagramUrl: string | null;
+  tiktokUrl: string | null;
+  facebookUrl: string | null;
+  xUrl: string | null;
 }
 
 /** Ver AdPlacementResponse.java — posición de anuncio configurable (CONTEXTO.md sección 43.2). */

@@ -2,6 +2,8 @@ import { getFeedTopics, getPlatformSettings, getPrimaryNavVisibility, listActive
 import { imageUrl } from "@/lib/image-url";
 import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner";
 import { AdsenseLoader } from "@/components/legal/adsense-loader";
+import { AnalyticsLoader } from "@/components/legal/analytics-loader";
+import { officialSocialLinks } from "@/lib/social-links";
 import { AnchorAdSlot } from "@/components/legal/anchor-ad-slot";
 import { LeftRail } from "@/components/shell/left-rail";
 import { BottomTabBar } from "@/components/shell/bottom-tab-bar";
@@ -31,7 +33,8 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
     coverUrl: t.coverImageId ? imageUrl(`/api/v1/images/${t.coverImageId}/file`) : t.coverImageUrl,
     hasNew: t.hasNew,
   }));
-  const brand = { name: settings.name, logoUrl: settings.logoUrl ?? null };
+  const brand = { name: settings.name, logoUrl: settings.logoUrl ?? null, logoDarkUrl: settings.logoDarkUrl };
+  const social = officialSocialLinks(settings);
 
   return (
     <div id="top" className="flex min-h-full bg-canvas">
@@ -46,6 +49,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
         sections={visibility}
         topics={topicLinks}
         categoryNames={categoryNames}
+        social={social}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar brand={brand} />
@@ -53,12 +57,13 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
       </div>
-      <BottomTabBar />
+      <BottomTabBar brandName={settings.name} social={social} />
       <AnchorAdSlot />
       <CookieConsentBanner adsenseEnabled={settings.adsenseEnabled} />
       {settings.adsenseEnabled && settings.adsenseClientId && (
         <AdsenseLoader clientId={settings.adsenseClientId} />
       )}
+      <AnalyticsLoader measurementId={settings.analyticsId} />
     </div>
   );
 }

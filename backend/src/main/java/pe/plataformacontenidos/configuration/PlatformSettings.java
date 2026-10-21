@@ -13,7 +13,8 @@ import org.hibernate.annotations.UuidGenerator;
  * Fila única de configuración de marca/identidad (CONTEXTO.md sección 14).
  * La unicidad se garantiza a nivel de base de datos (constraint UNIQUE sobre
  * singletonGuard, ver V11__platform_settings.sql), no aquí: esta clase es un
- * mapeo directo de esa fila.
+ * mapeo directo de esa fila. V73 (2026-10-21) quitó los campos sin uso y los
+ * duplicados (descripción e imagen «SEO») y sumó las redes oficiales.
  */
 @Entity
 @Table(name = "platform_settings", schema = "configuration")
@@ -30,9 +31,7 @@ public class PlatformSettings {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "short_name")
-    private String shortName;
-
+    /** Una o dos frases: inicio del sitio en Google, al compartir y en el RSS. */
     private String description;
 
     @Column(name = "logo_url")
@@ -44,30 +43,13 @@ public class PlatformSettings {
     @Column(name = "favicon_url")
     private String faviconUrl;
 
+    /** Imagen al compartir el sitio (y la de respaldo cuando un contenido no tiene foto). */
     @Column(name = "og_image_url")
     private String ogImageUrl;
 
-    @Column(name = "primary_color")
-    private String primaryColor;
-
-    @Column(name = "secondary_color")
-    private String secondaryColor;
-
-    @Column(name = "background_color")
-    private String backgroundColor;
-
-    @Column(name = "font_family")
-    private String fontFamily;
-
-
+    /** Título en Google si debe ser distinto del nombre; null = el nombre. */
     @Column(name = "seo_default_title")
     private String seoDefaultTitle;
-
-    @Column(name = "seo_default_description")
-    private String seoDefaultDescription;
-
-    @Column(name = "seo_default_image_url")
-    private String seoDefaultImageUrl;
 
     @Column(name = "google_search_console_verification")
     private String googleSearchConsoleVerification;
@@ -84,11 +66,27 @@ public class PlatformSettings {
     @Column(name = "analytics_id")
     private String analyticsId;
 
-    /** País del sitio (ISO-2): qué celebraciones ve quien llega sin ubicación conocida. */
     /** Enlace del canal de WhatsApp (https://whatsapp.com/channel/…); null = sin botón. */
     @Column(name = "whatsapp_channel_url")
     private String whatsappChannelUrl;
 
+    /** Redes oficiales de la plataforma (solo enlaces, sin APIs); null = no se muestra. */
+    @Column(name = "youtube_url")
+    private String youtubeUrl;
+
+    @Column(name = "instagram_url")
+    private String instagramUrl;
+
+    @Column(name = "tiktok_url")
+    private String tiktokUrl;
+
+    @Column(name = "facebook_url")
+    private String facebookUrl;
+
+    @Column(name = "x_url")
+    private String xUrl;
+
+    /** País del sitio (ISO-2): qué celebraciones ve quien llega sin ubicación conocida. */
     @Column(name = "home_country", nullable = false)
     private String homeCountry = "PE";
 
@@ -112,14 +110,6 @@ public class PlatformSettings {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getShortName() {
-        return shortName;
-    }
-
-    public void setShortName(String shortName) {
-        this.shortName = shortName;
     }
 
     public String getDescription() {
@@ -162,61 +152,12 @@ public class PlatformSettings {
         this.ogImageUrl = ogImageUrl;
     }
 
-    public String getPrimaryColor() {
-        return primaryColor;
-    }
-
-    public void setPrimaryColor(String primaryColor) {
-        this.primaryColor = primaryColor;
-    }
-
-    public String getSecondaryColor() {
-        return secondaryColor;
-    }
-
-    public void setSecondaryColor(String secondaryColor) {
-        this.secondaryColor = secondaryColor;
-    }
-
-    public String getBackgroundColor() {
-        return backgroundColor;
-    }
-
-    public void setBackgroundColor(String backgroundColor) {
-        this.backgroundColor = backgroundColor;
-    }
-
-    public String getFontFamily() {
-        return fontFamily;
-    }
-
-    public void setFontFamily(String fontFamily) {
-        this.fontFamily = fontFamily;
-    }
-
-
     public String getSeoDefaultTitle() {
         return seoDefaultTitle;
     }
 
     public void setSeoDefaultTitle(String seoDefaultTitle) {
         this.seoDefaultTitle = seoDefaultTitle;
-    }
-
-    public String getSeoDefaultDescription() {
-        return seoDefaultDescription;
-    }
-
-    public void setSeoDefaultDescription(String seoDefaultDescription) {
-        this.seoDefaultDescription = seoDefaultDescription;
-    }
-
-    public String getSeoDefaultImageUrl() {
-        return seoDefaultImageUrl;
-    }
-
-    public void setSeoDefaultImageUrl(String seoDefaultImageUrl) {
-        this.seoDefaultImageUrl = seoDefaultImageUrl;
     }
 
     public String getGoogleSearchConsoleVerification() {
@@ -265,6 +206,46 @@ public class PlatformSettings {
 
     public void setWhatsappChannelUrl(String whatsappChannelUrl) {
         this.whatsappChannelUrl = whatsappChannelUrl;
+    }
+
+    public String getYoutubeUrl() {
+        return youtubeUrl;
+    }
+
+    public void setYoutubeUrl(String youtubeUrl) {
+        this.youtubeUrl = youtubeUrl;
+    }
+
+    public String getInstagramUrl() {
+        return instagramUrl;
+    }
+
+    public void setInstagramUrl(String instagramUrl) {
+        this.instagramUrl = instagramUrl;
+    }
+
+    public String getTiktokUrl() {
+        return tiktokUrl;
+    }
+
+    public void setTiktokUrl(String tiktokUrl) {
+        this.tiktokUrl = tiktokUrl;
+    }
+
+    public String getFacebookUrl() {
+        return facebookUrl;
+    }
+
+    public void setFacebookUrl(String facebookUrl) {
+        this.facebookUrl = facebookUrl;
+    }
+
+    public String getXUrl() {
+        return xUrl;
+    }
+
+    public void setXUrl(String xUrl) {
+        this.xUrl = xUrl;
     }
 
     public String getHomeCountry() {

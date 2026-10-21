@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { MoreSheet } from "./more-sheet";
+import type { SocialKey } from "@/lib/social-links";
 import { activeTab, SHELL_NAV } from "./shell-nav";
 
 const TAB =
@@ -17,7 +18,7 @@ const TAB =
  * variable CSS --bottom-bar-h (globals.css), que usan el anuncio fijo, el
  * aviso de cookies y el `main` para no quedar debajo.
  */
-export function BottomTabBar() {
+export function BottomTabBar({ brandName = "", social = [] }: { brandName?: string; social?: { key: SocialKey; label: string; url: string }[] } = {}) {
   const current = activeTab(usePathname());
 
   return (
@@ -42,7 +43,7 @@ export function BottomTabBar() {
             </Link>
           );
         })}
-        <MoreSheet triggerClassName={cn(TAB, "cursor-pointer hover:text-foreground")} />
+        <MoreSheet triggerClassName={cn(TAB, "cursor-pointer hover:text-foreground")} brandName={brandName} social={social} />
       </div>
     </nav>
   );

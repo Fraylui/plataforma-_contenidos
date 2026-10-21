@@ -3,6 +3,7 @@
 import { Suspense, useRef, useState } from "react";
 import { DotsThreeCircle } from "@phosphor-icons/react";
 import { lazyPopup } from "./lazy-popup";
+import type { SocialKey } from "@/lib/social-links";
 
 const { Component: MoreSheetPanel, preload } = lazyPopup(() => import("./more-sheet-panel"));
 
@@ -11,7 +12,15 @@ const { Component: MoreSheetPanel, preload } = lazyPopup(() => import("./more-sh
  * legales. El botón queda siempre en su lugar; la hoja (Radix Dialog) se
  * carga al primer toque (ver lazy-popup.ts) y al cerrarse le devuelve el foco.
  */
-export function MoreSheet({ triggerClassName }: { triggerClassName: string }) {
+export function MoreSheet({
+  triggerClassName,
+  brandName,
+  social,
+}: {
+  triggerClassName: string;
+  brandName: string;
+  social: { key: SocialKey; label: string; url: string }[];
+}) {
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -36,7 +45,13 @@ export function MoreSheet({ triggerClassName }: { triggerClassName: string }) {
       </button>
       {mounted && (
         <Suspense fallback={null}>
-          <MoreSheetPanel open={open} onOpenChange={setOpen} onClosed={() => buttonRef.current?.focus()} />
+          <MoreSheetPanel
+            open={open}
+            onOpenChange={setOpen}
+            onClosed={() => buttonRef.current?.focus()}
+            brandName={brandName}
+            social={social}
+          />
         </Suspense>
       )}
     </>
