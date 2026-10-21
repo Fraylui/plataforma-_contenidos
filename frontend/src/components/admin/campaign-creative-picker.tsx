@@ -117,7 +117,7 @@ export function CampaignCreativePicker({
       </div>
       )}
 
-      <InlineImageUpload disabled={disabled} onUploaded={handleUploaded} compact />
+      <InlineImageUpload disabled={disabled} onUploaded={handleUploaded} compact purpose="AD" />
 
       {images.length > 0 && (
         <div>

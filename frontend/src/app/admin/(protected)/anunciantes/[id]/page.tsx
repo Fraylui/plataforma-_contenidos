@@ -20,7 +20,7 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
   const { accessToken } = await requireAdminUser();
   const result = await fetchOrAccessDenied(async () => {
     const advertiser = await getAdvertiser(accessToken, id);
-    const [campaigns, images] = await Promise.all([listCampaigns(accessToken, id), listAdminImages(accessToken)]);
+    const [campaigns, images] = await Promise.all([listCampaigns(accessToken, id), listAdminImages(accessToken, "AD")]);
     return { advertiser, campaigns, images };
   });
   if ("denied" in result) return <AccessDenied />;

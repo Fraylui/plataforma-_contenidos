@@ -40,7 +40,7 @@ export default async function EditPublicationPage(props: PageProps<"/admin/publi
 
   const [activeCategories, allImages, settings] = await Promise.all([
     listActiveCategoriesFresh(),
-    listAdminImages(accessToken),
+    listAdminImages(accessToken, "CONTENT"),
     getPlatformSettings(),
   ]);
   const categories = await resolveCategories(activeCategories, publication.categoryId);

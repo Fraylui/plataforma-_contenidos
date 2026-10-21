@@ -35,7 +35,7 @@ export default async function EditCampaignPage({
     const advertiser = await getAdvertiser(accessToken, id);
     const campaign = await getCampaign(accessToken, campaignId);
     const placements = await listAdminAdPlacements(accessToken);
-    const images = await listAdminImages(accessToken);
+    const images = await listAdminImages(accessToken, "AD");
     // El doble del período: el actual y el anterior, para la variación.
     const stats = await getCampaignStats(accessToken, campaignId, range * 2);
     const categories = await listAdminCategories(accessToken);

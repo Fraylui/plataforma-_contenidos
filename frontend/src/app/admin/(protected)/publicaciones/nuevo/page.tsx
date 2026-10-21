@@ -15,7 +15,7 @@ export default async function NewPublicationPage() {
   const { accessToken, user } = await requireAdminUser();
   const [categories, allImages, settings] = await Promise.all([
     listActiveCategoriesFresh(),
-    listAdminImages(accessToken),
+    listAdminImages(accessToken, "CONTENT"),
     getPlatformSettings(),
   ]);
   // Lo nuevo es un borrador propio: mismos permisos que tendrá al guardarse.

@@ -37,7 +37,7 @@ export default async function AdminSeriesDetailPage(props: PageProps<"/admin/ser
   const [episodes, activeCategories, allImages] = await Promise.all([
     listAdminEpisodes(accessToken, id),
     listActiveCategoriesFresh(),
-    listAdminImages(accessToken),
+    listAdminImages(accessToken, "CONTENT"),
   ]);
   const categories = await resolveCategories(activeCategories, series.categoryId);
 

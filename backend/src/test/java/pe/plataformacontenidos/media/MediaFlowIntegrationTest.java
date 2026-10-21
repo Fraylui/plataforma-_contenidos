@@ -127,6 +127,34 @@ class MediaFlowIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void adImagesStayOutOfTheContentLibrary() throws Exception {
+        String publisherToken = createUserAndLogin("media-publicidad@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String contentId = uploadPng(publisherToken, 20, 20);
+        MvcResult adUpload = mockMvc.perform(multipart("/api/v1/admin/images")
+                        .file(new MockMultipartFile("file", "banner.png", "image/png", generatePng(30, 20)))
+                        .param("purpose", "AD")
+                        .header("Authorization", "Bearer " + publisherToken))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.purpose").value("AD"))
+                .andReturn();
+        String adId = objectMapper.readTree(adUpload.getResponse().getContentAsString()).get("id").asText();
+
+        assertThat(listedIds(publisherToken, "?purpose=CONTENT")).contains(contentId).doesNotContain(adId);
+        assertThat(listedIds(publisherToken, "?purpose=AD")).contains(adId).doesNotContain(contentId);
+        // Sin filtro (página Imágenes): todas.
+        assertThat(listedIds(publisherToken, "")).contains(contentId, adId);
+    }
+
+    private java.util.List<String> listedIds(String token, String query) throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/v1/admin/images" + query).header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+        java.util.List<String> ids = new java.util.ArrayList<>();
+        objectMapper.readTree(result.getResponse().getContentAsString()).forEach(node -> ids.add(node.get("id").asText()));
+        return ids;
+    }
+
     private String uploadPng(String token, int width, int height) throws Exception {
         byte[] png = generatePng(width, height);
         MvcResult result = mockMvc.perform(multipart("/api/v1/admin/images")

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import pe.plataformacontenidos.media.ImagePurpose;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.media.InvalidImageException;
 import pe.plataformacontenidos.media.api.dto.ImageResponse;
@@ -39,8 +40,9 @@ public class ImageAdminController {
     }
 
     @GetMapping
-    public List<ImageResponse> list(@AuthenticationPrincipal UserPrincipal principal) {
-        return imageService.listForAdmin(principal.userId(), canManageAll(principal)).stream()
+    public List<ImageResponse> list(@RequestParam(required = false) ImagePurpose purpose,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return imageService.listForAdmin(principal.userId(), canManageAll(principal), purpose).stream()
                 .map(ImageResponse::from).toList();
     }
 
@@ -48,6 +50,7 @@ public class ImageAdminController {
     @ResponseStatus(HttpStatus.CREATED)
     public ImageResponse upload(@RequestPart("file") MultipartFile file,
             @RequestParam(required = false) String altText,
+            @RequestParam(defaultValue = "CONTENT") ImagePurpose purpose,
             @AuthenticationPrincipal UserPrincipal principal) {
         byte[] bytes;
         try {
@@ -58,7 +61,7 @@ public class ImageAdminController {
         if (bytes.length == 0) {
             throw new InvalidImageException("El archivo está vacío");
         }
-        var image = imageService.upload(bytes, file.getOriginalFilename(), altText, principal.userId());
+        var image = imageService.upload(bytes, file.getOriginalFilename(), altText, purpose, principal.userId());
         return ImageResponse.from(image);
     }
 

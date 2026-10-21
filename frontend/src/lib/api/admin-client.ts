@@ -11,6 +11,7 @@ import { problemMessage } from "./problem";
 import type {
   AdminContentPage,
   AdminImage,
+  ImagePurpose,
   AdminSeries,
   AdminUser,
   CreateWorkerInput,
@@ -431,13 +432,14 @@ export function deleteCampaign(accessToken: string, id: string): Promise<void> {
 
 // --- Media module: imágenes (ImageAdminController) ---
 
-export function listAdminImages(accessToken: string): Promise<AdminImage[]> {
-  return authedJson("/api/v1/admin/images", accessToken);
+/** Sin `purpose`, todas (página Imágenes); los selectores piden solo las suyas. */
+export function listAdminImages(accessToken: string, purpose?: ImagePurpose): Promise<AdminImage[]> {
+  return authedJson(`/api/v1/admin/images${purpose ? `?purpose=${purpose}` : ""}`, accessToken);
 }
 
 /**
  * `formData` debe traer un part "file" (el binario) y opcionalmente
- * "altText". No se fija Content-Type a mano: fetch genera el boundary
+ * "altText" y "purpose" (CONTENT por defecto). No se fija Content-Type a mano: fetch genera el boundary
  * multipart correcto solo si se lo deja decidir a él.
  */
 export function uploadImage(accessToken: string, formData: FormData): Promise<AdminImage> {

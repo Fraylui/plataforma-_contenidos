@@ -17,7 +17,7 @@ export default async function NewCampaignPage({ params }: { params: Promise<{ id
   const result = await fetchOrAccessDenied(async () => {
     const advertiser = await getAdvertiser(accessToken, id);
     const placements = await listAdminAdPlacements(accessToken);
-    const images = await listAdminImages(accessToken);
+    const images = await listAdminImages(accessToken, "AD");
     const categories = await listAdminCategories(accessToken);
     return { categories, advertiser, placements, images };
   });

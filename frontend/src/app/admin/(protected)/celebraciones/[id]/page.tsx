@@ -46,7 +46,7 @@ export default async function EditCelebrationPage(props: PageProps<"/admin/celeb
 
   const [activeCategories, allImages, places, settings] = await Promise.all([
     listActiveCategoriesFresh(),
-    listAdminImages(accessToken),
+    listAdminImages(accessToken, "CONTENT"),
     listPlaceOptions(accessToken),
     getPlatformSettings(),
   ]);

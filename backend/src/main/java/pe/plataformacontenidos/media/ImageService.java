@@ -35,7 +35,8 @@ public class ImageService {
         this.auditService = auditService;
     }
 
-    public Image upload(byte[] rawBytes, String originalFilename, String altText, UUID uploadedBy) {
+    public Image upload(byte[] rawBytes, String originalFilename, String altText, ImagePurpose purpose,
+            UUID uploadedBy) {
         String rateLimitKey = uploadedBy.toString();
         if (rateLimiter.isBlocked(RATE_LIMIT_KEY_PREFIX, rateLimitKey, properties.uploadMaxAttempts())) {
             throw new TooManyUploadsException();
@@ -47,7 +48,7 @@ public class ImageService {
         storageService.store(storedFilename, processed.content());
 
         Image image = new Image(sanitizeFilename(originalFilename), storedFilename, processed.contentType(),
-                processed.content().length, processed.width(), processed.height(), altText, uploadedBy);
+                processed.content().length, processed.width(), processed.height(), altText, purpose, uploadedBy);
         Image saved = imageRepository.save(image);
 
         auditService.record("IMAGE_UPLOADED", AuditResult.SUCCESS, uploadedBy, null, "image",
@@ -80,11 +81,16 @@ public class ImageService {
         return storageService.load(image.getStoredFilename());
     }
 
-    public List<Image> listForAdmin(UUID actingUserId, boolean canManageAll) {
+    /** Lo más nuevo primero; {@code purpose} null = todas (la página Imágenes). */
+    public List<Image> listForAdmin(UUID actingUserId, boolean canManageAll, ImagePurpose purpose) {
         if (canManageAll) {
-            return imageRepository.findAll();
+            return purpose == null
+                    ? imageRepository.findAllByOrderByCreatedAtDesc()
+                    : imageRepository.findByPurposeOrderByCreatedAtDesc(purpose);
         }
-        return imageRepository.findByUploadedByOrderByCreatedAtDesc(actingUserId);
+        return purpose == null
+                ? imageRepository.findByUploadedByOrderByCreatedAtDesc(actingUserId)
+                : imageRepository.findByUploadedByAndPurposeOrderByCreatedAtDesc(actingUserId, purpose);
     }
 
     private void requireOwnerOrManager(Image image, UUID actingUserId, boolean canManageAll) {

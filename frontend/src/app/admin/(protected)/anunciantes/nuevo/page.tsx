@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default async function NewAdvertiserPage() {
   const { accessToken } = await requireAdminUser();
-  const images = await listAdminImages(accessToken);
+  const images = await listAdminImages(accessToken, "AD");
 
   return (
     <div>

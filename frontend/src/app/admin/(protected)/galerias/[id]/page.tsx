@@ -40,7 +40,7 @@ export default async function EditGalleryPage(props: PageProps<"/admin/galerias/
 
   const [activeCategories, allImages, settings] = await Promise.all([
     listActiveCategoriesFresh(),
-    listAdminImages(accessToken),
+    listAdminImages(accessToken, "CONTENT"),
     getPlatformSettings(),
   ]);
   const categories = await resolveCategories(activeCategories, gallery.categoryId);

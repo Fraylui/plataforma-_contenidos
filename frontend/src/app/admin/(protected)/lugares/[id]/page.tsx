@@ -40,7 +40,7 @@ export default async function EditPlacePage(props: PageProps<"/admin/lugares/[id
 
   const [activeCategories, allImages, settings] = await Promise.all([
     listActiveCategoriesFresh(),
-    listAdminImages(accessToken),
+    listAdminImages(accessToken, "CONTENT"),
     getPlatformSettings(),
   ]);
   const categories = await resolveCategories(activeCategories, place.categoryId);

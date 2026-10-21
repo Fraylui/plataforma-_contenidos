@@ -4,7 +4,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { AdminImage } from "@/lib/api/admin-types";
 import { imageUrl } from "@/lib/image-url";
-import { Button, TextInput } from "@/components/ui";
+import { Badge, Button, TextInput } from "@/components/ui";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/admin/ui/alert-dialog";
 import { deleteImageAction, updateImageAltTextAction } from "@/app/admin/(protected)/imagenes/actions";
 
 function formatBytes(bytes: number): string {
@@ -41,9 +51,12 @@ export function ImageCard({ image, canManage }: { image: AdminImage; canManage: 
 
   return (
     <div className="flex flex-col overflow-hidden rounded-card bg-surface shadow-card">
-      <div className="aspect-video bg-border">
+      <div className="relative aspect-video overflow-hidden bg-border">
         {/* eslint-disable-next-line @next/next/no-img-element -- host propio del backend, no un dominio remoto configurable en next/image sin acoplar el frontend a un entorno fijo */}
         <img src={imageUrl(image.url)} alt={image.altText ?? image.originalFilename} className="h-full w-full object-cover" />
+        {image.purpose === "AD" && (
+          <Badge className="absolute top-2 left-2 shadow-card">Publicidad</Badge>
+        )}
       </div>
       <div className="flex flex-1 flex-col gap-2 p-3">
         <p className="truncate text-xs font-medium text-foreground" title={image.originalFilename}>
@@ -68,9 +81,30 @@ export function ImageCard({ image, canManage }: { image: AdminImage; canManage: 
               <Button size="sm" variant="secondary" disabled={pending} onClick={handleSaveAlt} className="flex-1">
                 Guardar
               </Button>
-              <Button size="sm" variant="ghost" disabled={pending} onClick={handleDelete} className="text-danger-ink hover:bg-danger-soft">
-                Eliminar
-              </Button>
+              {/* Borrar no se deshace y el backend no revisa si alguna publicación la usa: se confirma. */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="ghost" disabled={pending} className="text-danger-ink hover:bg-danger-soft">
+                    Eliminar
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogTitle>¿Eliminar esta imagen?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Si alguna publicación o anuncio la usa, dejará de verse en el sitio. No se puede deshacer.
+                  </AlertDialogDescription>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel asChild>
+                      <Button variant="secondary">Cancelar</Button>
+                    </AlertDialogCancel>
+                    <AlertDialogAction asChild>
+                      <Button variant="danger" onClick={handleDelete}>
+                        Eliminar
+                      </Button>
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </>
         ) : (

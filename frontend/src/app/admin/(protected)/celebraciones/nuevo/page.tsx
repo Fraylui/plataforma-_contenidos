@@ -15,7 +15,7 @@ export default async function NewCelebrationPage() {
   const { accessToken, user } = await requireAdminUser();
   const [categories, allImages, places, settings] = await Promise.all([
     listActiveCategoriesFresh(),
-    listAdminImages(accessToken),
+    listAdminImages(accessToken, "CONTENT"),
     listPlaceOptions(accessToken),
     getPlatformSettings(),
   ]);

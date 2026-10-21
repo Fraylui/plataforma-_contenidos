@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { UploadSimple } from "@phosphor-icons/react";
 import { buttonClass } from "@/components/ui";
 import { cn } from "@/lib/utils";
-import type { AdminImage } from "@/lib/api/admin-types";
+import type { AdminImage, ImagePurpose } from "@/lib/api/admin-types";
 import { uploadImageInlineAction } from "@/app/admin/(protected)/imagenes/actions";
 
 /**
@@ -16,10 +16,12 @@ export function InlineImageUpload({
   onUploaded,
   disabled,
   compact,
+  purpose = "CONTENT",
 }: {
   onUploaded: (image: AdminImage) => void;
   disabled?: boolean;
   compact?: boolean;
+  purpose?: ImagePurpose;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState(false);
@@ -32,6 +34,7 @@ export function InlineImageUpload({
     setError(null);
     const formData = new FormData();
     formData.set("file", file);
+    formData.set("purpose", purpose);
     const result = await uploadImageInlineAction(formData);
     setPending(false);
     if (inputRef.current) inputRef.current.value = "";
