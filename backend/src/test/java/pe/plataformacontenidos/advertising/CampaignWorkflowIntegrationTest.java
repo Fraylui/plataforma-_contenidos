@@ -299,7 +299,7 @@ class CampaignWorkflowIntegrationTest {
 
     @Test
     void campaignRequiresComplianceConfirmationOnEverySave() throws Exception {
-        String adminToken = createUserAndLogin("ads-admin-6@plataforma-contenidos.test");
+        String adminToken = createUserAndLogin("ads-admin-10@plataforma-contenidos.test");
         String placementKey = createAdPlacement(adminToken);
         String advertiserId = createAdvertiser(adminToken, "Bodega Los Andes");
         String confirmed = campaignJson(advertiserId, placementKey, "https://example.com/banner.jpg", null);
@@ -330,7 +330,7 @@ class CampaignWorkflowIntegrationTest {
 
     @Test
     void advertiserKeepsItsIndustry() throws Exception {
-        String adminToken = createUserAndLogin("ads-admin-7@plataforma-contenidos.test");
+        String adminToken = createUserAndLogin("ads-admin-11@plataforma-contenidos.test");
 
         mockMvc.perform(post("/api/v1/admin/advertisers")
                         .header("Authorization", "Bearer " + adminToken)
