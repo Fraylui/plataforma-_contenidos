@@ -49,7 +49,7 @@ export function PublicationComposer({ categories, allImages, publication, permis
   const { form, id, save, saving, savedAt, error } = useComposer({
     schema,
     defaultValues: {
-      ...baseDefaults(publication?.title, publication, categories[0]?.id ?? ""),
+      ...baseDefaults(publication?.title, publication),
       body: publication?.body ?? "",
       publicationType: publication?.publicationType ?? "GENERAL",
       videos: videosFromContent(publication?.videos),

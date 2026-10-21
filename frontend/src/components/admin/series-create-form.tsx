@@ -16,7 +16,7 @@ import { Button, Card, Field, Select, TextArea, TextInput } from "@/components/u
 export function SeriesCreateForm({ categories }: { categories: Category[] }) {
   const router = useRouter();
   const [playlistUrl, setPlaylistUrl] = useState("");
-  const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
+  const [categoryId, setCategoryId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [pending, setPending] = useState(false);
@@ -59,6 +59,9 @@ export function SeriesCreateForm({ categories }: { categories: Category[] }) {
         </Field>
         <Field label="Tema" name="categoryId">
           <Select required value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+            <option value="" disabled>
+              Elige un tema
+            </option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}

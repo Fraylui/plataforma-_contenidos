@@ -27,7 +27,7 @@ export function LiveForm({ categories, series, stream }: { categories: Category[
   const [videoUrl, setVideoUrl] = useState(stream ? `https://www.youtube.com/live/${stream.youtubeVideoId}` : "");
   const [title, setTitle] = useState(stream?.title ?? "");
   const [description, setDescription] = useState(stream?.description ?? "");
-  const [categoryId, setCategoryId] = useState(stream?.categoryId ?? categories[0]?.id ?? "");
+  const [categoryId, setCategoryId] = useState(stream?.categoryId ?? "");
   const [seriesId, setSeriesId] = useState(stream?.seriesId ?? "");
   const [scheduledStart, setScheduledStart] = useState(toLocalInput(stream?.scheduledStart ?? null));
   const [pending, setPending] = useState(false);
@@ -87,6 +87,9 @@ export function LiveForm({ categories, series, stream }: { categories: Category[
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Tema" name="categoryId">
             <Select required value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+              <option value="" disabled>
+                Elige un tema
+              </option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}

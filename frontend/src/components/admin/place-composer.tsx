@@ -62,7 +62,7 @@ export function PlaceComposer({ categories, allImages, place, permissions, siteN
   const { form, id, save, saving, savedAt, error } = useComposer({
     schema,
     defaultValues: {
-      ...baseDefaults(place?.name, place, categories[0]?.id ?? ""),
+      ...baseDefaults(place?.name, place),
       body: place?.body ?? "",
       videos: videosFromContent(place?.videos),
       latitude: place?.latitude != null ? String(place.latitude) : "",

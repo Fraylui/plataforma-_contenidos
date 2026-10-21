@@ -119,7 +119,7 @@ export function CelebrationComposer({ categories, places, allImages, celebration
   const { form, id, save, saving, savedAt, error } = useComposer({
     schema,
     defaultValues: {
-      ...baseDefaults(celebration?.title, celebration, categories[0]?.id ?? ""),
+      ...baseDefaults(celebration?.title, celebration),
       body: celebration?.body ?? "",
       videos: videosFromContent(celebration?.videos),
       // Lo más común: fechas cívicas que vuelven cada año, de todo el día.

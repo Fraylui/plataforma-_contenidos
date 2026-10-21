@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Controller, useFormContext, useWatch } from "react-hook-form";
+import { Controller, useController, useFormContext, useWatch } from "react-hook-form";
 import type { AdminImage } from "@/lib/api/admin-types";
 import type { Category, ContentImage } from "@/lib/api/types";
 import { imageUrl } from "@/lib/image-url";
@@ -161,22 +161,23 @@ export function TopicCard({
   readOnly: boolean;
   children?: ReactNode;
 }) {
-  const { control, formState } = useFormContext<BaseComposerValues>();
+  // useController (no <Controller>) para que el Combobox sea hijo directo de Field y reciba la ayuda y el error.
+  const { field, fieldState } = useController<BaseComposerValues, "categoryId">({ name: "categoryId" });
   return (
     <Card title={title}>
-      <Field label="Tema" name="categoryId" error={formState.errors.categoryId?.message}>
-        <Controller
-          control={control}
-          name="categoryId"
-          render={({ field }) => (
-            <Combobox
-              options={categories.map((category) => ({ id: category.id, label: category.name }))}
-              value={field.value}
-              disabled={readOnly}
-              placeholder="Elige un tema"
-              onSelect={(value) => value && field.onChange(value)}
-            />
-          )}
+      <Field
+        label="Tema"
+        name="categoryId"
+        // Sin tema el borrador no es válido y el guardado automático espera: se dice aquí.
+        hint={field.value ? undefined : "Elígelo primero: sin tema el borrador no se guarda solo."}
+        error={fieldState.error?.message}
+      >
+        <Combobox
+          options={categories.map((category) => ({ id: category.id, label: category.name }))}
+          value={field.value}
+          disabled={readOnly}
+          placeholder="Elige un tema"
+          onSelect={(value) => value && field.onChange(value)}
         />
       </Field>
       {children}

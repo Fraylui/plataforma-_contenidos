@@ -35,6 +35,12 @@ const PUBLISHER: PublicationPermissions = {
 };
 const common = { categories: CATEGORIES, allImages: [], permissions: PUBLISHER, siteName: "Ecos del Camino" };
 
+/** El tema empieza vacío (decisión del dueño 2026-10-21): se elige como lo haría una persona. */
+async function chooseTopic() {
+  await userEvent.click(screen.getByRole("combobox", { name: "Tema" }));
+  await userEvent.click(await screen.findByText("Viajes"));
+}
+
 async function saveDraft() {
   await userEvent.click(screen.getByRole("button", { name: "Guardar borrador" }));
 }
@@ -56,6 +62,7 @@ describe("Compositor de Lugares", () => {
     render(<PlaceComposer {...common} />);
     await userEvent.type(screen.getByLabelText("Nombre"), "Laguna de Paca");
     await userEvent.type(screen.getByLabelText("Texto"), "Una laguna andina.");
+    await chooseTopic();
     await userEvent.type(screen.getByLabelText("Latitud"), "-11.85");
     await userEvent.type(screen.getByLabelText("Longitud"), "-75.51");
     await saveDraft();
@@ -85,6 +92,7 @@ describe("Compositor de Celebraciones", () => {
     expect(screen.getByRole("checkbox", { name: "Todo el día" })).toBeChecked();
     await userEvent.type(screen.getByLabelText("Título"), "Fiestas Patrias");
     await userEvent.type(screen.getByLabelText("Texto"), "La independencia del Perú.");
+    await chooseTopic();
     await userEvent.type(screen.getByLabelText(/^Fecha/), "2026-07-28");
     await userEvent.type(screen.getByLabelText("Desde el año (opcional)"), "1821");
     expect(screen.getAllByText("28 de julio · desde 1821").length).toBeGreaterThan(0);
@@ -108,6 +116,7 @@ describe("Compositor de Celebraciones", () => {
     render(<CelebrationComposer {...common} places={[]} homeCountry="PE" />);
     await userEvent.type(screen.getByLabelText("Título"), "Semana Santa ayacuchana");
     await userEvent.type(screen.getByLabelText("Texto"), "Procesiones en Huamanga.");
+    await chooseTopic();
     await userEvent.type(screen.getByLabelText(/^Fecha/), "2026-04-02");
     await userEvent.click(screen.getByRole("radio", { name: "Una región" }));
     await saveDraft();
@@ -124,6 +133,7 @@ describe("Compositor de Celebraciones", () => {
     render(<CelebrationComposer {...common} places={[]} homeCountry="PE" />);
     await userEvent.type(screen.getByLabelText("Título"), "Año Nuevo");
     await userEvent.type(screen.getByLabelText("Texto"), "Empieza el año.");
+    await chooseTopic();
     await userEvent.type(screen.getByLabelText(/^Fecha/), "2026-01-01");
     await userEvent.click(screen.getByRole("radio", { name: "Todo el mundo" }));
     expect(screen.queryByLabelText(/^Región/)).toBeNull();

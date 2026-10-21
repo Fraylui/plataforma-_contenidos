@@ -40,7 +40,7 @@ export function GalleryComposer({ categories, allImages, gallery, permissions, s
   const readOnly = !permissions.canEdit;
   const { form, id, save, saving, savedAt, error } = useComposer({
     schema,
-    defaultValues: baseDefaults(gallery?.title, gallery, categories[0]?.id ?? ""),
+    defaultValues: baseDefaults(gallery?.title, gallery),
     initialId: gallery?.id ?? "",
     status,
     readOnly,

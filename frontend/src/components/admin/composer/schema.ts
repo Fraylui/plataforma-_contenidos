@@ -67,12 +67,16 @@ interface BaseContent {
   images: ContentImage[];
 }
 
-/** Valores iniciales comunes desde lo guardado (o vacíos para algo nuevo). */
-export function baseDefaults(title: string | undefined, content: BaseContent | undefined, firstCategoryId: string): BaseComposerValues {
+/**
+ * Valores iniciales comunes desde lo guardado (o vacíos para algo nuevo).
+ * El tema empieza vacío a propósito: preelegir el primero clasificaba mal
+ * lo que se publicaba sin mirar (decisión del dueño 2026-10-21).
+ */
+export function baseDefaults(title: string | undefined, content: BaseContent | undefined): BaseComposerValues {
   return {
     title: title ?? "",
     excerpt: content?.excerpt ?? "",
-    categoryId: content?.categoryId ?? firstCategoryId,
+    categoryId: content?.categoryId ?? "",
     seoTitle: content?.seoTitle ?? "",
     metaDescription: content?.metaDescription ?? "",
     canonicalUrl: content?.canonicalUrl ?? "",

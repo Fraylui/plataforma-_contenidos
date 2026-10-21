@@ -58,12 +58,24 @@ describe("PublicationComposer", () => {
     expect(createPublicationAction).not.toHaveBeenCalled();
   });
 
+  it("el tema empieza vacío, explica por qué elegirlo y no deja guardar sin él", async () => {
+    renderNew();
+    const topic = screen.getByRole("combobox", { name: "Tema" });
+    expect(topic).toHaveAccessibleDescription(/sin tema el borrador no se guarda solo/);
+    await userEvent.type(screen.getByLabelText("Título"), "Una ruta por el valle");
+    await userEvent.click(screen.getByRole("button", { name: "Guardar borrador" }));
+    expect(screen.getByRole("combobox", { name: "Tema" })).toHaveAccessibleDescription(/Elige un tema/);
+    expect(createPublicationAction).not.toHaveBeenCalled();
+  });
+
   it("el guardado automático crea el borrador y cambia la URL sin salir de la página", async () => {
     vi.useFakeTimers({ toFake: ["setInterval", "clearInterval", "Date"] });
     const user = userEvent.setup();
     renderNew();
     await user.type(screen.getByLabelText("Título"), "Una ruta por el valle");
     await user.type(screen.getByLabelText("Texto"), "Tres días caminando.");
+    await user.click(screen.getByRole("combobox", { name: "Tema" }));
+    await user.click(await screen.findByText("Viajes"));
     await act(() => vi.advanceTimersByTimeAsync(AUTOSAVE_INTERVAL_MS));
     expect(createPublicationAction).toHaveBeenCalledTimes(1);
     expect(window.location.pathname).toBe("/admin/publicaciones/nuevo-1");
