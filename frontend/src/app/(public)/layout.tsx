@@ -37,7 +37,8 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
   const social = officialSocialLinks(settings);
 
   return (
-    <div id="top" className="flex min-h-full bg-canvas">
+    <div id="top" className="flex min-h-dvh bg-canvas">
+      {/* min-h-dvh (no min-h-full: el body no tiene alto fijo): una página corta no deja ver otro fondo debajo. */}
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-accent-fill focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-accent-foreground"

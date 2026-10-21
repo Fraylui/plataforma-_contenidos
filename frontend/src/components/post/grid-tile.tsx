@@ -9,7 +9,7 @@ import { SkeletonImage } from "@/components/ui/skeleton-image";
  * carrusel, video o evento, y al pasar el mouse los me gusta (si hay). Sin imagen:
  * bloque de color con el título.
  */
-export function GridTile({ item }: { item: HomeItem }) {
+export function GridTile({ item, large = false }: { item: HomeItem; large?: boolean }) {
   const cover = item.images[0] ?? (item.imageUrl ? { url: item.imageUrl, isExternal: item.imageIsExternal } : null);
   const badge =
     item.hasVideo ? { icon: Play, label: "Video" } :
@@ -21,14 +21,15 @@ export function GridTile({ item }: { item: HomeItem }) {
     <Link
       href={item.href}
       aria-label={`${item.title} · ${item.typeLabel}`}
-      className="group relative block aspect-square overflow-hidden bg-canvas-strong focus-visible:z-10"
+      // Grande (2×2 en Explorar): llena el alto de dos filas en vez de ser un cuadrado propio.
+      className={`group relative block overflow-hidden bg-canvas-strong focus-visible:z-10 ${large ? "h-full" : "aspect-square"}`}
     >
       {cover ? (
         cover.isExternal ? (
           // eslint-disable-next-line @next/next/no-img-element -- enlace externo pegado en el panel, host arbitrario
           <img src={cover.url} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
-          <SkeletonImage src={cover.url} alt="" sizes="(min-width: 1024px) 340px, 33vw" className="object-cover" />
+          <SkeletonImage src={cover.url} alt="" sizes={large ? "(min-width: 1024px) 680px, 66vw" : "(min-width: 1024px) 340px, 33vw"} className="object-cover" />
         )
       ) : (
         <span className="flex h-full items-center justify-center bg-linear-to-br from-accent-soft to-canvas-strong p-3 text-center text-sm leading-tight font-bold text-foreground">

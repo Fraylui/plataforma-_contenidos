@@ -75,4 +75,14 @@ describe("ExploreGrid — cuadrícula de descubrimiento (Instagram)", () => {
     const { container } = render(<ExploreGrid initialItems={[item(1), item(2)]} initialHasMore={false} seed="s" />);
     expect(await axe(container)).toHaveNoViolations();
   });
+
+  it("con ritmo, como el Explorar de Instagram: una grande (2×2) por cada 6, alternando lado", () => {
+    const items = Array.from({ length: 12 }, (_, i) => item(i + 1));
+    render(<ExploreGrid initialItems={items} initialHasMore={false} seed="s" />);
+    const tiles = screen.getAllByRole("listitem");
+    const large = tiles.filter((li) => li.dataset.size === "large");
+    expect(large).toEqual([tiles[0], tiles[6]]);
+    expect(tiles[0]).toHaveClass("col-span-2", "row-span-2");
+    expect(tiles[6]).toHaveClass("col-start-2");
+  });
 });

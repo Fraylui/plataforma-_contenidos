@@ -4,7 +4,9 @@ import type { HomeItem } from "@/lib/home-items";
 import { GridTile } from "@/components/post/grid-tile";
 import { useFeedPages, type FeedFilter } from "./use-feed-pages";
 
-const PAGE_SIZE = 18; // múltiplo de 3: cada tanda completa filas
+const PAGE_SIZE = 18; // múltiplo de 6: cada tanda completa sus bloques
+/** Una miniatura grande por cada tantas (cada bloque de 6 llena 3 filas exactas). */
+const LARGE_EVERY = 6;
 
 /**
  * Cuadrícula de Explorar (como la de Instagram): miniaturas cuadradas de 3
@@ -37,12 +39,22 @@ export function ExploreGrid({
 
   return (
     <>
-      <ul aria-label="Explorar" className="grid grid-cols-3 gap-0.5 sm:gap-1">
-        {items.map((item) => (
-          <li key={item.id}>
-            <GridTile item={item} />
-          </li>
-        ))}
+      {/* Ritmo del Explorar de Instagram: en cada bloque de 6 una grande (2×2), a la izquierda y luego a
+          la derecha; grid-flow-dense hace que las chicas llenen los huecos. */}
+      <ul aria-label="Explorar" className="grid grid-flow-dense grid-cols-3 gap-0.5 sm:gap-1">
+        {items.map((item, index) => {
+          const large = index % LARGE_EVERY === 0;
+          const right = index % (LARGE_EVERY * 2) === LARGE_EVERY;
+          return (
+            <li
+              key={item.id}
+              data-size={large ? "large" : undefined}
+              className={large ? `col-span-2 row-span-2${right ? " col-start-2" : ""}` : undefined}
+            >
+              <GridTile item={item} large={large} />
+            </li>
+          );
+        })}
       </ul>
 
       {error && (

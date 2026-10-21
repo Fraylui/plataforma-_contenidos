@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Broadcast } from "@phosphor-icons/react/dist/ssr";
-import { getLiveNow, listUpcomingLive } from "@/lib/api/client";
+import { getFeed, getLiveNow, listUpcomingLive } from "@/lib/api/client";
+import { fromFeedItem } from "@/lib/home-items";
+import { KeepExploring } from "@/components/feed/keep-exploring";
 import { LiveLabel } from "@/components/live/live-banner";
 import { LivePlayer } from "@/components/live/live-player";
 import { UpcomingLiveList } from "@/components/live/upcoming-live-list";
@@ -15,10 +17,12 @@ export const metadata: Metadata = {
 /** En vivo: la transmisión de ahora (video y chat de YouTube dentro del sitio) y las próximas. */
 export default async function LivePage() {
   const [now, upcoming] = await Promise.all([getLiveNow().catch(() => null), listUpcomingLive().catch(() => [])]);
+  // Ni en vivo ni próximas: se ofrece lo más reciente en vez de dejar la página vacía.
+  const meanwhile = !now && upcoming.length === 0 ? (await getFeed({ size: 6 }).catch(() => null))?.items.map(fromFeedItem) ?? [] : [];
 
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-6">
-      <h1 className="sr-only">En vivo</h1>
+      <h1 className="mb-5 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">En vivo</h1>
       {now ? (
         <article>
           <LivePlayer stream={now} />
@@ -32,17 +36,18 @@ export default async function LivePage() {
           </div>
         </article>
       ) : (
-        <div className="flex flex-col items-center gap-2 rounded-card bg-surface px-6 py-14 text-center shadow-card">
-          <span className="flex size-12 items-center justify-center rounded-full bg-accent-soft text-accent">
-            <Broadcast weight="fill" className="size-6" aria-hidden="true" />
-          </span>
-          <p className="text-base font-semibold text-foreground">No hay ninguna transmisión en vivo ahora</p>
-          <p className="max-w-sm text-sm text-muted">
-            {upcoming.length > 0 ? "Mira abajo cuándo es la próxima." : "Cuando empiece una, la verás aquí y en el inicio."}
-          </p>
+        <div className="flex items-center gap-3 rounded-card bg-surface px-5 py-4 shadow-card">
+          <Broadcast weight="fill" className="size-6 shrink-0 text-accent" aria-hidden="true" />
+          <div>
+            <p className="text-sm font-semibold text-foreground">No hay ninguna transmisión en vivo ahora</p>
+            <p className="text-sm text-muted">
+              {upcoming.length > 0 ? "Mira abajo cuándo es la próxima." : "Cuando empiece una, la verás aquí y en el inicio."}
+            </p>
+          </div>
         </div>
       )}
       <UpcomingLiveList streams={upcoming} />
+      <KeepExploring items={meanwhile} />
     </div>
   );
 }
