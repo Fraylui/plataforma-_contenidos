@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getPlatformSettings } from "@/lib/api/client";
+import { officialSocialLinks } from "@/lib/social-links";
+import { SocialFollow } from "@/components/shell/social-follow";
 import { LegalPageLayout, type LegalSection } from "@/components/legal/legal-page-layout";
 
 export const metadata: Metadata = {
@@ -19,6 +21,7 @@ const UPDATED_AT = "4 de octubre de 2026";
  */
 export default async function ContactPage() {
   const settings = await getPlatformSettings();
+  const social = officialSocialLinks(settings);
   const email = settings.contactEmail;
   const mail = (subject: string) => (email ? `mailto:${email}?subject=${encodeURIComponent(subject)}` : undefined);
 
@@ -77,6 +80,20 @@ export default async function ContactPage() {
         <p>Todavía no hay un correo de contacto publicado. Vuelve pronto.</p>
       ),
     },
+    ...(social.length > 0
+      ? [
+          {
+            id: "siguenos",
+            title: "Síguenos",
+            content: (
+              <>
+                <p>Videos, fotos y novedades también en nuestras redes.</p>
+                <SocialFollow brandName={settings.name} links={social} showLabel={false} />
+              </>
+            ),
+          },
+        ]
+      : []),
     {
       id: "privacidad",
       title: "Tus datos",

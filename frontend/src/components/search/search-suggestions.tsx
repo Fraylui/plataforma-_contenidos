@@ -46,7 +46,9 @@ export async function SearchSuggestions({
   excludeIds: string[];
   hasResults: boolean;
 }) {
-  const topics = matchingTopics(query, categories);
+  // Sin nada escrito, todos los temas con contenido (las categorías llegan ya filtradas).
+  const browsing = query.trim() === "";
+  const topics = browsing ? categories.slice(0, MAX_TOPICS * 2) : matchingTopics(query, categories);
   const hourSeed = new Date().toISOString().slice(0, 13);
   const recentPage = await getFeed({ size: RECENT_SIZE, exclude: excludeIds, seed: hourSeed }).catch(() => null);
   const recent = (recentPage?.items ?? []).map(fromFeedItem);
@@ -58,7 +60,7 @@ export async function SearchSuggestions({
       {topics.length > 0 && (
         <section aria-labelledby="temas-sugeridos">
           <h2 id="temas-sugeridos" className="text-sm font-bold tracking-tight text-foreground">
-            {hasResults ? "Explora el tema completo" : "¿Buscabas alguno de estos temas?"}
+            {browsing ? "Explora por tema" : hasResults ? "Explora el tema completo" : "¿Buscabas alguno de estos temas?"}
           </h2>
           <ul className="mt-3 flex flex-wrap gap-2">
             {topics.map((topic) => (
@@ -78,7 +80,7 @@ export async function SearchSuggestions({
       {recent.length > 0 && (
         <section aria-labelledby="lo-mas-reciente" className={topics.length > 0 ? "mt-10" : undefined}>
           <h2 id="lo-mas-reciente" className="text-sm font-bold tracking-tight text-foreground">
-            {hasResults ? "También te puede interesar" : "Mientras tanto, lo más reciente"}
+            {browsing ? "Lo más reciente" : hasResults ? "También te puede interesar" : "Mientras tanto, lo más reciente"}
           </h2>
           {/* Misma cuadrícula de 3 que Explorar y los resultados. */}
           <ul className="mt-3 grid grid-cols-3 gap-0.5 sm:gap-1">

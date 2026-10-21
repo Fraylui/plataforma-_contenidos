@@ -149,9 +149,8 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
 
       <section className="mt-8" aria-label="Resultados de búsqueda">
         {!query ? (
-          <p className="px-6 py-16 text-center text-sm text-muted">
-            Busca lugares, celebraciones, publicaciones, galerías o negocios.
-          </p>
+          // Sin nada escrito: temas y lo más reciente, no una pantalla vacía (el Directorio ya no existe).
+          <SearchSuggestions query="" categories={categories} excludeIds={[]} hasResults={false} />
         ) : result && result.items.length > 0 ? (
           <>
             {/* Cuadrícula de 3 como Explorar (Instagram), sin tarjetas con antetítulo. */}
