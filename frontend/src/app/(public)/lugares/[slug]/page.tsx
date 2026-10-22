@@ -20,6 +20,7 @@ import { SITE_URL } from "@/lib/site-url";
 import type { Category, Place } from "@/lib/api/types";
 import { contentImageUrl, robotsWithLargePreview, shareImageUrl } from "@/lib/share-image";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
+import { orNull } from "@/lib/server-log";
 
 /** "Más como esto": 3 filas de la cuadrícula de 3. */
 const MORE_SIZE = 9;
@@ -116,7 +117,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
   const place = await loadPlace(slug);
 
   const [category, settings, relatedPage] = await Promise.all([
-    getCategoryById(place.categoryId).catch(() => null),
+    getCategoryById(place.categoryId).catch(orNull("lugar.tema")),
     getPlatformSettings(),
     getRelatedWithFallback({ excludeType: "PLACE", excludeId: place.id, categoryId: place.categoryId, size: MORE_SIZE }),
   ]);

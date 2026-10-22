@@ -32,7 +32,8 @@ import type {
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 
-export class NotFoundError extends Error {}
+import { BackendError, NotFoundError } from "./errors";
+export { NotFoundError } from "./errors";
 
 async function apiFetch<T>(path: string, revalidateSeconds: number): Promise<T> {
   const res = await fetch(`${BACKEND_API_URL}${path}`, {
@@ -43,7 +44,7 @@ async function apiFetch<T>(path: string, revalidateSeconds: number): Promise<T> 
     throw new NotFoundError(`No encontrado: ${path}`);
   }
   if (!res.ok) {
-    throw new Error(`Error del backend (${res.status}) en ${path}`);
+    throw new BackendError(`Error del backend (${res.status}) en ${path}`, res.status, res.headers.get("X-Request-Id"));
   }
   return res.json() as Promise<T>;
 }

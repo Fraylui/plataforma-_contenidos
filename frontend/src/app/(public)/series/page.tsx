@@ -5,6 +5,7 @@ import { fromFeedItem } from "@/lib/home-items";
 import { KeepExploring } from "@/components/feed/keep-exploring";
 import { Pagination } from "@/components/ui/pagination";
 import { SeriesCardView } from "@/components/series/series-cards";
+import { orNull } from "@/lib/server-log";
 
 export const metadata: Metadata = {
   title: "Series",
@@ -23,7 +24,7 @@ export default async function SeriesListPage({ searchParams }: PageProps<"/serie
   const page = Math.max(0, Number.parseInt(typeof pageParam === "string" ? pageParam : "0", 10) || 0);
   const result = await listPublishedSeries({ page, size: PAGE_SIZE });
   // Sin programas todavía: no es un callejón sin salida, se ofrece lo más reciente.
-  const meanwhile = result.items.length === 0 ? (await getFeed({ size: 6 }).catch(() => null))?.items.map(fromFeedItem) ?? [] : [];
+  const meanwhile = result.items.length === 0 ? (await getFeed({ size: 6 }).catch(orNull("series.recientes")))?.items.map(fromFeedItem) ?? [] : [];
 
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 py-6">

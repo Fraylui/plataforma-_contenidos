@@ -22,6 +22,7 @@ import { typeChipOptions } from "./type-chips";
 import { Feed } from "./feed";
 import { RightColumn } from "./right-column";
 import type { FeedFilter } from "./use-feed-pages";
+import { orNull, orDefault } from "@/lib/server-log";
 
 const FEED_INITIAL_SIZE = 12;
 const UPCOMING_CELEBRATIONS_SIZE = 4;
@@ -70,16 +71,16 @@ export async function FeedScreen({
   const [settings, categories, topics, feedPage, upcoming, visibility, placements, topLikedRaw, liveNow, todayCelebrations] = await Promise.all([
     getPlatformSettings(),
     listActiveCategories(),
-    getFeedTopics().catch(() => []),
+    getFeedTopics().catch(orDefault("inicio.temas", [])),
     getFeed({ size: FEED_INITIAL_SIZE, seed, ...filter }),
     // En Celebraciones las próximas ya son el feed: la columna no las repite.
     celebrationsFeed ? Promise.resolve({ items: [] }) : listPublishedCelebrations({ when: "upcoming", size: UPCOMING_CELEBRATIONS_SIZE }),
     getPrimaryNavVisibility(),
     listActiveAdPlacements(),
-    getTopLiked(5).catch(() => []),
+    getTopLiked(5).catch(orDefault("inicio.mas-gustado", [])),
     // Si el backend de En vivo falla, el feed sigue: solo no se muestra el aviso.
-    getLiveNow().catch(() => null),
-    showToday ? listTodayCelebrations().catch(() => []) : Promise.resolve([]),
+    getLiveNow().catch(orNull("inicio.en-vivo")),
+    showToday ? listTodayCelebrations().catch(orDefault("inicio.hoy-se-celebra", [])) : Promise.resolve([]),
   ]);
 
   const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));

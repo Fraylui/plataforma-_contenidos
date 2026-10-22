@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import type { FeedItemType } from "@/lib/api/types";
 import { visitorHeaders } from "@/lib/forward-visitor";
+import { orDefault } from "@/lib/server-log";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
       cache: "no-store",
       headers: { ...visitorHeaders(request), "Content-Type": "application/json" },
       body: JSON.stringify({ type, id }),
-    }).catch(() => undefined);
+    }).catch(orDefault("api.visitas", undefined));
   }
   return new NextResponse(null, { status: 204, headers: { "Cache-Control": "no-store" } });
 }

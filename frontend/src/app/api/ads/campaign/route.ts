@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { visitorHeaders } from "@/lib/forward-visitor";
 import type { PlacementRotation, ResolvedRotation } from "@/lib/api/types";
+import { orNull } from "@/lib/server-log";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const PLACEMENT_KEY = /^[a-z0-9_-]{1,64}$/;
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
   const res = await fetch(
     `${BACKEND_API_URL}/api/v1/ads/campaigns/rotation?${query.toString()}`,
     { cache: "no-store", headers: visitorHeaders(request) },
-  ).catch(() => null);
+  ).catch(orNull("api.anuncios.campana"));
   if (!res || res.status !== 200) return new NextResponse(null, { status: 204, headers: NO_STORE });
 
   const rotation = (await res.json()) as PlacementRotation;

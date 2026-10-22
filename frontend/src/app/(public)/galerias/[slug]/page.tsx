@@ -14,6 +14,7 @@ import { fromFeedItem, splitUpNext } from "@/lib/home-items";
 import { SITE_URL } from "@/lib/site-url";
 import type { Category, Gallery } from "@/lib/api/types";
 import { contentImageUrl, robotsWithLargePreview, shareImageUrl } from "@/lib/share-image";
+import { orNull } from "@/lib/server-log";
 
 /** "Más como esto": 3 filas de la cuadrícula de 3. */
 const MORE_SIZE = 9;
@@ -105,7 +106,7 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
   const gallery = await loadGallery(slug);
 
   const [category, settings, relatedPage] = await Promise.all([
-    getCategoryById(gallery.categoryId).catch(() => null),
+    getCategoryById(gallery.categoryId).catch(orNull("galeria.tema")),
     getPlatformSettings(),
     getRelatedWithFallback({ excludeType: "GALLERY", excludeId: gallery.id, categoryId: gallery.categoryId, size: MORE_SIZE }),
   ]);

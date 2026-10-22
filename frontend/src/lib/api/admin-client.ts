@@ -55,6 +55,7 @@ import type {
   Place,
   PlatformSettings,
 } from "./types";
+import { orDefault } from "@/lib/server-log";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 
@@ -130,7 +131,7 @@ export async function logoutSession(refreshToken: string): Promise<void> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refreshToken }),
     cache: "no-store",
-  }).catch(() => undefined);
+  }).catch(orDefault("panel.cerrar-sesion", undefined));
 }
 
 /** Llamada autenticada genérica. Traduce un 401 del backend en AdminSessionExpiredError. */

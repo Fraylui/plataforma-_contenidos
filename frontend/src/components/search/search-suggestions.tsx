@@ -3,6 +3,7 @@ import { getFeed } from "@/lib/api/client";
 import type { Category } from "@/lib/api/types";
 import { fromFeedItem } from "@/lib/home-items";
 import { GridTile } from "@/components/post/grid-tile";
+import { orNull } from "@/lib/server-log";
 
 const RECENT_SIZE = 6;
 const MAX_TOPICS = 6;
@@ -50,7 +51,7 @@ export async function SearchSuggestions({
   const browsing = query.trim() === "";
   const topics = browsing ? categories.slice(0, MAX_TOPICS * 2) : matchingTopics(query, categories);
   const hourSeed = new Date().toISOString().slice(0, 13);
-  const recentPage = await getFeed({ size: RECENT_SIZE, exclude: excludeIds, seed: hourSeed }).catch(() => null);
+  const recentPage = await getFeed({ size: RECENT_SIZE, exclude: excludeIds, seed: hourSeed }).catch(orNull("buscar.recientes"));
   const recent = (recentPage?.items ?? []).map(fromFeedItem);
 
   if (topics.length === 0 && recent.length === 0) return null;

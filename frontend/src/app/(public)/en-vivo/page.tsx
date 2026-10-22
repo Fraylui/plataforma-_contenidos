@@ -7,6 +7,7 @@ import { LiveLabel } from "@/components/live/live-banner";
 import { LivePlayer } from "@/components/live/live-player";
 import { UpcomingLiveList } from "@/components/live/upcoming-live-list";
 import { ShareButton } from "@/components/series/share-button";
+import { orNull, orDefault } from "@/lib/server-log";
 
 export const metadata: Metadata = {
   title: "En vivo",
@@ -16,9 +17,9 @@ export const metadata: Metadata = {
 
 /** En vivo: la transmisión de ahora (video y chat de YouTube dentro del sitio) y las próximas. */
 export default async function LivePage() {
-  const [now, upcoming] = await Promise.all([getLiveNow().catch(() => null), listUpcomingLive().catch(() => [])]);
+  const [now, upcoming] = await Promise.all([getLiveNow().catch(orNull("en-vivo.ahora")), listUpcomingLive().catch(orDefault("en-vivo.proximas", []))]);
   // Ni en vivo ni próximas: se ofrece lo más reciente en vez de dejar la página vacía.
-  const meanwhile = !now && upcoming.length === 0 ? (await getFeed({ size: 6 }).catch(() => null))?.items.map(fromFeedItem) ?? [] : [];
+  const meanwhile = !now && upcoming.length === 0 ? (await getFeed({ size: 6 }).catch(orNull("en-vivo.recientes")))?.items.map(fromFeedItem) ?? [] : [];
 
   return (
     <div className="mx-auto w-full max-w-[1200px] px-4 py-6">

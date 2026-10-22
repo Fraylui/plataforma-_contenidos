@@ -5,6 +5,7 @@ import { PlaceComposer } from "@/components/admin/place-composer";
 import { AdminPageHeader } from "@/components/admin/ui";
 import { computePublicationPermissions } from "@/lib/admin/publication";
 import { getPlatformSettings } from "@/lib/api/client";
+import { orNull } from "@/lib/server-log";
 
 export const metadata: Metadata = {
   title: "Nuevo lugar",
@@ -18,7 +19,7 @@ export default async function NewPlacePage() {
     listAdminImages(accessToken, "CONTENT"),
     getPlatformSettings(),
     // Solo para centrar el mapa: si falla, el mapa abre en el mundo como antes.
-    listAdminPlaces(accessToken, { page: 0 }).catch(() => null),
+    listAdminPlaces(accessToken, { page: 0 }).catch(orNull("admin.lugar-nuevo.mapa")),
   ]);
   // Lo más nuevo primero (orden por defecto): el mapa empieza donde fue el último lugar con pin.
   const lastPinned = recentPlaces?.items.find((place) => place.latitude != null && place.longitude != null);

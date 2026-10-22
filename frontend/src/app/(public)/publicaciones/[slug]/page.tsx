@@ -19,6 +19,7 @@ import { InlineRelated } from "@/components/post/inline-related";
 import { WhatsAppFollow } from "@/components/post/whatsapp-follow";
 import { splitBodyInHalf } from "@/lib/split-body";
 import { PROSE } from "@/lib/prose";
+import { orNull } from "@/lib/server-log";
 
 /** "Más como esto": 3 filas de la cuadrícula de 3. */
 const MORE_SIZE = 9;
@@ -127,7 +128,7 @@ export default async function PublicationPage(props: PageProps<"/publicaciones/[
   const publication = await loadPublication(slug);
 
   const [category, settings, relatedPage] = await Promise.all([
-    getCategoryById(publication.categoryId).catch(() => null),
+    getCategoryById(publication.categoryId).catch(orNull("publicacion.tema")),
     getPlatformSettings(),
     getRelatedWithFallback({ excludeType: "PUBLICATION", excludeId: publication.id, categoryId: publication.categoryId, size: MORE_SIZE }),
   ]);

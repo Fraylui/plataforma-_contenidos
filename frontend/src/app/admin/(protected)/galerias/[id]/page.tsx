@@ -8,6 +8,7 @@ import { computePublicationPermissions } from "@/lib/admin/publication";
 import { GalleryComposer } from "@/components/admin/gallery-composer";
 import { AdminPageHeader } from "@/components/admin/ui";
 import type { Category } from "@/lib/api/types";
+import { orNull } from "@/lib/server-log";
 
 export const metadata: Metadata = {
   title: "Editar galería",
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
 /** La categoría de la galería puede haberse desactivado desde que se asignó; igual debe verse en el selector. */
 async function resolveCategories(activeCategories: Category[], categoryId: string): Promise<Category[]> {
   if (activeCategories.some((c) => c.id === categoryId)) return activeCategories;
-  const current = await getCategoryById(categoryId).catch(() => null);
+  const current = await getCategoryById(categoryId).catch(orNull("admin.galeria.tema"));
   return current ? [current, ...activeCategories] : activeCategories;
 }
 

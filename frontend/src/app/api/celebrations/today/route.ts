@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { visitorHeaders } from "@/lib/forward-visitor";
 import { toTodayCelebration } from "@/lib/today-celebrations";
 import type { CelebrationSummary } from "@/lib/api/types";
+import { orNull } from "@/lib/server-log";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const NO_STORE = { "Cache-Control": "no-store" };
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
   const res = await fetch(`${BACKEND_API_URL}/api/v1/celebrations/today`, {
     cache: "no-store",
     headers: visitorHeaders(request),
-  }).catch(() => null);
+  }).catch(orNull("api.celebraciones.hoy"));
   if (!res || res.status !== 200) return new NextResponse(null, { status: 204, headers: NO_STORE });
 
   const dates = (await res.json()) as CelebrationSummary[];

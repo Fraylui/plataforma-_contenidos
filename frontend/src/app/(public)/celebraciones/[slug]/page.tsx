@@ -30,6 +30,7 @@ import { SITE_URL } from "@/lib/site-url";
 import type { Category, Celebration } from "@/lib/api/types";
 import { robotsWithLargePreview, shareImageUrl } from "@/lib/share-image";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
+import { orNull } from "@/lib/server-log";
 
 /** "Más como esto": 3 filas de la cuadrícula de 3. */
 const MORE_SIZE = 9;
@@ -133,9 +134,9 @@ export default async function CelebrationPage(props: PageProps<"/celebraciones/[
   const celebration = await loadCelebration(slug);
 
   const [category, settings, place, relatedPage] = await Promise.all([
-    getCategoryById(celebration.categoryId).catch(() => null),
+    getCategoryById(celebration.categoryId).catch(orNull("celebracion.tema")),
     getPlatformSettings(),
-    celebration.placeId ? getPublishedPlaceById(celebration.placeId).catch(() => null) : Promise.resolve(null),
+    celebration.placeId ? getPublishedPlaceById(celebration.placeId).catch(orNull("celebracion.lugar")) : Promise.resolve(null),
     getRelatedWithFallback({ excludeType: "CELEBRATION", excludeId: celebration.id, categoryId: celebration.categoryId, size: MORE_SIZE }),
   ]);
 

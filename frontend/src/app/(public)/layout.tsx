@@ -8,6 +8,7 @@ import { AnchorAdSlot } from "@/components/legal/anchor-ad-slot";
 import { LeftRail } from "@/components/shell/left-rail";
 import { BottomTabBar } from "@/components/shell/bottom-tab-bar";
 import { TopBar } from "@/components/shell/top-bar";
+import { orDefault } from "@/lib/server-log";
 
 /**
  * Cascarón del sitio público, estilo app (diseño 2026-10-06): riel de
@@ -22,7 +23,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
   const [settings, visibility, topics, categories] = await Promise.all([
     getPlatformSettings(),
     getPrimaryNavVisibility(),
-    getFeedTopics().catch(() => []),
+    getFeedTopics().catch(orDefault("sitio.temas", [])),
     listActiveCategories(),
   ]);
   const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
