@@ -7,7 +7,8 @@ import { ContentTypesChart, PipelineChart, PublishTrendChart, RoleChart, TotalDi
 import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
 const CARD_CLASS = "rounded-card bg-surface shadow-card p-5 transition-colors hover:border-accent/40";
-const SECTION_TITLE_CLASS = "flex items-center gap-2 text-xs font-semibold tracking-wide text-muted uppercase";
+// Sin mayúsculas de antetítulo: títulos de sección en frase normal.
+const SECTION_TITLE_CLASS = "flex items-center gap-2 text-sm font-semibold text-foreground";
 
 // Orden real del flujo de publicación (CONTEXTO.md sección 12) — la "línea de
 // producción". ARCHIVED es el estado terminal, fuera de la línea activa:
@@ -28,7 +29,10 @@ function todayDateline(): string {
 
 export function StatsDashboard({ stats }: { stats: PlatformStats }) {
   const pipelineTotal = PIPELINE.reduce((sum, status) => sum + (stats.publicationsByStatus[status] ?? 0), 0);
-  const inProgress = pipelineTotal - stats.publicationsByStatus.PUBLISHED;
+  // Mismas cifras que el Inicio del panel: todos los tipos, no solo Publicaciones.
+  const allTypes = [stats.publicationsByStatus, stats.placesByStatus, stats.celebrationsByStatus, stats.galleriesByStatus];
+  const onSite = allTypes.reduce((sum, byStatus) => sum + (byStatus.PUBLISHED ?? 0), 0);
+  const inPreparation = allTypes.reduce((sum, byStatus) => sum + (byStatus.DRAFT ?? 0) + (byStatus.SCHEDULED ?? 0), 0);
   const dateline = todayDateline();
 
   return (
@@ -37,10 +41,10 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
 
       {/* Cifras destacadas, tabulares — sin íconos: el número es el protagonista. */}
       <dl className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <EditionFigure label="Publicados" value={stats.publicationsByStatus.PUBLISHED} />
-        <EditionFigure label="Últimos 30 días" value={stats.publicationsPublishedLast30Days} />
-        <EditionFigure label="En preparación" value={inProgress} />
-        <EditionFigure label="Usuarios activos" value={stats.activeUsers} />
+        <EditionFigure label="En el sitio" value={onSite} />
+        <EditionFigure label="En preparación" value={inPreparation} />
+        <EditionFigure label="Publicaciones en 30 días" value={stats.publicationsPublishedLast30Days} />
+        <EditionFigure label="Personas en el equipo" value={stats.activeUsers} />
       </dl>
 
       {/* Único gráfico con eje temporal real del panel — el resto es "estado actual". */}
@@ -59,7 +63,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
         <section className={`${CARD_CLASS} lg:col-span-3`}>
           <h2 className={SECTION_TITLE_CLASS}>
             <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
-            Flujo de publicación
+            Publicaciones por estado
           </h2>
 
           {pipelineTotal === 0 ? (
@@ -128,9 +132,10 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
 
 function EditionFigure({ label, value }: { label: string; value: number }) {
   return (
-    <div className={CARD_CLASS}>
+    // dt antes que dd (orden correcto para lectores de pantalla); el número se ve arriba con flex-col-reverse.
+    <div className={`${CARD_CLASS} flex flex-col-reverse`}>
+      <dt className="mt-1.5 text-sm font-medium text-muted">{label}</dt>
       <dd className="text-3xl font-bold tracking-tight tabular-nums text-foreground">{value}</dd>
-      <dt className="mt-1.5 text-xs font-semibold tracking-wide text-muted uppercase">{label}</dt>
     </div>
   );
 }

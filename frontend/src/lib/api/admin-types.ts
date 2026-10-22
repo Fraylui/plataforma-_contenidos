@@ -395,10 +395,10 @@ export interface PlatformStats {
   activeUsers: number;
 }
 
-/** Ver ImageResponse.java. `url` es relativa — resolver con src/lib/image-url.ts. */
 /** Para qué se subió (ver ImagePurpose.java): la biblioteca de contenido no muestra las de publicidad. */
 export type ImagePurpose = "CONTENT" | "AD";
 
+/** Ver ImageResponse.java. `url` es relativa — resolver con src/lib/image-url.ts. */
 export interface AdminImage {
   id: string;
   originalFilename: string;
