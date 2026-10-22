@@ -2370,6 +2370,8 @@ Estado: todo subido hasta `dd11734` (PR #22). Hecho en esta sesión: §46.6p.
 Estado real de cada control, con su evidencia en el repositorio. ✅ cumple · ⚠️ parcial · ⏳ pendiente.
 No reemplaza una auditoría externa ni la revisión legal (§46.6n.6).
 
+**Regla de trabajo (dueño, 2026-10-22):** todo cambio sigue SOLID, ISO/IEC 25010 y 27001/27002, OWASP ASVS, y el ciclo de cambio de ITIL 4 / COBIT 2019 (BAI03, BAI06, BAI07): plan → prueba que falla → implementación → verificación → revisión → commit de un solo tema → documentación aquí. Sin código huérfano. El mapeo se mantiene corto: sirve para decidir, no es papeleo.
+
 ### Accesibilidad — WCAG 2.2 AA
 
 | Control | Estado | Evidencia |
@@ -2389,7 +2391,7 @@ No reemplaza una auditoría externa ni la revisión legal (§46.6n.6).
 | Usabilidad | ✅ | WCAG 2.2 AA (arriba); revisión visual en Edge de las 19 pantallas públicas y del panel. |
 | Fiabilidad | ⚠️ | Health checks, reintentos y topes de memoria en Docker. ⏳ Backups: falta la copia externa a R2 y corregir `scripts/backup.sh` (§46.7.5). |
 | Seguridad | ✅/⚠️ | Ver OWASP ASVS. |
-| Mantenibilidad | ✅ | knip (cero código sin uso) y ESLint en CI; tipos estrictos; módulos por dominio; nombres coherentes con la interfaz (Publication, Celebration). |
+| Mantenibilidad | ✅ | knip (cero código sin uso) y ESLint en CI; tipos estrictos; módulos por dominio; nombres coherentes con la interfaz (Publication, Celebration). **Modularidad verificada** (2026-10-22): `ModularityTest` (Spring Modulith) falla el CI si un módulo usa lo interno de otro o hay ciclos; principios SOLID aplicados (registro de tipos de contenido, `CampaignService` partido — §46.7 puntos 10b–10d). |
 | Portabilidad | ✅ | Todo en Docker Compose; configuración por variables de entorno. |
 
 **LCP — qué se hizo y qué falta (2026-10-16).** Hecho y medido en CI: foto principal visible sin esperar a JavaScript (`SkeletonImage` sin fundido con `priority`), foto del detalle y de «Hoy se celebra» con prioridad, borrado de `app/loading.tsx` raíz (envolvía todo el sitio en un segmento de streaming), sonner solo en el panel, Radix de Buscar/Más/Información cargado al primer toque, semilla de CI con foto realista. Descartado tras medirlo: quitar los esqueletos `loading.tsx` del sitio (≈ −0,5 s en algunas pantallas, peor en el inicio; no compensa perder el esqueleto al navegar). Lo que queda: ~3 s de «Render Delay» con 257 KB de JS comprimido y ~1,4 s de CPU en el inicio. **Siguiente paso**: analizar el paquete (`next build` con análisis) y el tamaño del RSC en línea, pasar a Server Components lo que no necesita estado, y medir en el VPS con datos reales (CrUX/Search Console es lo que cuenta para Google).
