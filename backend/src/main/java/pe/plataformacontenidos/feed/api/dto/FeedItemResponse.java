@@ -93,7 +93,6 @@ public record FeedItemResponse(
                 gallery.getPublishedAt(), likeCount, images(gallery.getImages()), null, null, null, null, null, null, null, null);
     }
 
-
     /** Episodio: portada = miniatura de YouTube (la sirve YouTube); tema = el de su serie. */
     public static FeedItemResponse fromEpisode(Episode episode, Series series, long likeCount) {
         String thumbnail = "https://i.ytimg.com/vi/" + episode.getYoutubeVideoId() + "/hqdefault.jpg";

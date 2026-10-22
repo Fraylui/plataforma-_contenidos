@@ -1,6 +1,5 @@
 package pe.plataformacontenidos.identity.permission;
 
-
 import java.util.List;
 
 /**

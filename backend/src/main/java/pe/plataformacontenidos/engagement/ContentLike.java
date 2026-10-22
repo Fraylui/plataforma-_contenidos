@@ -43,7 +43,6 @@ public class ContentLike {
         // JPA
     }
 
-
     public UUID getId() {
         return id;
     }

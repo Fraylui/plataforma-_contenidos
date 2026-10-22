@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
  */
 public final class YouTubeUrlParser {
 
-
     private static final Pattern[] URL_PATTERNS = {
             Pattern.compile("(?:youtube\\.com/watch\\?v=)([a-zA-Z0-9_-]{11})"),
             Pattern.compile("(?:youtu\\.be/)([a-zA-Z0-9_-]{11})"),

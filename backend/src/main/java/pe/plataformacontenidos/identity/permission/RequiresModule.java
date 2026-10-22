@@ -1,6 +1,5 @@
 package pe.plataformacontenidos.identity.permission;
 
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

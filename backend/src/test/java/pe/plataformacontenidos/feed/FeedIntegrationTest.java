@@ -497,7 +497,6 @@ class FeedIntegrationTest {
         return id;
     }
 
-
     private static String externalImage(String name) {
         return "{\"externalUrl\":\"https://example.com/" + name + ".jpg\",\"title\":\"Foto " + name + "\"}";
     }
