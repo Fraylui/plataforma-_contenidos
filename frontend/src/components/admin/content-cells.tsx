@@ -27,7 +27,7 @@ export function TitleCell({ href, title, images }: { href: string; title: string
           <ImageSquare className="size-5" aria-hidden="true" />
         )}
       </span>
-      <span className="max-w-[22rem] truncate font-medium text-foreground group-hover:text-accent group-hover:underline">
+      <span className="line-clamp-2 max-w-[22rem] font-medium [overflow-wrap:anywhere] text-foreground group-hover:text-accent group-hover:underline">
         {title}
       </span>
     </Link>

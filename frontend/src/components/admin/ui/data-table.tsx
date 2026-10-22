@@ -130,10 +130,7 @@ export function DataTable<TData>({
   }
 
   const effectiveColumns = useMemo<ColumnDef<TData, unknown>[]>(() => {
-    const withSorting = columns.map((column) => {
-      const id = column.id ?? ("accessorKey" in column ? String(column.accessorKey) : "");
-      return { ...column, enableSorting: id in sortKeys };
-    });
+    const withSorting = columns.map((column) => ({ ...column, enableSorting: columnId(column) in sortKeys }));
     return selectable ? [selectionColumn<TData>(), ...withSorting] : withSorting;
   }, [columns, selectable, sortKeys]);
 
@@ -164,6 +161,7 @@ export function DataTable<TData>({
   }, [rowSelection, onSelectionChange]);
 
   const currentPage = serverPage.page + 1;
+  const primaryColumnId = columnId(columns[0]);
 
   return (
     <div>
@@ -239,8 +237,10 @@ export function DataTable<TData>({
         className={`mt-4 overflow-x-auto rounded-card bg-surface shadow-card transition-opacity ${isPending ? "opacity-60" : ""}`}
         aria-busy={isPending}
       >
-        <table className="w-full min-w-max text-left text-sm">
-          <thead className="border-b border-field-border bg-field/50">
+        {/* En el celular la tabla se vuelve una lista de tarjetas (sin scroll lateral): el orden pasa a un selector. */}
+        <SortSelect options={columnsSortOptions(columns, sortKeys)} sort={urlSort} onSort={(value) => navigate({ sort: value || undefined })} className="flex justify-end border-b border-field-border p-3 md:hidden" />
+        <table className="w-full text-left text-sm">
+          <thead className="border-b border-field-border bg-field/50 max-md:hidden">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -279,15 +279,20 @@ export function DataTable<TData>({
           <tbody>
             {table.getRowModel().rows.length === 0 ? (
               <tr>
-                <td colSpan={effectiveColumns.length} className="px-4 py-10 text-center text-muted">
+                <td colSpan={effectiveColumns.length} className="px-4 py-10 text-center text-muted max-md:block">
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="border-b border-field-border transition-colors last:border-0 hover:bg-field/60">
+                <tr
+                  key={row.id}
+                  className={`border-b border-field-border transition-colors last:border-0 hover:bg-field/60 max-md:relative max-md:flex max-md:flex-wrap max-md:items-center max-md:gap-x-3 max-md:gap-y-1.5 max-md:py-3 max-md:pr-24 ${
+                    selectable ? "max-md:pl-14" : "max-md:pl-4"
+                  }`}
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-3 align-middle text-foreground">
+                    <td key={cell.id} className={`px-4 py-3 align-middle text-foreground max-md:p-0 ${CELL_CLASS[cellRole(cell.column.id, primaryColumnId)]}`}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
@@ -371,11 +376,35 @@ function selectionColumn<TData>(): ColumnDef<TData, unknown> {
   };
 }
 
+function columnId<TData>(column: ColumnDef<TData, unknown> | undefined): string {
+  if (!column) return "";
+  return column.id ?? ("accessorKey" in column ? String(column.accessorKey) : "");
+}
+
+type CellRole = "select" | "primary" | "actions" | "meta";
+
+/**
+ * Papel de cada celda en la tarjeta del celular: la casilla a la izquierda,
+ * la primera columna (el título) en su propia línea, las acciones («actions»)
+ * arriba a la derecha y el resto como datos pequeños que se acomodan debajo.
+ */
+function cellRole(id: string, primaryColumnId: string): CellRole {
+  if (id === "select") return "select";
+  if (id === "actions") return "actions";
+  return id === primaryColumnId ? "primary" : "meta";
+}
+
+const CELL_CLASS: Record<CellRole, string> = {
+  select: "w-11 max-md:absolute max-md:left-4 max-md:top-5",
+  primary: "min-w-56 max-md:basis-full",
+  actions: "w-px whitespace-nowrap max-md:absolute max-md:right-2 max-md:top-3",
+  meta: "whitespace-nowrap max-md:text-xs",
+};
+
 /** Opciones de orden para la cuadrícula (que no tiene encabezados): las columnas ordenables, en ambos sentidos. */
 function columnsSortOptions<TData>(columns: ColumnDef<TData, unknown>[], sortKeys: Record<string, string>) {
   return columns.flatMap((column) => {
-    const id = column.id ?? ("accessorKey" in column ? String(column.accessorKey) : "");
-    const key = sortKeys[id];
+    const key = sortKeys[columnId(column)];
     if (!key || typeof column.header !== "string") return [];
     return [
       { value: `${key},desc`, label: `${column.header} (descendente)` },
@@ -424,23 +453,7 @@ function GridView<TData>({
         ) : (
           <span />
         )}
-        {sortOptions.length > 0 && (
-          <label className="inline-flex items-center gap-2 text-muted">
-            <span className="sr-only sm:not-sr-only">Ordenar</span>
-            <select
-              value={sortOptions.some((option) => option.value === sort) ? sort : ""}
-              onChange={(e) => onSort(e.target.value)}
-              className="h-9 rounded-control border border-field-border bg-field px-3 text-sm text-foreground"
-            >
-              <option value="">Más recientes</option>
-              {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
+        <SortSelect options={sortOptions} sort={sort} onSort={onSort} />
       </div>
       {rows.length === 0 ? (
         <p className="rounded-card bg-surface px-4 py-10 text-center text-sm text-muted shadow-card">{emptyMessage}</p>
@@ -457,6 +470,40 @@ function GridView<TData>({
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+/** Orden sin encabezados (cuadrícula y lista del celular): las columnas ordenables, en ambos sentidos. */
+function SortSelect({
+  options,
+  sort,
+  onSort,
+  className,
+}: {
+  options: { value: string; label: string }[];
+  sort: string;
+  onSort: (value: string) => void;
+  className?: string;
+}) {
+  if (options.length === 0) return null;
+  return (
+    <div className={className}>
+      <label className="inline-flex items-center gap-2 text-sm text-muted">
+        <span className="sr-only sm:not-sr-only">Ordenar</span>
+        <select
+          value={options.some((option) => option.value === sort) ? sort : ""}
+          onChange={(e) => onSort(e.target.value)}
+          className="h-9 rounded-control border border-field-border bg-field px-3 text-sm text-foreground"
+        >
+          <option value="">Más recientes</option>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </label>
     </div>
   );
 }
