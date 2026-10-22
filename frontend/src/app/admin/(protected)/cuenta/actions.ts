@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { changeOwnPassword } from "@/lib/api/admin-client";
+import { changeOwnPassword } from "@/lib/api/admin/auth";
 import { runAdminMutation, type MutationResult } from "@/lib/admin/action-helpers";
 import {
   ACCESS_TOKEN_COOKIE,

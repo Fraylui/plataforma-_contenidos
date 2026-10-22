@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { computePublicationPermissions } from "@/lib/admin/publication";
-import { listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
+import { listAdminImages } from "@/lib/api/admin/media";
+import { listActiveCategoriesFresh } from "@/lib/api/admin/taxonomy";
 import { getPlatformSettings } from "@/lib/api/client";
 import { AdminPageHeader } from "@/components/admin/ui";
 import { PublicationComposer } from "@/components/admin/publication-composer";

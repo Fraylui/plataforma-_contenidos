@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { AdminApiError, getAdminLive, listActiveCategoriesFresh, listAdminSeries } from "@/lib/api/admin-client";
+import { AdminApiError } from "@/lib/api/admin/http";
+import { getAdminLive } from "@/lib/api/admin/live";
+import { listAdminSeries } from "@/lib/api/admin/series";
+import { listActiveCategoriesFresh } from "@/lib/api/admin/taxonomy";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdminPageHeader } from "@/components/admin/ui";
 import { LiveForm } from "@/components/admin/live-form";

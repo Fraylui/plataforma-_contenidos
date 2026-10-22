@@ -1,4 +1,4 @@
-import { AdminApiError } from "@/lib/api/admin-client";
+import { AdminApiError } from "@/lib/api/admin/http";
 
 /**
  * Para lecturas del panel restringidas por permisos (cada módulo exige el

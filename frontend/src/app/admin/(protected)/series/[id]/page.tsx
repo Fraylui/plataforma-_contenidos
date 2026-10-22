@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { AdminApiError, getAdminSeries, listActiveCategoriesFresh, listAdminEpisodes, listAdminImages } from "@/lib/api/admin-client";
+import { AdminApiError } from "@/lib/api/admin/http";
+import { listAdminImages } from "@/lib/api/admin/media";
+import { getAdminSeries, listAdminEpisodes } from "@/lib/api/admin/series";
+import { listActiveCategoriesFresh } from "@/lib/api/admin/taxonomy";
 import { getCategoryById } from "@/lib/api/client";
 import { computePublicationPermissions } from "@/lib/admin/publication";
 import { AccessDenied } from "@/components/admin/access-denied";

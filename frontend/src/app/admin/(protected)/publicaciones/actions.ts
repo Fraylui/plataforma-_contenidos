@@ -1,10 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import {
-  createPublication,
-  updatePublication,
-} from "@/lib/api/admin-client";
+import { createPublication, updatePublication } from "@/lib/api/admin/content";
 import type { PublicationInput } from "@/lib/api/admin-types";
 import { runAdminMutation, type ActionResult, type MutationResult } from "@/lib/admin/action-helpers";
 

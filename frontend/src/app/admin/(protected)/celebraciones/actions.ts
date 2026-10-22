@@ -1,10 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import {
-  createCelebration,
-  updateCelebration,
-} from "@/lib/api/admin-client";
+import { createCelebration, updateCelebration } from "@/lib/api/admin/content";
 import type { CelebrationInput } from "@/lib/api/admin-types";
 import { runAdminMutation, type ActionResult, type MutationResult } from "@/lib/admin/action-helpers";
 

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { listWorkers } from "@/lib/api/admin-client";
+import { listWorkers } from "@/lib/api/admin/workers";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { detectTemplate } from "@/lib/admin/worker-templates";
 import { formatShortDate } from "@/lib/content-labels";

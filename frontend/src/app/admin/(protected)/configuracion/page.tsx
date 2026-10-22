@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { getAdminPlatformSettings } from "@/lib/api/admin-client";
+import { getAdminPlatformSettings } from "@/lib/api/admin/settings";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { PlatformSettingsForm } from "@/components/admin/platform-settings-form";

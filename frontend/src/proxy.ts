@@ -59,7 +59,7 @@ async function tryRefresh(
   try {
     const res = await fetch(`${BACKEND_API_URL}/api/v1/auth/refresh`, {
       method: "POST",
-      // IP real del visitante (ver clientIpHeaders en lib/api/admin-client.ts).
+      // IP real del visitante (ver clientIpHeaders en lib/api/admin/http.ts).
       headers: { "Content-Type": "application/json", ...(clientIp ? { "X-Forwarded-For": clientIp } : {}) },
       body: JSON.stringify({ refreshToken }),
       cache: "no-store",

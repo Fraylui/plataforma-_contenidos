@@ -8,7 +8,7 @@ import {
   syncSeries,
   updateEpisode,
   updateSeries,
-} from "@/lib/api/admin-client";
+} from "@/lib/api/admin/series";
 import type { CreateSeriesInput, SeriesSyncResult, UpdateSeriesInput } from "@/lib/api/admin-types";
 import { runAdminMutation, type ActionResult, type MutationResult } from "@/lib/admin/action-helpers";
 

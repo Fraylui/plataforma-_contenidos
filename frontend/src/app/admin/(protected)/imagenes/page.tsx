@@ -1,7 +1,7 @@
 import { hasAnyContentModule } from "@/lib/admin/permissions";
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { listAdminImages } from "@/lib/api/admin-client";
+import { listAdminImages } from "@/lib/api/admin/media";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { ImageUploadForm } from "@/components/admin/image-upload-form";

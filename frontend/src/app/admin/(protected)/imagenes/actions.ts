@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { deleteImage, updateImageAltText, uploadImage } from "@/lib/api/admin-client";
+import { deleteImage, updateImageAltText, uploadImage } from "@/lib/api/admin/media";
 import type { AdminImage } from "@/lib/api/admin-types";
 import { runAdminMutation, type ActionResult, type MutationResult } from "@/lib/admin/action-helpers";
 

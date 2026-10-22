@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { listAdminAdPlacements } from "@/lib/api/admin-client";
+import { listAdminAdPlacements } from "@/lib/api/admin/advertising";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdminPageHeader, EmptyState } from "@/components/admin/ui";

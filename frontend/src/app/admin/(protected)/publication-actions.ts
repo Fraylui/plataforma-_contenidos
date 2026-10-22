@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { runPublicationStep } from "@/lib/api/admin-client";
+import { runPublicationStep } from "@/lib/api/admin/content";
 import { runAdminMutation, type ActionResult } from "@/lib/admin/action-helpers";
 import {
   isPublicationKind,

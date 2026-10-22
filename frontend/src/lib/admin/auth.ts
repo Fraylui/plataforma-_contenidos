@@ -2,7 +2,8 @@ import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { AdminApiError, AdminSessionExpiredError, getCurrentUser } from "@/lib/api/admin-client";
+import { getCurrentUser } from "@/lib/api/admin/auth";
+import { AdminApiError, AdminSessionExpiredError } from "@/lib/api/admin/http";
 import type { AdminUser } from "@/lib/api/admin-types";
 import { ACCESS_TOKEN_COOKIE } from "./session";
 

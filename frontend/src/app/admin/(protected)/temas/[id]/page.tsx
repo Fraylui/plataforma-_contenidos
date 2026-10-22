@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { listAdminCategories } from "@/lib/api/admin-client";
+import { listAdminCategories } from "@/lib/api/admin/taxonomy";
 import { getCategoryById } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { categoryParentOptions } from "@/lib/admin/category-tree";

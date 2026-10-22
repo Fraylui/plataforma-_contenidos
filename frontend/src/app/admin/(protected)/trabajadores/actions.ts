@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createWorker, resetWorkerPassword, setWorkerActive, updateWorkerPermissions } from "@/lib/api/admin-client";
+import { createWorker, resetWorkerPassword, setWorkerActive, updateWorkerPermissions } from "@/lib/api/admin/workers";
 import type { CreateWorkerInput, ModulePermissions } from "@/lib/api/admin-types";
 import { runAdminMutation, type MutationResult } from "@/lib/admin/action-helpers";
 

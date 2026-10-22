@@ -10,7 +10,8 @@ import {
   ArrowSquareOut,
 } from "@phosphor-icons/react/dist/ssr";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { getAdminDashboard, listAdminAuditLog } from "@/lib/api/admin-client";
+import { listAdminAuditLog } from "@/lib/api/admin/audit";
+import { getAdminDashboard } from "@/lib/api/admin/stats";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { accountLabel } from "@/lib/admin/role-labels";
 import { visibleNavItems } from "@/lib/admin/nav";

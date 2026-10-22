@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { activateCategory, createCategory, deactivateCategory, updateCategory } from "@/lib/api/admin-client";
+import { activateCategory, createCategory, deactivateCategory, updateCategory } from "@/lib/api/admin/taxonomy";
 import type { CategoryCreateInput, CategoryUpdateInput } from "@/lib/api/admin-types";
 import { runAdminMutation, type ActionResult } from "@/lib/admin/action-helpers";
 

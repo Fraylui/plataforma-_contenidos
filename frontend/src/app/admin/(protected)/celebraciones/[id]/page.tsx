@@ -2,13 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { requireAdminUser } from "@/lib/admin/auth";
-import {
-  AdminApiError,
-  getAdminCelebration,
-  listActiveCategoriesFresh,
-  listAdminImages,
-  listPlaceOptions,
-} from "@/lib/api/admin-client";
+import { getAdminCelebration, listPlaceOptions } from "@/lib/api/admin/content";
+import { AdminApiError } from "@/lib/api/admin/http";
+import { listAdminImages } from "@/lib/api/admin/media";
+import { listActiveCategoriesFresh } from "@/lib/api/admin/taxonomy";
 import { getCategoryById, getPlatformSettings } from "@/lib/api/client";
 import { computePublicationPermissions } from "@/lib/admin/publication";
 import { CelebrationComposer } from "@/components/admin/celebration-composer";

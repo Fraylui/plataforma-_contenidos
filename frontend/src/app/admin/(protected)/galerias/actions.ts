@@ -1,10 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import {
-  createGallery,
-  updateGallery,
-} from "@/lib/api/admin-client";
+import { createGallery, updateGallery } from "@/lib/api/admin/content";
 import type { GalleryInput } from "@/lib/api/admin-types";
 import { runAdminMutation, type ActionResult, type MutationResult } from "@/lib/admin/action-helpers";
 

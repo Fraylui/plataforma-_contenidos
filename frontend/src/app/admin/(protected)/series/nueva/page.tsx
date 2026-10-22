@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { canAccess } from "@/lib/admin/permissions";
-import { listActiveCategoriesFresh } from "@/lib/api/admin-client";
+import { listActiveCategoriesFresh } from "@/lib/api/admin/taxonomy";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
 import { SeriesCreateForm } from "@/components/admin/series-create-form";

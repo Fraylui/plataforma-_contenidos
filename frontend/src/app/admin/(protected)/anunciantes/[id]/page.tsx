@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { getAdvertiser, listAdminImages, listCampaigns } from "@/lib/api/admin-client";
+import { getAdvertiser, listCampaigns } from "@/lib/api/admin/advertising";
+import { listAdminImages } from "@/lib/api/admin/media";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdvertiserForm } from "@/components/admin/advertiser-form";

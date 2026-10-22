@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { listAdminPublications } from "@/lib/api/admin-client";
+import { listAdminPublications } from "@/lib/api/admin/content";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { parseAdminListParams } from "@/lib/admin/list-params";
 import { AccessDenied } from "@/components/admin/access-denied";

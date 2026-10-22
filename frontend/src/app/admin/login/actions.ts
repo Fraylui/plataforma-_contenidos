@@ -2,7 +2,8 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { AdminApiError, login } from "@/lib/api/admin-client";
+import { login } from "@/lib/api/admin/auth";
+import { AdminApiError } from "@/lib/api/admin/http";
 import {
   ACCESS_TOKEN_COOKIE,
   REFRESH_TOKEN_COOKIE,

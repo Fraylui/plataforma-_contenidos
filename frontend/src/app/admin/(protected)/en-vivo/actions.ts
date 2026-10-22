@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createLive, runLiveStep, updateLive, type LiveStep } from "@/lib/api/admin-client";
+import { createLive, runLiveStep, updateLive, type LiveStep } from "@/lib/api/admin/live";
 import type { LiveInput } from "@/lib/api/admin-types";
 import { runAdminMutation, type ActionResult, type MutationResult } from "@/lib/admin/action-helpers";
 

@@ -1,10 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import {
-  createPlace,
-  updatePlace,
-} from "@/lib/api/admin-client";
+import { createPlace, updatePlace } from "@/lib/api/admin/content";
 import type { PlaceInput } from "@/lib/api/admin-types";
 import { runAdminMutation, type ActionResult, type MutationResult } from "@/lib/admin/action-helpers";
 

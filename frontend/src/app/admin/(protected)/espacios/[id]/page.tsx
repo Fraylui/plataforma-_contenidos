@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { getAdminAdPlacement } from "@/lib/api/admin-client";
+import { getAdminAdPlacement } from "@/lib/api/admin/advertising";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdPlacementForm } from "@/components/admin/ad-placement-form";

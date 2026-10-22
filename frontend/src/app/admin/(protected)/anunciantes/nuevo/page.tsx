@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { listAdminImages } from "@/lib/api/admin-client";
+import { listAdminImages } from "@/lib/api/admin/media";
 import { AdvertiserForm } from "@/components/admin/advertiser-form";
 import { AdminPageHeader } from "@/components/admin/ui";
 

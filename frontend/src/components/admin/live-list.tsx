@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowSquareOut, Broadcast, PencilSimple, Stop, X } from "@phosphor-icons/react";
 import type { LiveStatus, LiveStream } from "@/lib/api/types";
-import type { LiveStep } from "@/lib/api/admin-client";
+import type { LiveStep } from "@/lib/api/admin/live";
 import { formatEventDateTime } from "@/lib/content-labels";
 import { liveStepAction } from "@/app/admin/(protected)/en-vivo/actions";
 import { Badge, Button, type BadgeTone } from "@/components/ui";

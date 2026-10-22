@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { listAdminLive } from "@/lib/api/admin-client";
+import { listAdminLive } from "@/lib/api/admin/live";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
