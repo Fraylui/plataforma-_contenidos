@@ -88,14 +88,25 @@ const CONTENT_TYPE_ROWS: { label: string; key: keyof Pick<PlatformStats,
   { label: "Galerías", key: "galleriesByStatus" },
 ];
 
-/** Publicado vs. pendiente por tipo de contenido — barra apilada de 2 tramos, mismo total real. */
+type ByStatus = PlatformStats["placesByStatus"];
+
+/**
+ * Reparto de un tipo en los tres grupos que usa todo el panel: en el sitio,
+ * en preparación (borrador + programado) y archivado. Antes lo archivado se
+ * sumaba como «pendiente» y no cuadraba con «En preparación».
+ */
+function splitByStatus(byStatus: ByStatus) {
+  const published = byStatus.PUBLISHED ?? 0;
+  const preparing = (byStatus.DRAFT ?? 0) + (byStatus.SCHEDULED ?? 0);
+  const archived = byStatus.ARCHIVED ?? 0;
+  return { published, preparing, archived, total: published + preparing + archived };
+}
+
+/** Cada tipo de contenido en sus tres grupos — barra apilada, mismo total real. */
 export function ContentTypesChart({ stats }: { stats: PlatformStats }) {
-  const data = CONTENT_TYPE_ROWS.map(({ label, key }) => {
-    const byStatus = stats[key];
-    const total = Object.values(byStatus).reduce((sum, count) => sum + count, 0);
-    const published = byStatus.PUBLISHED ?? 0;
-    return { name: label, published, pending: total - published, total };
-  }).filter((row) => row.total > 0);
+  const data = CONTENT_TYPE_ROWS.map(({ label, key }) => ({ name: label, ...splitByStatus(stats[key]) })).filter(
+    (row) => row.total > 0,
+  );
 
   if (data.length === 0) {
     return <p className="mt-3 text-sm text-muted">Todavía no hay contenido en estos formatos.</p>;
@@ -119,8 +130,9 @@ export function ContentTypesChart({ stats }: { stats: PlatformStats }) {
           iconSize={8}
           wrapperStyle={{ fontSize: 12, color: "var(--muted)" }}
         />
-        <Bar dataKey="published" name="Publicado" stackId="s" fill="var(--accent)" radius={[4, 0, 0, 4]} maxBarSize={18} />
-        <Bar dataKey="pending" name="Pendiente" stackId="s" fill="var(--border)" radius={[0, 4, 4, 0]} maxBarSize={18} />
+        <Bar dataKey="published" name="En el sitio" stackId="s" fill="var(--accent)" maxBarSize={18} />
+        <Bar dataKey="preparing" name="En preparación" stackId="s" fill="var(--muted)" maxBarSize={18} />
+        <Bar dataKey="archived" name="Archivado" stackId="s" fill="var(--border)" maxBarSize={18} />
       </BarChart>
     </ResponsiveContainer>
   );
@@ -229,17 +241,22 @@ export function TotalDistributionDonut({ stats }: { stats: PlatformStats }) {
     stats.celebrationsByStatus,
     stats.galleriesByStatus,
   ];
-  const total = rows.reduce((sum, byStatus) => sum + Object.values(byStatus).reduce((s, c) => s + c, 0), 0);
-  const published = rows.reduce((sum, byStatus) => sum + (byStatus.PUBLISHED ?? 0), 0);
-  const pending = total - published;
+  const sum = rows.map(splitByStatus).reduce((acc, split) => ({
+    published: acc.published + split.published,
+    preparing: acc.preparing + split.preparing,
+    archived: acc.archived + split.archived,
+    total: acc.total + split.total,
+  }));
+  const total = sum.total;
 
   if (total === 0) {
     return <p className="mt-3 text-sm text-muted">Todavía no hay contenido cargado.</p>;
   }
 
   const data = [
-    { name: "Publicado", value: published, color: "var(--accent)" },
-    { name: "Pendiente", value: pending, color: "var(--border)" },
+    { name: "En el sitio", value: sum.published, color: "var(--accent)" },
+    { name: "En preparación", value: sum.preparing, color: "var(--muted)" },
+    { name: "Archivado", value: sum.archived, color: "var(--border)" },
   ].filter((row) => row.value > 0);
 
   return (
@@ -261,7 +278,7 @@ export function TotalDistributionDonut({ stats }: { stats: PlatformStats }) {
         <span className="text-2xl font-bold tabular-nums text-foreground">{total}</span>
         <span className="text-[11px] text-muted">contenidos en total</span>
       </div>
-      <div className="mt-2 flex items-center justify-center gap-4 text-xs text-muted">
+      <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-muted">
         {data.map((row) => (
           <span key={row.name} className="inline-flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full" style={{ background: row.color }} aria-hidden="true" />

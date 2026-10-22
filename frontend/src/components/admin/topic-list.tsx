@@ -20,15 +20,18 @@ export function TopicList({ topics, toggleAction }: { topics: AdminCategory[]; t
             <div className="min-w-0 flex-1" style={{ paddingLeft: `${Math.min(depth, 4) * 1.25}rem` }}>
               <Link
                 href={`/admin/temas/${category.id}`}
-                className="font-medium [overflow-wrap:anywhere] text-foreground hover:text-accent hover:underline"
+                className="font-medium text-foreground hover:text-accent hover:underline"
               >
                 {category.name}
               </Link>
-              <p className="mt-0.5 text-xs tabular-nums text-muted">{publishedLabel(category.publishedCount)}</p>
+              {/* El estado va con el conteo, bajo el nombre: así el nombre usa todo el ancho en el celular. */}
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <Badge tone={status.tone} dot>
+                  {status.label}
+                </Badge>
+                <span className="text-xs tabular-nums text-muted">{publishedLabel(category.publishedCount)}</span>
+              </div>
             </div>
-            <Badge tone={status.tone} dot className="shrink-0">
-              {status.label}
-            </Badge>
             <form action={toggleAction.bind(null, category.id, !category.active)} className="shrink-0">
               <button
                 type="submit"

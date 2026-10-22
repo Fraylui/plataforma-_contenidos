@@ -35,4 +35,12 @@ describe("StatsDashboard: cifras que cuadran con el Inicio del panel", () => {
     expect(figure("Publicaciones en 30 días").getByText("3")).toBeInTheDocument();
     expect(screen.queryByText("Publicados")).toBeNull();
   });
+
+  it("la dona separa lo archivado de lo que está en preparación", () => {
+    render(<StatsDashboard stats={stats} />);
+    expect(screen.getByText("En el sitio · 46")).toBeInTheDocument();
+    expect(screen.getByText("En preparación · 5")).toBeInTheDocument();
+    expect(screen.getByText("Archivado · 17")).toBeInTheDocument();
+    expect(screen.queryByText(/Pendiente/)).not.toBeInTheDocument();
+  });
 });
