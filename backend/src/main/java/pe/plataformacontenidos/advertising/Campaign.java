@@ -1,5 +1,8 @@
 package pe.plataformacontenidos.advertising;
 
+import java.util.Locale;
+import java.net.URISyntaxException;
+import java.net.URI;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -23,7 +26,7 @@ import pe.plataformacontenidos.shared.ContentImage;
  * Banner directo vendido a un {@link Advertiser} para una posición existente
  * (`placementKey`, referencia libre a AdPlacement.key — igual que
  * Publication.categoryId, sin FK entre schemas de dominio, validado en
- * CampaignService). Mientras haya una campaña activa y vigente para una
+ * AdDeliveryService). Mientras haya una campaña activa y vigente para una
  * posición, AdBlock la muestra en vez de caer a AdSense (frontend).
  * `creative` reutiliza el mismo patrón XOR (subida o enlace externo) que
  * ContentImage — el campo `title` de ese embeddable hace de alt text.
@@ -187,6 +190,19 @@ public class Campaign {
 
     public String getLinkUrl() {
         return linkUrl;
+    }
+
+    /** Dominio que se muestra en la barra del nativo («polleriaelinca.pe»), sin «www.». */
+    public String getDisplayDomain() {
+        try {
+            String host = new URI(linkUrl).getHost();
+            if (host == null) {
+                return null;
+            }
+            return host.toLowerCase(Locale.ROOT).replaceFirst("^www\\.", "");
+        } catch (URISyntaxException e) {
+            return null;
+        }
     }
 
     public Instant getStartsAt() {

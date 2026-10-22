@@ -164,7 +164,7 @@ public class DashboardService {
 
     private AdTotals adTotals(LocalDate from, LocalDate previousFrom) {
         long[] totals = new long[4];
-        // Las cifras diarias de anuncios se guardan por día UTC (CampaignService): diferencia de horas, no de días.
+        // Las cifras diarias de anuncios se guardan por día UTC (CampaignTrackingService): diferencia de horas, no de días.
         jdbc.query("""
                 SELECT day >= ? AS current_period, SUM(impressions), SUM(clicks) FROM advertising.campaign_daily_stats
                  WHERE day >= ? GROUP BY 1

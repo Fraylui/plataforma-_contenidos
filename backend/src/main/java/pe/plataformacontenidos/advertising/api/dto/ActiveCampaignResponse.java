@@ -5,7 +5,6 @@ import pe.plataformacontenidos.advertising.Advertiser;
 import pe.plataformacontenidos.advertising.CallToAction;
 import pe.plataformacontenidos.advertising.Campaign;
 import pe.plataformacontenidos.advertising.CampaignFormat;
-import pe.plataformacontenidos.advertising.CampaignService;
 import pe.plataformacontenidos.advertising.NativeAd;
 
 /**
@@ -33,7 +32,7 @@ public record ActiveCampaignResponse(UUID id, UUID advertiserId, CampaignFormat 
                 isNative && advertiser != null ? advertiser.getLogoImageId() : null,
                 isNative ? ad.primaryText() : null, isNative ? ad.headline() : null,
                 isNative ? ad.callToAction() : null,
-                isNative ? CampaignService.displayDomain(campaign.getLinkUrl()) : null,
+                isNative ? campaign.getDisplayDomain() : null,
                 isNative ? ad.youtubeVideoId() : null, isNative ? ad.mediaAspect() : null);
     }
 }

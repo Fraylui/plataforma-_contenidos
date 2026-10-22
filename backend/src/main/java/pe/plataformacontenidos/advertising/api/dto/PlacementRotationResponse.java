@@ -1,7 +1,7 @@
 package pe.plataformacontenidos.advertising.api.dto;
 
 import java.util.List;
-import pe.plataformacontenidos.advertising.CampaignService.PlacementRotation;
+import pe.plataformacontenidos.advertising.AdDeliveryService.PlacementRotation;
 
 /** Medida de la posición + campañas en el orden en que el navegador las asigna a cada espacio de la página. */
 public record PlacementRotationResponse(int width, int height, List<ActiveCampaignResponse> campaigns) {

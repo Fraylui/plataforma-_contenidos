@@ -214,7 +214,7 @@ class CampaignWorkflowIntegrationTest {
         String placementKey = createAdPlacement(adminToken);
         String advertiserId = createAdvertiser(adminToken, "Agencia Wari Tours");
         String body = campaignJson(advertiserId, placementKey, "https://example.com/a.jpg", null);
-        for (int i = 0; i < CampaignService.MAX_COMPETING_CAMPAIGNS; i++) {
+        for (int i = 0; i < AdInventory.MAX_COMPETING_CAMPAIGNS; i++) {
             mockMvc.perform(post("/api/v1/admin/campaigns").header("Authorization", "Bearer " + adminToken)
                             .contentType(MediaType.APPLICATION_JSON).content(body))
                     .andExpect(status().isCreated());
@@ -227,7 +227,7 @@ class CampaignWorkflowIntegrationTest {
         String celebrationsOnly = createAdPlacement(adminToken);
         String celebrationsBody = campaignJson(advertiserId, celebrationsOnly, "https://example.com/a.jpg", null)
                 .replace("}", ",\"targetSections\":[\"CELEBRATION\"]}");
-        for (int i = 0; i < CampaignService.MAX_COMPETING_CAMPAIGNS; i++) {
+        for (int i = 0; i < AdInventory.MAX_COMPETING_CAMPAIGNS; i++) {
             mockMvc.perform(post("/api/v1/admin/campaigns").header("Authorization", "Bearer " + adminToken)
                             .contentType(MediaType.APPLICATION_JSON).content(celebrationsBody))
                     .andExpect(status().isCreated());

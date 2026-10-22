@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.advertising.CampaignService;
+import pe.plataformacontenidos.advertising.CampaignTrackingService;
 import pe.plataformacontenidos.advertising.api.dto.CampaignDailyStatResponse;
 import pe.plataformacontenidos.advertising.api.dto.CampaignRequest;
 import pe.plataformacontenidos.advertising.api.dto.CampaignResponse;
@@ -31,9 +32,11 @@ import pe.plataformacontenidos.advertising.api.dto.CampaignResponse;
 public class CampaignAdminController {
 
     private final CampaignService campaignService;
+    private final CampaignTrackingService tracking;
 
-    public CampaignAdminController(CampaignService campaignService) {
+    public CampaignAdminController(CampaignService campaignService, CampaignTrackingService tracking) {
         this.campaignService = campaignService;
+        this.tracking = tracking;
     }
 
     @GetMapping
@@ -65,7 +68,7 @@ public class CampaignAdminController {
     @GetMapping("/{id}/stats")
     public List<CampaignDailyStatResponse> stats(@PathVariable UUID id,
             @RequestParam(defaultValue = "30") @Min(1) @Max(365) int days) {
-        return campaignService.dailyStats(id, days).stream().map(CampaignDailyStatResponse::from).toList();
+        return tracking.dailyStats(id, days).stream().map(CampaignDailyStatResponse::from).toList();
     }
 
     @PostMapping("/{id}/activate")

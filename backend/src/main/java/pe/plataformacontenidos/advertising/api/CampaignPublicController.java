@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.advertising.AdSection;
-import pe.plataformacontenidos.advertising.CampaignService;
+import pe.plataformacontenidos.advertising.AdDeliveryService;
+import pe.plataformacontenidos.advertising.CampaignTrackingService;
 import pe.plataformacontenidos.advertising.api.dto.PlacementRotationResponse;
 
 /**
@@ -36,10 +37,12 @@ import pe.plataformacontenidos.advertising.api.dto.PlacementRotationResponse;
 @RequestMapping("/api/v1/ads/campaigns")
 public class CampaignPublicController {
 
-    private final CampaignService campaignService;
+    private final AdDeliveryService delivery;
+    private final CampaignTrackingService tracking;
 
-    public CampaignPublicController(CampaignService campaignService) {
-        this.campaignService = campaignService;
+    public CampaignPublicController(AdDeliveryService delivery, CampaignTrackingService tracking) {
+        this.delivery = delivery;
+        this.tracking = tracking;
     }
 
     /**
@@ -55,7 +58,7 @@ public class CampaignPublicController {
             @RequestHeader(value = "CF-Region", required = false) String region,
             @RequestHeader(value = "CF-Region-Code", required = false) String regionCode,
             HttpServletRequest request) {
-        return campaignService.rotation(placementKey, request.getRemoteAddr(), section, categoryId, country, region,
+        return delivery.rotation(placementKey, request.getRemoteAddr(), section, categoryId, country, region,
                         regionCode)
                 .map(rotation -> ResponseEntity.ok().cacheControl(CacheControl.noStore())
                         .body(PlacementRotationResponse.from(rotation)))
@@ -64,20 +67,20 @@ public class CampaignPublicController {
 
     @PostMapping("/{id}/impression")
     public ResponseEntity<Void> impression(@PathVariable UUID id, HttpServletRequest request) {
-        campaignService.recordImpression(id, request.getRemoteAddr(), request.getHeader(HttpHeaders.USER_AGENT));
+        tracking.recordImpression(id, request.getRemoteAddr(), request.getHeader(HttpHeaders.USER_AGENT));
         return ResponseEntity.noContent().build();
     }
 
     /** El visitante tocó play en el video de un anuncio nativo (una por persona, robots fuera). */
     @PostMapping("/{id}/play")
     public ResponseEntity<Void> play(@PathVariable UUID id, HttpServletRequest request) {
-        campaignService.recordPlay(id, request.getRemoteAddr(), request.getHeader(HttpHeaders.USER_AGENT));
+        tracking.recordPlay(id, request.getRemoteAddr(), request.getHeader(HttpHeaders.USER_AGENT));
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/click")
     public ResponseEntity<Void> click(@PathVariable UUID id, HttpServletRequest request) {
-        String linkUrl = campaignService.recordClickAndGetLinkUrl(id, request.getRemoteAddr(),
+        String linkUrl = tracking.recordClickAndGetLinkUrl(id, request.getRemoteAddr(),
                 request.getHeader(HttpHeaders.USER_AGENT));
         return ResponseEntity.status(HttpStatus.FOUND).cacheControl(CacheControl.noStore())
                 .location(URI.create(linkUrl)).build();
