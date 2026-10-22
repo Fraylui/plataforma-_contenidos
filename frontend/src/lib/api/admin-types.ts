@@ -2,7 +2,7 @@ import type { AdSection } from "@/lib/ads/ad-context";
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
 import type { PublicationStatus, PublicationType, ContentImage, FeedItemType } from "./types";
-import type { CallToAction, CampaignFormat, NativeMediaAspect, PlatformSettings } from "./types";
+import type { CallToAction, CampaignFormat, Category, NativeMediaAspect, PlatformSettings } from "./types";
 
 /** Cuerpo de un video en PublicationInput/PlaceInput/CelebrationInput — ver ContentVideoInput.java. */
 export interface ContentVideoInput {
@@ -439,4 +439,10 @@ export interface AuditSearchFilters {
   to?: string;
   page?: number;
   size?: number;
+}
+
+/** Ver AdminCategoryResponse.java: el tema con su contenido publicado propio y si el visitante lo ve. */
+export interface AdminCategory extends Category {
+  publishedCount: number;
+  visibleOnSite: boolean;
 }

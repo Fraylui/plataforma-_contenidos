@@ -9,6 +9,7 @@ import type { PublicationKind, PublicationStep } from "@/lib/admin/publication";
 import { adminListQuery, type AdminListParams } from "@/lib/admin/list-params";
 import { problemMessage } from "./problem";
 import type {
+  AdminCategory,
   AdminContentPage,
   AdminImage,
   ImagePurpose,
@@ -267,7 +268,7 @@ export function updateGallery(accessToken: string, id: string, input: GalleryInp
 
 // --- Taxonomy module: categorías (CategoryController, rutas /admin/categories) ---
 
-export function listAdminCategories(accessToken: string): Promise<Category[]> {
+export function listAdminCategories(accessToken: string): Promise<AdminCategory[]> {
   return authedJson("/api/v1/admin/categories", accessToken);
 }
 

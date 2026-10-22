@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.taxonomy.CategoryService;
+import pe.plataformacontenidos.taxonomy.api.dto.AdminCategoryResponse;
 import pe.plataformacontenidos.taxonomy.api.dto.CategoryResponse;
 import pe.plataformacontenidos.taxonomy.api.dto.CreateCategoryRequest;
 import pe.plataformacontenidos.taxonomy.api.dto.UpdateCategoryRequest;
@@ -55,8 +56,13 @@ public class CategoryController {
 
     @RequiresModule(value = Module.CATEGORIES, level = AccessLevel.ACCESS)
     @GetMapping("/admin/categories")
-    public List<CategoryResponse> listAll() {
-        return categoryService.listAll().stream().map(CategoryResponse::from).toList();
+    public List<AdminCategoryResponse> listAll() {
+        var counts = categoryService.publishedCounts();
+        var visible = categoryService.visibleOnSiteIds();
+        return categoryService.listAll().stream()
+                .map(category -> AdminCategoryResponse.from(category, counts.getOrDefault(category.getId(), 0L),
+                        visible.contains(category.getId())))
+                .toList();
     }
 
     @RequiresModule(value = Module.CATEGORIES, level = AccessLevel.ACCESS)

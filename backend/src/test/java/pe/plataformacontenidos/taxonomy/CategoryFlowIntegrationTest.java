@@ -67,6 +67,14 @@ class CategoryFlowIntegrationTest {
         // El panel elige tema al crear: ve también los vacíos.
         mockMvc.perform(get("/api/v1/categories"))
                 .andExpect(jsonPath("$[?(@.slug == 'tema-vacio')]").exists());
+        // La lista del panel dice cuánto tiene cada tema y si el visitante lo ve.
+        mockMvc.perform(get("/api/v1/admin/categories").header("Authorization", "Bearer " + token))
+                .andExpect(jsonPath("$[?(@.slug == 'playas-con-contenido')].publishedCount").value(1))
+                .andExpect(jsonPath("$[?(@.slug == 'playas-con-contenido')].visibleOnSite").value(true))
+                .andExpect(jsonPath("$[?(@.slug == 'viajes-con-contenido')].publishedCount").value(0))
+                .andExpect(jsonPath("$[?(@.slug == 'viajes-con-contenido')].visibleOnSite").value(true))
+                .andExpect(jsonPath("$[?(@.slug == 'tema-vacio')].publishedCount").value(0))
+                .andExpect(jsonPath("$[?(@.slug == 'tema-vacio')].visibleOnSite").value(false));
     }
 
     private String createCategory(String token, String body) throws Exception {

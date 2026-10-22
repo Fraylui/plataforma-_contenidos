@@ -79,6 +79,18 @@ public class CategoryService {
         return categoryRepository.findAll();
     }
 
+    /** Contenido publicado propio por tema, para el panel (los vacíos no están en el mapa). */
+    public Map<UUID, Long> publishedCounts() {
+        return categoriesWithContent.counts();
+    }
+
+    /** Ids que el visitante ve: misma regla que {@link #listActiveWithContent()}. */
+    public Set<UUID> visibleOnSiteIds() {
+        Set<UUID> visible = new HashSet<>();
+        listActiveWithContent().forEach(category -> visible.add(category.getId()));
+        return visible;
+    }
+
     public long countAll() {
         return categoryRepository.count();
     }
