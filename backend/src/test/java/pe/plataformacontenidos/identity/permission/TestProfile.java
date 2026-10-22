@@ -1,5 +1,7 @@
 package pe.plataformacontenidos.identity.permission;
 
+import pe.plataformacontenidos.identity.internal.WorkerPermissionRepository;
+import pe.plataformacontenidos.identity.internal.WorkerPermission;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.UUID;

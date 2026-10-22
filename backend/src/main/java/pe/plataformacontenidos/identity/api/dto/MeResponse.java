@@ -3,7 +3,7 @@ package pe.plataformacontenidos.identity.api.dto;
 import java.util.Map;
 import java.util.UUID;
 import pe.plataformacontenidos.identity.Role;
-import pe.plataformacontenidos.identity.User;
+import pe.plataformacontenidos.identity.internal.User;
 import pe.plataformacontenidos.identity.permission.AccessLevel;
 import pe.plataformacontenidos.identity.permission.Module;
 import pe.plataformacontenidos.identity.permission.Permissions;

@@ -17,7 +17,7 @@ import pe.plataformacontenidos.dashboard.InvalidDashboardRangeException;
 import pe.plataformacontenidos.identity.permission.Module;
 import pe.plataformacontenidos.identity.permission.PermissionService;
 import pe.plataformacontenidos.identity.permission.RequiresAnyModule;
-import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.identity.UserPrincipal;
 
 /** Inicio del panel: una sola llamada con todo lo que se dibuja (hoja de ruta F3). */
 @RestController

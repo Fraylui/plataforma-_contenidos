@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.identity.UserPrincipal;
 import pe.plataformacontenidos.places.Place;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.places.api.dto.PlaceRequest;

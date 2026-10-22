@@ -1,4 +1,4 @@
-package pe.plataformacontenidos.content;
+package pe.plataformacontenidos.shared;
 
 import java.util.Optional;
 import java.util.regex.Matcher;

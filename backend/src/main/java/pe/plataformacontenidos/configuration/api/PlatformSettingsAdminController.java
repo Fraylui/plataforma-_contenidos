@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.configuration.PlatformSettingsService;
 import pe.plataformacontenidos.configuration.api.dto.PlatformSettingsResponse;
 import pe.plataformacontenidos.configuration.api.dto.UpdatePlatformSettingsRequest;
-import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.identity.UserPrincipal;
 
 /**
  * Edición de la configuración de marca (CONTEXTO.md sección 14). Restringido

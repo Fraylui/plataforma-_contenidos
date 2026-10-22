@@ -17,10 +17,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.User;
-import pe.plataformacontenidos.identity.UserRepository;
+import pe.plataformacontenidos.identity.internal.User;
+import pe.plataformacontenidos.identity.internal.UserRepository;
 import pe.plataformacontenidos.identity.permission.TestProfile;
-import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
+import pe.plataformacontenidos.identity.internal.WorkerPermissionRepository;
 import tools.jackson.databind.ObjectMapper;
 
 /** Listados del panel paginados en el servidor (hoja de ruta F3) — se prueba con Galerías, la misma AdminListQuery sirve a los 5 tipos. */

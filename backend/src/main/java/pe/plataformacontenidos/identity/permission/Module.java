@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.identity.permission;
 
+
 /** Módulos del panel que se asignan a un trabajador (spec 2a §3.2). */
 public enum Module {
     PUBLICATIONS(true),

@@ -27,7 +27,7 @@ import pe.plataformacontenidos.content.api.dto.PublicationResponse;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;
-import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.identity.UserPrincipal;
 
 /**
  * CRUD de contenido + transiciones del flujo. La autorización fina (máquina

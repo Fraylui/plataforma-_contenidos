@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.galleries.api.dto.GalleryRequest;
 import pe.plataformacontenidos.galleries.api.dto.GalleryResponse;
-import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.identity.UserPrincipal;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;

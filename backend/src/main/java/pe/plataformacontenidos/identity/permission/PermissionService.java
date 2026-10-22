@@ -1,14 +1,15 @@
 package pe.plataformacontenidos.identity.permission;
 
+import pe.plataformacontenidos.identity.internal.WorkerPermissionRepository;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.identity.Role;
-import pe.plataformacontenidos.identity.User;
+import pe.plataformacontenidos.identity.internal.User;
 import pe.plataformacontenidos.identity.UserNotFoundException;
-import pe.plataformacontenidos.identity.UserRepository;
+import pe.plataformacontenidos.identity.internal.UserRepository;
 import pe.plataformacontenidos.identity.UserStatus;
 
 /**

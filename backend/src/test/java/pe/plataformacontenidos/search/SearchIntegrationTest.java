@@ -1,6 +1,6 @@
 package pe.plataformacontenidos.search;
 
-import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
+import pe.plataformacontenidos.identity.internal.WorkerPermissionRepository;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.is;
@@ -28,8 +28,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
 import pe.plataformacontenidos.identity.permission.TestProfile;
-import pe.plataformacontenidos.identity.User;
-import pe.plataformacontenidos.identity.UserRepository;
+import pe.plataformacontenidos.identity.internal.User;
+import pe.plataformacontenidos.identity.internal.UserRepository;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 

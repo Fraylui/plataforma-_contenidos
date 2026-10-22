@@ -1,5 +1,7 @@
 package pe.plataformacontenidos.identity;
 
+import pe.plataformacontenidos.identity.internal.User;
+import pe.plataformacontenidos.identity.internal.UserRepository;
 import java.time.Instant;
 import java.util.UUID;
 import org.springframework.security.crypto.password.PasswordEncoder;

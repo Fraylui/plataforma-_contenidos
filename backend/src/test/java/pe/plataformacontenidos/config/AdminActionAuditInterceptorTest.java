@@ -17,7 +17,7 @@ import org.springframework.web.servlet.HandlerMapping;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.identity.Role;
-import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.identity.UserPrincipal;
 
 class AdminActionAuditInterceptorTest {
 

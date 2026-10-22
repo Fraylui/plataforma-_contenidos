@@ -1,5 +1,7 @@
-package pe.plataformacontenidos.identity.permission;
+package pe.plataformacontenidos.identity.internal;
 
+import pe.plataformacontenidos.identity.permission.Module;
+import pe.plataformacontenidos.identity.permission.AccessLevel;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

@@ -7,8 +7,7 @@ import org.springframework.stereotype.Service;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.configuration.api.dto.UpdatePlatformSettingsRequest;
-import pe.plataformacontenidos.identity.User;
-import pe.plataformacontenidos.identity.UserRepository;
+import pe.plataformacontenidos.identity.UserDirectory;
 
 /**
  * Fila única de configuración de marca (CONTEXTO.md sección 14). No hay
@@ -22,13 +21,13 @@ import pe.plataformacontenidos.identity.UserRepository;
 public class PlatformSettingsService {
 
     private final PlatformSettingsRepository repository;
-    private final UserRepository userRepository;
+    private final UserDirectory users;
     private final AuditService auditService;
 
-    public PlatformSettingsService(PlatformSettingsRepository repository, UserRepository userRepository,
+    public PlatformSettingsService(PlatformSettingsRepository repository, UserDirectory users,
             AuditService auditService) {
         this.repository = repository;
-        this.userRepository = userRepository;
+        this.users = users;
         this.auditService = auditService;
     }
 
@@ -69,7 +68,7 @@ public class PlatformSettingsService {
 
         PlatformSettings saved = repository.save(settings);
 
-        String actingAdminEmail = userRepository.findById(actingAdminId).map(User::getEmail).orElse(null);
+        String actingAdminEmail = users.emailOf(actingAdminId).orElse(null);
         auditService.record("PLATFORM_SETTINGS_UPDATED", AuditResult.SUCCESS, actingAdminId, actingAdminEmail,
                 "platform_settings", saved.getId().toString(), ipAddress);
 

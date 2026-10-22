@@ -1,5 +1,7 @@
 package pe.plataformacontenidos.identity.permission;
 
+import pe.plataformacontenidos.identity.internal.WorkerPermissionRepository;
+import pe.plataformacontenidos.identity.internal.WorkerPermission;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -15,8 +17,8 @@ import org.springframework.test.context.ActiveProfiles;
 import pe.plataformacontenidos.TestcontainersConfiguration;
 import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.identity.TestOwner;
-import pe.plataformacontenidos.identity.User;
-import pe.plataformacontenidos.identity.UserRepository;
+import pe.plataformacontenidos.identity.internal.User;
+import pe.plataformacontenidos.identity.internal.UserRepository;
 
 @SpringBootTest
 @ActiveProfiles("test")

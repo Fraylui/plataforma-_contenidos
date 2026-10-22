@@ -12,7 +12,7 @@ import pe.plataformacontenidos.identity.AccountService;
 import pe.plataformacontenidos.identity.api.dto.ChangePasswordRequest;
 import pe.plataformacontenidos.identity.api.dto.MeResponse;
 import pe.plataformacontenidos.identity.api.dto.TokenResponse;
-import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.identity.UserPrincipal;
 
 /** La cuenta propia ("Mi cuenta" en el panel): datos, permisos y cambio de contraseña. */
 @RestController

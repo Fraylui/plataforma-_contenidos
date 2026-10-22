@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
-import pe.plataformacontenidos.content.YouTubeUrlParser;
+import pe.plataformacontenidos.shared.YouTubeUrlParser;
 import pe.plataformacontenidos.media.ImageNotFoundException;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.HtmlSanitizer;

@@ -20,12 +20,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import pe.plataformacontenidos.identity.User;
+import pe.plataformacontenidos.identity.internal.User;
 import pe.plataformacontenidos.identity.UserStatus;
 import pe.plataformacontenidos.identity.WorkerService;
 import pe.plataformacontenidos.identity.permission.AccessLevel;
 import pe.plataformacontenidos.identity.permission.Module;
-import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.identity.UserPrincipal;
 
 /**
  * Trabajadores del panel (spec 2a §5). Módulo Trabajadores: el dueño y quien

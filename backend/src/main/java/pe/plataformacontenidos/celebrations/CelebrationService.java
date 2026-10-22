@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.configuration.PlatformSettingsService;
-import pe.plataformacontenidos.content.YouTubeUrlParser;
+import pe.plataformacontenidos.shared.YouTubeUrlParser;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.shared.ContentImage;

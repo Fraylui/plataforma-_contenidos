@@ -1,5 +1,6 @@
-package pe.plataformacontenidos.identity.permission;
+package pe.plataformacontenidos.identity.internal;
 
+import pe.plataformacontenidos.identity.internal.WorkerPermission;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;

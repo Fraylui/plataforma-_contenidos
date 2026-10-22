@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.celebrations.CelebrationService;
 import pe.plataformacontenidos.celebrations.api.dto.CelebrationRequest;
 import pe.plataformacontenidos.celebrations.api.dto.CelebrationResponse;
-import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.identity.UserPrincipal;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import pe.plataformacontenidos.shared.publishing.api.ScheduleRequest;

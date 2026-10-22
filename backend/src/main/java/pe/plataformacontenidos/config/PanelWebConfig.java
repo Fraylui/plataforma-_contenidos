@@ -4,8 +4,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import pe.plataformacontenidos.audit.AuditService;
-import pe.plataformacontenidos.identity.User;
-import pe.plataformacontenidos.identity.UserRepository;
+import pe.plataformacontenidos.identity.UserDirectory;
 import pe.plataformacontenidos.identity.permission.ModuleAccessInterceptor;
 import pe.plataformacontenidos.identity.permission.PermissionService;
 
@@ -18,12 +17,12 @@ import pe.plataformacontenidos.identity.permission.PermissionService;
 public class PanelWebConfig implements WebMvcConfigurer {
 
     private final AuditService auditService;
-    private final UserRepository userRepository;
+    private final UserDirectory users;
     private final PermissionService permissionService;
 
-    public PanelWebConfig(AuditService auditService, UserRepository userRepository, PermissionService permissionService) {
+    public PanelWebConfig(AuditService auditService, UserDirectory users, PermissionService permissionService) {
         this.auditService = auditService;
-        this.userRepository = userRepository;
+        this.users = users;
         this.permissionService = permissionService;
     }
 
@@ -31,7 +30,7 @@ public class PanelWebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // Auditoría primero: así también registra los intentos que el control de permisos rechaza.
         registry.addInterceptor(new AdminActionAuditInterceptor(auditService,
-                userId -> userRepository.findById(userId).map(User::getEmail)));
+                users::emailOf));
         registry.addInterceptor(new ModuleAccessInterceptor(permissionService));
     }
 }

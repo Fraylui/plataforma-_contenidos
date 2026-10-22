@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.identity.permission.Module;
 import pe.plataformacontenidos.identity.permission.RequiresModule;
-import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.identity.UserPrincipal;
 import pe.plataformacontenidos.live.LiveStreamService;
 import pe.plataformacontenidos.live.api.LiveDtos.LiveRequest;
 import pe.plataformacontenidos.live.api.LiveDtos.LiveResponse;

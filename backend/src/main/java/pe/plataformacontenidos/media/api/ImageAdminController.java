@@ -25,7 +25,7 @@ import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.media.InvalidImageException;
 import pe.plataformacontenidos.media.api.dto.ImageResponse;
 import pe.plataformacontenidos.media.api.dto.UpdateAltTextRequest;
-import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.identity.UserPrincipal;
 
 @RestController
 @RequestMapping("/api/v1/admin/images")

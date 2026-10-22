@@ -1,5 +1,7 @@
 package pe.plataformacontenidos.identity;
 
+import pe.plataformacontenidos.identity.internal.User;
+import pe.plataformacontenidos.identity.internal.UserRepository;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -14,8 +16,8 @@ import pe.plataformacontenidos.identity.permission.AccessLevel;
 import pe.plataformacontenidos.identity.permission.InvalidPermissionException;
 import pe.plataformacontenidos.identity.permission.Module;
 import pe.plataformacontenidos.identity.permission.PermissionService;
-import pe.plataformacontenidos.identity.permission.WorkerPermission;
-import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
+import pe.plataformacontenidos.identity.internal.WorkerPermission;
+import pe.plataformacontenidos.identity.internal.WorkerPermissionRepository;
 import pe.plataformacontenidos.identity.security.RefreshTokenService;
 
 /**

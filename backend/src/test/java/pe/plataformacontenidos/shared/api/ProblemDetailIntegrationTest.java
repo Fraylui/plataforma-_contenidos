@@ -17,10 +17,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.User;
-import pe.plataformacontenidos.identity.UserRepository;
+import pe.plataformacontenidos.identity.internal.User;
+import pe.plataformacontenidos.identity.internal.UserRepository;
 import pe.plataformacontenidos.identity.permission.TestProfile;
-import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
+import pe.plataformacontenidos.identity.internal.WorkerPermissionRepository;
 import tools.jackson.databind.ObjectMapper;
 
 /**

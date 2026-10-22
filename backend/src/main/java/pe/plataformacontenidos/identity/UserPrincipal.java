@@ -1,5 +1,6 @@
-package pe.plataformacontenidos.identity.security;
+package pe.plataformacontenidos.identity;
 
+import pe.plataformacontenidos.identity.security.JwtAuthenticationFilter;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.security.core.GrantedAuthority;

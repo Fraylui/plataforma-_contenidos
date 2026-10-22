@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.content;
 
+import pe.plataformacontenidos.shared.YouTubeUrlParser;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;

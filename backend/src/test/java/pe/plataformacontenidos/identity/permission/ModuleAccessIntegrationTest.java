@@ -1,5 +1,7 @@
 package pe.plataformacontenidos.identity.permission;
 
+import pe.plataformacontenidos.identity.internal.WorkerPermissionRepository;
+import pe.plataformacontenidos.identity.internal.WorkerPermission;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -18,8 +20,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import pe.plataformacontenidos.TestcontainersConfiguration;
 import pe.plataformacontenidos.identity.Role;
-import pe.plataformacontenidos.identity.User;
-import pe.plataformacontenidos.identity.UserRepository;
+import pe.plataformacontenidos.identity.internal.User;
+import pe.plataformacontenidos.identity.internal.UserRepository;
 import tools.jackson.databind.ObjectMapper;
 
 /** Spec 2a, criterios 1 y 4: sin permiso → 403 en el panel; quitarlo rige en la siguiente petición. */

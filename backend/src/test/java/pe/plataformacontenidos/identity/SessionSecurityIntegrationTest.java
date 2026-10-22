@@ -1,5 +1,7 @@
 package pe.plataformacontenidos.identity;
 
+import pe.plataformacontenidos.identity.internal.User;
+import pe.plataformacontenidos.identity.internal.UserRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -20,8 +22,8 @@ import pe.plataformacontenidos.TestcontainersConfiguration;
 import pe.plataformacontenidos.identity.permission.AccessLevel;
 import pe.plataformacontenidos.identity.permission.Module;
 import pe.plataformacontenidos.places.api.PlaceOptionsController;
-import pe.plataformacontenidos.identity.permission.WorkerPermission;
-import pe.plataformacontenidos.identity.permission.WorkerPermissionRepository;
+import pe.plataformacontenidos.identity.internal.WorkerPermission;
+import pe.plataformacontenidos.identity.internal.WorkerPermissionRepository;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 

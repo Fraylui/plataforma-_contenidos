@@ -1,5 +1,7 @@
-package pe.plataformacontenidos.identity;
+package pe.plataformacontenidos.identity.internal;
 
+import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.UserStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

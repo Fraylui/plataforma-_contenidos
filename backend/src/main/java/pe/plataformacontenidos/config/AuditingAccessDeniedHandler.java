@@ -10,9 +10,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
-import pe.plataformacontenidos.identity.User;
-import pe.plataformacontenidos.identity.UserRepository;
-import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.identity.UserDirectory;
+import pe.plataformacontenidos.identity.UserPrincipal;
 import pe.plataformacontenidos.shared.api.Problems;
 
 /**
@@ -24,11 +23,11 @@ import pe.plataformacontenidos.shared.api.Problems;
 class AuditingAccessDeniedHandler implements AccessDeniedHandler {
 
     private final AuditService auditService;
-    private final UserRepository userRepository;
+    private final UserDirectory users;
 
-    AuditingAccessDeniedHandler(AuditService auditService, UserRepository userRepository) {
+    AuditingAccessDeniedHandler(AuditService auditService, UserDirectory users) {
         this.auditService = auditService;
-        this.userRepository = userRepository;
+        this.users = users;
     }
 
     @Override
@@ -36,7 +35,7 @@ class AuditingAccessDeniedHandler implements AccessDeniedHandler {
             throws IOException, ServletException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof UserPrincipal principal) {
-            String email = userRepository.findById(principal.userId()).map(User::getEmail).orElse(null);
+            String email = users.emailOf(principal.userId()).orElse(null);
             auditService.record(AdminActionAuditInterceptor.ACCESS_DENIED, AuditResult.FAILURE, principal.userId(),
                     email, "owner_only", null, request.getRemoteAddr(),
                     request.getMethod() + " " + request.getRequestURI());
