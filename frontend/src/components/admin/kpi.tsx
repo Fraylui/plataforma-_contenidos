@@ -9,11 +9,11 @@ const NUMBER = new Intl.NumberFormat("es-PE");
 const RANGE_LABEL: Record<DashboardRange, string> = { 7: "7 días", 30: "30 días", 90: "90 días" };
 
 /** Tarjeta de indicador del panel (inicio y reportes). */
-export const KPI_CARD = "flex flex-col rounded-card bg-surface p-5 shadow-card transition-shadow duration-150 hover:shadow-pop";
+export const KPI_CARD = "flex min-w-0 flex-col rounded-card bg-surface p-4 shadow-card sm:p-5 transition-shadow duration-150 hover:shadow-pop";
 
 export function KpiCardHeader({ label, icon: CardIcon }: { label: string; icon: Icon }) {
   return (
-    <div className="flex items-start justify-between">
+    <div className="flex items-start justify-between gap-2">
       <p className="text-sm font-medium text-muted">{label}</p>
       <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
         <CardIcon weight="fill" className="size-[18px]" aria-hidden="true" />
@@ -40,7 +40,7 @@ export function KpiCard({ label, icon, kpi, values, rangeDays, display, hint }: 
   return (
     <div className={KPI_CARD}>
       <KpiCardHeader label={label} icon={icon} />
-      <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-foreground">{display ?? NUMBER.format(kpi.current)}</p>
+      <p className="mt-3 text-2xl font-bold tracking-tight tabular-nums text-foreground sm:text-3xl">{display ?? NUMBER.format(kpi.current)}</p>
       <p className="mt-1 text-xs text-muted">
         {change.kind === "percent" && (
           <span className={`mr-1 inline-flex items-center gap-0.5 font-semibold ${change.value >= 0 ? "text-success" : "text-danger-ink"}`}>

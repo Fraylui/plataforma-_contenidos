@@ -25,7 +25,7 @@ export default async function AdminMediaPage() {
     <div>
       <AdminPageHeader
         title="Imágenes"
-        description="Sube tus fotos aquí una sola vez. Al crear o editar cualquier contenido (Publicación, Lugar, Celebración, Galería) las eliges directamente de una galería visual — no hace falta copiar ninguna URL."
+        description="Sube cada foto una sola vez y elígela después en cualquier publicación, lugar, celebración o galería."
       />
 
       <div className="mt-6">
@@ -35,7 +35,7 @@ export default async function AdminMediaPage() {
       {sorted.length === 0 ? (
         <EmptyState title="Todavía no hay imágenes" />
       ) : (
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 2xl:grid-cols-4">
           {sorted.map((image) => (
             <ImageCard key={image.id} image={image} canManage={canManageAll || image.uploadedBy === user.id} />
           ))}

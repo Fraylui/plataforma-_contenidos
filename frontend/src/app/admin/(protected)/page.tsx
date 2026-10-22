@@ -110,14 +110,14 @@ function DashboardBody({ dashboard, canSeeStats }: { dashboard: DashboardSummary
   const impressionsChange = ads ? kpiChange({ current: ads.impressions, previous: ads.previousImpressions }) : null;
   return (
     <>
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <KpiCard label="Visitas" icon={Eye} kpi={dashboard.views} values={series.map((d) => d.views)} rangeDays={rangeDays} />
         <KpiCard label="Me gusta" icon={Heart} kpi={dashboard.likes} values={series.map((d) => d.likes)} rangeDays={rangeDays} />
-        <KpiCard label="Publicado" icon={Article} kpi={dashboard.published} values={series.map((d) => d.published)} rangeDays={rangeDays} />
+        <KpiCard label="Nuevos en el sitio" icon={Article} kpi={dashboard.published} values={series.map((d) => d.published)} rangeDays={rangeDays} />
         {ads ? (
           <div className={KPI_CARD}>
             <KpiCardHeader label="Clics en anuncios" icon={Megaphone} />
-            <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-foreground">{ctr(ads.clicks, ads.impressions)}</p>
+            <p className="mt-3 text-2xl font-bold tracking-tight tabular-nums text-foreground sm:text-3xl">{ctr(ads.clicks, ads.impressions)}</p>
             <p className="mt-1 text-xs text-muted">
               {NUMBER.format(ads.clicks)} clics en {NUMBER.format(ads.impressions)} impresiones
             </p>
@@ -131,7 +131,7 @@ function DashboardBody({ dashboard, canSeeStats }: { dashboard: DashboardSummary
         ) : (
           <div className={KPI_CARD}>
             <KpiCardHeader label="En el sitio" icon={Globe} />
-            <p className="mt-3 text-3xl font-bold tracking-tight tabular-nums text-foreground">
+            <p className="mt-3 text-2xl font-bold tracking-tight tabular-nums text-foreground sm:text-3xl">
               {NUMBER.format(publishedNow(dashboard))}
             </p>
             <p className="mt-1 text-xs text-muted">Contenido publicado ahora</p>
@@ -215,39 +215,27 @@ function RecentContent({ dashboard }: { dashboard: DashboardSummary }) {
           Todavía no hay contenido creado.
         </p>
       ) : (
-        <div className="mt-3 overflow-x-auto rounded-card bg-surface shadow-card">
-          <table className="w-full min-w-max text-left text-sm">
-            <thead className="border-b border-border/60 text-xs text-muted">
-              <tr>
-                <th className="px-4 py-2.5 font-medium">Título</th>
-                <th className="px-4 py-2.5 font-medium">Tipo</th>
-                <th className="px-4 py-2.5 font-medium">Estado</th>
-                <th className="px-4 py-2.5 font-medium">Creado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dashboard.recent.map((item) => (
-                <tr key={`${item.type}-${item.id}`} className="border-b border-border/60 last:border-0 hover:bg-accent-soft/40">
-                  <td className="px-4 py-2.5">
-                    <Link
-                      href={`${CONTENT_TYPE_INFO[item.type].adminPath}/${item.id}`}
-                      className="font-medium text-foreground hover:text-accent hover:underline"
-                    >
-                      {item.title}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2.5 text-muted">{CONTENT_TYPE_INFO[item.type].label}</td>
-                  <td className="px-4 py-2.5">
-                    <Badge tone={publicationStatusTone(item.status)} dot>
-                      {publicationStatusLabel(item.status)}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-2.5 text-muted">{formatPublishedDate(item.createdAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        // Lista, no tabla: en el celular la tabla se cortaba por la derecha.
+        <ul className="mt-3 divide-y divide-border/60 overflow-hidden rounded-card bg-surface shadow-card">
+          {dashboard.recent.map((item) => (
+            <li key={`${item.type}-${item.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-accent-soft/40">
+              <div className="min-w-0 flex-1">
+                <Link
+                  href={`${CONTENT_TYPE_INFO[item.type].adminPath}/${item.id}`}
+                  className="line-clamp-2 font-medium text-foreground hover:text-accent hover:underline"
+                >
+                  {item.title}
+                </Link>
+                <p className="mt-0.5 text-xs text-muted">
+                  {CONTENT_TYPE_INFO[item.type].label} · {formatPublishedDate(item.createdAt)}
+                </p>
+              </div>
+              <Badge tone={publicationStatusTone(item.status)} dot className="shrink-0">
+                {publicationStatusLabel(item.status)}
+              </Badge>
+            </li>
+          ))}
+        </ul>
       )}
     </>
   );
