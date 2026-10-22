@@ -9,7 +9,12 @@ import { SkeletonImage } from "@/components/ui/skeleton-image";
  * carrusel, video o evento, y al pasar el mouse los me gusta (si hay). Sin imagen:
  * bloque de color con el título.
  */
-export function GridTile({ item, large = false }: { item: HomeItem; large?: boolean }) {
+export function GridTile({ item, large = false, priority = false }: {
+  item: HomeItem;
+  large?: boolean;
+  /** La primera miniatura de Explorar es el LCP: carga ya y sin fundido. */
+  priority?: boolean;
+}) {
   const cover = item.images[0] ?? (item.imageUrl ? { url: item.imageUrl, isExternal: item.imageIsExternal } : null);
   const badge =
     item.hasVideo ? { icon: Play, label: "Video" } :
@@ -27,9 +32,15 @@ export function GridTile({ item, large = false }: { item: HomeItem; large?: bool
       {cover ? (
         cover.isExternal ? (
           // eslint-disable-next-line @next/next/no-img-element -- enlace externo pegado en el panel, host arbitrario
-          <img src={cover.url} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+          <img
+            src={cover.url}
+            alt=""
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : undefined}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
         ) : (
-          <SkeletonImage src={cover.url} alt="" sizes={large ? "(min-width: 1024px) 680px, 66vw" : "(min-width: 1024px) 340px, 33vw"} className="object-cover" />
+          <SkeletonImage src={cover.url} alt="" sizes={large ? "(min-width: 1024px) 680px, 66vw" : "(min-width: 1024px) 340px, 33vw"} className="object-cover" priority={priority} />
         )
       ) : (
         <span className="flex h-full items-center justify-center bg-linear-to-br from-accent-soft to-canvas-strong p-3 text-center text-sm leading-tight font-bold text-foreground">

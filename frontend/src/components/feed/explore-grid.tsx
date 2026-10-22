@@ -51,7 +51,7 @@ export function ExploreGrid({
               data-size={large ? "large" : undefined}
               className={large ? `col-span-2 row-span-2${right ? " col-start-2" : ""}` : undefined}
             >
-              <GridTile item={item} large={large} />
+              <GridTile item={item} large={large} priority={index === 0} />
             </li>
           );
         })}

@@ -28,6 +28,16 @@ function item(n: number, extra: Partial<HomeItem> = {}): HomeItem {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("ExploreGrid — cuadrícula de descubrimiento (Instagram)", () => {
+  it("la primera miniatura (la grande, el LCP) carga ya y visible; las demás esperan", () => {
+    const items = [1, 2, 3].map((n) => item(n, { images: [{ url: `/foto-${n}.jpg`, isExternal: false }] }));
+    const { container } = render(<ExploreGrid initialItems={items} initialHasMore={false} seed="s" />);
+    const [first, second] = Array.from(container.querySelectorAll("img"));
+    // Sin lazy ni fundido: antes la foto arrancaba en opacity-0 hasta hidratar (~3 s de LCP en Lighthouse CI).
+    expect(first).not.toHaveAttribute("loading", "lazy");
+    expect(first.className).not.toContain("opacity-0");
+    expect(second).toHaveAttribute("loading", "lazy");
+  });
+
   it("cuadrícula de 3 con enlace al detalle e ícono según carrusel, video o evento", () => {
     const items = [
       item(1, { images: [{ url: "/a.jpg", isExternal: false }, { url: "/b.jpg", isExternal: false }] }),
