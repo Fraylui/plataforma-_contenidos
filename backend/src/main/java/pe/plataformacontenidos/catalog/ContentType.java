@@ -1,4 +1,4 @@
-package pe.plataformacontenidos.engagement;
+package pe.plataformacontenidos.catalog;
 
 /**
  * Tipos de contenido publicable (CONTEXTO.md sección 3) que reciben "me

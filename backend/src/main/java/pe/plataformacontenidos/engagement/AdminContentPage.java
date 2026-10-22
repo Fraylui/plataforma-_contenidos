@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import org.springframework.data.domain.Page;
+import pe.plataformacontenidos.catalog.ContentType;
 
 /**
  * Página de un listado de contenido del panel: lo mismo que PageResponse más

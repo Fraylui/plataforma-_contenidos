@@ -10,6 +10,7 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 import org.hibernate.annotations.UuidGenerator;
+import pe.plataformacontenidos.catalog.ContentType;
 
 /**
  * Un "me gusta" anónimo de un lector sobre cualquier tipo de contenido — ver

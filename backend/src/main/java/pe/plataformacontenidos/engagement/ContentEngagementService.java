@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import pe.plataformacontenidos.catalog.ContentType;
 
 /**
  * Me gusta y visitas totales de una página de un listado del panel: dos

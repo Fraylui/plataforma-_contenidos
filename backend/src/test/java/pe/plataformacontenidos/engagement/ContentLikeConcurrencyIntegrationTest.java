@@ -15,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import pe.plataformacontenidos.TestcontainersConfiguration;
+import pe.plataformacontenidos.catalog.ContentType;
 
 /**
  * Hallado con la simulación de carga (k6, 2026-10-07): un doble toque rápido

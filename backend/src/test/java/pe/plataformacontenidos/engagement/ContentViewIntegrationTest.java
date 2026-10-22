@@ -18,6 +18,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import pe.plataformacontenidos.TestcontainersConfiguration;
+import pe.plataformacontenidos.catalog.ContentType;
 
 /** Visitas anónimas (hoja de ruta F3): robots, repetidas e ids inexistentes no cuentan. */
 @SpringBootTest

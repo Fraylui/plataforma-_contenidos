@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import pe.plataformacontenidos.catalog.ContentType;
 import pe.plataformacontenidos.shared.FixedWindowRateLimiter;
 import pe.plataformacontenidos.shared.InvalidTraffic;
 

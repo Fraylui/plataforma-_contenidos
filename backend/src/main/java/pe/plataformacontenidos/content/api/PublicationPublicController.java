@@ -15,7 +15,7 @@ import pe.plataformacontenidos.content.api.dto.PublicationResponse;
 import pe.plataformacontenidos.content.api.dto.PublicationSummaryResponse;
 import pe.plataformacontenidos.shared.PageResponse;
 import pe.plataformacontenidos.engagement.ContentLikeService;
-import pe.plataformacontenidos.engagement.ContentType;
+import pe.plataformacontenidos.catalog.ContentType;
 import pe.plataformacontenidos.engagement.LikeResponse;
 
 /** Solo contenido PUBLISHED — nada de estados intermedios visibles públicamente. */

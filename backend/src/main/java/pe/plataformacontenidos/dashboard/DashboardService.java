@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -27,7 +28,9 @@ import pe.plataformacontenidos.dashboard.DashboardSummary.ContentRow;
 import pe.plataformacontenidos.dashboard.DashboardSummary.DailyPoint;
 import pe.plataformacontenidos.dashboard.DashboardSummary.Kpi;
 import pe.plataformacontenidos.dashboard.DashboardSummary.TopRow;
-import pe.plataformacontenidos.engagement.ContentType;
+import pe.plataformacontenidos.catalog.ContentRegistry;
+import pe.plataformacontenidos.catalog.ContentSource;
+import pe.plataformacontenidos.catalog.ContentType;
 import pe.plataformacontenidos.identity.permission.AccessLevel;
 import pe.plataformacontenidos.identity.permission.Module;
 import pe.plataformacontenidos.identity.permission.Permissions;
@@ -53,45 +56,25 @@ public class DashboardService {
     static final Duration TTL = Duration.ofSeconds(60);
     private static final int MAX_CACHED = 500;
 
-    /** Tabla, columna de título y módulo de cada tipo; valores fijos, nunca vienen del usuario. */
-    private record Source(String table, String titleColumn, Module module, String select) {
-
-        Source(String table, String titleColumn, Module module) {
-            this(table, titleColumn, module, null);
-        }
-    }
-
-    /**
-     * Episodios: su slug público es "serie/episodio" (/series/{serie}/{episodio}),
-     * así "Lo más visto" puede enlazarlos. Llegan solos desde YouTube, por eso no
-     * entran a "Contenido reciente" (lo llenarían).
-     */
-    private static final String EPISODE_SELECT = "SELECT 'EPISODE'::text AS type, e.id, e.title AS title,"
-            + " s.slug || '/' || e.slug AS slug, e.status, e.created_at, e.published_at"
-            + " FROM series.episodes e JOIN series.series s ON s.id = e.series_id";
-
-    private static final Map<ContentType, Source> SOURCES = new EnumMap<>(Map.of(
-            ContentType.PUBLICATION, new Source("content.publications", "title", Module.PUBLICATIONS),
-            ContentType.PLACE, new Source("places.places", "name", Module.PLACES),
-            ContentType.CELEBRATION, new Source("celebrations.celebrations", "title", Module.CELEBRATIONS),
-            ContentType.GALLERY, new Source("galleries.galleries", "title", Module.GALLERIES),
-            ContentType.EPISODE, new Source("series.episodes", "title", Module.SERIES, EPISODE_SELECT)));
-
     private record CacheEntry(Instant builtAt, DashboardSummary summary) {
     }
 
     private final JdbcTemplate jdbc;
+    /** Fila de lectura y módulo de cada tipo: la ficha de su módulo (ContentSource). */
+    private final ContentRegistry contents;
     private final ZoneId siteZone;
     private final Clock clock;
     private final Map<String, CacheEntry> cache = new ConcurrentHashMap<>();
 
     @Autowired
-    public DashboardService(JdbcTemplate jdbc, @Value("${site.time-zone:America/Lima}") String siteTimeZone) {
-        this(jdbc, ZoneId.of(siteTimeZone), Clock.systemUTC());
+    public DashboardService(JdbcTemplate jdbc, ContentRegistry contents,
+            @Value("${site.time-zone:America/Lima}") String siteTimeZone) {
+        this(jdbc, contents, ZoneId.of(siteTimeZone), Clock.systemUTC());
     }
 
-    DashboardService(JdbcTemplate jdbc, ZoneId siteZone, Clock clock) {
+    DashboardService(JdbcTemplate jdbc, ContentRegistry contents, ZoneId siteZone, Clock clock) {
         this.jdbc = jdbc;
+        this.contents = contents;
         this.siteZone = siteZone;
         this.clock = clock;
     }
@@ -100,7 +83,7 @@ public class DashboardService {
         if (!RANGES.contains(rangeDays)) {
             throw new InvalidDashboardRangeException(rangeDays);
         }
-        Scope scope = Scope.of(permissions);
+        Scope scope = Scope.of(permissions, contents);
         String key = rangeDays + "|" + scope.signature();
         CacheEntry cached = cache.get(key);
         Instant now = clock.instant();
@@ -129,7 +112,7 @@ public class DashboardService {
         List<ContentRow> recent = List.of();
 
         if (!scope.types().isEmpty()) {
-            String cte = scope.cte();
+            String cte = scope.cte(contents);
             views = daily(cte + """
                     SELECT v.day, SUM(v.views) FROM engagement.content_views_daily v
                       JOIN scoped s ON s.type = v.content_type AND s.id = v.content_id
@@ -158,10 +141,13 @@ public class DashboardService {
                 byTypeAndStatus.computeIfAbsent(ContentType.valueOf(rs.getString(1)), t -> new LinkedHashMap<>())
                         .put(rs.getString(2), rs.getLong(3));
             });
-            recent = rows(cte + """
-                    SELECT type, id, title, status, created_at FROM scoped WHERE type <> 'EPISODE'
-                     ORDER BY created_at DESC LIMIT 8
-                    """);
+            // Solo lo que se crea a mano en el panel: los episodios llegan solos de YouTube y lo llenarían.
+            recent = rows(cte + "SELECT type, id, title, status, created_at FROM scoped WHERE type IN ("
+                    + contents.where(ContentSource::createdInPanel).stream()
+                            .filter(source -> source.type() != null)
+                            .map(source -> "'" + source.type() + "'")
+                            .collect(Collectors.joining(", "))
+                    + ") ORDER BY created_at DESC LIMIT 8");
         }
 
         AdTotals ads = scope.ads() ? adTotals(from, previousFrom) : null;
@@ -220,13 +206,13 @@ public class DashboardService {
     /** Tipos visibles (un módulo de contenido = todo su contenido); arma la CTE "scoped". */
     private record Scope(Set<ContentType> types, boolean ads) {
 
-        static Scope of(Permissions permissions) {
+        static Scope of(Permissions permissions, ContentRegistry contents) {
             Set<ContentType> types = EnumSet.noneOf(ContentType.class);
-            SOURCES.forEach((type, source) -> {
+            for (ContentSource source : contents.typed()) {
                 if (permissions.can(source.module(), AccessLevel.PUBLISH)) {
-                    types.add(type);
+                    types.add(source.type());
                 }
-            });
+            }
             return new Scope(types, permissions.can(Module.ADVERTISING, AccessLevel.ACCESS));
         }
 
@@ -234,13 +220,10 @@ public class DashboardService {
             return types + (ads ? "|ads" : "");
         }
 
-        String cte() {
+        String cte(ContentRegistry contents) {
             StringJoiner union = new StringJoiner(" UNION ALL ", "WITH scoped AS (", ") ");
             for (ContentType type : types) {
-                Source source = SOURCES.get(type);
-                union.add(source.select() != null ? source.select()
-                        : "SELECT '" + type + "'::text AS type, id, " + source.titleColumn() + " AS title, slug, status,"
-                                + " created_at, published_at FROM " + source.table());
+                union.add(contents.byType(type).readSelect());
             }
             return union.toString();
         }

@@ -3,7 +3,7 @@ package pe.plataformacontenidos.galleries.api;
 import org.springframework.web.bind.annotation.RequestParam;
 import pe.plataformacontenidos.engagement.AdminContentPage;
 import pe.plataformacontenidos.engagement.ContentEngagementService;
-import pe.plataformacontenidos.engagement.ContentType;
+import pe.plataformacontenidos.catalog.ContentType;
 import pe.plataformacontenidos.galleries.Gallery;
 import pe.plataformacontenidos.identity.permission.AccessLevel;
 import pe.plataformacontenidos.identity.permission.Module;

@@ -22,7 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.engagement.ContentType;
+import pe.plataformacontenidos.catalog.ContentType;
 import pe.plataformacontenidos.identity.User;
 import pe.plataformacontenidos.identity.UserRepository;
 import pe.plataformacontenidos.identity.permission.AccessLevel;
@@ -121,6 +121,33 @@ class DashboardIntegrationTest {
                 VALUES (?, ?, 'Galería inicio', ?, ?, ?, CASE WHEN ?::text = 'PUBLISHED' THEN now() END)
                 """, id, "galeria-inicio-" + id, status, creator, UUID.randomUUID(), status);
         return id;
+    }
+
+    /**
+     * Los episodios llegan solos desde YouTube: entran a «Lo más visto» con su
+     * enlace "serie/episodio", pero no llenan «Contenido reciente».
+     */
+    @Test
+    void episodesRankByViewsWithTheirSeriesPathButStayOutOfRecent() {
+        UUID worker = UUID.randomUUID();
+        UUID series = UUID.randomUUID();
+        UUID episode = UUID.randomUUID();
+        jdbc.update("""
+                INSERT INTO series.series (id, slug, title, status, author_id, category_id, youtube_playlist_id, published_at)
+                VALUES (?, ?, 'Serie inicio', 'PUBLISHED', ?, ?, ?, now())
+                """, series, "serie-inicio-" + series, worker, UUID.randomUUID(), "PL" + series);
+        jdbc.update("""
+                INSERT INTO series.episodes (id, series_id, youtube_video_id, slug, title, status, published_at)
+                VALUES (?, ?, ?, 'capitulo-uno', 'Capítulo uno', 'PUBLISHED', now())
+                """, episode, series, "v" + episode.toString().substring(0, 10));
+        jdbc.update("INSERT INTO engagement.content_views_daily (day, content_type, content_id, views) VALUES (?, 'EPISODE', ?, ?)",
+                Date.valueOf(TODAY), episode, 5_000_000);
+
+        DashboardSummary summary = dashboardService.summary(
+                new Permissions(worker, false, true, false, Map.of(Module.SERIES, AccessLevel.PUBLISH)), 7);
+
+        assertThat(summary.topViewed().get(0).slug()).isEqualTo("serie-inicio-" + series + "/capitulo-uno");
+        assertThat(summary.recent()).extracting(DashboardSummary.ContentRow::type).doesNotContain(ContentType.EPISODE);
     }
 
     private void views(UUID gallery, LocalDate day, long count) {

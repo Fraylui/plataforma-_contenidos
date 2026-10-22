@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import pe.plataformacontenidos.content.Publication;
 import pe.plataformacontenidos.content.PublicationType;
-import pe.plataformacontenidos.engagement.ContentType;
+import pe.plataformacontenidos.catalog.ContentType;
 import pe.plataformacontenidos.celebrations.Celebration;
 import pe.plataformacontenidos.galleries.Gallery;
 import pe.plataformacontenidos.places.Place;

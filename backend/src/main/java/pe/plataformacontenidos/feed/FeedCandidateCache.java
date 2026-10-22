@@ -9,10 +9,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import pe.plataformacontenidos.engagement.ContentType;
+import pe.plataformacontenidos.catalog.ContentRegistry;
+import pe.plataformacontenidos.catalog.ContentSource;
+import pe.plataformacontenidos.catalog.ContentType;
 import pe.plataformacontenidos.feed.api.dto.FeedItemResponse;
 
 /**
@@ -32,28 +35,29 @@ class FeedCandidateCache {
 
     static final Duration MAX_AGE = Duration.ofSeconds(30);
 
-    private static final String CONTENT_VERSION_SQL = "select greatest("
-            + "(select max(updated_at) from content.publications),"
-            + " (select max(updated_at) from places.places),"
-            + " (select max(updated_at) from celebrations.celebrations),"
-            + " (select max(updated_at) from galleries.galleries),"
-            // Un episodio nuevo u ocultado toca updated_at de su serie (Series.touchFeedVersion).
-            + " (select max(updated_at) from series.series))";
-
     private record Entry(Optional<Instant> version, Instant builtAt, List<FeedItemResponse> candidates) {
     }
 
     private final JdbcTemplate jdbcTemplate;
+    /**
+     * La última modificación de cada tabla que la ficha de su módulo marca como
+     * versionsFeed. Un episodio nuevo u ocultado toca updated_at de su serie
+     * (Series.touchFeedVersion), por eso los episodios no la marcan.
+     */
+    private final String contentVersionSql;
     private final Clock clock;
     private final Map<String, Entry> entries = new ConcurrentHashMap<>();
 
     @Autowired
-    FeedCandidateCache(JdbcTemplate jdbcTemplate) {
-        this(jdbcTemplate, Clock.systemUTC());
+    FeedCandidateCache(JdbcTemplate jdbcTemplate, ContentRegistry contents) {
+        this(jdbcTemplate, contents, Clock.systemUTC());
     }
 
-    FeedCandidateCache(JdbcTemplate jdbcTemplate, Clock clock) {
+    FeedCandidateCache(JdbcTemplate jdbcTemplate, ContentRegistry contents, Clock clock) {
         this.jdbcTemplate = jdbcTemplate;
+        this.contentVersionSql = contents.where(ContentSource::versionsFeed).stream()
+                .map(source -> "(select max(updated_at) from " + source.table() + ")")
+                .collect(Collectors.joining(", ", "select greatest(", ")"));
         this.clock = clock;
     }
 
@@ -83,7 +87,7 @@ class FeedCandidateCache {
     }
 
     private Optional<Instant> contentVersion() {
-        Timestamp latest = jdbcTemplate.queryForObject(CONTENT_VERSION_SQL, Timestamp.class);
+        Timestamp latest = jdbcTemplate.queryForObject(contentVersionSql, Timestamp.class);
         return Optional.ofNullable(latest).map(Timestamp::toInstant);
     }
 }

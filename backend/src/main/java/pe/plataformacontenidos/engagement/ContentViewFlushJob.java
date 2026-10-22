@@ -16,6 +16,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import pe.plataformacontenidos.catalog.ContentRegistry;
+import pe.plataformacontenidos.catalog.ContentType;
 
 /**
  * Vuelca las visitas acumuladas en Redis ({@link ContentViewCounter}) a
@@ -37,24 +39,19 @@ public class ContentViewFlushJob {
 
     private static final Logger log = LoggerFactory.getLogger(ContentViewFlushJob.class);
 
-    /** Tabla de cada tipo; valores fijos, nunca vienen del usuario. */
-    private static final Map<ContentType, String> TABLES = new EnumMap<>(Map.of(
-            ContentType.PUBLICATION, "content.publications",
-            ContentType.PLACE, "places.places",
-            ContentType.CELEBRATION, "celebrations.celebrations",
-            ContentType.GALLERY, "galleries.galleries",
-            ContentType.EPISODE, "series.episodes"));
-
     private final StringRedisTemplate redis;
     private final JdbcTemplate jdbc;
+    /** Tabla de cada tipo (ficha de su módulo); nunca viene del usuario. */
+    private final ContentRegistry contents;
     private final int retentionDays;
     private final ZoneId siteZone;
 
-    public ContentViewFlushJob(StringRedisTemplate redis, JdbcTemplate jdbc,
+    public ContentViewFlushJob(StringRedisTemplate redis, JdbcTemplate jdbc, ContentRegistry contents,
             @Value("${engagement.views-retention-days:730}") int retentionDays,
             @Value("${site.time-zone:America/Lima}") String siteTimeZone) {
         this.redis = redis;
         this.jdbc = jdbc;
+        this.contents = contents;
         this.retentionDays = retentionDays;
         this.siteZone = ZoneId.of(siteTimeZone);
     }
@@ -89,7 +86,7 @@ public class ContentViewFlushJob {
                  WHERE EXISTS (SELECT 1 FROM %s WHERE id = ? AND status = 'PUBLISHED')
                 ON CONFLICT (day, content_type, content_id) DO UPDATE
                    SET views = engagement.content_views_daily.views + EXCLUDED.views
-                """.formatted(TABLES.get(type)), rows));
+                """.formatted(contents.byType(type).table()), rows));
         redis.delete(FLUSHING_KEY);
     }
 

@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import pe.plataformacontenidos.content.Publication;
 import pe.plataformacontenidos.content.PublicationService;
 import pe.plataformacontenidos.engagement.ContentLikeService;
-import pe.plataformacontenidos.engagement.ContentType;
+import pe.plataformacontenidos.catalog.ContentType;
 import pe.plataformacontenidos.celebrations.Celebration;
 import pe.plataformacontenidos.celebrations.CelebrationService;
 import pe.plataformacontenidos.feed.api.dto.FeedItemResponse;

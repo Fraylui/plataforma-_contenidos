@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pe.plataformacontenidos.catalog.ContentType;
 
 /** Un solo "me gusta" genérico para los 6 tipos de contenido — ver ContentLike/ContentType. */
 @Service

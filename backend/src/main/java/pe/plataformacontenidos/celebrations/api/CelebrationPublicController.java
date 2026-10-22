@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.engagement.ContentLikeService;
-import pe.plataformacontenidos.engagement.ContentType;
+import pe.plataformacontenidos.catalog.ContentType;
 import pe.plataformacontenidos.engagement.LikeResponse;
 import pe.plataformacontenidos.celebrations.Celebration;
 import pe.plataformacontenidos.celebrations.CelebrationService;
