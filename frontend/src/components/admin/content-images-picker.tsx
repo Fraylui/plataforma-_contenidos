@@ -114,12 +114,18 @@ export function ContentImagesPicker({
               }
             }}
             placeholder="https://…"
+            aria-describedby="content-image-external-url-hint"
           />
         </div>
         <Button variant="secondary" size="lg" icon={<LinkIcon />} disabled={disabled || !externalUrlDraft.trim()} onClick={addExternalUrl}>
           Agregar
         </Button>
       </div>
+      {/* Una foto de otro sitio no pasa por el optimizador (host arbitrario): llega a su tamaño original y
+          puede desaparecer si ese sitio la borra. */}
+      <p id="content-image-external-url-hint" className="-mt-1 text-xs text-muted">
+        Mejor súbela: un enlace llega pesado (no se puede achicar) y la foto se pierde si el otro sitio la borra.
+      </p>
 
       <Dialog open={libraryOpen} onOpenChange={setLibraryOpen}>
         <DialogContent className="flex max-h-[85dvh] max-w-2xl flex-col">

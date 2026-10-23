@@ -43,6 +43,7 @@ export const CONTENT_GUIDE: GuideRule[] = [
     yes: [
       "Tus fotos y textos, o material con licencia o permiso; di de dónde viene cuando no es tuyo.",
       "Videos de YouTube insertados (sus términos lo permiten).",
+      "Sube las fotos al panel en vez de pegar un enlace: cargan más rápido y no se pierden si el otro sitio las borra.",
     ],
     no: ["Copiar textos o fotos de otros sitios o redes sin permiso, aunque estén en internet."],
   },
