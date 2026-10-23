@@ -1,51 +1,9 @@
 import type { NextConfig } from "next";
+import { publicCsp } from "./src/lib/security/csp";
 
-// Origen desde el que se sirven las imágenes (ImagePublicController, ver
-// lib/image-url.ts) — necesario en img-src de la CSP porque son <img src>
-// cross-origin, no proxeadas por Next.
+// Origen desde el que el NAVEGADOR pide las imágenes (ImagePublicController,
+// ver lib/image-url.ts); también va en img-src de la CSP (src/lib/security/csp.ts).
 const backendAssetOrigin = process.env.NEXT_PUBLIC_BACKEND_ASSET_URL ?? "http://localhost:8080";
-
-// CONTEXTO.md secciones 17 y 39.2 ("cabeceras de seguridad... a nivel de
-// edge") — no existían en absoluto hasta esta revisión.
-//
-// script-src lleva 'unsafe-inline' porque el propio bootstrap de hidratación
-// de Next App Router inyecta <script> inline sin nonce (self.__next_f...) —
-// bloquearlo rompe la hidratación de toda página. Los bloques JSON-LD
-// (dangerouslySetInnerHTML, type="application/ld+json") no se ven afectados:
-// los navegadores no los tratan como script ejecutable, así que no requieren
-// 'unsafe-inline' aparte. Migrar a CSP con nonce (guía oficial de Next) es
-// la mejora pendiente para eliminar 'unsafe-inline' de script-src.
-// pagead2.googlesyndication.com/googleads.g.doubleclick.net: AdSense
-// (components/legal/ad-slot.tsx) — hoy inertes hasta activar adsenseEnabled
-// en Configuración, pero declarados ya para que no haga falta tocar esto al
-// activarlos.
-const CSP = [
-  "default-src 'self'",
-  // https: (no solo backendAssetOrigin): imágenes/logos por enlace externo
-  // son un campo deliberado en Publicaciones/Lugares/Eventos y en Marca
-  // (platformSettings.logoUrl/ogImageUrl) — quien redacta pega cualquier
-  // host, así que no se puede allowlist-ear uno fijo. http: (sin "s") queda
-  // afuera a propósito: mixed content en una página servida por https.
-  `img-src 'self' data: ${backendAssetOrigin} https:`,
-  "font-src 'self' data:",
-  "style-src 'self' 'unsafe-inline'",
-  // 'unsafe-eval' solo en dev: Turbopack/React lo usan para reconstruir
-  // stack traces (Fast Refresh, overlay de errores); nunca se emite en
-  // producción, así que no debilita la CSP servida a usuarios reales.
-  // googletagmanager / google-analytics: Google Analytics 4, que solo se
-  // carga si el visitante acepta las cookies (AnalyticsLoader, 2026-10-21).
-  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV !== "production" ? " 'unsafe-eval'" : ""} https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.googletagmanager.com`,
-  "connect-src 'self' https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com",
-  // youtube-nocookie.com: el reproductor de los videos y episodios
-  // (youtube-embed.tsx); www.youtube.com: el chat de las transmisiones en
-  // vivo (/en-vivo). Sin esto el navegador bloqueaba el reproductor al tocar.
-  "frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://www.youtube-nocookie.com https://www.youtube.com",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-].join("; ");
-
 const backendAssetUrl = new URL(backendAssetOrigin);
 
 // Host que el SERVIDOR de Next puede resolver para el fetch interno de
@@ -130,9 +88,13 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // El panel lleva su propia CSP con nonce por visita (src/proxy.ts).
+        source: "/((?!admin(?:/|$)).*)",
+        headers: [{ key: "Content-Security-Policy", value: publicCsp({ dev: process.env.NODE_ENV !== "production" }) }],
+      },
+      {
         source: "/:path*",
         headers: [
-          { key: "Content-Security-Policy", value: CSP },
           // frame-ancestors 'none' ya cubre esto en navegadores modernos;
           // X-Frame-Options queda como respaldo para los que no leen CSP.
           { key: "X-Frame-Options", value: "DENY" },

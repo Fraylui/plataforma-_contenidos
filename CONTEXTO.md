@@ -2449,7 +2449,7 @@ Ordenadas por prioridad.
 
 ### Seguridad (primero)
 1. ~~Next.js 16.3.3 con vulnerabilidad crítica~~ — **hecho**: el proyecto ya usa **16.3.8** y el `npm audit` del CI pasa (ver §46.6d).
-2. CSP con *nonce* para quitar `'unsafe-inline'` de `script-src` (pendiente anotado en `next.config.ts`).
+2. ~~CSP con *nonce*~~ — **hecho 2026-10-22, en dos niveles** (`src/lib/security/csp.ts`): el **panel** (`/admin`) usa nonce por visita + `'strict-dynamic'`, sin `'unsafe-inline'` en scripts (`src/proxy.ts`; el panel ya era dinámico, `connection()` en su layout); el **sitio público** conserva `'unsafe-inline'` para no perder la caché (ISR: Inicio, listados y detalles con `x-nextjs-cache`). Probado: con SRI (`experimental.sri`) y sin `'unsafe-inline'`, Edge bloquea 10 scripts inline de Next y la página no se activa — no hay forma soportada de CSP estricta con páginas en caché en App Router. Riesgo aceptado en lo público: no hay cuentas ni sesiones de visitantes; HTML de usuario saneado en el backend (HtmlSanitizer).
 3. Permisos de trabajadores aplicados en el servidor (proyecto 2).
 4. MFA quedó retirado por decisión del dueño (2026-09-14); reconsiderar antes de tener trabajadores con acceso al panel.
 

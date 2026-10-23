@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { axe } from "vitest-axe";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePlannedCampaign } from "@/components/legal/use-ad-rotation";
 import { AdBlockClient } from "@/components/legal/ad-block-client";
 import { BANNER_FIELDS } from "@/lib/ads/test-campaigns";
@@ -23,6 +23,12 @@ vi.mock("@/components/legal/use-viewable-impression", () => ({ useViewableImpres
 const campaign = { ...BANNER_FIELDS, id: "c1", advertiserId: "a1", imageSrc: null, externalImageUrl: "https://ads.example/b.png", imageAlt: "Café Origen" };
 
 describe("Anuncio del feed con forma de post («Patrocinado»)", () => {
+  // Precarga del post patrocinado (se carga con next/dynamic): transformar ese módulo es lento en Vitest y
+  // es preparación, no lo que se prueba; con el módulo ya cargado la carga diferida resuelve al instante.
+  beforeAll(async () => {
+    await import("@/components/post/native-ad-post");
+  }, 60_000);
+
   beforeEach(() => vi.mocked(usePlannedCampaign).mockReset());
 
   it("con campaña: encabezado «Patrocinado» y la creatividad sin repetir «Publicidad»", async () => {
@@ -49,8 +55,7 @@ describe("Anuncio del feed con forma de post («Patrocinado»)", () => {
     vi.mocked(usePlannedCampaign).mockReturnValue({ rotation: { width: 300, height: 250, campaigns: [] }, campaign: native } as never);
     render(<AdBlockClient position="en-feed" layout="fill" frame="post" adsense={null} />);
     // Se descarga bajo demanda (next/dynamic): llega después del primer render.
-    // La primera vez Vitest tarda en transformar ese módulo: más margen que el segundo por defecto.
-    expect(await screen.findByRole("article", { name: "Patrocinado: Pollería El Inca" }, { timeout: 5000 })).toBeInTheDocument();
+    expect(await screen.findByRole("article", { name: "Patrocinado: Pollería El Inca" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Pedir ahora/ })).toBeInTheDocument();
   });
 
