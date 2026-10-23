@@ -40,7 +40,7 @@ describe("lenguaje de plataforma (no de redacción)", () => {
     const menu = groupedNavItems(user({ role: "OWNER" })).map(({ group, items }) => [ADMIN_NAV_GROUP_LABELS[group], items.map((i) => i.label)]);
     expect(menu).toEqual([
       [null, ["Inicio", "Estadísticas"]],
-      ["Contenido", ["Publicaciones", "Lugares", "Celebraciones", "Galerías", "Series", "En vivo", "Temas", "Imágenes", "Qué se puede publicar"]],
+      ["Contenido", ["Historias", "Publicaciones", "Lugares", "Celebraciones", "Galerías", "Series", "En vivo", "Temas", "Imágenes", "Qué se puede publicar"]],
       ["Publicidad", ["Espacios publicitarios", "Anunciantes"]],
       ["Equipo y ajustes", ["Trabajadores", "Configuración", "Registro de actividad", "Mi cuenta"]],
     ]);
@@ -56,6 +56,7 @@ describe("qué puede crear cada persona (botón Crear, paleta y barra del celula
 
   it("el dueño crea todo, en el orden del menú", () => {
     expect(createItems(user({ role: "OWNER" })).map((i) => i.label)).toEqual([
+      "Historia",
       "Publicación",
       "Lugar",
       "Celebración",
@@ -67,5 +68,18 @@ describe("qué puede crear cada persona (botón Crear, paleta y barra del celula
 
   it("sin módulos de contenido no hay nada que crear", () => {
     expect(createItems(user({ permissions: { ADVERTISING: "ACCESS" } }))).toEqual([]);
+  });
+});
+
+describe("Historias en el menú", () => {
+  it("con el módulo Historias, «Historia» va primero en Crear (lo más frecuente)", () => {
+    const items = createItems(user({ permissions: { STORIES: "PUBLISH", PUBLICATIONS: "PUBLISH" } }));
+    expect(items[0]).toEqual({ label: "Historia", href: "/admin/historias/nueva" });
+    expect(visibleNavItems(user({ permissions: { STORIES: "PUBLISH" } })).map((i) => i.label)).toContain("Historias");
+  });
+
+  it("sin el módulo no aparece", () => {
+    const items = createItems(user({ permissions: { PUBLICATIONS: "PUBLISH" } }));
+    expect(items.map((i) => i.label)).not.toContain("Historia");
   });
 });

@@ -1,5 +1,5 @@
 import type { Icon } from "@phosphor-icons/react";
-import { ChartBar, Buildings, CalendarDots, Article, TreeStructure, House, Image as ImageIcon, Images, MapPin, Megaphone, GearSix, Scales, ShieldCheck, Television, Broadcast, UserCircle, Users } from "@phosphor-icons/react/dist/ssr";
+import { ChartBar, Buildings, CalendarDots, ClockCountdown, Article, TreeStructure, House, Image as ImageIcon, Images, MapPin, Megaphone, GearSix, Scales, ShieldCheck, Television, Broadcast, UserCircle, Users } from "@phosphor-icons/react/dist/ssr";
 import type { AdminUser, Module } from "@/lib/api/admin-types";
 import { canAccess, isOwner } from "./permissions";
 
@@ -33,6 +33,14 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     group: "principal",
     icon: ChartBar,
     module: "STATS",
+  },
+  // Historias primero en Contenido: lo que más se publica (caduca en 24 h).
+  {
+    href: "/admin/historias",
+    label: "Historias",
+    group: "contenido",
+    icon: ClockCountdown,
+    module: "STORIES",
   },
   {
     href: "/admin/publicaciones",
@@ -150,6 +158,7 @@ export interface CreateItem {
 
 /** Lo que se puede crear, uno por tipo de contenido (en el orden del menú). */
 const CREATE_ITEMS: Array<CreateItem & { navHref: string }> = [
+  { label: "Historia", href: "/admin/historias/nueva", navHref: "/admin/historias" },
   { label: "Publicación", href: "/admin/publicaciones/nuevo", navHref: "/admin/publicaciones" },
   { label: "Lugar", href: "/admin/lugares/nuevo", navHref: "/admin/lugares" },
   { label: "Celebración", href: "/admin/celebraciones/nuevo", navHref: "/admin/celebraciones" },

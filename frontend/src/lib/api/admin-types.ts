@@ -423,7 +423,7 @@ export interface PlatformStats {
 }
 
 /** Para qué se subió (ver ImagePurpose.java): la biblioteca de contenido no muestra las de publicidad. */
-export type ImagePurpose = "CONTENT" | "AD";
+export type ImagePurpose = "CONTENT" | "AD" | "STORY";
 
 /** Ver ImageResponse.java. `url` es relativa — resolver con src/lib/image-url.ts. */
 export interface AdminImage {

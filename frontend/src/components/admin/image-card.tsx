@@ -67,6 +67,10 @@ export function ImageCard({ image, canManage }: { image: AdminImage; canManage: 
         {image.purpose === "AD" && (
           <Badge className="absolute top-2 left-2 shadow-card">Publicidad</Badge>
         )}
+        {/* Foto de una historia: se borra sola con ella a los 7 días de terminar. */}
+        {image.purpose === "STORY" && (
+          <Badge className="absolute top-2 left-2 shadow-card">Historia</Badge>
+        )}
         {canManage && (
           <>
             {/* Borrar no se deshace: se confirma. Si está en uso, el backend lo impide (409) y se muestra por qué. */}
