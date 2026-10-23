@@ -1,192 +1,159 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
+import {
+  ChartLineUp,
+  CurrencyCircleDollar,
+  Envelope,
+  FacebookLogo,
+  GearSix,
+  InstagramLogo,
+  PaintBrush,
+  ShareNetwork,
+  TiktokLogo,
+  WhatsappLogo,
+  XLogo,
+  YoutubeLogo,
+  type Icon,
+} from "@phosphor-icons/react";
 import type { PlatformSettings } from "@/lib/api/types";
-import type { PlatformSettingsInput } from "@/lib/api/admin-types";
+import type { AdminImage, PlatformSettingsInput } from "@/lib/api/admin-types";
 import { updatePlatformSettingsAction } from "@/app/admin/(protected)/configuracion/actions";
-import { AdminButton, Combobox, FormError, FormField, formInputClass } from "@/components/admin/ui";
+import { FormError } from "@/components/admin/ui";
+import { Button, Card, Checkbox, Combobox, Field, TextArea, TextInput } from "@/components/ui";
 import { InlineImageUpload } from "@/components/admin/inline-image-upload";
+import { SharePreview } from "@/components/admin/share-preview";
 import { imageUrl } from "@/lib/image-url";
-import type { AdminImage } from "@/lib/api/admin-types";
+import { COUNTRY_OPTIONS } from "@/lib/countries";
+import { SOCIAL_NETWORKS, socialLinkError, type SocialKey } from "@/lib/social-links";
 
 type FormState = {
   [K in keyof PlatformSettingsInput]: PlatformSettingsInput[K] extends boolean ? boolean : string;
 };
 
 function toFormState(settings: PlatformSettings): FormState {
-  return {
-    name: settings.name,
-    shortName: settings.shortName ?? "",
-    description: settings.description ?? "",
-    logoUrl: settings.logoUrl ?? "",
-    logoDarkUrl: settings.logoDarkUrl ?? "",
-    faviconUrl: settings.faviconUrl ?? "",
-    ogImageUrl: settings.ogImageUrl ?? "",
-    primaryColor: settings.primaryColor ?? "",
-    secondaryColor: settings.secondaryColor ?? "",
-    backgroundColor: settings.backgroundColor ?? "",
-    fontFamily: settings.fontFamily ?? "",
-    theme: settings.theme,
-    seoDefaultTitle: settings.seoDefaultTitle ?? "",
-    seoDefaultDescription: settings.seoDefaultDescription ?? "",
-    seoDefaultImageUrl: settings.seoDefaultImageUrl ?? "",
-    googleSearchConsoleVerification: settings.googleSearchConsoleVerification ?? "",
-    contactEmail: settings.contactEmail ?? "",
-    adsenseEnabled: settings.adsenseEnabled,
-    adsenseClientId: settings.adsenseClientId ?? "",
-    analyticsId: settings.analyticsId ?? "",
-  };
+  const state = {} as FormState;
+  for (const [key, value] of Object.entries(settings) as [keyof FormState, unknown][]) {
+    (state as Record<string, unknown>)[key] = typeof value === "boolean" ? value : ((value as string | null) ?? "");
+  }
+  return state;
 }
 
 function toInput(state: FormState): PlatformSettingsInput {
-  const blankToNull = (value: string) => (value.trim() === "" ? null : value.trim());
-  return {
-    name: state.name.trim(),
-    shortName: blankToNull(state.shortName),
-    description: blankToNull(state.description),
-    logoUrl: blankToNull(state.logoUrl),
-    logoDarkUrl: blankToNull(state.logoDarkUrl),
-    faviconUrl: blankToNull(state.faviconUrl),
-    ogImageUrl: blankToNull(state.ogImageUrl),
-    primaryColor: blankToNull(state.primaryColor),
-    secondaryColor: blankToNull(state.secondaryColor),
-    backgroundColor: blankToNull(state.backgroundColor),
-    fontFamily: blankToNull(state.fontFamily),
-    theme: state.theme as PlatformSettingsInput["theme"],
-    seoDefaultTitle: blankToNull(state.seoDefaultTitle),
-    seoDefaultDescription: blankToNull(state.seoDefaultDescription),
-    seoDefaultImageUrl: blankToNull(state.seoDefaultImageUrl),
-    googleSearchConsoleVerification: blankToNull(state.googleSearchConsoleVerification),
-    contactEmail: blankToNull(state.contactEmail),
-    adsenseEnabled: state.adsenseEnabled,
-    adsenseClientId: blankToNull(state.adsenseClientId),
-    analyticsId: blankToNull(state.analyticsId),
-  };
+  const input = {} as Record<string, unknown>;
+  for (const [key, value] of Object.entries(state)) {
+    input[key] = typeof value === "boolean" ? value : value.trim() === "" ? null : value.trim();
+  }
+  // Nombre y país siempre llevan valor.
+  return { ...(input as unknown as PlatformSettingsInput), name: state.name.trim(), homeCountry: state.homeCountry };
 }
 
-function TextField({
-  label,
-  name,
-  value,
-  onChange,
-  type = "text",
-}: {
-  label: string;
-  name: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-}) {
+const SOCIAL_ICONS: Record<SocialKey, Icon> = {
+  youtube: YoutubeLogo,
+  instagram: InstagramLogo,
+  tiktok: TiktokLogo,
+  facebook: FacebookLogo,
+  x: XLogo,
+  whatsapp: WhatsappLogo,
+};
+
+const SECTIONS: { id: string; title: string; icon: Icon }[] = [
+  { id: "marca", title: "Marca", icon: PaintBrush },
+  { id: "compartir", title: "Al compartir y en Google", icon: ShareNetwork },
+  { id: "redes", title: "Nuestras redes", icon: InstagramLogo },
+  { id: "contacto", title: "Contacto", icon: Envelope },
+  { id: "ingresos", title: "Ingresos", icon: CurrencyCircleDollar },
+  { id: "medicion", title: "Medición", icon: ChartLineUp },
+  { id: "avanzado", title: "Avanzado", icon: GearSix },
+];
+
+function Section({ id, description, children }: { id: string; description?: string; children: ReactNode }) {
+  const section = SECTIONS.find((s) => s.id === id)!;
   return (
-    <FormField label={label} name={name}>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className={formInputClass} />
-    </FormField>
+    <div id={id} className="scroll-mt-24">
+      <Card title={section.title} description={description}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
+      </Card>
+    </div>
   );
 }
 
-/**
- * Igual que TextField pero para imágenes de marca (logo/favicon/OG): antes
- * solo aceptaba pegar una URL a mano, lo que obligaba a subir la imagen a
- * otro lado primero para conseguir un link. Ahora se puede subir el
- * archivo acá mismo (mismo InlineImageUpload que Foto destacada/Fotografías
- * en los formularios de contenido) y la URL se completa sola.
- */
-function ImageUrlField({
+/** Imagen de marca: se sube aquí mismo o se pega un enlace; se ve al lado. */
+function ImageField({
   label,
   name,
+  hint,
   value,
   onChange,
 }: {
   label: string;
   name: string;
+  hint?: string;
   value: string;
   onChange: (value: string) => void;
 }) {
-  function handleUploaded(image: AdminImage) {
-    onChange(imageUrl(image.url));
-  }
-
   return (
-    <FormField label={label} name={name}>
+    <Field label={label} name={name} hint={hint}>
       <div className="flex flex-wrap items-center gap-2">
-        {value && (
-          // eslint-disable-next-line @next/next/no-img-element -- vista previa de una URL arbitraria, no un asset local
-          <img src={value} alt="" className="h-9 w-9 shrink-0 rounded border border-border object-contain" />
-        )}
-        <input
+        <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-control bg-canvas-strong">
+          {value && (
+            // eslint-disable-next-line @next/next/no-img-element -- vista previa de una URL arbitraria
+            <img src={value} alt="" className="size-full object-contain" />
+          )}
+        </span>
+        <TextInput
           id={name}
           name={name}
-          type="text"
+          type="url"
+          autoComplete="off"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="URL de la imagen"
-          className={`${formInputClass} flex-1`}
+          placeholder="https://… o súbela"
+          className="min-w-0 flex-1"
         />
-        <InlineImageUpload onUploaded={handleUploaded} compact />
+        <InlineImageUpload onUploaded={(image: AdminImage) => onChange(imageUrl(image.url))} compact />
       </div>
-    </FormField>
+    </Field>
   );
 }
 
 /**
- * Vista previa de cómo se ve el sitio al compartirlo (Twitter/Facebook-style
- * card) — usa los mismos campos que ya se cargan acá (título/descripción/
- * imagen SEO, o el nombre/descripción de la plataforma si no hay SEO
- * propio, mismo fallback que usa el backend al armar el <head> real). Nada
- * de un campo nuevo: es una vista de los que ya existen, para no tener que
- * publicar algo y compartirlo para recién ver cómo queda.
+ * Configuración del sitio (rehecha 2026-10-21): secciones en lenguaje de
+ * plataforma, sin campos duplicados ni muertos, redes oficiales con su
+ * ícono y una barra de guardado que aparece solo cuando hay cambios.
  */
-function SharePreview({ title, description, imageUrl, siteName }: { title: string; description: string; imageUrl: string; siteName: string }) {
-  return (
-    <div className="mt-4 overflow-hidden rounded-xl border border-border/60 bg-background">
-      <div className="aspect-[1.91/1] w-full overflow-hidden bg-canvas-strong">
-        {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- vista previa de una URL arbitraria
-          <img src={imageUrl} alt="" className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full items-center justify-center text-xs text-muted">Sin imagen social</div>
-        )}
-      </div>
-      <div className="space-y-1 p-3">
-        <p className="text-[11px] tracking-wide text-muted uppercase">{siteName || "tusitio.com"}</p>
-        <p className="line-clamp-1 text-sm font-semibold text-foreground">{title || "Título por defecto"}</p>
-        <p className="line-clamp-2 text-xs text-muted">{description || "Meta descripción por defecto."}</p>
-      </div>
-    </div>
-  );
-}
-
-const NAV_ITEMS = [
-  { id: "identidad", label: "Identidad" },
-  { id: "apariencia", label: "Apariencia" },
-  { id: "seo", label: "SEO por defecto" },
-  { id: "contacto", label: "Contacto" },
-  { id: "monetizacion", label: "Monetización" },
-] as const;
-
-/** Misma tarjeta que el resto del panel (article-form.tsx, place-form.tsx, ...): border-border/60 bg-surface, sin shadow. */
-function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
-  return (
-    <div id={id} className="scroll-mt-24 rounded-xl border border-border/60 bg-surface p-5">
-      <h2 className="text-sm font-semibold text-foreground">{title}</h2>
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
-    </div>
-  );
-}
-
 export function PlatformSettingsForm({ settings }: { settings: PlatformSettings }) {
-  const [state, setState] = useState<FormState>(() => toFormState(settings));
+  const [saved, setSaved] = useState<FormState>(() => toFormState(settings));
+  const [state, setState] = useState<FormState>(saved);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [showErrors, setShowErrors] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+
+  const dirty = useMemo(() => JSON.stringify(state) !== JSON.stringify(saved), [state, saved]);
+  const socialErrors = useMemo(
+    () => Object.fromEntries(SOCIAL_NETWORKS.map((n) => [n.key, socialLinkError(n.key, state[n.field])])) as Record<SocialKey, string | null>,
+    [state],
+  );
+  const hasErrors = Object.values(socialErrors).some(Boolean) || !state.name.trim();
+
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
+    setJustSaved(false);
     setState((prev) => ({ ...prev, [key]: value }));
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setShowErrors(true);
+    if (hasErrors) return;
     setPending(true);
     setError(null);
     const result = await updatePlatformSettingsAction(toInput(state));
@@ -195,23 +162,24 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
       setError(result.error);
       return;
     }
-    setSavedAt(Date.now());
+    setSaved(state);
+    setShowErrors(false);
+    setJustSaved(true);
   }
 
   return (
-    <form onSubmit={handleSubmit} className="lg:grid lg:grid-cols-[180px_1fr] lg:items-start lg:gap-8">
-      {/* Nav de secciones — ancla en vez de tabs: todos los campos se quedan en el
-          DOM (autocompletado del navegador, validación nativa del form entero al
-          enviar) en lugar de perderse al cambiar de pestaña. */}
+    <form onSubmit={handleSubmit} noValidate className="pb-24 lg:grid lg:grid-cols-[200px_1fr] lg:items-start lg:gap-8">
+      {/* Índice con anclas (no pestañas): todo el formulario queda en el DOM y se guarda junto. */}
       <nav aria-label="Secciones de configuración" className="hidden lg:sticky lg:top-24 lg:block">
-        <ul className="space-y-0.5 border-l border-border">
-          {NAV_ITEMS.map((item) => (
-            <li key={item.id}>
+        <ul className="space-y-1">
+          {SECTIONS.map(({ id, title, icon: SectionIcon }) => (
+            <li key={id}>
               <a
-                href={`#${item.id}`}
-                className="-ml-px block border-l-2 border-transparent px-3 py-1.5 text-sm text-muted transition-colors hover:border-accent/50 hover:text-foreground"
+                href={`#${id}`}
+                className="flex items-center gap-2.5 rounded-control px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-field hover:text-foreground"
               >
-                {item.label}
+                <SectionIcon className="size-4 shrink-0" aria-hidden="true" />
+                {title}
               </a>
             </li>
           ))}
@@ -219,122 +187,157 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
       </nav>
 
       <div className="mt-6 max-w-3xl space-y-6 lg:mt-0">
-        <Section id="identidad" title="Identidad">
-          <TextField label="Nombre de la plataforma" name="name" value={state.name} onChange={(v) => set("name", v)} />
-          <ImageUrlField label="Logo" name="logoUrl" value={state.logoUrl} onChange={(v) => set("logoUrl", v)} />
-          <ImageUrlField label="Logo modo oscuro" name="logoDarkUrl" value={state.logoDarkUrl} onChange={(v) => set("logoDarkUrl", v)} />
-          <ImageUrlField label="Favicon" name="faviconUrl" value={state.faviconUrl} onChange={(v) => set("faviconUrl", v)} />
-          <ImageUrlField
-            label="Imagen para compartir / Open Graph"
+        <Section id="marca" description="Cómo se reconoce la plataforma en el menú, la pestaña del navegador y las tarjetas.">
+          <Field label="Nombre de la plataforma" name="name" error={showErrors && !state.name.trim() ? "Escribe el nombre." : undefined}>
+            <TextInput autoComplete="off" value={state.name} onChange={(e) => set("name", e.target.value)} />
+          </Field>
+          <ImageField label="Logo" name="logoUrl" value={state.logoUrl} onChange={(v) => set("logoUrl", v)} />
+          <ImageField
+            label="Logo para modo oscuro (opcional)"
+            name="logoDarkUrl"
+            hint="Si tu logo es oscuro, una versión clara para quien usa el celular en modo oscuro."
+            value={state.logoDarkUrl}
+            onChange={(v) => set("logoDarkUrl", v)}
+          />
+          <ImageField
+            label="Ícono de la pestaña"
+            name="faviconUrl"
+            hint="Cuadrado, se ve pequeñito junto al título de la pestaña."
+            value={state.faviconUrl}
+            onChange={(v) => set("faviconUrl", v)}
+          />
+        </Section>
+
+        <Section id="compartir" description="Lo que muestran Google, WhatsApp y las redes cuando alguien comparte el sitio.">
+          <div className="sm:col-span-2">
+            <Field label="Descripción" name="description" hint="Una o dos frases sobre qué encuentra la gente aquí.">
+              <TextArea value={state.description} maxLength={160} rows={2} onChange={(e) => set("description", e.target.value)} />
+            </Field>
+          </div>
+          <ImageField
+            label="Imagen al compartir"
             name="ogImageUrl"
+            hint="Horizontal (1200 × 630). También se usa cuando un contenido no tiene foto."
             value={state.ogImageUrl}
             onChange={(v) => set("ogImageUrl", v)}
           />
-          <FormField label="Descripción" name="description">
-            <textarea
-              value={state.description}
-              onChange={(e) => set("description", e.target.value)}
-              rows={2}
-              className={formInputClass}
-            />
-          </FormField>
-        </Section>
-
-        <Section id="apariencia" title="Apariencia">
-          <FormField label="Tema" name="theme">
-            <Combobox
-              options={[
-                { id: "AUTO", label: "Auto (según el sistema)" },
-                { id: "LIGHT", label: "Claro" },
-                { id: "DARK", label: "Oscuro" },
-              ]}
-              value={state.theme}
-              onSelect={(id) => id && set("theme", id as FormState["theme"])}
-            />
-          </FormField>
-        </Section>
-
-        <Section id="seo" title="SEO por defecto">
-          <TextField label="Título por defecto" name="seoDefaultTitle" value={state.seoDefaultTitle} onChange={(v) => set("seoDefaultTitle", v)} />
-          <TextField
-            label="Imagen social por defecto (URL)"
-            name="seoDefaultImageUrl"
-            value={state.seoDefaultImageUrl}
-            onChange={(v) => set("seoDefaultImageUrl", v)}
-          />
-          <FormField label="Meta descripción por defecto" name="seoDefaultDescription">
-            <textarea
-              value={state.seoDefaultDescription}
-              onChange={(e) => set("seoDefaultDescription", e.target.value)}
-              rows={2}
-              className={formInputClass}
-            />
-          </FormField>
-          <TextField
-            label="Google Search Console (verificación)"
-            name="googleSearchConsoleVerification"
-            value={state.googleSearchConsoleVerification}
-            onChange={(v) => set("googleSearchConsoleVerification", v)}
-          />
+          <Field label="Título en Google (opcional)" name="seoDefaultTitle" hint="Si lo dejas vacío, se usa el nombre.">
+            <TextInput autoComplete="off" placeholder={state.name} value={state.seoDefaultTitle} onChange={(e) => set("seoDefaultTitle", e.target.value)} />
+          </Field>
           <div className="sm:col-span-2">
-            <span className="block text-sm font-medium text-foreground">Así se ve al compartirlo</span>
             <SharePreview
-              title={state.seoDefaultTitle || state.name}
-              description={state.seoDefaultDescription || state.description}
-              imageUrl={state.seoDefaultImageUrl || state.ogImageUrl}
               siteName={state.name}
+              path=""
+              title={state.seoDefaultTitle || state.name}
+              description={state.description}
+              imageUrl={state.ogImageUrl || null}
+              emptyImageHint="Sube la imagen al compartir (1200 × 630) y se verá aquí"
             />
           </div>
         </Section>
 
-        <Section id="contacto" title="Contacto">
-          <TextField
-            label="Correo de contacto"
-            name="contactEmail"
-            type="email"
-            value={state.contactEmail}
-            onChange={(v) => set("contactEmail", v)}
-          />
+        <Section id="redes" description="Se muestran con su ícono en «Síguenos». Solo enlaces: pega la dirección de cada perfil.">
+          {SOCIAL_NETWORKS.map((network) => {
+            const NetworkIcon = SOCIAL_ICONS[network.key];
+            return (
+              <Field
+                key={network.key}
+                label={network.label}
+                name={network.field}
+                error={showErrors ? socialErrors[network.key] : undefined}
+              >
+                <TextInput
+                  type="url"
+                  autoComplete="off"
+                  placeholder={network.example}
+                  leading={<NetworkIcon weight="fill" />}
+                  value={state[network.field]}
+                  onChange={(e) => set(network.field, e.target.value)}
+                />
+              </Field>
+            );
+          })}
+          <p className="text-xs text-muted sm:col-span-2">
+            Canal de WhatsApp: en WhatsApp, Novedades → tu canal → Compartir enlace. Con el enlace puesto, cada publicación termina con
+            «Síguenos en WhatsApp».
+          </p>
         </Section>
 
-        <Section id="monetizacion" title="Monetización">
-          <label className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <input
-              type="checkbox"
+        <Section id="contacto">
+          <Field label="Correo de contacto" name="contactEmail" hint="Aparece en la página de Contacto.">
+            <TextInput type="email" autoComplete="off" value={state.contactEmail} onChange={(e) => set("contactEmail", e.target.value)} />
+          </Field>
+          <Field
+            label="País del sitio"
+            name="homeCountry"
+            hint="Quien entra sin ubicación conocida ve en «Hoy se celebra» lo mundial y lo de este país."
+          >
+            <Combobox options={COUNTRY_OPTIONS} value={state.homeCountry} onSelect={(id) => id && set("homeCountry", id)} placeholder="Buscar un país" />
+          </Field>
+        </Section>
+
+        <Section id="ingresos" description="Los anuncios de Google en el sitio. Los espacios y los anunciantes directos están en Publicidad.">
+          <div className="sm:col-span-2">
+            <Checkbox
               name="adsenseEnabled"
+              label="Mostrar anuncios de Google AdSense"
+              description="Necesita tu código de editor y que Google haya aprobado el sitio."
               checked={state.adsenseEnabled}
               onChange={(e) => set("adsenseEnabled", e.target.checked)}
-              className="h-4 w-4 rounded border-border"
             />
-            AdSense habilitado
-          </label>
-          <TextField
-            label="AdSense Client ID"
-            name="adsenseClientId"
-            value={state.adsenseClientId}
-            onChange={(v) => set("adsenseClientId", v)}
-          />
-          <TextField label="Analytics ID" name="analyticsId" value={state.analyticsId} onChange={(v) => set("analyticsId", v)} />
-          <p className="text-xs text-muted">
-            Las posiciones/slots de anuncio se gestionan en{" "}
-            <Link href="/admin/publicidad" className="underline underline-offset-2 hover:text-accent">
-              Publicidad
+          </div>
+          <Field label="Código de editor de AdSense" name="adsenseClientId" hint="Empieza con ca-pub-.">
+            <TextInput autoComplete="off" placeholder="ca-pub-…" value={state.adsenseClientId} onChange={(e) => set("adsenseClientId", e.target.value)} />
+          </Field>
+          <p className="self-end text-xs text-muted">
+            <Link href="/admin/espacios" className="font-medium text-accent underline-offset-2 hover:underline">
+              Espacios publicitarios
             </Link>
-            .
           </p>
+        </Section>
+
+        <Section id="medicion" description="Visitas en Google Analytics. Solo se activa para quien acepta las cookies (Ley 29733).">
+          <Field label="ID de medición de Google Analytics" name="analyticsId" hint="Empieza con G-. Vacío = sin Analytics.">
+            <TextInput autoComplete="off" placeholder="G-…" value={state.analyticsId} onChange={(e) => set("analyticsId", e.target.value)} />
+          </Field>
+        </Section>
+
+        <Section id="avanzado">
+          <Field
+            label="Verificación de Google Search Console"
+            name="googleSearchConsoleVerification"
+            hint="El código que te da Search Console para confirmar que el sitio es tuyo."
+          >
+            <TextInput
+              autoComplete="off"
+              value={state.googleSearchConsoleVerification}
+              onChange={(e) => set("googleSearchConsoleVerification", e.target.value)}
+            />
+          </Field>
         </Section>
 
         {error && <FormError message={error} />}
-        {savedAt && !error && (
-          <p role="status" className="text-sm text-accent">
-            Guardado.
+        {justSaved && !dirty && (
+          <p role="status" className="text-sm font-medium text-success">
+            Cambios guardados. Ya se ven en el sitio.
           </p>
         )}
-
-        <AdminButton type="submit" disabled={pending || !state.name.trim()}>
-          {pending ? "Guardando…" : "Guardar cambios"}
-        </AdminButton>
       </div>
+
+      {/* Barra fija: solo con cambios, como en las apps (sin buscar el botón al final de la página). */}
+      {dirty && (
+        <div className="fixed inset-x-0 bottom-[calc(var(--bottom-bar-h,0px)+0.75rem)] z-40 flex justify-center px-4 lg:bottom-6">
+          <div className="flex w-full max-w-xl items-center gap-3 rounded-card bg-surface px-4 py-3 shadow-overlay">
+            <p className="min-w-0 flex-1 text-sm font-medium text-foreground">Tienes cambios sin guardar</p>
+            <Button variant="ghost" onClick={() => setState(saved)} disabled={pending}>
+              Descartar
+            </Button>
+            <Button type="submit" loading={pending}>
+              Guardar cambios
+            </Button>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

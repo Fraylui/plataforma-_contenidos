@@ -22,6 +22,10 @@ import org.hibernate.annotations.UuidGenerator;
 @Table(name = "ad_placements", schema = "advertising")
 public class AdPlacement {
 
+    /** Rectángulo medio (300×250): el formato más vendido y el que encaja en feed, columna lateral y contenido. */
+    public static final int DEFAULT_WIDTH = 300;
+    public static final int DEFAULT_HEIGHT = 250;
+
     @Id
     @GeneratedValue
     @UuidGenerator
@@ -39,6 +43,13 @@ public class AdPlacement {
     @Column(nullable = false)
     private boolean enabled = true;
 
+    /** Medida de la creatividad en px CSS (tamaño estándar IAB, p. ej. 300×250): se muestra entera, nunca recortada. */
+    @Column(nullable = false)
+    private int width = DEFAULT_WIDTH;
+
+    @Column(nullable = false)
+    private int height = DEFAULT_HEIGHT;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -49,10 +60,12 @@ public class AdPlacement {
         // JPA
     }
 
-    public AdPlacement(String key, String label, String adsenseSlotId) {
+    public AdPlacement(String key, String label, String adsenseSlotId, int width, int height) {
         this.key = key;
         this.label = label;
         this.adsenseSlotId = adsenseSlotId;
+        this.width = width;
+        this.height = height;
     }
 
     public UUID getId() {
@@ -75,13 +88,23 @@ public class AdPlacement {
         return enabled;
     }
 
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void update(String label, String adsenseSlotId) {
+    public void update(String label, String adsenseSlotId, int width, int height) {
         this.label = label;
         this.adsenseSlotId = adsenseSlotId;
+        this.width = width;
+        this.height = height;
         this.updatedAt = Instant.now();
     }
 

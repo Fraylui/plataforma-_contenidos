@@ -89,18 +89,24 @@ cd frontend && npm test && npx eslint . && npm run build
 ## Backups (CONTEXTO.md sección 29)
 
 ```bash
-# Volcado de PostgreSQL (formato custom, comprimido) + tar de medios locales
-# (si existen). Lee las mismas variables que docker-compose/backend desde
-# .env. Requiere bash (Git Bash en Windows) y el stack de infra/ corriendo.
+# Volcado de PostgreSQL (formato custom, comprimido) + tar de las fotos del
+# volumen media_data, ambos verificados al terminar (pg_restore --list y
+# conteo de archivos). Lee las mismas variables que docker-compose/backend
+# desde .env. Requiere bash y el stack de infra/ corriendo. En Git Bash
+# (Windows): MSYS2_ARG_CONV_EXCL=/app scripts/backup.sh
 scripts/backup.sh
 
 # Restaura un dump en una base de datos NUEVA (nunca sobrescribe la real) —
 # es también la prueba de restauración que exige la sección 29.
 scripts/restore.sh backups/db_plataforma_contenidos_<fecha>.dump
+# Fotos: extrae en una carpeta temporal y cuenta; imprime el comando para
+# cargarlas en el volumen (a mano).
+scripts/restore.sh backups/media_<fecha>.tar.gz
 ```
 
 Variables opcionales: `BACKUP_DIR` (default `./backups`),
-`BACKUP_RETENTION_DAYS` (default 14), `BACKUP_REMOTE_COPY_CMD` (comando para
+`BACKUP_RETENTION_DAYS` (default 14), `BACKUP_KEEP_MIN` (default 7: los más
+recientes nunca se borran por antigüedad), `BACKUP_REMOTE_COPY_CMD` (comando para
 la copia externa que exige la sección 29 — ver `.env.example`; sin definir,
 el backup queda solo en disco local, no se inventa un proveedor).
 
@@ -270,8 +276,7 @@ se recarga solo cada 6h para tomar el certificado renovado sin intervención.
 - **Estadísticas básicas** (2026-08-26): `/admin/estadisticas` — artículos
   por estado, publicados últimos 30 días, alcance (categorías/etiquetas/
   geografía), usuarios por rol. Diseño propio (línea editorial como barra
-  de producción), no una tabla más — dirección guardada en
-  `.interface-design/system.md`.
+  de producción), no una tabla más — sistema de diseño en `DESIGN.md`.
 - **CI/CD** (2026-08-26): `.github/workflows/ci.yml` — tests del backend
   (Testcontainers) y build del frontend (lint + typecheck + `next build`
   contra un backend real) en cada push/PR. **Sin remoto de GitHub

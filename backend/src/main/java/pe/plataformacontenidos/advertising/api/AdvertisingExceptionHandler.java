@@ -1,40 +1,54 @@
 package pe.plataformacontenidos.advertising.api;
 
-import java.time.Instant;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import pe.plataformacontenidos.shared.api.Problems;
 import pe.plataformacontenidos.advertising.AdPlacementKeyNotFoundException;
 import pe.plataformacontenidos.advertising.AdPlacementNotFoundException;
 import pe.plataformacontenidos.advertising.AdvertiserHasCampaignsException;
 import pe.plataformacontenidos.advertising.AdvertiserNotFoundException;
+import pe.plataformacontenidos.advertising.CampaignComplianceRequiredException;
 import pe.plataformacontenidos.advertising.CampaignNotFoundException;
 import pe.plataformacontenidos.advertising.DuplicateAdPlacementKeyException;
+import pe.plataformacontenidos.advertising.InvalidAdvertiserLogoException;
 import pe.plataformacontenidos.advertising.InvalidCampaignAmountException;
+import pe.plataformacontenidos.advertising.InvalidCampaignFormatException;
 import pe.plataformacontenidos.advertising.InvalidCampaignImageException;
 import pe.plataformacontenidos.advertising.InvalidCampaignScheduleException;
+import pe.plataformacontenidos.advertising.InvalidCampaignTargetingException;
+import pe.plataformacontenidos.advertising.AdInventoryFullException;
 
 @RestControllerAdvice
 public class AdvertisingExceptionHandler {
 
     @ExceptionHandler({ AdPlacementNotFoundException.class, AdPlacementKeyNotFoundException.class,
             AdvertiserNotFoundException.class, CampaignNotFoundException.class })
-    public ResponseEntity<ApiError> handleNotFound(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError(Instant.now(), 404, ex.getMessage()));
+    public ResponseEntity<ProblemDetail> handleNotFound(RuntimeException ex) {
+        return Problems.of(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler({ DuplicateAdPlacementKeyException.class, AdvertiserHasCampaignsException.class })
-    public ResponseEntity<ApiError> handleConflict(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiError(Instant.now(), 409, ex.getMessage()));
+    public ResponseEntity<ProblemDetail> handleConflict(RuntimeException ex) {
+        return Problems.of(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler({ InvalidCampaignImageException.class, InvalidCampaignScheduleException.class,
-            InvalidCampaignAmountException.class })
-    public ResponseEntity<ApiError> handleBadRequest(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
+            InvalidCampaignAmountException.class, InvalidCampaignTargetingException.class,
+            InvalidCampaignFormatException.class, InvalidAdvertiserLogoException.class })
+    public ResponseEntity<ProblemDetail> handleBadRequest(RuntimeException ex) {
+        return Problems.of(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
-    public record ApiError(Instant timestamp, int status, String message) {
+    @ExceptionHandler(CampaignComplianceRequiredException.class)
+    public ResponseEntity<ProblemDetail> handleComplianceRequired(CampaignComplianceRequiredException ex) {
+        return Problems.of(HttpStatus.BAD_REQUEST, "CAMPAIGN_COMPLIANCE_REQUIRED", ex.getMessage());
+    }
+
+    @ExceptionHandler(AdInventoryFullException.class)
+    public ResponseEntity<ProblemDetail> handleInventoryFull(AdInventoryFullException ex) {
+        return Problems.of(HttpStatus.CONFLICT, ex.getMessage());
     }
 }

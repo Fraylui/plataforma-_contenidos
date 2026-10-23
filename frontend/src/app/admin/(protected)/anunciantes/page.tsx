@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { listAdvertisers, listCampaigns } from "@/lib/api/admin-client";
+import { listAdvertisers, listCampaigns } from "@/lib/api/admin/advertising";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
-import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
+import { AdminList, AdminListRow, AdminPageHeader, EmptyState } from "@/components/admin/ui";
+import { formatBilledTotal } from "@/lib/ads/money";
 
 export const metadata: Metadata = {
   title: "Anunciantes",
   robots: "noindex,nofollow",
 };
+
+const NUMBER = new Intl.NumberFormat("es-PE");
 
 export default async function AdminAdvertisersPage() {
   const { accessToken } = await requireAdminUser();
@@ -25,55 +28,40 @@ export default async function AdminAdvertisersPage() {
     <div>
       <AdminPageHeader
         title="Anunciantes"
-        description="Empresas/negocios locales que compran publicidad directa (banner), a diferencia de AdSense."
+        description="Negocios que compran publicidad directa (banner o anuncio nativo en el feed), aparte de AdSense."
         action={{ href: "/admin/anunciantes/nuevo", label: "Nuevo anunciante" }}
       />
 
       {advertisers.length === 0 ? (
         <EmptyState title="Todavía no hay anunciantes" />
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface">
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="border-b border-border">
-              <tr>
-                <th className="px-4 py-3 font-medium text-muted">Anunciante</th>
-                <th className="px-4 py-3 font-medium text-muted">Contacto</th>
-                <th className="px-4 py-3 font-medium text-muted">Campañas</th>
-                <th className="px-4 py-3 font-medium text-muted">Facturado</th>
-                <th className="px-4 py-3 font-medium text-muted">Impresiones</th>
-                <th className="px-4 py-3 font-medium text-muted">Clics</th>
-              </tr>
-            </thead>
-            <tbody>
-              {advertisers.map((advertiser) => {
-                const own = campaigns.filter((c) => c.advertiserId === advertiser.id);
-                const impressions = own.reduce((sum, c) => sum + c.impressionCount, 0);
-                const clicks = own.reduce((sum, c) => sum + c.clickCount, 0);
-                const billed = own.reduce((sum, c) => sum + (c.amount ?? 0), 0);
-                const billedCurrency = own.find((c) => c.amount != null)?.currency ?? "";
-                return (
-                  <tr key={advertiser.id} className="border-b border-border last:border-0 hover:bg-accent-soft/40">
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/admin/anunciantes/${advertiser.id}`}
-                        className="font-medium text-foreground hover:text-accent hover:underline"
-                      >
-                        {advertiser.name}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-muted">
-                      {advertiser.contactEmail || advertiser.contactPhone || "— sin datos —"}
-                    </td>
-                    <td className="px-4 py-3 text-muted">{own.length}</td>
-                    <td className="px-4 py-3 text-muted">{billed > 0 ? `${billedCurrency} ${billed.toFixed(2)}` : "—"}</td>
-                    <td className="px-4 py-3 text-muted">{impressions}</td>
-                    <td className="px-4 py-3 text-muted">{clicks}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <AdminList label="Anunciantes">
+          {advertisers.map((advertiser) => {
+            const own = campaigns.filter((c) => c.advertiserId === advertiser.id);
+            const impressions = own.reduce((sum, c) => sum + c.impressionCount, 0);
+            const clicks = own.reduce((sum, c) => sum + c.clickCount, 0);
+            const billed = formatBilledTotal(own);
+            return (
+              <AdminListRow
+                key={advertiser.id}
+                title={
+                  <Link href={`/admin/anunciantes/${advertiser.id}`} className="[overflow-wrap:anywhere] hover:text-accent hover:underline">
+                    {advertiser.name}
+                  </Link>
+                }
+                meta={[
+                  <span key="contact" className="[overflow-wrap:anywhere]">
+                    {advertiser.contactEmail || advertiser.contactPhone || "Sin datos de contacto"}
+                  </span>,
+                  own.length === 1 ? "1 campaña" : `${own.length} campañas`,
+                  billed ? `${billed} facturado` : "Sin facturar",
+                  `${NUMBER.format(impressions)} impresiones`,
+                  clicks === 1 ? "1 clic" : `${NUMBER.format(clicks)} clics`,
+                ]}
+              />
+            );
+          })}
+        </AdminList>
       )}
     </div>
   );

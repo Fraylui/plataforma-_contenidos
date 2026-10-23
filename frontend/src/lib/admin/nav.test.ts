@@ -1,46 +1,85 @@
 import { describe, expect, it } from "vitest";
-import { ADMIN_NAV_ITEMS, visibleNavItems } from "./nav";
-import type { Role } from "@/lib/api/admin-types";
+import type { AdminUser } from "@/lib/api/admin-types";
+import { ADMIN_NAV_GROUP_LABELS, createItems, groupedNavItems, visibleNavItems } from "./nav";
 
-const ALL_ROLES: Role[] = ["SUPER_ADMIN", "ADMIN", "EDITOR", "AUTHOR", "MODERATOR", "COLLABORATOR", "USER"];
+function user(overrides: Partial<AdminUser> = {}): AdminUser {
+  return {
+    id: "u1",
+    email: "u@test.local",
+    firstName: "U",
+    lastName: "T",
+    role: "WORKER",
+    mustChangePassword: false,
+    permissions: {},
+    ...overrides,
+  };
+}
 
-describe("visibleNavItems", () => {
-  it("un ítem sin `roles` es visible para cualquier rol", () => {
-    const unrestricted = ADMIN_NAV_ITEMS.filter((item) => !item.roles);
-    expect(unrestricted.length).toBeGreaterThan(0);
-    for (const role of ALL_ROLES) {
-      const visibleHrefs = visibleNavItems(role).map((i) => i.href);
-      for (const item of unrestricted) {
-        expect(visibleHrefs).toContain(item.href);
-      }
-    }
+describe("menú del panel según permisos (espejo del servidor)", () => {
+  it("un trabajador solo con Celebraciones ve Inicio, Celebraciones, Imágenes, la guía y Mi cuenta", () => {
+    const labels = visibleNavItems(user({ permissions: { CELEBRATIONS: "PUBLISH" } })).map((i) => i.label);
+    expect(labels).toEqual(["Inicio", "Celebraciones", "Imágenes", "Qué se puede publicar", "Mi cuenta"]);
   });
 
-  it("USER (sin permisos admin) no ve ningún ítem restringido por rol", () => {
-    const restricted = ADMIN_NAV_ITEMS.filter((item) => item.roles);
-    const visible = visibleNavItems("USER");
-    for (const item of restricted) {
-      expect(visible).not.toContainEqual(item);
-    }
+  it("las secciones del dueño no aparecen para un trabajador con todos los módulos", () => {
+    const all = user({
+      permissions: {
+        PUBLICATIONS: "PUBLISH", PLACES: "PUBLISH", CELEBRATIONS: "PUBLISH", GALLERIES: "PUBLISH",
+        CATEGORIES: "ACCESS", STATS: "ACCESS", ADVERTISING: "ACCESS",
+      },
+    });
+    const hrefs = visibleNavItems(all).map((i) => i.href);
+    expect(hrefs).not.toContain("/admin/trabajadores");
+    expect(hrefs).not.toContain("/admin/configuracion");
+    expect(hrefs).not.toContain("/admin/actividad");
+  });
+});
+
+describe("lenguaje de plataforma (no de redacción)", () => {
+  it("grupos y secciones del menú del dueño con nombres de plataforma", () => {
+    const menu = groupedNavItems(user({ role: "OWNER" })).map(({ group, items }) => [ADMIN_NAV_GROUP_LABELS[group], items.map((i) => i.label)]);
+    expect(menu).toEqual([
+      [null, ["Inicio", "Estadísticas"]],
+      ["Contenido", ["Historias", "Publicaciones", "Lugares", "Celebraciones", "Galerías", "Series", "En vivo", "Temas", "Imágenes", "Qué se puede publicar"]],
+      ["Publicidad", ["Espacios publicitarios", "Anunciantes"]],
+      ["Equipo y ajustes", ["Trabajadores", "Configuración", "Registro de actividad", "Mi cuenta"]],
+    ]);
+  });
+});
+
+describe("qué puede crear cada persona (botón Crear, paleta y barra del celular)", () => {
+  it("solo los tipos de contenido de sus módulos", () => {
+    const items = createItems(user({ permissions: { CELEBRATIONS: "PUBLISH", PLACES: "PUBLISH" } }));
+    expect(items.map((i) => i.label)).toEqual(["Lugar", "Celebración"]);
+    expect(items.map((i) => i.href)).toEqual(["/admin/lugares/nuevo", "/admin/celebraciones/nuevo"]);
   });
 
-  it("SUPER_ADMIN ve todo lo que su rol tiene permitido explícitamente", () => {
-    // No necesariamente TODOS los ítems (section 43: nav ↔ SecurityConfig
-    // deben coincidir a mano) — pero sí todo lo que declare SUPER_ADMIN.
-    const visible = visibleNavItems("SUPER_ADMIN").map((i) => i.href);
-    for (const item of ADMIN_NAV_ITEMS) {
-      if (!item.roles || item.roles.includes("SUPER_ADMIN")) {
-        expect(visible).toContain(item.href);
-      } else {
-        expect(visible).not.toContain(item.href);
-      }
-    }
+  it("el dueño crea todo, en el orden del menú", () => {
+    expect(createItems(user({ role: "OWNER" })).map((i) => i.label)).toEqual([
+      "Historia",
+      "Publicación",
+      "Lugar",
+      "Celebración",
+      "Galería",
+      "Serie",
+      "Transmisión en vivo",
+    ]);
   });
 
-  it("solo muestra /admin/auditoria a SUPER_ADMIN y ADMIN (espeja SecurityConfig: /api/v1/admin/audit/**)", () => {
-    for (const role of ALL_ROLES) {
-      const visible = visibleNavItems(role).some((i) => i.href === "/admin/auditoria");
-      expect(visible).toBe(role === "SUPER_ADMIN" || role === "ADMIN");
-    }
+  it("sin módulos de contenido no hay nada que crear", () => {
+    expect(createItems(user({ permissions: { ADVERTISING: "ACCESS" } }))).toEqual([]);
+  });
+});
+
+describe("Historias en el menú", () => {
+  it("con el módulo Historias, «Historia» va primero en Crear (lo más frecuente)", () => {
+    const items = createItems(user({ permissions: { STORIES: "PUBLISH", PUBLICATIONS: "PUBLISH" } }));
+    expect(items[0]).toEqual({ label: "Historia", href: "/admin/historias/nueva" });
+    expect(visibleNavItems(user({ permissions: { STORIES: "PUBLISH" } })).map((i) => i.label)).toContain("Historias");
+  });
+
+  it("sin el módulo no aparece", () => {
+    const items = createItems(user({ permissions: { PUBLICATIONS: "PUBLISH" } }));
+    expect(items.map((i) => i.label)).not.toContain("Historia");
   });
 });

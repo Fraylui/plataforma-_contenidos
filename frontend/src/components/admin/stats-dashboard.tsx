@@ -1,22 +1,25 @@
-import { Compass, GitBranch, LayoutGrid, TrendingUp, Users2 } from "lucide-react";
+import { Compass, GitBranch, SquaresFour, TrendUp, UsersThree } from "@phosphor-icons/react/dist/ssr";
 import type { PlatformStats } from "@/lib/api/admin-types";
-import type { ArticleStatus } from "@/lib/api/types";
-import { articleStatusLabel } from "@/lib/content-labels";
+import type { PublicationStatus } from "@/lib/api/types";
+import { publicationStatusLabel } from "@/lib/content-labels";
 import { AdminPageHeader } from "@/components/admin/ui";
 import { ContentTypesChart, PipelineChart, PublishTrendChart, RoleChart, TotalDistributionDonut } from "@/components/admin/stats-charts";
+import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
-const CARD_CLASS = "rounded-xl border border-border/60 bg-surface p-5 transition-colors hover:border-accent/40";
-const SECTION_TITLE_CLASS = "flex items-center gap-2 text-xs font-semibold tracking-wide text-muted uppercase";
+const CARD_CLASS = "rounded-card bg-surface shadow-card p-5 transition-colors hover:border-accent/40";
+// Sin mayúsculas de antetítulo: títulos de sección en frase normal.
+const SECTION_TITLE_CLASS = "flex items-center gap-2 text-sm font-semibold text-foreground";
 
 // Orden real del flujo de publicación (CONTEXTO.md sección 12) — la "línea de
-// producción". ARCHIVED/REJECTED son estados terminales fuera de la línea
-// activa, no un paso más: se muestran aparte para no romper la proporción
+// producción". ARCHIVED es el estado terminal, fuera de la línea activa:
+// se muestra aparte para no romper la proporción
 // de la barra con contenido que ya salió de circulación.
-const PIPELINE: ArticleStatus[] = ["DRAFT", "IN_REVIEW", "APPROVED", "SCHEDULED", "PUBLISHED"];
-const OFF_LINE: ArticleStatus[] = ["ARCHIVED", "REJECTED"];
+const PIPELINE: PublicationStatus[] = ["DRAFT", "SCHEDULED", "PUBLISHED"];
+const OFF_LINE: PublicationStatus[] = ["ARCHIVED"];
 
 function todayDateline(): string {
   return new Intl.DateTimeFormat("es-PE", {
+    timeZone: SITE_TIME_ZONE,
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -25,8 +28,11 @@ function todayDateline(): string {
 }
 
 export function StatsDashboard({ stats }: { stats: PlatformStats }) {
-  const pipelineTotal = PIPELINE.reduce((sum, status) => sum + (stats.articlesByStatus[status] ?? 0), 0);
-  const inProgress = pipelineTotal - stats.articlesByStatus.PUBLISHED;
+  const pipelineTotal = PIPELINE.reduce((sum, status) => sum + (stats.publicationsByStatus[status] ?? 0), 0);
+  // Mismas cifras que el Inicio del panel: todos los tipos, no solo Publicaciones.
+  const allTypes = [stats.publicationsByStatus, stats.placesByStatus, stats.celebrationsByStatus, stats.galleriesByStatus];
+  const onSite = allTypes.reduce((sum, byStatus) => sum + (byStatus.PUBLISHED ?? 0), 0);
+  const inPreparation = allTypes.reduce((sum, byStatus) => sum + (byStatus.DRAFT ?? 0) + (byStatus.SCHEDULED ?? 0), 0);
   const dateline = todayDateline();
 
   return (
@@ -35,16 +41,16 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
 
       {/* Cifras destacadas, tabulares — sin íconos: el número es el protagonista. */}
       <dl className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <EditionFigure label="Publicados" value={stats.articlesByStatus.PUBLISHED} />
-        <EditionFigure label="Últimos 30 días" value={stats.articlesPublishedLast30Days} />
-        <EditionFigure label="En preparación" value={inProgress} />
-        <EditionFigure label="Usuarios activos" value={stats.activeUsers} />
+        <EditionFigure label="En el sitio" value={onSite} />
+        <EditionFigure label="En preparación" value={inPreparation} />
+        <EditionFigure label="Publicaciones en 30 días" value={stats.publicationsPublishedLast30Days} />
+        <EditionFigure label="Personas en el equipo" value={stats.activeUsers} />
       </dl>
 
       {/* Único gráfico con eje temporal real del panel — el resto es "estado actual". */}
       <section className={`mt-8 ${CARD_CLASS}`}>
         <h2 className={SECTION_TITLE_CLASS}>
-          <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
+          <TrendUp className="h-3.5 w-3.5" aria-hidden="true" />
           Publicaciones día a día · últimos 30 días
         </h2>
         <div className="mt-2">
@@ -57,7 +63,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
         <section className={`${CARD_CLASS} lg:col-span-3`}>
           <h2 className={SECTION_TITLE_CLASS}>
             <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
-            Flujo de publicación
+            Publicaciones por estado
           </h2>
 
           {pipelineTotal === 0 ? (
@@ -72,11 +78,11 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
           <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted">
             {OFF_LINE.map((status) => (
               <span key={status}>
-                {articleStatusLabel(status)}{" "}
+                {publicationStatusLabel(status)}{" "}
                 <span
-                  className={`tabular-nums font-medium ${status === "REJECTED" ? "text-danger" : "text-foreground"}`}
+                  className="tabular-nums font-medium text-foreground"
                 >
-                  {stats.articlesByStatus[status] ?? 0}
+                  {stats.publicationsByStatus[status] ?? 0}
                 </span>
               </span>
             ))}
@@ -85,7 +91,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
 
         <section className={`${CARD_CLASS} lg:col-span-2`}>
           <h2 className={SECTION_TITLE_CLASS}>
-            <LayoutGrid className="h-3.5 w-3.5" aria-hidden="true" />
+            <SquaresFour className="h-3.5 w-3.5" aria-hidden="true" />
             Distribución total
           </h2>
           <TotalDistributionDonut stats={stats} />
@@ -95,7 +101,7 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
       {/* Los otros 5 tipos de contenido — sin esto, Estadísticas parecía la de un blog de solo artículos. */}
       <section className={`mt-6 ${CARD_CLASS}`}>
         <h2 className={SECTION_TITLE_CLASS}>
-          <LayoutGrid className="h-3.5 w-3.5" aria-hidden="true" />
+          <SquaresFour className="h-3.5 w-3.5" aria-hidden="true" />
           Otros formatos
         </h2>
         <ContentTypesChart stats={stats} />
@@ -108,13 +114,13 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
             Alcance
           </h2>
           <ul className="mt-4 space-y-4">
-            <RatioRow label="Categorías activas" active={stats.activeCategories} total={stats.totalCategories} />
+            <RatioRow label="Temas activos" active={stats.activeCategories} total={stats.totalCategories} />
           </ul>
         </section>
 
         <section className={CARD_CLASS}>
           <h2 className={SECTION_TITLE_CLASS}>
-            <Users2 className="h-3.5 w-3.5" aria-hidden="true" />
+            <UsersThree className="h-3.5 w-3.5" aria-hidden="true" />
             Equipo
           </h2>
           <RoleChart usersByRole={stats.usersByRole} />
@@ -126,9 +132,10 @@ export function StatsDashboard({ stats }: { stats: PlatformStats }) {
 
 function EditionFigure({ label, value }: { label: string; value: number }) {
   return (
-    <div className={CARD_CLASS}>
+    // dt antes que dd (orden correcto para lectores de pantalla); el número se ve arriba con flex-col-reverse.
+    <div className={`${CARD_CLASS} flex flex-col-reverse`}>
+      <dt className="mt-1.5 text-sm font-medium text-muted">{label}</dt>
       <dd className="text-3xl font-bold tracking-tight tabular-nums text-foreground">{value}</dd>
-      <dt className="mt-1.5 text-xs font-semibold tracking-wide text-muted uppercase">{label}</dt>
     </div>
   );
 }
@@ -145,7 +152,7 @@ function RatioRow({ label, active, total }: { label: string; active: number; tot
         </span>
       </div>
       <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-background">
-        <div className="h-full rounded-full bg-accent-fill transition-all" style={{ width: `${pct}%` }} />
+        <div className="h-full rounded-full bg-accent-fill transition-[width] motion-reduce:transition-none" style={{ width: `${pct}%` }} />
       </div>
     </li>
   );

@@ -17,6 +17,8 @@ L.Icon.Default.mergeOptions({
 const WORLD_CENTER: [number, number] = [20, 0];
 const WORLD_ZOOM = 2;
 const PIN_ZOOM = 15;
+/** Sin pin pero con un punto de partida (el último lugar creado): nivel ciudad. */
+const START_ZOOM = 12;
 
 function ClickHandler({ onPick }: { onPick: (lat: number, lng: number) => void }) {
   useMapEvents({
@@ -40,16 +42,18 @@ export function LocationPicker({
   longitude,
   disabled,
   onChange,
+  startAt,
 }: {
   latitude: string;
   longitude: string;
   disabled?: boolean;
   onChange: (lat: string, lng: string) => void;
+  startAt?: [number, number] | null;
 }) {
   const parsedLat = Number(latitude);
   const parsedLng = Number(longitude);
   const hasPin = latitude.trim() !== "" && longitude.trim() !== "" && !Number.isNaN(parsedLat) && !Number.isNaN(parsedLng);
-  const center: [number, number] = hasPin ? [parsedLat, parsedLng] : WORLD_CENTER;
+  const center: [number, number] = hasPin ? [parsedLat, parsedLng] : (startAt ?? WORLD_CENTER);
 
   return (
     <div className={`overflow-hidden rounded-md border border-border ${disabled ? "pointer-events-none opacity-60" : ""}`}>
@@ -59,7 +63,7 @@ export function LocationPicker({
       <MapContainer
         key={hasPin ? "pin" : "empty"}
         center={center}
-        zoom={hasPin ? PIN_ZOOM : WORLD_ZOOM}
+        zoom={hasPin ? PIN_ZOOM : startAt ? START_ZOOM : WORLD_ZOOM}
         style={{ height: "220px", width: "100%" }}
         scrollWheelZoom={false}
       >

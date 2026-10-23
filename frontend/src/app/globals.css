@@ -29,6 +29,20 @@
  * criterio aplicado aquí. --danger se mantiene en rojo aparte para no
  * perder la señal de "esto es peligroso".
  */
+/*
+ * Alto de la barra de pestañas inferior (BottomTabBar, < 1024 px), incluida
+ * la zona segura del iPhone. Lo usan el `main`, el anuncio fijo y el aviso
+ * de cookies para apilarse encima en vez de quedar tapados.
+ */
+:root {
+  --bottom-bar-h: calc(4rem + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  :root {
+    --bottom-bar-h: 0px;
+  }
+}
+
 :root {
   /* slate-50/blanco puro: distinción sutil (no cero, no exagerada) entre
      el lienzo y las tarjetas, sin recurrir a tintar el neutro con verde. */
@@ -41,101 +55,115 @@
      del 4.5:1 exigido — antes el ajuste anterior apenas rozaba el mínimo). */
   --muted: #475569;
   --border: #e2e8f0;
-  /* green-800, no green-700: el 700 (#15803d) pasaba AA (4.5:1+) contra
-     --surface/--background (audit original) pero solo 4.44:1 contra
-     --canvas (#e9f4ec, sumado después en el rediseño de home de 2026-09) —
-     bajo el 4.5:1 exigido para texto normal. Afectaba el chip "Tipo ·
-     Categoría" de las 6 páginas de detalle público, que se apoya
-     directamente sobre el lienzo. green-800 despeja el peor caso
-     (--canvas) con margen (6.32:1) sin oscurecer visiblemente el verde de
-     marca (hallado con axe-core en e2e/accessibility.spec.ts). */
-  /* Verde de marca en DOS tonos del mismo matiz (#0BDA51), cada uno para su
-     trabajo — un solo verde no puede ser vibrante Y legible como texto sobre
-     blanco (medido con la fórmula WCAG: #0BDA51 sobre blanco da 1.88):
-       --accent      texto/enlaces/bordes: #06752b → 5.85 sobre blanco,
-                     5.19 sobre el lienzo verde. Antes #166534, un verde
-                     bosque tan oscuro que casi no se notaba como color.
-       --accent-fill rellenos (botones, píldoras, pestaña activa): #0BDA51
-                     vibrante con texto oscuro encima → 9.49. */
-  --accent: #06752b;
-  --accent-fill: #0bda51;
+  /* Marca (2026-10-21, decisión del dueño: fuera el verde). Naranja
+     «curiosidad»: entusiasmo, aventura y calidez —viajes, curiosidades,
+     celebraciones— y resalta sobre fotos de naturaleza, donde el verde se
+     perdía. Dos tonos del mismo matiz, medidos con la fórmula WCAG:
+       --accent      texto/enlaces/bordes: #b3390b → 5.99 sobre blanco,
+                     5.34 sobre el lienzo y 4.74 sobre su propio tinte
+                     suave (accent-soft: el ítem activo del panel; #c2410c
+                     daba 4.14 ahí y axe lo marcó).
+       --accent-fill rellenos (botones, píldoras, pestaña activa): #ff6b2c
+                     con texto oscuro encima → 6.28. Separado del rojo de
+                     «me gusta» (#ff3040) para no confundirse. */
+  --accent: #b3390b;
+  --accent-fill: #ff6b2c;
   --accent-foreground: #0f172a;
+  /* Degradado de marca (anillos de temas, tarjetas destacadas): naranja →
+     magenta, la energía de creador de Instagram/TikTok. */
+  --brand-from: #ff6b2c;
+  --brand-to: #e1306c;
+  /* Fondos de las historias de solo texto: la familia de marca en tonos
+     profundos, porque el texto va en blanco (contraste ≥ 3:1 para texto
+     grande, probado en lib/stories/backgrounds.test.ts). Iguales en oscuro:
+     son «fotos», no superficies. */
+  --story-sunset: linear-gradient(160deg, #c2410c, #be185d);
+  --story-ocean: linear-gradient(160deg, #1d4ed8, #0e7490);
+  --story-forest: linear-gradient(160deg, #15803d, #0f766e);
+  --story-night: linear-gradient(160deg, #312e81, #6d28d9);
   /* Derivado de --accent, no un valor fijo: así una marca personalizada
      (primaryColor en Configuración de plataforma) también obtiene un tinte
      suave coherente sin tener que recalcularlo a mano. */
   --accent-soft: color-mix(in srgb, var(--accent) 15%, var(--surface));
   --danger: #991b1b;
   --danger-foreground: #ffffff;
-  /* Lienzo del sitio público: tinte verde muy claro en vez de blanco plano
-     (a pedido: "que no haya mucho blanco, tampoco oscuro"). El blanco puro
-     queda solo dentro de las tarjetas (--surface), así resaltan. Esto es
-     intencional y distinto de --background: el lienzo público sí lleva
-     personalidad de marca, los neutros base del panel no. */
-  --canvas: #e9f4ec;
-  --canvas-strong: #dcebe0;
-  --canvas-border: #cfe3d5;
+  /* Lienzo del sitio público: gris neutro de Facebook (#f0f2f5) en vez de
+     blanco plano ("que no haya mucho blanco") y en vez del tinte verde de
+     2026-09, que teñía todo y se veía apagado ("en modo claro se ve feo",
+     2026-10-06). El blanco puro queda en tarjetas y menús (--surface) y el
+     verde solo en marca y acciones. Contraste WCAG: foreground 15.9,
+     muted 6.76, accent 5.22 sobre el lienzo; 4.69 del accent sobre
+     --canvas-strong. */
+  --canvas: #f0f2f5;
+  --canvas-strong: #e4e6eb;
+  --canvas-border: #dadde1;
+
+  /* Sistema de diseño (Fase 1, 2026-10-07) — campos, foco, estados y
+     profundidad. Campo = un tono bajo la tarjeta y borde translúcido, sin
+     línea dura; foco = anillo suave del verde de marca. Estados medidos
+     WCAG AA como texto sobre su propio fondo tintado (-soft). */
+  --field: #f1f5f9;
+  --field-hover: #e8edf4;
+  --field-border: rgb(15 23 42 / 0.08);
+  --ring: color-mix(in srgb, var(--accent-fill) 38%, transparent);
+  --success: #047857;
+  --warning: #92400e;
+  /* Índigo: confianza y conocimiento (enlaces, avisos de información). 7.9 sobre blanco. */
+  --info: #4338ca;
+  --success-soft: color-mix(in srgb, var(--success) 12%, var(--surface));
+  --warning-soft: color-mix(in srgb, #f59e0b 18%, var(--surface));
+  --info-soft: color-mix(in srgb, var(--info) 10%, var(--surface));
+  --danger-soft: color-mix(in srgb, var(--danger) 10%, var(--surface));
+  /* Texto rojo (errores, etiqueta Archivado): en claro es --danger. */
+  --danger-ink: var(--danger);
+  /* Señales rojas que no son error: el corazón de «me gusta» (rojo de
+     Instagram, ≥ 3:1 como ícono) y «En vivo» (texto AA sobre surface). */
+  --like: #ff3040;
+  --live: #dc2626;
+  color-scheme: light;
+  --elev-card: 0 1px 2px rgb(15 23 42 / 0.05), 0 1px 3px rgb(15 23 42 / 0.07);
+  --elev-pop: 0 10px 24px -6px rgb(15 23 42 / 0.16), 0 2px 6px -2px rgb(15 23 42 / 0.08);
+  --elev-overlay: 0 24px 48px -12px rgb(15 23 42 / 0.3);
 }
 
-/*
- * "Oscuro" elegido a mano en Configuración → Apariencia debe aplicar
- * siempre, sin importar el sistema operativo del visitante — por eso va
- * SIN @media, aparte de la regla de "Auto" de abajo (antes estaban
- * agrupadas bajo el mismo @media, lo que hacía que "Oscuro" no hiciera
- * nada si el sistema operativo estaba en modo claro).
- */
-:root[data-theme="dark"] {
-  /* Negro puro (#0a0a0a) resultaba plano; mezclar verde directo en cada
-     neutro (intentado en iteraciones previas) daba un charcoal turbio y
-     contraste al límite. Slate-900/800 en su lugar: azulado, no negro
-     plano, con la garantía de contraste de una escala ya probada — el
-     verde de marca queda reservado para --accent. */
-  --background: #0f172a;
-  --surface: #1e293b;
-  --foreground: #f1f5f9;
-  /* slate-400: 6.97:1 contra --background, 5.70:1 contra --surface —
-     verificado con la fórmula de luminancia relativa WCAG. La iteración
-     anterior (verde mezclado a mano) apenas llegaba a 4.66:1; esta escala
-     da margen real en vez de rozar el mínimo cada vez que --surface cambia. */
-  --muted: #94a3b8;
-  --border: #334155;
-  /* Oscuro: el mismo #0BDA51 sirve de texto (9.49 sobre el fondo, 7.78
-     sobre tarjetas) y de relleno con texto oscuro encima (9.49). */
-  --accent: #0bda51;
-  --accent-fill: #0bda51;
-  --accent-foreground: #0f172a;
-  --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
-  --danger: #dc2626;
-  --danger-foreground: #0f172a;
-  /* Antes un verde-negro aparte (#0c120e) de otra familia y ~40% más
-     oscuro que --background — al lado de las tarjetas (--surface, Slate)
-     se veía como un hueco negro que no combinaba. Ahora se construye desde
-     el mismo Slate que el resto del tema, con el mismo tinte de marca
-     sutil que ya usa --canvas claro, en vez de una paleta oscura paralela
-     que queda desactualizada cada vez que se ajusta --background. */
-  --canvas: color-mix(in srgb, #0bda51 6%, #0f172a);
-  --canvas-strong: color-mix(in srgb, #0bda51 8%, #1e293b);
-  --canvas-border: color-mix(in srgb, #0bda51 10%, #334155);
-}
-
-/* "Auto": sin elección explícita, sigue el sistema operativo del visitante. */
-:root:not([data-theme="light"]):not([data-theme="dark"]) {
+/* Modo oscuro: sigue al dispositivo del visitante, sin selector (decisión del dueño). */
+:root {
   @media (prefers-color-scheme: dark) {
     --background: #0f172a;
     --surface: #1e293b;
     --foreground: #f1f5f9;
     --muted: #94a3b8;
     --border: #334155;
-    /* Oscuro: el mismo #0BDA51 sirve de texto (9.49 sobre el fondo, 7.78
-       sobre tarjetas) y de relleno con texto oscuro encima (9.49). */
-    --accent: #0bda51;
-    --accent-fill: #0bda51;
+    /* Oscuro: texto naranja claro (#ff8a4c: 6.26 sobre tarjetas, 7.64 sobre
+       el fondo) y el mismo relleno con texto oscuro encima (6.28). */
+    --accent: #ff8a4c;
+    --accent-fill: #ff6b2c;
     --accent-foreground: #0f172a;
     --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
     --danger: #dc2626;
-    --danger-foreground: #0f172a;
-    --canvas: color-mix(in srgb, #0bda51 6%, #0f172a);
-    --canvas-strong: color-mix(in srgb, #0bda51 8%, #1e293b);
-    --canvas-border: color-mix(in srgb, #0bda51 10%, #334155);
+    --danger-foreground: #ffffff;
+    /* Lienzo con un tinte índigo apenas visible (antes verde). */
+    --canvas: color-mix(in srgb, #4338ca 6%, #0f172a);
+    --canvas-strong: color-mix(in srgb, #4338ca 8%, #1e293b);
+    --canvas-border: color-mix(in srgb, #4338ca 10%, #334155);
+    --field: #0f172a;
+    --field-hover: #131d33;
+    --field-border: rgb(255 255 255 / 0.08);
+    --ring: color-mix(in srgb, var(--accent-fill) 40%, transparent);
+    --success: #34d399;
+    --warning: #fbbf24;
+    --info: #a5b4fc;
+    --success-soft: color-mix(in srgb, var(--success) 16%, var(--surface));
+    --warning-soft: color-mix(in srgb, var(--warning) 16%, var(--surface));
+    --info-soft: color-mix(in srgb, var(--info) 16%, var(--surface));
+    --danger-soft: color-mix(in srgb, var(--danger) 18%, var(--surface));
+    --danger-ink: #f87171;
+    --like: #ff3040;
+    --live: #f87171;
+    color-scheme: dark;
+    --elev-card: 0 1px 2px rgb(0 0 0 / 0.35), inset 0 0 0 1px rgb(255 255 255 / 0.04);
+    --elev-pop: 0 12px 28px -6px rgb(0 0 0 / 0.55), inset 0 0 0 1px rgb(255 255 255 / 0.06);
+    --elev-overlay: 0 24px 56px -12px rgb(0 0 0 / 0.7), inset 0 0 0 1px rgb(255 255 255 / 0.06);
   }
 }
 
@@ -154,6 +182,33 @@
   --color-canvas: var(--canvas);
   --color-canvas-strong: var(--canvas-strong);
   --color-canvas-border: var(--canvas-border);
+  --color-field: var(--field);
+  --color-field-hover: var(--field-hover);
+  --color-field-border: var(--field-border);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-ink: var(--danger-ink);
+  --color-like: var(--like);
+  --color-brand-from: var(--brand-from);
+  --color-brand-to: var(--brand-to);
+  --color-live: var(--live);
+  --radius-control: 10px;
+  --radius-card: 16px;
+  --radius-modal: 20px;
+  --shadow-card: var(--elev-card);
+  --shadow-pop: var(--elev-pop);
+  --shadow-overlay: var(--elev-overlay);
+  --text-title: 1.875rem;
+  --text-title--line-height: 2.25rem;
+  --text-title--letter-spacing: -0.02em;
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.25rem;
 
   --font-sans: var(--font-sans);
 }
@@ -193,33 +248,39 @@ body {
   background-color: var(--muted);
 }
 
-/* Foco visible siempre, también con mouse (accesibilidad — no solo :focus-visible por si algún navegador viejo no lo soporta bien) */
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+/* Filas deslizables (historias de temas, chips, menú lateral): sin barra
+   visible, como Instagram/Facebook. Va SIN capa y después de la regla
+   global `*` de arriba: una clase de Tailwind (en capa) nunca le ganaría. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Foco visible por defecto para todo lo interactivo. En capa base: los
+   componentes del sistema de diseño (anillo suave con --ring) lo
+   reemplazan con utilidades; fuera de capa ganaría siempre y se verían
+   los dos indicadores a la vez. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
 }
 
 /*
- * Logo con variante oscura opcional (logoDarkUrl en Configuración de
- * plataforma): mismo patrón condicional que ya usan los demás tokens de
- * tema (data-theme explícito, si no hay, sigue prefers-color-scheme).
+ * Logo con variante oscura opcional (logoDarkUrl en Configuración): se
+ * muestra cuando el dispositivo está en modo oscuro.
  */
 .logo-dark {
   display: none;
 }
-:root[data-theme="dark"] .logo-dark {
-  display: block;
-}
-:root[data-theme="dark"] .logo-light {
-  display: none;
-}
-:root:not([data-theme="light"]):not([data-theme="dark"]) .logo-dark {
-  @media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: dark) {
+  .logo-dark {
     display: block;
   }
-}
-:root:not([data-theme="light"]):not([data-theme="dark"]) .logo-light {
-  @media (prefers-color-scheme: dark) {
+  .logo-light {
     display: none;
   }
 }
@@ -234,7 +295,7 @@ body {
 }
 
 /*
- * Texto largo (cuerpo de publicaciones, lugares, eventos, directorio y el
+ * Texto largo (cuerpo de publicaciones, lugares, celebraciones y el
  * editor del panel) con los colores del TEMA, no los de Tailwind Typography.
  * Antes usaba `prose-slate`, que trae grises fijos pensados para fondo
  * blanco: en tema oscuro el cuerpo quedaba gris oscuro sobre fondo oscuro,
@@ -260,4 +321,48 @@ body {
   --tw-prose-pre-bg: var(--canvas-strong, var(--surface));
   --tw-prose-th-borders: var(--border);
   --tw-prose-td-borders: var(--border);
+}
+
+/* Corazón del doble toque (PostMedia): aparece, crece y se desvanece. Solo
+   con motion-safe — si el sistema pide menos movimiento no se anima. */
+@keyframes heart-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+  25% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  45% { transform: translate(-50%, -50%) scale(0.95); }
+  80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Me gusta flotante del detalle inmersivo: un «pop» corto al marcarlo (solo
+   transform, motion-safe en el componente). */
+@keyframes like-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+
+/* Barra de progreso de lectura (ReadingProgress) y del «Sigue» (UpNext):
+   CSS puro con scroll-driven animations, sin JS. Donde no hay soporte la
+   barra queda vacía (scale-x-0) y no estorba. */
+/* Anima la propiedad `scale` (no transform): es la que fija scale-x-0 en Tailwind 4. */
+@keyframes fill-x {
+  from { scale: 0 1; }
+  to { scale: 1 1; }
+}
+@supports (animation-timeline: scroll()) {
+  .reading-progress {
+    animation: fill-x linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+@supports (animation-timeline: view()) {
+  /* UpNext: la barra se llena mientras la portada siguiente sube y llena la pantalla. */
+  .up-next-card {
+    view-timeline-name: --up-next;
+  }
+  .up-next-fill {
+    animation: fill-x linear both;
+    animation-timeline: --up-next;
+    animation-range: entry 0% entry 100%;
+  }
 }

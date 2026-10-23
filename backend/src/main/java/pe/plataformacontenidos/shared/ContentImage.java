@@ -7,7 +7,7 @@ import java.util.UUID;
 /**
  * Una imagen de contenido: o bien una imagen subida (imageId, módulo
  * Media) o bien un enlace externo (externalUrl) — nunca ambas ni ninguna.
- * Article/Place/Event comparten esto (CONTEXTO.md sección 3): antes cada
+ * Publication/Place/Celebration comparten esto (CONTEXTO.md sección 3): antes cada
  * uno guardaba solo UUID de imágenes subidas; ahora una publicación puede
  * tener imágenes subidas, por enlace, o una mezcla, según lo que tenga a
  * mano quien la redacta.
@@ -60,9 +60,5 @@ public class ContentImage {
 
     public String getCaption() {
         return caption;
-    }
-
-    public boolean isUploaded() {
-        return imageId != null;
     }
 }

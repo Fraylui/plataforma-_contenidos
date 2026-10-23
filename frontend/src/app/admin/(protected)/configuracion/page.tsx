@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { getAdminPlatformSettings } from "@/lib/api/admin-client";
+import { getAdminPlatformSettings } from "@/lib/api/admin/settings";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { PlatformSettingsForm } from "@/components/admin/platform-settings-form";
 import { AdminPageHeader } from "@/components/admin/ui";
 
 export const metadata: Metadata = {
-  title: "Configuración de plataforma",
+  title: "Configuración del sitio",
   robots: "noindex,nofollow",
 };
 
@@ -19,8 +19,8 @@ export default async function AdminConfigurationPage() {
   return (
     <div>
       <AdminPageHeader
-        title="Configuración de plataforma"
-        description="Identidad, apariencia, SEO por defecto, redes y contacto. Se aplica en todo el sitio sin redeploy (CONTEXTO.md sección 14)."
+        title="Configuración del sitio"
+        description="Marca, cómo se ve al compartir, nuestras redes, contacto e ingresos. Los cambios se ven en el sitio al guardar."
       />
       <div className="mt-6">
         <PlatformSettingsForm settings={result.data} />

@@ -1,30 +1,23 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  getCategoryById,
-  getPlatformSettings,
-  getPublishedGalleryBySlug,
-  listPublishedArticles,
-  listPublishedGalleries,
-  listPublishedPlaces,
-} from "@/lib/api/client";
+import { getCategoryById, getPlatformSettings, getPublishedGalleryBySlug, getRelatedWithFallback } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
-import { ArticleCard } from "@/components/article/article-card";
-import { PlaceCard } from "@/components/place/place-card";
-import { GalleryCard } from "@/components/gallery/gallery-card";
-import { LikeShareBar } from "@/components/content/like-share-bar";
-import { ContentImageGallery } from "@/components/content/content-image-gallery";
-import { imageUrl } from "@/lib/image-url";
+import { FloatingReactions } from "@/components/post/immersive/floating-reactions";
+import { heroCover } from "@/components/post/immersive/immersive-hero";
+import { PhotoStack } from "@/components/post/immersive/photo-stack";
+import { ViewBeacon } from "@/components/content/view-beacon";
+import { AdBlock } from "@/components/legal/ad-block";
+import { PostView } from "@/components/post/post-view";
+import { headerTimeFor } from "@/components/post/post-header";
+import { KIND_LABEL } from "@/lib/content-kind";
+import { fromFeedItem, splitUpNext } from "@/lib/home-items";
 import { SITE_URL } from "@/lib/site-url";
-import type { Category, ContentImage, Gallery } from "@/lib/api/types";
+import type { Category, Gallery } from "@/lib/api/types";
+import { contentImageUrl, robotsWithLargePreview, shareImageUrl } from "@/lib/share-image";
+import { orNull } from "@/lib/server-log";
 
-const RELATED_SIZE = 4;
-
-/** Subida (imageUrl propia) o por enlace externo — nunca ambas, ver ContentImage. */
-function resolveImageUrl(image: ContentImage): string {
-  return image.imageId ? imageUrl(`/api/v1/images/${image.imageId}/file`) : (image.externalUrl ?? "");
-}
+/** "Más como esto": 3 filas de la cuadrícula de 3. */
+const MORE_SIZE = 9;
 
 async function loadGallery(slug: string) {
   try {
@@ -58,13 +51,13 @@ export async function generateMetadata(props: PageProps<"/galerias/[slug]">): Pr
 
   const title = gallery.seoTitle || gallery.title;
   const description = gallery.metaDescription || gallery.excerpt || undefined;
-  const coverImage = gallery.images[0] ? resolveImageUrl(gallery.images[0]) : gallery.ogImageUrl;
+  const coverImage = shareImageUrl(gallery);
 
   return {
     title,
     description,
     alternates: { canonical: gallery.canonicalUrl || `/galerias/${slug}` },
-    robots: gallery.robots,
+    robots: robotsWithLargePreview(gallery.robots),
     openGraph: {
       title,
       description,
@@ -82,7 +75,7 @@ function galleryJsonLd(gallery: Gallery, category: Category | null, siteName: st
     "@type": "ImageGallery",
     name: gallery.title,
     description: gallery.metaDescription || gallery.excerpt || undefined,
-    image: gallery.images.map(resolveImageUrl),
+    image: gallery.images.map(contentImageUrl).filter(Boolean),
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     ...(category ? { keywords: category.name } : {}),
     publisher: { "@type": "Organization", name: siteName },
@@ -112,26 +105,15 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
   const { slug } = await props.params;
   const gallery = await loadGallery(slug);
 
-  const [category, settings] = await Promise.all([
-    getCategoryById(gallery.categoryId).catch(() => null),
+  const [category, settings, relatedPage] = await Promise.all([
+    getCategoryById(gallery.categoryId).catch(orNull("galeria.tema")),
     getPlatformSettings(),
+    getRelatedWithFallback({ excludeType: "GALLERY", excludeId: gallery.id, categoryId: gallery.categoryId, size: MORE_SIZE }),
   ]);
-
-  const [relatedGalleriesResult, relatedPlacesResult, relatedArticlesResult] = category
-    ? await Promise.all([
-        listPublishedGalleries({ categoryId: category.id, size: RELATED_SIZE + 1 }),
-        listPublishedPlaces({ categoryId: category.id, size: RELATED_SIZE }),
-        listPublishedArticles({ categoryId: category.id, size: RELATED_SIZE }),
-      ])
-    : [null, null, null];
-  const relatedGalleries = (relatedGalleriesResult?.items ?? [])
-    .filter((g) => g.id !== gallery.id)
-    .slice(0, RELATED_SIZE);
-  const relatedPlaces = relatedPlacesResult?.items ?? [];
-  const relatedArticles = relatedArticlesResult?.items ?? [];
+  const { upNext, more } = splitUpNext([...relatedPage.related, ...relatedPage.more].map(fromFeedItem));
 
   return (
-    <article className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -145,97 +127,23 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
         }}
       />
 
-      <nav aria-label="Breadcrumb" className="text-xs text-muted">
-        <ol className="flex flex-wrap items-center gap-1.5">
-          <li>
-            <Link href="/" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-              Inicio
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>
-            <Link href="/galerias" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-              Galerías
-            </Link>
-          </li>
-          {category && (
-            <>
-              <li aria-hidden="true">/</li>
-              <li>
-                <Link href={`/categorias/${category.slug}`} className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-                  {category.name}
-                </Link>
-              </li>
-            </>
-          )}
-          <li aria-hidden="true">/</li>
-          <li className="max-w-[24rem] truncate text-foreground/80" aria-current="page">
-            {gallery.title}
-          </li>
-        </ol>
-      </nav>
-
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium tracking-wide uppercase">
-        {category && <span className="text-accent">{category.name}</span>}
-        <span className={category ? "text-muted normal-case" : "text-accent"}>
-          {category && "· "}
-          {gallery.images.length} foto{gallery.images.length === 1 ? "" : "s"}
-        </span>
-      </div>
-
-      <h1 className="mt-3 max-w-2xl text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
-        {gallery.title}
-      </h1>
-
-      {gallery.excerpt && (
-        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-foreground/90">
-          {gallery.excerpt}
-        </p>
-      )}
-
-      <ContentImageGallery images={gallery.images} alt={gallery.title} spacing="mt-8" />
-
-      <LikeShareBar contentType="galleries" slug={gallery.slug} initialLikeCount={gallery.likeCount} title={gallery.title} />
-
-      {(relatedGalleries.length > 0 || relatedPlaces.length > 0 || relatedArticles.length > 0) && (
-        <div className="mt-14 max-w-none border-t border-border pt-10">
-          {relatedGalleries.length > 0 && (
-            <section aria-label="Otras galerías">
-              <h2 className="text-lg font-semibold text-foreground">Otras galerías en {category!.name}</h2>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {relatedGalleries.map((related) => (
-                  <GalleryCard key={related.id} gallery={related} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {relatedPlaces.length > 0 && (
-            <section aria-label="Lugares relacionados" className={relatedGalleries.length > 0 ? "mt-10" : undefined}>
-              <h2 className="text-lg font-semibold text-foreground">Lugares en {category!.name}</h2>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {relatedPlaces.map((related) => (
-                  <PlaceCard key={related.id} place={related} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {relatedArticles.length > 0 && (
-            <section
-              aria-label="Más publicaciones"
-              className={relatedGalleries.length > 0 || relatedPlaces.length > 0 ? "mt-10" : undefined}
-            >
-              <h2 className="text-lg font-semibold text-foreground">Más de {category!.name}</h2>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {relatedArticles.map((related) => (
-                  <ArticleCard key={related.id} article={related} />
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-      )}
-    </article>
+      <PostView
+        variant="immersive"
+        cover={heroCover(gallery.images, [])}
+        brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}
+        typeLabel={KIND_LABEL.galeria}
+        categoryName={category?.name}
+        time={headerTimeFor({ kind: "galeria", sortDate: gallery.publishedAt ?? "" })}
+        title={gallery.title}
+        // Las fotos en vertical (no carrusel): una galería se recorre bajando, como Instagram.
+        media={<PhotoStack images={gallery.images.slice(1)} alt={gallery.title} />}
+        excerpt={gallery.excerpt}
+        actions={<ViewBeacon type="GALLERY" id={gallery.id} />}
+        reactions={<FloatingReactions contentType="galleries" slug={gallery.slug} initialLikeCount={gallery.likeCount} title={gallery.title} />}
+        upNext={upNext}
+        ad={<AdBlock position="article" section="GALLERY" categoryId={gallery.categoryId} layout="band" count={2} />}
+        more={more}
+      />
+    </>
   );
 }

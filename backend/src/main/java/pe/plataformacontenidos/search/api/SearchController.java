@@ -10,7 +10,7 @@ import pe.plataformacontenidos.search.SearchResultType;
 import pe.plataformacontenidos.search.SearchService;
 import pe.plataformacontenidos.search.api.dto.SearchPageResponse;
 
-/** Búsqueda interna (CONTEXTO.md sección 16), sobre todos los tipos de contenido buscables (hoy: Artículos y Lugares). */
+/** Búsqueda interna (CONTEXTO.md sección 16), sobre todos los tipos de contenido buscables (ver SearchResultType). */
 @RestController
 @RequestMapping("/api/v1/search")
 public class SearchController {
@@ -30,7 +30,7 @@ public class SearchController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) SearchResultType type,
             @RequestParam(required = false) UUID categoryId,
-            // Rango de fechas: solo tiene efecto cuando type=EVENT (único tipo con fecha propia filtrable).
+            // Rango de fechas: solo tiene efecto cuando type=CELEBRATION (único tipo con fecha propia filtrable).
             @RequestParam(required = false) Instant from,
             @RequestParam(required = false) Instant to) {
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);

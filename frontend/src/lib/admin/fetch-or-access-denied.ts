@@ -1,9 +1,9 @@
-import { AdminApiError } from "@/lib/api/admin-client";
+import { AdminApiError } from "@/lib/api/admin/http";
 
 /**
- * Para lecturas admin restringidas por rol (categorías/geografía exigen
- * EDITOR+, artículos/medios exigen AUTHOR+): la nav ya oculta el link para
- * quien no tiene el rol, pero eso no impide navegar directo a la URL, o que
+ * Para lecturas del panel restringidas por permisos (cada módulo exige el
+ * suyo, ver ): la nav ya oculta el link para
+ * quien no tiene el permiso, pero eso no impide navegar directo a la URL, o que
  * el rol cambie a mitad de sesión. Sin esto, ese 403 legítimo se propagaba
  * sin capturar hasta la boundary de error genérica ("puede ser temporal,
  * reintenta"), que es engañoso para un caso de permisos, no una falla

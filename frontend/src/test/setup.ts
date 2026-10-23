@@ -24,3 +24,41 @@ afterEach(() => {
   vi.clearAllMocks();
   vi.mocked(usePathname).mockReturnValue("/");
 });
+
+// jsdom no implementa matchMedia ni ResizeObserver; el carrusel (embla) los
+// usa al montarse. Sustitutos mínimos: en el navegador real existen siempre.
+if (!window.matchMedia) {
+  window.matchMedia = (query: string) =>
+    ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }) as MediaQueryList;
+}
+if (!("ResizeObserver" in window)) {
+  (window as unknown as { ResizeObserver: unknown }).ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
+if (!("IntersectionObserver" in window)) {
+  (window as unknown as { IntersectionObserver: unknown }).IntersectionObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return [];
+    }
+  };
+}
+
+// cmdk (Combobox) desplaza la opción activa con scrollIntoView, que jsdom no implementa.
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {};
+}

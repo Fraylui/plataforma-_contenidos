@@ -1,0 +1,199 @@
+package pe.plataformacontenidos.content;
+
+import pe.plataformacontenidos.shared.publishing.PublishableContent;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OrderColumn;
+import jakarta.persistence.Table;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import org.hibernate.annotations.UuidGenerator;
+import pe.plataformacontenidos.shared.ContentImage;
+import pe.plataformacontenidos.shared.ContentVideo;
+
+/**
+ * Un artículo de texto (sección 3: noticia, reportaje, crónica, etc. — todos
+ * comparten la misma forma, solo cambia publicationType). author_id y
+ * category_id son UUID sin FK: pertenecen a los módulos Identity y Taxonomy
+ * respectivamente, y este módulo no hace joins cruzados de esquema
+ * (CONTEXTO.md sección 38). Se validan en PublicationService llamando a los
+ * repositorios/servicios de esos módulos.
+ */
+@Entity
+@Table(name = "publications", schema = "content")
+public class Publication extends PublishableContent {
+
+    @Id
+    @GeneratedValue
+    @UuidGenerator
+    private UUID id;
+
+    @Column(nullable = false, unique = true)
+    private String slug;
+
+    @Column(nullable = false)
+    private String title;
+
+    private String excerpt;
+
+    @Column(nullable = false, columnDefinition = "text")
+    private String body;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "publication_type", nullable = false)
+    private PublicationType publicationType;
+
+    @Column(name = "author_id", nullable = false)
+    private UUID authorId;
+
+    @Column(name = "category_id", nullable = false)
+    private UUID categoryId;
+
+    @Column(name = "seo_title")
+    private String seoTitle;
+
+    @Column(name = "meta_description")
+    private String metaDescription;
+
+    @Column(name = "canonical_url")
+    private String canonicalUrl;
+
+    @Column(name = "og_image_url")
+    private String ogImageUrl;
+
+    /**
+     * Imágenes de la publicación: subidas (Media, sección 38) o por enlace
+     * externo — nunca ambas por ítem (ver ContentImage). La primera de la
+     * lista es la portada para tarjetas/feed, mismo criterio que
+     * Lugares/Celebraciones.
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "publication_images", schema = "content", joinColumns = @JoinColumn(name = "publication_id"))
+    @OrderColumn(name = "sort_order")
+    private List<ContentImage> images = new ArrayList<>();
+
+    /** Solo la referencia (Video ID de YouTube), nunca el video en sí — sección 8. Varios videos por publicación. */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "publication_videos", schema = "content", joinColumns = @JoinColumn(name = "publication_id"))
+    @OrderColumn(name = "sort_order")
+    private List<ContentVideo> videos = new ArrayList<>();
+
+    @Column(nullable = false)
+    private String robots = "index,follow";
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt = Instant.now();
+
+    protected Publication() {
+        // JPA
+    }
+
+    public Publication(String slug, String title, String excerpt, String body, PublicationType publicationType,
+            UUID authorId, UUID categoryId) {
+        this.slug = slug;
+        this.title = title;
+        this.excerpt = excerpt;
+        this.body = body;
+        this.publicationType = publicationType;
+        this.authorId = authorId;
+        this.categoryId = categoryId;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getExcerpt() {
+        return excerpt;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public PublicationType getPublicationType() {
+        return publicationType;
+    }
+
+    public UUID getAuthorId() {
+        return authorId;
+    }
+
+    public UUID getCategoryId() {
+        return categoryId;
+    }
+
+    public String getSeoTitle() {
+        return seoTitle;
+    }
+
+    public String getMetaDescription() {
+        return metaDescription;
+    }
+
+    public String getCanonicalUrl() {
+        return canonicalUrl;
+    }
+
+    public String getOgImageUrl() {
+        return ogImageUrl;
+    }
+
+    public List<ContentImage> getImages() {
+        return images;
+    }
+
+    /** Portada para tarjetas/feed: la primera imagen, o null si no tiene ninguna. */
+    public ContentImage getCoverImage() {
+        return images.isEmpty() ? null : images.get(0);
+    }
+
+    public List<ContentVideo> getVideos() {
+        return videos;
+    }
+
+    public String getRobots() {
+        return robots;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void updateContent(String title, String excerpt, String body, PublicationType publicationType, UUID categoryId,
+            String seoTitle, String metaDescription, String canonicalUrl,
+            String ogImageUrl, List<ContentImage> images, List<ContentVideo> videos, String robots) {
+        this.title = title;
+        this.excerpt = excerpt;
+        this.body = body;
+        this.publicationType = publicationType;
+        this.categoryId = categoryId;
+        this.seoTitle = seoTitle;
+        this.metaDescription = metaDescription;
+        this.canonicalUrl = canonicalUrl;
+        this.ogImageUrl = ogImageUrl;
+        this.images = new ArrayList<>(images);
+        this.videos = new ArrayList<>(videos);
+        this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
+        touch();
+    }
+
+}

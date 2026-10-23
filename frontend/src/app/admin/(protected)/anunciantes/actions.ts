@@ -11,7 +11,7 @@ import {
   deleteCampaign,
   updateAdvertiser,
   updateCampaign,
-} from "@/lib/api/admin-client";
+} from "@/lib/api/admin/advertising";
 import type { AdvertiserInput, CampaignInput } from "@/lib/api/admin-types";
 import { runAdminMutation, type ActionResult } from "@/lib/admin/action-helpers";
 

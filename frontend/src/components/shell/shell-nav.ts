@@ -1,0 +1,45 @@
+import { Compass, House, MagnifyingGlass, type Icon } from "@phosphor-icons/react";
+
+/**
+ * Navegación principal del sitio público (diseño 2026-10-06, estilo app):
+ * la misma en la barra inferior (celular) y en el riel izquierdo
+ * (escritorio). Las secciones por tipo (Lugares, Galerías…) no van acá:
+ * son filtros del feed (chips), como en Instagram. Celebraciones tampoco:
+ * sigue el modelo de Google (la portada cambia el día que toca, ver
+ * TodayCelebrations) y su archivo vive en Secciones y en «Más».
+ */
+export type ShellTab = "inicio" | "explorar" | "buscar";
+
+export interface ShellNavItem {
+  tab: ShellTab;
+  href: string;
+  label: string;
+  icon: Icon;
+}
+
+export const SHELL_NAV: ShellNavItem[] = [
+  { tab: "inicio", href: "/", label: "Inicio", icon: House },
+  { tab: "explorar", href: "/explorar", label: "Explorar", icon: Compass },
+  { tab: "buscar", href: "/buscar", label: "Buscar", icon: MagnifyingGlass },
+];
+
+/** Enlaces de la hoja "Más" (celular) y del pie del riel (escritorio). */
+export const MORE_LINKS: { href: string; label: string }[] = [
+  { href: "/contacto", label: "Contacto" },
+  { href: "/privacidad", label: "Privacidad" },
+  { href: "/terminos", label: "Términos" },
+];
+
+/**
+ * Pestaña activa para una ruta. Los listados por tipo, los temas y los
+ * detalles son parte del feed: quedan en "Inicio". Las páginas de «Más»
+ * (contacto, legales) no son de ninguna pestaña: marcar Inicio ahí decía
+ * «estás en Inicio» (aria-current) sin serlo.
+ */
+export function activeTab(pathname: string): ShellTab | null {
+  if (pathname === "/explorar" || pathname.startsWith("/explorar/")) return "explorar";
+  if (pathname === "/buscar" || pathname.startsWith("/buscar/")) return "buscar";
+  if (MORE_LINKS.some(({ href }) => pathname === href || pathname.startsWith(`${href}/`))) return null;
+  return "inicio";
+}
+

@@ -10,13 +10,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.engagement.ContentLikeService;
-import pe.plataformacontenidos.engagement.ContentType;
+import pe.plataformacontenidos.catalog.ContentType;
 import pe.plataformacontenidos.engagement.LikeResponse;
 import pe.plataformacontenidos.galleries.Gallery;
 import pe.plataformacontenidos.galleries.GalleryService;
 import pe.plataformacontenidos.galleries.api.dto.GalleryResponse;
 import pe.plataformacontenidos.galleries.api.dto.GallerySummaryResponse;
-import pe.plataformacontenidos.galleries.api.dto.PageResponse;
+import pe.plataformacontenidos.shared.PageResponse;
 
 /** Solo contenido PUBLISHED — nada de estados intermedios visibles públicamente. */
 @RestController

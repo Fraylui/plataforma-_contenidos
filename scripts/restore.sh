@@ -5,8 +5,12 @@
 # probado.
 #
 # Uso: scripts/restore.sh <archivo.dump> [nombre_db_destino]
+#      scripts/restore.sh <media_*.tar.gz>
 # Sin nombre_db_destino, crea "restore_test_<timestamp>" y al final imprime
 # el comando para borrarla una vez verificados los datos.
+# Con un paquete de fotos, lo extrae en una carpeta temporal (nunca en el
+# volumen media_data), cuenta los archivos e imprime el comando para
+# cargarlo de verdad, que se corre a mano.
 #
 # Simétrico con remote-copy.sh (la copia externa de backup.sh): si
 # <archivo.dump> no existe en disco, se busca por nombre en el mismo
@@ -44,6 +48,17 @@ if [ ! -f "$DUMP_FILE" ]; then
 fi
 [ -f "$DUMP_FILE" ] || { echo "No existe el archivo (ni local ni en el remoto): $DUMP_FILE" >&2; exit 1; }
 DUMP_FILE="$(cd "$(dirname "$DUMP_FILE")" && pwd)/$(basename "$DUMP_FILE")"
+
+if [[ "$DUMP_FILE" == *.tar.gz ]]; then
+  CHECK_DIR="$(mktemp -d)"
+  echo "==> Extrayendo $(basename "$DUMP_FILE") en $CHECK_DIR (prueba, no toca el volumen)"
+  tar -xzf - -C "$CHECK_DIR" < "$DUMP_FILE"
+  echo "    $(find "$CHECK_DIR" -type f | wc -l) archivos restaurados"
+  echo "    Para cargarlo en el volumen de fotos (reemplaza lo que haya):"
+  echo "    docker compose -f \"$COMPOSE_FILE\" exec -T backend tar -xzf - -C /app/data < \"$DUMP_FILE\""
+  echo "    Borra la prueba con: rm -rf \"$CHECK_DIR\""
+  exit 0
+fi
 
 DB_USER="${DB_USER:-plataforma_contenidos}"
 : "${DB_PASSWORD:?define DB_PASSWORD antes de restaurar}"

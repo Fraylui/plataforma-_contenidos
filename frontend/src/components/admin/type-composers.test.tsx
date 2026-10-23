@@ -1,0 +1,177 @@
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { axe } from "vitest-axe";
+import { describe, expect, it, vi } from "vitest";
+import type { Category, Celebration } from "@/lib/api/types";
+import type { PublicationPermissions } from "@/lib/admin/publication";
+import { PlaceComposer } from "./place-composer";
+import { GalleryComposer } from "./gallery-composer";
+import { CelebrationComposer } from "./celebration-composer";
+import { createPlaceAction } from "@/app/admin/(protected)/lugares/actions";
+import { createGalleryAction } from "@/app/admin/(protected)/galerias/actions";
+import { createCelebrationAction } from "@/app/admin/(protected)/celebraciones/actions";
+
+const created = { ok: true, data: { id: "nuevo-1" } };
+vi.mock("@/app/admin/(protected)/lugares/actions", () => ({ createPlaceAction: vi.fn(), updatePlaceAction: vi.fn() }));
+vi.mock("@/app/admin/(protected)/galerias/actions", () => ({ createGalleryAction: vi.fn(), updateGalleryAction: vi.fn() }));
+vi.mock("@/app/admin/(protected)/celebraciones/actions", () => ({ createCelebrationAction: vi.fn(), updateCelebrationAction: vi.fn() }));
+vi.mock("@/app/admin/(protected)/imagenes/actions", () => ({ uploadImageInlineAction: vi.fn() }));
+vi.mock("@/app/admin/(protected)/publication-actions", () => ({ publicationStepAction: vi.fn().mockResolvedValue({ ok: true }) }));
+vi.mock("./rich-text-editor", () => ({
+  RichTextEditor: ({ value, onChange }: { value: string; onChange: (html: string) => void }) => (
+    <textarea value={value} onChange={(e) => onChange(e.target.value)} />
+  ),
+}));
+// El mapa (Leaflet) no se dibuja en jsdom; las coordenadas se prueban por los campos.
+vi.mock("next/dynamic", () => ({ default: () => () => null }));
+
+const CATEGORIES = [{ id: "cat-1", name: "Viajes", slug: "viajes", description: null, parentId: null, active: true, sortOrder: 0 }] as Category[];
+const PUBLISHER: PublicationPermissions = {
+  canEdit: true,
+  canPublish: true,
+  canSchedule: true,
+  canReturnToDraft: false,
+  canArchive: false,
+};
+const common = { categories: CATEGORIES, allImages: [], permissions: PUBLISHER, siteName: "Ecos del Camino" };
+
+/** El tema empieza vacío (decisión del dueño 2026-10-21): se elige como lo haría una persona. */
+async function chooseTopic() {
+  await userEvent.click(screen.getByRole("combobox", { name: "Tema" }));
+  await userEvent.click(await screen.findByText("Viajes"));
+}
+
+async function saveDraft() {
+  await userEvent.click(screen.getByRole("button", { name: "Guardar borrador" }));
+}
+
+describe("Compositor de Lugares", () => {
+  it("pide el nombre y valida las coordenadas escritas a mano", async () => {
+    const { container } = render(<PlaceComposer {...common} />);
+    expect(screen.getByLabelText("Nombre")).toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText("Latitud"), "120");
+    await saveDraft();
+    expect(screen.getByLabelText("Nombre")).toHaveAccessibleDescription("Escribe el nombre del lugar.");
+    expect(screen.getByLabelText("Latitud")).toHaveAccessibleDescription("La latitud va de -90 a 90.");
+    expect(createPlaceAction).not.toHaveBeenCalled();
+    expect(await axe(container)).toHaveNoViolations();
+  }, 15_000); // axe sobre el compositor completo: lento cuando la suite entera corre en paralelo
+
+  it("con datos válidos manda name y coordenadas como números", async () => {
+    vi.mocked(createPlaceAction).mockResolvedValue(created as never);
+    render(<PlaceComposer {...common} />);
+    await userEvent.type(screen.getByLabelText("Nombre"), "Laguna de Paca");
+    await userEvent.type(screen.getByLabelText("Texto"), "Una laguna andina.");
+    await chooseTopic();
+    await userEvent.type(screen.getByLabelText("Latitud"), "-11.85");
+    await userEvent.type(screen.getByLabelText("Longitud"), "-75.51");
+    await saveDraft();
+    expect(createPlaceAction).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Laguna de Paca", latitude: -11.85, longitude: -75.51, categoryId: "cat-1" }),
+    );
+  });
+});
+
+describe("Compositor de Galerías", () => {
+  it("sin texto largo ni videos, y exige al menos una foto", async () => {
+    render(<GalleryComposer {...common} />);
+    expect(screen.queryByLabelText("Texto")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Videos de YouTube/)).not.toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText("Título"), "Atardeceres");
+    await saveDraft();
+    expect(screen.getByRole("alert")).toHaveTextContent("Agrega al menos una foto.");
+    expect(createGalleryAction).not.toHaveBeenCalled();
+  });
+});
+
+describe("Compositor de Celebraciones", () => {
+  it("por defecto es una fecha que se repite cada año, de todo el día, y se manda así", async () => {
+    vi.mocked(createCelebrationAction).mockResolvedValue(created as never);
+    render(<CelebrationComposer {...common} places={[]} homeCountry="PE" />);
+    expect(screen.getByRole("radio", { name: "Se repite cada año" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Todo el día" })).toBeChecked();
+    await userEvent.type(screen.getByLabelText("Título"), "Fiestas Patrias");
+    await userEvent.type(screen.getByLabelText("Texto"), "La independencia del Perú.");
+    await chooseTopic();
+    await userEvent.type(screen.getByLabelText(/^Fecha/), "2026-07-28");
+    await userEvent.type(screen.getByLabelText("Desde el año (opcional)"), "1821");
+    expect(screen.getAllByText("28 de julio · desde 1821").length).toBeGreaterThan(0);
+    await saveDraft();
+    expect(createCelebrationAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        recursYearly: true,
+        allDay: true,
+        sinceYear: 1821,
+        startsAt: "2026-07-28T05:00:00.000Z",
+        endsAt: null,
+        // Por defecto se celebra en el país del sitio: lo mundial se elige a propósito.
+        scopeCountry: "PE",
+        scopeRegion: null,
+      }),
+    );
+  });
+
+  it("una celebración regional exige la región y se manda con su país", async () => {
+    vi.mocked(createCelebrationAction).mockResolvedValue(created as never);
+    render(<CelebrationComposer {...common} places={[]} homeCountry="PE" />);
+    await userEvent.type(screen.getByLabelText("Título"), "Semana Santa ayacuchana");
+    await userEvent.type(screen.getByLabelText("Texto"), "Procesiones en Huamanga.");
+    await chooseTopic();
+    await userEvent.type(screen.getByLabelText(/^Fecha/), "2026-04-02");
+    await userEvent.click(screen.getByRole("radio", { name: "Una región" }));
+    await saveDraft();
+    expect(screen.getByLabelText(/^Región/)).toHaveAccessibleDescription(/Escribe la región/);
+    expect(createCelebrationAction).not.toHaveBeenCalled();
+    await userEvent.type(screen.getByLabelText(/^Región/), "Ayacucho");
+    expect(screen.getByText(/Ayacucho, Perú/)).toBeInTheDocument();
+    await saveDraft();
+    expect(createCelebrationAction).toHaveBeenCalledWith(expect.objectContaining({ scopeCountry: "PE", scopeRegion: "Ayacucho" }));
+  });
+
+  it("en todo el mundo no manda país ni región", async () => {
+    vi.mocked(createCelebrationAction).mockResolvedValue(created as never);
+    render(<CelebrationComposer {...common} places={[]} homeCountry="PE" />);
+    await userEvent.type(screen.getByLabelText("Título"), "Año Nuevo");
+    await userEvent.type(screen.getByLabelText("Texto"), "Empieza el año.");
+    await chooseTopic();
+    await userEvent.type(screen.getByLabelText(/^Fecha/), "2026-01-01");
+    await userEvent.click(screen.getByRole("radio", { name: "Todo el mundo" }));
+    expect(screen.queryByLabelText(/^Región/)).toBeNull();
+    await saveDraft();
+    expect(createCelebrationAction).toHaveBeenCalledWith(expect.objectContaining({ scopeCountry: null, scopeRegion: null }));
+  });
+
+  it("una fecha única con hora no deja terminar antes de empezar", async () => {
+    render(<CelebrationComposer {...common} places={[]} homeCountry="PE" />);
+    await userEvent.click(screen.getByRole("radio", { name: "Solo una vez" }));
+    await userEvent.click(screen.getByRole("checkbox", { name: "Todo el día" }));
+    expect(screen.queryByLabelText("Desde el año (opcional)")).toBeNull();
+    await userEvent.type(screen.getByLabelText("Título"), "Eclipse");
+    await userEvent.type(screen.getByLabelText("Texto"), "Se verá desde Ayacucho.");
+    await userEvent.type(screen.getByLabelText(/^Empieza/), "2030-05-10T18:00");
+    await userEvent.type(screen.getByLabelText("Termina (opcional)"), "2030-05-10T16:00");
+    await saveDraft();
+    expect(screen.getByLabelText("Termina (opcional)")).toHaveAccessibleDescription(/Termina antes de empezar/);
+    expect(createCelebrationAction).not.toHaveBeenCalled();
+  });
+
+  it("al editar una fecha anual de 1824 carga su día real, no el anterior (hora solar de Lima antes de 1908)", () => {
+    const ayacucho = {
+      id: "c-1", slug: "batalla-de-ayacucho", title: "Batalla de Ayacucho", excerpt: null, body: "<p>Texto.</p>",
+      status: "PUBLISHED", authorId: "a", categoryId: "cat-1", placeId: null, venueName: null,
+      startsAt: "1824-12-09T05:00:00Z", endsAt: null, recursYearly: true, allDay: true, sinceYear: 1824,
+      scopeCountry: "PE", scopeRegion: null, nextOccurrenceAt: "2026-12-09T05:00:00Z", images: [], videos: [],
+      seoTitle: null, metaDescription: null, canonicalUrl: null, ogImageUrl: null, robots: "index,follow",
+      publishedAt: null, scheduledAt: null, createdAt: "2026-10-15T00:00:00Z", likeCount: 0,
+    } as Celebration;
+    render(<CelebrationComposer {...common} places={[]} homeCountry="PE" celebration={ayacucho} />);
+    expect(screen.getByLabelText(/^Fecha/)).toHaveValue("2026-12-09");
+    expect(screen.getAllByText("9 de diciembre · desde 1824").length).toBeGreaterThan(0);
+  });
+
+  it("recuerda la regla: si hubo pago o canje es un anuncio, no una fecha", () => {
+    render(<CelebrationComposer {...common} places={[]} homeCountry="PE" />);
+    expect(screen.getByText(/¿Te pagaron o te dieron algo a cambio/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Crear un anuncio/ })).toHaveAttribute("href", "/admin/anunciantes");
+  });
+});

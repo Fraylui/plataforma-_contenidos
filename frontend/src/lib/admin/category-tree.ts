@@ -6,7 +6,7 @@ import { flattenTree } from "./tree";
  * subcategorías ilimitadas") en una lista ordenada padre→hijos, con la
  * profundidad de cada una para poder indentarla en una tabla plana.
  */
-export function sortCategoriesHierarchically(categories: Category[]): { category: Category; depth: number }[] {
+export function sortCategoriesHierarchically<T extends Category>(categories: T[]): { category: T; depth: number }[] {
   return flattenTree(categories, (a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name)).map(
     ({ item, depth }) => ({ category: item, depth }),
   );

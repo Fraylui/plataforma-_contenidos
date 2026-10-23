@@ -1190,12 +1190,29 @@ políticas, controles, evidencia y logs desde el principio.
 ### 35.2 Marco legal aplicable
 
 ```text
-Perú
-├── Ley N.º 29733 — Ley de Protección de Datos Personales
-├── Reglamento de la Ley 29733 (D.S. 003-2013-JUS)
-├── Ley N.º 30096 — Ley de Delitos Informáticos
-├── Indecopi — protección al consumidor (publicidad, comercio electrónico)
-└── Ley N.º 29571 — Código de Protección y Defensa del Consumidor
+Perú (revisado 2026-10-16)
+├── Ley N.º 29733 — Protección de Datos Personales
+├── Reglamento nuevo: D.S. 016-2024-JUS, vigente desde el 30-03-2025 (reemplaza
+│   al D.S. 003-2013-JUS): brechas de seguridad se notifican en 48 h, oficial de
+│   datos personales con plazos según tamaño, transferencias internacionales
+├── D.L. 1044 — Competencia Desleal: art. 16, principio de autenticidad (todo
+│   anuncio identificable como tal; publicidad encubierta sancionada hasta 700 UIT)
+├── Guía de Publicidad para Influencers de Indecopi (2.ª ed., 2024): «conexión
+│   material» con el anunciante = se marca como publicidad
+├── Ley N.º 29571 — Código de Protección y Defensa del Consumidor
+├── D.L. 822 — Derecho de Autor (fotos, textos y videos propios o con licencia)
+├── Ley N.º 28493 — correo comercial no solicitado (si hay boletín por email)
+├── Ley N.º 30096 — Delitos Informáticos
+├── Rubros con advertencias obligatorias en sus anuncios: alimentos procesados
+│   (Ley 30021, octógonos), bebidas alcohólicas (Ley 28681), juegos y apuestas
+│   a distancia (Ley 31557) → no aceptar sin revisión legal
+└── SUNAT: RUC y comprobantes electrónicos por la publicidad directa; ingresos
+    de AdSense declarados
+
+Contractual (no es ley, pero te pueden cerrar la cuenta)
+├── Políticas del programa de Google AdSense (contenido, clics inválidos,
+│   divulgación de cookies en la política de privacidad, consentimiento)
+└── Términos de servicio de YouTube (insertar videos está permitido)
 
 Si la plataforma capta usuarios de la UE
 └── GDPR (Reglamento General de Protección de Datos) — aplica por alcance,
@@ -1826,7 +1843,8 @@ servidor. Regla general: **solo señales reales** (fechas, me gusta, categorías
 | Relacionados del detalle | `FeedService.getRelated` + `getRelatedWithFallback` | Misma categoría: `frescura + 0.3·log1p(likes)`; se completa con el feed general hasta 6, sin repetir. |
 | "Lo más gustado" | `FeedService.getTopLiked` | Me gusta acumulados, desc. Solo contenido con ≥1 me gusta; la lista solo se muestra con ≥3. |
 | Búsqueda | `SearchService` | `tsvector` español sin acentos por módulo **+** contenido de las categorías cuyo nombre coincide (y sus subcategorías). Fusión por fecha. Con <4 resultados: temas parecidos + lo más reciente. |
-| Anuncios en el feed | `InfiniteFeed` | Posición `en-feed` cada 6 celdas de grilla (desde la 12): siempre tras una fila completa en 2 y 3 columnas. |
+| Anuncios en el feed | `InfiniteFeed` | Posición `en-feed` (300×250, ocupa una tarjeta; fila entera en celular) cada 8 celdas de grilla desde la 16: 1 anuncio cada 6 tarjetas, ~14 % de la grilla (tope Better Ads: 30 %). |
+| Entrega de publicidad directa | ver 45.4 | Selección ponderada, sin repetir campaña ni anunciante en la página, tope de frecuencia, impresión visible, clic válido. |
 | Atajo de búsqueda | `SearchBox` + `lib/search-shortcut.ts` | Ctrl+K / ⌘K siempre; "/" solo fuera de campos de texto (no roba la barra al escribir). Solo el buscador de escritorio lo registra; pista "Ctrl K"/"⌘K" en el campo, oculta al enfocar o escribir. |
 
 ## 45.2 Planeado — con condición de activación
@@ -1869,9 +1887,45 @@ Requiere registrar visitas por sesión; hoy no hay analítica propia.
 **F. Puntaje de Wilson (Reddit "best").** Solo tiene sentido con votos
 positivos Y negativos o comentarios; no previsto.
 
+## 45.4 Publicidad directa — cómo se entrega (2026-10-05)
+
+Criterio de los ad servers profesionales (Google Ad Manager, normas IAB/MRC
+y Coalition for Better Ads), sin cookies ni cuentas:
+
+| Regla | Dónde | Detalle |
+|---|---|---|
+| Medida estándar por posición | `ad_placements.width/height` (V46) | 300×250 (feed, lateral, contenido), 728×90 (cabecera de listados, solo escritorio), 320×50 (barra fija). El anunciante entrega su banner diseñado a esa medida (mejor al doble) y se muestra **entero** (`object-contain`), con "Publicidad" fuera de la imagen. El backend rechaza imágenes subidas con otra proporción o más chicas; el panel avisa también para enlaces externos. |
+| Selección ponderada | `WeightedOrder` (Efraimidis–Spirakis) | `clave = −ln(u) / peso`, orden ascendente. Peso 1–10 por campaña (5 por defecto): peso 10 sale primero el doble que peso 5, sin dejar a nadie sin vistas. |
+| Sin repetir en la página | `page-ad-plan.ts` | Cada espacio toma la primera campaña de la rotación que no esté ya en la página y, si se puede, de otro anunciante. Sobrantes → AdSense o vacío. |
+| Tope de frecuencia | `AdDeliveryGuard` (Redis) | Máximo 6 vistas por persona, campaña y día (UTC); luego deja de ofrecérsele. Persona = hash de la IP, vive horas en Redis, nunca en la base. **En local todas las visitas comparten la IP del contenedor de Next: tras 6 vistas propias la campaña desaparece hasta el día siguiente** (borrar `ads:*` en Redis para probar). |
+| Impresión visible | `useViewableImpression` | Se cuenta cuando ≥50 % del anuncio estuvo 1 s seguido en pantalla (pestaña visible), vía `sendBeacon` a `/api/ads/impression`. Pedir la campaña ya no cuenta. |
+| Tráfico inválido | `InvalidTraffic` | Robots, previsualizadores (WhatsApp, Facebook), scripts y pedidos sin user agent no cuentan impresión ni clic. |
+| Antiduplicado | `AdDeliveryGuard` | Impresión: misma persona y campaña, 1 cada 10 s. Clic: 1 cada 30 min (el visitante igual llega al destino). |
+| Conteo atómico | `CampaignRepository` / `campaign_daily_stats` | `UPDATE … + 1` y upsert por día: vistas simultáneas no se pierden. |
+| Segmentación | `CampaignTargeting` (V47) | Por sección (Inicio, Publicaciones, Lugares, Eventos, Galerías, Directorio), por tema (incluye subtemas) y por país/región **del visitante** (cabeceras de Cloudflare `cf-ipcountry`, `cf-region`, `cf-region-code`; requiere "Add visitor location headers", ver DESPLIEGUE §3). Vacío = sin restricción. En una página, las campañas que calzan con más dimensiones van antes que las generales. No usa la geografía del contenido (dada de baja en V38). |
+| Cupo por público | `CampaignService.MAX_COMPETING_CAMPAIGNS` = 5 | Como máximo 5 campañas activas compitiendo por el mismo público: misma posición, segmentación que se cruza en todas las dimensiones (temas: igual o uno contiene al otro) y fechas superpuestas. La sexta da 409 con explicación. Así cada anunciante recibe vistas suficientes. Más campañas nunca agregan anuncios a la página: los espacios son fijos, solo se turnan. |
+| Prioridad frente a AdSense | `AdBlockClient` | Lo vendido directo ocupa solo su espacio y su público; todo lo demás lo llena AdSense (prioridad del negocio mientras el sitio no tiene anunciantes propios). |
+| Presentación por contexto | `AdBlock layout` | `fill`: ocupa el ancho de la columna (lateral, celda del feed), hasta 1,3× su medida. `band`: bloque a todo el ancho **sin marco ni fondo** (el contorno con relleno se veía poco profesional, 2026-10-06). `band` + `count`: "fila patrocinada" de hasta 3 campañas distintas (final de listados) o 2 (final del artículo); con una sola disponible queda centrada; en celular siempre una. Nada de franjas vacías a los costados. |
+| Barra fija | `AnchorAdSlot` | Aparece recién después de responder el aviso de cookies (antes quedaba tapada y contaba vistas que nadie veía). |
+| Reporte | Panel → Anunciantes → campaña | Impresiones visibles, clics, % de clics y gráfico diario de 30 días (UTC). |
+
+**Con AdSense:** Google permite anuncios vendidos directamente en las
+mismas páginas siempre que no imiten a los de Google (por eso: etiqueta
+"Publicidad" propia, sin "Anuncios de Google", creatividades del
+anunciante). En páginas con AdSense, lo que promocionen las campañas
+directas también debe cumplir las políticas de Google (nada de apuestas,
+contenido adulto, armas, etc.). Si se vende la barra fija (`anchor`),
+desactivar los "anuncios fijos" (anchor) en los Auto ads de AdSense para no
+tener dos barras abajo.
+
+Los totales `impression_count` de antes del 2026-10-05 se contaban al pedir
+la campaña (inflados); desde esta fecha son vistas reales.
+
 ## 45.3 Pendientes que no son algoritmos
 
 Del usuario (configuración, no código):
+- Cloudflare: activar "Add visitor location headers" (segmentación de
+  publicidad por país/región).
 - Cloudflare (reglas de caché), swap, firewall y copia de backups a R2: ver
   `infra/DESPLIEGUE.md`.
 - Configuración del panel: correo de contacto (activa "Proponer contenido" y
@@ -1885,6 +1939,604 @@ Decididos para más adelante:
   cambian poco.
 - Selector de país/ciudad (Geografía) como "Enviar a Perú" de Amazon:
   cuando haya suficiente contenido por zona.
+
+---
+
+# 46. Rediseño estilo red social — estado y pendientes (pausa del 2026-10-06)
+
+Documento para retomar sin depender del chat. Diseño acordado con el dueño:
+el sitio y el panel dejan de verse "como un diario/editorial" y pasan a
+sentirse como una **red social moderna (referencia Instagram, también
+Facebook y X)**, pensada para 2027, intuitiva e interactiva. Solo publican
+el dueño y sus trabajadores; los visitantes miran, dan "me gusta",
+comparten y exploran (sin cuentas, sin comentarios, sin firma de autor).
+
+Archivos de trabajo (locales, `docs/` está en `.gitignore`):
+- Diseño: `docs/superpowers/specs/2026-10-06-sitio-publico-estilo-instagram-design.md`
+- Plan por sprints/tareas: `docs/superpowers/plans/2026-10-06-sitio-publico-estilo-instagram.md`
+- Registro de avance y decisiones ("Ruling"): `.superpowers/sdd/2026-10-06-sitio-publico-estilo-instagram/progress.md`
+
+## 46.1 Estado de git al pausar
+
+- **Rama de trabajo: `feat/sitio-red-social`** (sale de `main` en `d3a415e`).
+  9 commits, todos con tests en verde. **No está fusionada a `main`.**
+- **`main` tiene 4 commits sin subir a GitHub** (publicidad profesional):
+  `a717f10`, `6cae3ca`, `b727913`, `d3a415e`. Preguntar al dueño antes de
+  `git push`.
+- Docker local corre la rama (backend + frontend reconstruidos el 2026-10-06).
+- Al retomar: `git switch feat/sitio-red-social` y leer el registro de avance.
+
+## 46.2 Hecho en la rama (Sprint 1 completo + parte del 2)
+
+| Tarea | Qué quedó |
+|---|---|
+| 1 | Feed del backend con los 5 tipos (galerías y directorio incluidos), filtro por tema con subtemas (`categoryId`), Agenda (`type=EVENT&sort=upcoming`), datos de tarjeta: carrusel (`images`, hasta 10), `startsAt`, `latitude/longitude`, `phone`, `website`. |
+| 2 | `GET /api/v1/feed/topics`: círculos de temas raíz con portada automática y `hasNew` (48 h), orden por actividad de la semana (`publicados_7d + 0.5·me_gusta_7d`). |
+| 3 | Tipos/mapeo/proxy del frontend (`HomeItem.images`, tipo `directorio`). |
+| 4 | Navegación tipo app: barra de pestañas abajo en celular (Inicio · Explorar · Buscar · Agenda · Más), riel izquierdo en escritorio, variable CSS `--bottom-bar-h` (anuncio fijo y aviso de cookies se apilan encima). Íconos **Phosphor** (contorno / relleno activo). |
+| 5 | `PostCard`: encabezado de marca, imagen cuadrada 1:1 con carrusel, doble toque = me gusta, acciones por tipo (Agendar, Cómo llegar, Llamar, Sitio web), sin antetítulos. |
+| 5b | Buscador moderno sin desplegable "Buscar en"; `/buscar` con chips de tipo y de tema y campo propio en celular. |
+| 6 | Inicio = feed de una columna + círculos de temas + chips de tipo + columna derecha (≥1280 px: próximos eventos, lo más gustado, anuncio). Riel con secciones y temas (5 + "Ver más"), sin línea al costado. Franja superior: título de la pantalla + flecha "volver" + buscador (estilo X). Sin barras de desplazamiento visibles (utilidad `.no-scrollbar`) y flechas ‹ › en los círculos. |
+| 7 (parcial) | Componentes listos y testeados pero **todavía no usados por las páginas**: `PostView` (variante `visual` y `text`), `GridTile`, `PostHeader` reutilizable. |
+
+## 46.3 Pendiente — en este orden
+
+### A. Tarea 6b — Riel interactivo como redes sociales (pedido explícito, siguiente)
+1. **"Buscar" del riel abre un panel lateral** (Radix Dialog, como Instagram desktop): foco en el campo, `Esc` cierra, reutiliza `SearchBox`. En celular la pestaña sigue yendo a `/buscar`.
+2. **"Más" abre un menú** (Radix Popover, como Instagram/X) con:
+   - **Apariencia**: Sistema / Claro / Oscuro, por visitante → `localStorage["theme-pref"]` + `data-theme` en `<html>`. Para que no parpadee, script en línea en `<head>` de `app/layout.tsx` (CSP ya permite `'unsafe-inline'`) y `suppressHydrationWarning` en `<html>`. Si no eligió nada, manda la configuración del panel (`settings.theme`).
+   - Contacto, Privacidad, Términos (reemplaza los enlaces sueltos del pie del riel).
+3. **Contador en Agenda**: cantidad de eventos de los próximos 7 días (dato del servidor, sin guardar nada).
+4. **Microinteracciones**: hover con fondo de "píldora" e ícono 1.05 (solo `motion-safe`), presión 0.95, tooltips en el modo solo íconos (1024–1279 px).
+5. Tests: `rail-interactions.test.tsx` (panel de búsqueda con foco, menú con radios de apariencia y `data-theme="dark"` guardado, contador "3 eventos esta semana"). Verificar en Docker con capturas.
+
+### B. Tarea 7 — Conectar `PostView` a las 5 páginas de detalle
+En `app/(public)/{publicaciones,lugares,eventos,galerias,directorio}/[slug]/page.tsx`:
+- **Mantener**: `generateMetadata`, todos los JSON-LD (incluido `BreadcrumbList`), `VideoJsonLd`, `notFound`.
+- **Quitar**: `<nav aria-label="Breadcrumb">`, antetítulo en mayúsculas, "min de lectura" (`estimateReadingTime`), `ReadingProgressBar`, entradilla en negrita, `NeighborNav` ("Seguir leyendo"), `DetailSidebar` y las listas "Otras galerías / Lugares en… / Más de…" de galerías.
+- `variant`: `text` para publicaciones; `visual` para el resto.
+- `media`: `ContentImageGallery` + `ContentVideoGallery` existentes.
+- `facts` por tipo: **evento** (fecha y hora absolutas, lugar con enlace, "Agendar": Google + `.ics` con `calendarLinks`), **lugar** (mapa embebido + "Cómo llegar" `mapsDirections`), **directorio** (dirección, teléfono `tel:`, email, web + "Cómo llegar"), publicación y galería sin facts.
+- `actions`: `LikeShareBar` (reestilizar como barra de post: corazón Phosphor, compartir).
+- `ad`: `AdBlock position="article" layout="band" count={2}` con su `section`/`categoryId`.
+- `more`: `getRelatedWithFallback` → `fromFeedItem` (hasta 9 miniaturas).
+- Test e2e `frontend/tests/e2e/seo-urls.spec.ts`: cada detalle conserva `<title>`, canonical y JSON-LD con `BreadcrumbList`. Verificar los 5 tipos en Docker a 390/1366.
+
+### C. Tarea 8 — Explorar y resultados de búsqueda en cuadrícula
+- Página nueva `/explorar` (hoy da 404): `ExploreGrid` (cliente, scroll infinito con `/api/feed`, chips de tipo) usando `GridTile`; metadatos propios.
+- `/buscar`: reemplazar `SearchResultCard` (todavía con antetítulo "ACTUALIDAD") por `GridTile` en cuadrícula de 3.
+
+### D. Tarea 9 — Secciones y temas = feed filtrado
+- `/publicaciones`, `/lugares`, `/galerias`, `/directorio`: `TopicStories` + `FilterChips` (tipo activo) + `Feed filter={{type}}`; sin `ListingHeader` ni `FilterMenu` ("Filtrar por tema").
+- `/eventos` = **Agenda**: `Feed filter={{type:"EVENT", sort:"upcoming"}}`.
+- `/categorias/[slug]`: `Feed filter={{categoryId}}` con su círculo activo.
+- SEO: cada URL conserva título/descripción/canonical y enlaces `?page=` en el HTML inicial para bots.
+- Quitar `AdBlock position="cabecera"` (la franja 728×90 se deja de mostrar).
+
+### E. Tarea 10 — Anuncio "Patrocinado" con forma de post
+`SponsoredPost` envuelve `AdBlockClient position="en-feed"` con encabezado "Patrocinado" (sin marco de color). 1 cada 6 posts. Nada si no hay campaña ni AdSense.
+
+### F. Tarea 11 — Limpieza y guardia anti-diario
+- Borrar (verificar con `grep` que no tengan usos): `home/hero-rotator`, `home/module-strip`, `home/category-showcase`, `home/content-card`, `home/infinite-feed`, `home/home-sidebar`, `layout/listing-header`, `layout/mobile-nav`, `layout/category-menu`, `layout/nav-link`, `layout/site-footer`, `content/detail-sidebar`, `content/card-actions`, `filters/filter-menu`, `ReadingProgressBar`, `NeighborNav`, `SearchResultCard`.
+- Test e2e `no-editorial-patterns.spec.ts`: recorre todas las URLs públicas y falla con "min de lectura", "cubrimos", "editorial", ruta visible o antetítulos en mayúsculas.
+- Lighthouse en inicio y un detalle (LCP < 2,5 s, CLS < 0,1, INP < 200 ms). Actualizar §43 y §45.
+
+### G. Sprint 5 — Algoritmos de red social (pedido explícito)
+12. Velocidad de interacción con decaimiento (Hacker News) en el puntaje del feed.
+13. "En tendencia" (Reddit hot) con activación a ≥ 20 contenidos con me gusta; antes "Lo más gustado".
+14. "Más como esto" por similitud (tema, subtema, tipo, Jaccard de palabras del título/bajada).
+15. "Para ti" en el navegador **solo con consentimiento de cookies** (afinidad por tema, nada sale del navegador).
+16. Visitas anónimas + "quienes vieron esto también vieron" (co-visitas ≥ 5; robots fuera; sin datos personales).
+Detalle de cada uno en el plan.
+
+### H. Cierre del proyecto 1
+Revisión completa de la rama con un revisor nuevo (code review), corregir lo crítico, **preguntar al dueño** y fusionar `feat/sitio-red-social` → `main`; subir a GitHub con su permiso.
+
+### I. Proyecto 2 — Panel de administración moderno + trabajadores
+Acordado con el dueño ("todas las páginas del panel se ven antiguas, estilo editorial"):
+1. **Primero**: crear una cuenta de prueba **solo en la base local** (aprobado: opción A), recorrer y capturar todas las pantallas del panel, y **borrarla al terminar**.
+2. Rediseño moderno e intuitivo de todo el panel (mismo lenguaje visual del sitio, íconos Phosphor, sin desplegables anticuados, sin vacíos ni líneas sobrantes).
+3. **Trabajadores con módulos asignados** (diseño aprobado):
+   - **Dueño** (SUPER_ADMIN): todo; exclusivos: Usuarios, Configuración, Auditoría.
+   - **Trabajador**: módulos que asigna el dueño. Siempre tiene: Inicio del panel, Imágenes, Mi cuenta.
+   - Módulos de contenido (Publicaciones, Lugares, Eventos, Galerías, Directorio) con nivel **Crear** (solo lo suyo, pasa a revisión) o **Publicar** (revisa y publica lo de todos); Categorías, Estadísticas y Publicidad: acceso sí/no.
+   - **Plantillas**: Creador, Publicador, Gestor de eventos, Gestor de directorio, Publicidad.
+   - Migración: el ADMIN actual → trabajador con "Publicador" + Publicidad; se eliminan MODERATOR, COLLABORATOR, USER.
+   - Permisos aplicados **en el servidor** (no solo ocultar botones) y auditados.
+4. Documento de diseño + plan antes de programar (mismo proceso que el proyecto 1).
+5. **2026-10-06:** se divide en **2a (trabajadores y permisos, primero)** y **2b (rediseño visual del panel)**. Spec de 2a: `docs/superpowers/specs/2026-10-06-trabajadores-y-permisos-design.md` (local). Decisiones: roles DUEÑO/TRABAJADOR + tabla `identity.worker_permissions` verificada en cada petición (revocación inmediata), contraseña temporal con cambio obligatorio, desactivar en vez de borrar, sin MFA.
+
+## 46.4 Reglas aprendidas (aplican a todo lo pendiente)
+
+- El dueño revisa con capturas en **Edge**; quiere: nada de vacíos, nada de líneas sobrantes (bordes, barras de desplazamiento visibles), nada que "parezca diario", interacciones como Instagram/Facebook/X, íconos modernos (Phosphor), estándares (WCAG 2.2 AA, Core Web Vitals, SEO, OWASP), metodología Scrum + XP (§41) y verificación en ciclos con Playwright.
+- **Reglas CSS globales sin capa** (`:focus-visible`, `* { scrollbar-width }`) le ganan a las clases de Tailwind (en capa): usar utilidades **sin capa** en `globals.css` (como `.no-scrollbar`) o `!`.
+- Cuando cambia un contrato de la API, **reconstruir backend y frontend juntos** en Docker (`docker compose build backend frontend && docker compose up -d`): un backend viejo rompió el build del inicio.
+- Publicidad en local: todas las visitas comparten la IP del contenedor de Next → el tope de 6 vistas/día oculta campañas; borrar `ads:*` en Redis (clave en `infra/.env`). Los banners de demostración solo existen en la base local.
+- Fechas: eventos/lugares absolutas; publicaciones relativas. Nunca "editorial"/"artículo(s)" en textos visibles.
+
+## 46.5 Pendientes del dueño (configuración, no código)
+
+- Cloudflare: activar "Add visitor location headers" (segmentación de publicidad por país/región) y las reglas de caché (`infra/DESPLIEGUE.md` §3).
+- AdSense: si se vende la barra fija, desactivar los anuncios fijos (anchor) de Auto ads.
+- Panel → Configuración: correo de contacto, descripción del sitio (dice "Sistema de gestión…"), descripción de Turismo, slot de AdSense en-feed.
+- Backups: copia a R2; **corregir `scripts/backup.sh`**: (1) la retención de 14 días borraría el único backup viejo, (2) no respalda las imágenes reales (están en el volumen Docker `media_data`, no en `backend/data/media`).
+
+## 46.6 Inventario de páginas — qué falta transformar
+
+Estado en la rama `feat/sitio-red-social` al 2026-10-06. ✅ hecho · ⚠️ parcial · ❌ falta.
+
+### Sitio público (17 páginas) — actualizado 2026-10-06 (sesión 2)
+
+| Página | Estado | Nota |
+|---|---|---|
+| `/` Inicio | ✅ | `FeedScreen` + anuncio «Patrocinado» con forma de post. |
+| `/buscar` | ✅ | Resultados y sugerencias en cuadrícula `GridTile`. |
+| `/explorar` | ✅ | Cuadrícula de 3 con chips `?tipo=` y scroll infinito. |
+| `/publicaciones` `/lugares` `/galerias` `/directorio` | ✅ | Feed filtrado por tipo (`FeedScreen`); `?page=` viejos responden 200 con canonical a la sección. |
+| `/eventos` | ✅ | **Agenda**: próximos por fecha. |
+| `/categorias/[slug]` | ✅ | Feed del tema, encabezado con nombre y descripción, círculo activo. |
+| 5 detalles `[slug]` | ✅ | `PostView` + `PostFacts` + barra de post + «Más como esto» (9). JSON-LD intacto. |
+| `/contacto` `/privacidad` `/terminos` | ✅ | Pantalla de app: chips de secciones, texto en superficie blanca. |
+| `not-found` (404) y `error` | ✅ | Pantalla de app con Phosphor e Inicio / Explorar / Buscar. |
+| `loading.tsx` | ✅ | Esqueletos de feed, post y cuadrícula. El `app/loading.tsx` raíz se borró el 2026-10-16: envolvía todo el sitio público en un segmento de streaming y retrasaba el LCP; el panel tiene el suyo. |
+
+### Panel de administración (34 páginas) — todo ❌, proyecto 2 (46.3-I)
+
+| Módulo | Páginas |
+|---|---|
+| Acceso | `login` |
+| Inicio y Estadísticas | `/admin`, `/admin/estadisticas` |
+| Contenido (listado, nuevo, editar) | Publicaciones, Lugares, Eventos, Galerías, Directorio (3 páginas c/u = 15) |
+| Organización | Categorías (3), Medios (1) |
+| Monetización | Publicidad/posiciones (3), Anunciantes (3) + campañas (2) |
+| Administración | Usuarios (2) → pasa a **Trabajadores**, Configuración, Auditoría |
+| **Nuevas** | **Trabajadores**: permisos por módulo y plantillas; **Mi cuenta**: cambiar contraseña (hoy no hay una página propia). |
+
+## 46.6b Avance 2026-10-06 (sesión 2) — commits en `feat/sitio-red-social`
+
+- `76213b2`, `f2c3be9`: riel estilo Facebook/Instagram (secciones con círculos de color, temas con anillo de historia y «Novedades», enlaces legales a la vista, sin el «Más» de rayitas), panel de búsqueda lateral, contador de Agenda, columna derecha pegada al borde, lienzo claro `#f0f2f5` (gris de Facebook, contraste AA). **Sin selector de apariencia**: claro/oscuro según el dispositivo — el panel debe estar en Configuración → Apariencia → «Sistema».
+- `abab37b`: `/explorar` y búsqueda en cuadrícula.
+- `f88ea5d`: los 5 detalles como post; se retiró el endpoint `/articles/{slug}/neighbors` (sin consumidores).
+- `d32b169`: `FeedScreen` para inicio/secciones/Agenda/temas; **knip** (`npm run lint:unused`, también en CI) — 23 archivos huérfanos borrados.
+- `964f962`, `a3408a4`: anuncio «Patrocinado» con forma de post.
+- `d8a60f9`: carga, 404, error y páginas de información con forma de app; e2e `no-editorial-patterns.spec.ts` y `seo-urls.spec.ts`.
+- Seguridad: test `json-ld-escape.test.ts` exige el escape de `<` en todo JSON-LD (se detectó y corrigió una regresión al reescribir Eventos).
+
+**Pendiente del proyecto 1:** verificación en Docker/Edge de todo lo anterior (los builds dependen de la memoria libre del equipo), Lighthouse (LCP/CLS/INP), Sprint 5 (algoritmos, 46.3-G), revisión completa de la rama y fusión a `main` con permiso del dueño.
+
+## 46.6c Marco de trabajo — ITIL 4, COBIT 2019 e ISO aplicados (sin burocracia)
+
+Cada tarea es un ciclo corto (PDCA de ISO 9001): **planificar** (brief del plan) → **hacer** (test que falla primero, luego código) → **verificar** (suite completa + Docker/Edge) → **actuar** (registro en el ledger y en este documento).
+
+| Marco | Práctica / objetivo | Cómo se cumple aquí |
+|---|---|---|
+| ITIL 4 | Habilitación del cambio | Rama propia, commits pequeños con tests en verde, fusión a `main` solo con permiso del dueño. |
+| ITIL 4 | Gestión de liberaciones y despliegue | Build y verificación en Docker antes de mostrar; `infra/DESPLIEGUE.md` para el VPS. |
+| ITIL 4 | Gestión de problemas | Causa raíz anotada en el ledger (`Fix: … causa raíz …`) con test de regresión. |
+| COBIT 2019 | BAI03 (soluciones), BAI06 (cambios), BAI07 (aceptación) | Plan con criterios de aceptación por tarea; CI (lint, knip, tipos, tests, build); revisión del dueño con capturas. |
+| COBIT 2019 | MEA01 (monitoreo del desempeño) | Core Web Vitals (Lighthouse), métricas del panel, auditoría. |
+| ISO/IEC 25010 | Calidad del producto | Definición de "hecho": funcional, usable (WCAG 2.2 AA), eficiente (CWV), mantenible (cero huérfanos con knip), seguro. |
+| ISO/IEC 27001 (A.8.25–A.8.29) | Desarrollo seguro | OWASP (escape de JSON-LD, HTML saneado en backend, CSP), `npm audit` en CI, CodeQL. |
+| WCAG 2.2 AA | Accesibilidad | `vitest-axe` en componentes, objetivos táctiles ≥ 44 px, foco visible, contraste verificado. |
+
+## 46.6d Sprint de calidad (2026-10-06) — seguridad, observabilidad y datos personales
+
+Pedido del dueño: software seguro, mantenible, medible y que no sature el VPS (bots, memoria).
+
+| Tema | Hecho |
+|---|---|
+| Dependencias | Next.js 16.3.3 → **16.3.8** (vulnerabilidad crítica); `npm audit --audit-level=high` del CI vuelve a pasar. Quedan 2 moderadas de `@tailwindcss/typography` (solo al compilar CSS propio) aceptadas como riesgo bajo. |
+| Logs | `RequestIdFilter`: id por petición en cada línea de log y en la cabecera `X-Request-Id` (nginx manda su `$request_id`; ids inseguros se descartan → sin falsificación de logs). Docker/VPS: **JSON ECS**. Rotación 10 MB × 5 por servicio. |
+| Auditoría | `AdminActionAuditInterceptor`: **toda** acción del panel que modifica algo queda registrada (quién, método+ruta, recurso, IP, resultado). Los 5 tipos de contenido, login, usuarios, configuración e imágenes ya tenían eventos propios; el hueco real eran **categorías y publicidad** (anunciantes, campañas, posiciones) y cualquier endpoint futuro. Sin duplicados con los eventos propios. |
+| Retención (Ley 29733) | `AuditRetentionJob` purga a diario la auditoría con más de `AUDIT_RETENTION_DAYS` (365) y deja constancia. |
+| VPS / bots | nginx: tiempos cortos (slowloris), 30 conexiones simultáneas por IP, `server_tokens off`, escáneres (`wp-*`, `.php`, `.env`, `.git`) cortados con 444. Ya existían: límite de peticiones por IP, micro-caché, topes de memoria por contenedor, JVM al 70 %, Redis `maxmemory`, límite de intentos de login y de subidas. |
+| Orden del código | knip en CI (cero archivos/exportaciones sin uso); carpeta `public` versionada (el build en un clon limpio fallaba). |
+| MFA | **No se reactiva** (decisión del dueño, 2026-10-06): riesgo aceptado, compensado con límite de intentos de login y auditoría de accesos. |
+
+**Inventario de datos personales (Ley 29733):**
+
+| Dato | Dónde | Retención |
+|---|---|---|
+| Correo, nombre y contraseña (hash) del personal | `identity.users` | Mientras exista la cuenta |
+| Correo e IP de quien actúa en el panel | `audit.audit_log` | 365 días (`AUDIT_RETENTION_DAYS`) |
+| «Me gusta» | `engagement.content_likes` — UUID aleatorio del navegador, sin datos personales | Indefinida (no identifica) |
+| Frecuencia de anuncios | Redis — hash de la IP | 26 h |
+| Intentos de login | Redis | Ventana de 15 min |
+| Logs de contenedores (IP en nginx) | Archivos JSON rotados | 50 MB por servicio |
+
+Barrido de código muerto del backend: 3 métodos sin uso borrados (`dae0306`); el resto eran falsos positivos (records, `@Scheduled`, getters JPA).
+
+**Lighthouse (2026-10-06, perfil móvil, Docker local, equipo con poca memoria → rendimiento pesimista):**
+
+| Pantalla | Rend. | Accesib. | B. prácticas | SEO | LCP | CLS | TBT |
+|---|---|---|---|---|---|---|---|
+| Inicio | 57 | 96 | 100 | 100 | 8,3 s | 0 | 722 ms |
+| Explorar | 79 | 100 | 100 | 100 | 3,9 s | 0 | 310 ms |
+| Lugares | 71 | 96 | 96 | 100 | 5,4 s | 0 | 376 ms |
+| Detalle evento | 74 | 100 | 100 | 100 | 5,6 s | 0 | 243 ms |
+
+Corregido a partir de la medición: (1) **bug real** — imágenes con 500 en `/_next/image`: las páginas prerenderizadas en el build de Docker quedaban con `localhost:8080`; `serverImageUrl` ahora usa `RUNTIME_BACKEND_INTERNAL_URL`; (2) WCAG 2.5.3: el nombre de «me gusta» incluye el número visible; (3) WCAG 2.5.8: puntos del carrusel con área de toque de 24 px; (4) `fetchpriority="high"` en la foto principal aunque sea un enlace externo. `lighthouserc.js` pasa a perfil móvil con las pantallas nuevas.
+
+Pendiente: el LCP alto se debe en gran parte a las fotos de demostración de `picsum.photos` (JPG de 1400 px por enlace externo, sin optimizar); el contenido real subido por el panel pasa por el optimizador. Volver a medir con contenido real y en el VPS. TBT: un paquete JS de ~1,7 s de ejecución en CPU lenta → analizar el bundle (`next build` con análisis) antes del lanzamiento.
+
+## 46.6e Proyecto 2a — Trabajadores y permisos (rama `feat/trabajadores-permisos`, 2026-10-06)
+
+Hecho en 10 tareas (spec y plan en `docs/superpowers/`, local):
+
+- **Roles:** `OWNER` (dueño, puede todo) y `WORKER` (V50). Lo que puede un trabajador vive en `identity.worker_permissions` (V49): módulo + nivel `CREATE` / `PUBLISH` / `ACCESS`, con CHECK por módulo. Las cuentas viejas conservaron su alcance (ADMIN → Publicador + Publicidad).
+- **Servidor:** cada endpoint del panel declara `@RequiresModule` (un test de arquitectura falla si alguno queda sin declarar); permisos leídos en cada petición → quitar un permiso o desactivar rige al instante. Publicar exige `PUBLISH` (403 `PUBLISH_PERMISSION_REQUIRED`). Solo el dueño: Trabajadores, Configuración, Registro de actividad.
+- **Cuentas:** alta con contraseña temporal de 20 caracteres mostrada una vez; con temporal solo se puede cambiarla (403 `PASSWORD_CHANGE_REQUIRED`); Mi cuenta (12+ caracteres, distinta, cierra las demás sesiones); restablecer y desactivar cierran sesiones; el dueño es intocable (403 `OWNER_MANAGEMENT_DENIED`). Sin MFA (decisión del dueño).
+- **Auditoría:** eventos `WORKER_*` y `PASSWORD_CHANGED` con detalle antes → después (`audit_log.details`).
+- **Panel:** menú y botones por permisos; `/admin/trabajadores` con matriz de permisos (controles segmentados) y plantillas Creador, Publicador, Gestor de eventos, Gestor de directorio, Publicidad; `/admin/cuenta`; `/admin/usuarios` redirige.
+- **Antes de migrar en el VPS:** backup obligatorio (`scripts/backup.sh`); las sesiones abiertas antes de V50 piden volver a iniciar sesión.
+
+- **Cierre (Fase 0 de la hoja de ruta, 2026-10-07):** panel con commit (`34a9d46`), backend 297/297 tests, Docker reconstruido. Unido a `main` **en local, sin push** (`0dce210`), junto con `feat/sitio-red-social`: 2a nació de esa rama, así que no se pueden separar. El rediseño público sigue a medias (se termina en la Fase 10). El e2e de trabajadores requiere `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` con la clave actual del dueño (la de `BOOTSTRAP_ADMIN_PASSWORD` ya no vale).
+- **Decisiones del dueño para la hoja de ruta:** Inter se mantiene; validación con zod + react-hook-form; orden de fases según el plan (F1 → F2 → F3 → F4…). Pendientes: estados simplificados, guardado automático, renombrar Article → Publication.
+
+## 46.6f Fase 1 — Sistema de diseño moderno (rama `feat/sistema-diseno`, 2026-10-07)
+
+Spec y plan en `docs/superpowers/` (local). El panel cambia de aspecto, no solo de orden.
+
+- **Tokens** (`globals.css`): campo (`--field`, `--field-border`, `--ring`), estados `success`/`warning`/`info` con fondo `-soft`, `--danger-ink` (texto rojo legible en oscuro), sombras `shadow-card`/`shadow-pop`/`shadow-overlay`, radios `rounded-control` (10) / `rounded-card` (16) / `rounded-modal` (20), `text-title` y `text-label`, `color-scheme` por tema. El foco global pasó a `@layer base` para que gane el anillo suave de los componentes.
+- **Componentes** en `src/components/ui/` (compartidos; el sitio público los adopta en F10): `Button`/`LinkButton`/`IconButton` (cargando con `aria-busy`), `Field` (etiqueta, ayuda y error conectados por `aria-describedby`/`aria-invalid`; cliente; conecta nativos y controles marcados con `markFieldControl`), `TextInput` (inicio/final, el final acepta botones), `TextArea` (contador), `Select`, `Checkbox`/`Radio`, `DateTimeInput` (lectura absoluta "vie 12 dic, 7:00 p. m."), `Combobox` (rol combobox), `Badge`, `Card`/`CollapsibleCard`.
+- **Borrados:** `AdminButton`, `FormField`/`formInputClass`, `StatusPill`, `SectionCard`; **`lucide-react` desinstalado** (todo Phosphor; menú con ícono relleno en el activo).
+- **Validación:** zod + react-hook-form, piloto en Mi cuenta → cambiar contraseña. `@hookform/resolvers` fijado en `~5.5` (la 5.9 choca en npm por un peer opcional que pide zod 3).
+- **Muestra:** `/admin/muestra`, solo en desarrollo y sin sesión (el proxy la deja pasar fuera de producción; en producción es 404).
+- **Siguiente (prioridad del dueño):** el compositor de publicaciones (F5 flujo + F6) antes de F2–F4.
+
+## 46.6g Simulación de uso real y carga (k6, 2026-10-07)
+
+`frontend/tests/load/k6-simulacion.js`: personas distintas (IP, navegador, visitorId propios) que entran al inicio, bajan por el feed (scroll infinito), abren posts, dan y quitan «me gusta» (también doble toque simultáneo), buscan con sugerencias y ven anuncios — contra el sitio (Next), no solo la API. Perfiles `humo` / `normal` (50) / `pico` (200) / `quiebre` (600); `PAGINAS_EN_CACHE=1` modela la caché de páginas de nginx de producción (solo llega al origen lo que nginx no cachea). Scripts: `npm run test:api` (contrato), `test:load`, `test:peak`, `test:stress`. Antes de correrla: respaldo de `engagement.content_likes` y `advertising.campaign_daily_stats` (las impresiones y me gusta son datos reales) y comparación al terminar.
+
+Resultados en esta PC (6 CPU para Docker; k6 en la misma máquina):
+
+| Escenario | Antes | Después |
+|---|---|---|
+| Día normal, 50 personas | 0 errores de servidor; p95 páginas 196 ms, API 316 ms | — |
+| Feed, una petición | 54 ms (43 consultas con 18 ítems) | 16 ms (candidatos en memoria) |
+| Backend directo, 200 personas | ~86 pet/s, p95 4,1 s | ~191 pet/s, p95 1,2 s |
+| Pico 200 con páginas en caché de nginx | — | 82 pet/s por Next, p95 1,3 s, backend al 75 % de CPU |
+| Quiebre 600 | — | 0 errores 5xx, nada se cayó; 0,72 % de esperas > 60 s en Next |
+
+Arreglado con TDD: **N+1 del feed** (`default_batch_fetch_size`), **«me gusta» con doble toque** daba 500 por la restricción única (borrar-o-insertar atómico con `ON CONFLICT`), **candidatos del feed en memoria** (`FeedCandidateCache`, válidos mientras no cambie la versión del contenido; me gusta y eventos terminados cada 30 s). También: smoke de contrato actualizado (sin Reseñas ni Geografía, ya retirados); `k6-load`/`k6-stress` reemplazados por la simulación.
+
+**Límite actual:** el servidor de Next (un solo proceso Node) hace de intermediario de feed, me gusta, anuncios y sugerencias y es lo primero que se satura (~80 pet/s aquí). Opciones cuando haga falta (no antes): 2+ instancias de Next detrás de nginx según los núcleos del VPS, o que nginx enrute las rutas de solo-paso directo al backend.
+
+## 46.6h Flujo de plataforma y compositor (F5 + F6, 2026-10-07)
+
+Spec: `docs/superpowers/specs/2026-10-07-compositor-y-flujo-design.md` (local).
+
+- **Estados** (los 5 tipos): Borrador → Pendiente de aprobación → Programado → Publicado → Archivado. Sin «Aprobado» ni «Rechazado». Quien publica publica o programa desde Borrador o Pendiente, o **devuelve a borrador con nota** (`POST /{tipo}/{id}/return-to-draft`); quien solo crea **envía para aprobar**. Quien publica edita todo menos lo archivado (antes no podía editar lo publicado ni lo programado).
+- **Backend:** una sola máquina de estados `shared.publishing.PublishableContent` (`@MappedSuperclass`, mismos nombres de campo → los repositorios no cambian). Se borraron 5 enums, 9 excepciones y 10 DTO duplicados. Migración **V52** (`rejection_reason` → `review_note`, CHECK nuevo). Errores en castellano llano («No se puede publicar: está Archivado.»).
+- **Frontend:** una regla de permisos (`lib/admin/publication.ts`), una acción de servidor (`publication-actions.ts`, tipo y paso validados contra lista cerrada), una función del cliente (`runPublicationStep`); se borraron 5 archivos de permisos y 60 funciones/acciones duplicadas. `PublishPanel` compartido (Lugares, Eventos, Galerías, Directorio).
+- **Compositor de Publicaciones** (`article-composer.tsx`, reemplaza `article-form`): fotos y videos primero, título grande, «Descripción corta» y «Texto», panel Publicar fijo (en celular al final del flujo), tema y formato, vista previa en el feed, «Cómo se ve al compartir» (Google y redes, autocompletado; canónica y robots en Avanzado). zod + react-hook-form; guardado automático del borrador cada 10 s (crea el borrador y cambia la URL sin recargar; nunca lo publicado); aviso al salir con cambios. Muestra sin sesión en desarrollo: `/admin/muestra/compositor`.
+- **Pendiente:** compositor completo para Lugar, Evento, Galería y Directorio (hoy con `PublishPanel` dentro del formulario anterior); selector de fotos con arrastrar y soltar (F8).
+
+## 46.6i CI en GitHub, seguridad y zona horaria (2026-10-07)
+
+- **Lo pesado corre en GitHub Actions** (la laptop se recalentaba): rama + PR en borrador (#22) → backend, frontend, build y CodeQL en ~3 min. En local solo las pruebas de lo que se cambia (`vitest` con 2 procesos; Docker con 4 CPU en `.wslconfig`). El push lo hace el dueño (`! git push`).
+- **El CI de main fallaba desde 2026-09**: `tsc` corría antes de que Next generara `PageProps`/`LayoutProps`; ahora `next typegen && tsc`.
+- **CodeQL encontró un XSS real**: `VideoJsonLd` escapaba `<` con `"<"` escrito como `"<"` (que ES `<`); un título de video con `</script>` podía inyectar HTML en la página pública. Arreglado con prueba. También: ReDoS en `Slugify`, chequeo de texto vacío sin regex, escape completo en un e2e. La alerta «CSRF desactivado» es un falso positivo (API sin estado con token en cabecera).
+- **Zona horaria**: las fechas salían en la zona de la máquina; el servidor (Docker) está en UTC → un evento de las 11 p. m. de Lima se veía al día siguiente. `SITE_TIME_ZONE` (`NEXT_PUBLIC_SITE_TIME_ZONE`, por defecto `America/Lima`) en todas las fechas; las estadísticas (días UTC) caían en el día anterior en Lima. Las pruebas corren en UTC como el CI.
+- **Vercel** está vinculado al repositorio y arma vistas previas que fallan (no es el despliegue real, que es el VPS): decisión del dueño si se desconecta.
+
+## 46.6j Fase 2 — Estructura del panel (2026-10-07)
+
+- `components/admin/shell/AdminShell` (lo usa el layout del panel y la muestra `/admin/muestra/panel`, solo desarrollo).
+- **Escritorio:** menú lateral plegable a solo íconos (cookie `admin_sidebar`, path `/admin`: el servidor lo dibuja ya plegado), acordeón con el grupo actual abierto; barra superior con **«Buscar o ir a… Ctrl K»**, **Crear** (según permisos, `createItems()` en `lib/admin/nav.ts`) y la **cuenta** (Mi cuenta, Ver el sitio, Cerrar sesión).
+- **Paleta de comandos** (cmdk, Ctrl/⌘+K o «/»): ir a cualquier sección permitida o crear; filtra al escribir, Enter abre.
+- **Celular:** barra inferior con nombre en cada acción (Inicio, primera sección de contenido, Crear, Buscar, Menú) y cajón con todas las secciones abiertas.
+- `loading.tsx` (esqueleto), `error.tsx` (Next 16: `retry`, sin mensaje técnico, con código) y `not-found.tsx` del panel; el error público también usa `retry`.
+- Crear/editar de los 5 tipos con «← Lista» sobre el título (un nivel, sin migas de pan).
+- **Pendiente para F3:** contador de pendientes en el menú (necesita el endpoint liviano del inicio; contarlos hoy cargaría todas las listas). El e2e de trabajadores esperaba todos los ítems visibles en el menú; con el acordeón solo se ve el grupo actual — revisar al poder correrlo con credenciales.
+
+## 46.6k Sesión 2026-10-15 — plataforma de contenidos moderna (pausa para continuar)
+
+**Estado al pausar:** rama `feat/sistema-diseno`, PR borrador #22, **todo subido y CI en verde** (último commit `b5d19f1`, backend + frontend). Nada local sin subir. Docker apagado (la laptop se recalienta: lo pesado corre en GitHub Actions; en local solo lint, tipos, pruebas de lo tocado y `mvnw test-compile`).
+
+**Visión del dueño (manda sobre todo lo demás):** startup de contenidos moderna — no una redacción ni periodismo («eso es del pasado»). Referencias: Luisito Comunica, Manolo (TV Perú), Mr Beast, Animal Planet, National Geographic, Reddit, Instagram, X. Todos los temas (tecnología, historia, animales, curiosidades, lugares…). Video y podcast **viven en YouTube** y se ven en el sitio; el VPS nunca aloja video. Monetización: AdSense + publicidad directa. Personas: **1 Dueño** (super admin), **trabajadores** (plantilla **Administrador** = todo menos Actividad), visitantes anónimos.
+
+### Hecho en la sesión (en orden)
+| Área | Qué | Commits |
+|---|---|---|
+| Visitas | Conteo anónimo sin cookies ni IP (Redis → `engagement.content_views_daily`, V53) + `ViewBeacon` en cada contenido | 5d52d50 |
+| Inicio CRM | `GET /api/v1/admin/dashboard` (una llamada, por permisos, caché 60 s) + inicio con 7/30/90 días, indicadores, visitas por día, lo más visto | 2b6def5, 2bb0439 |
+| Listados | Paginación en servidor de los 5 tipos (`AdminListQuery`), estado en la URL, filtro por estado, miniatura + visitas + me gusta por fila, vacíos con acción | 961d823, af8ddad |
+| Imágenes | Subida múltiple arrastrando | 633cb5e |
+| Actividad | Línea de tiempo en español con «antes → después»; filtro de fechas en día de Lima; accesos denegados auditados | b6483bc, 877ad0a, f1d3186 |
+| Seguridad | Contraseñas > 72 bytes (BCrypt) ya no dan 500; **CSP permitía cero iframes de YouTube** (todos los videos se bloqueaban al tocar) | 2727f7c, 05bff93 |
+| Sin redacción | Roles editor/autor fuera de código y pruebas (`TestProfile`); **todos publican directo** (sin IN_REVIEW ni «Creador», V54); formato Entrevista retirado (V56) | c13c147, fe1dbe5, 212b2e8, cb94a1e |
+| Equipo | Plantilla **Administrador**: módulos Trabajadores y Configuración asignables (V55); solo Actividad es del dueño | 3cdfe67 |
+| Series | Serie = lista de reproducción de YouTube; episodios llegan solos cada 30 min (feed RSS público, sin clave, XXE bloqueado); notas propias por episodio; módulo SERIES (V57) | e8a88ad, 5fb6a14 |
+| Series fase 2 | Episodios en el feed, me gusta (por id), visitas, inicio del panel; portada fija por serie (V58) | 2c540f5, 5dd5429, ae1194a |
+| En vivo | Transmisión de YouTube dentro del sitio (+ chat en escritorio); «Estamos en vivo» / «Terminar» en el panel; aviso «En vivo ahora» en el inicio; se apaga sola a las 12 h (V59) | 4311e7b, b5d19f1 |
+
+### Pendiente — en este orden recomendado
+**A. Verificar a la vista (primero, nada de esto se ha visto en el navegador)**
+1. Reconstruir Docker (`infra`: `docker compose build frontend backend && docker compose up -d`) y revisar en Edge, en celular y escritorio, claro y oscuro: inicio CRM del panel, listados con filtros, Actividad, Imágenes (arrastrar), Series (panel y sitio), En vivo (panel, aviso del inicio, `/en-vivo` con chat), y que **el reproductor de YouTube ya carga al tocar** (corrección CSP 05bff93).
+2. Probar con una lista de reproducción real del dueño: crear serie, «Sincronizar ahora», escribir notas de un episodio, portada.
+3. Probar una transmisión real: programar, «Estamos en vivo», ver el aviso en el inicio, «Terminar».
+
+**B. Historias tipo Instagram (lo único que falta del plan de Series)**
+4. Diseñar con el dueño antes de construir: qué es una historia (foto o video corto de YouTube Shorts), duración (¿24 h como Instagram o fija?), quién la publica (módulo), dónde se ve (círculos arriba del feed — hoy esos círculos son los **temas**; decidir si conviven o se reemplazan).
+
+**C. Coherencia del backend (F9, autorizado por el dueño: «todo lo editorial sacarlo»)**
+5. Renombrar en el código `Article` → `Publication` (clases, tablas `content.articles`, rutas `/api/v1/articles` y `/api/v1/admin/articles`, tipos del frontend, ~140 archivos). Hacerlo en un paso propio con CI verde antes y después.
+6. Errores uniformes RFC 9457 (Problem Details) con códigos estables en español.
+7. Un solo dueño garantizado en la base (índice único parcial sobre `role = 'OWNER'`): **antes** cambiar las ~8 clases de prueba que crean su propio dueño en la base compartida a un dueño único de fixture.
+8. ~~Guardado de permisos en lote~~ — **hecho** 2026-10-15 (4743195): un DELETE en bloque + solo INSERT (`WorkerPermission` es `Persistable`).
+
+**D. Series y En vivo — mejoras siguientes**
+9. ~~Sección de anuncios propia~~ — **hecho** (c730329): `AdSection.SERIES` «Series y En vivo», `/series` y `/en-vivo` la usan.
+10. ~~Episodios en el buscador~~ — **hecho** (969f40c, V60): por título, notas y nombre del programa; filtro «Episodios»; buscar un tema también trae sus episodios.
+11. ~~Etiqueta «Administrador»~~ — **hecho** (47269ad): `accountLabel()` la deduce de los permisos (la plantilla no se guarda).
+12. Duración de episodios: el feed de YouTube no la trae; solo con clave de la API de datos (decisión del dueño: por ahora no).
+
+**E. Pantallas y listados (F7/F8)**
+13. Vista en cuadrícula para Galerías en el panel.
+14. Revisar Trabajadores, Mi cuenta, Configuración y Login contra el sistema de diseño (los formularios ya lo usan; falta una pasada visual).
+15. ~~Reporte de campaña con los gráficos nuevos~~ — **hecho** 2026-10-16: período 7/30/90 en la URL, tarjetas con variación vs. período anterior y minigráfico, gráfico de área con selector de métrica (una a la vez, un solo eje), total desde el inicio y tabla. KpiCard/RangeNav compartidos con el inicio (components/admin/kpi.tsx); se borraron CampaignStatsChart y StatCard.
+
+**F. Sitio público (F10)**
+16. ~~Retomar el rediseño estilo red social~~ — **hecho** 2026-10-16: revisión completa en Edge de las 19 pantallas públicas (escritorio 1366 y celular 390, sin desborde horizontal). Arreglado: mapa de Lugares bloqueado por la CSP, «Inicio» marcado en Series/En vivo/páginas de información, título duplicado en Series. Los algoritmos de §45.2 siguen esperando su condición de activación (datos reales).
+
+**G. Calidad y cierre (F11)**
+17. ~~E2E~~ — **hecho** 2026-10-16: suite al día (119 casos en local) y en CI con contenido sembrado (`scripts/e2e-seed.mjs`) y el dueño de prueba de la base efímera.
+18. ~~axe por pantalla, Lighthouse en CI, tabla de cumplimiento~~ — **hecho** 2026-10-16: WCAG 2.2 AA en 78 casos, Lighthouse en CI, tabla en §46.8.
+
+### Decisiones pendientes del dueño
+- ¿Unir el PR #22 a `main`? (nada va al VPS todavía).
+- ¿Desconectar Vercel?
+- Descartar el falso positivo de CodeQL (CSRF).
+- Credenciales para las E2E.
+- La cuenta trabajadora «Fray Luis» en la base local parece de prueba: ¿se queda?
+- Comunidad tipo Reddit (comentarios/votos) requeriría cuentas de lectores, que se descartaron antes: ¿se reabre?
+
+### 46.6l Sesión 2026-10-16 — anuncio nativo del feed (estilo Instagram/Facebook)
+Pedido del dueño: «los anuncios se tienen que mostrar como lo hacen las grandes empresas», con video de YouTube. Diseño: `docs/superpowers/specs/2026-10-16-anuncio-nativo-feed.md` (solo en disco).
+
+| Qué | Commits |
+|---|---|
+| Backend: `Campaign.format` BANNER/NATIVE; nativo solo en `en-feed`; texto ≤ 500, titular ≤ 60, botón de lista cerrada (`CallToAction`), un medio: foto de la biblioteca 1:1, 4:5 o 1.91:1 (≥ 600 px) **o** video de YouTube (Shorts = 9:16); destino solo http(s); logo del anunciante; `POST /ads/campaigns/{id}/play` + `plays` diarios (V61) | 41d4b32 |
+| Sitio: `NativeAdPost` — logo y nombre, «Patrocinado», menú ⋯ («Ocultar este anuncio», recordado en el navegador; «¿Por qué veo este anuncio?»: contextual, sin datos personales), medio a todo el ancho sin márgenes, video que carga al tocar (nocookie) y cuenta la reproducción, barra dominio + titular + botón, texto con «más». Sin me gusta ni compartir | 204d1a7 |
+| Panel: formato «Post en el feed» / «Banner», vista previa en vivo al lado (como el Administrador de anuncios de Meta), logo en el anunciante, reproducciones y tasa en el reporte. **Corregido**: el formulario de campañas se caía (`Field` con varios hijos) | 70c6c62 |
+
+Pendiente de esto: verlo en Docker/Edge (nada visto en navegador aún); cuartiles del video (API JS de YouTube), reproducción automática en silencio, carrusel de varias fotos, Shorts a pantalla completa.
+
+### 46.6m Sesión 2026-10-16 — la Agenda pasa a ser de Fechas
+Decisión del dueño: los eventos comerciales (conciertos, Mistura) eran **publicidad gratis**; lo comercial entra solo pagando (post «Patrocinado»). La Agenda queda hecha de **Fechas**: efemérides que se repiten cada año (28 de julio, Batalla de Ayacucho, Canción Criolla) o únicas (un eclipse). Se reutilizó el módulo Eventos (tabla `events.events`, rutas `/admin/eventos` y `/api/v1/events` sin cambiar) en vez de duplicarlo.
+
+| Qué | Commits |
+|---|---|
+| «Eventos» → «Agenda»: `/agenda` con redirección 301 desde `/eventos`; plantilla «Gestor de agenda» | f00623e |
+| Backend: `recurs_yearly`, `all_day`, `since_year`, `next_occurrence` (V62); `NextOccurrence` en la zona del sitio (el mismo día cuenta como hoy, 29-feb → 28); tarea 00:01 Lima; `GET /api/v1/events/today` | 791c67a |
+| Sitio y panel: compositor de Fechas con la regla «pago o canje = anuncio», «Hoy se celebra» (inicio y Agenda), «Próximas fechas», Agendar con RRULE anual, Event JSON-LD solo en únicas, «Evento» → «Fecha» | b43a2ee |
+
+**Después (mismo día): modelo Google, «Celebraciones».** El dueño eligió el modelo de Google: la portada cambia el día que toca («Hoy se celebra») y hay un archivo. La sección se llama **Celebraciones** (`/celebraciones`; `/agenda` y `/eventos` redirigen), cada ítem «Celebración», **sin pestaña** en la barra inferior (queda en Secciones del riel y en «Más»); se borró el contador semanal de Agenda (`agenda-count`). Eventos de prueba borrados de la base local; quedan 5 celebraciones reales sin foto (Lavado de Manos, Alimentación, Canción Criolla, Batalla de Ayacucho, Fiestas Patrias).
+
+Pendiente: celebraciones por geografía del visitante (ver propuesta en la sesión); renombrar en el código `Event` → `Celebration` junto con `Article` → `Publication` (C.5).
+
+### 46.6n PAUSA 2026-10-16 — pendiente detallado para continuar
+**Estado:** rama `feat/sistema-diseno`, árbol limpio, **12 commits locales sin subir** (desde 4743195). El dueño ejecuta `! git push` y luego revisar `gh pr checks 22`: ahí corren por primera vez las pruebas de integración de anuncio nativo (NativeCampaignIntegrationTest), Fechas/«Hoy se celebra» (EventWorkflowIntegrationTest) y búsqueda de episodios. Vercel falla siempre (no se usa; decisión pendiente de desconectarlo). Docker apagado. Base local: 5 celebraciones reales sin foto + campaña nativa de demo «Pollería El Inca (demo)» (borrar cuando el dueño diga).
+
+**En este orden:**
+1. ~~**Celebraciones por geografía**~~ — **hecho** 2026-10-16 (ver §46.6o). Diseño original en `docs/superpowers/specs/2026-10-16-celebraciones-geografia.md`. Plan:
+   - V63: `events.events.scope_country` (ISO-2, null = mundial) y `scope_region` (texto, exige país); `platform_settings.home_country` (default 'PE', editable en Configuración).
+   - Sacar `CampaignTargeting.normalizeRegion` a `shared` y usarlo en anuncios y celebraciones (sin duplicar).
+   - `GET /api/v1/events/today` lee `CF-IPCountry`/`CF-Region`/`CF-Region-Code` (como CampaignPublicController): filtra mundial + país + región del visitante y ordena región > país > mundial; sin ubicación: mundial + `home_country`, sin regiones.
+   - «Hoy se celebra» pasa a pedirse desde el navegador (proxy `/api/celebrations/today` con `visitorHeaders`, como los anuncios) para que las páginas sigan en caché.
+   - Panel: campo «Alcance» (Mundial / País / Región) en el compositor; la página de la celebración dice «Se celebra en Ayacucho, Perú» o «En todo el mundo». Archivo `/celebraciones` y «Próximas celebraciones» muestran todo (como el archivo de Doodles).
+2. ~~Ver en Edge el anuncio nativo con foto y el panel con sesión~~ — **hecho** 2026-10-16: anuncio nativo 4:5 con CTA de WhatsApp, «Hoy se celebra», página de celebración, panel de anunciantes, compositor «Dónde se celebra» y «País del sitio» verificados en Edge (Playwright, canal msedge). Para entrar al panel sin la contraseña del dueño hay un trabajador de prueba **solo en la base local** (`verificacion-temporal@dev.local`, permisos de Administrador; credenciales en `frontend/.env.e2e`, fuera de git). Se creó una 2.ª campaña nativa de demo con foto de prueba marcada «DEMO» (borrar junto con «Pollería El Inca (demo)»). Hallazgo arreglado: `SegmentedControl` desplazaba todo el panel al elegir una opción (radio `sr-only` sin contenedor `relative`).
+3. ~~Fotos para las 5 celebraciones y más fechas reales~~ — **hecho** 2026-10-16 en la base local: cada celebración tiene foto de Wikimedia Commons con licencia libre (dominio público, CC0, CC BY o CC BY-SA), subida a la biblioteca y con autor + licencia en el pie («Foto: … · CC BY 2.0 · Wikimedia Commons», obligatorio para CC BY/BY-SA). Alcance: Fiestas Patrias, Batalla de Ayacucho y Canción Criolla → Perú; Alimentación y Lavado de Manos → todo el mundo. Nuevas y publicadas: Día de la Bandera (7 jun, Perú), Inti Raymi (24 jun, Cusco, desde 1944), Semana Santa en Ayacucho 2027 (única, 21–28 mar, Ayacucho). **Falta**: «Canción Ayacuchana» — no se cargó porque no hay una fecha verificada; el dueño tiene que confirmarla. Las fotos son de referencia: el dueño puede reemplazarlas por fotos propias cuando las tenga.
+4. Lo que seguía de §46.6k: ~~C.5 renombre `Article`→`Publication` y `Event`→`Celebration`~~ — **hecho** 2026-10-16 (c126c1f, b90b34f; CI verde en ambos): clases, paquete `celebrations`, rutas `/api/v1/publications` y `/api/v1/celebrations`, panel `/admin/celebraciones`, tipos del frontend, valores `PUBLICATION(S)`/`CELEBRATION(S)`. V64/V65 renombran tablas, esquema `events`→`celebrations`, columnas, índices y restricciones, y migran los valores guardados (me gusta, visitas, secciones de campañas, permisos). La auditoría vieja (`ARTICLE_*`, `EVENT_*`, `ARTICLES`, `EVENTS`) no se toca (inmutable); `lib/admin/audit.ts` la sigue nombrando bien. Se conservan a propósito: `<article>` de HTML, schema.org `Article`/`Event`, OpenGraph `article`, `VEVENT`, `AuditEvent`, eventos del DOM y la clave de posición de anuncio `article`. Hallado y arreglado en el camino (7a70347): las fechas anuales con año de origen antiguo (1821, 1824) caían un día antes por la hora solar de Lima anterior a 1908; textos visibles que aún decían «evento». **Pendiente menor**: `scripts/seed_dev_data.py` estaba desactualizado desde antes (rol EDITOR, tipo RANKING). ~~C.6 RFC 9457~~ — **hecho** 2026-10-16: todos los errores de la API en `application/problem+json` (`title` en español, `status`, `detail`, `instance`; `code` estable para permisos y seguridad: MODULE_ACCESS_DENIED, OWNER_MANAGEMENT_DENIED, INVALID_PERMISSION, ACCOUNT_DISABLED, PASSWORD_CHANGE_REQUIRED, AUTHENTICATION_REQUIRED, ACCESS_DENIED; `errors` por campo en la validación). `shared/api/Problems` + `ApiExceptionHandler` (ResponseEntityExceptionHandler) reemplazan 15 records ApiError e InvalidParameterExceptionHandler; la API fija el idioma en español (`spring.web.locale: es`) para los mensajes de validación; el frontend lee `detail` (lib/api/problem.ts). Los códigos de estado no cambiaron (sin sesión sigue siendo 403). ~~C.7 dueño único~~ — **hecho** 2026-10-16: V66 índice único parcial (como máximo una fila `role = OWNER`); las pruebas usan un solo dueño compartido (`TestOwner`, en las pruebas de identity) y ya no existe el perfil de prueba DUENO. Sigue: ~~E.13 cuadrícula de Galerías~~ (hecho 2026-10-16: DataTable con vista Lista/Cuadrícula en ?vista, Galerías abre en cuadrícula), ~~E.14 revisión visual~~ (hecho 2026-10-16: Configuración sin jerga interna y con Card del sistema, Mi cuenta en dos columnas con «Qué puedes hacer», Trabajadores a todo el ancho con columnas; Login sin cambios. «Tema» quitado de Configuración a pedido del dueño (V67): el sitio sigue al dispositivo, sin selector.), F.16 rediseño social, G.17–18 E2E y axe/Lighthouse.
+5. Pendientes de anuncios: cuartiles de video, autoplay en silencio, carrusel de fotos.
+6. Legal (no es código): revisión con abogado antes de vender el primer anuncio; RUC y régimen con contador (AdSense = renta de tercera categoría; posible exportación de servicios); actualizar la política de privacidad al reglamento D.S. 016-2024-JUS.
+
+### 46.6o Sesión 2026-10-16 (cont.) — celebraciones por geografía
+CI verde en los 12 commits de §46.6n (Vercel sigue fallando; no se usa). Construido el punto 1:
+- **V63**: `events.events.scope_country` (ISO-2, null = todo el mundo) y `scope_region` (exige país, CHECK en la base); `configuration.platform_settings.home_country` (default 'PE').
+- **`shared/RegionNames`**: normalización de regiones (antes `CampaignTargeting.normalizeRegion`), `matches`, `visitorCountry` (descarta "XX" y "T1" de Cloudflare) y `countryCode`. Anuncios y celebraciones usan el mismo código; prueba unitaria `RegionNamesTest`.
+- **`GET /api/v1/events/today`** lee `CF-IPCountry`/`CF-Region`/`CF-Region-Code`, filtra con `Event.closenessTo` y ordena región > país > mundial; sin ubicación usa `home_country` sin regiones. Responde `no-store`. País inválido o región sin país → 400 (`InvalidEventScopeException`).
+- **Frontend**: la página trae en su HTML en caché lo del visitante sin ubicación (mundial + país del sitio); `TodayCelebrations` (ahora componente de cliente) lo reemplaza con lo de su lugar vía el proxy `/api/celebrations/today` (`visitorHeaders`). La forma de tarjeta se arma en el servidor (`lib/today-celebrations.ts`). Página de la celebración: dato «Se celebra en · Ayacucho, Perú / Perú / Todo el mundo». Compositor: tarjeta «Dónde se celebra» (Un país / Una región / Todo el mundo; país con buscador, nombres por `Intl.DisplayNames` en `lib/countries.ts`). Una celebración nueva es por defecto del país del sitio: lo mundial se elige a propósito. Configuración › Identidad: «País del sitio».
+- Las pruebas de integración (`todayShowsOnlyWhatIsCelebratedWhereTheVisitorIs`, `scopeMustBeACountryCodeAndARegionNeedsItsCountry`) corren en CI.
+- **Pendiente del dueño**: las 5 celebraciones de la base local quedaron como «Todo el mundo» (null). Las peruanas (Fiestas Patrias, etc.) hay que pasarlas a «Perú» en el panel; si no, un visitante de México las vería.
+- **Compromiso aceptado**: un visitante fuera del país del sitio, o de una región con fecha propia, ve un cambio en la tarjeta al cargar (de lo general a lo suyo). Es el precio de mantener las páginas en caché; para la mayoría (Perú sin fecha regional) no cambia nada.
+
+### 46.6p Sesión 2026-10-16 (cont.) — publicidad legal y paquete de 5 arreglos de Publicaciones
+Ingreso principal por ahora: **AdSense**; la publicidad directa, cuando el sitio sea conocido (dueño, 2026-10-16). Análisis en Claude Docs: «Directorio y publicidad» (decisión pendiente: «Recomendados» o quitarlo) y «Publicaciones: qué le falta».
+- **Publicidad pagada** (V68): rubro del anunciante con advertencia por ley y confirmación de condiciones en cada guardado. Ver la tabla «Publicidad pagada» en §46.8.
+- **1. Imagen al compartir (bug)**: la página pública solo enviaba `ogImageUrl`; sin él, WhatsApp/Facebook mostraban el enlace sin foto. `lib/share-image.ts` aplica una sola regla a los 5 tipos: imagen elegida, si no la portada, si no la miniatura del video. Además agrega `max-image-preview:large` (Google Discover) a lo indexable. También quita los tres `resolveImageUrl` duplicados.
+- **2. «actualizado hace …»** en el encabezado de una publicación editada al menos 24 h después de publicarse (`updatedTimeFor`).
+- **3. Shorts verticales** (V69): `vertical` en los videos de publicaciones, lugares, celebraciones y directorio; se detecta por el enlace `/shorts/` y se muestran en 9:16. Los videos ya cargados quedan horizontales hasta volver a guardarlos. Todo video vive en YouTube; el sitio solo guarda la referencia.
+- **4. «También te puede interesar»** a mitad de una publicación larga (≥ 6 bloques, `lib/split-body.ts`, nunca corta listas ni citas). Ese contenido sale de «Más como esto» para no repetirse.
+- **Directorio quitado entero** (V71, dueño 2026-10-17: «se ve feo, parece publicidad gratis»). Respaldo previo: `docs/respaldos/directorio-2026-10-17.sql` (fuera de git; 9 fichas). Se borró el módulo en backend (paquete `directory`, tipo BUSINESS, módulo DIRECTORY, plantilla «Gestor de directorio») y frontend (rutas, compositor, tabla, chips, menú, búsqueda, sitemap, estadísticas, e2e). La migración limpia «me gusta», visitas, permisos y la segmentación de anuncios. De paso: el panel de inicio ahora también abre para un trabajador solo de Series (antes mostraba series pero se lo negaba).
+- **«Agendar» → «Recordarme»** en la tarjeta y en el detalle de las celebraciones (antes «Agendar» y «Google Calendar»): guarda la fecha en el calendario del visitante; no usa ninguna API ni cuenta de Google.
+- **Loop 1 de diseño (inicio/feed)**: ver commit fa4df32 (feed sin líneas, tokens `like`/`live`, `lib/prose.ts`, bug de hidratación con `window.location`).
+- **5. «Síguenos en WhatsApp»** al final de cada publicación (V70, Configuración › Contacto › Canal de WhatsApp; solo enlaces `whatsapp.com/channel/…`; vacío = sin botón).
+
+### 46.6q PAUSA 2026-10-17 — todo lo que falta, en orden
+Estado: todo subido hasta `dd11734` (PR #22). Hecho en esta sesión: §46.6p.
+1. **Verificar CI** de los últimos commits (`gh pr checks 22`); las pruebas de integración del backend solo corren allí.
+2. **Docker local**: reconstruir el backend para aplicar V71 (`cd infra && docker compose --env-file ../.env up -d --build backend`) y comprobar que `/directorio` da 404 y el feed carga.
+3. **Loops de diseño por pantalla** (procedimiento en `DESIGN.md` › Iteration Guide). Hecho: inicio/feed. Faltan, en orden: detalle de publicación (y ver en vivo los 5 arreglos de §46.6p) → explorar → celebraciones → lugares → galerías → series y en vivo → buscar → páginas legales y contacto → panel completo. Ya detectado: `rounded-2xl`/`rounded-xl` y sombras sueltas fuera de los tokens; colores sueltos en los degradados de temas y del riel.
+4. **Bugs, inconsistencias y logs**: anotarlos en cada loop. Logs del frontend (route handlers `/api/*`, server actions, `error.tsx`) con un logger mínimo en JSON y el id de petición; revisar en el backend los jobs programados sin log de error.
+5. **Revisión del backend** por módulo, después del frontend.
+6. **Tareas del dueño**: «Semana Santa en Ayacucho 2027» tiene hora 00:00 en vez de «todo el día»; enlace del canal de WhatsApp en Configuración; volver a guardar las publicaciones con Shorts; fecha de la Canción Ayacuchana; avisar cuándo borrar las campañas demo y el trabajador temporal; abogado y RUC/contador.
+7. **Técnico de antes**: LCP (meta 2,5 s), anuncios (cuartiles, autoplay silenciado, carrusel nativo), CSP con nonce, backups con copia externa, campos sin uso de Configuración.
+8. **En espera**: UTM y visitas por origen, embeds de redes, series de publicaciones, gestor de consentimiento europeo.
+
+### 46.6r PAUSA 2026-10-22 — todo lo que falta, en orden (tras 6f44080)
+Estado: rama feat/sistema-diseno (PR #22), todo subido. Último CI verde COMPLETO: f98a406. Misma lista en la memoria del asistente (plan activo).
+
+**Avance 2026-10-23 (commits locales 143b37f..d05c067, sin subir):**
+- A.1 HECHO: CI de 7a2b7b5 verde completo (CSP con nonce, panel rehecho, ModularityTest).
+- A.2 HECHO: LCP (mediana) Inicio 3,25 s, Explorar 2,90, Lugares 3,22, Celebración 3,70. **LCP observado 124–242 ms**: los ~3 s son la estimación «simulate» (Lantern), que suma la CPU del JS aunque la foto ya se pinte desde el HTML. Explorar/Lugares cargan los mismos 223 KB que el Inicio → el peso es React+Next (71+44 KB) y el armazón compartido, no el feed. Celebración +59 KB (detalle inmersivo). Conclusión: B.4 (feed como Server Components) ya no se justifica por LCP; queda como mejora opcional de JS.
+- B.3 HECHO 143b37f: miniaturas en diferido; YouTubeEmbed `priority` en episodio y en vivo; portada de serie con prioridad alta.
+- B.5 HECHO 42257c4: radios/sombras a tokens en sitio y panel; SkeletonImage `bg-zinc-100` → `bg-canvas-strong` (destello gris en oscuro). Excepciones documentadas en DESIGN.md Known Gaps. Revisado en Edge 1280 claro/oscuro y 390 oscuro (buscador, hoja Más).
+- B.7 HECHO 4e95779: pista bajo «O pega el enlace de una imagen» + línea en la guía.
+- C.8 HECHO d05c067: las fotos subidas NO se respaldaban (se empaquetaba una ruta del host, no el volumen media_data). Ahora: tar desde el contenedor backend con conteo, pg_restore --list, sin archivos vacíos ante fallos, BACKUP_KEEP_MIN=7. Restauración probada en una base aparte (mismos conteos) y luego borrada. FALTA: copia externa a R2 (credenciales del dueño).
+- B.6 (parte) HECHO 2026-10-23: 7b60539 portada «Sigue» vacía con fotos subidas (UpNext daba la URL interna backend:8080 a un <img>; ahora next/image) + título del hero ya no queda bajo los botones flotantes; 098e447 barra de celular no marca Inicio en Contacto/legales (activeTab → null); 2b2eb1a+3cb37c7 SEO: Privacidad/Términos/Contacto/Buscar tenían canonical = «/» (heredado del layout raíz) → canonical y descripción propios + e2e; /explorar en el sitemap. Revisados en oscuro 390: 404, 4 detalles, Series/En vivo vacíos, Buscar sin resultados, Privacidad. CI de d05c067 verde.
+- Observado, sin cambiar (decisión del dueño): «Faltan 358 días» en una celebración que pasó hace 7 días (correcto, cuenta a la próxima); anuncio fijo también en las legales; títulos/textos de prueba sin tildes (datos).
+- FALTA de B.6: Series/episodio y En vivo CON datos (no hay en local), break-ui de Buscar con resultados largos, 768 px. Celebración sin JSON-LD de tipo (Event no aplica a un día conmemorativo: no inventar).
+- C.9 DECIDIDO por el dueño 2026-10-23: cuartiles de video y autoplay silenciado DESCARTADOS (exigen iframe_api de YouTube/CSP y cargan YouTube con cookies antes del toque y del consentimiento); carrusel de varias fotos en el nativo EN ESPERA (migración + formulario; solo si se vende ese formato).
+- B.6 TERMINADO 2026-10-23 salvo Series/episodio y En vivo CON datos (no hay en local): 2217a12 buscador (miniatura rota → ícono del tipo; total «12,345» con Intl es-PE); 768 px revisado (Explorar, detalle) sin desborde.
+- PANEL REVISADO 2026-10-23 a 390 (Anunciantes, detalle, Espacios, Trabajadores, ficha, Configuración, Mi cuenta): de1dd60 totales por moneda (antes sumaba soles+dólares con la 1.ª moneda) + símbolo «S/», Espacios sin <AdBlock …/>, vista previa de Configuración sin «la primera foto»; 3ff76a6 break-words en AdminPageHeader. Basura local: muchas cuentas «Prueba Automática» desactivadas de e2e locales. Pendiente menor: el selector de logo del anunciante ofrece también los banners (todas las imágenes AD).
+**Legal sin abogado (investigado 2026-10-23, el dueño no puede pagar abogado). Resumen práctico, NO asesoría legal; verificar en las fuentes oficiales:**
+- Política de privacidad: actualizada en el sitio (AdSense, Analytics, Google fuera del Perú, reclamación ante la ANPD). Falta del dueño: su nombre/razón social y domicilio como «Responsable» (art. 18 Ley 29733: identidad y domicilio del titular).
+- ANPD (gratis): inscribir bancos de datos en el Registro Nacional (SIPDP, sipdp.minjus.gob.pe; aprobación automática desde el DS 016-2024-JUS, vigente desde el 30–31/03/2025). Bancos posibles aquí: usuarios del panel (trabajadores) y contactos de anunciantes. Preguntar a la ANPD si hace falta inscribir el «flujo transfronterizo» por usar Google. Consultas sin costo: (01) 204-8020 anexo 2410, oficialdedatospersonales@minjus.gob.pe.
+- Indecopi: Guía de Publicidad para Influencers (2.ª ed., ago-2024): con «conexión material» con el anunciante va «Publicidad». El sitio ya lo hace (etiqueta «Patrocinado», sin promoción gratis de negocios). Multas reales (p. ej. 47 UIT).
+- Formalizar e impuestos: PRODUCE «Tu Empresa» (CDE) asesora gratis; RUC de persona natural con negocio por SUNAT. SUNAT Informe 044-2022: los ingresos por publicidad de creadores digitales serían de 3.ª categoría (verificar en el informe); elegir régimen (Nuevo RUS / MYPE) con SUNAT u orientación gratuita.
+- Abogado gratis: consultorios jurídicos de universidades (UNMSM, PUCP, otros; confirmar si están vigentes) y voluntariado del Colegio de Abogados de Lima.
+- D.13 (parte) 2026-10-23, a pedido del dueño: Configuración LOCAL con título en Google «Ecos del Camino: lugares, historias y curiosidades» (50) y descripción «Descubre lugares, historias, tradiciones y curiosidades del Perú y el mundo, con fotos y videos. Algo nuevo para ver y aprender cada día.» (137). Solo en la base local (SQL): repetirlo en producción al desplegar. Faltan del dueño: correo de contacto dedicado, redes, imagen al compartir 1200×630.
+- HISTORIAS (Stories) 2026-10-23 — dueño eligió «A + 2 protecciones», detalle, retención, usar skills de diseño. Spec: docs/superpowers/specs/2026-10-23-historias-design.md (docs/ no va a git). Resumen: agrupadas por TEMA dentro de la fila TopicStories (temas con historias primero, anillo degradado sin ver / gris visto; sin historias = fila de hoy); caducan 24 h, limpieza a 7 días; Destacadas por tema en /categorias/[slug]; foto o fondo de color + texto ≤140; enlace a publicación/lugar/celebración/galería (no episodio) o Short al tocar; visor diferido (next/dynamic) con gestos, 6 s, pausa, «Estás al día» → Lo más reciente; /historias/[id] noindex compartible; panel /admin/historias + compositor en lote (≤10) primero en Crear; módulo STORIES; V74; ContentType.STORY con inDashboard=false; CTA contado. SIGUIENTE: plan (writing-plans) → construir por tandas.
+- C.10: Next 16.4.3 salió el 2026-10-23, solo bugs (sin seguridad) → esperar ~2 semanas antes de subir. npm audit --omit=dev high: verde (2 moderados de siempre).
+
+#### A. Primero al retomar (verificación, ~15 min)
+1. **CI de 6f44080** (o el último): `gh run list --branch feat/sistema-diseno --limit 4`. Los runs anteriores se CANCELAN solos al subir otro commit: mirar siempre el más reciente. Debe validar lo que no se pudo ver en local: pantallas internas del panel con la CSP nueva (nonce), Anunciantes/Espacios/Trabajadores rehechos sin verlos (e2e accessibility entra como dueño a 17 pantallas), ModularityTest, registro de tipos. Si falla algo del panel → probablemente CSP (`script-src` del panel) o AdminList.
+2. **LCP del CI**: `gh run download <id> -n e2e-lighthouse-reports -D %TEMP%/claude/lhr`; leer lhr-*.json (mediana por URL, fases en audits["largest-contentful-paint-element"]; observado real en "lcp-phases-insight"). Referencia f98a406: Inicio 3,49 s, Explorar 2,92, Lugares 3,55, Celebración 3,71 (meta 2,5); observado real ≈ 200 ms; cuello = JS (bootup 918 ms Inicio). Después de 97b1f45 (JS 278→243 KB gz) debería bajar algo.
+
+#### B. Mejorar el sitio público (pedido del dueño 2026-10-22: «también mejorar el sitio público»)
+Seguir el loop de DESIGN.md por pantalla (web-design-guidelines → emil-design-eng → break-ui → arreglar → capturas 390/768/1280 claro+oscuro en Edge → tsc/lint/knip/vitest → commit). Hallazgos medidos 2026-10-22:
+3. **Imágenes sin `loading` (React las precarga y compiten con la foto principal)**: today-celebrations.tsx, right-column.tsx (portada de celebración), search-box.tsx (miniaturas de resultados), live-banner.tsx, native-ad-post.tsx (2), post-header.tsx (logo de marca en CADA post: usar ThumbImage/next/image si es subida), youtube-embed.tsx (miniatura del facade), app/(public)/series/[slug]/page.tsx (portada = posible LCP: priority, no lazy). Falsos positivos: content-image-display, preview-image, skeleton-image, thumb-image (ya condicionales), brand-logo (debe ser eager). Patrón: miniaturas → `ThumbImage`; foto principal → `SkeletonImage priority`; resto → loading="lazy" decoding="async".
+4. **JS del Inicio** (si el CI sigue > 2,5 s): feed ~67 KB gz es client (feed.tsx "use client" arrastra PostCard/PostMedia/LikeShareBar/embla). Opción: publicaciones como Server Components y solo botones/carrusel en cliente (cambio de arquitectura: diseñar antes, medir con el manifiesto `.next/server/app/(public)/page_client-reference-manifest.js` dentro del contenedor). Menor: search-box (Ctrl+K) con next/dynamic al abrir (~5–8 KB). 43 componentes "use client" en lo público: revisar cuáles no necesitan serlo.
+5. **Deuda de tokens (DESIGN.md)**: 23 `rounded-xl/2xl` → `rounded-card`/`rounded-control`; 12 colores Tailwind crudos (zinc/emerald/lime/slate/gray) → tokens (excepción documentada: texto sobre fotos); 14 sombras `shadow-sm..2xl` → `shadow-card/pop/overlay`. Grep: `grep -rn "rounded-2xl\|rounded-xl" components app/(public)`.
+6. **Pasadas por pantalla aún no hechas con la paleta naranja**: detalle de cada tipo en oscuro, 404/error.tsx públicos, Buscar con resultados largos (break-ui), Series/episodio, En vivo sin transmisión, legales en celular. Revisar también SEO: títulos/descripciones por página, JSON-LD por tipo, sitemap con temas visibles, Open Graph con la imagen correcta.
+7. **Fotos externas (picsum/enlaces)**: no se pueden optimizar (host arbitrario) → llegan a 1600 px aunque se muestren chicas. Recomendar en la guía del panel «sube la foto» y/o avisar en el compositor cuando se usa enlace externo.
+
+#### C. Técnico (no depende del dueño)
+8. **Respaldos (mayor riesgo real)**: scripts/backup.sh — la retención de 14 días borra aunque sean los únicos; no respalda el volumen `media_data` (las fotos subidas). Agregar copia del volumen + verificación de restauración + copia externa a R2 (credenciales del dueño). Probar restauración en local SIN tocar datos reales (contenedor aparte).
+9. **Anuncios**: cuartiles de video (25/50/75/100), autoplay silenciado en nativo con video, carrusel de varias fotos en el nativo.
+10. **Dependencias**: 2 avisos moderados npm (postcss-selector-parser vía @tailwindcss/typography) — revisar en cada CI si sale versión que lo corrija; `npm audit --omit=dev --audit-level=high` debe seguir en verde.
+11. **SOLID (vigilar)**: feed y search leen entidades de 5 módulos (modelos de lectura, aceptable). Si crecen: vistas de lectura propias.
+
+#### D. Dueño (no código)
+12. Abogado: guía «Qué se puede publicar» y política de privacidad (mencionar GA si se activa). RUC/contador.
+13. Configuración del sitio: redes reales, correo de contacto, descripción real (hoy «Sistema de gestión y distribución de contenidos digitales»).
+14. Datos: Semana Santa 2027 con hora 00:00 → «todo el día»; re-guardar publicaciones con Shorts; fecha de la Canción Ayacuchana; cuándo borrar campañas demo («Pollería El Inca (demo)»).
+15. Decisiones: merge del PR #22 a main (preguntar antes); VPS en pausa.
+
+#### E. En espera
+16. UTM + visitas por origen; embeds Instagram/X/TikTok (CSP + consentimiento); series de publicaciones; consentimiento europeo; roadmaps pausados .
+
+#### Cómo trabajar (lecciones de la sesión 2026-10-22)
+- Docker SIEMPRE `cd infra && docker compose --env-file ../.env up -d --build <servicio>` (sin env-file el backend falla por contraseña de Postgres). Panel en http://localhost:3000/admin (localhost:80/admin da 404). Una reconstrucción por tanda.
+- Laptop lenta/caliente: la suite completa del frontend tarda 3–5 min; NUNCA dejarla en segundo plano junto a otra cosa; integración del backend: solo las clases afectadas en local, el resto en CI.
+- Para ver el panel hace falta un usuario temporal (WORKER) creado con permiso del dueño; el clasificador NO deja darle permisos extra (ADVERTISING/WORKERS/SETTINGS) — pedir al dueño o hacer sin ver. Borrarlo al terminar.
+- Git Bash en Windows: usar MSYS_NO_PATHCONV=1 con curl a rutas; heredocs largos de Python fallan → escribir el script en el scratchpad y ejecutarlo.
+- No anotar clases con @NamedInterface (Modulith arrastra dependencias); probar una guarda haciéndola fallar antes de confiar en ella.
+- next/dynamic en Vitest: simular con React.lazy + Suspense y precargar el módulo en beforeAll.
+
+## 46.8 Tabla de cumplimiento (G.18, 2026-10-16)
+
+Estado real de cada control, con su evidencia en el repositorio. ✅ cumple · ⚠️ parcial · ⏳ pendiente.
+No reemplaza una auditoría externa ni la revisión legal (§46.6n.6).
+
+**Regla de trabajo (dueño, 2026-10-22):** todo cambio sigue SOLID, ISO/IEC 25010 y 27001/27002, OWASP ASVS, y el ciclo de cambio de ITIL 4 / COBIT 2019 (BAI03, BAI06, BAI07): plan → prueba que falla → implementación → verificación → revisión → commit de un solo tema → documentación aquí. Sin código huérfano. El mapeo se mantiene corto: sirve para decidir, no es papeleo.
+
+### Accesibilidad — WCAG 2.2 AA
+
+| Control | Estado | Evidencia |
+|---|---|---|
+| Páginas completas sin violaciones axe (A, AA, 2.1 AA, 2.2 AA) | ✅ | `e2e/accessibility.spec.ts`: 14 pantallas públicas, detalle de los 5 tipos, un tema, login y 17 pantallas del panel, en escritorio y celular (78 casos). Corre en CI. |
+| Componentes | ✅ | `vitest-axe` en las pruebas de componentes. |
+| 2.5.8 Tamaño del objetivo (≥ 24 px) | ✅ | Puntos del carrusel (`media-carousel.tsx`), casillas de selección de 44 px. |
+| 2.1.1 Teclado | ✅ | Prueba de recorrido con Tab; foco visible global; controles nativos. |
+| Contraste en claro y oscuro | ✅ | axe en ambos esquemas (regresión visual claro/oscuro); el sitio sigue al dispositivo. |
+
+### Calidad del producto — ISO/IEC 25010
+
+| Característica | Estado | Evidencia |
+|---|---|---|
+| Adecuación funcional | ✅ | pruebas de integración del backend (Testcontainers) y unitarias del frontend en cada CI; e2e en CI con contenido sembrado. |
+| Eficiencia de desempeño | ⚠️ | Lighthouse CI en cada cambio (perfil de celular): rendimiento 85–97, CLS 0, TBT < 150 ms (bloqueantes, pasan). **LCP 2,8–4,2 s contra la meta de 2,5 s** (advertencia por decisión del dueño, 2026-10-16). Ver «LCP» abajo. |
+| Usabilidad | ✅ | WCAG 2.2 AA (arriba); revisión visual en Edge de las 19 pantallas públicas y del panel. |
+| Fiabilidad | ⚠️ | Health checks, reintentos y topes de memoria en Docker. ⏳ Backups: falta la copia externa a R2 y corregir `scripts/backup.sh` (§46.7.5). |
+| Seguridad | ✅/⚠️ | Ver OWASP ASVS. |
+| Mantenibilidad | ✅ | knip (cero código sin uso) y ESLint en CI; tipos estrictos; módulos por dominio; nombres coherentes con la interfaz (Publication, Celebration). **Modularidad verificada** (2026-10-22): `ModularityTest` (Spring Modulith) falla el CI si un módulo usa lo interno de otro o hay ciclos; principios SOLID aplicados (registro de tipos de contenido, `CampaignService` partido — §46.7 puntos 10b–10d). |
+| Portabilidad | ✅ | Todo en Docker Compose; configuración por variables de entorno. |
+
+**LCP — qué se hizo y qué falta (2026-10-16).** Hecho y medido en CI: foto principal visible sin esperar a JavaScript (`SkeletonImage` sin fundido con `priority`), foto del detalle y de «Hoy se celebra» con prioridad, borrado de `app/loading.tsx` raíz (envolvía todo el sitio en un segmento de streaming), sonner solo en el panel, Radix de Buscar/Más/Información cargado al primer toque, semilla de CI con foto realista. Descartado tras medirlo: quitar los esqueletos `loading.tsx` del sitio (≈ −0,5 s en algunas pantallas, peor en el inicio; no compensa perder el esqueleto al navegar). Lo que queda: ~3 s de «Render Delay» con 257 KB de JS comprimido y ~1,4 s de CPU en el inicio. **Siguiente paso**: analizar el paquete (`next build` con análisis) y el tamaño del RSC en línea, pasar a Server Components lo que no necesita estado, y medir en el VPS con datos reales (CrUX/Search Console es lo que cuenta para Google).
+
+### Seguridad de aplicaciones — OWASP ASVS (nivel 2, controles principales)
+
+| Capítulo | Estado | Evidencia |
+|---|---|---|
+| V2 Autenticación | ⚠️ | BCrypt; política de contraseñas (12+ caracteres); límite de intentos de login por IP; contraseña temporal con cambio obligatorio. **Sin MFA** por decisión del dueño (riesgo aceptado, §46.6d). |
+| V3 Sesiones | ✅ | Cookies `httpOnly`, `SameSite=Lax`, `Secure` en producción; tokens de refresco revocables; las sesiones caen al restablecer la contraseña o desactivar la cuenta. |
+| V4 Control de acceso | ✅ | Permisos por módulo verificados en el servidor en cada petición; rutas del dueño por rol; un solo dueño garantizado en la base (V66). Prueba: `AuthorizationMatrixIntegrationTest`. |
+| V5 Validación y codificación | ✅ | Bean Validation; HTML saneado en el backend (`HtmlSanitizer`); escape de `<` en todo JSON-LD (prueba `json-ld-escape.test.ts`). |
+| V7 Errores y registros | ✅ | Errores RFC 9457 sin trazas internas; id de petición en cada log; auditoría de toda acción del panel y de los accesos denegados. |
+| V8 Protección de datos | ✅ | Sin cuentas de lectores; «me gusta» con un UUID aleatorio; IP de anuncios solo como hash por 26 h. |
+| V12 Archivos | ✅ | Subida de imágenes validada por tipo real y tamaño, con límite por usuario. |
+| V14 Configuración | ✅/⚠️ | CSP, HSTS (nginx), `nosniff`, `Referrer-Policy`, `Permissions-Policy`; `npm audit` y CodeQL en CI. CSP **estricta con nonce en el panel** (2026-10-22); el sitio público conserva `'unsafe-inline'` para mantener la caché — riesgo aceptado y documentado (§46.7.2). |
+
+### Seguridad de la información — ISO/IEC 27001:2022 (Anexo A, controles técnicos aplicables)
+
+| Control | Estado | Evidencia |
+|---|---|---|
+| A.5.15 / A.8.2 / A.8.3 Control y restricción de accesos | ✅ | Dueño + trabajadores con módulos asignados; el dueño no puede ser administrado por un trabajador. |
+| A.8.5 Autenticación segura | ⚠️ | Ver V2 (sin MFA). |
+| A.8.12 Prevención de fuga de datos | ✅ | Datos mínimos; nada personal de lectores. |
+| A.8.13 Copias de seguridad | ⏳ | `scripts/backup.sh` con dos fallas conocidas; falta copia externa (§46.7.5–16). |
+| A.8.15 / A.8.16 Registro y monitoreo | ✅ | Auditoría inmutable (nunca se reescribe; los renombres V64/V65 la dejaron intacta), logs JSON con rotación, retención de 365 días. |
+| A.8.25–A.8.29 Desarrollo y pruebas seguros | ✅ | Ramas y PR con CI obligatorio (backend, frontend, e2e, a11y, Lighthouse, CodeQL, `npm audit`). |
+| A.8.9 Gestión de la configuración | ✅ | Infraestructura como código (`infra/`); secretos fuera del repositorio. |
+
+### Protección de datos personales — Ley N.º 29733 y su reglamento (D.S. 016-2024-JUS)
+
+| Obligación | Estado | Evidencia |
+|---|---|---|
+| Inventario y finalidad de los datos | ✅ | Tabla de §46.6d. |
+| Información al titular (política de privacidad) | ⚠️ | `/privacidad` vigente (actualizada 2026-10-16); ⏳ revisarla contra el reglamento D.S. 016-2024-JUS con un abogado. |
+| Consentimiento para cookies no necesarias | ✅ | Aviso con «Aceptar» y «Rechazar» del mismo peso; nada de terceros sin aceptar. |
+| Derechos ARCO | ⚠️ | Explicados en `/privacidad`; ⏳ falta publicar el correo de contacto (Configuración). |
+| Conservación limitada | ✅ | Auditoría 365 días; frecuencia de anuncios 26 h; intentos de login 15 min. |
+| Inscripción del banco de datos (ANPD) | ⏳ | Trámite del dueño, no de código. |
+
+### Publicidad pagada — D.L. 1044 y leyes de advertencias (2026-10-16)
+
+| Obligación | Estado | Evidencia |
+|---|---|---|
+| Autenticidad: el anuncio se reconoce como publicidad (art. 16) | ✅ | Banner rotulado «Publicidad» y post nativo «Patrocinado», siempre (`native-ad-post.tsx`, `direct-campaign-banner.tsx`). |
+| Promociones con vigencia, stock y condiciones (art. 17.3.f) | ✅ | Casilla obligatoria en cada guardado de campaña; el backend rechaza sin ella (`CAMPAIGN_COMPLIANCE_REQUIRED`) y guarda la fecha (`compliance_confirmed_at`, V68). |
+| Advertencias por rubro: alimentos (Ley 30021), alcohol (Ley 28681), apuestas (Ley 31557) | ✅ | Rubro del anunciante (`AdvertiserIndustry`, V68); el formulario muestra la advertencia exigida (`lib/ads/industry.ts`). La creatividad la arma el anunciante; el panel no puede leer la imagen. |
+| Contrato y comprobante de pago (SUNAT) | ⏳ | Trámite del dueño, fuera del software. |
+| Revisión legal de los textos | ⏳ | Resumen práctico, no asesoría; revisarlo con un abogado antes de la primera campaña cobrada. |
+| Directorio: fichas que parecían avisos | ✅ | Quitado entero (V71, 2026-10-17); respaldo fuera de git. |
+
+## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
+
+Ordenadas por prioridad.
+
+### Seguridad (primero)
+1. ~~Next.js 16.3.3 con vulnerabilidad crítica~~ — **hecho**: el proyecto ya usa **16.3.8** y el `npm audit` del CI pasa (ver §46.6d).
+2. ~~CSP con *nonce*~~ — **hecho 2026-10-22, en dos niveles** (`src/lib/security/csp.ts`): el **panel** (`/admin`) usa nonce por visita + `'strict-dynamic'`, sin `'unsafe-inline'` en scripts (`src/proxy.ts`; el panel ya era dinámico, `connection()` en su layout); el **sitio público** conserva `'unsafe-inline'` para no perder la caché (ISR: Inicio, listados y detalles con `x-nextjs-cache`). Probado: con SRI (`experimental.sri`) y sin `'unsafe-inline'`, Edge bloquea 10 scripts inline de Next y la página no se activa — no hay forma soportada de CSP estricta con páginas en caché en App Router. Riesgo aceptado en lo público: no hay cuentas ni sesiones de visitantes; HTML de usuario saneado en el backend (HtmlSanitizer).
+3. Permisos de trabajadores aplicados en el servidor (proyecto 2).
+4. MFA quedó retirado por decisión del dueño (2026-09-14); reconsiderar antes de tener trabajadores con acceso al panel.
+
+### Backend
+5. `scripts/backup.sh`: la retención de 14 días borra backups viejos aunque sean los únicos; no respalda las imágenes reales (volumen Docker `media_data`). Respaldar el volumen con `docker compose exec backend tar …` y no borrar el último backup.
+6. Medios en Object Storage (Cloudflare R2): `StorageService` ya es una interfaz; falta la implementación (README "Pendiente para un MVP completo").
+7. ~~Visitas anónimas por contenido~~ — **hecho** 2026-10-15 (§46.6k); falta "también vieron".
+8. Campos sin uso en Configuración (`primaryColor`, `secondaryColor`, `backgroundColor`, `fontFamily`): quitarlos o conectarlos.
+9. Roles `MODERATOR`, `COLLABORATOR`, `USER` sin uso → se eliminan con el proyecto 2; "editorial" aparece solo en comentarios internos de 7 archivos Java (no visible) → limpiar al tocar esos archivos.
+10. CORS y auto-registro público: **no aplican** (no hay cuentas de visitantes; el panel usa Server Actions).
+10b. **SOLID — registro de tipos de contenido** (hecho 2026-10-22): el módulo `catalog` tiene `ContentType` (antes en `engagement`), `ContentSource` (ficha de una tabla de contenido: tipo, módulo de permisos, columna de título, fila de lectura, `createdInPanel`, `categorized`, `versionsFeed`, fotos y columnas con URLs de imágenes) y `ContentRegistry` (reúne las fichas; falla al arrancar si dos reclaman el mismo tipo o tabla). Cada módulo declara la suya (`content/PublicationContentSource`, `places/PlaceContentSource`, `celebrations/…`, `galleries/…`, `series/SeriesContentSource` con serie + episodios). Leen de ahí: `DashboardService`, `FeedCandidateCache`, `ContentViewFlushJob`, `ImageUsages`, `CategoriesWithContent`. **Tipo nuevo = declarar su ficha en su módulo**, sin editar a esos lectores. `ContentRegistryIntegrationTest` exige una ficha por `ContentType`. Siguiente: partir `CampaignService` / `admin-client.ts`.
+10c. **SOLID — límites entre módulos con Spring Modulith 2.1.2** (hecho 2026-10-22): `ModularityTest` (`ApplicationModules.verify()`) falla el CI si un módulo usa lo interno de otro o si aparece un ciclo. Cada paquete de primer nivel es un módulo y su paquete raíz es su API; los subpaquetes son internos salvo que se declaren. Decisiones: `shared` es módulo **abierto** (núcleo compartido, `package-info`); `identity.permission` expuesto como interfaz `identity::permission` (a nivel de paquete — **no** anotar clases con `@NamedInterface`: Modulith arrastra sus dependencias y exponía `User`/`UserRepository`, comprobado con una violación de prueba); `User`, `UserRepository`, `WorkerPermission` y su repositorio pasan a `identity.internal`; otros módulos piden el correo con `identity.UserDirectory.emailOf(id)`; `UserPrincipal` e `IdentityHttpSecurity` (instala los filtros de token y estado de cuenta en `config.SecurityConfig`) quedan en la raíz de identity, y `JwtService`, filtros y `RefreshTokenService` son internos; `YouTubeUrlParser` pasó de `content` a `shared` (lo usaban 5 módulos). Verificado: 3 violaciones de prueba detectadas y el código limpio pasa. Pendiente de mirar: `feed` y `search` leen entidades de los 5 módulos de contenido (modelos de lectura; aceptable, revisar si crecen).
+10d. **SOLID — `CampaignService` partido** (hecho 2026-10-22): tenía 469 líneas y cuatro responsabilidades. Ahora `CampaignService` (106 l., gestión del panel), `CampaignDraftValidator` (reglas del borrador: condiciones, fechas, monto, temas, destino web, banner a la medida de su posición, nativo con un solo medio), `AdInventory` (cupo de `MAX_COMPETING_CAMPAIGNS` por público), `AdDeliveryService` (qué campañas ve el visitante: segmentación, ponderación, tope diario) y `CampaignTrackingService` (impresión visible, clic válido, reproducción, cifras diarias). `Campaign.getDisplayDomain()` y `NativeAd.FEED_PLACEMENT_KEY` quedan en el dominio. Sin cambio de comportamiento (mismas transacciones); nuevas pruebas unitarias del validador cubren destino web, medida del banner y tema inexistente, que no tenían prueba. Siguiente: `admin-client.ts` (670 l.) en el frontend — hecho, ver 10e.
+10e. **SOLID — cliente del panel partido** (hecho 2026-10-22): `frontend/src/lib/api/admin-client.ts` (670 l., todas las llamadas del panel) se reemplazó por `lib/api/admin/`: `http.ts` (núcleo: errores `AdminApiError`/`AdminSessionExpiredError`, IP real del visitante, `authedJson`/`publicJson`) y un archivo por módulo del backend (`auth`, `content`, `taxonomy`, `advertising`, `media`, `settings`, `stats`, `live`, `series`, `audit`, `workers`). Los 55 importadores importan del módulo concreto (sin archivo intermedio que reexporte todo). `http.test.ts` fija el comportamiento del núcleo (token, IP saneada, 200 sin cuerpo, 401 = sesión vencida, mensaje RFC 9457). Verificado: tsc, 412 pruebas, lint, knip y 11 pantallas del panel en Docker sin errores.
+10f. **Logs de tareas programadas** (hecho 2026-10-22): `config/ScheduledJobLogging` (un `ThreadPoolTaskSchedulerCustomizer`, sin tocar las 10 tareas @Scheduled): mientras corre una tarea, cada línea de log lleva `job` = «Clase.método» (como las peticiones llevan `requestId`), y una falla se registra como «Falló la tarea programada X» con su traza, en vez del mensaje genérico de Spring. Pruebas: unitaria con planificador real y una tarea que falla; de integración con el planificador de la aplicación. ISO 27001 A.8.15.
+10g. **LCP / JavaScript del Inicio** (2026-10-22, medido): (1) la espera para empezar a bajar la foto principal pasó de 1,1 s a 54 ms (`SkeletonImage` con `preload` + `fetchPriority=high`; `ThumbImage` para burbujas de temas, que eran fotos originales que React precargaba: 12 → 2 precargas); (2) el post patrocinado (`NativeAdPost`, con Radix) se carga con `next/dynamic` solo cuando hay una campaña nativa: JS inicial del Inicio 278 → 243 KB comprimidos (882 → 781 KB a procesar). En el CI (f98a406) el LCP observado real es ~200 ms; el simulado de celular lento (3,5 s) lo domina la ejecución de JS. Lo que queda: base React/Next ~130 KB (fija) y el feed ~67 KB (interactivo). Siguiente palanca, si el CI lo justifica: publicaciones del feed como componentes de servidor con solo los botones en cliente (cambio de arquitectura, decidir con datos).
+
+### Frontend
+11. Dependencias: actualizaciones menores de Radix, Tiptap y tipos; `@tanstack/react-table` 9 es versión mayor (evaluar en el proyecto 2).
+12. Pruebas E2E existentes (`e2e/accessibility`, `admin-auth`, `public-navigation`, `visual-regression`): `public-navigation` y las capturas de `visual-regression` **quedarán desactualizadas** con el rediseño → actualizar al cerrar el proyecto 1.
+13. Agregar las E2E del plan: `seo-urls.spec.ts` y `no-editorial-patterns.spec.ts`.
+14. Componentes viejos a retirar (46.3-F) cuando nada los use.
+
+### Infraestructura / lanzamiento
+15. Despliegue real en el VPS (Contabo) con dominio, HTTPS, Cloudflare y el timer de backups instalado (`infra/DESPLIEGUE.md`).
+16. Copia externa de backups a R2 (credenciales y bucket reales).
 
 ---
 
@@ -1914,4 +2566,5 @@ Decididos para más adelante:
 22    WebSockets                         43    Estándar de diseño y frontend
                                           44    Modelo de negocio (en validación)
                                           45    Algoritmos de contenido y pendientes
+                                          46    Rediseño estilo red social (pendientes)
 ```

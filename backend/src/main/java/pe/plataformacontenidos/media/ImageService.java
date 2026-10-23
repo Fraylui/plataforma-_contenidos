@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
-import pe.plataformacontenidos.identity.Role;
 import pe.plataformacontenidos.shared.FixedWindowRateLimiter;
 
 @Service
@@ -24,19 +23,22 @@ public class ImageService {
     private final FixedWindowRateLimiter rateLimiter;
     private final MediaProperties properties;
     private final AuditService auditService;
+    private final ImageUsages imageUsages;
 
     public ImageService(ImageRepository imageRepository, StorageService storageService,
             ImageProcessor imageProcessor, FixedWindowRateLimiter rateLimiter, MediaProperties properties,
-            AuditService auditService) {
+            AuditService auditService, ImageUsages imageUsages) {
         this.imageRepository = imageRepository;
         this.storageService = storageService;
         this.imageProcessor = imageProcessor;
         this.rateLimiter = rateLimiter;
         this.properties = properties;
         this.auditService = auditService;
+        this.imageUsages = imageUsages;
     }
 
-    public Image upload(byte[] rawBytes, String originalFilename, String altText, UUID uploadedBy) {
+    public Image upload(byte[] rawBytes, String originalFilename, String altText, ImagePurpose purpose,
+            UUID uploadedBy) {
         String rateLimitKey = uploadedBy.toString();
         if (rateLimiter.isBlocked(RATE_LIMIT_KEY_PREFIX, rateLimitKey, properties.uploadMaxAttempts())) {
             throw new TooManyUploadsException();
@@ -48,7 +50,7 @@ public class ImageService {
         storageService.store(storedFilename, processed.content());
 
         Image image = new Image(sanitizeFilename(originalFilename), storedFilename, processed.contentType(),
-                processed.content().length, processed.width(), processed.height(), altText, uploadedBy);
+                processed.content().length, processed.width(), processed.height(), altText, purpose, uploadedBy);
         Image saved = imageRepository.save(image);
 
         auditService.record("IMAGE_UPLOADED", AuditResult.SUCCESS, uploadedBy, null, "image",
@@ -56,16 +58,20 @@ public class ImageService {
         return saved;
     }
 
-    public Image updateAltText(UUID imageId, String altText, UUID actingUserId, Role actingRole) {
+    public Image updateAltText(UUID imageId, String altText, UUID actingUserId, boolean canManageAll) {
         Image image = getOrThrow(imageId);
-        requireOwnerOrEditor(image, actingUserId, actingRole);
+        requireOwnerOrManager(image, actingUserId, canManageAll);
         image.setAltText(altText);
         return imageRepository.save(image);
     }
 
-    public void delete(UUID imageId, UUID actingUserId, Role actingRole) {
+    public void delete(UUID imageId, UUID actingUserId, boolean canManageAll) {
         Image image = getOrThrow(imageId);
-        requireOwnerOrEditor(image, actingUserId, actingRole);
+        requireOwnerOrManager(image, actingUserId, canManageAll);
+        long usages = imageUsages.count(imageId);
+        if (usages > 0) {
+            throw new ImageInUseException(usages);
+        }
         storageService.delete(image.getStoredFilename());
         imageRepository.delete(image);
         auditService.record("IMAGE_DELETED", AuditResult.SUCCESS, actingUserId, null, "image", imageId.toString(),
@@ -81,22 +87,24 @@ public class ImageService {
         return storageService.load(image.getStoredFilename());
     }
 
-    public List<Image> listForAdmin(UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
-            return imageRepository.findAll();
+    /** Lo más nuevo primero; {@code purpose} null = todas (la página Imágenes). */
+    public List<Image> listForAdmin(UUID actingUserId, boolean canManageAll, ImagePurpose purpose) {
+        if (canManageAll) {
+            return purpose == null
+                    ? imageRepository.findAllByOrderByCreatedAtDesc()
+                    : imageRepository.findByPurposeOrderByCreatedAtDesc(purpose);
         }
-        return imageRepository.findByUploadedByOrderByCreatedAtDesc(actingUserId);
+        return purpose == null
+                ? imageRepository.findByUploadedByOrderByCreatedAtDesc(actingUserId)
+                : imageRepository.findByUploadedByAndPurposeOrderByCreatedAtDesc(actingUserId, purpose);
     }
 
-    private void requireOwnerOrEditor(Image image, UUID actingUserId, Role actingRole) {
-        if (!isEditorOrAbove(actingRole) && !image.isOwnedBy(actingUserId)) {
+    private void requireOwnerOrManager(Image image, UUID actingUserId, boolean canManageAll) {
+        if (!canManageAll && !image.isOwnedBy(actingUserId)) {
             throw new ImageAccessDeniedException();
         }
     }
 
-    private boolean isEditorOrAbove(Role role) {
-        return role == Role.EDITOR || role == Role.ADMIN || role == Role.SUPER_ADMIN;
-    }
 
     private String sanitizeFilename(String originalFilename) {
         if (originalFilename == null || originalFilename.isBlank()) {

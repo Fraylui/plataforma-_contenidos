@@ -1,5 +1,8 @@
 package pe.plataformacontenidos.taxonomy.api;
 
+import pe.plataformacontenidos.identity.permission.AccessLevel;
+import pe.plataformacontenidos.identity.permission.Module;
+import pe.plataformacontenidos.identity.permission.RequiresModule;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -11,17 +14,19 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.taxonomy.CategoryService;
+import pe.plataformacontenidos.taxonomy.api.dto.AdminCategoryResponse;
 import pe.plataformacontenidos.taxonomy.api.dto.CategoryResponse;
 import pe.plataformacontenidos.taxonomy.api.dto.CreateCategoryRequest;
 import pe.plataformacontenidos.taxonomy.api.dto.UpdateCategoryRequest;
 
 /**
  * Lectura pública (necesaria para navegación del sitio), escritura
- * restringida a EDITOR+ (SecurityConfig). Las categorías son taxonomía
- * de contenido, no algo que un AUTHOR deba poder reestructurar libremente.
+ * restringida al módulo Temas (@RequiresModule). Los temas ordenan todo el
+ * contenido: no algo que quien solo crea deba poder reestructurar libremente.
  */
 @RestController
 @RequestMapping("/api/v1")
@@ -33,9 +38,14 @@ public class CategoryController {
         this.categoryService = categoryService;
     }
 
+    /**
+     * Público. Con {@code withContent=true} (el sitio) solo los temas con algo
+     * publicado; sin él (el panel, al elegir tema) todos los activos.
+     */
     @GetMapping("/categories")
-    public List<CategoryResponse> listActive() {
-        return categoryService.listActive().stream().map(CategoryResponse::from).toList();
+    public List<CategoryResponse> listActive(@RequestParam(defaultValue = "false") boolean withContent) {
+        var categories = withContent ? categoryService.listActiveWithContent() : categoryService.listActive();
+        return categories.stream().map(CategoryResponse::from).toList();
     }
 
     /** Público: el frontend necesita resolver categoryId -> nombre/slug al renderizar un artículo. */
@@ -44,11 +54,18 @@ public class CategoryController {
         return CategoryResponse.from(categoryService.getOrThrow(id));
     }
 
+    @RequiresModule(value = Module.CATEGORIES, level = AccessLevel.ACCESS)
     @GetMapping("/admin/categories")
-    public List<CategoryResponse> listAll() {
-        return categoryService.listAll().stream().map(CategoryResponse::from).toList();
+    public List<AdminCategoryResponse> listAll() {
+        var counts = categoryService.publishedCounts();
+        var visible = categoryService.visibleOnSiteIds();
+        return categoryService.listAll().stream()
+                .map(category -> AdminCategoryResponse.from(category, counts.getOrDefault(category.getId(), 0L),
+                        visible.contains(category.getId())))
+                .toList();
     }
 
+    @RequiresModule(value = Module.CATEGORIES, level = AccessLevel.ACCESS)
     @PostMapping("/admin/categories")
     @ResponseStatus(HttpStatus.CREATED)
     public CategoryResponse create(@Valid @RequestBody CreateCategoryRequest request) {
@@ -56,6 +73,7 @@ public class CategoryController {
         return CategoryResponse.from(category);
     }
 
+    @RequiresModule(value = Module.CATEGORIES, level = AccessLevel.ACCESS)
     @PutMapping("/admin/categories/{id}")
     public CategoryResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateCategoryRequest request) {
         var category = categoryService.update(id, request.name(), request.description(), request.parentId(),
@@ -63,11 +81,13 @@ public class CategoryController {
         return CategoryResponse.from(category);
     }
 
+    @RequiresModule(value = Module.CATEGORIES, level = AccessLevel.ACCESS)
     @PostMapping("/admin/categories/{id}/activate")
     public void activate(@PathVariable UUID id) {
         categoryService.setActive(id, true);
     }
 
+    @RequiresModule(value = Module.CATEGORIES, level = AccessLevel.ACCESS)
     @DeleteMapping("/admin/categories/{id}")
     public void deactivate(@PathVariable UUID id) {
         // "Eliminar" una categoría con contenido asociado es destructivo; se

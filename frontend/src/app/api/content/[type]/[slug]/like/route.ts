@@ -3,13 +3,16 @@ import type { NextRequest } from "next/server";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 
-/** `type` -> segmento base del backend (ver ArticlePublicController y hermanos). */
+/** `type` -> segmento base del backend (ver PublicationPublicController y hermanos). */
 const BACKEND_PATH: Record<string, string> = {
-  articles: "articles",
+  publications: "publications",
   places: "places",
-  events: "events",
+  celebrations: "celebrations",
   galleries: "galleries",
-  directory: "directory",
+  // Episodios por id: /api/v1/series/episodes/{id}/like.
+  episodes: "series/episodes",
+  // Historias por id: /api/v1/stories/{id}/like.
+  stories: "stories",
 };
 
 /**

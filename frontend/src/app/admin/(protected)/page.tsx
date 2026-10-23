@@ -1,304 +1,96 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  AlertTriangle,
-  Activity,
-  CheckCircle2,
-  Clock,
+  Globe,
   Eye,
-  FileText,
-  FolderTree,
-  History,
-  KeyRound,
-  ListTodo,
-  LogIn,
-  Pencil,
-  Plus,
-  Settings2,
-  Trash2,
-  type LucideIcon,
-} from "lucide-react";
+  Heart,
+  Article,
+  ClockCounterClockwise,
+  Megaphone,
+  ArrowSquareOut,
+} from "@phosphor-icons/react/dist/ssr";
 import { requireAdminUser } from "@/lib/admin/auth";
-import {
-  getAdminStats,
-  listAdminArticles,
-  listAdminAuditLog,
-  listAdminBusinesses,
-  listAdminEvents,
-  listAdminGalleries,
-  listAdminPlaces,
-} from "@/lib/api/admin-client";
+import { listAdminAuditLog } from "@/lib/api/admin/audit";
+import { getAdminDashboard } from "@/lib/api/admin/stats";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
-import { roleLabel } from "@/lib/admin/role-labels";
+import { accountLabel } from "@/lib/admin/role-labels";
 import { visibleNavItems } from "@/lib/admin/nav";
-import { articleStatusLabel, articleStatusTone, formatPublishedDate, humanizeAuditAction } from "@/lib/content-labels";
-import { StatCard, StatusPill } from "@/components/admin/ui";
-import { CreateNewMenu } from "@/components/admin/create-new-menu";
-import type { PlatformStats } from "@/lib/api/admin-types";
-import type { ArticleStatus } from "@/lib/api/types";
+import { CONTENT_TYPE_INFO, kpiChange, parseDashboardRange } from "@/lib/admin/dashboard";
+import { ctr } from "@/lib/ads/campaign-report";
+import { publicationStatusLabel, publicationStatusTone, formatPublishedDate } from "@/lib/content-labels";
+import { AuditTimeline } from "@/components/admin/audit-timeline";
+import { DailyAreaChart } from "@/components/admin/dashboard-charts";
+import { KPI_CARD, KpiCard, KpiCardHeader, RangeNav } from "@/components/admin/kpi";
+import type { DashboardSummary } from "@/lib/api/admin-types";
+import { Badge } from "@/components/ui";
+import { SITE_TIME_ZONE } from "@/lib/site-time-zone";
 
 export const metadata: Metadata = {
-  title: "Panel administrativo",
+  title: "Panel",
   robots: "noindex,nofollow",
 };
 
-const QUICK_CREATE: { label: string; href: string; navHref: string }[] = [
-  { label: "Publicación", href: "/admin/publicaciones/nuevo", navHref: "/admin/publicaciones" },
-  { label: "Lugar", href: "/admin/lugares/nuevo", navHref: "/admin/lugares" },
-  { label: "Evento", href: "/admin/eventos/nuevo", navHref: "/admin/eventos" },
-  { label: "Galería", href: "/admin/galerias/nuevo", navHref: "/admin/galerias" },
-  { label: "Ficha de directorio", href: "/admin/directorio/nuevo", navHref: "/admin/directorio" },
-];
+const CONTENT_HREFS = ["/admin/publicaciones", "/admin/lugares", "/admin/celebraciones", "/admin/galerias"];
+const NUMBER = new Intl.NumberFormat("es-PE");
 
-interface ContentItem {
-  id: string;
-  title: string;
-  typeLabel: string;
-  status: ArticleStatus;
-  createdAt: string;
-  editHref: string;
-}
-
-function sumStatus(byStatus: Record<ArticleStatus, number>, statuses: ArticleStatus[]): number {
-  return statuses.reduce((total, status) => total + (byStatus[status] ?? 0), 0);
-}
-
-function summarize(stats: PlatformStats) {
-  const allByStatus = [
-    stats.articlesByStatus,
-    stats.placesByStatus,
-    stats.eventsByStatus,
-    stats.galleriesByStatus,
-    stats.businessesByStatus,
-  ];
-  const published = allByStatus.reduce((total, byStatus) => total + sumStatus(byStatus, ["PUBLISHED"]), 0);
-  const pending = allByStatus.reduce(
-    (total, byStatus) => total + sumStatus(byStatus, ["DRAFT", "IN_REVIEW", "APPROVED"]),
-    0,
-  );
-  return { published, pending };
-}
-
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-
-/** Clasificación por palabra clave del texto real de auditoría — no depende de un enum cerrado en el frontend. */
-function auditActionIcon(action: string): { icon: LucideIcon; danger: boolean } {
-  const a = action.toUpperCase();
-  if (a.includes("FAIL") || a.includes("INVALID") || a.includes("DENIED") || a.includes("ERROR")) {
-    return { icon: AlertTriangle, danger: true };
-  }
-  if (a.includes("LOGIN") || a.includes("LOGOUT")) return { icon: LogIn, danger: false };
-  if (a.includes("TOKEN")) return { icon: KeyRound, danger: false };
-  if (a.includes("SETTING")) return { icon: Settings2, danger: false };
-  if (a.includes("DELETE") || a.includes("REMOV")) return { icon: Trash2, danger: false };
-  if (a.includes("CREATE")) return { icon: Plus, danger: false };
-  if (a.includes("UPDATE")) return { icon: Pencil, danger: false };
-  if (a.includes("PUBLISH")) return { icon: CheckCircle2, danger: false };
-  return { icon: Activity, danger: false };
-}
-
-function auditDayLabel(iso: string): string {
-  const date = new Date(iso);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-  const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
-  if (sameDay(date, today)) return "Hoy";
-  if (sameDay(date, yesterday)) return "Ayer";
-  return formatPublishedDate(iso);
-}
-
-export default async function AdminDashboardPage() {
+/**
+ * Inicio del panel: resumen tipo CRM en una sola llamada (GET
+ * /api/v1/admin/dashboard). Período en la URL (?range=7|30|90) para que se
+ * pueda compartir y volver con el botón atrás. Cada usuario ve solo lo que
+ * sus permisos le dejan (lo filtra el backend).
+ */
+export default async function AdminDashboardPage(props: PageProps<"/admin">) {
   const { user, accessToken } = await requireAdminUser();
-  const allowedHrefs = new Set(visibleNavItems(user.role).map((item) => item.href));
-  const quickCreate = QUICK_CREATE.filter((item) => allowedHrefs.has(item.navHref));
+  const range = parseDashboardRange((await props.searchParams).range);
+  const allowedHrefs = new Set(visibleNavItems(user).map((item) => item.href));
+  const canSeeContent = CONTENT_HREFS.some((href) => allowedHrefs.has(href));
+  const canSeeAudit = allowedHrefs.has("/admin/actividad");
   const canSeeStats = allowedHrefs.has("/admin/estadisticas");
-  const canSeeAudit = allowedHrefs.has("/admin/auditoria");
 
-  const [statsResult, contentItems, auditResult] = await Promise.all([
-    canSeeStats ? fetchOrAccessDenied(() => getAdminStats(accessToken)) : Promise.resolve(null),
-    loadContentItems(accessToken, allowedHrefs),
+  const [dashboardResult, auditResult] = await Promise.all([
+    canSeeContent ? fetchOrAccessDenied(() => getAdminDashboard(accessToken, range)) : Promise.resolve(null),
     canSeeAudit ? fetchOrAccessDenied(() => listAdminAuditLog(accessToken, { size: 8 })) : Promise.resolve(null),
   ]);
-  const stats = statsResult && "data" in statsResult ? statsResult.data : null;
-  const summary = stats ? summarize(stats) : null;
+  const dashboard = dashboardResult && "data" in dashboardResult ? dashboardResult.data : null;
   const auditEvents = auditResult && "data" in auditResult ? auditResult.data.items : [];
-
-  const recentContent = [...contentItems].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 8);
-  const pendingReview = contentItems
-    .filter((item) => item.status === "IN_REVIEW")
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-
-  // Delta real de datos ya cargados (no una comparación inventada): cuántos
-  // de los publicados se crearon en los últimos 7 días.
-  // eslint-disable-next-line react-hooks/purity -- Server Component async (se re-ejecuta entero en cada request, nunca memoizado por el compilador de React), Date.now() acá siempre es del momento real de carga.
-  const sevenDaysAgo = Date.now() - SEVEN_DAYS_MS;
-  const publishedThisWeek = contentItems.filter(
-    (item) => item.status === "PUBLISHED" && new Date(item.createdAt).getTime() >= sevenDaysAgo,
-  ).length;
 
   return (
     <div>
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">
-            Bienvenido, {user.firstName} {user.lastName}
-          </h1>
+          <h1 className="text-title font-bold text-foreground">Hola, {user.firstName}</h1>
           <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
-            <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent">{roleLabel(user.role)}</span>
+            <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-xs font-semibold text-accent">{accountLabel(user)}</span>
             <span>
-              {new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date())}
+              {new Intl.DateTimeFormat("es-PE", { timeZone: SITE_TIME_ZONE, weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date())}
             </span>
           </p>
         </div>
-        <CreateNewMenu items={quickCreate} />
+        {dashboard && <RangeNav range={range} hrefFor={(option) => (option === 30 ? "/admin" : `/admin?range=${option}`)} />}
       </div>
 
-      {pendingReview.length > 0 && (
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3">
-          <p className="flex items-center gap-2 text-sm font-medium text-accent">
-            <AlertTriangle className="h-4 w-4" aria-hidden="true" />
-            {pendingReview.length} {pendingReview.length === 1 ? "publicación espera" : "publicaciones esperan"} revisión.
-          </p>
-          <Link
-            href={pendingReview[0].editHref}
-            className="rounded-md bg-accent-fill px-3 py-1.5 text-xs font-semibold text-accent-foreground transition-opacity hover:opacity-90"
-          >
-            Revisar ahora
-          </Link>
-        </div>
-      )}
 
-      {summary && stats && (
-        <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatCard
-            label="Publicado"
-            value={summary.published}
-            icon={FileText}
-            trend={{ value: publishedThisWeek, label: "esta semana" }}
-          />
-          <StatCard label="Pendiente de revisión" value={summary.pending} icon={Clock} accent={summary.pending > 0} />
-          <StatCard label="Categorías activas" value={stats.activeCategories} icon={FolderTree} />
-          <StatCard
-            label="Publicado (30 días)"
-            value={stats.articlesPublishedLast30Days}
-            icon={Eye}
-            hint="Solo publicaciones — sin métricas de tráfico todavía"
-          />
-        </div>
-      )}
+      {dashboard && <DashboardBody dashboard={dashboard} canSeeStats={canSeeStats} />}
 
-      {canSeeStats && (
-        <Link href="/admin/estadisticas" className="mt-3 inline-block text-sm font-medium text-accent hover:underline">
-          Ver estadísticas completas →
-        </Link>
-      )}
-
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <FileText className="h-4 w-4 text-muted" aria-hidden="true" />
-            Contenido reciente
-          </h2>
-          {recentContent.length === 0 ? (
-            <p className="mt-3 rounded-xl border border-border/60 bg-surface px-4 py-6 text-center text-sm text-muted">
-              Todavía no hay contenido creado.
-            </p>
-          ) : (
-            <div className="mt-3 overflow-x-auto rounded-xl border border-border/60 bg-surface">
-              <table className="w-full min-w-max text-left text-sm">
-                <thead className="border-b border-border/60 text-xs text-muted">
-                  <tr>
-                    <th className="px-4 py-2.5 font-medium">Título</th>
-                    <th className="px-4 py-2.5 font-medium">Tipo</th>
-                    <th className="px-4 py-2.5 font-medium">Estado</th>
-                    <th className="px-4 py-2.5 font-medium">Creado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentContent.map((item) => (
-                    <tr key={item.editHref} className="border-b border-border/60 last:border-0 hover:bg-accent-soft/40">
-                      <td className="px-4 py-2.5">
-                        <Link href={item.editHref} className="font-medium text-foreground hover:text-accent hover:underline">
-                          {item.title}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-2.5 text-muted">{item.typeLabel}</td>
-                      <td className="px-4 py-2.5">
-                        <StatusPill tone={articleStatusTone(item.status)} label={articleStatusLabel(item.status)} />
-                      </td>
-                      <td className="px-4 py-2.5 text-muted">{formatPublishedDate(item.createdAt)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">{dashboard && <RecentContent dashboard={dashboard} />}</div>
 
         <div className="space-y-6">
-          {pendingReview.length > 0 && (
-            <div className="rounded-xl border border-border/60 bg-surface p-4">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <ListTodo className="h-4 w-4 text-muted" aria-hidden="true" />
-                Pendientes de revisión
-              </h2>
-              <ul className="mt-3 space-y-1.5">
-                {pendingReview.slice(0, 6).map((item) => (
-                  <li key={item.editHref}>
-                    <Link
-                      href={item.editHref}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-transparent px-2.5 py-2 text-sm transition-colors hover:border-border hover:bg-background"
-                    >
-                      <span className="min-w-0 truncate font-medium text-foreground">{item.title}</span>
-                      <span className="shrink-0 text-xs text-muted">{item.typeLabel}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
 
           {canSeeAudit && (
-            <div className="rounded-xl border border-border/60 bg-surface p-4">
+            <div className="rounded-card bg-surface shadow-card p-4">
               <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <History className="h-4 w-4 text-muted" aria-hidden="true" />
+                <ClockCounterClockwise className="h-4 w-4 text-muted" aria-hidden="true" />
                 Actividad reciente del sistema
               </h2>
               {auditEvents.length === 0 ? (
                 <p className="mt-3 text-sm text-muted">Sin actividad registrada todavía.</p>
               ) : (
-                <ul className="mt-3 space-y-3">
-                  {auditEvents.map((event, index) => {
-                    const { icon: ActionIcon, danger } = auditActionIcon(event.action);
-                    const dayLabel = auditDayLabel(event.occurredAt);
-                    const showDayLabel = index === 0 || auditDayLabel(auditEvents[index - 1].occurredAt) !== dayLabel;
-                    return (
-                      <li key={event.id}>
-                        {showDayLabel && (
-                          <p className="mb-1.5 text-[11px] font-semibold tracking-wide text-muted uppercase">{dayLabel}</p>
-                        )}
-                        <div className="flex items-start gap-2.5 text-sm">
-                          <span
-                            className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
-                              danger ? "bg-danger/10 text-danger" : "bg-background text-muted"
-                            }`}
-                          >
-                            <ActionIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                          </span>
-                          <div className="min-w-0">
-                            <p className="text-foreground">
-                              {event.actorEmail ?? "Sistema"} — {humanizeAuditAction(event.action)}
-                            </p>
-                            <p className="text-xs text-muted">{formatPublishedDate(event.occurredAt)}</p>
-                          </div>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
+                <div className="mt-3">
+                  <AuditTimeline events={auditEvents} />
+                </div>
               )}
-              <Link href="/admin/auditoria" className="mt-3 inline-block text-sm font-medium text-accent hover:underline">
+              <Link href="/admin/actividad" className="mt-3 inline-block text-sm font-medium text-accent hover:underline">
                 Ver auditoría completa →
               </Link>
             </div>
@@ -309,45 +101,143 @@ export default async function AdminDashboardPage() {
   );
 }
 
-async function loadContentItems(accessToken: string, allowedHrefs: Set<string>): Promise<ContentItem[]> {
-  const loaders: Promise<ContentItem[]>[] = [];
+/** Contenido publicado en este momento, sumando los tipos que la persona puede ver. */
+function publishedNow(dashboard: DashboardSummary): number {
+  return Object.values(dashboard.byTypeAndStatus).reduce((total, byStatus) => total + (byStatus?.PUBLISHED ?? 0), 0);
+}
 
-  if (allowedHrefs.has("/admin/publicaciones")) {
-    loaders.push(
-      listAdminArticles(accessToken).then((items) =>
-        items.map((a) => ({ id: a.id, title: a.title, typeLabel: "Publicación", status: a.status, createdAt: a.createdAt, editHref: `/admin/publicaciones/${a.id}` })),
-      ).catch(() => []),
-    );
-  }
-  if (allowedHrefs.has("/admin/lugares")) {
-    loaders.push(
-      listAdminPlaces(accessToken).then((items) =>
-        items.map((p) => ({ id: p.id, title: p.name, typeLabel: "Lugar", status: p.status, createdAt: p.createdAt, editHref: `/admin/lugares/${p.id}` })),
-      ).catch(() => []),
-    );
-  }
-  if (allowedHrefs.has("/admin/eventos")) {
-    loaders.push(
-      listAdminEvents(accessToken).then((items) =>
-        items.map((e) => ({ id: e.id, title: e.title, typeLabel: "Evento", status: e.status, createdAt: e.createdAt, editHref: `/admin/eventos/${e.id}` })),
-      ).catch(() => []),
-    );
-  }
-  if (allowedHrefs.has("/admin/galerias")) {
-    loaders.push(
-      listAdminGalleries(accessToken).then((items) =>
-        items.map((g) => ({ id: g.id, title: g.title, typeLabel: "Galería", status: g.status, createdAt: g.createdAt, editHref: `/admin/galerias/${g.id}` })),
-      ).catch(() => []),
-    );
-  }
-  if (allowedHrefs.has("/admin/directorio")) {
-    loaders.push(
-      listAdminBusinesses(accessToken).then((items) =>
-        items.map((b) => ({ id: b.id, title: b.name, typeLabel: "Directorio", status: b.status, createdAt: b.createdAt, editHref: `/admin/directorio/${b.id}` })),
-      ).catch(() => []),
-    );
-  }
+function DashboardBody({ dashboard, canSeeStats }: { dashboard: DashboardSummary; canSeeStats: boolean }) {
+  const { series, rangeDays, ads } = dashboard;
+  const impressionsChange = ads ? kpiChange({ current: ads.impressions, previous: ads.previousImpressions }) : null;
+  return (
+    <>
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        <KpiCard label="Visitas" icon={Eye} kpi={dashboard.views} values={series.map((d) => d.views)} rangeDays={rangeDays} />
+        <KpiCard label="Me gusta" icon={Heart} kpi={dashboard.likes} values={series.map((d) => d.likes)} rangeDays={rangeDays} />
+        <KpiCard label="Nuevos en el sitio" icon={Article} kpi={dashboard.published} values={series.map((d) => d.published)} rangeDays={rangeDays} />
+        {ads ? (
+          <div className={KPI_CARD}>
+            <KpiCardHeader label="Clics en anuncios" icon={Megaphone} />
+            <p className="mt-3 text-2xl font-bold tracking-tight tabular-nums text-foreground sm:text-3xl">{ctr(ads.clicks, ads.impressions)}</p>
+            <p className="mt-1 text-xs text-muted">
+              {NUMBER.format(ads.clicks)} clics en {NUMBER.format(ads.impressions)} impresiones
+            </p>
+            {impressionsChange?.kind === "percent" && (
+              <p className="mt-2 text-xs text-muted">
+                Impresiones {impressionsChange.value >= 0 ? "+" : ""}
+                {impressionsChange.value} % vs. el período anterior
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className={KPI_CARD}>
+            <KpiCardHeader label="En el sitio" icon={Globe} />
+            <p className="mt-3 text-2xl font-bold tracking-tight tabular-nums text-foreground sm:text-3xl">
+              {NUMBER.format(publishedNow(dashboard))}
+            </p>
+            <p className="mt-1 text-xs text-muted">Contenido publicado ahora</p>
+          </div>
+        )}
+      </div>
 
-  const results = await Promise.all(loaders);
-  return results.flat();
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <section className="rounded-card bg-surface p-5 shadow-card lg:col-span-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-sm font-semibold text-foreground">Visitas por día</h2>
+            {canSeeStats && (
+              <Link href="/admin/estadisticas" className="text-xs font-medium text-accent hover:underline">
+                Ver estadísticas →
+              </Link>
+            )}
+          </div>
+          {dashboard.views.current === 0 ? (
+            <p className="mt-4 rounded-lg bg-background px-4 py-10 text-center text-sm text-muted">
+              Todavía no hay visitas en este período. Se cuentan cada vez que alguien abre un contenido publicado.
+            </p>
+          ) : (
+            <div className="mt-4">
+              <DailyAreaChart data={series.map((d) => ({ day: d.day, value: d.views }))} label="Visitas" />
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-card bg-surface p-5 shadow-card">
+          <h2 className="text-sm font-semibold text-foreground">Lo más visto</h2>
+          {dashboard.topViewed.length === 0 ? (
+            <p className="mt-3 text-sm text-muted">Aparecerá cuando tu contenido reciba visitas.</p>
+          ) : (
+            <ol className="mt-3 space-y-1">
+              {dashboard.topViewed.map((row, index) => (
+                <li key={`${row.type}-${row.id}`} className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-background">
+                  <span className="w-5 shrink-0 text-right text-xs font-semibold tabular-nums text-muted">{index + 1}</span>
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={
+                        // Un episodio se gestiona dentro de su serie: se abre su página pública.
+                        row.type === "EPISODE"
+                          ? `${CONTENT_TYPE_INFO.EPISODE.publicPath}/${row.slug}`
+                          : `${CONTENT_TYPE_INFO[row.type].adminPath}/${row.id}`
+                      }
+                      className="block truncate text-sm font-medium text-foreground hover:text-accent"
+                    >
+                      {row.title}
+                    </Link>
+                    <p className="text-xs text-muted">{CONTENT_TYPE_INFO[row.type].label}</p>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">{NUMBER.format(row.views)}</span>
+                  <a
+                    href={`${CONTENT_TYPE_INFO[row.type].publicPath}/${row.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 text-muted hover:text-accent"
+                    aria-label={`Ver «${row.title}» en el sitio`}
+                  >
+                    <ArrowSquareOut className="size-4" aria-hidden="true" />
+                  </a>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+      </div>
+    </>
+  );
+}
+
+function RecentContent({ dashboard }: { dashboard: DashboardSummary }) {
+  return (
+    <>
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+        <Article className="h-4 w-4 text-muted" aria-hidden="true" />
+        Contenido reciente
+      </h2>
+      {dashboard.recent.length === 0 ? (
+        <p className="mt-3 rounded-card bg-surface shadow-card px-4 py-6 text-center text-sm text-muted">
+          Todavía no hay contenido creado.
+        </p>
+      ) : (
+        // Lista, no tabla: en el celular la tabla se cortaba por la derecha.
+        <ul className="mt-3 divide-y divide-border/60 overflow-hidden rounded-card bg-surface shadow-card">
+          {dashboard.recent.map((item) => (
+            <li key={`${item.type}-${item.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-accent-soft/40">
+              <div className="min-w-0 flex-1">
+                <Link
+                  href={`${CONTENT_TYPE_INFO[item.type].adminPath}/${item.id}`}
+                  className="line-clamp-2 font-medium text-foreground hover:text-accent hover:underline"
+                >
+                  {item.title}
+                </Link>
+                <p className="mt-0.5 text-xs text-muted">
+                  {CONTENT_TYPE_INFO[item.type].label} · {formatPublishedDate(item.createdAt)}
+                </p>
+              </div>
+              <Badge tone={publicationStatusTone(item.status)} dot className="shrink-0">
+                {publicationStatusLabel(item.status)}
+              </Badge>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
 }

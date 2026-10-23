@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getPlatformSettings } from "@/lib/api/client";
+import { officialSocialLinks } from "@/lib/social-links";
+import { SocialFollow } from "@/components/shell/social-follow";
 import { LegalPageLayout, type LegalSection } from "@/components/legal/legal-page-layout";
 
 export const metadata: Metadata = {
   title: "Contacto",
+  description: "Cómo escribirnos: propuestas de contenido, correcciones y publicidad.",
   robots: "index,follow",
+  // Sin canonical propio heredaba el del layout raíz («/») y Google la tomaba por un duplicado del Inicio.
+  alternates: { canonical: "/contacto" },
 };
 
 const UPDATED_AT = "4 de octubre de 2026";
@@ -19,6 +24,7 @@ const UPDATED_AT = "4 de octubre de 2026";
  */
 export default async function ContactPage() {
   const settings = await getPlatformSettings();
+  const social = officialSocialLinks(settings);
   const email = settings.contactEmail;
   const mail = (subject: string) => (email ? `mailto:${email}?subject=${encodeURIComponent(subject)}` : undefined);
 
@@ -28,7 +34,7 @@ export default async function ContactPage() {
       title: "Quiénes somos",
       content: (
         <p>
-          {settings.name} es una plataforma de contenidos: publicaciones, lugares, eventos, galerías y un directorio,
+          {settings.name} es una plataforma de contenidos: publicaciones, lugares, celebraciones y galerías,
           publicados por nuestro propio equipo.
           {settings.description ? ` ${settings.description}` : ""}
         </p>
@@ -51,7 +57,7 @@ export default async function ContactPage() {
               <a href={mail("Propuesta de contenido")} className="text-accent underline underline-offset-2">
                 Propuesta de contenido
               </a>{" "}
-              — un lugar, evento o historia que deberíamos cubrir.
+              — un lugar, celebración o historia que debería estar aquí.
             </li>
             <li>
               <a href={mail("Corrección")} className="text-accent underline underline-offset-2">
@@ -77,6 +83,20 @@ export default async function ContactPage() {
         <p>Todavía no hay un correo de contacto publicado. Vuelve pronto.</p>
       ),
     },
+    ...(social.length > 0
+      ? [
+          {
+            id: "siguenos",
+            title: "Síguenos",
+            content: (
+              <>
+                <p>Videos, fotos y novedades también en nuestras redes.</p>
+                <SocialFollow brandName={settings.name} links={social} showLabel={false} />
+              </>
+            ),
+          },
+        ]
+      : []),
     {
       id: "privacidad",
       title: "Tus datos",

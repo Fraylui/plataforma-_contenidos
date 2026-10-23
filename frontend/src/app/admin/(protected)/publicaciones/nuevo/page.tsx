@@ -1,23 +1,31 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { listActiveCategoriesFresh, listAdminImages } from "@/lib/api/admin-client";
-import { ArticleForm } from "@/components/admin/article-form";
+import { computePublicationPermissions } from "@/lib/admin/publication";
+import { listAdminImages } from "@/lib/api/admin/media";
+import { listActiveCategoriesFresh } from "@/lib/api/admin/taxonomy";
+import { getPlatformSettings } from "@/lib/api/client";
+import { AdminPageHeader } from "@/components/admin/ui";
+import { PublicationComposer } from "@/components/admin/publication-composer";
 
 export const metadata: Metadata = {
   title: "Nueva publicación",
   robots: "noindex,nofollow",
 };
 
-export default async function NewArticlePage() {
-  const { accessToken } = await requireAdminUser();
-  const [categories, allImages] = await Promise.all([listActiveCategoriesFresh(), listAdminImages(accessToken)]);
+export default async function NewPublicationPage() {
+  const { accessToken, user } = await requireAdminUser();
+  const [categories, allImages, settings] = await Promise.all([
+    listActiveCategoriesFresh(),
+    listAdminImages(accessToken, "CONTENT"),
+    getPlatformSettings(),
+  ]);
+  // Lo nuevo es un borrador propio: mismos permisos que tendrá al guardarse.
+  const permissions = computePublicationPermissions({ status: "DRAFT" }, user, "publications");
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-foreground">Nueva publicación</h1>
-      <div className="mt-6">
-        <ArticleForm mode="create" categories={categories} allImages={allImages} />
-      </div>
+    <div className="space-y-6">
+      <AdminPageHeader title="Nueva publicación" back={{ href: "/admin/publicaciones", label: "Publicaciones" }} />
+      <PublicationComposer categories={categories} allImages={allImages} permissions={permissions} siteName={settings.name} />
     </div>
   );
 }

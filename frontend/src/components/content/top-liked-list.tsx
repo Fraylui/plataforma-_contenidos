@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Heart } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 
 export interface TopLikedEntry {

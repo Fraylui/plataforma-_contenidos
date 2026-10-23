@@ -1,6 +1,11 @@
 package pe.plataformacontenidos.taxonomy;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,9 +16,11 @@ import pe.plataformacontenidos.shared.Slugify;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final CategoriesWithContent categoriesWithContent;
 
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository, CategoriesWithContent categoriesWithContent) {
         this.categoryRepository = categoryRepository;
+        this.categoriesWithContent = categoriesWithContent;
     }
 
     public Category create(String name, String description, UUID parentId) {
@@ -49,8 +56,39 @@ public class CategoryService {
         return categoryRepository.findByActiveTrueOrderBySortOrderAsc();
     }
 
+    /**
+     * Activos con algo publicado, más los padres de esos (el árbol no se corta
+     * aunque el padre no tenga contenido propio). Lo que ve el visitante.
+     */
+    public List<Category> listActiveWithContent() {
+        List<Category> active = listActive();
+        Map<UUID, Category> byId = new HashMap<>();
+        active.forEach(category -> byId.put(category.getId(), category));
+        Set<UUID> visible = new HashSet<>();
+        for (UUID id : categoriesWithContent.ids()) {
+            // Sube por los padres activos hasta la raíz (o hasta uno ya visto).
+            Category current = byId.get(id);
+            while (current != null && visible.add(current.getId())) {
+                current = current.getParentId() == null ? null : byId.get(current.getParentId());
+            }
+        }
+        return active.stream().filter(category -> visible.contains(category.getId())).toList();
+    }
+
     public List<Category> listAll() {
         return categoryRepository.findAll();
+    }
+
+    /** Contenido publicado propio por tema, para el panel (los vacíos no están en el mapa). */
+    public Map<UUID, Long> publishedCounts() {
+        return categoriesWithContent.counts();
+    }
+
+    /** Ids que el visitante ve: misma regla que {@link #listActiveWithContent()}. */
+    public Set<UUID> visibleOnSiteIds() {
+        Set<UUID> visible = new HashSet<>();
+        listActiveWithContent().forEach(category -> visible.add(category.getId()));
+        return visible;
     }
 
     public long countAll() {
@@ -65,6 +103,42 @@ public class CategoryService {
         return categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(id));
     }
 
+    /**
+     * La categoría y todos sus ancestros (hasta la raíz). Lo usa la
+     * segmentación de publicidad: una campaña que eligió "Turismo" también
+     * corresponde a contenido de una subcategoría de Turismo.
+     */
+    public Set<UUID> lineage(UUID id) {
+        Map<UUID, UUID> parentOf = new HashMap<>();
+        for (Category category : categoryRepository.findAll()) {
+            parentOf.put(category.getId(), category.getParentId());
+        }
+        Set<UUID> lineage = new LinkedHashSet<>();
+        for (UUID current = id; current != null && lineage.add(current); current = parentOf.get(current)) {
+            // sube hasta la raíz; `add` falso corta un ciclo (no debería existir, ver validateParent)
+        }
+        return lineage;
+    }
+
+    /** La categoría y todas sus subcategorías (a cualquier profundidad): filtrar por un tema incluye sus subtemas. */
+    public Set<UUID> descendants(UUID id) {
+        Map<UUID, UUID> parentOf = new HashMap<>();
+        for (Category category : categoryRepository.findAll()) {
+            parentOf.put(category.getId(), category.getParentId());
+        }
+        Set<UUID> result = new LinkedHashSet<>();
+        for (UUID candidate : parentOf.keySet()) {
+            Set<UUID> seen = new HashSet<>();
+            for (UUID current = candidate; current != null && seen.add(current); current = parentOf.get(current)) {
+                if (current.equals(id)) {
+                    result.add(candidate);
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
     public boolean existsActive(UUID id) {
         return categoryRepository.findById(id).map(Category::isActive).orElse(false);
     }
@@ -74,13 +148,13 @@ public class CategoryService {
             return;
         }
         if (parentId.equals(selfId)) {
-            throw new InvalidCategoryHierarchyException("Una categoría no puede ser su propio padre");
+            throw new InvalidCategoryHierarchyException("Un tema no puede ser su propio tema principal");
         }
         if (!categoryRepository.existsById(parentId)) {
             throw new CategoryNotFoundException(parentId);
         }
         if (selfId != null && createsCycle(parentId, selfId)) {
-            throw new InvalidCategoryHierarchyException("La jerarquía de categorías no puede formar un ciclo");
+            throw new InvalidCategoryHierarchyException("Los temas no pueden formar un ciclo (un tema dentro de sí mismo)");
         }
     }
 

@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { logoutSession } from "@/lib/api/admin-client";
+import { logoutSession } from "@/lib/api/admin/auth";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/lib/admin/session";
 
 export async function logoutAction() {
