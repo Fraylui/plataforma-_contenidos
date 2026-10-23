@@ -2365,6 +2365,44 @@ Estado: todo subido hasta `dd11734` (PR #22). Hecho en esta sesión: §46.6p.
 7. **Técnico de antes**: LCP (meta 2,5 s), anuncios (cuartiles, autoplay silenciado, carrusel nativo), CSP con nonce, backups con copia externa, campos sin uso de Configuración.
 8. **En espera**: UTM y visitas por origen, embeds de redes, series de publicaciones, gestor de consentimiento europeo.
 
+### 46.6r PAUSA 2026-10-22 — todo lo que falta, en orden (tras 6f44080)
+Estado: rama feat/sistema-diseno (PR #22), todo subido. Último CI verde COMPLETO: f98a406. Misma lista en la memoria del asistente (plan activo).
+
+#### A. Primero al retomar (verificación, ~15 min)
+1. **CI de 6f44080** (o el último): `gh run list --branch feat/sistema-diseno --limit 4`. Los runs anteriores se CANCELAN solos al subir otro commit: mirar siempre el más reciente. Debe validar lo que no se pudo ver en local: pantallas internas del panel con la CSP nueva (nonce), Anunciantes/Espacios/Trabajadores rehechos sin verlos (e2e accessibility entra como dueño a 17 pantallas), ModularityTest, registro de tipos. Si falla algo del panel → probablemente CSP (`script-src` del panel) o AdminList.
+2. **LCP del CI**: `gh run download <id> -n e2e-lighthouse-reports -D %TEMP%/claude/lhr`; leer lhr-*.json (mediana por URL, fases en audits["largest-contentful-paint-element"]; observado real en "lcp-phases-insight"). Referencia f98a406: Inicio 3,49 s, Explorar 2,92, Lugares 3,55, Celebración 3,71 (meta 2,5); observado real ≈ 200 ms; cuello = JS (bootup 918 ms Inicio). Después de 97b1f45 (JS 278→243 KB gz) debería bajar algo.
+
+#### B. Mejorar el sitio público (pedido del dueño 2026-10-22: «también mejorar el sitio público»)
+Seguir el loop de DESIGN.md por pantalla (web-design-guidelines → emil-design-eng → break-ui → arreglar → capturas 390/768/1280 claro+oscuro en Edge → tsc/lint/knip/vitest → commit). Hallazgos medidos 2026-10-22:
+3. **Imágenes sin `loading` (React las precarga y compiten con la foto principal)**: today-celebrations.tsx, right-column.tsx (portada de celebración), search-box.tsx (miniaturas de resultados), live-banner.tsx, native-ad-post.tsx (2), post-header.tsx (logo de marca en CADA post: usar ThumbImage/next/image si es subida), youtube-embed.tsx (miniatura del facade), app/(public)/series/[slug]/page.tsx (portada = posible LCP: priority, no lazy). Falsos positivos: content-image-display, preview-image, skeleton-image, thumb-image (ya condicionales), brand-logo (debe ser eager). Patrón: miniaturas → `ThumbImage`; foto principal → `SkeletonImage priority`; resto → loading="lazy" decoding="async".
+4. **JS del Inicio** (si el CI sigue > 2,5 s): feed ~67 KB gz es client (feed.tsx "use client" arrastra PostCard/PostMedia/LikeShareBar/embla). Opción: publicaciones como Server Components y solo botones/carrusel en cliente (cambio de arquitectura: diseñar antes, medir con el manifiesto `.next/server/app/(public)/page_client-reference-manifest.js` dentro del contenedor). Menor: search-box (Ctrl+K) con next/dynamic al abrir (~5–8 KB). 43 componentes "use client" en lo público: revisar cuáles no necesitan serlo.
+5. **Deuda de tokens (DESIGN.md)**: 23 `rounded-xl/2xl` → `rounded-card`/`rounded-control`; 12 colores Tailwind crudos (zinc/emerald/lime/slate/gray) → tokens (excepción documentada: texto sobre fotos); 14 sombras `shadow-sm..2xl` → `shadow-card/pop/overlay`. Grep: `grep -rn "rounded-2xl\|rounded-xl" components app/(public)`.
+6. **Pasadas por pantalla aún no hechas con la paleta naranja**: detalle de cada tipo en oscuro, 404/error.tsx públicos, Buscar con resultados largos (break-ui), Series/episodio, En vivo sin transmisión, legales en celular. Revisar también SEO: títulos/descripciones por página, JSON-LD por tipo, sitemap con temas visibles, Open Graph con la imagen correcta.
+7. **Fotos externas (picsum/enlaces)**: no se pueden optimizar (host arbitrario) → llegan a 1600 px aunque se muestren chicas. Recomendar en la guía del panel «sube la foto» y/o avisar en el compositor cuando se usa enlace externo.
+
+#### C. Técnico (no depende del dueño)
+8. **Respaldos (mayor riesgo real)**: scripts/backup.sh — la retención de 14 días borra aunque sean los únicos; no respalda el volumen `media_data` (las fotos subidas). Agregar copia del volumen + verificación de restauración + copia externa a R2 (credenciales del dueño). Probar restauración en local SIN tocar datos reales (contenedor aparte).
+9. **Anuncios**: cuartiles de video (25/50/75/100), autoplay silenciado en nativo con video, carrusel de varias fotos en el nativo.
+10. **Dependencias**: 2 avisos moderados npm (postcss-selector-parser vía @tailwindcss/typography) — revisar en cada CI si sale versión que lo corrija; `npm audit --omit=dev --audit-level=high` debe seguir en verde.
+11. **SOLID (vigilar)**: feed y search leen entidades de 5 módulos (modelos de lectura, aceptable). Si crecen: vistas de lectura propias.
+
+#### D. Dueño (no código)
+12. Abogado: guía «Qué se puede publicar» y política de privacidad (mencionar GA si se activa). RUC/contador.
+13. Configuración del sitio: redes reales, correo de contacto, descripción real (hoy «Sistema de gestión y distribución de contenidos digitales»).
+14. Datos: Semana Santa 2027 con hora 00:00 → «todo el día»; re-guardar publicaciones con Shorts; fecha de la Canción Ayacuchana; cuándo borrar campañas demo («Pollería El Inca (demo)»).
+15. Decisiones: merge del PR #22 a main (preguntar antes); VPS en pausa.
+
+#### E. En espera
+16. UTM + visitas por origen; embeds Instagram/X/TikTok (CSP + consentimiento); series de publicaciones; consentimiento europeo; roadmaps pausados .
+
+#### Cómo trabajar (lecciones de la sesión 2026-10-22)
+- Docker SIEMPRE `cd infra && docker compose --env-file ../.env up -d --build <servicio>` (sin env-file el backend falla por contraseña de Postgres). Panel en http://localhost:3000/admin (localhost:80/admin da 404). Una reconstrucción por tanda.
+- Laptop lenta/caliente: la suite completa del frontend tarda 3–5 min; NUNCA dejarla en segundo plano junto a otra cosa; integración del backend: solo las clases afectadas en local, el resto en CI.
+- Para ver el panel hace falta un usuario temporal (WORKER) creado con permiso del dueño; el clasificador NO deja darle permisos extra (ADVERTISING/WORKERS/SETTINGS) — pedir al dueño o hacer sin ver. Borrarlo al terminar.
+- Git Bash en Windows: usar MSYS_NO_PATHCONV=1 con curl a rutas; heredocs largos de Python fallan → escribir el script en el scratchpad y ejecutarlo.
+- No anotar clases con @NamedInterface (Modulith arrastra dependencias); probar una guarda haciéndola fallar antes de confiar en ella.
+- next/dynamic en Vitest: simular con React.lazy + Suspense y precargar el módulo en beforeAll.
+
 ## 46.8 Tabla de cumplimiento (G.18, 2026-10-16)
 
 Estado real de cada control, con su evidencia en el repositorio. ✅ cumple · ⚠️ parcial · ⏳ pendiente.
