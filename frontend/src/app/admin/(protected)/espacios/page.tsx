@@ -4,7 +4,7 @@ import { requireAdminUser } from "@/lib/admin/auth";
 import { listAdminAdPlacements } from "@/lib/api/admin/advertising";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
-import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
+import { AdminList, AdminListRow, AdminPageHeader, ConfirmActionButton, EmptyState, ROW_ACTION_CLASS } from "@/components/admin/ui";
 import { formatSize } from "@/lib/ads/ad-formats";
 import { setAdPlacementActiveAction, deleteAdPlacementAction } from "./actions";
 import { Badge } from "@/components/ui";
@@ -39,62 +39,41 @@ export default async function AdminAdPlacementsPage() {
       {placements.length === 0 ? (
         <EmptyState title="Todavía no hay espacios publicitarios" />
       ) : (
-        <div className="mt-6 overflow-x-auto rounded-card bg-surface shadow-card">
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="border-b border-border">
-              <tr>
-                <th className="px-4 py-3 font-medium text-muted">Posición</th>
-                <th className="px-4 py-3 font-medium text-muted">Clave</th>
-                <th className="px-4 py-3 font-medium text-muted">Medida</th>
-                <th className="px-4 py-3 font-medium text-muted">Slot de AdSense</th>
-                <th className="px-4 py-3 font-medium text-muted">Estado</th>
-                <th className="px-4 py-3 font-medium text-muted" />
-              </tr>
-            </thead>
-            <tbody>
-              {placements.map((placement) => (
-                <tr key={placement.id} className="border-b border-border last:border-0 hover:bg-accent-soft/40">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/espacios/${placement.id}`}
-                      className="font-medium text-foreground hover:text-accent hover:underline"
-                    >
-                      {placement.label}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3">
-                    <code className="text-xs text-muted">{placement.key}</code>
-                  </td>
-                  <td className="px-4 py-3 text-xs whitespace-nowrap tabular-nums text-foreground">{formatSize(placement.width, placement.height)}</td>
-                  <td className="px-4 py-3 text-xs text-muted">{placement.adsenseSlotId || "— sin completar —"}</td>
-                  <td className="px-4 py-3">
-                    <Badge tone={placement.enabled ? "success" : "neutral"} dot>{placement.enabled ? "Activa" : "Inactiva"}</Badge>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                      <form action={setAdPlacementActiveAction.bind(null, placement.id, !placement.enabled)}>
-                        <button
-                          type="submit"
-                          className="text-xs font-medium text-muted underline underline-offset-2 hover:text-accent"
-                        >
-                          {placement.enabled ? "Desactivar" : "Activar"}
-                        </button>
-                      </form>
-                      <form action={deleteAdPlacementAction.bind(null, placement.id)}>
-                        <button
-                          type="submit"
-                          className="text-xs font-medium text-muted underline underline-offset-2 hover:text-danger-ink"
-                        >
-                          Eliminar
-                        </button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <AdminList label="Espacios publicitarios">
+          {placements.map((placement) => (
+            <AdminListRow
+              key={placement.id}
+              title={
+                <Link href={`/admin/espacios/${placement.id}`} className="hover:text-accent hover:underline">
+                  {placement.label}
+                </Link>
+              }
+              meta={[
+                <Badge key="state" tone={placement.enabled ? "success" : "neutral"} dot>
+                  {placement.enabled ? "Activa" : "Inactiva"}
+                </Badge>,
+                <code key="key">{placement.key}</code>,
+                <span key="size" className="whitespace-nowrap text-foreground">{formatSize(placement.width, placement.height)}</span>,
+                placement.adsenseSlotId ? `Slot ${placement.adsenseSlotId}` : "Sin slot de AdSense",
+              ]}
+              actions={
+                <>
+                  <form action={setAdPlacementActiveAction.bind(null, placement.id, !placement.enabled)}>
+                    <button type="submit" className={ROW_ACTION_CLASS}>
+                      {placement.enabled ? "Desactivar" : "Activar"}
+                    </button>
+                  </form>
+                  <ConfirmActionButton
+                    action={deleteAdPlacementAction.bind(null, placement.id)}
+                    label="Eliminar"
+                    title={`¿Eliminar el espacio «${placement.label}»?`}
+                    description="Los anuncios que lo usan dejan de mostrarse ahí. No se puede deshacer."
+                  />
+                </>
+              }
+            />
+          ))}
+        </AdminList>
       )}
     </div>
   );

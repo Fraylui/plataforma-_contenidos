@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { AdminCategory } from "@/lib/api/admin-types";
 import { sortCategoriesHierarchically } from "@/lib/admin/category-tree";
 import { Badge, type BadgeTone } from "@/components/ui";
+import { AdminList, AdminListRow, ROW_ACTION_CLASS } from "@/components/admin/ui";
 
 type ToggleAction = (id: string, active: boolean) => void | Promise<void>;
 
@@ -12,38 +13,36 @@ type ToggleAction = (id: string, active: boolean) => void | Promise<void>;
  */
 export function TopicList({ topics, toggleAction }: { topics: AdminCategory[]; toggleAction: ToggleAction }) {
   return (
-    <ul className="mt-6 divide-y divide-border overflow-hidden rounded-card bg-surface shadow-card">
+    <AdminList label="Temas">
       {sortCategoriesHierarchically(topics).map(({ category, depth }) => {
         const status = siteStatus(category);
         return (
-          <li key={category.id} className="flex items-center gap-3 px-4 py-3 hover:bg-accent-soft/40">
-            <div className="min-w-0 flex-1" style={{ paddingLeft: `${Math.min(depth, 4) * 1.25}rem` }}>
-              <Link
-                href={`/admin/temas/${category.id}`}
-                className="font-medium text-foreground hover:text-accent hover:underline"
-              >
+          <AdminListRow
+            key={category.id}
+            indent={depth}
+            title={
+              <Link href={`/admin/temas/${category.id}`} className="hover:text-accent hover:underline">
                 {category.name}
               </Link>
-              {/* El estado va con el conteo, bajo el nombre: así el nombre usa todo el ancho en el celular. */}
-              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-                <Badge tone={status.tone} dot>
-                  {status.label}
-                </Badge>
-                <span className="text-xs tabular-nums text-muted">{publishedLabel(category.publishedCount)}</span>
-              </div>
-            </div>
-            <form action={toggleAction.bind(null, category.id, !category.active)} className="shrink-0">
-              <button
-                type="submit"
-                className="min-h-11 cursor-pointer px-1 text-xs font-medium text-muted underline underline-offset-2 hover:text-accent"
-              >
-                {category.active ? "Desactivar" : "Activar"}
-              </button>
-            </form>
-          </li>
+            }
+            // El estado va con el conteo, bajo el nombre: así el nombre usa todo el ancho en el celular.
+            meta={[
+              <Badge key="status" tone={status.tone} dot>
+                {status.label}
+              </Badge>,
+              publishedLabel(category.publishedCount),
+            ]}
+            actions={
+              <form action={toggleAction.bind(null, category.id, !category.active)}>
+                <button type="submit" className={ROW_ACTION_CLASS}>
+                  {category.active ? "Desactivar" : "Activar"}
+                </button>
+              </form>
+            }
+          />
         );
       })}
-    </ul>
+    </AdminList>
   );
 }
 

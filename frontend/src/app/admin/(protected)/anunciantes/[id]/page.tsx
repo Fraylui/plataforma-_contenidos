@@ -6,7 +6,7 @@ import { listAdminImages } from "@/lib/api/admin/media";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdvertiserForm } from "@/components/admin/advertiser-form";
-import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
+import { AdminList, AdminListRow, AdminPageHeader, ConfirmActionButton, EmptyState, ROW_ACTION_CLASS } from "@/components/admin/ui";
 import { formatEventDateTime } from "@/lib/content-labels";
 import { deleteAdvertiserAction, deleteCampaignAction, setCampaignActiveAction } from "../actions";
 import { Badge } from "@/components/ui";
@@ -15,6 +15,9 @@ export const metadata: Metadata = {
   title: "Anunciante",
   robots: "noindex,nofollow",
 };
+
+const NUMBER = new Intl.NumberFormat("es-PE");
+const MONEY = new Intl.NumberFormat("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default async function AdvertiserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -38,77 +41,54 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
         {campaigns.length === 0 ? (
           <EmptyState title="Todavía no tiene campañas" />
         ) : (
-          <div className="mt-4 overflow-x-auto rounded-card bg-surface shadow-card">
-            <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="border-b border-border">
-                <tr>
-                  <th className="px-4 py-3 font-medium text-muted">Formato</th>
-                  <th className="px-4 py-3 font-medium text-muted">Vigencia</th>
-                  <th className="px-4 py-3 font-medium text-muted">Estado</th>
-                  <th className="px-4 py-3 font-medium text-muted">Cobrado</th>
-                  <th className="px-4 py-3 font-medium text-muted">Impresiones</th>
-                  <th className="px-4 py-3 font-medium text-muted">Clics</th>
-                  <th className="px-4 py-3 font-medium text-muted" />
-                </tr>
-              </thead>
-              <tbody>
-                {campaigns.map((campaign) => (
-                  <tr key={campaign.id} className="border-b border-border last:border-0 hover:bg-accent-soft/40">
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/admin/anunciantes/${id}/campanas/${campaign.id}`}
-                        className="font-medium text-foreground hover:text-accent hover:underline"
-                      >
-                        {campaign.format === "NATIVE" ? "Post en el feed" : <code className="text-xs">{campaign.placementKey}</code>}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-muted">
-                      {campaign.startsAt ? formatEventDateTime(campaign.startsAt) : "Desde siempre"}
-                      {" — "}
-                      {campaign.endsAt ? formatEventDateTime(campaign.endsAt) : "sin fin"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge tone={campaign.active ? "success" : "neutral"} dot>{campaign.active ? "Activa" : "Inactiva"}</Badge>
-                    </td>
-                    <td className="px-4 py-3 text-muted">
-                      {campaign.amount != null ? `${campaign.currency ?? ""} ${campaign.amount.toFixed(2)}` : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-muted">{campaign.impressionCount}</td>
-                    <td className="px-4 py-3 text-muted">{campaign.clickCount}</td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-3">
-                        <form action={setCampaignActiveAction.bind(null, id, campaign.id, !campaign.active)}>
-                          <button
-                            type="submit"
-                            className="text-xs font-medium text-muted underline underline-offset-2 hover:text-accent"
-                          >
-                            {campaign.active ? "Desactivar" : "Activar"}
-                          </button>
-                        </form>
-                        <form action={deleteCampaignAction.bind(null, id, campaign.id)}>
-                          <button
-                            type="submit"
-                            className="text-xs font-medium text-muted underline underline-offset-2 hover:text-danger-ink"
-                          >
-                            Eliminar
-                          </button>
-                        </form>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <AdminList label="Campañas">
+            {campaigns.map((campaign) => (
+              <AdminListRow
+                key={campaign.id}
+                title={
+                  <Link href={`/admin/anunciantes/${id}/campanas/${campaign.id}`} className="hover:text-accent hover:underline">
+                    {campaign.format === "NATIVE" ? "Post en el feed" : <code className="text-xs">{campaign.placementKey}</code>}
+                  </Link>
+                }
+                meta={[
+                  <Badge key="state" tone={campaign.active ? "success" : "neutral"} dot>
+                    {campaign.active ? "Activa" : "Inactiva"}
+                  </Badge>,
+                  `${campaign.startsAt ? formatEventDateTime(campaign.startsAt) : "Desde siempre"} — ${
+                    campaign.endsAt ? formatEventDateTime(campaign.endsAt) : "sin fin"
+                  }`,
+                  campaign.amount != null ? `${campaign.currency ?? ""} ${MONEY.format(campaign.amount)}` : "Sin monto",
+                  `${NUMBER.format(campaign.impressionCount)} impresiones`,
+                  campaign.clickCount === 1 ? "1 clic" : `${NUMBER.format(campaign.clickCount)} clics`,
+                ]}
+                actions={
+                  <>
+                    <form action={setCampaignActiveAction.bind(null, id, campaign.id, !campaign.active)}>
+                      <button type="submit" className={ROW_ACTION_CLASS}>
+                        {campaign.active ? "Desactivar" : "Activar"}
+                      </button>
+                    </form>
+                    <ConfirmActionButton
+                      action={deleteCampaignAction.bind(null, id, campaign.id)}
+                      label="Eliminar"
+                      title="¿Eliminar esta campaña?"
+                      description="Se borran también sus cifras de impresiones y clics. No se puede deshacer."
+                    />
+                  </>
+                }
+              />
+            ))}
+          </AdminList>
         )}
       </section>
 
       <section className="border-t border-border pt-6">
-        <form action={deleteAdvertiserAction.bind(null, id)}>
-          <button type="submit" className="text-sm font-medium text-danger-ink underline underline-offset-2 hover:text-danger-ink">
-            Eliminar anunciante
-          </button>
-        </form>
+        <ConfirmActionButton
+          action={deleteAdvertiserAction.bind(null, id)}
+          label="Eliminar anunciante"
+          title={`¿Eliminar a ${advertiser.name}?`}
+          description="Se borra el anunciante y su logo deja de usarse. No se puede deshacer."
+        />
         {campaigns.length > 0 && (
           <p className="mt-1 text-xs text-muted">Elimina primero sus campañas — un anunciante con campañas no se puede borrar.</p>
         )}

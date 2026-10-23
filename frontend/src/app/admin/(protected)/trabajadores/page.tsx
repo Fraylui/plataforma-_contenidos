@@ -48,6 +48,11 @@ export default async function WorkersPage() {
                       {worker.firstName} {worker.lastName}
                     </span>
                     <span className="block truncate text-sm text-muted">{worker.email}</span>
+                    {/* Bajo el correo y no en la fila: en el celular la etiqueta dejaba sin espacio al nombre. */}
+                    {worker.status !== "ACTIVE" && <Badge tone="neutral" dot className="mt-1">Desactivado</Badge>}
+                    {worker.status === "ACTIVE" && worker.mustChangePassword && (
+                      <Badge tone="warning" dot className="mt-1">Contraseña temporal</Badge>
+                    )}
                   </span>
                   <span className="mt-1 block text-sm text-foreground lg:mt-0">
                     <span className="sr-only">Permisos: </span>
@@ -57,8 +62,6 @@ export default async function WorkersPage() {
                     {worker.lastLoginAt ? `Último ingreso: ${formatShortDate(worker.lastLoginAt)}` : "Aún no ingresa"}
                   </span>
                 </span>
-                {worker.status !== "ACTIVE" && <Badge tone="neutral" dot>Desactivado</Badge>}
-                {worker.status === "ACTIVE" && worker.mustChangePassword && <Badge tone="warning" dot>Contraseña temporal</Badge>}
                 <CaretRight className="h-5 w-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
               </Link>
             </li>
