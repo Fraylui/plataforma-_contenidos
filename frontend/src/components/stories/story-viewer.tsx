@@ -8,6 +8,7 @@ import { CaretLeft, CaretRight, Heart, Pause, Play, ShareNetwork, X } from "@pho
 import type { ActiveTopic } from "@/lib/api/types";
 import type { HomeItem } from "@/lib/home-items";
 import { formatPublicationDate } from "@/lib/content-labels";
+import { STORY_BACKGROUNDS } from "@/lib/stories/backgrounds";
 import { storyLinkHref } from "@/lib/stories/link";
 import { cn } from "@/lib/utils";
 import { useContentReactions } from "@/components/content/like-share-bar";
@@ -165,128 +166,146 @@ export function StoryViewer({
         >
           <Dialog.Title className="sr-only">{`Historias de ${topic?.category.name ?? ""}`}</Dialog.Title>
 
-          {neighbours.prev && (
-            <button
-              type="button"
-              onClick={() => dispatch({ type: "prevTopic" })}
-              aria-label={`Tema anterior: ${neighbours.prev.category.name}`}
-              className="mr-6 hidden h-[60dvh] w-[min(18vw,220px)] scale-[0.82] cursor-pointer rounded-card bg-white/10 opacity-50 transition-opacity hover:opacity-80 lg:block"
-            >
-              <span className="block p-4 text-left text-sm font-bold text-white">{neighbours.prev.category.name}</span>
-            </button>
-          )}
+          {/* Escritorio: los dos costados siempre ocupan su lugar, así la tarjeta queda centrada haya o no tema al lado. */}
+          <TopicPeek side="prev" topic={neighbours.prev} imageSrc={imageSrc} onClick={() => dispatch({ type: "prevTopic" })} />
 
-          <div className="relative h-dvh w-full overflow-hidden bg-black lg:h-[min(92dvh,860px)] lg:w-auto lg:aspect-[9/16] lg:rounded-card">
-            {state.finished || !current ? (
-              <CaughtUp recent={recent} />
-            ) : (
-              <>
-                <div
-                  ref={stage}
-                  data-testid="story-stage"
-                  {...gestures}
-                  onDoubleClick={() => {
-                    if (!reactions.liked) void reactions.toggleLike();
-                    setHeart((n) => n + 1);
-                  }}
-                  className="absolute inset-0 touch-none overscroll-contain select-none"
-                >
-                  <StoryFrame
-                    key={`${topic.category.id}-${current.id}`}
-                    story={current}
-                    src={current.imageId ? imageSrc[current.id] : null}
-                    onReady={() => setImageReady(true)}
-                    onCta={() => sendSignal(`/api/stories/cta?id=${encodeURIComponent(current.id)}`)}
-                    shortPlaying={shortPlaying}
-                    onPlayShort={() => {
-                      setShortPlaying(true);
-                      dispatch({ type: "pause" });
+          <div className="relative h-dvh w-full lg:h-[min(92dvh,860px)] lg:w-auto lg:aspect-[9/16]">
+            <div className="relative h-full w-full overflow-hidden bg-black lg:rounded-card">
+              {state.finished || !current ? (
+                <CaughtUp recent={recent} />
+              ) : (
+                <>
+                  <div
+                    ref={stage}
+                    data-testid="story-stage"
+                    {...gestures}
+                    onDoubleClick={() => {
+                      if (!reactions.liked) void reactions.toggleLike();
+                      setHeart((n) => n + 1);
                     }}
-                    priority
-                  />
-                  {heart > 0 && (
-                    <Heart
-                      key={heart}
-                      weight="fill"
-                      aria-hidden="true"
-                      className="pointer-events-none absolute top-1/2 left-1/2 size-28 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 drop-shadow-lg motion-safe:animate-[heart-pop_800ms_ease-out]"
-                    />
-                  )}
-                </div>
-
-                {/* Barras y cabecera: fuera del área de gestos para que sus botones respondan al toque. */}
-                <div className={cn("absolute inset-x-0 top-0 z-20 px-3 pt-3 transition-opacity duration-200", state.paused && !shortPlaying && "opacity-0 hover:opacity-100 focus-within:opacity-100")}>
-                  <div className="flex gap-1" aria-hidden="true">
-                    {topic.stories.map((s, index) => (
-                      <span key={s.id} className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/35">
-                        <span
-                          className="block h-full origin-left bg-white"
-                          style={{ transform: `scaleX(${index < state.storyIndex ? 1 : index === state.storyIndex ? progress : 0})` }}
-                        />
-                      </span>
-                    ))}
-                  </div>
-                  <div className="mt-3 flex items-center gap-2 text-white">
-                    <Link
-                      href={`/categorias/${topic.category.slug}`}
-                      aria-label={`Ver todo de ${topic.category.name}`}
-                      className="min-w-0 truncate text-sm font-bold drop-shadow"
-                    >
-                      {topic.category.name}
-                    </Link>
-                    <span className="shrink-0 text-xs text-white/80">{formatPublicationDate(current.publishedAt)}</span>
-                    <p className="sr-only" aria-live="polite">{`Historia ${state.storyIndex + 1} de ${total}`}</p>
-                    <span className="ml-auto flex shrink-0 items-center">
-                      <ViewerButton label={state.paused ? "Reanudar" : "Pausar"} onClick={togglePause}>
-                        {state.paused ? <Play weight="fill" className="size-5" /> : <Pause weight="fill" className="size-5" />}
-                      </ViewerButton>
-                      <ViewerButton label="Cerrar" onClick={() => onClose("user")}>
-                        <X weight="bold" className="size-5" />
-                      </ViewerButton>
-                    </span>
-                  </div>
-                </div>
-
-                <div className="absolute right-3 bottom-6 z-20 flex flex-col items-center gap-3 text-white">
-                  <ViewerButton
-                    label={reactions.liked ? "Quitar me gusta" : "Me gusta"}
-                    pressed={reactions.liked}
-                    onClick={() => void reactions.toggleLike()}
+                    className="absolute inset-0 touch-none overscroll-contain select-none"
                   >
-                    <Heart weight={reactions.liked ? "fill" : "regular"} className={cn("size-6", reactions.liked && "text-like")} />
-                  </ViewerButton>
-                  {reactions.likeCount > 0 && <span className="-mt-2 text-xs font-semibold tabular-nums">{reactions.likeCount}</span>}
-                  <ViewerButton label="Compartir" onClick={() => void reactions.share()}>
-                    <ShareNetwork weight="bold" className="size-6" />
-                  </ViewerButton>
-                  {reactions.copied && <span role="status" className="text-xs font-semibold">Enlace copiado</span>}
-                </div>
+                    <StoryFrame
+                      key={`${topic.category.id}-${current.id}`}
+                      story={current}
+                      src={current.imageId ? imageSrc[current.id] : null}
+                      onReady={() => setImageReady(true)}
+                      onCta={() => sendSignal(`/api/stories/cta?id=${encodeURIComponent(current.id)}`)}
+                      shortPlaying={shortPlaying}
+                      onPlayShort={() => {
+                        setShortPlaying(true);
+                        dispatch({ type: "pause" });
+                      }}
+                      priority
+                    />
+                    {heart > 0 && (
+                      <Heart
+                        key={heart}
+                        weight="fill"
+                        aria-hidden="true"
+                        className="pointer-events-none absolute top-1/2 left-1/2 size-28 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 drop-shadow-lg motion-safe:animate-[heart-pop_800ms_ease-out]"
+                      />
+                    )}
+                  </div>
 
-                <div className="pointer-events-none absolute inset-y-0 -right-14 -left-14 z-10 hidden items-center justify-between lg:flex">
-                  <ViewerButton label="Historia anterior" onClick={() => dispatch({ type: "prev" })} className="pointer-events-auto bg-white/90 text-zinc-900">
-                    <CaretLeft weight="bold" className="size-5" />
-                  </ViewerButton>
-                  <ViewerButton label="Historia siguiente" onClick={() => dispatch({ type: "next" })} className="pointer-events-auto bg-white/90 text-zinc-900">
-                    <CaretRight weight="bold" className="size-5" />
-                  </ViewerButton>
-                </div>
-              </>
+                  {/* Barras y cabecera: fuera del área de gestos para que sus botones respondan al toque. */}
+                  <div className={cn("absolute inset-x-0 top-0 z-20 px-3 pt-3 transition-opacity duration-200", state.paused && !shortPlaying && "opacity-0 hover:opacity-100 focus-within:opacity-100")}>
+                    <div className="flex gap-1" aria-hidden="true">
+                      {topic.stories.map((s, index) => (
+                        <span key={s.id} className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/35">
+                          <span
+                            className="block h-full origin-left bg-white"
+                            style={{ transform: `scaleX(${index < state.storyIndex ? 1 : index === state.storyIndex ? progress : 0})` }}
+                          />
+                        </span>
+                      ))}
+                    </div>
+                    <div className="mt-3 flex items-center gap-2 text-white">
+                      <Link
+                        href={`/categorias/${topic.category.slug}`}
+                        aria-label={`Ver todo de ${topic.category.name}`}
+                        className="min-w-0 truncate text-sm font-bold drop-shadow"
+                      >
+                        {topic.category.name}
+                      </Link>
+                      <span className="shrink-0 text-xs text-white/80">{formatPublicationDate(current.publishedAt)}</span>
+                      <p className="sr-only" aria-live="polite">{`Historia ${state.storyIndex + 1} de ${total}`}</p>
+                      <span className="ml-auto flex shrink-0 items-center">
+                        <ViewerButton label={state.paused ? "Reanudar" : "Pausar"} onClick={togglePause}>
+                          {state.paused ? <Play weight="fill" className="size-5" /> : <Pause weight="fill" className="size-5" />}
+                        </ViewerButton>
+                        <ViewerButton label="Cerrar" onClick={() => onClose("user")}>
+                          <X weight="bold" className="size-5" />
+                        </ViewerButton>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="absolute right-3 bottom-6 z-20 flex flex-col items-center gap-3 text-white">
+                    <ViewerButton
+                      label={reactions.liked ? "Quitar me gusta" : "Me gusta"}
+                      pressed={reactions.liked}
+                      onClick={() => void reactions.toggleLike()}
+                    >
+                      <Heart weight={reactions.liked ? "fill" : "regular"} className={cn("size-6", reactions.liked && "text-like")} />
+                    </ViewerButton>
+                    {reactions.likeCount > 0 && <span className="-mt-2 text-xs font-semibold tabular-nums">{reactions.likeCount}</span>}
+                    <ViewerButton label="Compartir" onClick={() => void reactions.share()}>
+                      <ShareNetwork weight="bold" className="size-6" />
+                    </ViewerButton>
+                    {reactions.copied && <span role="status" className="text-xs font-semibold">Enlace copiado</span>}
+                  </div>
+
+                </>
+              )}
+            </div>
+            {/* Flechas fuera de la tarjeta (que recorta lo que sobresale): solo con mouse, en escritorio. */}
+            {!state.finished && current && (
+              <div className="pointer-events-none absolute inset-y-0 -right-16 -left-16 hidden items-center justify-between lg:flex">
+                <ViewerButton label="Historia anterior" onClick={() => dispatch({ type: "prev" })} className="pointer-events-auto bg-white/90 text-zinc-900 shadow-pop">
+                  <CaretLeft weight="bold" className="size-5" />
+                </ViewerButton>
+                <ViewerButton label="Historia siguiente" onClick={() => dispatch({ type: "next" })} className="pointer-events-auto bg-white/90 text-zinc-900 shadow-pop">
+                  <CaretRight weight="bold" className="size-5" />
+                </ViewerButton>
+              </div>
             )}
           </div>
 
-          {neighbours.next && (
-            <button
-              type="button"
-              onClick={() => dispatch({ type: "nextTopic" })}
-              aria-label={`Tema siguiente: ${neighbours.next.category.name}`}
-              className="ml-6 hidden h-[60dvh] w-[min(18vw,220px)] scale-[0.82] cursor-pointer rounded-card bg-white/10 opacity-50 transition-opacity hover:opacity-80 lg:block"
-            >
-              <span className="block p-4 text-left text-sm font-bold text-white">{neighbours.next.category.name}</span>
-            </button>
-          )}
+          <TopicPeek side="next" topic={neighbours.next} imageSrc={imageSrc} onClick={() => dispatch({ type: "nextTopic" })} />
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+  );
+}
+
+/** Tema vecino asomando al costado en escritorio (Instagram): el fondo de su primera historia y su nombre. */
+function TopicPeek({ side, topic, imageSrc, onClick }: {
+  side: "prev" | "next";
+  topic: ActiveTopic | undefined;
+  imageSrc: Record<string, string>;
+  onClick: () => void;
+}) {
+  const slot = cn("hidden h-[60dvh] w-[min(18vw,220px)] shrink-0 lg:block", side === "prev" ? "mr-20" : "ml-20");
+  if (!topic) return <span aria-hidden="true" className={slot} />;
+  const first = topic.stories[0];
+  const src = first?.imageId ? imageSrc[first.id] : undefined;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`${side === "prev" ? "Tema anterior" : "Tema siguiente"}: ${topic.category.name}`}
+      className={cn(slot, "relative scale-[0.82] cursor-pointer overflow-hidden rounded-card bg-black opacity-55 transition-opacity hover:opacity-85")}
+      style={src ? undefined : { backgroundImage: STORY_BACKGROUNDS[first?.background ?? "NIGHT"] }}
+    >
+      {src && (
+        // eslint-disable-next-line @next/next/no-img-element -- miniatura decorativa del tema vecino, ya cargada por el visor
+        <img src={src} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
+      )}
+      <span className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent p-4 pt-10 text-left text-sm font-bold text-white">
+        {topic.category.name}
+      </span>
+    </button>
   );
 }
 
