@@ -2387,6 +2387,7 @@ Estado: rama feat/sistema-diseno (PR #22), todo subido. Último CI verde COMPLET
 - Indecopi: Guía de Publicidad para Influencers (2.ª ed., ago-2024): con «conexión material» con el anunciante va «Publicidad». El sitio ya lo hace (etiqueta «Patrocinado», sin promoción gratis de negocios). Multas reales (p. ej. 47 UIT).
 - Formalizar e impuestos: PRODUCE «Tu Empresa» (CDE) asesora gratis; RUC de persona natural con negocio por SUNAT. SUNAT Informe 044-2022: los ingresos por publicidad de creadores digitales serían de 3.ª categoría (verificar en el informe); elegir régimen (Nuevo RUS / MYPE) con SUNAT u orientación gratuita.
 - Abogado gratis: consultorios jurídicos de universidades (UNMSM, PUCP, otros; confirmar si están vigentes) y voluntariado del Colegio de Abogados de Lima.
+- D.13 (parte) 2026-10-23, a pedido del dueño: Configuración LOCAL con título en Google «Ecos del Camino: lugares, historias y curiosidades» (50) y descripción «Descubre lugares, historias, tradiciones y curiosidades del Perú y el mundo, con fotos y videos. Algo nuevo para ver y aprender cada día.» (137). Solo en la base local (SQL): repetirlo en producción al desplegar. Faltan del dueño: correo de contacto dedicado, redes, imagen al compartir 1200×630.
 - C.10: Next 16.4.3 salió el 2026-10-23, solo bugs (sin seguridad) → esperar ~2 semanas antes de subir. npm audit --omit=dev high: verde (2 moderados de siempre).
 
 #### A. Primero al retomar (verificación, ~15 min)
