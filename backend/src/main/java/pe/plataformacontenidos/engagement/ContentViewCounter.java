@@ -75,7 +75,7 @@ public class ContentViewCounter {
     }
 
     /** Hash corto: distingue visitantes durante unos minutos, inútil para recuperar la IP. */
-    static String visitorKey(String clientIp, String userAgent) {
+    public static String visitorKey(String clientIp, String userAgent) {
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256")
                     .digest(("views|" + clientIp + "|" + userAgent).getBytes(StandardCharsets.UTF_8));

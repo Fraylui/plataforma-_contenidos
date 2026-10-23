@@ -47,10 +47,13 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/galleries", "/api/v1/galleries/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/series", "/api/v1/series/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/live/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/stories/**").permitAll()
                 // "Me gusta" anónimo de lector (visitorId generado en el navegador, no requiere cuenta) — ver ContentLike, un solo mecanismo para los tipos de contenido.
                 .requestMatchers(HttpMethod.POST, "/api/v1/publications/*/like", "/api/v1/places/*/like",
                         "/api/v1/celebrations/*/like", "/api/v1/galleries/*/like",
-                        "/api/v1/series/episodes/*/like").permitAll()
+                        "/api/v1/series/episodes/*/like", "/api/v1/stories/*/like").permitAll()
+                // Toque del botón de una historia: anónimo, como las visitas — ver StoryCtaCounter.
+                .requestMatchers(HttpMethod.POST, "/api/v1/stories/*/cta").permitAll()
                 // Visitas anónimas (sin cookies ni IP guardada) — ver ContentViewCounter.
                 .requestMatchers(HttpMethod.POST, "/api/v1/views").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/search").permitAll()
