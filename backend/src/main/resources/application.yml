@@ -94,4 +94,4 @@ management:
 # poder filtrarlos y buscarlos; en desarrollo, texto legible.
 logging:
   pattern:
-    level: "%5p [%X{requestId:-}]"
+    level: "%5p [%X{requestId:-}%X{job:-}]"
