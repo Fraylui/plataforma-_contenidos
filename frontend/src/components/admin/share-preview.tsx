@@ -25,9 +25,12 @@ export function SharePreview({
   title,
   description,
   imageUrl,
+  emptyImageHint = "Agrega una foto: la primera es la portada al compartir",
 }: {
   siteName: string;
   path: string;
+  /** Qué hacer si no hay imagen: en el compositor es la primera foto; en Configuración, la imagen al compartir. */
+  emptyImageHint?: string;
   title: string;
   description: string;
   imageUrl: string | null;
@@ -53,7 +56,7 @@ export function SharePreview({
             ) : (
               <p className="flex items-center gap-2 px-4 text-center text-xs text-muted">
                 <ImageSquare aria-hidden="true" className="size-4 shrink-0" />
-                Agrega una foto: la primera es la portada al compartir
+                {emptyImageHint}
               </p>
             )}
           </div>

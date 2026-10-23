@@ -10,6 +10,7 @@ import { AdminList, AdminListRow, AdminPageHeader, ConfirmActionButton, EmptySta
 import { formatEventDateTime } from "@/lib/content-labels";
 import { deleteAdvertiserAction, deleteCampaignAction, setCampaignActiveAction } from "../actions";
 import { Badge } from "@/components/ui";
+import { formatMoney } from "@/lib/ads/money";
 
 export const metadata: Metadata = {
   title: "Anunciante",
@@ -17,7 +18,6 @@ export const metadata: Metadata = {
 };
 
 const NUMBER = new Intl.NumberFormat("es-PE");
-const MONEY = new Intl.NumberFormat("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default async function AdvertiserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -57,7 +57,7 @@ export default async function AdvertiserDetailPage({ params }: { params: Promise
                   `${campaign.startsAt ? formatEventDateTime(campaign.startsAt) : "Desde siempre"} — ${
                     campaign.endsAt ? formatEventDateTime(campaign.endsAt) : "sin fin"
                   }`,
-                  campaign.amount != null ? `${campaign.currency ?? ""} ${MONEY.format(campaign.amount)}` : "Sin monto",
+                  campaign.amount != null ? formatMoney(campaign.amount, campaign.currency) : "Sin monto",
                   `${NUMBER.format(campaign.impressionCount)} impresiones`,
                   campaign.clickCount === 1 ? "1 clic" : `${NUMBER.format(campaign.clickCount)} clics`,
                 ]}

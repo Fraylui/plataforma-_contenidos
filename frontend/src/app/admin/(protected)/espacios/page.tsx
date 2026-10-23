@@ -22,14 +22,14 @@ export default async function AdminAdPlacementsPage() {
 
   return (
     <div>
+      {/* Texto para quien administra, no para quien programa (antes mostraba <AdBlock position="key" />). */}
       <AdminPageHeader
         title="Espacios publicitarios"
+        description="Los lugares del sitio donde puede salir un anuncio de Google AdSense, con su tamaño."
         action={{ href: "/admin/espacios/nuevo", label: "Nuevo espacio" }}
       />
       <p className="mt-2 max-w-2xl text-sm text-muted">
-        Posiciones de anuncio (AdSense) disponibles para usar en el sitio con{" "}
-        <code className="rounded bg-surface px-1 py-0.5 text-xs">{"<AdBlock position=\"key\" />"}</code>. El
-        interruptor global de AdSense está en{" "}
+        AdSense se enciende o apaga para todo el sitio en{" "}
         <Link href="/admin/configuracion" className="underline underline-offset-2 hover:text-accent">
           Configuración
         </Link>

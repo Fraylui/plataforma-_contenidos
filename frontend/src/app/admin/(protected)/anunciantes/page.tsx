@@ -5,6 +5,7 @@ import { listAdvertisers, listCampaigns } from "@/lib/api/admin/advertising";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { AdminList, AdminListRow, AdminPageHeader, EmptyState } from "@/components/admin/ui";
+import { formatBilledTotal } from "@/lib/ads/money";
 
 export const metadata: Metadata = {
   title: "Anunciantes",
@@ -12,7 +13,6 @@ export const metadata: Metadata = {
 };
 
 const NUMBER = new Intl.NumberFormat("es-PE");
-const MONEY = new Intl.NumberFormat("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default async function AdminAdvertisersPage() {
   const { accessToken } = await requireAdminUser();
@@ -40,8 +40,7 @@ export default async function AdminAdvertisersPage() {
             const own = campaigns.filter((c) => c.advertiserId === advertiser.id);
             const impressions = own.reduce((sum, c) => sum + c.impressionCount, 0);
             const clicks = own.reduce((sum, c) => sum + c.clickCount, 0);
-            const billed = own.reduce((sum, c) => sum + (c.amount ?? 0), 0);
-            const billedCurrency = own.find((c) => c.amount != null)?.currency ?? "";
+            const billed = formatBilledTotal(own);
             return (
               <AdminListRow
                 key={advertiser.id}
@@ -55,7 +54,7 @@ export default async function AdminAdvertisersPage() {
                     {advertiser.contactEmail || advertiser.contactPhone || "Sin datos de contacto"}
                   </span>,
                   own.length === 1 ? "1 campaña" : `${own.length} campañas`,
-                  billed > 0 ? `${billedCurrency} ${MONEY.format(billed)} facturado` : "Sin facturar",
+                  billed ? `${billed} facturado` : "Sin facturar",
                   `${NUMBER.format(impressions)} impresiones`,
                   clicks === 1 ? "1 clic" : `${NUMBER.format(clicks)} clics`,
                 ]}

@@ -231,6 +231,7 @@ export function PlatformSettingsForm({ settings }: { settings: PlatformSettings 
               title={state.seoDefaultTitle || state.name}
               description={state.description}
               imageUrl={state.ogImageUrl || null}
+              emptyImageHint="Sube la imagen al compartir (1200 × 630) y se verá aquí"
             />
           </div>
         </Section>

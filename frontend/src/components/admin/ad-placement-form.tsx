@@ -47,8 +47,9 @@ export function AdPlacementForm({ mode, placement }: AdPlacementFormProps) {
     <div className="max-w-lg space-y-4 rounded-card bg-surface shadow-card p-5">
       {mode === "create" && (
         <Field
-          label="Clave (se usa en el código: <AdBlock position=&quot;...&quot; />)"
+          label="Clave"
           name="key"
+          hint="Identificador interno, en minúsculas y sin espacios. El sitio lo usa para ubicar el espacio y no se puede cambiar después."
         >
           <TextInput
             type="text"
