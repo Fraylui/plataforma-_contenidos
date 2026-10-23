@@ -114,6 +114,17 @@ public class StoryService {
         audit("STORY_DELETED", story, actingUserId);
     }
 
+    /**
+     * Borra las terminadas hace más de {@link #KEEP_ENDED} que no son Destacadas.
+     * Devuelve las fotos que quedaron sin historia, para borrarlas aparte: una foto
+     * que siga en uso no debe deshacer este borrado.
+     */
+    public List<UUID> purgeEnded() {
+        List<Story> ended = repository.findByHighlightedFalseAndExpiresAtBefore(clock.instant().minus(KEEP_ENDED));
+        repository.deleteAll(ended);
+        return ended.stream().map(Story::getImageId).filter(java.util.Objects::nonNull).distinct().toList();
+    }
+
     /** El visitante tocó el botón del enlace (ya filtrado por StoryCtaCounter). */
     public void recordCtaClick(UUID id) {
         repository.incrementCtaClicks(id);
