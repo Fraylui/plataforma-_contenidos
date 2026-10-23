@@ -41,7 +41,20 @@ export function SkeletonImage({
   const imgRef = useRef<HTMLImageElement>(null);
 
   if (!fade || priority) {
-    return <Image src={src} alt={alt} fill sizes={sizes} className={className} priority={priority} />;
+    // preload (reemplaza a `priority`, obsoleto en Next 16): <link rel="preload"> en el <head> y sin lazy.
+    // fetchPriority alta también en esa precarga: sin ella Chrome baja la foto con prioridad baja y el LCP
+    // esperaba ~1,1 s solo en empezar la descarga (Lighthouse CI, 2026-10-22).
+    return (
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes={sizes}
+        className={className}
+        preload={priority}
+        fetchPriority={priority ? "high" : undefined}
+      />
+    );
   }
 
   return (
@@ -62,7 +75,6 @@ export function SkeletonImage({
         alt={alt}
         fill
         sizes={sizes}
-        priority={priority}
         onLoad={() => setLoaded(true)}
         className={cn(className, "transition-[opacity,transform] duration-300", loaded ? "opacity-100" : "opacity-0")}
       />
