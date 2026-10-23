@@ -2380,6 +2380,7 @@ Estado: rama feat/sistema-diseno (PR #22), todo subido. Último CI verde COMPLET
 - FALTA de B.6: Series/episodio y En vivo CON datos (no hay en local), break-ui de Buscar con resultados largos, 768 px. Celebración sin JSON-LD de tipo (Event no aplica a un día conmemorativo: no inventar).
 - C.9 DECIDIDO por el dueño 2026-10-23: cuartiles de video y autoplay silenciado DESCARTADOS (exigen iframe_api de YouTube/CSP y cargan YouTube con cookies antes del toque y del consentimiento); carrusel de varias fotos en el nativo EN ESPERA (migración + formulario; solo si se vende ese formato).
 - B.6 TERMINADO 2026-10-23 salvo Series/episodio y En vivo CON datos (no hay en local): 2217a12 buscador (miniatura rota → ícono del tipo; total «12,345» con Intl es-PE); 768 px revisado (Explorar, detalle) sin desborde.
+- PANEL REVISADO 2026-10-23 a 390 (Anunciantes, detalle, Espacios, Trabajadores, ficha, Configuración, Mi cuenta): de1dd60 totales por moneda (antes sumaba soles+dólares con la 1.ª moneda) + símbolo «S/», Espacios sin <AdBlock …/>, vista previa de Configuración sin «la primera foto»; 3ff76a6 break-words en AdminPageHeader. Basura local: muchas cuentas «Prueba Automática» desactivadas de e2e locales. Pendiente menor: el selector de logo del anunciante ofrece también los banners (todas las imágenes AD).
 - C.10: Next 16.4.3 salió el 2026-10-23, solo bugs (sin seguridad) → esperar ~2 semanas antes de subir. npm audit --omit=dev high: verde (2 moderados de siempre).
 
 #### A. Primero al retomar (verificación, ~15 min)
