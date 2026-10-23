@@ -27,6 +27,6 @@ class ContentRegistryIntegrationTest {
         }
         assertThat(registry.all()).extracting(ContentSource::table).containsExactlyInAnyOrder(
                 "content.publications", "places.places", "celebrations.celebrations", "galleries.galleries",
-                "series.series", "series.episodes");
+                "series.series", "series.episodes", "stories.stories");
     }
 }
