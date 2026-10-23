@@ -38,7 +38,7 @@ export function Pagination({
         </span>
       )}
 
-      <span className="text-xs font-semibold tracking-wide text-muted uppercase">
+      <span className="text-sm font-medium text-muted tabular-nums">
         Página {page + 1} de {totalPages}
       </span>
 

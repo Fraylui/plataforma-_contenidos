@@ -46,12 +46,12 @@ export default async function SeriesPage({ params, searchParams }: PageProps<"/s
           </div>
         )}
         <div className="flex flex-col gap-3 p-5 md:p-6">
-          <p className="text-xs font-semibold tracking-wide text-accent uppercase">Serie</p>
-          <h1 className="text-title font-bold text-foreground">{series.title}</h1>
-          {series.description && <p className="text-sm whitespace-pre-line text-muted">{series.description}</p>}
-          <p className="text-sm text-muted">
-            {episodes.totalElements} {episodes.totalElements === 1 ? "episodio" : "episodios"}
+          {/* Sin antetítulo en mayúsculas (DESIGN.md): tipo y conteo en una línea normal. */}
+          <p className="text-sm font-semibold text-accent">
+            Serie · {episodes.totalElements} {episodes.totalElements === 1 ? "episodio" : "episodios"}
           </p>
+          <h1 className="text-title font-bold break-words text-foreground">{series.title}</h1>
+          {series.description && <p className="text-sm whitespace-pre-line text-muted">{series.description}</p>}
           <div className="mt-auto flex flex-wrap gap-2 pt-2">
             <a
               href={`https://www.youtube.com/playlist?list=${encodeURIComponent(series.youtubePlaylistId)}`}

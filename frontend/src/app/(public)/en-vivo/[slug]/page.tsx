@@ -40,14 +40,14 @@ export default async function LiveStreamPage({ params }: PageProps<"/en-vivo/[sl
             <LiveLabel as="p" />
           )}
           {stream.status === "SCHEDULED" && (
-            <p className="text-xs font-semibold tracking-wide text-accent uppercase">
+            <p className="text-sm font-semibold text-accent">
               {stream.scheduledStart ? `Empieza ${formatEventDateTime(stream.scheduledStart)}` : "Muy pronto"}
             </p>
           )}
           {stream.status === "ENDED" && (
-            <p className="text-xs font-semibold tracking-wide text-muted uppercase">Terminó · mira la repetición</p>
+            <p className="text-sm font-semibold text-muted">Terminó · mira la repetición</p>
           )}
-          <h1 className="mt-1 text-title font-bold text-foreground">{stream.title}</h1>
+          <h1 className="mt-1 text-title font-bold break-words text-foreground">{stream.title}</h1>
           {stream.description && <p className="mt-2 text-sm whitespace-pre-line text-muted">{stream.description}</p>}
         </div>
         <ShareButton title={stream.title} />

@@ -62,7 +62,7 @@ export default async function EpisodePage({ params }: PageProps<"/series/[slug]/
         <Link href={`/series/${series.slug}`} className="text-sm font-semibold text-accent hover:underline">
           {series.title}
         </Link>
-        <h1 className="mt-1 text-title font-bold text-foreground">{episode.title}</h1>
+        <h1 className="mt-1 text-title font-bold break-words text-foreground">{episode.title}</h1>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-muted">{formatPublishedDate(episode.publishedAt)}</p>
           <ViewBeacon type="EPISODE" id={episode.id} />

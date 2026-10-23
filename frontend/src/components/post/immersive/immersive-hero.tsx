@@ -68,7 +68,7 @@ export function ImmersiveHero({
         <PostHeader {...header} onImage={photo} className="flex items-center gap-3" />
         <h1
           className={cn(
-            "text-[clamp(1.75rem,6vw,3rem)] leading-[1.08] font-extrabold tracking-tight text-balance",
+            "text-[clamp(1.75rem,6vw,3rem)] leading-[1.08] font-extrabold tracking-tight text-balance break-words",
             photo ? "text-white [text-shadow:0_1px_12px_rgb(0_0_0/0.35)]" : "text-foreground",
           )}
         >
