@@ -20,9 +20,10 @@ vi.mock("next/dynamic", () => ({
   },
 }));
 
+// El visor arrastra Radix, íconos y más: con varios archivos en paralelo su primera carga pasa de 10 s.
 beforeAll(async () => {
   await import("./story-viewer");
-});
+}, 60_000);
 
 const topics: ActiveTopic[] = [
   {

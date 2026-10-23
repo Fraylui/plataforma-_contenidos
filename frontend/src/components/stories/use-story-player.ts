@@ -68,6 +68,16 @@ export function playableTopics(topics: ActiveTopic[], now: Date): ActiveTopic[] 
 }
 
 /**
+ * Orden de reproducción: el tema tocado primero, luego los que siguen en la
+ * fila y al final los de antes (como Instagram: al terminar uno no se saltan
+ * los que quedaron sin ver).
+ */
+export function startingFrom(topics: ActiveTopic[], startTopicId: string): ActiveTopic[] {
+  const index = topics.findIndex((topic) => topic.category.id === startTopicId);
+  return index <= 0 ? topics : [...topics.slice(index), ...topics.slice(0, index)];
+}
+
+/**
  * El reloj del visor: avanza solo con la foto lista, sin pausa y con la
  * pestaña visible. `progress` (0..1) alimenta la barra de la historia actual.
  */

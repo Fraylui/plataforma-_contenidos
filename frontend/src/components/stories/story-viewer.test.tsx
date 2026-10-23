@@ -120,9 +120,17 @@ describe("StoryViewer", () => {
     expect(isSeen("a")).toBe(true);
   });
 
-  it("después del último tema muestra «Estás al día» con lo más reciente", () => {
+  it("empezando en un tema, al terminarlo sigue con los que estaban antes en la fila (no se los salta)", () => {
     open("t2");
     act(() => vi.advanceTimersByTime(6_100));
+    expect(screen.getByRole("dialog", { name: "Historias de Gastronomía" })).toBeInTheDocument();
+    expect(screen.getByText("Historia 1 de 3")).toBeInTheDocument();
+  });
+
+  it("después del último tema muestra «Estás al día» con lo más reciente", () => {
+    open("t1");
+    fireEvent.keyDown(document, { key: "ArrowRight", shiftKey: true });
+    fireEvent.keyDown(document, { key: "ArrowRight", shiftKey: true });
     const done = screen.getByRole("region", { name: "Estás al día" });
     expect(within(done).getAllByRole("link", { name: /Reciente/ })).toHaveLength(6);
     expect(within(done).getByRole("link", { name: "Seguir explorando" })).toHaveAttribute("href", "/explorar");

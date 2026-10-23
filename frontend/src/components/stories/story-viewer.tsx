@@ -15,7 +15,7 @@ import { CaughtUp } from "./caught-up";
 import { markSeen } from "./seen-stories";
 import { StoryFrame } from "./story-frame";
 import { useStoryGestures } from "./story-gestures";
-import { playableTopics, useStoryPlayer } from "./use-story-player";
+import { playableTopics, startingFrom, useStoryPlayer } from "./use-story-player";
 
 /** Una historia cuenta como vista (y como visita) tras este tiempo en pantalla. */
 const SEEN_AFTER_MS = 1_000;
@@ -51,7 +51,7 @@ export function StoryViewer({
   origin?: { x: number; y: number };
 }) {
   const router = useRouter();
-  const [playable] = useState(() => playableTopics(topics, new Date()));
+  const [playable] = useState(() => startingFrom(playableTopics(topics, new Date()), startTopicId));
   const { state, current, progress, dispatch, setImageReady } = useStoryPlayer(playable, startTopicId);
   const topic = playable[state.topicIndex];
   const [shortPlaying, setShortPlaying] = useState(false);

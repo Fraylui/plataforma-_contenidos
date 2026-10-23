@@ -71,7 +71,14 @@ export function StoryFrame({
       <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-56 bg-linear-to-t from-black/70 to-transparent" />
 
       {story.caption && (
-        <div className={cn("absolute inset-0 flex flex-col px-6", CAPTION_POSITION[story.captionPosition])}>
+        // pr-16: no pasar bajo me gusta / compartir; con enlace, el texto de abajo sube sobre la píldora.
+        <div
+          className={cn(
+            "absolute inset-0 flex flex-col pr-16 pl-6",
+            CAPTION_POSITION[story.captionPosition],
+            story.link && story.captionPosition === "BOTTOM" && "pb-40",
+          )}
+        >
           <p
             className={cn(
               "text-balance break-words text-white [text-shadow:0_1px_10px_rgb(0_0_0/0.45)]",
