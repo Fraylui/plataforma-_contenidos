@@ -2407,7 +2407,7 @@ No reemplaza una auditoría externa ni la revisión legal (§46.6n.6).
 | V7 Errores y registros | ✅ | Errores RFC 9457 sin trazas internas; id de petición en cada log; auditoría de toda acción del panel y de los accesos denegados. |
 | V8 Protección de datos | ✅ | Sin cuentas de lectores; «me gusta» con un UUID aleatorio; IP de anuncios solo como hash por 26 h. |
 | V12 Archivos | ✅ | Subida de imágenes validada por tipo real y tamaño, con límite por usuario. |
-| V14 Configuración | ⚠️ | CSP, HSTS (nginx), `nosniff`, `Referrer-Policy`, `Permissions-Policy`; `npm audit` y CodeQL en CI. ⏳ CSP con *nonce* para quitar `'unsafe-inline'` (§46.7.2). |
+| V14 Configuración | ✅/⚠️ | CSP, HSTS (nginx), `nosniff`, `Referrer-Policy`, `Permissions-Policy`; `npm audit` y CodeQL en CI. CSP **estricta con nonce en el panel** (2026-10-22); el sitio público conserva `'unsafe-inline'` para mantener la caché — riesgo aceptado y documentado (§46.7.2). |
 
 ### Seguridad de la información — ISO/IEC 27001:2022 (Anexo A, controles técnicos aplicables)
 
