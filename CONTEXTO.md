@@ -2504,6 +2504,50 @@ No reemplaza una auditoría externa ni la revisión legal (§46.6n.6).
 | Revisión legal de los textos | ⏳ | Resumen práctico, no asesoría; revisarlo con un abogado antes de la primera campaña cobrada. |
 | Directorio: fichas que parecían avisos | ✅ | Quitado entero (V71, 2026-10-17); respaldo fuera de git. |
 
+### 46.6s PAUSA 2026-10-23 — Historias (Stories) construidas; falta la verificación final
+Pedido del dueño 2026-10-23: «A con sus dos protecciones» (historias propias que caducan; (1) la fila nunca queda vacía, (2) Destacadas), «amigable, intuitivo, que retenga», «que consuman nuestros contenidos», usando las skills de diseño. Pausa pedida: «termina lo que estás haciendo, lo demás más tarde».
+Spec: `docs/superpowers/specs/2026-10-23-historias-design.md` · Plan (11 tareas): `docs/superpowers/plans/2026-10-23-historias.md` (docs/ no va a git, viven en disco) · Registro con todas las decisiones: `.superpowers/sdd/2026-10-23-historias/progress.md` (excluido de git vía .git/info/exclude).
+Rama `feat/sistema-diseno` (PR #22), todo subido hasta `0b3cbd6`. CI verde completo en `d0cda49` (tarea 10); la CI de `0b3cbd6` (con `e2e/historias.spec.ts` nuevo) estaba corriendo al pausar.
+
+#### Qué se construyó (commits)
+| Tarea | Commit | Qué |
+|---|---|---|
+| 1 | 32be22b | V74 `stories.stories`; purpose STORY en imágenes; módulo de permisos STORIES (PUBLISH, en Publicador y Administrador); `ContentSource.inDashboard` + `liveCondition` (el volcado de visitas ya no asume `status`) |
+| 2 | 9bdff6c | `Story`, `StoryRules` (lote ≤10, texto ≤140, foto o fondo, enlace o Short, solo 4 tipos enlazables), `StoryService`, `catalog.ContentLookup` |
+| 3 | a21cf1f | API pública `/api/v1/stories/active`, `/{id}`, `/highlights`, `/{id}/like`, `/{id}/cta` (204, 1 toque/visitante/30 min) y panel `/api/v1/admin/stories` (pestañas, lote, editar, destacar, borrar) |
+| 4 | 673d3ef | `StoryCleanupJob` (cada hora: borra a los 7 días de terminar, con sus fotos; Destacadas no) |
+| 5 | d2183e5 | Tipos y clientes del frontend, proxies (me gusta, visitas STORY, `/api/stories/cta`), fondos `--story-*` con contraste ≥3:1 probado |
+| 6 | d1cb1de | `use-story-player` (reducer puro, 6 s, pausa con foto sin cargar o pestaña oculta), `seen-stories` (localStorage, poda, tope 500) |
+| 7 | b348e23 | Fila del Inicio: temas con historias primero, anillo degradado sin ver / gris visto; `StoryRing` siempre es enlace al tema y el clic abre el visor si está |
+| 8 | 3e6a440 | Visor (Radix Dialog): barras, pausa visible, gestos (toques, mantener, deslizar tema, abajo cierra por velocidad, arriba abre enlace), teclado, me gusta (doble toque), compartir `/historias/{id}`, píldora, Short al tocar, «Estás al día»; `StoriesLauncher` con next/dynamic + `?historia=` en el historial |
+| 9 | 4a2020a | `/historias/[id]` (noindex; caducada → «Esta historia ya terminó»), «Destacadas · N» en `/categorias/[slug]`, línea en privacidad |
+| — | 046e85f | zod 4.6.7 (aviso alto publicado hoy tumbaba el CI; no es de historias) |
+| 10 | d0cda49 | Panel: «Historias» en el menú y primero en Crear; lista con pestañas Activas/Destacadas/Terminadas (7 días) y métricas; compositor en lote (fotos o solo texto, tema recordado, vista previa, enlace o Short, Destacada; foto fallida bloquea publicar); editar; marca «Historia» en Imágenes |
+| 11 (parte) | 0e682c9, 28b8246, 0b3cbd6 | e2e de punta a punta + accesibilidad del panel; arreglos vistos en Edge: al terminar un tema sigue con los anteriores de la fila (`startingFrom`), texto no queda bajo la píldora, escritorio centrado con flechas y temas vecinos con su fondo |
+
+Verificado en local: 35 pruebas backend de historias + arquitectura/seguridad verdes; ~93 pruebas frontend de historias; capturas Edge 390 oscuro y 1280 claro (fila, foto+píldora, solo texto, Short, cambio de tema, «Estás al día», escritorio). El visor NO entra en el JS inicial de `/` (15 scripts, 247,6 KB con gzip -9 propio: no comparable con los 223 KB de Lighthouse). Las 4 historias «[prueba]» de la base local se borraron.
+
+#### Falta — retomar en este orden
+1. **CI de 0b3cbd6**: `gh run list --branch feat/sistema-diseno --limit 1 --workflow CI`. Si falla `e2e/historias.spec.ts`, revisar primero la espera de la caché de 30 s (`openHomeWithStories` recarga hasta 45 s) y que la base del CI tenga una publicación para el enlace.
+2. **Panel en pantalla** (`/admin/historias`, `/nueva`, editar) a 390 y 1280: necesita el usuario temporal (pedir permiso al dueño otra vez; crear y borrar como en 46.6r) o conformarse con el e2e de accesibilidad del CI, que ya entra como dueño a `/admin/historias` y `/nueva`.
+3. **break-ui del visor y del compositor**: texto de 140 caracteres sin espacios, emoji, árabe/chino, 1 sola historia, 30 temas con historias, foto que no carga, Short sin texto.
+4. **JS del Inicio**: comparar con el mismo método contra `main`, o leer el `lhr` del CI (`gh run download <id> -n e2e-lighthouse-reports`) y ver que el LCP no empeoró.
+5. **Reducir movimiento**: verificar en Edge con `reducedMotion: 'reduce'` que abrir/cerrar solo funde (sin escala).
+6. **Docs**: sección de Historias en CONTEXTO (§3 tipos de contenido y §45 algoritmos: orden de la fila) y DESIGN.md (patrón «visor de historias»; excepción documentada: `bg-black`/`zinc-900`/blanco en el visor y sobre fotos).
+7. **Revisión final de toda la rama** (skill executing-plans: `review-package` + `code-reviewer.md`), arreglar lo Crítico/Importante con TDD, y borrar `.superpowers/sdd/2026-10-23-historias`.
+8. **Ideas que quedaron fuera a propósito** (preguntar antes): historia patrocinada (solo si se vende), varias Destacadas con nombre por tema, ver el resto del tema desde un enlace compartido.
+
+#### Decisiones tomadas sin preguntar (y qué cuestan si están mal)
+- Sin claves foráneas entre módulos en V74 (como `live.streams`) — filas huérfanas posibles, cubiertas por validación del servicio e `ImageUsages`.
+- Sin caché propia en el backend para `/active`: basta `revalidate 30` de Next + índice — una consulta por render si se pierde la caché de Next.
+- Los datos del visor viajan en el HTML del Inicio; solo el código del visor se descarga aparte — ~3 KB más de HTML con 50 historias.
+- La burbuja con historias es siempre un enlace al tema (el clic se intercepta si el visor cargó): si falla el JavaScript, igual lleva al tema.
+- «Enlace copiado» como texto en vez de toast; hora relativa («hace 3 h») en historias.
+- Movimiento sin framer-motion (transform directo + transición CSS): la vuelta del arrastre no rebota.
+- Historia caducada → «Ir al inicio» y «Explorar» (ya no se sabe el tema); `/historias/{id}` muestra solo esa historia.
+- «Destacadas · N» solo con el visor cargado (no hay página propia de Destacadas).
+- Errores encontrados por las pruebas y arreglados: el reloj se quedaba en un tick; volver al Inicio reabría el visor; el foco no volvía a la burbuja; 3 pruebas del lanzador se omitían en silencio por el límite de 10 s del `beforeAll`.
+
 ## 46.7 Mejoras técnicas — frontend y backend (fuera del rediseño)
 
 Ordenadas por prioridad.
