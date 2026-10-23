@@ -9,7 +9,7 @@ import { AdBlock } from "@/components/legal/ad-block";
 import type { AdSection } from "@/lib/ads/ad-context";
 
 /** Fila de la columna: píldora de fondo al pasar el mouse, sin bordes ni líneas (como Facebook). */
-const ROW = "group -mx-2 flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-surface";
+const ROW = "group -mx-2 flex items-center gap-3 rounded-control px-2 py-2 transition-colors hover:bg-surface";
 
 function SectionHeader({ id, title, href }: { id: string; title: string; href?: string }) {
   return (
@@ -33,7 +33,7 @@ function CelebrationRow({ celebration, categoryName }: { celebration: Celebratio
   return (
     <Link href={`/celebraciones/${celebration.slug}`} className={ROW}>
       {/* Miniatura con la fecha encima (como los eventos de Facebook): foto y día en un solo bloque. */}
-      <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-accent-soft">
+      <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-control bg-accent-soft">
         {celebration.coverImageId ? (
           <SkeletonImage src={serverImageUrl(`/api/v1/images/${celebration.coverImageId}/file`)} alt="" className="object-cover" sizes="64px" />
         ) : celebration.coverImageUrl ? (
@@ -42,7 +42,7 @@ function CelebrationRow({ celebration, categoryName }: { celebration: Celebratio
         ) : (
           <CalendarBlank className="absolute top-2 left-1/2 h-5 w-5 -translate-x-1/2 text-accent" aria-hidden="true" />
         )}
-        <span className="absolute inset-x-1 bottom-1 flex items-baseline justify-center gap-0.5 rounded-lg bg-surface/95 py-0.5 text-foreground shadow-sm">
+        <span className="absolute inset-x-1 bottom-1 flex items-baseline justify-center gap-0.5 rounded-lg bg-surface/95 py-0.5 text-foreground shadow-card">
           <span className="text-sm leading-none font-black">{day}</span>
           <span className="text-[10px] leading-none font-semibold text-muted">{month}</span>
         </span>

@@ -40,7 +40,7 @@ export default function SearchDrawerPanel({
             e.preventDefault();
             (e.currentTarget as HTMLElement).querySelector<HTMLInputElement>("input")?.focus();
           }}
-          className="fixed inset-y-0 left-0 z-[60] flex w-[min(24rem,100vw)] flex-col rounded-r-3xl bg-surface px-5 py-6 shadow-2xl motion-safe:animate-in motion-safe:slide-in-from-left"
+          className="fixed inset-y-0 left-0 z-[60] flex w-[min(24rem,100vw)] flex-col rounded-r-modal bg-surface px-5 py-6 shadow-overlay motion-safe:animate-in motion-safe:slide-in-from-left"
         >
           <div className="mb-5 flex items-center justify-between">
             <Dialog.Title className="text-2xl font-bold tracking-tight text-foreground">Buscar</Dialog.Title>

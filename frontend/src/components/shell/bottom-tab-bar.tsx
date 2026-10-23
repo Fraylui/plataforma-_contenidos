@@ -8,7 +8,7 @@ import type { SocialKey } from "@/lib/social-links";
 import { activeTab, SHELL_NAV } from "./shell-nav";
 
 const TAB =
-  "flex min-h-14 min-w-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-muted transition-colors active:scale-95 motion-reduce:transform-none";
+  "flex min-h-14 min-w-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-control text-muted transition-colors active:scale-95 motion-reduce:transform-none";
 
 /**
  * Barra de pestañas inferior (celular y tablet, < 1024 px), como cualquier

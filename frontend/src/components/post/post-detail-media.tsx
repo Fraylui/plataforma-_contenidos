@@ -24,7 +24,7 @@ export function PostDetailMedia({
     return (
       <div
         data-testid="post-detail-fallback"
-        className={`flex ${aspect} w-full items-center justify-center bg-linear-to-br from-accent-soft to-canvas-strong p-8 sm:rounded-2xl`}
+        className={`flex ${aspect} w-full items-center justify-center bg-linear-to-br from-accent-soft to-canvas-strong p-8 sm:rounded-card`}
       >
         <p className="text-center text-2xl leading-tight font-extrabold text-balance text-foreground sm:text-3xl">{title}</p>
       </div>

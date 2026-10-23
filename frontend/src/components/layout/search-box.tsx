@@ -252,7 +252,7 @@ export function SearchBox({
           className={cn(
             panel
               ? "mt-3 -mx-2 overflow-hidden"
-              : "absolute top-full z-50 mt-2 overflow-hidden rounded-2xl border border-border bg-surface shadow-xl",
+              : "absolute top-full z-50 mt-2 overflow-hidden rounded-card border border-border bg-surface shadow-pop",
             !panel && (desktop ? "inset-x-0" : "right-0 w-[min(22rem,calc(100vw-2rem))]"),
           )}
         >
@@ -282,7 +282,7 @@ export function SearchBox({
                         index === activeIndex ? "bg-canvas" : "hover:bg-canvas/70",
                       )}
                     >
-                      <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-canvas-strong text-muted">
+                      <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-control bg-canvas-strong text-muted">
                         {item.featuredImageId || item.featuredImageUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element -- miniatura chica, sin necesidad de next/image
                           <img

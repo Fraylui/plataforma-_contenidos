@@ -14,7 +14,7 @@ export function ContentVideoGallery({ videos, title, spacing = "" }: { videos: C
     const video = videos[0];
     return (
       <figure className={spacing}>
-        <div className="overflow-hidden sm:rounded-2xl">
+        <div className="overflow-hidden sm:rounded-card">
           <YouTubeEmbed videoId={video.videoId} title={video.title ?? title} vertical={video.vertical} />
         </div>
         <MediaCaption title={video.title} caption={video.caption} />

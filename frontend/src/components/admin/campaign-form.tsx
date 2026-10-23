@@ -419,7 +419,7 @@ export function CampaignForm({
       {isNative && (
         <aside aria-label="Vista previa" className="lg:sticky lg:top-20">
           <p className="mb-2 text-xs font-semibold tracking-wide text-muted uppercase">Así se verá en el feed</p>
-          <div className="overflow-hidden rounded-2xl bg-canvas p-3">
+          <div className="overflow-hidden rounded-card bg-canvas p-3">
             <NativeAdPost campaign={preview} preview />
           </div>
         </aside>

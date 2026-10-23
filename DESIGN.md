@@ -193,6 +193,5 @@ entrada en las prioritarias. Imágenes externas sin optimizador.
 5. `tsc`, lint, knip y pruebas; commit por pantalla, borrando lo reemplazado.
 
 ## Known Gaps
-- `rounded-2xl` (24 usos) y `rounded-xl` (11) conviven con `rounded-card`.
-- Sombras de Tailwind sueltas (13 usos) fuera de `shadow-card/pop/overlay`.
-- Campos sin uso en Configuración: `primaryColor`, `secondaryColor`, `backgroundColor`, `fontFamily`.
+- Radios y sombras: todo pasado a tokens (2026-10-23). Única excepción: `drop-shadow-lg` del corazón sobre la foto (post-media).
+- Colores crudos permitidos: blanco/`zinc-900`/`slate-900` en controles sobre fotos y los degradados por sección del riel (left-rail `SECTIONS`).

@@ -55,7 +55,7 @@ export function StickyAnchorAd({ children, width }: { children: ReactNode; width
     // La franja ocupa todo el ancho solo para centrar la tarjeta: no captura clics (en escritorio tapaba el pie del riel). Desde 1024 px se centra en la columna de contenido, no sobre el riel.
     <div className="pointer-events-none fixed inset-x-0 bottom-(--bottom-bar-h) z-40 flex justify-center px-3 pb-3 sm:px-4 lg:left-[76px] xl:left-[17.5rem]">
       <div
-        className="pointer-events-auto relative w-full rounded-xl border border-border bg-surface px-2 pt-1.5 pb-2 shadow-lg"
+        className="pointer-events-auto relative w-full rounded-card border border-border bg-surface px-2 pt-1.5 pb-2 shadow-pop"
         style={{ maxWidth: width + 16 }}
       >
         {children}
@@ -63,7 +63,7 @@ export function StickyAnchorAd({ children, width }: { children: ReactNode; width
           type="button"
           onClick={dismiss}
           aria-label="Cerrar anuncio"
-          className="absolute -top-2.5 -right-2.5 flex h-6 w-6 items-center justify-center rounded-full border border-foreground/10 bg-surface text-foreground shadow-md transition-colors hover:bg-canvas"
+          className="absolute -top-2.5 -right-2.5 flex h-6 w-6 items-center justify-center rounded-full border border-foreground/10 bg-surface text-foreground shadow-pop transition-colors hover:bg-canvas"
         >
           <X className="h-3.5 w-3.5" aria-hidden="true" />
         </button>

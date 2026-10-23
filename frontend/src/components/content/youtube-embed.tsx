@@ -58,7 +58,7 @@ export function YouTubeEmbed({
         fetchPriority={priority ? "high" : undefined}
         className="absolute inset-0 h-full w-full object-cover opacity-80 transition-opacity group-hover:opacity-100"
       />
-      <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-white/90 shadow-lg transition-transform group-hover:scale-105">
+      <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-white/90 shadow-pop transition-transform group-hover:scale-105">
         <svg viewBox="0 0 20 20" fill="currentColor" className="ml-1 h-7 w-7 text-black" aria-hidden="true">
           <path d="M6.3 4.3a1 1 0 0 1 1.02-.06l8 4.7a1 1 0 0 1 0 1.72l-8 4.7A1 1 0 0 1 6 14.5v-9.4a1 1 0 0 1 .3-.8Z" />
         </svg>

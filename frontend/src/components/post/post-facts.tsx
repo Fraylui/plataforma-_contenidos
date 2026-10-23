@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import type { Icon } from "@phosphor-icons/react";
 
-const ROW_LINK = "-mx-2 flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-canvas-strong";
+const ROW_LINK = "-mx-2 flex items-center gap-3 rounded-control px-2 py-1.5 transition-colors hover:bg-canvas-strong";
 
 export interface PostFact {
   icon: Icon;
@@ -64,7 +64,7 @@ export function PostFacts({
         </ul>
       )}
       {map && (
-        <div className="aspect-video w-full overflow-hidden rounded-2xl bg-canvas-strong">
+        <div className="aspect-video w-full overflow-hidden rounded-card bg-canvas-strong">
           <iframe
             src={`https://www.google.com/maps?q=${map.latitude},${map.longitude}&z=15&output=embed`}
             title={`Mapa de ${map.title}`}

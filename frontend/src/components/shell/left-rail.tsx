@@ -43,7 +43,7 @@ const VISIBLE_TOPICS = 5;
  * pide reducirlo.
  */
 const ITEM =
-  "group relative flex min-h-12 w-full cursor-pointer items-center gap-4 rounded-2xl px-3 text-base transition-[background-color,color,transform] hover:bg-canvas motion-safe:active:scale-[0.97]";
+  "group relative flex min-h-12 w-full cursor-pointer items-center gap-4 rounded-card px-3 text-base transition-[background-color,color,transform] hover:bg-canvas motion-safe:active:scale-[0.97]";
 const ITEM_ICON = "shrink-0 transition-transform motion-safe:group-hover:scale-105";
 const HEADING = "mb-1 hidden px-3 text-[15px] font-bold text-foreground xl:block";
 
@@ -59,7 +59,7 @@ function RailTooltip({ label }: { label: string }) {
   return (
     <span
       aria-hidden="true"
-      className="pointer-events-none absolute top-1/2 left-full z-50 ml-3 -translate-y-1/2 rounded-lg bg-foreground px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-background opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 xl:hidden"
+      className="pointer-events-none absolute top-1/2 left-full z-50 ml-3 -translate-y-1/2 rounded-lg bg-foreground px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-background opacity-0 shadow-pop transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 xl:hidden"
     >
       {label}
     </span>
@@ -112,15 +112,15 @@ export function LeftRail({
     <aside className="sticky top-0 hidden h-dvh w-[76px] shrink-0 flex-col bg-surface px-3 pt-6 pb-4 lg:flex xl:w-[17.5rem]">
       <Link
         href="/"
-        className="mb-6 flex items-center gap-3 rounded-2xl px-2 py-1.5 transition-colors hover:bg-canvas"
+        className="mb-6 flex items-center gap-3 rounded-card px-2 py-1.5 transition-colors hover:bg-canvas"
         aria-label={brand.name}
       >
         {brand.logoUrl ? (
-          <BrandLogo logoUrl={brand.logoUrl} logoDarkUrl={brand.logoDarkUrl} className="h-9 w-9 shrink-0 rounded-xl object-cover" />
+          <BrandLogo logoUrl={brand.logoUrl} logoDarkUrl={brand.logoDarkUrl} className="h-9 w-9 shrink-0 rounded-control object-cover" />
         ) : (
           <span
             aria-hidden="true"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent-fill text-base font-black text-accent-foreground"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-accent-fill text-base font-black text-accent-foreground"
           >
             {brand.name.charAt(0)}
           </span>
@@ -173,7 +173,7 @@ export function LeftRail({
                   aria-label={label}
                   className={cn(ITEM, "gap-3 px-2", active ? "bg-canvas font-bold text-foreground" : "font-medium text-foreground/80 hover:text-foreground")}
                 >
-                  <span className={cn(ITEM_ICON, "flex h-9 w-9 items-center justify-center rounded-full text-white shadow-sm", tile)}>
+                  <span className={cn(ITEM_ICON, "flex h-9 w-9 items-center justify-center rounded-full text-white shadow-card", tile)}>
                     <SectionIcon className="h-5 w-5" weight="fill" aria-hidden="true" />
                   </span>
                   <span className="hidden xl:inline">{label}</span>

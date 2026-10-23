@@ -51,7 +51,7 @@ export function NativeAdPost({ campaign, preview = false }: {
 
   if (hidden) {
     return (
-      <div className="flex items-center justify-between gap-3 border-b border-border/70 bg-surface px-4 py-3 text-sm sm:rounded-2xl sm:border">
+      <div className="flex items-center justify-between gap-3 border-b border-border/70 bg-surface px-4 py-3 text-sm sm:rounded-card sm:border">
         <p className="text-muted">Ocultaste este anuncio.</p>
         <button
           type="button"
@@ -71,7 +71,7 @@ export function NativeAdPost({ campaign, preview = false }: {
     <article
       ref={preview ? undefined : ref}
       aria-label={`Patrocinado: ${name}`}
-      className="no-auto-ads overflow-hidden border-b border-border/70 bg-surface sm:rounded-2xl sm:border sm:shadow-[0_1px_2px_rgb(0_0_0_/_0.04)]"
+      className="no-auto-ads overflow-hidden border-b border-border/70 bg-surface sm:rounded-card sm:border sm:shadow-card"
     >
       <header className="flex items-center gap-3 py-3 pr-2 pl-4">
         <AdvertiserAvatar name={name} logoSrc={campaign.advertiserLogoSrc} plain={preview} />

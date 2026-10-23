@@ -27,13 +27,13 @@ export default function InfoMenuPanel({ brandName, triggerClassName, children }:
           side="right"
           align="end"
           sideOffset={8}
-          className="z-[60] w-56 rounded-2xl bg-surface p-2 shadow-2xl ring-1 ring-border/60 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95"
+          className="z-[60] w-56 rounded-card bg-surface p-2 shadow-pop ring-1 ring-border/60 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95"
         >
           {MORE_LINKS.map((link) => (
             <DropdownMenu.Item
               key={link.href}
               asChild
-              className="flex min-h-11 cursor-pointer items-center rounded-xl px-3 text-[15px] font-medium text-foreground outline-none transition-colors data-[highlighted]:bg-canvas"
+              className="flex min-h-11 cursor-pointer items-center rounded-control px-3 text-[15px] font-medium text-foreground outline-none transition-colors data-[highlighted]:bg-canvas"
             >
               <Link href={link.href}>{link.label}</Link>
             </DropdownMenu.Item>

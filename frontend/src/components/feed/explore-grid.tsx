@@ -63,7 +63,7 @@ export function ExploreGrid({
           <button
             type="button"
             onClick={() => void loadMore()}
-            className="min-h-11 cursor-pointer rounded-full bg-surface px-5 font-semibold text-foreground shadow-sm hover:bg-canvas-strong"
+            className="min-h-11 cursor-pointer rounded-full bg-surface px-5 font-semibold text-foreground shadow-card hover:bg-canvas-strong"
           >
             Reintentar
           </button>

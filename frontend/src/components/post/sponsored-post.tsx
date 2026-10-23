@@ -13,7 +13,7 @@ export function SponsoredPost({ children }: { children: ReactNode }) {
   return (
     <article
       aria-label="Patrocinado"
-      className="bg-surface pb-3 has-[ins[data-ad-status=unfilled]]:hidden sm:rounded-2xl"
+      className="bg-surface pb-3 has-[ins[data-ad-status=unfilled]]:hidden sm:rounded-card"
     >
       <header className="flex items-center gap-3 px-4 py-3">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-canvas-strong text-muted">

@@ -59,7 +59,7 @@ export function MediaCarousel({
 
   return (
     <div className={spacing}>
-      <div className={`relative overflow-hidden sm:rounded-2xl ${background}`}>
+      <div className={`relative overflow-hidden sm:rounded-card ${background}`}>
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex">
             {slides.map((slide, index) => (
@@ -74,7 +74,7 @@ export function MediaCarousel({
           type="button"
           onClick={() => emblaApi?.scrollPrev()}
           aria-label={prevLabel}
-          className="absolute top-1/2 left-3 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 text-zinc-900 shadow-md transition-colors hover:bg-white"
+          className="absolute top-1/2 left-3 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 text-zinc-900 shadow-pop transition-colors hover:bg-white"
         >
           <CaretLeft className="h-4 w-4" weight="bold" aria-hidden="true" />
         </button>
@@ -82,7 +82,7 @@ export function MediaCarousel({
           type="button"
           onClick={() => emblaApi?.scrollNext()}
           aria-label={nextLabel}
-          className="absolute top-1/2 right-3 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 text-zinc-900 shadow-md transition-colors hover:bg-white"
+          className="absolute top-1/2 right-3 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 text-zinc-900 shadow-pop transition-colors hover:bg-white"
         >
           <CaretRight className="h-4 w-4" weight="bold" aria-hidden="true" />
         </button>

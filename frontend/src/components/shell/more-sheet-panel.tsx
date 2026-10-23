@@ -38,7 +38,7 @@ export default function MoreSheetPanel({
             onClosed();
           }}
           aria-describedby={undefined}
-          className="fixed inset-x-0 bottom-0 z-[60] rounded-t-3xl border-t border-border bg-surface px-4 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl"
+          className="fixed inset-x-0 bottom-0 z-[60] rounded-t-modal border-t border-border bg-surface px-4 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-overlay"
         >
           <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border" aria-hidden="true" />
           <div className="flex items-center justify-between">

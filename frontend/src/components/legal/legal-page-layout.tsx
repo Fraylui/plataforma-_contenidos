@@ -43,7 +43,7 @@ export function LegalPageLayout({
         </nav>
       )}
 
-      <div className="mt-4 space-y-8 bg-surface px-4 py-6 sm:rounded-2xl sm:px-6">
+      <div className="mt-4 space-y-8 bg-surface px-4 py-6 sm:rounded-card sm:px-6">
         {sections.map((section) => (
           <section key={section.id} id={section.id} className="scroll-mt-20">
             <h2 className="text-[17px] font-bold text-foreground">{section.title}</h2>

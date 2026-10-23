@@ -59,7 +59,7 @@ export function SkeletonImage({
 
   return (
     <>
-      {!loaded && <div className="absolute inset-0 animate-pulse bg-zinc-100" aria-hidden="true" />}
+      {!loaded && <div className="absolute inset-0 animate-pulse bg-canvas-strong" aria-hidden="true" />}
       <Image
         ref={(el) => {
           imgRef.current = el;

@@ -34,7 +34,7 @@ export function ContentImageGallery({
   if (images.length === 0) {
     if (!fallback) return null;
     return (
-      <div className={`relative ${spacing} ${aspect} w-full overflow-hidden sm:rounded-2xl ${background}`}>
+      <div className={`relative ${spacing} ${aspect} w-full overflow-hidden sm:rounded-card ${background}`}>
         {fallback}
       </div>
     );
@@ -44,7 +44,7 @@ export function ContentImageGallery({
     const image = images[0];
     return (
       <figure className={spacing}>
-        <div className={`relative ${aspect} w-full overflow-hidden sm:rounded-2xl ${background}`}>
+        <div className={`relative ${aspect} w-full overflow-hidden sm:rounded-card ${background}`}>
           <ContentImageDisplay image={image} alt={image.title ?? alt} className="object-cover" priority />
         </div>
         <MediaCaption title={image.title} caption={image.caption} />
