@@ -52,7 +52,7 @@ export default async function PrivacyPolicyPage() {
         <>
           <p>
             Al entrar te preguntamos si aceptas o rechazas cookies — ambas opciones pesan igual, no solo
-            &ldquo;aceptar&rdquo;. Puedes cambiar de decisión borrando las cookies del sitio desde tu navegador.
+            &ldquo;aceptar&rdquo;. Puedes cambiar de decisión borrando los datos de este sitio (cookies y almacenamiento) desde tu navegador.
           </p>
           <ul className="list-disc space-y-1.5 pl-6">
             <li>
