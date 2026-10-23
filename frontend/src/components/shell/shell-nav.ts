@@ -32,11 +32,14 @@ export const MORE_LINKS: { href: string; label: string }[] = [
 
 /**
  * Pestaña activa para una ruta. Los listados por tipo, los temas y los
- * detalles son parte del feed: quedan en "Inicio".
+ * detalles son parte del feed: quedan en "Inicio". Las páginas de «Más»
+ * (contacto, legales) no son de ninguna pestaña: marcar Inicio ahí decía
+ * «estás en Inicio» (aria-current) sin serlo.
  */
-export function activeTab(pathname: string): ShellTab {
+export function activeTab(pathname: string): ShellTab | null {
   if (pathname === "/explorar" || pathname.startsWith("/explorar/")) return "explorar";
   if (pathname === "/buscar" || pathname.startsWith("/buscar/")) return "buscar";
+  if (MORE_LINKS.some(({ href }) => pathname === href || pathname.startsWith(`${href}/`))) return null;
   return "inicio";
 }
 

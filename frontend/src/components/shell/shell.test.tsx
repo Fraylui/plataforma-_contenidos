@@ -19,6 +19,12 @@ describe("activeTab", () => {
     expect(activeTab("/")).toBe("inicio");
     expect(activeTab("/lugares/mirador")).toBe("inicio");
   });
+
+  it("las páginas de «Más» no marcan ninguna pestaña", () => {
+    expect(activeTab("/privacidad")).toBeNull();
+    expect(activeTab("/terminos")).toBeNull();
+    expect(activeTab("/contacto")).toBeNull();
+  });
 });
 
 describe("BottomTabBar", () => {
