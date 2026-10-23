@@ -2379,6 +2379,8 @@ Estado: rama feat/sistema-diseno (PR #22), todo subido. Último CI verde COMPLET
 - Observado, sin cambiar (decisión del dueño): «Faltan 358 días» en una celebración que pasó hace 7 días (correcto, cuenta a la próxima); anuncio fijo también en las legales; títulos/textos de prueba sin tildes (datos).
 - FALTA de B.6: Series/episodio y En vivo CON datos (no hay en local), break-ui de Buscar con resultados largos, 768 px. Celebración sin JSON-LD de tipo (Event no aplica a un día conmemorativo: no inventar).
 - C.9 DECIDIDO por el dueño 2026-10-23: cuartiles de video y autoplay silenciado DESCARTADOS (exigen iframe_api de YouTube/CSP y cargan YouTube con cookies antes del toque y del consentimiento); carrusel de varias fotos en el nativo EN ESPERA (migración + formulario; solo si se vende ese formato).
+- B.6 TERMINADO 2026-10-23 salvo Series/episodio y En vivo CON datos (no hay en local): 2217a12 buscador (miniatura rota → ícono del tipo; total «12,345» con Intl es-PE); 768 px revisado (Explorar, detalle) sin desborde.
+- C.10: Next 16.4.3 salió el 2026-10-23, solo bugs (sin seguridad) → esperar ~2 semanas antes de subir. npm audit --omit=dev high: verde (2 moderados de siempre).
 
 #### A. Primero al retomar (verificación, ~15 min)
 1. **CI de 6f44080** (o el último): `gh run list --branch feat/sistema-diseno --limit 4`. Los runs anteriores se CANCELAN solos al subir otro commit: mirar siempre el más reciente. Debe validar lo que no se pudo ver en local: pantallas internas del panel con la CSP nueva (nonce), Anunciantes/Espacios/Trabajadores rehechos sin verlos (e2e accessibility entra como dueño a 17 pantallas), ModularityTest, registro de tipos. Si falla algo del panel → probablemente CSP (`script-src` del panel) o AdminList.
