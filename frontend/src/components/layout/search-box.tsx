@@ -20,6 +20,9 @@ import { imageUrl } from "@/lib/image-url";
 import { isSearchShortcut } from "@/lib/search-shortcut";
 import { cn } from "@/lib/utils";
 import { Highlighted } from "@/components/ui/highlighted";
+import { PreviewImage } from "@/components/ui/preview-image";
+
+const COUNT = new Intl.NumberFormat("es-PE");
 
 const DEBOUNCE_MS = 250;
 
@@ -284,12 +287,10 @@ export function SearchBox({
                     >
                       <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-control bg-canvas-strong text-muted">
                         {item.featuredImageId || item.featuredImageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element -- miniatura chica, sin necesidad de next/image
-                          <img
+                          // Enlace roto → el ícono del tipo, no el de imagen rota del navegador.
+                          <PreviewImage
                             src={item.featuredImageId ? imageUrl(`/api/v1/images/${item.featuredImageId}/file`) : (item.featuredImageUrl ?? "")}
-                            alt=""
-                            loading="lazy"
-                            decoding="async"
+                            fallback={<TypeIcon className="h-5 w-5" aria-hidden="true" />}
                             className="h-full w-full object-cover"
                           />
                         ) : (
@@ -319,7 +320,7 @@ export function SearchBox({
               onClick={() => goToFullResults(query)}
               className="flex w-full cursor-pointer items-center justify-between border-t border-border px-4 py-3 text-left text-sm font-semibold text-accent hover:bg-canvas"
             >
-              Ver todos los resultados{totalElements > 0 ? ` (${totalElements})` : ""}
+              Ver todos los resultados{totalElements > 0 ? ` (${COUNT.format(totalElements)})` : ""}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
           )}

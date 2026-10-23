@@ -83,4 +83,41 @@ describe("SearchBox — diseño moderno", () => {
     expect(option).toHaveTextContent("Lugar");
     vi.unstubAllGlobals();
   });
+
+  it("una miniatura rota cae al ícono del tipo y el total va con separador de miles", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify({
+            items: [
+              {
+                contentType: "PLACE",
+                id: "p1",
+                slug: "mirador",
+                title: "Mirador de Acuchimay",
+                excerpt: null,
+                categoryId: null,
+                featuredImageId: null,
+                featuredImageUrl: "https://no-existe.invalid/foto.jpg",
+                hasVideo: false,
+                publishedAt: null,
+                celebrationStartsAt: null,
+              },
+            ],
+            totalElements: 12345,
+          }),
+        ),
+      ),
+    );
+    render(<SearchBox variant="desktop" categoryNames={{}} />);
+    fireEvent.change(screen.getByRole("combobox"), { target: { value: "mirador" } });
+    const option = await screen.findByRole("option", { name: /Mirador de Acuchimay/ });
+    const image = option.querySelector("img");
+    expect(image).not.toBeNull();
+    fireEvent.error(image!);
+    expect(option.querySelector("img")).toBeNull();
+    expect(screen.getByRole("button", { name: /Ver todos los resultados \(12,345\)/ })).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
 });
