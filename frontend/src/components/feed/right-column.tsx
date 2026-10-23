@@ -38,7 +38,7 @@ function CelebrationRow({ celebration, categoryName }: { celebration: Celebratio
           <SkeletonImage src={serverImageUrl(`/api/v1/images/${celebration.coverImageId}/file`)} alt="" className="object-cover" sizes="64px" />
         ) : celebration.coverImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- enlace externo pegado por quien redacta, host arbitrario
-          <img src={celebration.coverImageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={celebration.coverImageUrl} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
           <CalendarBlank className="absolute top-2 left-1/2 h-5 w-5 -translate-x-1/2 text-accent" aria-hidden="true" />
         )}

@@ -87,7 +87,7 @@ export function PostHeader({
     <header data-testid="post-header" className={className ?? "flex items-center gap-3 px-4 py-3"}>
       {brand.logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- logo definido en Configuración, host arbitrario
-        <img src={brand.logoUrl} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-accent-fill/70" />
+        <img src={brand.logoUrl} alt="" width={36} height={36} loading="lazy" decoding="async" className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-accent-fill/70" />
       ) : (
         <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-fill text-sm font-black text-accent-foreground">
           {brand.name.charAt(0)}

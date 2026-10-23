@@ -56,7 +56,7 @@ export default async function EpisodePage({ params }: PageProps<"/series/[slug]/
         uploadDate={episode.publishedAt}
       />
 
-      <YouTubeEmbed videoId={episode.youtubeVideoId} title={episode.title} />
+      <YouTubeEmbed videoId={episode.youtubeVideoId} title={episode.title} priority />
 
       <header className="mt-5">
         <Link href={`/series/${series.slug}`} className="text-sm font-semibold text-accent hover:underline">

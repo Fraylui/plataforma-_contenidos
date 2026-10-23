@@ -42,7 +42,7 @@ export default async function SeriesPage({ params, searchParams }: PageProps<"/s
         {cover && (
           <div className="aspect-video bg-canvas-strong md:w-[45%] md:shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element -- portada propia o miniatura de YouTube */}
-            <img src={cover} alt="" className="h-full w-full object-cover" />
+            <img src={cover} alt="" fetchPriority="high" className="h-full w-full object-cover" />
           </div>
         )}
         <div className="flex flex-col gap-3 p-5 md:p-6">

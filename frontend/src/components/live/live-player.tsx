@@ -13,7 +13,7 @@ export function LivePlayer({ stream }: { stream: LiveStream }) {
 
   return (
     <div className={showChat ? "grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]" : ""}>
-      <YouTubeEmbed videoId={stream.youtubeVideoId} title={stream.title} />
+      <YouTubeEmbed videoId={stream.youtubeVideoId} title={stream.title} priority />
       {showChat && (
         <iframe
           src={`https://www.youtube.com/live_chat?v=${encodeURIComponent(stream.youtubeVideoId)}&embed_domain=${encodeURIComponent(embedDomain)}`}

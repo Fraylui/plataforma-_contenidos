@@ -33,6 +33,8 @@ export function LiveBanner({ stream }: { stream: LiveStream }) {
       <img
         src={`https://i.ytimg.com/vi/${stream.youtubeVideoId}/mqdefault.jpg`}
         alt=""
+        loading="lazy"
+        decoding="async"
         className="aspect-video w-24 shrink-0 rounded-lg object-cover"
       />
       <span className="min-w-0 flex-1">

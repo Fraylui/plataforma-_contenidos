@@ -55,7 +55,7 @@ export function TodayCelebrations({ initial }: { initial: TodayCelebration[] }) 
           <SkeletonImage src={main.coverSrc} alt="" priority className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(min-width: 640px) 630px, 100vw" />
         ) : main.externalCoverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- enlace externo pegado por quien redacta, host arbitrario
-          <img src={main.externalCoverUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={main.externalCoverUrl} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
         ) : null}
         {/* Degradado para leer el texto blanco sobre cualquier foto (contraste AA). */}
         <span aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-black/10" />

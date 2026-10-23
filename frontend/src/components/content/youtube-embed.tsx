@@ -8,8 +8,22 @@ import { useState } from "react";
  * YouTube en cada página de artículo (rendimiento — CONTEXTO.md 43) y usa
  * el dominio -nocookie para no fijar cookies de rastreo antes de que el
  * usuario decida reproducir.
+ *
+ * `priority`: el video es lo principal de la pantalla (episodio, en vivo) →
+ * la miniatura se pide primero. Si no, va en diferido: dentro de un detalle
+ * suele estar más abajo y no debe competir con la foto principal.
  */
-export function YouTubeEmbed({ videoId, title, vertical = false }: { videoId: string; title: string; vertical?: boolean }) {
+export function YouTubeEmbed({
+  videoId,
+  title,
+  vertical = false,
+  priority = false,
+}: {
+  videoId: string;
+  title: string;
+  vertical?: boolean;
+  priority?: boolean;
+}) {
   const [activated, setActivated] = useState(false);
   // Un Short va vertical y centrado, del ancho de un celular, como en YouTube.
   const frame = vertical ? "mx-auto aspect-[9/16] w-full max-w-[360px]" : "aspect-video w-full";
@@ -39,6 +53,9 @@ export function YouTubeEmbed({ videoId, title, vertical = false }: { videoId: st
       <img
         src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`}
         alt=""
+        loading={priority ? undefined : "lazy"}
+        decoding="async"
+        fetchPriority={priority ? "high" : undefined}
         className="absolute inset-0 h-full w-full object-cover opacity-80 transition-opacity group-hover:opacity-100"
       />
       <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-white/90 shadow-lg transition-transform group-hover:scale-105">
