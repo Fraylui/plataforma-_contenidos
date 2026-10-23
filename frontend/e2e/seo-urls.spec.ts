@@ -32,3 +32,11 @@ for (const type of TYPES) {
     await expect(page.getByRole("region", { name: "Acciones" }).or(page.getByRole("group", { name: "Reacciones" }))).toBeVisible();
   });
 }
+
+// Sin canonical propio heredaban el del layout raíz («/»): Google las tomaba por duplicados del Inicio (2026-10-23).
+for (const path of ["/privacidad", "/terminos", "/contacto", "/buscar"]) {
+  test(`${path} declara su propio canonical, no el del Inicio`, async ({ page }) => {
+    await page.goto(path);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(`${path}$`));
+  });
+}
