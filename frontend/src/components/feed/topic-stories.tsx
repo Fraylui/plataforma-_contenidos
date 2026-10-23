@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ScrollRow } from "./scroll-row";
+import { ThumbImage } from "@/components/ui/thumb-image";
 
 export interface TopicStory {
   categoryId: string;
@@ -49,12 +50,9 @@ export function TopicStories({
                   >
                     <span className="block rounded-full bg-surface p-[2px]">
                       {topic.coverUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element -- miniatura de 60 px (subida o enlace externo)
-                        <img
+                        <ThumbImage
                           src={topic.coverUrl}
-                          alt=""
-                          width={60}
-                          height={60}
+                          size={60}
                           className="h-[3.75rem] w-[3.75rem] rounded-full object-cover"
                         />
                       ) : (

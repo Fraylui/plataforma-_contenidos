@@ -1,5 +1,5 @@
 import { getFeedTopics, getPlatformSettings, getPrimaryNavVisibility, listActiveCategories } from "@/lib/api/client";
-import { imageUrl } from "@/lib/image-url";
+import { serverImageUrl } from "@/lib/server-image-url";
 import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner";
 import { AdsenseLoader } from "@/components/legal/adsense-loader";
 import { AnalyticsLoader } from "@/components/legal/analytics-loader";
@@ -31,7 +31,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
     categoryId: t.categoryId,
     name: t.name,
     slug: t.slug,
-    coverUrl: t.coverImageId ? imageUrl(`/api/v1/images/${t.coverImageId}/file`) : t.coverImageUrl,
+    coverUrl: t.coverImageId ? serverImageUrl(`/api/v1/images/${t.coverImageId}/file`) : t.coverImageUrl,
     hasNew: t.hasNew,
   }));
   const brand = { name: settings.name, logoUrl: settings.logoUrl ?? null, logoDarkUrl: settings.logoDarkUrl };

@@ -12,6 +12,7 @@ import type { TopicStory } from "@/components/feed/topic-stories";
 import { InfoMenu } from "./info-menu";
 import { SearchDrawer } from "./search-drawer";
 import { MORE_LINKS, activeTab, SHELL_NAV } from "./shell-nav";
+import { ThumbImage } from "@/components/ui/thumb-image";
 
 export interface ShellBrand {
   name: string;
@@ -206,8 +207,7 @@ export function LeftRail({
                   >
                     <span className="block rounded-full bg-surface p-[2px]">
                       {topic.coverUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element -- miniatura de 32 px
-                        <img src={topic.coverUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
+                        <ThumbImage src={topic.coverUrl} size={32} className="h-8 w-8 rounded-full object-cover" />
                       ) : (
                         <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-sm font-black text-accent">
                           {topic.name.charAt(0)}

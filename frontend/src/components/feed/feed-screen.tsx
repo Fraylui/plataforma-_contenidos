@@ -12,7 +12,7 @@ import {
 } from "@/lib/api/client";
 import type { AdSection } from "@/lib/ads/ad-context";
 import { fromFeedItem } from "@/lib/home-items";
-import { imageUrl } from "@/lib/image-url";
+import { serverImageUrl } from "@/lib/server-image-url";
 import { LiveBanner } from "@/components/live/live-banner";
 import { TodayCelebrations } from "@/components/celebrations/today-celebrations";
 import { toTodayCelebration } from "@/lib/today-celebrations";
@@ -88,7 +88,7 @@ export async function FeedScreen({
     categoryId: t.categoryId,
     name: t.name,
     slug: t.slug,
-    coverUrl: t.coverImageId ? imageUrl(`/api/v1/images/${t.coverImageId}/file`) : t.coverImageUrl,
+    coverUrl: t.coverImageId ? serverImageUrl(`/api/v1/images/${t.coverImageId}/file`) : t.coverImageUrl,
     hasNew: t.hasNew,
   }));
   const topLiked = topLikedRaw.map(fromFeedItem);
