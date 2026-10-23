@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import type { AdminImage, Advertiser, AdvertiserIndustry } from "@/lib/api/admin-types";
 import { INDUSTRY_OPTIONS } from "@/lib/ads/industry";
+import { isNearSquare } from "@/lib/ads/logo";
 import {
   createAdvertiserAction,
   updateAdvertiserAction,
@@ -13,6 +14,7 @@ import { FormError } from "@/components/admin/ui";
 import { Button, Field, Select, TextInput } from "@/components/ui";
 import { IndustryWarningNotice } from "@/components/admin/industry-warning";
 import { CampaignCreativePicker } from "@/components/admin/campaign-creative-picker";
+
 
 interface AdvertiserFormProps {
   mode: "create" | "edit";
@@ -74,7 +76,7 @@ export function AdvertiserForm({ mode, advertiser, allImages }: AdvertiserFormPr
           logo se muestra la inicial del nombre.
         </p>
         <CampaignCreativePicker
-          allImages={allImages}
+          allImages={allImages.filter((image) => image.id === logoImageId || isNearSquare(image))}
           value={{ imageId: logoImageId, externalImageUrl: null, imageAlt: null }}
           onChange={(v) => setLogoImageId(v.imageId)}
           allowExternal={false}
