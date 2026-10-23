@@ -5,6 +5,18 @@ import { usePlannedCampaign } from "@/components/legal/use-ad-rotation";
 import { AdBlockClient } from "@/components/legal/ad-block-client";
 import { BANNER_FIELDS } from "@/lib/ads/test-campaigns";
 
+// next/dynamic no resuelve la carga diferida en Vitest: lo mismo que hace por dentro, con React.lazy y Suspense.
+vi.mock("next/dynamic", async () => {
+  const { createElement, lazy, Suspense } = await import("react");
+  return {
+    default: (load: () => Promise<React.ComponentType<object>>) => {
+      const Lazy = lazy(async () => ({ default: await load() }));
+      return function Dynamic(props: object) {
+        return createElement(Suspense, { fallback: null }, createElement(Lazy, props));
+      };
+    },
+  };
+});
 vi.mock("@/components/legal/use-ad-rotation", () => ({ usePlannedCampaign: vi.fn() }));
 vi.mock("@/components/legal/use-viewable-impression", () => ({ useViewableImpression: () => {} }));
 
@@ -23,7 +35,7 @@ describe("Anuncio del feed con forma de post («Patrocinado»)", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 
-  it("una campaña nativa se dibuja como post del anunciante, no como banner", () => {
+  it("una campaña nativa se dibuja como post del anunciante, no como banner", async () => {
     const native = {
       ...campaign,
       format: "NATIVE" as const,
@@ -36,7 +48,9 @@ describe("Anuncio del feed con forma de post («Patrocinado»)", () => {
     };
     vi.mocked(usePlannedCampaign).mockReturnValue({ rotation: { width: 300, height: 250, campaigns: [] }, campaign: native } as never);
     render(<AdBlockClient position="en-feed" layout="fill" frame="post" adsense={null} />);
-    expect(screen.getByRole("article", { name: "Patrocinado: Pollería El Inca" })).toBeInTheDocument();
+    // Se descarga bajo demanda (next/dynamic): llega después del primer render.
+    // La primera vez Vitest tarda en transformar ese módulo: más margen que el segundo por defecto.
+    expect(await screen.findByRole("article", { name: "Patrocinado: Pollería El Inca" }, { timeout: 5000 })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Pedir ahora/ })).toBeInTheDocument();
   });
 

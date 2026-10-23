@@ -4,9 +4,21 @@ import { AdSlot } from "@/components/legal/ad-slot";
 import { DirectCampaignBanner } from "@/components/legal/direct-campaign-banner";
 import { usePlannedCampaign } from "@/components/legal/use-ad-rotation";
 import { SponsoredPost } from "@/components/post/sponsored-post";
-import { NativeAdPost } from "@/components/post/native-ad-post";
 import { cn } from "@/lib/utils";
+import dynamic from "next/dynamic";
 import type { AdContext } from "@/lib/ads/ad-context";
+
+/**
+ * El post patrocinado (con su menú «⋯» y el diálogo «¿Por qué veo este
+ * anuncio?», de Radix) se descarga solo cuando hay una campaña nativa que
+ * mostrar: antes iba en el JavaScript inicial de todas las páginas con feed,
+ * aunque casi nunca hubiera una (medido 2026-10-22). El anuncio se decide en
+ * el navegador después de pedir las campañas, así que no hay nada que
+ * renderizar en el servidor.
+ */
+const NativeAdPost = dynamic(() => import("@/components/post/native-ad-post").then((m) => m.NativeAdPost), {
+  ssr: false,
+});
 
 /**
  * Cómo se presenta el anuncio en su contexto:
