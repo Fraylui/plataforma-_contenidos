@@ -59,6 +59,13 @@ describe("UpNext", () => {
     expect(screen.getByRole("link", { name: /El mercado central de Huamanga/ })).toHaveAttribute("href", next.href);
   });
 
+  it("una foto subida pasa por next/image (su URL es la interna del backend) y un enlace externo va directo", () => {
+    const { container, rerender } = render(<UpNext item={{ ...next, imageUrl: "http://backend:8080/api/v1/images/1/file" }} />);
+    expect(container.querySelector("img")?.getAttribute("src")).toMatch(/^\/_next\/image\?url=/);
+    rerender(<UpNext item={{ ...next, imageUrl: "https://ejemplo.com/foto.jpg", imageIsExternal: true }} />);
+    expect(container.querySelector("img")?.getAttribute("src")).toBe("https://ejemplo.com/foto.jpg");
+  });
+
   it("ver la tarjeta asomando no navega: hace falta que la portada llene la pantalla", () => {
     render(<UpNext item={next} />);
     act(() => trigger([{ isIntersecting: true, intersectionRatio: 0.6 }]));

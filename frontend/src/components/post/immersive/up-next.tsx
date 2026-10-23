@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import { CaretDoubleDown } from "@phosphor-icons/react";
 import type { HomeItem } from "@/lib/home-items";
 import { PreviewImage } from "@/components/ui/preview-image";
+import { SkeletonImage } from "@/components/ui/skeleton-image";
+
+const COVER = "object-cover transition-[scale] duration-500 ease-out motion-safe:group-hover:scale-[1.03]";
 
 /**
  * Parte de la portada siguiente que debe verse para pasar: casi toda la
@@ -54,13 +57,14 @@ export function UpNext({ item }: { item: HomeItem | null }) {
         href={item.href}
         className="up-next-card group relative flex h-[calc(100svh-10rem)] min-h-[420px] flex-col justify-end overflow-hidden bg-linear-to-br from-accent-soft to-canvas-strong sm:rounded-card"
       >
-        {item.imageUrl && (
-          <PreviewImage
-            src={item.imageUrl}
-            fallback={null}
-            className="absolute inset-0 size-full object-cover transition-[scale] duration-500 ease-out motion-safe:group-hover:scale-[1.03]"
-          />
-        )}
+        {/* Una foto subida trae la URL interna del backend (serverImageUrl): solo next/image puede pedirla;
+            un <img> desde el navegador falla y la portada quedaba vacía. */}
+        {item.imageUrl &&
+          (item.imageIsExternal ? (
+            <PreviewImage src={item.imageUrl} fallback={null} className={`absolute inset-0 size-full ${COVER}`} />
+          ) : (
+            <SkeletonImage src={item.imageUrl} alt="" sizes="(min-width: 1024px) 760px, 100vw" className={COVER} />
+          ))}
         <span aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-black/10" />
         <span className="relative space-y-3 p-5 sm:p-8">
           <span className="inline-flex rounded-full bg-accent-fill px-3 py-1 text-xs font-bold text-accent-foreground">Sigue</span>

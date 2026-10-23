@@ -63,7 +63,8 @@ export function ImmersiveHero({
       {/* Degradado: el texto blanco se lee sobre cualquier foto (y si la foto no cargó). */}
       {photo && <div aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-black/85 via-black/35 to-transparent" />}
       {badge && <div className="absolute top-4 left-4 sm:top-6 sm:left-6">{badge}</div>}
-      <div className="relative space-y-3 p-5 sm:p-8">
+      {/* pr: bajo lg, FloatingReactions (fixed, a la derecha) cae sobre el título al abrir la página. */}
+      <div className="relative space-y-3 p-5 pr-16 sm:p-8 sm:pr-20 lg:pr-8">
         <PostHeader {...header} onImage={photo} className="flex items-center gap-3" />
         <h1
           className={cn(
