@@ -60,7 +60,8 @@ test.describe("Panel con sesión", () => {
   test.skip(!ADMIN_PASSWORD, "Requiere E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD");
 
   const ADMIN_PAGES = [
-    "/admin", "/admin/estadisticas", "/admin/publicaciones", "/admin/publicaciones/nuevo", "/admin/lugares",
+    "/admin", "/admin/estadisticas", "/admin/historias", "/admin/historias/nueva", "/admin/publicaciones",
+    "/admin/publicaciones/nuevo", "/admin/lugares",
     "/admin/celebraciones", "/admin/celebraciones/nuevo", "/admin/galerias", "/admin/series",
     "/admin/temas", "/admin/imagenes", "/admin/anunciantes", "/admin/espacios", "/admin/trabajadores",
     "/admin/configuracion", "/admin/cuenta",
