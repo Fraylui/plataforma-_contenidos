@@ -20,6 +20,8 @@ import { toTodayCelebration } from "@/lib/today-celebrations";
 import { TopicStories, type TopicStory } from "./topic-stories";
 import { mergeTopicsWithStories } from "@/components/stories/merge-topics";
 import { StoriesLauncher } from "@/components/stories/stories-launcher";
+import { TopicHighlights } from "@/components/stories/topic-highlights";
+import type { StoryTopicRef, StoryView } from "@/lib/api/types";
 import { FilterChips } from "./filter-chips";
 import { typeChipOptions } from "./type-chips";
 import { Feed } from "./feed";
@@ -54,6 +56,7 @@ export async function FeedScreen({
   adSection,
   emptyMessage,
   intro,
+  highlights,
 }: {
   /** Único <h1> de la pantalla (fuera de pantalla: el título visible está en la franja superior). */
   heading: string;
@@ -66,6 +69,8 @@ export async function FeedScreen({
   emptyMessage?: string;
   /** Encabezado visible de la pantalla de un tema (como la página de un hashtag en Instagram): nombre y descripción. */
   intro?: { title: string; description: string | null };
+  /** Destacadas del tema (protección 2 de Historias): burbuja «Destacadas · N» bajo el encabezado. */
+  highlights?: { topic: StoryTopicRef; stories: StoryView[] };
 }) {
   const seed = `${activePath}${filter.categoryId ?? ""}-${new Date().toISOString().slice(0, 13)}`;
   const celebrationsFeed = filter.sort === "upcoming";
@@ -99,12 +104,14 @@ export async function FeedScreen({
   const storyImage = (imageId: string | null) => (imageId ? serverImageUrl(`/api/v1/images/${imageId}/file`) : null);
   const stories = mergeTopicsWithStories(topicBubbles, activeStories, (story) => storyImage(story.imageId));
   // Fotos de las historias resueltas aquí (next/image las pide al backend desde el servidor de Next).
-  const storyImageSrc: Record<string, string> = Object.fromEntries(
-    activeStories.flatMap((topic) => topic.stories).flatMap((story) => {
-      const src = storyImage(story.imageId);
-      return src ? [[story.id, src]] : [];
-    }),
-  );
+  const imageSrcOf = (list: StoryView[]): Record<string, string> =>
+    Object.fromEntries(
+      list.flatMap((story) => {
+        const src = storyImage(story.imageId);
+        return src ? [[story.id, src]] : [];
+      }),
+    );
+  const storyImageSrc = imageSrcOf(activeStories.flatMap((topic) => topic.stories));
   const topLiked = topLikedRaw.map(fromFeedItem);
   const feedSlot = placements.find((p) => p.key === "en-feed")?.adsenseSlotId;
   const feedAd =
@@ -119,6 +126,19 @@ export async function FeedScreen({
             <header className="px-4 pb-2 sm:px-0">
               <h1 className="text-2xl font-extrabold tracking-tight text-foreground">{intro.title}</h1>
               {intro.description && <p className="mt-1 text-[15px] text-muted">{intro.description}</p>}
+              {highlights && highlights.stories.length > 0 && (
+                <StoriesLauncher
+                  topics={[{ category: highlights.topic, latestAt: highlights.stories[0].publishedAt, stories: highlights.stories }]}
+                  imageSrc={imageSrcOf(highlights.stories)}
+                  recent={feedPage.items.slice(0, 6).map(fromFeedItem)}
+                >
+                  <TopicHighlights
+                    topicId={highlights.topic.id}
+                    count={highlights.stories.length}
+                    coverUrl={storyImage(highlights.stories[0].imageId)}
+                  />
+                </StoriesLauncher>
+              )}
             </header>
           ) : (
             <h1 className="sr-only">{heading}</h1>

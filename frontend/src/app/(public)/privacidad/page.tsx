@@ -57,7 +57,8 @@ export default async function PrivacyPolicyPage() {
           <ul className="list-disc space-y-1.5 pl-6">
             <li>
               <strong>Necesarias:</strong> sesión del panel administrativo (equipo que gestiona el contenido), que no se
-              activa para quien solo lee el sitio, y tu respuesta a este aviso, que se guarda en tu navegador.
+              activa para quien solo lee el sitio; tu respuesta a este aviso y qué historias ya viste (para marcarlas
+              en gris), que se guardan solo en tu navegador y no salen de tu dispositivo.
             </li>
             <li>
               <strong>YouTube:</strong> los videos se cargan solo si haces clic para reproducirlos, nunca antes; ahí

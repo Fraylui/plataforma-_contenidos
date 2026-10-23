@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCategoryBySlug } from "@/lib/api/client";
+import { getCategoryBySlug, listStoryHighlights } from "@/lib/api/client";
+import { orDefault } from "@/lib/server-log";
 import { FeedScreen } from "@/components/feed/feed-screen";
 
 export async function generateMetadata(props: PageProps<"/categorias/[slug]">): Promise<Metadata> {
@@ -27,6 +28,8 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
   const { slug } = await props.params;
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();
+  // Si las Destacadas fallan, el tema se ve igual (sin la burbuja).
+  const highlights = await listStoryHighlights(category.id).catch(orDefault("tema.destacadas", []));
 
   return (
     <FeedScreen
@@ -38,6 +41,7 @@ export default async function CategoryPage(props: PageProps<"/categorias/[slug]"
       activeCategoryId={category.parentId ?? category.id}
       adSection="HOME"
       emptyMessage={`Todavía no hay contenido en ${category.name}.`}
+      highlights={{ topic: { id: category.id, name: category.name, slug: category.slug }, stories: highlights }}
     />
   );
 }
