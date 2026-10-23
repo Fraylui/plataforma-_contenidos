@@ -9,6 +9,7 @@ import {
   listActiveCategories,
   listPublishedCelebrations,
   listTodayCelebrations,
+  listActiveStories,
 } from "@/lib/api/client";
 import type { AdSection } from "@/lib/ads/ad-context";
 import { fromFeedItem } from "@/lib/home-items";
@@ -17,6 +18,7 @@ import { LiveBanner } from "@/components/live/live-banner";
 import { TodayCelebrations } from "@/components/celebrations/today-celebrations";
 import { toTodayCelebration } from "@/lib/today-celebrations";
 import { TopicStories, type TopicStory } from "./topic-stories";
+import { mergeTopicsWithStories } from "@/components/stories/merge-topics";
 import { FilterChips } from "./filter-chips";
 import { typeChipOptions } from "./type-chips";
 import { Feed } from "./feed";
@@ -68,7 +70,7 @@ export async function FeedScreen({
   const celebrationsFeed = filter.sort === "upcoming";
   // «Hoy se celebra» va en el inicio y en Celebraciones; no en cada sección ni tema.
   const showToday = activePath === "/" || celebrationsFeed;
-  const [settings, categories, topics, feedPage, upcoming, visibility, placements, topLikedRaw, liveNow, todayCelebrations] = await Promise.all([
+  const [settings, categories, topics, feedPage, upcoming, visibility, placements, topLikedRaw, liveNow, todayCelebrations, activeStories] = await Promise.all([
     getPlatformSettings(),
     listActiveCategories(),
     getFeedTopics().catch(orDefault("inicio.temas", [])),
@@ -81,16 +83,21 @@ export async function FeedScreen({
     // Si el backend de En vivo falla, el feed sigue: solo no se muestra el aviso.
     getLiveNow().catch(orNull("inicio.en-vivo")),
     showToday ? listTodayCelebrations().catch(orDefault("inicio.hoy-se-celebra", [])) : Promise.resolve([]),
+    // Historias solo en el Inicio; si fallan, la fila queda como la de temas de siempre.
+    activePath === "/" ? listActiveStories().catch(orDefault("inicio.historias", [])) : Promise.resolve([]),
   ]);
 
   const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
-  const stories: TopicStory[] = topics.map((t) => ({
+  const topicBubbles: TopicStory[] = topics.map((t) => ({
     categoryId: t.categoryId,
     name: t.name,
     slug: t.slug,
     coverUrl: t.coverImageId ? serverImageUrl(`/api/v1/images/${t.coverImageId}/file`) : t.coverImageUrl,
     hasNew: t.hasNew,
   }));
+  const stories = mergeTopicsWithStories(topicBubbles, activeStories, (story) =>
+    story.imageId ? serverImageUrl(`/api/v1/images/${story.imageId}/file`) : null,
+  );
   const topLiked = topLikedRaw.map(fromFeedItem);
   const feedSlot = placements.find((p) => p.key === "en-feed")?.adsenseSlotId;
   const feedAd =
