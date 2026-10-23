@@ -2368,6 +2368,14 @@ Estado: todo subido hasta `dd11734` (PR #22). Hecho en esta sesión: §46.6p.
 ### 46.6r PAUSA 2026-10-22 — todo lo que falta, en orden (tras 6f44080)
 Estado: rama feat/sistema-diseno (PR #22), todo subido. Último CI verde COMPLETO: f98a406. Misma lista en la memoria del asistente (plan activo).
 
+**Avance 2026-10-23 (commits locales 143b37f..d05c067, sin subir):**
+- A.1 HECHO: CI de 7a2b7b5 verde completo (CSP con nonce, panel rehecho, ModularityTest).
+- A.2 HECHO: LCP (mediana) Inicio 3,25 s, Explorar 2,90, Lugares 3,22, Celebración 3,70. **LCP observado 124–242 ms**: los ~3 s son la estimación «simulate» (Lantern), que suma la CPU del JS aunque la foto ya se pinte desde el HTML. Explorar/Lugares cargan los mismos 223 KB que el Inicio → el peso es React+Next (71+44 KB) y el armazón compartido, no el feed. Celebración +59 KB (detalle inmersivo). Conclusión: B.4 (feed como Server Components) ya no se justifica por LCP; queda como mejora opcional de JS.
+- B.3 HECHO 143b37f: miniaturas en diferido; YouTubeEmbed `priority` en episodio y en vivo; portada de serie con prioridad alta.
+- B.5 HECHO 42257c4: radios/sombras a tokens en sitio y panel; SkeletonImage `bg-zinc-100` → `bg-canvas-strong` (destello gris en oscuro). Excepciones documentadas en DESIGN.md Known Gaps. Revisado en Edge 1280 claro/oscuro y 390 oscuro (buscador, hoja Más).
+- B.7 HECHO 4e95779: pista bajo «O pega el enlace de una imagen» + línea en la guía.
+- C.8 HECHO d05c067: las fotos subidas NO se respaldaban (se empaquetaba una ruta del host, no el volumen media_data). Ahora: tar desde el contenedor backend con conteo, pg_restore --list, sin archivos vacíos ante fallos, BACKUP_KEEP_MIN=7. Restauración probada en una base aparte (mismos conteos) y luego borrada. FALTA: copia externa a R2 (credenciales del dueño).
+
 #### A. Primero al retomar (verificación, ~15 min)
 1. **CI de 6f44080** (o el último): `gh run list --branch feat/sistema-diseno --limit 4`. Los runs anteriores se CANCELAN solos al subir otro commit: mirar siempre el más reciente. Debe validar lo que no se pudo ver en local: pantallas internas del panel con la CSP nueva (nonce), Anunciantes/Espacios/Trabajadores rehechos sin verlos (e2e accessibility entra como dueño a 17 pantallas), ModularityTest, registro de tipos. Si falla algo del panel → probablemente CSP (`script-src` del panel) o AdminList.
 2. **LCP del CI**: `gh run download <id> -n e2e-lighthouse-reports -D %TEMP%/claude/lhr`; leer lhr-*.json (mediana por URL, fases en audits["largest-contentful-paint-element"]; observado real en "lcp-phases-insight"). Referencia f98a406: Inicio 3,49 s, Explorar 2,92, Lugares 3,55, Celebración 3,71 (meta 2,5); observado real ≈ 200 ms; cuello = JS (bootup 918 ms Inicio). Después de 97b1f45 (JS 278→243 KB gz) debería bajar algo.
