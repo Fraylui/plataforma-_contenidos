@@ -73,6 +73,14 @@
      magenta, la energía de creador de Instagram/TikTok. */
   --brand-from: #ff6b2c;
   --brand-to: #e1306c;
+  /* Fondos de las historias de solo texto: la familia de marca en tonos
+     profundos, porque el texto va en blanco (contraste ≥ 3:1 para texto
+     grande, probado en lib/stories/backgrounds.test.ts). Iguales en oscuro:
+     son «fotos», no superficies. */
+  --story-sunset: linear-gradient(160deg, #c2410c, #be185d);
+  --story-ocean: linear-gradient(160deg, #1d4ed8, #0e7490);
+  --story-forest: linear-gradient(160deg, #15803d, #0f766e);
+  --story-night: linear-gradient(160deg, #312e81, #6d28d9);
   /* Derivado de --accent, no un valor fijo: así una marca personalizada
      (primaryColor en Configuración de plataforma) también obtiene un tinte
      suave coherente sin tener que recalcularlo a mano. */

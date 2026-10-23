@@ -5,6 +5,9 @@
 import "server-only";
 import { PUBLIC_CONTENT_TAG } from "@/lib/cache-tags";
 import type {
+  ActiveTopic,
+  StoryDetail,
+  StoryView,
   AdPlacement,
   Publication,
   PublicationSummary,
@@ -229,6 +232,21 @@ export async function getLiveNow(): Promise<LiveStream | null> {
 
 export function listUpcomingLive(): Promise<LiveStream[]> {
   return apiFetch("/api/v1/live/upcoming", 60);
+}
+
+/** Fila del Inicio: temas con historias sin caducar, el más reciente primero (caché corta: caducan a la hora exacta). */
+export function listActiveStories(): Promise<ActiveTopic[]> {
+  return apiFetch("/api/v1/stories/active", 30);
+}
+
+/** Una historia activa o Destacada, con su tema; NotFoundError si caducó o no existe. */
+export function getStory(id: string): Promise<StoryDetail> {
+  return apiFetch(`/api/v1/stories/${encodeURIComponent(id)}`, 30);
+}
+
+/** Destacadas de un tema, la más nueva primero. */
+export function listStoryHighlights(categoryId: string): Promise<StoryView[]> {
+  return apiFetch(`/api/v1/stories/highlights?categoryId=${encodeURIComponent(categoryId)}`, 60);
 }
 
 export function getLiveBySlug(slug: string): Promise<LiveStream> {

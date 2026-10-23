@@ -433,6 +433,53 @@ export interface EpisodeView {
 /** Transmisión en vivo de YouTube (LiveDtos.LiveResponse). El estado lo marca el equipo en el panel. */
 export type LiveStatus = "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
 
+// ---------- Historias (StoryPublicController / StoryDtos.java) ----------
+
+export type StoryBackground = "SUNSET" | "OCEAN" | "FOREST" | "NIGHT";
+export type CaptionPosition = "TOP" | "CENTER" | "BOTTOM";
+/** Contenido al que puede llevar una historia (un episodio no: para video, el Short). */
+export type StoryLinkType = "PUBLICATION" | "PLACE" | "CELEBRATION" | "GALLERY";
+
+export interface StoryTopicRef {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+/** A dónde lleva el botón; `label` es su texto («Ver publicación»). Null si el contenido se despublicó. */
+export interface StoryLink {
+  type: StoryLinkType;
+  slug: string;
+  title: string;
+  label: string;
+}
+
+export interface StoryView {
+  id: string;
+  imageId: string | null;
+  background: StoryBackground | null;
+  caption: string | null;
+  captionPosition: CaptionPosition;
+  link: StoryLink | null;
+  youtubeVideoId: string | null;
+  publishedAt: string;
+  expiresAt: string;
+  highlighted: boolean;
+  likeCount: number;
+}
+
+/** Un tema de la fila del Inicio con sus historias en orden de reproducción. */
+export interface ActiveTopic {
+  category: StoryTopicRef;
+  latestAt: string;
+  stories: StoryView[];
+}
+
+export interface StoryDetail {
+  story: StoryView;
+  category: StoryTopicRef;
+}
+
 export interface LiveStream {
   id: string;
   slug: string;

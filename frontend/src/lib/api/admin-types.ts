@@ -3,6 +3,7 @@ import type { AdSection } from "@/lib/ads/ad-context";
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
 import type { PublicationStatus, PublicationType, ContentImage, FeedItemType } from "./types";
 import type { CallToAction, CampaignFormat, Category, NativeMediaAspect, PlatformSettings } from "./types";
+import type { CaptionPosition, StoryBackground, StoryLinkType, StoryView } from "./types";
 
 /** Cuerpo de un video en PublicationInput/PlaceInput/CelebrationInput — ver ContentVideoInput.java. */
 export interface ContentVideoInput {
@@ -310,6 +311,31 @@ export interface LiveInput {
   seriesId?: string | null;
   /** ISO; vacío = "muy pronto", sin hora. */
   scheduledStart?: string | null;
+}
+
+/** Historia en el panel (StoryDtos.AdminStory): lo del visitante más tema, vistas y toques del botón. */
+export interface AdminStory extends StoryView {
+  categoryId: string;
+  categoryName: string;
+  views: number;
+  ctaClicks: number;
+  /** Lo enlazado aunque se haya despublicado (para editar); `link` es null en ese caso. */
+  linkContentType: StoryLinkType | null;
+  linkContentId: string | null;
+}
+
+export type AdminStoryTab = "ACTIVE" | "HIGHLIGHTED" | "ENDED";
+
+/** Una historia del lote (StoryDtos.StoryItemRequest): foto o fondo; enlace a contenido o Short, opcionales. */
+export interface StoryItemInput {
+  imageId: string | null;
+  background: StoryBackground | null;
+  caption: string | null;
+  captionPosition: CaptionPosition;
+  linkType: StoryLinkType | null;
+  linkId: string | null;
+  youtubeUrl: string | null;
+  highlighted: boolean;
 }
 
 /** Serie en el panel (SeriesDtos.SeriesResponse): incluye el estado de la sincronización con YouTube. */

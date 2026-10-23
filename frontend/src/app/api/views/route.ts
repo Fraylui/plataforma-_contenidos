@@ -6,7 +6,7 @@ import { orDefault } from "@/lib/server-log";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const TYPES: ReadonlySet<string> = new Set<FeedItemType>(["PUBLICATION", "PLACE", "CELEBRATION", "GALLERY", "EPISODE"]);
+const TYPES: ReadonlySet<string> = new Set<FeedItemType | "STORY">(["PUBLICATION", "PLACE", "CELEBRATION", "GALLERY", "EPISODE", "STORY"]);
 
 /**
  * Proxy de POST /api/v1/views: la página de un contenido avisa que se abrió

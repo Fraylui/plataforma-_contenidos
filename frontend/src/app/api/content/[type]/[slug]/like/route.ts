@@ -11,6 +11,8 @@ const BACKEND_PATH: Record<string, string> = {
   galleries: "galleries",
   // Episodios por id: /api/v1/series/episodes/{id}/like.
   episodes: "series/episodes",
+  // Historias por id: /api/v1/stories/{id}/like.
+  stories: "stories",
 };
 
 /**
