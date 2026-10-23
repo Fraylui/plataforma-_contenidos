@@ -96,6 +96,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 0.6,
     },
+    {
+      url: `${SITE_URL}/explorar`,
+      changeFrequency: "daily",
+      priority: 0.6,
+    },
     ...publicationEntries,
     ...placeEntries,
     ...celebrationEntries,

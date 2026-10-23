@@ -4,7 +4,10 @@ import { LegalPageLayout, type LegalSection } from "@/components/legal/legal-pag
 
 export const metadata: Metadata = {
   title: "Términos de Uso",
+  description: "Condiciones para usar el sitio y su contenido.",
   robots: "index,follow",
+  // Sin canonical propio heredaba el del layout raíz («/») y Google la tomaba por un duplicado del Inicio.
+  alternates: { canonical: "/terminos" },
 };
 
 const UPDATED_AT = "16 de octubre de 2026";

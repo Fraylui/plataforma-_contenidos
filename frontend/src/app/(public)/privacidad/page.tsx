@@ -4,7 +4,10 @@ import { LegalPageLayout, type LegalSection } from "@/components/legal/legal-pag
 
 export const metadata: Metadata = {
   title: "Política de Privacidad",
+  description: "Qué datos se generan al visitar el sitio, qué cookies usamos y cómo ejercer tus derechos.",
   robots: "index,follow",
+  // Sin canonical propio heredaba el del layout raíz («/») y Google la tomaba por un duplicado del Inicio.
+  alternates: { canonical: "/privacidad" },
 };
 
 const UPDATED_AT = "16 de octubre de 2026";

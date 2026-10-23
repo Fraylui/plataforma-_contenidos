@@ -27,6 +27,8 @@ export const metadata: Metadata = {
   title: "Buscar",
   // Sección 15: páginas de resultados de búsqueda no aportan valor a un buscador externo.
   robots: "noindex,follow",
+  // Sin canonical propio heredaba el del layout raíz («/»): esta página decía ser el Inicio.
+  alternates: { canonical: "/buscar" },
 };
 
 function buildHref(

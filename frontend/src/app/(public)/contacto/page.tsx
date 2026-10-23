@@ -7,7 +7,10 @@ import { LegalPageLayout, type LegalSection } from "@/components/legal/legal-pag
 
 export const metadata: Metadata = {
   title: "Contacto",
+  description: "Cómo escribirnos: propuestas de contenido, correcciones y publicidad.",
   robots: "index,follow",
+  // Sin canonical propio heredaba el del layout raíz («/») y Google la tomaba por un duplicado del Inicio.
+  alternates: { canonical: "/contacto" },
 };
 
 const UPDATED_AT = "4 de octubre de 2026";
