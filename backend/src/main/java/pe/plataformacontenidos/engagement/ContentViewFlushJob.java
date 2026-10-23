@@ -83,10 +83,10 @@ public class ContentViewFlushJob {
         byType.forEach((type, rows) -> jdbc.batchUpdate("""
                 INSERT INTO engagement.content_views_daily (day, content_type, content_id, views)
                 SELECT ?, ?, ?, ?
-                 WHERE EXISTS (SELECT 1 FROM %s WHERE id = ? AND status = 'PUBLISHED')
+                 WHERE EXISTS (SELECT 1 FROM %s WHERE id = ? AND (%s))
                 ON CONFLICT (day, content_type, content_id) DO UPDATE
                    SET views = engagement.content_views_daily.views + EXCLUDED.views
-                """.formatted(contents.byType(type).table()), rows));
+                """.formatted(contents.byType(type).table(), contents.byType(type).liveCondition()), rows));
         redis.delete(FLUSHING_KEY);
     }
 

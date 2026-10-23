@@ -25,6 +25,9 @@ import pe.plataformacontenidos.identity.permission.Module;
  * @param imagesTable     tabla de sus fotos (columna image_id); null si no tiene
  * @param imageIdColumns  columnas propias con el id de una imagen (una portada)
  * @param imageUrlColumns columnas de texto que pueden llevar la URL /api/v1/images/{id}/file
+ * @param inDashboard     entra en los totales del Inicio del panel (las historias, efímeras, no)
+ * @param liveCondition   condición SQL de «visible en el sitio» para contar visitas; SQL fijo del código
+ *                        (nunca del usuario), por eso no se valida como identificador
  */
 public record ContentSource(
         String table,
@@ -37,7 +40,9 @@ public record ContentSource(
         boolean versionsFeed,
         String imagesTable,
         List<String> imageIdColumns,
-        List<String> imageUrlColumns) {
+        List<String> imageUrlColumns,
+        boolean inDashboard,
+        String liveCondition) {
 
     private static final Pattern IDENTIFIER = Pattern.compile("[a-z_]+([.][a-z_]+)?");
 
@@ -76,6 +81,8 @@ public record ContentSource(
         private String imagesTable;
         private List<String> imageIdColumns = List.of();
         private List<String> imageUrlColumns = List.of();
+        private boolean inDashboard = true;
+        private String liveCondition = "status = 'PUBLISHED'";
 
         private Builder(String table, Module module) {
             this.table = table;
@@ -128,6 +135,18 @@ public record ContentSource(
             return this;
         }
 
+        /** Fuera de los totales del Inicio del panel (contenido efímero). */
+        public Builder notInDashboard() {
+            this.inDashboard = false;
+            return this;
+        }
+
+        /** Cuándo una fila cuenta como visible (por defecto, publicada). */
+        public Builder liveCondition(String liveCondition) {
+            this.liveCondition = liveCondition;
+            return this;
+        }
+
         public ContentSource build() {
             String select = readSelect;
             if (select == null && type != null) {
@@ -135,7 +154,7 @@ public record ContentSource(
                         + " created_at, published_at FROM " + table;
             }
             return new ContentSource(table, type, module, titleColumn, select, createdInPanel, categorized,
-                    versionsFeed, imagesTable, imageIdColumns, imageUrlColumns);
+                    versionsFeed, imagesTable, imageIdColumns, imageUrlColumns, inDashboard, liveCondition);
         }
     }
 }

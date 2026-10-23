@@ -10,5 +10,7 @@ public enum ContentType {
     PLACE,
     CELEBRATION,
     GALLERY,
-    EPISODE
+    EPISODE,
+    /** Historia: visitas y me gusta como el resto, pero fuera del feed y del Inicio del panel. */
+    STORY
 }

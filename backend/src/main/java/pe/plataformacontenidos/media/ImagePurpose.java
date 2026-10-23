@@ -8,5 +8,7 @@ package pe.plataformacontenidos.media;
  */
 public enum ImagePurpose {
     CONTENT,
-    AD
+    AD,
+    /** Foto de una historia: se borra con ella y no aparece en las bibliotecas. */
+    STORY
 }

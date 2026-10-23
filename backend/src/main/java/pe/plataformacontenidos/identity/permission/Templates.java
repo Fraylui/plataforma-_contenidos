@@ -15,13 +15,14 @@ public final class Templates {
 
     private static final Map<String, Map<Module, AccessLevel>> TEMPLATES = Map.of(
             "PUBLICADOR", Map.of(PUBLICATIONS, PUBLISH, PLACES, PUBLISH, CELEBRATIONS, PUBLISH, GALLERIES, PUBLISH,
-                    SERIES, PUBLISH, CATEGORIES, ACCESS, STATS, ACCESS),
+                    SERIES, PUBLISH, STORIES, PUBLISH, CATEGORIES, ACCESS, STATS, ACCESS),
             "GESTOR_CELEBRACIONES", Map.of(CELEBRATIONS, PUBLISH, PLACES, PUBLISH),
             "PUBLICIDAD", Map.of(ADVERTISING, ACCESS, STATS, ACCESS),
             // Igual que el dueño en todo menos la auditoría (Actividad), que sigue siendo solo del dueño.
             "ADMINISTRADOR", Map.ofEntries(Map.entry(PUBLICATIONS, PUBLISH), Map.entry(PLACES, PUBLISH),
                     Map.entry(CELEBRATIONS, PUBLISH), Map.entry(GALLERIES, PUBLISH),
-                    Map.entry(SERIES, PUBLISH), Map.entry(CATEGORIES, ACCESS), Map.entry(STATS, ACCESS),
+                    Map.entry(SERIES, PUBLISH), Map.entry(STORIES, PUBLISH), Map.entry(CATEGORIES, ACCESS),
+                    Map.entry(STATS, ACCESS),
                     Map.entry(ADVERTISING, ACCESS), Map.entry(WORKERS, ACCESS), Map.entry(SETTINGS, ACCESS)));
 
     private Templates() {

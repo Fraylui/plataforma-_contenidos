@@ -8,6 +8,8 @@ public enum Module {
     GALLERIES(true),
     /** Series conectadas a listas de YouTube y sus episodios. */
     SERIES(true),
+    /** Historias que caducan a las 24 h (y sus Destacadas). */
+    STORIES(true),
     CATEGORIES(false),
     STATS(false),
     ADVERTISING(false),
@@ -22,7 +24,7 @@ public enum Module {
         this.content = content;
     }
 
-    /** Los 5 tipos de contenido usan CREATE/PUBLISH; el resto, ACCESS. */
+    /** Los módulos de contenido usan PUBLISH; el resto, ACCESS. */
     public boolean isContent() {
         return content;
     }

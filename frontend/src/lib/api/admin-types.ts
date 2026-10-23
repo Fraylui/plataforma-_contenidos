@@ -21,6 +21,7 @@ export type Module =
   | "CELEBRATIONS"
   | "GALLERIES"
   | "SERIES"
+  | "STORIES"
   | "CATEGORIES"
   | "STATS"
   | "ADVERTISING"

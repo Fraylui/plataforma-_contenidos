@@ -208,7 +208,7 @@ public class DashboardService {
 
         static Scope of(Permissions permissions, ContentRegistry contents) {
             Set<ContentType> types = EnumSet.noneOf(ContentType.class);
-            for (ContentSource source : contents.typed()) {
+            for (ContentSource source : contents.where(s -> s.type() != null && s.inDashboard())) {
                 if (permissions.can(source.module(), AccessLevel.PUBLISH)) {
                     types.add(source.type());
                 }
