@@ -52,7 +52,8 @@ export function formatPublishedDate(iso: string | null): string {
  * indefinidamente (segundos→minutos→horas→días→meses→años), nunca fecha
  * absoluta, nunca vacío — mismo patrón que usan YouTube/Reddit/GitHub, a
  * pedido explícito del usuario tras comparar con otros sitios grandes.
- * Solo para Publicación: es el único tipo de contenido donde "qué tan
+ * Para Publicación y para Historias (duran 24 h: «hace 3 h» es lo que
+ * importa). Publicación es el único tipo permanente donde "qué tan
  * reciente es" sigue siendo la señal relevante después de publicado (a
  * diferencia de Lugar/Galería, atemporales, o Celebración, donde la fecha es
  * de calendario, no de antigüedad — ver formatEventDateTime).

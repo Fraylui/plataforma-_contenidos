@@ -19,6 +19,7 @@ import { TodayCelebrations } from "@/components/celebrations/today-celebrations"
 import { toTodayCelebration } from "@/lib/today-celebrations";
 import { TopicStories, type TopicStory } from "./topic-stories";
 import { mergeTopicsWithStories } from "@/components/stories/merge-topics";
+import { StoriesLauncher } from "@/components/stories/stories-launcher";
 import { FilterChips } from "./filter-chips";
 import { typeChipOptions } from "./type-chips";
 import { Feed } from "./feed";
@@ -95,8 +96,14 @@ export async function FeedScreen({
     coverUrl: t.coverImageId ? serverImageUrl(`/api/v1/images/${t.coverImageId}/file`) : t.coverImageUrl,
     hasNew: t.hasNew,
   }));
-  const stories = mergeTopicsWithStories(topicBubbles, activeStories, (story) =>
-    story.imageId ? serverImageUrl(`/api/v1/images/${story.imageId}/file`) : null,
+  const storyImage = (imageId: string | null) => (imageId ? serverImageUrl(`/api/v1/images/${imageId}/file`) : null);
+  const stories = mergeTopicsWithStories(topicBubbles, activeStories, (story) => storyImage(story.imageId));
+  // Fotos de las historias resueltas aquí (next/image las pide al backend desde el servidor de Next).
+  const storyImageSrc: Record<string, string> = Object.fromEntries(
+    activeStories.flatMap((topic) => topic.stories).flatMap((story) => {
+      const src = storyImage(story.imageId);
+      return src ? [[story.id, src]] : [];
+    }),
   );
   const topLiked = topLikedRaw.map(fromFeedItem);
   const feedSlot = placements.find((p) => p.key === "en-feed")?.adsenseSlotId;
@@ -119,7 +126,9 @@ export async function FeedScreen({
           <div className="px-4 sm:px-0">
             {liveNow && <LiveBanner stream={liveNow} />}
             {showToday && <TodayCelebrations initial={todayCelebrations.map(toTodayCelebration)} />}
-            <TopicStories topics={stories} activeCategoryId={activeCategoryId} />
+            <StoriesLauncher topics={activeStories} imageSrc={storyImageSrc} recent={feedPage.items.slice(0, 6).map(fromFeedItem)}>
+              <TopicStories topics={stories} activeCategoryId={activeCategoryId} />
+            </StoriesLauncher>
             <FilterChips label="Tipo de contenido" options={typeChipOptions(visibility, activePath)} className="mt-2 mb-3" />
           </div>
           <Feed
