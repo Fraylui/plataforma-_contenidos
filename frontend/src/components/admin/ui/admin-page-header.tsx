@@ -23,7 +23,7 @@ export function AdminPageHeader({ title, description, action, back }: AdminPageH
             {back.label}
           </Link>
         )}
-        <h1 className="text-title font-bold text-foreground">{title}</h1>
+        <h1 className="text-title font-bold break-words text-foreground">{title}</h1>
         {description ? <p className="mt-1.5 max-w-2xl text-[15px] text-muted">{description}</p> : null}
       </div>
       {action ? (
