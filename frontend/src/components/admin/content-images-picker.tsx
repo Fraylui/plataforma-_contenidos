@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Images, LinkSimple as LinkIcon } from "@phosphor-icons/react";
+import { Images } from "@phosphor-icons/react";
 import type { AdminImage } from "@/lib/api/admin-types";
 import type { ContentImage } from "@/lib/api/types";
 import { imageUrl } from "@/lib/image-url";
-import { InlineImageUpload } from "./inline-image-upload";
+import { PhotoDropZone } from "./photo-drop-zone";
 import { ContentMediaItemFields } from "./content-media-item-fields";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/admin/ui";
-import { Button, TextInput } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { BrokenImageNotice, PreviewImage } from "@/components/ui/preview-image";
 
 /**
@@ -27,9 +27,12 @@ export function shortImageLabel(url: string): string {
 
 /**
  * Selector de imágenes de contenido (Publicaciones/Lugares/Celebraciones):
- * subir, elegir de la biblioteca (en un diálogo, para que la biblioteca
- * entera no empuje el título fuera de la pantalla; orden = orden de
- * selección) o pegar un enlace externo. Cada imagen seleccionada
+ * subir fotos propias (cuadro grande, varias a la vez) o volver a usar una
+ * ya subida desde la biblioteca (en un diálogo, para que la biblioteca entera
+ * no empuje el título fuera de la pantalla; orden = orden de selección).
+ * Ya no se ofrece pegar enlaces de otros sitios: las fotos son del dueño
+ * (CONTEXTO.md 1.4). Las que ya se guardaron así se siguen mostrando y se
+ * pueden quitar. Cada imagen seleccionada
  * gana un título y un pie de foto opcionales (bloque tipo NYT/Medium). La
  * portada de tarjeta/feed es siempre la primera de la lista (ver ContentImage).
  */
@@ -45,7 +48,6 @@ export function ContentImagesPicker({
   disabled?: boolean;
 }) {
   const [images, setImages] = useState(allImages);
-  const [externalUrlDraft, setExternalUrlDraft] = useState("");
   const [libraryOpen, setLibraryOpen] = useState(false);
   // Enlaces que no cargaron: se avisa en su fila en vez de mostrar un ícono roto.
   const [brokenSrcs, setBrokenSrcs] = useState<string[]>([]);
@@ -64,16 +66,9 @@ export function ContentImagesPicker({
     );
   }
 
-  function handleUploaded(image: AdminImage) {
-    setImages((prev) => [image, ...prev]);
-    onChange([...value, { imageId: image.id, externalUrl: null, title: null, caption: null }]);
-  }
-
-  function addExternalUrl() {
-    const url = externalUrlDraft.trim();
-    if (!url) return;
-    onChange([...value, { imageId: null, externalUrl: url, title: null, caption: null }]);
-    setExternalUrlDraft("");
+  function handleUploaded(uploaded: AdminImage[]) {
+    setImages((prev) => [...uploaded, ...prev]);
+    onChange([...value, ...uploaded.map((image) => ({ imageId: image.id, externalUrl: null, title: null, caption: null }))]);
   }
 
   function removeAt(index: number) {
@@ -86,50 +81,16 @@ export function ContentImagesPicker({
 
   return (
     <div className="mt-1 space-y-3">
-      <div className="flex flex-wrap items-start gap-2">
-        <InlineImageUpload disabled={disabled} onUploaded={handleUploaded} compact />
-        {images.length > 0 && (
-          <Button variant="secondary" size="sm" icon={<Images />} disabled={disabled} onClick={() => setLibraryOpen(true)}>
-            Elegir de la biblioteca
-          </Button>
-        )}
-      </div>
-
-      <div className="flex items-end gap-2">
-        <div className="flex-1">
-          <label className="mb-1 block text-xs font-medium text-muted" htmlFor="content-image-external-url">
-            O pega el enlace de una imagen
-          </label>
-          <TextInput
-            id="content-image-external-url"
-            type="url"
-            value={externalUrlDraft}
-            disabled={disabled}
-            onChange={(e) => setExternalUrlDraft(e.target.value)}
-            onKeyDown={(e) => {
-              // Enter agrega el enlace en vez de enviar el formulario.
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addExternalUrl();
-              }
-            }}
-            placeholder="https://…"
-            aria-describedby="content-image-external-url-hint"
-          />
-        </div>
-        <Button variant="secondary" size="lg" icon={<LinkIcon />} disabled={disabled || !externalUrlDraft.trim()} onClick={addExternalUrl}>
-          Agregar
+      <PhotoDropZone disabled={disabled} onUploaded={handleUploaded} />
+      {images.length > 0 && (
+        <Button variant="secondary" size="sm" icon={<Images />} disabled={disabled} onClick={() => setLibraryOpen(true)}>
+          Usar una foto que ya subiste
         </Button>
-      </div>
-      {/* Una foto de otro sitio no pasa por el optimizador (host arbitrario): llega a su tamaño original y
-          puede desaparecer si ese sitio la borra. */}
-      <p id="content-image-external-url-hint" className="-mt-1 text-xs text-muted">
-        Mejor súbela: un enlace llega pesado (no se puede achicar) y la foto se pierde si el otro sitio la borra.
-      </p>
+      )}
 
       <Dialog open={libraryOpen} onOpenChange={setLibraryOpen}>
         <DialogContent className="flex max-h-[85dvh] max-w-2xl flex-col">
-          <DialogTitle>Biblioteca</DialogTitle>
+          <DialogTitle>Tus fotos subidas</DialogTitle>
           <DialogDescription>Toca para elegir o quitar. El número es el orden; la 1 es la portada.</DialogDescription>
           <div className="-mx-2 mt-3 min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -193,7 +154,7 @@ export function ContentImagesPicker({
                   fullLabel={item.externalUrl ?? undefined}
                   warning={
                     thumbnailSrc && brokenSrcs.includes(thumbnailSrc)
-                      ? "No se pudo cargar esta imagen. Revisa el enlace: así se vería rota en el sitio."
+                      ? "No se pudo cargar esta imagen. Quítala y sube la foto desde tu celular o computadora."
                       : null
                   }
                   title={item.title ?? ""}

@@ -84,7 +84,11 @@ export function MediaCard({
         </p>
       )}
       {withVideos && (
-        <Field label="Videos de YouTube (opcional)" name="videos">
+        <Field
+          label="Tus videos de YouTube (opcional)"
+          name="videos"
+          hint="Sube el video a tu canal; en YouTube toca Compartir → Copiar enlace y pégalo aquí. Solo videos tuyos o con permiso de su dueño."
+        >
           <Controller
             control={control}
             name="videos"
