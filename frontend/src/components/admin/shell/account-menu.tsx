@@ -30,10 +30,11 @@ export function AccountMenu({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label={`Cuenta de ${fullName}`}
           className="flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-accent-soft text-sm font-bold text-accent outline-none transition-shadow hover:shadow-card focus-visible:ring-[3px] focus-visible:ring-ring"
         >
-          {initials}
+          {/* Sin aria-label: con él, lo que se ve («AI») no estaba en el nombre accesible (WCAG 2.5.3). */}
+          <span aria-hidden="true">{initials}</span>
+          <span className="sr-only">Cuenta de {fullName}</span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">

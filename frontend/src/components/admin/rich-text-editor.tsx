@@ -37,6 +37,9 @@ export function RichTextEditor({
     editable: !disabled,
     editorProps: {
       attributes: {
+        // Tiptap 3.32 marca el área como role="textbox": sin nombre, los lectores de pantalla no saben qué es.
+        "aria-label": "Texto",
+        "aria-multiline": "true",
         class:
           "prose prose-theme prose-sm sm:prose-base max-w-none min-h-[16rem] px-3 py-2 focus:outline-none prose-headings:font-bold prose-a:text-accent",
       },

@@ -113,7 +113,6 @@ export function LeftRail({
       <Link
         href="/"
         className="mb-6 flex items-center gap-3 rounded-card px-2 py-1.5 transition-colors hover:bg-canvas"
-        aria-label={brand.name}
       >
         {brand.logoUrl ? (
           <BrandLogo logoUrl={brand.logoUrl} logoDarkUrl={brand.logoDarkUrl} className="h-9 w-9 shrink-0 rounded-control object-cover" />
@@ -125,7 +124,8 @@ export function LeftRail({
             {brand.name.charAt(0)}
           </span>
         )}
-        <span className="hidden truncate text-xl font-black tracking-tight text-foreground xl:block">{brand.name}</span>
+        {/* Sin aria-label en el enlace: el nombre accesible es este texto (WCAG 2.5.3, «etiqueta en el nombre»); bajo 1280 px queda solo para lectores de pantalla. */}
+        <span className="sr-only truncate text-xl font-black tracking-tight text-foreground xl:not-sr-only xl:block">{brand.name}</span>
       </Link>
 
       {/* Desplazable solo con etiquetas (≥ 1280 px): en el modo de íconos el menú cabe y las etiquetas flotantes deben poder salir de la columna. Sin barra visible (como Facebook/Instagram). */}

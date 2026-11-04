@@ -25,7 +25,7 @@ describe("ImageUploadForm", () => {
     uploadImageAction.mockResolvedValueOnce({ ok: true }).mockResolvedValueOnce({ ok: false, error: "Archivo muy grande" });
     render(<ImageUploadForm />);
 
-    fireEvent.drop(screen.getByRole("button", { name: /subir imágenes/i }), {
+    fireEvent.drop(screen.getByRole("button", { name: /arrastra tus fotos/i }), {
       dataTransfer: { files: [image("a.png"), image("b.png"), new File(["x"], "nota.txt", { type: "text/plain" })] },
     });
 
@@ -41,7 +41,7 @@ describe("ImageUploadForm", () => {
     uploadImageAction.mockResolvedValue({ ok: false, error: "Sin permiso" });
     render(<ImageUploadForm />);
 
-    fireEvent.drop(screen.getByRole("button", { name: /subir imágenes/i }), { dataTransfer: { files: [image("a.png")] } });
+    fireEvent.drop(screen.getByRole("button", { name: /arrastra tus fotos/i }), { dataTransfer: { files: [image("a.png")] } });
 
     await waitFor(() => expect(screen.getByText("Sin permiso")).toBeInTheDocument());
     expect(refresh).not.toHaveBeenCalled();

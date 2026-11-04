@@ -64,7 +64,6 @@ export function ImageUploadForm() {
       <div
         role="button"
         tabIndex={0}
-        aria-label="Subir imágenes: suelta archivos aquí o presiona para elegirlos"
         aria-disabled={busy}
         onClick={() => !busy && inputRef.current?.click()}
         onKeyDown={(event) => {
