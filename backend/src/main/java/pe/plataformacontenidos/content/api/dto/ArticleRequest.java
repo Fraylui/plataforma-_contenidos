@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 import pe.plataformacontenidos.content.ArticleInput;
 import pe.plataformacontenidos.content.ArticleType;
+import pe.plataformacontenidos.content.MemorableDate;
 import pe.plataformacontenidos.shared.ContentImageInput;
 import pe.plataformacontenidos.shared.ContentVideoInput;
 
@@ -22,11 +23,15 @@ public record ArticleRequest(
         String ogImageUrl,
         List<ContentImageInput> images,
         List<ContentVideoInput> videos,
-        String robots) {
+        String robots,
+        Integer memorableDay,
+        Integer memorableMonth,
+        Integer memorableYear) {
 
     public ArticleInput toInput() {
         return new ArticleInput(title, excerpt, body, articleType, categoryId, seoTitle,
                 metaDescription, canonicalUrl, ogImageUrl, images == null ? List.of() : images,
-                videos == null ? List.of() : videos, robots);
+                videos == null ? List.of() : videos, robots,
+                MemorableDate.fromParts(memorableYear, memorableMonth, memorableDay));
     }
 }

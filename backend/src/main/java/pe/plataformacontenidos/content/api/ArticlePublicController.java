@@ -1,11 +1,14 @@
 package pe.plataformacontenidos.content.api;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +20,7 @@ import pe.plataformacontenidos.content.ArticleService;
 import pe.plataformacontenidos.content.api.dto.ArticleNeighborsResponse;
 import pe.plataformacontenidos.content.api.dto.ArticleResponse;
 import pe.plataformacontenidos.content.api.dto.ArticleSummaryResponse;
+import pe.plataformacontenidos.content.api.dto.OnThisDayResponse;
 import pe.plataformacontenidos.content.api.dto.PageResponse;
 import pe.plataformacontenidos.engagement.ContentLikeService;
 import pe.plataformacontenidos.engagement.ContentType;
@@ -28,6 +32,9 @@ import pe.plataformacontenidos.engagement.LikeResponse;
 public class ArticlePublicController {
 
     private static final int MAX_PAGE_SIZE = 50;
+    private static final int MAX_ON_THIS_DAY_DAYS = 31;
+    // El contenido nace en Perú (CONTEXTO.md 1.2): "hoy" es el día en Lima, no en UTC.
+    private static final ZoneId PLATFORM_ZONE = ZoneId.of("America/Lima");
 
     private final ArticleService articleService;
     private final ContentLikeService contentLikeService;
@@ -53,6 +60,25 @@ public class ArticlePublicController {
         var likes = contentLikeService.countLikes(ContentType.ARTICLE,
                 result.getContent().stream().map(Article::getId).toList());
         return PageResponse.from(result, item -> ArticleSummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));
+    }
+
+    /**
+     * "Un día como hoy": lo de {@code date} (por defecto hoy en Lima) y los
+     * {@code days} días siguientes. Ruta literal: Spring la prefiere antes
+     * que "/{slug}".
+     */
+    @GetMapping("/on-this-day")
+    public List<OnThisDayResponse> onThisDay(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(defaultValue = "7") int days) {
+        LocalDate from = date != null ? date : LocalDate.now(PLATFORM_ZONE);
+        int safeDays = Math.min(Math.max(days, 1), MAX_ON_THIS_DAY_DAYS);
+        var items = articleService.listOnThisDay(from, safeDays);
+        var likes = contentLikeService.countLikes(ContentType.ARTICLE,
+                items.stream().map(item -> item.article().getId()).toList());
+        return items.stream()
+                .map(item -> OnThisDayResponse.from(item, likes.getOrDefault(item.article().getId(), 0L)))
+                .toList();
     }
 
     @GetMapping("/{slug}")

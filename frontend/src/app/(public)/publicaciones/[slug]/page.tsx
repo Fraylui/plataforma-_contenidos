@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, CalendarHeart } from "lucide-react";
 import {
   getArticleNeighbors,
   getCategoryById,
@@ -12,6 +12,7 @@ import {
 } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
 import { estimateReadingTime, formatArticleDate, formatPublishedDate } from "@/lib/content-labels";
+import { formatMemorableDate } from "@/lib/on-this-day";
 import { LikeShareBar } from "@/components/content/like-share-bar";
 import { NeighborNav } from "@/components/article/neighbor-nav";
 import { ReadingProgressBar } from "@/components/article/reading-progress-bar";
@@ -214,6 +215,12 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
               </span>
             )}
             <span>{estimateReadingTime(article.body)}</span>
+            {article.memorableDay != null && article.memorableMonth != null && (
+              <span className="inline-flex items-center gap-1.5 font-medium text-accent">
+                <CalendarHeart className="h-3.5 w-3.5" aria-hidden="true" />
+                {formatMemorableDate(article.memorableDay, article.memorableMonth, article.memorableYear)}
+              </span>
+            )}
           </div>
 
           <ContentImageGallery images={article.images} alt={article.title} />

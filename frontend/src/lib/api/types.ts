@@ -44,6 +44,18 @@ export interface ArticleSummary {
   hasVideo: boolean;
   publishedAt: string | null;
   likeCount: number;
+  /** "Un día como hoy" (ver MemorableDate.java): día y mes juntos o ninguno; el año puede faltar. */
+  memorableDay: number | null;
+  memorableMonth: number | null;
+  memorableYear: number | null;
+}
+
+/** Ver OnThisDayResponse.java. daysUntil 0 = hoy; yearsAgo null si no se conoce el año. */
+export interface OnThisDayItem {
+  article: ArticleSummary;
+  daysUntil: number;
+  occurrence: string;
+  yearsAgo: number | null;
 }
 
 export interface ArticleNeighbors {
@@ -74,6 +86,10 @@ export interface Article {
   createdAt: string;
   updatedAt: string;
   likeCount: number;
+  /** "Un día como hoy" (ver MemorableDate.java): día y mes juntos o ninguno; el año puede faltar. */
+  memorableDay: number | null;
+  memorableMonth: number | null;
+  memorableYear: number | null;
 }
 
 /** Ver SearchResultResponse.java (CONTEXTO.md sección 16) — resultado unificado de Artículos, Lugares, Eventos, Galerías y Directorio. */

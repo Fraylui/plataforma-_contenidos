@@ -1,5 +1,6 @@
 import {
   getFeed,
+  getOnThisDay,
   getPlatformSettings,
   getTopLiked,
   listActiveAdPlacements,
@@ -16,6 +17,8 @@ import { InfiniteFeed } from "@/components/home/infinite-feed";
 import { HomeSidebar } from "@/components/home/home-sidebar";
 import { ModuleStrip } from "@/components/home/module-strip";
 import { CategoryShowcase } from "@/components/home/category-showcase";
+import { OnThisDayStrip } from "@/components/home/on-this-day-strip";
+import { todayInPlatformZone } from "@/lib/on-this-day";
 
 // Cuántos traer de cada tipo: alcanza para el hero (4, uno por tipo,
 // priorizando los que tienen imagen) sin pedir listados enormes.
@@ -88,8 +91,12 @@ export default async function Home() {
   const feedSeed = new Date().toISOString().slice(0, 13);
   const feedPage = await getFeed({ size: FEED_INITIAL_SIZE, exclude: [...heroIds], seed: feedSeed });
   const feedItems = feedPage.items.map(fromFeedItem);
-  // "Lo más gustado" es un extra: si falla, la portada sigue sin esa tarjeta.
-  const [topLikedRaw, placements] = await Promise.all([getTopLiked(5).catch(() => []), listActiveAdPlacements()]);
+  // "Lo más gustado" y "Un día como hoy" son extras: si fallan, la portada sigue sin ellos.
+  const [topLikedRaw, placements, onThisDay] = await Promise.all([
+    getTopLiked(5).catch(() => []),
+    listActiveAdPlacements(),
+    getOnThisDay(todayInPlatformZone()).catch(() => []),
+  ]);
   const topLiked = topLikedRaw.map(fromFeedItem);
   // Espacio "en-feed": la campaña directa la elige el navegador; acá solo la
   // configuración de AdSense para esa posición (igual que AdBlock).
@@ -138,6 +145,7 @@ export default async function Home() {
         <>
           <HeroRotator items={hero} categoryNames={categoryNames} />
           <div className="flex flex-col gap-8 pt-1 sm:gap-10">
+            <OnThisDayStrip items={onThisDay} />
             <ModuleStrip modules={modules} />
             <CategoryShowcase items={showcaseItems} categories={categories} />
           </div>

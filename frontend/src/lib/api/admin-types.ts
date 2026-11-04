@@ -42,6 +42,10 @@ export interface ArticleInput {
   images: ContentImage[];
   videos: ContentVideoInput[];
   robots: string;
+  /** "Un día como hoy": opcional; día y mes van juntos, el año puede faltar. */
+  memorableDay: number | null;
+  memorableMonth: number | null;
+  memorableYear: number | null;
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/places — ver PlaceRequest.java (CONTEXTO.md sección 6). */

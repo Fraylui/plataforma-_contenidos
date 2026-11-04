@@ -4,7 +4,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +63,7 @@ public class ArticleService {
         article.updateContent(input.title(), input.excerpt(), sanitizedBody, input.articleType(), input.categoryId(),
                 input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
                 input.ogImageUrl(), images, videos, input.robots());
+        article.setMemorableDate(input.memorableDate());
 
         Article saved = articleRepository.save(article);
         audit("ARTICLE_CREATED", saved, authorId);
@@ -81,6 +84,7 @@ public class ArticleService {
         article.updateContent(input.title(), input.excerpt(), sanitizedBody, input.articleType(), input.categoryId(),
                 input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
                 input.ogImageUrl(), images, videos, input.robots());
+        article.setMemorableDate(input.memorableDate());
         Article saved = articleRepository.save(article);
         audit("ARTICLE_UPDATED", saved, actingUserId);
         return saved;
@@ -216,6 +220,33 @@ public class ArticleService {
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
+    /**
+     * "Un día como hoy": publicados cuya fecha memorable cae entre
+     * {@code today} y los {@code days} días siguientes, primero los de hoy,
+     * después los más cercanos; a igualdad, el más reciente.
+     */
+    public List<OnThisDay> listOnThisDay(LocalDate today, int days) {
+        List<MemorableDate.KeyOffset> window = MemorableDate.upcomingKeys(today, days);
+        Map<Integer, MemorableDate.KeyOffset> byKey = new HashMap<>();
+        for (MemorableDate.KeyOffset k : window) {
+            byKey.putIfAbsent(k.key(), k);
+        }
+        return articleRepository.findPublishedByMemorableKeys(List.copyOf(byKey.keySet())).stream()
+                .map(article -> {
+                    MemorableDate date = article.getMemorableDate();
+                    MemorableDate.KeyOffset when = byKey.get(date.key());
+                    return new OnThisDay(article, when.daysUntil(), when.occurrence(), date.yearsAgo(when.occurrence()));
+                })
+                .sorted(Comparator.comparingInt(OnThisDay::daysUntil)
+                        .thenComparing(o -> o.article().getPublishedAt(),
+                                Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
+    }
+
+    /** Un contenido de "Un día como hoy": en cuántos días cae, qué fecha del calendario y hace cuántos años pasó (null si no se sabe). */
+    public record OnThisDay(Article article, int daysUntil, LocalDate occurrence, Integer yearsAgo) {
+    }
+
     public Map<ArticleStatus, Long> countByStatus() {
         Map<ArticleStatus, Long> counts = new EnumMap<>(ArticleStatus.class);
         for (ArticleStatus status : ArticleStatus.values()) {

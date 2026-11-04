@@ -32,6 +32,28 @@ import {
  */
 const ARTICLE_TYPES: ArticleType[] = ["ARTICULO", "HISTORIA", "GUIA", "RANKING", "TUTORIAL"];
 
+const MONTH_NAMES = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
+];
+
+function toOptionalInt(value: string): number | null {
+  const trimmed = value.trim();
+  if (trimmed === "") return null;
+  const parsed = Number.parseInt(trimmed, 10);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
 const ROBOTS_OPTIONS = ["index,follow", "noindex,follow", "index,nofollow", "noindex,nofollow"];
 
 interface ArticleFormProps {
@@ -70,6 +92,10 @@ export function ArticleForm({
     })) ?? [],
   );
   const [robots, setRobots] = useState(article?.robots ?? "index,follow");
+  // "Un día como hoy": texto en los inputs (vacío = sin fecha); el backend valida que la fecha exista.
+  const [memorableDay, setMemorableDay] = useState(article?.memorableDay?.toString() ?? "");
+  const [memorableMonth, setMemorableMonth] = useState(article?.memorableMonth?.toString() ?? "");
+  const [memorableYear, setMemorableYear] = useState(article?.memorableYear?.toString() ?? "");
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,6 +116,9 @@ export function ArticleForm({
       images,
       videos,
       robots,
+      memorableDay: toOptionalInt(memorableDay),
+      memorableMonth: toOptionalInt(memorableMonth),
+      memorableYear: toOptionalInt(memorableYear),
     };
   }
 
@@ -321,6 +350,55 @@ export function ArticleForm({
                 onSelect={(id) => id && setCategoryId(id)}
               />
             </FormField>
+          </SectionCard>
+
+          <SectionCard title="Un día como hoy">
+            <p className="-mt-1 mb-3 text-xs text-muted">
+              Opcional. Si este contenido recuerda una fecha (una batalla, una fundación, una fiesta), aparecerá en la
+              portada ese día de cada año.
+            </p>
+            <div className="grid grid-cols-[4.5rem_1fr_5.5rem] gap-2">
+              <FormField label="Día" name="memorableDay">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={31}
+                  value={memorableDay}
+                  disabled={readOnly}
+                  onChange={(e) => setMemorableDay(e.target.value)}
+                  className={formInputClass}
+                />
+              </FormField>
+              <FormField label="Mes" name="memorableMonth">
+                <select
+                  value={memorableMonth}
+                  disabled={readOnly}
+                  onChange={(e) => setMemorableMonth(e.target.value)}
+                  className={formInputClass}
+                >
+                  <option value="">—</option>
+                  {MONTH_NAMES.map((name, index) => (
+                    <option key={name} value={index + 1}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+              <FormField label="Año" name="memorableYear">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={9999}
+                  placeholder="Opc."
+                  value={memorableYear}
+                  disabled={readOnly}
+                  onChange={(e) => setMemorableYear(e.target.value)}
+                  className={formInputClass}
+                />
+              </FormField>
+            </div>
           </SectionCard>
 
           <SectionCard title="Medios">

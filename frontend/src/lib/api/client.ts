@@ -8,6 +8,7 @@ import type {
   AdPlacement,
   Article,
   ArticleNeighbors,
+  OnThisDayItem,
   ArticleSummary,
   Business,
   BusinessSummary,
@@ -91,6 +92,15 @@ export function searchContent(
 export function getPublishedArticleBySlug(slug: string): Promise<Article> {
   // Detalle: revalidación más larga, un artículo publicado rara vez cambia.
   return apiFetch(`/api/v1/articles/${encodeURIComponent(slug)}`, 300);
+}
+
+/**
+ * "Un día como hoy" — ver ArticlePublicController.onThisDay. `date` va
+ * siempre explícita (hoy en Lima) para que la caché sea por día y no
+ * sirva lo de ayer pasada la medianoche.
+ */
+export function getOnThisDay(date: string, days = 7): Promise<OnThisDayItem[]> {
+  return apiFetch(`/api/v1/articles/on-this-day?date=${encodeURIComponent(date)}&days=${days}`, 300);
 }
 
 /** Navegación anterior/siguiente en la vista de lectura — ver ArticlePublicController.getNeighbors. */

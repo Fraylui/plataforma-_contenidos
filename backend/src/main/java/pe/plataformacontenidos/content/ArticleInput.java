@@ -23,5 +23,7 @@ public record ArticleInput(
         String ogImageUrl,
         List<ContentImageInput> images,
         List<ContentVideoInput> videos,
-        String robots) {
+        String robots,
+        /** null = sin fecha para "Un día como hoy". */
+        MemorableDate memorableDate) {
 }

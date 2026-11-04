@@ -74,6 +74,16 @@ public class Article {
     @Column(name = "og_image_url")
     private String ogImageUrl;
 
+    // "Un día como hoy" (V46): opcionales; día y mes van juntos, el año puede faltar.
+    @Column(name = "memorable_month")
+    private Integer memorableMonth;
+
+    @Column(name = "memorable_day")
+    private Integer memorableDay;
+
+    @Column(name = "memorable_year")
+    private Integer memorableYear;
+
     /**
      * Imágenes de la publicación: subidas (Media, sección 38) o por enlace
      * externo — nunca ambas por ítem (ver ContentImage). La primera de la
@@ -238,6 +248,17 @@ public class Article {
         this.videos = new ArrayList<>(videos);
         this.robots = (robots == null || robots.isBlank()) ? "index,follow" : robots;
         this.updatedAt = Instant.now();
+    }
+
+    /** null si el contenido no tiene fecha memorable. */
+    public MemorableDate getMemorableDate() {
+        return memorableMonth == null ? null : new MemorableDate(memorableYear, memorableMonth, memorableDay);
+    }
+
+    public void setMemorableDate(MemorableDate date) {
+        this.memorableMonth = date == null ? null : date.month();
+        this.memorableDay = date == null ? null : date.day();
+        this.memorableYear = date == null ? null : date.year();
     }
 
     public void submitForReview() {

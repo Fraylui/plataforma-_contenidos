@@ -76,4 +76,17 @@ public interface ArticleRepository extends JpaRepository<Article, UUID> {
             """,
             nativeQuery = true)
     Page<Article> search(@Param("query") String query, @Param("categoryId") UUID categoryId, Pageable pageable);
+
+    /**
+     * "Un día como hoy": publicados cuya fecha memorable (mes*100+día) está
+     * en {@code keys}. Usa el índice parcial de V46; el orden final (por
+     * cercanía) lo arma ArticleService.
+     */
+    @Query(value = """
+            SELECT a.* FROM content.articles a
+            WHERE a.status = 'PUBLISHED'
+            AND a.memorable_month IS NOT NULL
+            AND (a.memorable_month * 100 + a.memorable_day) IN (:keys)
+            """, nativeQuery = true)
+    List<Article> findPublishedByMemorableKeys(@Param("keys") List<Integer> keys);
 }

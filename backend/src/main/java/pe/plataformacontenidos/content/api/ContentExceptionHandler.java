@@ -9,6 +9,7 @@ import pe.plataformacontenidos.content.ArticleAccessDeniedException;
 import pe.plataformacontenidos.content.ArticleNotFoundException;
 import pe.plataformacontenidos.content.InvalidArticleImageException;
 import pe.plataformacontenidos.content.InvalidArticleTransitionException;
+import pe.plataformacontenidos.content.InvalidMemorableDateException;
 import pe.plataformacontenidos.content.InvalidScheduleException;
 import pe.plataformacontenidos.content.InvalidYouTubeUrlException;
 
@@ -42,6 +43,11 @@ public class ContentExceptionHandler {
 
     @ExceptionHandler(InvalidArticleImageException.class)
     public ResponseEntity<ApiError> handleInvalidImage(InvalidArticleImageException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidMemorableDateException.class)
+    public ResponseEntity<ApiError> handleInvalidMemorableDate(InvalidMemorableDateException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiError(Instant.now(), 400, ex.getMessage()));
     }
 
