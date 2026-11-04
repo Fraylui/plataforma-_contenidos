@@ -392,6 +392,37 @@ Usuario
 
 La base de datos almacenará metadatos y referencias, no necesariamente archivos pesados.
 
+### 10.1 Implementado (2026-11-04): Cloudflare R2
+
+Decisión del dueño: las fotos no deben llenar ni hacer lento el VPS.
+
+```text
+Panel (sube la foto) → backend la reduce (≤2560 px) y la recomprime
+                     → StorageService
+                         ├─ local (MEDIA_STORAGE=local, por defecto): disco del VPS
+                         └─ r2    (MEDIA_STORAGE=r2): bucket de Cloudflare R2
+Visitante → /api/v1/images/{id}/file
+              ├─ local: el backend envía los bytes (Cloudflare los cachea 30 días)
+              └─ r2 con dominio público: 301 a https://media.…/archivo
+                 (Cloudflare la entrega; el VPS no envía bytes)
+```
+
+- **Fotos y videos propios** (1.4): el panel ya no ofrece pegar enlaces de
+  imágenes de otros sitios; los videos son de YouTube, del canal propio o
+  con permiso de su dueño, y solo se guarda su id.
+- **Diseño:** patrón Strategy sobre `StorageService`; R2StorageService es una
+  clase nueva y ImageService no cambió (SOLID: abierto/cerrado, inversión de
+  dependencias). Configuración incompleta → no arranca y dice qué falta
+  (fallar rápido).
+- **Seguridad y gobierno:** credenciales solo por variables de entorno
+  (ISO 27001 A.8.24, OWASP A02); token de R2 con permiso solo sobre el bucket
+  (mínimo privilegio, A.5.15); nombres de archivo revalidados (defensa en
+  profundidad). El cambio de modo y la migración de fotos están escritos como
+  procedimiento en `infra/DESPLIEGUE.md` §2.5 (ITIL: gestión de cambios;
+  COBIT 2019 BAI06/BAI10: cambios y configuración documentados y
+  reversibles).
+- **Costo:** R2 es gratis hasta 10 GB y no cobra por las descargas.
+
 ---
 
 # 11. CMS / Panel administrativo

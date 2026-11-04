@@ -54,6 +54,17 @@ app:
     bootstrap-admin-email: ${BOOTSTRAP_ADMIN_EMAIL:}
     bootstrap-admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}
   media:
+    # Dónde se guardan las imágenes: «local» (disco del VPS, por defecto) o
+    # «r2» (Cloudflare R2: el disco del VPS no se llena). Ver infra/DESPLIEGUE.md.
+    storage: ${MEDIA_STORAGE:local}
+    r2:
+      account-id: ${R2_ACCOUNT_ID:}
+      access-key-id: ${R2_ACCESS_KEY_ID:}
+      secret-access-key: ${R2_SECRET_ACCESS_KEY:}
+      bucket: ${R2_BUCKET:}
+      # Dominio público del bucket (p. ej. https://media.tusitio.pe): con él,
+      # Cloudflare entrega las imágenes y el VPS no envía los bytes.
+      public-base-url: ${R2_PUBLIC_BASE_URL:}
     local-storage-path: ${MEDIA_STORAGE_PATH:./data/media}
     max-file-size-bytes: ${MEDIA_MAX_FILE_SIZE_BYTES:10485760} # 10 MB
     max-dimension-pixels: ${MEDIA_MAX_DIMENSION_PIXELS:6000}

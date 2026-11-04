@@ -2,6 +2,7 @@ package pe.plataformacontenidos.media;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Service;
@@ -80,6 +81,11 @@ public class ImageService {
 
     public Image getOrThrow(UUID id) {
         return imageRepository.findById(id).orElseThrow(() -> new ImageNotFoundException(id));
+    }
+
+    /** Si el almacenamiento tiene dirección pública (R2), dónde bajar la imagen sin pasar por el backend. */
+    public Optional<String> publicUrl(Image image) {
+        return storageService.publicUrl(image.getStoredFilename());
     }
 
     public byte[] loadFile(UUID id) {

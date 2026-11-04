@@ -99,6 +99,49 @@ BACKUP_REMOTE_COPY_CMD=/opt/plataforma-contenidos/scripts/remote-copy.sh
 Sin esto el backup queda en el mismo disco que la base: si se pierde el VPS,
 se pierde todo.
 
+### 2.5 Fotos en Cloudflare R2 (para que el VPS no se llene)
+
+Por defecto las fotos se guardan en el disco del VPS. Con R2 se guardan en
+Cloudflare (gratis hasta 10 GB y sin costo por las visitas que las
+descargan) y, con un dominio público, **Cloudflare las entrega directo**:
+el VPS solo responde una redirección mínima que Cloudflare también cachea.
+
+1. **Crear el bucket.** Panel de Cloudflare → *R2 Object Storage* →
+   *Create bucket*. Nombre, por ejemplo, `plataforma-imagenes`.
+2. **Darle un dominio público.** En el bucket → *Settings* → *Public access*
+   → *Custom Domains* → *Connect domain*: `media.tu-dominio.pe`. Cloudflare
+   crea el DNS solo. (Evitar la dirección `r2.dev`: tiene límite de
+   velocidad y Cloudflare la recomienda solo para pruebas.)
+3. **Crear una llave con el mínimo permiso.** *R2* → *Manage R2 API Tokens*
+   → *Create API token* → permiso **Object Read & Write**, solo para ese
+   bucket. Anotar *Access Key ID* y *Secret Access Key* (el secreto se
+   muestra una sola vez). El *Account ID* está en la página de R2.
+4. **Configurar el `.env` del VPS** (nunca en el repositorio):
+   ```bash
+   MEDIA_STORAGE=r2
+   R2_ACCOUNT_ID=…
+   R2_ACCESS_KEY_ID=…
+   R2_SECRET_ACCESS_KEY=…
+   R2_BUCKET=plataforma-imagenes
+   R2_PUBLIC_BASE_URL=https://media.tu-dominio.pe
+   ```
+5. **Si ya hay fotos en el VPS, copiarlas antes de reiniciar** (las nuevas
+   irán a R2; las viejas solo existen en el disco):
+   ```bash
+   docker compose cp backend:/app/data/media ./media-a-subir
+   rclone copy ./media-a-subir r2:plataforma-imagenes --progress \
+     --header-upload "Cache-Control: public, max-age=31536000, immutable"
+   ```
+   (`rclone` ya se usa para los backups, sección 2.4; el remoto `r2` es el
+   mismo.)
+6. **Reiniciar el backend:** `docker compose up -d backend`. Si falta un
+   dato, no arranca y el log dice cuál (`Falta app.media.r2.bucket`).
+7. **Verificar:** subir una foto en el panel y abrirla: la dirección final
+   debe ser `https://media.tu-dominio.pe/…`.
+
+Volver al disco local es poner `MEDIA_STORAGE=local` (las fotos subidas a R2
+mientras tanto quedan allá: copiarlas de vuelta con `rclone copy` al revés).
+
 ---
 
 ## 3. Cloudflare (plan Free)

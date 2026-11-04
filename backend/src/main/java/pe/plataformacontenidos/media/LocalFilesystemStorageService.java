@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnProperty(name = "app.media.storage", havingValue = "local", matchIfMissing = true)
 @EnableConfigurationProperties(MediaProperties.class)
 public class LocalFilesystemStorageService implements StorageService {
 
