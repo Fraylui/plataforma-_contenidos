@@ -281,6 +281,16 @@ const NAV_PRESENCE_CHECKS: { href: string; checks: () => Promise<PageResponse<un
  * del mismo request), así que llamar esta función otra vez desde el footer
  * no repite trabajo real.
  */
+/**
+ * Para la página de un módulo (/lugares, /eventos…): si el módulo todavía
+ * no tiene nada publicado, la página no existe (404) en vez de mostrar
+ * "Todavía no hay…" — misma verificación que la navegación (CONTEXTO.md 43.5).
+ */
+export async function moduleHasContent(href: string): Promise<boolean> {
+  const visibility = await getPrimaryNavVisibility();
+  return visibility[href] === true;
+}
+
 export async function getPrimaryNavVisibility(): Promise<Record<string, boolean>> {
   const results = await Promise.all(
     NAV_PRESENCE_CHECKS.map(async ({ href, checks }) => {
@@ -356,8 +366,20 @@ export async function getRelatedWithFallback(params: {
   return { related, more };
 }
 
-export function listActiveCategories(): Promise<Category[]> {
-  return apiFetch(`/api/v1/categories`, 300);
+/**
+ * Temas para el sitio público: solo los activos que tienen contenido
+ * publicado (propio o en un subtema). Regla del dueño: lo que no tiene
+ * contenido no aparece hasta que lo tenga (CONTEXTO.md 43.5) — así ningún
+ * menú, filtro, pie de página ni página de tema lleva a algo vacío. El
+ * panel usa su propia lista completa (listActiveCategoriesFresh).
+ */
+export async function listActiveCategories(): Promise<Category[]> {
+  const [categories, withContent] = await Promise.all([
+    apiFetch<Category[]>(`/api/v1/categories`, 300),
+    apiFetch<string[]>(`/api/v1/feed/categories`, 300),
+  ]);
+  const visible = new Set(withContent);
+  return categories.filter((category) => visible.has(category.id));
 }
 
 export function getCategoryById(id: string): Promise<Category> {

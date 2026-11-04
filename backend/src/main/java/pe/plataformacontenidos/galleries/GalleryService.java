@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -257,5 +258,10 @@ public class GalleryService {
     private void audit(String action, Gallery gallery, UUID actingUserId) {
         auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "gallery", gallery.getId().toString(),
                 null);
+    }
+
+    /** Ver GalleryRepository.findPublishedCategoryIds. */
+    public Set<UUID> publishedCategoryIds() {
+        return Set.copyOf(galleryRepository.findPublishedCategoryIds());
     }
 }

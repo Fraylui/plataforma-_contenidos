@@ -1,5 +1,6 @@
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { listActiveCategories, listPublishedArticles } from "@/lib/api/client";
+import { listActiveCategories, listPublishedArticles, moduleHasContent } from "@/lib/api/client";
 import { ArticleCard } from "@/components/article/article-card";
 import { Pagination } from "@/components/ui/pagination";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -26,6 +27,7 @@ function buildHref(categoryId: string | null, page: number): string {
 }
 
 export default async function ArticlesPage(props: PageProps<"/publicaciones">) {
+  if (!(await moduleHasContent("/publicaciones"))) notFound();
   const { page: pageParam, categoryId: categoryIdParam } = await props.searchParams;
   const page = typeof pageParam === "string" ? Math.max(0, parseInt(pageParam, 10) || 0) : 0;
   const categoryId = typeof categoryIdParam === "string" ? categoryIdParam : null;

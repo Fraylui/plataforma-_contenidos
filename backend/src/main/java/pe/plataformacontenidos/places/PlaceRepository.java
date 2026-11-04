@@ -46,4 +46,8 @@ public interface PlaceRepository extends JpaRepository<Place, UUID> {
             """,
             nativeQuery = true)
     Page<Place> search(@Param("query") String query, @Param("categoryId") UUID categoryId, Pageable pageable);
+
+    /** Temas con al menos un contenido publicado: un tema vacío no se muestra en la navegación pública. */
+    @Query(value = "SELECT DISTINCT category_id FROM places.places WHERE status = 'PUBLISHED'", nativeQuery = true)
+    List<UUID> findPublishedCategoryIds();
 }

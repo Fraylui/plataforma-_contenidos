@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.engagement.ContentType;
+import pe.plataformacontenidos.feed.CategoryPresenceService;
 import pe.plataformacontenidos.feed.FeedService;
 import pe.plataformacontenidos.feed.api.dto.FeedItemResponse;
 import pe.plataformacontenidos.feed.api.dto.FeedPageResponse;
@@ -25,9 +26,17 @@ public class FeedController {
     private static final int MAX_TOP_SIZE = 10;
 
     private final FeedService feedService;
+    private final CategoryPresenceService categoryPresenceService;
 
-    public FeedController(FeedService feedService) {
+    public FeedController(FeedService feedService, CategoryPresenceService categoryPresenceService) {
         this.feedService = feedService;
+        this.categoryPresenceService = categoryPresenceService;
+    }
+
+    /** IDs de los temas activos con contenido publicado (propio o en subtemas) — ver CategoryPresenceService. */
+    @GetMapping("/categories")
+    public List<UUID> getCategoriesWithContent() {
+        return List.copyOf(categoryPresenceService.activeCategoryIdsWithContent());
     }
 
     /**

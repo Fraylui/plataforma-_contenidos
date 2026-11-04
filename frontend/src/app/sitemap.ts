@@ -6,18 +6,20 @@ import {
   listAllPublishedEventsForSitemap,
   listAllPublishedGalleriesForSitemap,
   listAllPublishedPlacesForSitemap,
+  getPrimaryNavVisibility,
 } from "@/lib/api/client";
 import { SITE_URL } from "@/lib/site-url";
 import { isEventFinished } from "@/lib/content-labels";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [articles, places, events, galleries, businesses, categories] = await Promise.all([
+  const [articles, places, events, galleries, businesses, categories, visibility] = await Promise.all([
     listAllPublishedArticlesForSitemap(),
     listAllPublishedPlacesForSitemap(),
     listAllPublishedEventsForSitemap(),
     listAllPublishedGalleriesForSitemap(),
     listAllPublishedBusinessesForSitemap(),
     listActiveCategories(),
+    getPrimaryNavVisibility(),
   ]);
 
   const articleEntries: MetadataRoute.Sitemap = articles.map((article) => ({
@@ -65,6 +67,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
+  // Páginas de módulo: solo las que tienen contenido (las vacías dan 404, CONTEXTO.md 43.5).
+  const MODULES: { path: string; changeFrequency: "daily" | "weekly"; priority: number }[] = [
+    { path: "/publicaciones", changeFrequency: "daily", priority: 0.6 },
+    { path: "/lugares", changeFrequency: "weekly", priority: 0.6 },
+    { path: "/eventos", changeFrequency: "daily", priority: 0.6 },
+    { path: "/galerias", changeFrequency: "weekly", priority: 0.5 },
+    { path: "/directorio", changeFrequency: "weekly", priority: 0.5 },
+  ];
+  const moduleEntries: MetadataRoute.Sitemap = MODULES.filter((m) => visibility[m.path]).map((m) => ({
+    url: `${SITE_URL}${m.path}`,
+    changeFrequency: m.changeFrequency,
+    priority: m.priority,
+  }));
+
   return [
     {
       url: SITE_URL,
@@ -72,26 +88,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 1,
     },
-    {
-      url: `${SITE_URL}/publicaciones`,
-      changeFrequency: "daily",
-      priority: 0.6,
-    },
-    {
-      url: `${SITE_URL}/eventos`,
-      changeFrequency: "daily",
-      priority: 0.6,
-    },
-    {
-      url: `${SITE_URL}/galerias`,
-      changeFrequency: "weekly",
-      priority: 0.5,
-    },
-    {
-      url: `${SITE_URL}/directorio`,
-      changeFrequency: "weekly",
-      priority: 0.5,
-    },
+    ...moduleEntries,
     ...articleEntries,
     ...placeEntries,
     ...eventEntries,

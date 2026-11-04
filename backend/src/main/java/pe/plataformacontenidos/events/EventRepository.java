@@ -75,4 +75,8 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
             nativeQuery = true)
     Page<Event> search(@Param("query") String query, @Param("categoryId") UUID categoryId,
             @Param("from") Instant from, @Param("to") Instant to, Pageable pageable);
+
+    /** Temas con al menos un contenido publicado: un tema vacío no se muestra en la navegación pública. */
+    @Query(value = "SELECT DISTINCT category_id FROM events.events WHERE status = 'PUBLISHED'", nativeQuery = true)
+    List<UUID> findPublishedCategoryIds();
 }

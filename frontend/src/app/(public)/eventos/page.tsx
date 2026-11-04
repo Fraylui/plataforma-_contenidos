@@ -1,6 +1,7 @@
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { listActiveCategories, listPublishedEvents } from "@/lib/api/client";
+import { listActiveCategories, listPublishedEvents, moduleHasContent } from "@/lib/api/client";
 import { EventCard } from "@/components/event/event-card";
 import { Pagination } from "@/components/ui/pagination";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -32,6 +33,7 @@ function buildHref(when: "upcoming" | "past", categoryId: string | null, page: n
 }
 
 export default async function EventsPage(props: PageProps<"/eventos">) {
+  if (!(await moduleHasContent("/eventos"))) notFound();
   const { when: whenParam, page: pageParam, categoryId: categoryIdParam } = await props.searchParams;
   const when = whenParam === "past" ? "past" : "upcoming";
   const page = typeof pageParam === "string" ? Math.max(0, parseInt(pageParam, 10) || 0) : 0;

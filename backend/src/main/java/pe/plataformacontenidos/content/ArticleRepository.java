@@ -89,4 +89,8 @@ public interface ArticleRepository extends JpaRepository<Article, UUID> {
             AND (a.memorable_month * 100 + a.memorable_day) IN (:keys)
             """, nativeQuery = true)
     List<Article> findPublishedByMemorableKeys(@Param("keys") List<Integer> keys);
+
+    /** Temas con al menos un contenido publicado: un tema vacío no se muestra en la navegación pública. */
+    @Query(value = "SELECT DISTINCT category_id FROM content.articles WHERE status = 'PUBLISHED'", nativeQuery = true)
+    List<UUID> findPublishedCategoryIds();
 }

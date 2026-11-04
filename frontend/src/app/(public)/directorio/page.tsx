@@ -1,5 +1,6 @@
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { listActiveCategories, listPublishedBusinesses } from "@/lib/api/client";
+import { listActiveCategories, listPublishedBusinesses, moduleHasContent } from "@/lib/api/client";
 import { BusinessCard } from "@/components/directory/business-card";
 import { Pagination } from "@/components/ui/pagination";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -31,6 +32,7 @@ function buildHref(businessType: BusinessType | null, categoryId: string | null,
 }
 
 export default async function DirectoryPage(props: PageProps<"/directorio">) {
+  if (!(await moduleHasContent("/directorio"))) notFound();
   const {
     page: pageParam,
     businessType: businessTypeParam,

@@ -6,6 +6,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -311,5 +312,10 @@ public class EventService {
     private void audit(String action, Event event, UUID actingUserId) {
         auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "event", event.getId().toString(),
                 null);
+    }
+
+    /** Ver EventRepository.findPublishedCategoryIds. */
+    public Set<UUID> publishedCategoryIds() {
+        return Set.copyOf(eventRepository.findPublishedCategoryIds());
     }
 }

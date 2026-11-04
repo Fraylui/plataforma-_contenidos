@@ -1,5 +1,6 @@
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { listActiveCategories, listPublishedPlaces } from "@/lib/api/client";
+import { listActiveCategories, listPublishedPlaces, moduleHasContent } from "@/lib/api/client";
 import { PlaceCard } from "@/components/place/place-card";
 import { Pagination } from "@/components/ui/pagination";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -27,6 +28,7 @@ function buildHref(categoryId: string | null, page: number): string {
 }
 
 export default async function PlacesPage(props: PageProps<"/lugares">) {
+  if (!(await moduleHasContent("/lugares"))) notFound();
   const { page: pageParam, categoryId: categoryIdParam } = await props.searchParams;
   const page = typeof pageParam === "string" ? Math.max(0, parseInt(pageParam, 10) || 0) : 0;
   const categoryId = typeof categoryIdParam === "string" ? categoryIdParam : null;

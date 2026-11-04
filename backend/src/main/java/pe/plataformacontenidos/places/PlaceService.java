@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -297,5 +298,10 @@ public class PlaceService {
     private void audit(String action, Place place, UUID actingUserId) {
         auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "place", place.getId().toString(),
                 null);
+    }
+
+    /** Ver PlaceRepository.findPublishedCategoryIds. */
+    public Set<UUID> publishedCategoryIds() {
+        return Set.copyOf(placeRepository.findPublishedCategoryIds());
     }
 }

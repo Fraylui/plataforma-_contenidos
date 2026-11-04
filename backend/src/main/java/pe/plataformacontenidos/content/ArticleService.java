@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -349,5 +350,10 @@ public class ArticleService {
     private void audit(String action, Article article, UUID actingUserId) {
         auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "article", article.getId().toString(),
                 null);
+    }
+
+    /** Ver ArticleRepository.findPublishedCategoryIds. */
+    public Set<UUID> publishedCategoryIds() {
+        return Set.copyOf(articleRepository.findPublishedCategoryIds());
     }
 }

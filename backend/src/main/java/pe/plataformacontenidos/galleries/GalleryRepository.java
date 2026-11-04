@@ -47,4 +47,8 @@ public interface GalleryRepository extends JpaRepository<Gallery, UUID> {
             """,
             nativeQuery = true)
     Page<Gallery> search(@Param("query") String query, @Param("categoryId") UUID categoryId, Pageable pageable);
+
+    /** Temas con al menos un contenido publicado: un tema vacío no se muestra en la navegación pública. */
+    @Query(value = "SELECT DISTINCT category_id FROM galleries.galleries WHERE status = 'PUBLISHED'", nativeQuery = true)
+    List<UUID> findPublishedCategoryIds();
 }

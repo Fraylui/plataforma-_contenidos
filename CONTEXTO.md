@@ -1650,6 +1650,22 @@ Después de implementar una interfaz, antes de darla por terminada, responder:
 técnicamente. Debe funcionar y ofrecer una experiencia profesional. Si el
 resultado es visualmente mediocre, no se considera terminado.
 
+### 43.5 Lo vacío no existe (regla del dueño, 2026-11-04)
+
+Nada sin contenido aparece en el sitio público hasta que lo tenga:
+
+| Pieza | Cómo se cumple |
+|---|---|
+| Módulos en menú, menú móvil, pie y franja de la portada | `getPrimaryNavVisibility` (≥1 publicado) |
+| Página de un módulo vacío (`/lugares`, `/eventos`…) | 404 (`moduleHasContent`), no "Todavía no hay…" |
+| Temas en menú, filtros, pie, barra lateral y `/categorias/[slug]` | `listActiveCategories` público = activos con contenido propio o en un subtema (`GET /api/v1/feed/categories`, `CategoryPresenceService`) |
+| Sitemap | Solo módulos y temas con contenido |
+| Franjas y listas de la portada y del detalle ("Un día como hoy", "Lo más gustado", relacionados, agenda, pestañas del feed) | Cada una se oculta si no tiene elementos |
+
+Un borrador, algo en revisión o programado **no** cuenta como contenido.
+Un filtro que no da resultados sí muestra su mensaje ("ninguno coincide
+con este filtro"): ahí el módulo existe, lo vacío es la combinación.
+
 ---
 
 # 44. Modelo de negocio
