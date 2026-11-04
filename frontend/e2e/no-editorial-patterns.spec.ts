@@ -13,7 +13,12 @@ const DETAIL_TYPES = ["publicaciones", "lugares", "celebraciones", "galerias"];
 async function assertNoEditorialPatterns(page: Page) {
   const main = page.locator("main");
   await expect(main.getByText(/min de lectura/i)).toHaveCount(0);
-  await expect(main.getByText(/\beditorial\b|\bart[íi]culos?\b|\bcubrimos\b/i)).toHaveCount(0);
+  // No es un medio (CONTEXTO.md 1): nada de lenguaje de periódico.
+  await expect(
+    main.getByText(
+      /\beditorial\b|\bart[íi]culos?\b|\bcubrimos\b|\bnoticias?\b|\bperi[óo]dicos?\b|\bperiodismo\b|\bcr[óo]nicas?\b|\breportajes?\b|\bredacci[óo]n\b|\btitular(es)?\b|seguir leyendo|[úu]ltima hora/i,
+    ),
+  ).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toHaveCount(0);
   // Antetítulos: texto visible transformado a mayúsculas por CSS. Excepciones: la etiqueta "Publicidad"
   // (pedida por Google/IAB) y lo que va dentro de un anuncio (el dominio del anuncio nativo, como en Facebook).

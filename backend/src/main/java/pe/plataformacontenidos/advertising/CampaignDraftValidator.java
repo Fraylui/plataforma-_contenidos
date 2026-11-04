@@ -87,7 +87,7 @@ class CampaignDraftValidator {
             throw new InvalidCampaignFormatException("El texto del anuncio admite hasta " + NATIVE_TEXT_MAX + " caracteres.");
         }
         if (headline != null && headline.length() > NATIVE_HEADLINE_MAX) {
-            throw new InvalidCampaignFormatException("El titular admite hasta " + NATIVE_HEADLINE_MAX + " caracteres.");
+            throw new InvalidCampaignFormatException("El título del anuncio admite hasta " + NATIVE_HEADLINE_MAX + " caracteres.");
         }
         if (input.callToAction() == null) {
             throw new InvalidCampaignFormatException("Elige el botón del anuncio.");

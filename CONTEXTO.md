@@ -75,19 +75,16 @@ Contenido relacionado
 
 El sistema debe soportar inicialmente y/o posteriormente:
 
-### Texto
+### Publicaciones (formatos de la plataforma)
 
-* Artículos
-* Noticias
-* Reportajes
-* Crónicas
+* General
+* Historias (relatos, leyendas, memoria)
 * Guías
-* Entrevistas
-* Historias
-* Rankings
-* Reseñas
+* Listas
 * Tutoriales
-* Opinión
+
+Sin formatos de periódico (noticia, reportaje, crónica, entrevista,
+opinión): la plataforma no es un medio (sección 1).
 
 ### Multimedia
 
@@ -250,7 +247,7 @@ Esto permitirá construir progresivamente una base de conocimiento geográfica.
 ## 6.1 Eventos
 
 Segundo tipo de contenido implementado más allá de Artículo (sección 3,
-"Información estructurada"). Mismo flujo editorial que Artículo/Lugar
+"Información estructurada"). Mismo flujo de publicación que Artículo/Lugar
 (sección 12), con dos diferencias de fondo:
 
 * **Fecha de inicio (obligatoria) y fin (opcional)** en vez de solo fecha
@@ -269,7 +266,7 @@ publicar un evento.
 ## 6.2 Galerías
 
 Tercer tipo de contenido implementado (sección 3, "Multimedia" →
-"Galerías"). Mismo flujo editorial que el resto, pero sin cuerpo de texto
+"Galerías"). Mismo flujo de publicación que el resto, pero sin cuerpo de texto
 largo: el contenido *es* la colección de fotografías, así que
 `GalleryService` exige al menos una imagen — la única regla de negocio
 de este tipo que no existe en ningún otro módulo de contenido.
@@ -277,7 +274,7 @@ de este tipo que no existe en ningún otro módulo de contenido.
 ## 6.3 Reseñas
 
 Cuarto tipo de contenido implementado (sección 3, "Información
-estructurada"). Mismo flujo editorial que el resto, con cuerpo de texto
+estructurada"). Mismo flujo de publicación que el resto, con cuerpo de texto
 largo (a diferencia de Galería). Su diferenciador real: una calificación
 (`rating`, 1-5, validada tanto en la API como con un CHECK real en la
 base de datos). Puede reseñar un Lugar ya existente (`placeId`) o algo
@@ -452,7 +449,7 @@ Dashboard
 
 ---
 
-# 12. Sistema editorial
+# 12. Flujo de publicación
 
 Los contenidos deben tener estados.
 
@@ -1292,7 +1289,7 @@ sistema, sección 13). El primero es organizacional; el segundo es técnico.
 Un mismo trabajador puede tener un rol de negocio y uno o más permisos
 técnicos.
 
-### 36.1 Personal de contenido (equipo editorial)
+### 36.1 Personal de contenido (equipo de creación)
 
 ```text
 Redactor / Autor            → crea borradores, no publica
@@ -1339,7 +1336,7 @@ SUPER_ADMIN     → control total, incluida gestión de otros admins y config
                   mínimo posible (1-2 personas) — ver 36.5 sobre MFA.
 ADMIN           → gestión operativa completa, sin acceso a configuración
                   crítica de infraestructura ni a la gestión de SUPER_ADMIN.
-ADMIN_CONTENIDO → gestiona todo lo editorial (categorías, taxonomía,
+ADMIN_CONTENIDO → gestiona todo el contenido (categorías, taxonomía,
                   lugares, contenidos), sin acceso a usuarios/roles.
 ADMIN_TECNICO   → gestiona configuración técnica (SEO global, integraciones,
                   caché, backups), sin publicar contenido.
@@ -1347,7 +1344,7 @@ ADMIN_TECNICO   → gestiona configuración técnica (SEO global, integraciones,
 
 Esto amplía la lista de roles de la sección 13 sin reemplazarla: los roles
 `SUPER_ADMIN … VISITOR` siguen siendo la base de RBAC; lo anterior es cómo se
-agrupan en la práctica según función de negocio. Los roles editoriales de
+agrupan en la práctica según función de negocio. Los roles de contenido de
 36.1 (investigador cultural, corresponsal, curador, gestor de eventos/
 directorio) se implementan técnicamente como variaciones de `AUTHOR` /
 `EDITOR` con permisos y alcance (scope geográfico o de módulo) acotados, no
@@ -1386,7 +1383,7 @@ Tipo de log          Contenido                              Retención sugerida
 Application log      Errores, warnings, trazas técnicas     7-30 días
 Access log            (Nginx) IP, endpoint, status, latencia 30-90 días
 Security log          Login fallido, bloqueo, rate limit hit 90-180 días
-Audit log             Acción admin/editorial (sec. 18 y 35)  Indefinida / años
+Audit log             Acción del panel (sec. 18 y 35)  Indefinida / años
 Business/analytics    Vistas, clics, conversiones            Según política
 ```
 
@@ -1420,9 +1417,9 @@ interfaz pública (servicio/puerto), nunca directamente a sus tablas.**
         ┌───────────┬────────────────┼────────────────┬───────────┐
         ▼           ▼                ▼                ▼           ▼
     Identity     Content          Taxonomy         Geography     Media
-    (users,      (artículos,      (categorías,     (país/región/ (imágenes,
+    (users,      (publicaciones,  (categorías,     (país/región/ (imágenes,
      roles,       estados,         etiquetas)        provincia)   video refs)
-     auth)        editorial)
+     auth)        publicación)
         │           │                │                │           │
         └───────────┴────────────────┴────────────────┴───────────┘
                                       │
@@ -1638,7 +1635,7 @@ Prohibido: cubrir contenido inesperadamente, generar clics accidentales,
 romper la navegación, degradar el rendimiento, verse como spam.
 ```
 
-Debe existir separación visual clara entre contenido editorial y
+Debe existir separación visual clara entre contenido propio y
 publicidad. La arquitectura frontend debe soportar distintas posiciones de
 anuncio mediante slots configurables, sin editar manualmente cada página.
 
@@ -1648,7 +1645,7 @@ Antes de implementar una funcionalidad frontend compleja, identificar qué
 conocimiento aplica (UI/UX, design systems, accesibilidad, responsive, SEO,
 performance/Core Web Vitals, arquitectura de componentes, animación,
 seguridad frontend, testing, optimización de imágenes, estado/datos, diseño
-editorial) y usar las herramientas/skills realmente disponibles en el
+de contenido) y usar las herramientas/skills realmente disponibles en el
 entorno de desarrollo antes de improvisar una solución inferior. No inventar
 herramientas que no existen.
 
@@ -1788,7 +1785,7 @@ datos muestran demanda real:
 7.  Afiliados
 ```
 
-Regla de diseño: el contenido editorial, el contenido patrocinado y la
+Regla de diseño: el contenido propio, el contenido patrocinado y la
 publicidad deben distinguirse visualmente sin ambigüedad (ver 43.2).
 
 ### 44.8 Costos, métricas y economía unitaria
@@ -1829,7 +1826,7 @@ existir (progresivamente) estrategia de: derechos de autor y atribución,
 licencias, manejo de contenido enviado por usuarios, proceso de retiro de
 contenido ante reclamos. Credibilidad por encima de clics: fuentes,
 correcciones visibles, fecha de actualización, marcado claro de contenido
-patrocinado, política editorial, política de privacidad, términos de uso,
+patrocinado, política de contenido, política de privacidad, términos de uso,
 política de cookies cuando aplique (ver también sección 35.2, marco legal).
 
 No depender completamente de Facebook/TikTok/YouTube/Google: son canales de
@@ -2626,7 +2623,7 @@ Ordenadas por prioridad.
 9     Videos propios (futuro)            30    Monetización
 10    Imágenes                           31    Distribución de contenido
 11    CMS / Panel administrativo         32    Principio de escalabilidad
-12    Sistema editorial                  33    Principio fundamental
+12    Flujo de publicación           33    Principio fundamental
 13    Usuarios y roles (base RBAC)       34    MVP recomendado
 14    Identidad de plataforma (marca)    35    Cumplimiento normativo / ISO / legal
 15    SEO                                36    Trabajadores y administradores
