@@ -59,7 +59,8 @@ async function openHomeWithStories(page: Page) {
 test("el tema con historias va primero, se ve, avanza y se cierra", async ({ page }) => {
   test.setTimeout(90_000);
   const ring = await openHomeWithStories(page);
-  const firstBubble = page.getByRole("navigation", { name: "Temas" }).getByRole("link").first();
+  // exact: la barra lateral tiene «Temas del menú» y el nombre se compara por partes.
+  const firstBubble = page.getByRole("navigation", { name: "Temas", exact: true }).getByRole("link").first();
   await expect(firstBubble).toHaveAccessibleName(new RegExp(`Ver historias de ${topic.name}`));
 
   await ring.click();
@@ -95,6 +96,8 @@ test("un enlace a una historia que ya terminó lo dice y ofrece seguir", async (
 
 test("una historia compartida se abre directo en el visor", async ({ page }) => {
   await page.goto(`/historias/${created[0]}`);
-  await expect(page.getByRole("dialog", { name: `Historias de ${topic.name}` })).toBeVisible();
-  await expect(page.getByText("Primera historia e2e")).toBeVisible();
+  const dialog = page.getByRole("dialog", { name: `Historias de ${topic.name}` });
+  await expect(dialog).toBeVisible();
+  // Dentro del visor: la página también tiene el texto en su <h1> para lectores de pantalla.
+  await expect(dialog.getByText("Primera historia e2e")).toBeVisible();
 });
