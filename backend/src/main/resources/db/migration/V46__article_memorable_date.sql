@@ -2,9 +2,11 @@
 -- batalla, una fundación, el nacimiento de un personaje, una fiesta). Se
 -- guarda día y mes por separado porque se repite cada año; el año es
 -- opcional (muchas leyendas o tradiciones no tienen uno conocido).
+-- INTEGER y no SMALLINT: Hibernate valida el esquema contra los Integer de
+-- Article y rechaza int2 (rompía el arranque de toda la app).
 ALTER TABLE content.articles
-    ADD COLUMN memorable_month SMALLINT,
-    ADD COLUMN memorable_day SMALLINT,
+    ADD COLUMN memorable_month INTEGER,
+    ADD COLUMN memorable_day INTEGER,
     ADD COLUMN memorable_year INTEGER,
     ADD CONSTRAINT articles_memorable_month_range CHECK (memorable_month BETWEEN 1 AND 12),
     ADD CONSTRAINT articles_memorable_day_range CHECK (memorable_day BETWEEN 1 AND 31),
