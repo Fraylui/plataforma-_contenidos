@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Controller, useController, useFormContext, useWatch } from "react-hook-form";
 import type { AdminImage } from "@/lib/api/admin-types";
 import type { Category, ContentImage } from "@/lib/api/types";
@@ -12,6 +12,7 @@ import { VideoLinksEditor } from "../video-links-editor";
 import { RichTextEditor } from "../rich-text-editor";
 import { PublishRulesCard } from "../guide/content-guide";
 import type { BaseComposerValues } from "./schema";
+import { pickRememberedTopic, readLastTopic, rememberTopic } from "@/lib/admin/last-topic";
 
 /**
  * Distribución de los compositores: contenido a la izquierda; a la derecha
@@ -175,6 +176,16 @@ export function TopicCard({
 }) {
   // useController (no <Controller>) para que el Combobox sea hijo directo de Field y reciba la ayuda y el error.
   const { field, fieldState } = useController<BaseComposerValues, "categoryId">({ name: "categoryId" });
+  const { resetField } = useFormContext<BaseComposerValues>();
+  const empty = !field.value;
+  // Al crear, viene elegido el último tema usado (como en Historias): sin tema el
+  // borrador no se guarda solo. Se fija como valor inicial, no como cambio, para
+  // que abrir «Nueva» y salir no avise de cambios sin guardar.
+  useEffect(() => {
+    if (!empty || readOnly) return;
+    const remembered = pickRememberedTopic(categories, readLastTopic());
+    if (remembered) resetField("categoryId", { defaultValue: remembered });
+  }, [empty, readOnly, categories, resetField]);
   return (
     <Card title={title}>
       <Field
@@ -189,7 +200,11 @@ export function TopicCard({
           value={field.value}
           disabled={readOnly}
           placeholder="Elige un tema"
-          onSelect={(value) => value && field.onChange(value)}
+          onSelect={(value) => {
+            if (!value) return;
+            field.onChange(value);
+            rememberTopic(value);
+          }}
         />
       </Field>
       {children}

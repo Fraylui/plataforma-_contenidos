@@ -8,19 +8,10 @@ import { uploadImageInlineAction } from "@/app/admin/(protected)/imagenes/action
 import { createStoriesAction } from "@/app/admin/(protected)/historias/actions";
 import { Button, Field, Select, buttonClass } from "@/components/ui";
 import { PublishRulesCard } from "@/components/admin/guide/content-guide";
+import { pickRememberedTopic, readLastTopic, rememberTopic } from "@/lib/admin/last-topic";
 import { draftToItem, StoryDraftCard, type Draft } from "./story-draft-card";
 
 const MAX_BATCH = 10;
-const LAST_TOPIC_KEY = "historias-ultimo-tema";
-
-function readLastTopic(): string {
-  try {
-    return localStorage.getItem(LAST_TOPIC_KEY) ?? "";
-  } catch {
-    return "";
-  }
-}
-
 /** El último tema no cambia mientras se compone: no hay a qué suscribirse. */
 function subscribeNothing() {
   return () => {};
@@ -42,9 +33,9 @@ function newDraft(patch: Partial<Draft>): Draft {
 export function StoryComposer({ categories }: { categories: { id: string; name: string }[] }) {
   const router = useRouter();
   // El último tema usado (en este navegador) viene elegido; lo que se elige a mano gana.
-  const lastTopic = useSyncExternalStore(subscribeNothing, readLastTopic, () => "");
+  const lastTopic = useSyncExternalStore(subscribeNothing, () => readLastTopic(), () => "");
   const [chosenTopic, setCategoryId] = useState<string | null>(null);
-  const categoryId = chosenTopic ?? (categories.some((c) => c.id === lastTopic) ? lastTopic : "");
+  const categoryId = chosenTopic ?? pickRememberedTopic(categories, lastTopic);
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [capped, setCapped] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -97,11 +88,7 @@ export function StoryComposer({ categories }: { categories: { id: string; name: 
       toast.error(result.error);
       return;
     }
-    try {
-      localStorage.setItem(LAST_TOPIC_KEY, categoryId);
-    } catch {
-      // sin almacenamiento: la próxima vez se elige el tema de nuevo
-    }
+    rememberTopic(categoryId);
     toast.success(count === 1 ? "Historia publicada: se ve 24 h" : `${count} historias publicadas: se ven 24 h`, {
       action: { label: "Ver en el sitio", onClick: () => window.open("/", "_blank") },
     });
