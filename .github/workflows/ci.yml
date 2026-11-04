@@ -146,7 +146,9 @@ jobs:
 
       - name: Typecheck
         working-directory: frontend
-        run: npx tsc --noEmit
+        # PageProps/LayoutProps son tipos globales que genera Next en
+        # .next/types (no están en el repo): sin typegen, tsc no los encuentra.
+        run: npx next typegen && npx tsc --noEmit
 
       - name: Unit tests
         working-directory: frontend
