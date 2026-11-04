@@ -11,6 +11,8 @@ Description=Backup de plataforma-contenidos (PostgreSQL + medios locales)
 # stack (infra/docker-compose.yml) ya levantado.
 After=docker.service
 Requires=docker.service
+# Si el backup falla, avisa al dueño por Telegram (scripts/avisar.sh).
+OnFailure=plataforma-aviso@%n.service
 
 [Service]
 Type=oneshot

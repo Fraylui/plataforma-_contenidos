@@ -55,49 +55,82 @@ cada contenido se actualiza al instante). La respuesta trae `X-Cache-Status`
 
 ## 2. Preparar el VPS (una sola vez)
 
-### 2.1 Swap de 4 GB
+VPS recomendado: Contabo Cloud VPS 10 (4 vCPU, 8 GB RAM, NVMe) con Ubuntu 24.04.
+La plataforma encendida sin visitas ya usa unos 3 GB; con 4 GB quedaría al límite.
 
-El VPS no trae swap; sin él, un pico de memoria hace que el kernel mate procesos.
-
-```bash
-sudo fallocate -l 4G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-```
-
-### 2.2 Firewall: solo SSH, 80 y 443
+### 2.1 Un solo script deja el VPS listo
 
 ```bash
-sudo ufw allow OpenSSH
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
-sudo ufw enable
+curl -fsSL https://raw.githubusercontent.com/Fraylui/plataforma-_contenidos/main/scripts/preparar-vps.sh -o preparar-vps.sh
+sudo bash preparar-vps.sh
 ```
 
-Postgres, Redis, backend y frontend ya escuchan solo en `127.0.0.1` (ver compose).
+`scripts/preparar-vps.sh` hace, y se puede repetir sin romper nada:
 
-### 2.3 Levantar
+| Qué | Para qué |
+|---|---|
+| Actualizaciones de seguridad automáticas | Parches del sistema sin entrar al VPS |
+| Swap de 4 GB (`swappiness=10`) | Un pico de memoria no tumba la base |
+| Firewall: solo SSH, 80 y 443 + fail2ban | Nadie entra a Postgres/Redis; bloquea ataques a SSH |
+| Docker oficial + rclone | Contenedores y copia de backups a R2 |
+| Usuario `deploy` (sin root) en `/opt/plataforma-contenidos` | La app no corre como root |
+| Temporizadores | Backup diario 03:00, vigilancia cada 5 min, limpieza de Docker los domingos |
+
+Postgres, Redis, backend y frontend escuchan solo en `127.0.0.1` (ver compose);
+solo nginx da a internet.
+
+### 2.2 Las imágenes se construyen en GitHub, no en el VPS
+
+Compilar Java y Next.js en el VPS lo dejaba lento varios minutos en cada
+actualización. Ahora `.github/workflows/imagenes.yml` las construye en cada
+cambio a `main` y las publica en `ghcr.io`. El VPS solo las descarga.
+
+Una vez:
+
+1. En GitHub: **Settings → Secrets and variables → Actions → Variables** →
+   `SITE_URL` = `https://tudominio.com`.
+2. Un token para que el VPS pueda descargar las imágenes: **GitHub → Settings →
+   Developer settings → Personal access tokens (classic)** con solo
+   `read:packages`. En el VPS, como `deploy`:
+   `echo <token> | docker login ghcr.io -u Fraylui --password-stdin`
+
+### 2.3 Levantar y actualizar
 
 ```bash
-cd infra   # este mismo directorio
-cp ../.env.example .env   # completar DOMAIN, SITE_URL, contraseñas, etc.
-./nginx/init-letsencrypt.sh
-docker compose up -d --build
+su - deploy
+cd /opt/plataforma-contenidos
+cp .env.example .env            # completar DOMAIN, SITE_URL, contraseñas, R2, Telegram
+./infra/nginx/init-letsencrypt.sh   # certificado HTTPS (solo la primera vez)
+scripts/desplegar.sh            # descarga imágenes, levanta, espera al backend, limpia
+sudo systemctl start plataforma-backup.timer plataforma-vigilar.timer plataforma-limpieza.timer
 ```
+
+Para cada actualización, después de unir cambios en `main` y ver la acción
+«Imágenes Docker» en verde: `scripts/desplegar.sh`.
+
+Volver a una versión anterior: `IMAGE_TAG=<sha de 12 letras> scripts/desplegar.sh`
+(el sha está en la pestaña Actions de GitHub).
 
 ### 2.4 Copia de backups fuera del VPS
 
-Ya existe `scripts/remote-copy.sh` (copia a Cloudflare R2 con rclone, 10 GB
-gratis). Seguir los pasos de su cabecera y poner en `.env`:
+El backup diario (`scripts/backup.sh`) ya verifica que el volcado se pueda
+restaurar. Para que además salga del VPS, `scripts/remote-copy.sh` lo copia a
+Cloudflare R2 (10 GB gratis). Una vez, como `deploy`:
+
+```bash
+rclone config      # nombre: r2 · tipo: S3 → Cloudflare R2 · claves del token de R2
+                   # endpoint: https://<account_id>.r2.cloudflarestorage.com
+```
+
+y en `.env`:
 
 ```bash
 BACKUP_REMOTE_COPY_CMD=/opt/plataforma-contenidos/scripts/remote-copy.sh
+RCLONE_BACKUP_PATH=plataforma-contenidos-backups   # bucket privado, distinto al de fotos
 ```
 
 Sin esto el backup queda en el mismo disco que la base: si se pierde el VPS,
-se pierde todo.
+se pierde todo. Si un backup falla, llega aviso (§2.6).
 
 ### 2.5 Fotos en Cloudflare R2 (para que el VPS no se llene)
 
@@ -143,6 +176,24 @@ Volver al disco local es poner `MEDIA_STORAGE=local` (las fotos subidas a R2
 mientras tanto quedan allá: copiarlas de vuelta con `rclone copy` al revés).
 
 ---
+
+### 2.6 Avisos si algo falla
+
+Dos capas, ambas gratis:
+
+1. **Dentro del VPS** (`scripts/vigilar.sh`, cada 5 min): sitio y API
+   responden, disco bajo 85 %, memoria libre, los 5 contenedores encendidos.
+   Avisa por Telegram solo cuando algo cambia (se cae / se recupera). También
+   avisa si falla el backup o la limpieza.
+   - En Telegram, habla con **@BotFather** → `/newbot` → copia el token.
+   - Escríbele algo a tu bot y abre
+     `https://api.telegram.org/bot<token>/getUpdates`: el número en
+     `"chat":{"id":...}` es tu chat.
+   - En `.env`: `TELEGRAM_BOT_TOKEN=...` y `TELEGRAM_CHAT_ID=...`.
+   - Probar: `scripts/avisar.sh "prueba"`.
+2. **Fuera del VPS** (si el VPS entero se apaga, el paso 1 no corre): un
+   monitor gratuito como UptimeRobot o Better Stack revisando
+   `https://tudominio.com/` cada 5 min, con aviso al correo o Telegram.
 
 ## 3. Cloudflare (plan Free)
 
@@ -193,4 +244,5 @@ Circulan consejos (incluidos de chatbots) que borran datos:
 | `find /var/data/images -mtime +90 -delete` | Borra **todas** las imágenes con más de 90 días, también las publicadas. |
 
 Para limpiar imágenes de Docker viejas sin riesgo, solo imágenes:
-`docker image prune -f` (no toca volúmenes ni contenedores).
+`docker image prune -f` (no toca volúmenes ni contenedores). Ya lo hacen solos
+`scripts/desplegar.sh` y el temporizador `plataforma-limpieza` (domingos).

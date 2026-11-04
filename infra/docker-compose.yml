@@ -11,7 +11,8 @@ name: plataforma-contenidos
 # construye todas las imágenes ANTES de levantar contenedores, así que un
 # solo `docker compose up -d --build` NO alcanza para el frontend la
 # primera vez (el backend todavía no está arriba cuando se arma su imagen).
-# Ver README.md para la secuencia de dos pasos.
+# Ver README.md para la secuencia de dos pasos. En el VPS no se construye:
+# scripts/desplegar.sh descarga las imágenes que arma GitHub.
 # Topes de memoria (mem_limit): pensados para el VPS más chico de Contabo
 # (8 GB). Sin tope, un pico en cualquier servicio (Postgres creciendo su
 # caché, la JVM pidiendo más heap) puede dejar sin memoria al resto y el
@@ -73,6 +74,10 @@ services:
       retries: 10
 
   backend:
+    # En el VPS se descarga la imagen ya construida en GitHub
+    # (.github/workflows/imagenes.yml, scripts/desplegar.sh). `build` queda
+    # para probar en local con `docker compose up --build`.
+    image: ${BACKEND_IMAGE:-ghcr.io/fraylui/plataforma-contenidos-backend}:${IMAGE_TAG:-latest}
     build: ../backend
     restart: unless-stopped
     logging: *default-logging
@@ -140,6 +145,7 @@ services:
       start_period: 45s
 
   frontend:
+    image: ${FRONTEND_IMAGE:-ghcr.io/fraylui/plataforma-contenidos-frontend}:${IMAGE_TAG:-latest}
     build:
       context: ../frontend
       # BuildKit no puede adjuntarse por nombre a una red custom de Compose
@@ -227,6 +233,8 @@ services:
   certbot:
     image: certbot/certbot
     restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 128m
     volumes:
       - ./nginx/certbot/conf:/etc/letsencrypt
       - ./nginx/certbot/www:/var/www/certbot
