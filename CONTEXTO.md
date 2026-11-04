@@ -1181,6 +1181,7 @@ Continuidad de negocio        → ISO 22301 (cuando exista dependencia crítica)
 Calidad de software           → ISO/IEC 25010 (características de calidad)
 Desarrollo seguro             → OWASP ASVS, OWASP SAMM, OWASP Top 10
 Gestión de riesgos            → ISO 31000 / NIST CSF (como guía, no certificación)
+Gobierno y gestión de TI      → COBIT 2019 (como guía de procesos y controles, no certificación)
 ```
 
 No se busca certificar ISO 27001 desde el inicio (es costoso y prematuro para
@@ -1886,6 +1887,46 @@ Decididos para más adelante:
   cambian poco.
 - Selector de país/ciudad (Geografía) como "Enviar a Perú" de Amazon:
   cuando haya suficiente contenido por zona.
+
+---
+
+## 45.4 Recomendaciones y publicidad: regla de cumplimiento
+
+Recomendar contenido editorial (una leyenda, un lugar público, una fiesta
+tradicional) no es publicidad. Pasa a serlo cuando hay **pago,
+contraprestación o interés comercial** de por medio, y en ese caso la ley
+peruana exige que se reconozca como tal: D. Leg. 1044 (competencia
+desleal, principio de autenticidad: prohibida la publicidad encubierta) y
+Ley 29571 (Código de Protección y Defensa del Consumidor), supervisados por
+Indecopi. Ver también 35.2, 43.2 y 44.10.
+
+Reglas para todo algoritmo de la sección 45 (feed, relacionados, "Lo más
+gustado", "Elige tu camino", búsqueda):
+
+1. **Solo contenido editorial.** Hoy recomiendan únicamente Publicaciones,
+   Lugares y Eventos (`FeedService.FEED_TYPES`). El Directorio (negocios,
+   restaurantes, recreos, hoteles) **nunca** entra en recomendaciones
+   automáticas.
+2. **Nada pagado sin etiqueta.** Si algún día se vende "publicación
+   destacada", patrocinio de evento o de categoría (44.7), ese contenido
+   lleva la marca visible "Patrocinado" en toda tarjeta y detalle, y queda
+   **fuera** de los algoritmos editoriales. Solo puede aparecer en las
+   posiciones de publicidad (43.2). Antes de vender cualquiera de esas
+   opciones se agrega al modelo un campo explícito de patrocinio y un test
+   que garantice esta exclusión.
+3. **Sin relación comercial oculta.** Un evento de un negocio privado (una
+   fiesta en un recreo, una promoción) solo se publica como editorial si no
+   hubo pago ni acuerdo con el negocio. Si lo hubo, aplica la regla 2.
+4. **Criterio declarado.** Los algoritmos ordenan solo por señales reales y
+   públicas (fecha, categoría, me gusta). Nunca por quién paga.
+5. **Validación legal.** Antes de activar cualquier ingreso por contenido
+   patrocinado o directorio destacado, revisarlo con un abogado o con las
+   guías de Indecopi. Esta sección es criterio de diseño, no asesoría legal.
+
+ISO 27001 y COBIT certifican o guían a la **organización** (políticas,
+procesos, evidencia), no al código por sí solo. El código aporta los
+controles y la evidencia que una auditoría pide (sección 35.1 y 35.3):
+roles (RBAC), log de auditoría, OWASP, backups y registros.
 
 ---
 
