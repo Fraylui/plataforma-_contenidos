@@ -15,8 +15,8 @@ import { cn } from "@/lib/utils";
 export function NeighborNav({ neighbors }: { neighbors: ArticleNeighbors }) {
   if (!neighbors.previous && !neighbors.next) return null;
   return (
-    <nav aria-label="Seguir leyendo" className="mt-10">
-      <h2 className="text-xs font-semibold tracking-wider text-muted uppercase">Seguir leyendo</h2>
+    <nav aria-label="Sigue explorando" className="mt-10">
+      <h2 className="text-xs font-semibold tracking-wider text-muted uppercase">Sigue explorando</h2>
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
         {neighbors.previous ? <NeighborCard article={neighbors.previous} direction="previous" /> : <span className="hidden sm:block" />}
         {neighbors.next && <NeighborCard article={neighbors.next} direction="next" />}

@@ -23,18 +23,14 @@ import {
   type ActionResult,
 } from "@/app/admin/(protected)/publicaciones/actions";
 
-const ARTICLE_TYPES: ArticleType[] = [
-  "ARTICULO",
-  "NOTICIA",
-  "REPORTAJE",
-  "CRONICA",
-  "GUIA",
-  "ENTREVISTA",
-  "HISTORIA",
-  "RANKING",
-  "TUTORIAL",
-  "OPINION",
-];
+/**
+ * Tipos que se ofrecen al crear contenido. Los de formato periodístico
+ * (Noticia, Reportaje, Crónica, Entrevista, Opinión) ya no se ofrecen: la
+ * plataforma no es un medio (CONTEXTO.md sección 1). Siguen existiendo en
+ * el backend para no romper contenido ya guardado, y si se edita uno así
+ * se muestra su tipo actual para poder cambiarlo.
+ */
+const ARTICLE_TYPES: ArticleType[] = ["ARTICULO", "HISTORIA", "GUIA", "RANKING", "TUTORIAL"];
 
 const ROBOTS_OPTIONS = ["index,follow", "noindex,follow", "index,nofollow", "noindex,nofollow"];
 
@@ -305,7 +301,10 @@ export function ArticleForm({
           <SectionCard title="Organización">
             <FormField label="Tipo" name="articleType">
               <Combobox
-                options={ARTICLE_TYPES.map((type) => ({ id: type, label: articleTypeLabel(type) }))}
+                options={(ARTICLE_TYPES.includes(articleType) ? ARTICLE_TYPES : [articleType, ...ARTICLE_TYPES]).map((type) => ({
+                  id: type,
+                  label: articleTypeLabel(type),
+                }))}
                 value={articleType}
                 disabled={readOnly}
                 // Campo obligatorio: ignoramos el toggle-a-null del Combobox — siempre

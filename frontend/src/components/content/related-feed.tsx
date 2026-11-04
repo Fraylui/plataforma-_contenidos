@@ -16,7 +16,7 @@ const HREF_PREFIX: Record<FeedItemType, string> = {
  * compacta (miniatura + categoría + título), no tarjetas grandes apiladas:
  * en una columna angosta, 6 tarjetas con imagen 16:9 ocupaban más alto que
  * el propio contenido y la barra se sentía tosca. Misma anatomía que
- * NeighborNav ("Seguir leyendo"), así toda la barra lateral se lee como un
+ * NeighborNav ("Sigue explorando"), así toda la barra lateral se lee como un
  * solo sistema. Sin el tipo de contenido (Artículo/Lugar/Evento) al lado:
  * es ruido de cara al visitante, igual que en las tarjetas de listado.
  */

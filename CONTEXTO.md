@@ -7,19 +7,36 @@ cambia una decisión importante, nunca se reescribe "por las dudas".*
 
 # 1. Descripción
 
-Se desarrollará una **Plataforma de Contenidos Digitales** profesional, escalable, segura y modular, diseñada para publicar, organizar y distribuir información de diferentes categorías en un solo lugar.
+Es una **startup de contenido inmersivo**: una forma nueva e interactiva de
+ver, escuchar y recorrer historias, lugares, cultura, naturaleza y
+tradiciones — de cualquier tema y categoría. La meta es que la gente
+encuentre lo que le gusta **y se quede** viendo, leyendo y escuchando.
 
-No será simplemente un blog ni una página de noticias. Será un **sistema de gestión y distribución de contenidos** — un ecosistema de contenidos, no una publicación centrada en artículos — capaz de manejar diferentes formatos, categorías, ubicaciones geográficas, autores, multimedia, SEO, publicidad y futuras funcionalidades.
+**No es** un blog, ni un medio editorial, ni un sitio de noticias, ni
+periodismo. Ese formato (titular + texto + fecha + "seguir leyendo") es del
+pasado y no es la referencia. Inspiración de producto (la experiencia, nunca
+la identidad visual ni el código):
 
-## 1.1 Por qué no es un blog
+| Referencia | Qué se toma |
+|---|---|
+| Netflix | Filas por tema, **series con episodios**, "continuar viendo", portada con un destacado grande |
+| National Geographic / Animal Planet | Documental **inmersivo**: imagen y video a pantalla completa, mapa, sonido |
+| Instagram / TikTok | **Historias** y recorrido vertical a pantalla completa, deslizando |
+| YouTube | Video primero; **canales** temáticos |
+| Facebook / X / Reddit | Reacciones, compartir y lo que está en tendencia (sin contenido de usuarios, ver 1.4) |
 
-Un blog normalmente se centra en artículos. Esta plataforma gestiona **diferentes tipos de contenido y los relaciona entre sí** (ver también el diagrama de la sección 2). Ejemplos concretos:
+## 1.1 Qué significa en decisiones concretas
 
-* Un lugar turístico puede tener historia, fotografías, videos y eventos relacionados.
-* Una festividad puede estar conectada con una ubicación, una galería de imágenes y artículos relacionados.
-* Una comunidad puede tener información cultural, gastronómica y turística asociada.
-
-Esto es lo que debe guiar decisiones de diseño (visual y de arquitectura): ninguna sección — Lugares, Eventos, Directorio, etc. — debe sentirse como un apéndice forzado dentro de un formato pensado solo para artículos/noticias. Ver también sección 43 (estándar de diseño): la identidad visual debe funcionar para todos los tipos de contenido de la sección 3, no solo para el editorial de actualidad.
+* La unidad no es "el artículo": son **experiencias** que conectan varios
+  formatos (un lugar con su leyenda, fotos, video, su fiesta y su mapa) y
+  se recorren, no se "leen" de arriba abajo.
+* Lenguaje de producto, no de periódico: nada de "Noticia", "Crónica",
+  "Opinión", "Reportaje", "Seguir leyendo", "Última hora". Se habla de
+  Series, Episodios, Historias, Lugares, Experiencias.
+* Diseño visual primero: imagen y video grandes, pantalla completa en
+  celular, interacción (deslizar, tocar, reaccionar, compartir).
+* Ninguna sección (Lugares, Eventos, Directorio, etc.) debe sentirse un
+  apéndice de un formato de artículos. Ver sección 43 (estándar de diseño).
 
 ## 1.2 Alcance geográfico
 
@@ -27,7 +44,25 @@ La plataforma inicialmente estará orientada a **Perú** (comenzando con conteni
 
 ## 1.3 Visión
 
-Construir una plataforma de contenidos moderna, escalable y preparada para crecer, que reúna información, cultura, conocimiento, turismo y entretenimiento — con el tiempo, evolucionando hacia una empresa digital de contenidos con alcance nacional e internacional (el ángulo de negocio de esa evolución, con sus fases e hipótesis, está en la sección 44 — acá se habla del producto, no de cifras).
+Ser la plataforma de referencia para **descubrir y vivir** cultura,
+lugares, naturaleza e historias — empezando por lo local y creciendo a lo
+nacional e internacional — con la calidad de producción de un documental y
+la adicción sana de una app de historias. El ángulo de negocio está en la
+sección 44; acá se habla del producto, no de cifras.
+
+## 1.4 Quién crea el contenido (decisión del 2026-11-04)
+
+```text
+AHORA     → El dueño crea todo el contenido.
+DESPUÉS   → También lo crean sus trabajadores (roles del panel, sección 13/36).
+NUNCA (por ahora) → Contenido subido por el público.
+```
+
+Los visitantes **solo consumen e interactúan** (ver, reaccionar, compartir,
+guardar). No publican, no comentan con texto libre, no suben archivos. Por
+eso no hacen falta moderación de contenido de terceros ni cuentas de
+creadores públicos; cualquier función que lo requiera se discute como
+decisión nueva, no se agrega "de paso".
 
 ---
 
