@@ -82,7 +82,7 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
         />
       </ListingHeader>
 
-      <div className="mt-8">
+      <div className="mt-8 empty:hidden">
         <AdBlock position="cabecera" className="aspect-[5/1] sm:aspect-[8/1]" />
       </div>
 
@@ -114,7 +114,7 @@ export default async function DirectoryPage(props: PageProps<"/directorio">) {
         )}
       </section>
 
-      <div className="mt-10">
+      <div className="mt-10 empty:hidden">
         <AdBlock position="listing" />
       </div>
     </div>

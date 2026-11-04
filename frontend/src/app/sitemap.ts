@@ -6,13 +6,14 @@ import {
   listAllPublishedEventsForSitemap,
   listAllPublishedGalleriesForSitemap,
   listAllPublishedPlacesForSitemap,
+  getPlatformSettings,
   getPrimaryNavVisibility,
 } from "@/lib/api/client";
 import { SITE_URL } from "@/lib/site-url";
 import { isEventFinished } from "@/lib/content-labels";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [articles, places, events, galleries, businesses, categories, visibility] = await Promise.all([
+  const [articles, places, events, galleries, businesses, categories, visibility, settings] = await Promise.all([
     listAllPublishedArticlesForSitemap(),
     listAllPublishedPlacesForSitemap(),
     listAllPublishedEventsForSitemap(),
@@ -20,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     listAllPublishedBusinessesForSitemap(),
     listActiveCategories(),
     getPrimaryNavVisibility(),
+    getPlatformSettings(),
   ]);
 
   const articleEntries: MetadataRoute.Sitemap = articles.map((article) => ({
@@ -105,10 +107,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "yearly",
       priority: 0.2,
     },
-    {
-      url: `${SITE_URL}/contacto`,
-      changeFrequency: "yearly",
-      priority: 0.3,
-    },
+    // /contacto solo existe con un correo configurado (CONTEXTO.md 43.5).
+    ...(settings.contactEmail
+      ? [{ url: `${SITE_URL}/contacto`, changeFrequency: "yearly" as const, priority: 0.3 }]
+      : []),
   ];
 }

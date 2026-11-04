@@ -158,11 +158,13 @@ export async function SiteFooter() {
           <nav aria-label="Ayuda">
             <h2 className={headingClass}>Ayuda</h2>
             <ul className="mt-3">
-              <li>
-                <Link href="/contacto" className={linkClass}>
-                  Contacto
-                </Link>
-              </li>
+              {settings.contactEmail && (
+                <li>
+                  <Link href="/contacto" className={linkClass}>
+                    Contacto
+                  </Link>
+                </li>
+              )}
               <li>
                 <Link href="/privacidad" className={linkClass}>
                   Política de privacidad

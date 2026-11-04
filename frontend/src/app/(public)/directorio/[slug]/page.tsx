@@ -267,7 +267,7 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
             dangerouslySetInnerHTML={{ __html: business.body }}
           />
 
-          <div className="mt-10">
+          <div className="mt-10 empty:hidden">
             <AdBlock position="article" />
           </div>
 
@@ -290,7 +290,7 @@ export default async function BusinessPage(props: PageProps<"/directorio/[slug]"
                 </div>
               </section>
             </div>
-            <div className="lg:sticky lg:top-32">
+            <div className="lg:sticky lg:top-32 empty:hidden">
               <AdBlock position="listing" className="aspect-[16/9] rounded-2xl" />
             </div>
           </aside>

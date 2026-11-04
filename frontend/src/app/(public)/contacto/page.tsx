@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getPlatformSettings } from "@/lib/api/client";
@@ -20,7 +21,9 @@ const UPDATED_AT = "4 de octubre de 2026";
 export default async function ContactPage() {
   const settings = await getPlatformSettings();
   const email = settings.contactEmail;
-  const mail = (subject: string) => (email ? `mailto:${email}?subject=${encodeURIComponent(subject)}` : undefined);
+  // Sin correo configurado la página no existe: nada vacío en el sitio (CONTEXTO.md 43.5).
+  if (!email) notFound();
+  const mail = (subject: string) => `mailto:${email}?subject=${encodeURIComponent(subject)}`;
 
   const sections: LegalSection[] = [
     {
@@ -37,7 +40,7 @@ export default async function ContactPage() {
     {
       id: "escribenos",
       title: "Escríbenos",
-      content: email ? (
+      content: (
         <>
           <p>
             Nuestro correo es{" "}
@@ -73,8 +76,6 @@ export default async function ContactPage() {
             </li>
           </ul>
         </>
-      ) : (
-        <p>Todavía no hay un correo de contacto publicado. Vuelve pronto.</p>
       ),
     },
     {

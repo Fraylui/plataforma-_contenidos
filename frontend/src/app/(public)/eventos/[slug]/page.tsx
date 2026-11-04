@@ -256,7 +256,7 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
             dangerouslySetInnerHTML={{ __html: event.body }}
           />
 
-          <div className="mt-10">
+          <div className="mt-10 empty:hidden">
             <AdBlock position="article" />
           </div>
 

@@ -62,7 +62,8 @@ export function HomeSidebar({
       )}
 
       {/* "listing" (no "cabecera"): esta caja vive en la columna angosta del sidebar, no es un banner de tope de página — mismo placement que el banner de cierre de los listados, solo que acá se ve como rectángulo en vez de banner ancho. */}
-      <div className={SECTION}>
+      {/* empty:hidden: sin anuncio configurado, AdBlock no dibuja nada y la caja con relleno quedaba vacía (CONTEXTO.md 43.5). */}
+      <div className={`${SECTION} empty:hidden`}>
         <AdBlock position="listing" className="aspect-[16/9]" />
       </div>
 

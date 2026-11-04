@@ -243,7 +243,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
             dangerouslySetInnerHTML={{ __html: place.body }}
           />
 
-          <div className="mt-10">
+          <div className="mt-10 empty:hidden">
             <AdBlock position="article" />
           </div>
 

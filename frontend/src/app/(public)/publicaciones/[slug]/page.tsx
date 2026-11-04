@@ -267,7 +267,7 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
             dangerouslySetInnerHTML={{ __html: article.body }}
           />
 
-          <div className="mt-10">
+          <div className="mt-10 empty:hidden">
             <AdBlock position="article" />
           </div>
 

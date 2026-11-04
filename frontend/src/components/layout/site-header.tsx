@@ -93,12 +93,15 @@ export async function SiteHeader() {
               </NavLink>
             ))}
           </nav>
-          <Link
-            href="/contacto"
-            className="ml-auto shrink-0 rounded-md px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-canvas hover:text-foreground"
-          >
-            Contacto
-          </Link>
+          {/* Sin correo de contacto configurado, /contacto no existe (CONTEXTO.md 43.5). */}
+          {settings.contactEmail && (
+            <Link
+              href="/contacto"
+              className="ml-auto shrink-0 rounded-md px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-canvas hover:text-foreground"
+            >
+              Contacto
+            </Link>
+          )}
         </div>
       </div>
     </header>

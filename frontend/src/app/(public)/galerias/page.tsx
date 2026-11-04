@@ -49,7 +49,7 @@ export default async function GalleriesPage(props: PageProps<"/galerias">) {
         <FilterMenu label="Filtrar por tema" allLabel="Todas las categorías" options={categories.map((c) => ({ value: c.id, label: c.name }))} activeValue={categoryId} paramName="categoryId" basePath={BASE_PATH} />
       </ListingHeader>
 
-      <div className="mt-8">
+      <div className="mt-8 empty:hidden">
         <AdBlock position="cabecera" className="aspect-[5/1] sm:aspect-[8/1]" />
       </div>
 
@@ -70,7 +70,7 @@ export default async function GalleriesPage(props: PageProps<"/galerias">) {
                 />
               ))}
             </div>
-            <div className="mt-10">
+            <div className="mt-10 empty:hidden">
               <AdBlock position="listing" />
             </div>
             <Pagination

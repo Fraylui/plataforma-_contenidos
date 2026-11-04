@@ -58,4 +58,8 @@ describe("LoginForm (integración de componente con la server action mockeada)",
     await user.click(screen.getByRole("button", { name: "Iniciar sesión" }));
     expect(loginAction).not.toHaveBeenCalled();
   });
+  it("nunca envía las credenciales por GET si el navegador enviara el formulario solo", () => {
+    const { container } = render(<LoginForm redirectTo={null} />);
+    expect(container.querySelector("form")?.getAttribute("method")).toBe("post");
+  });
 });
