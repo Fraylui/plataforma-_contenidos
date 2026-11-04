@@ -12,14 +12,14 @@ importante.
 
 ```text
 frontend/   Next.js (TypeScript, App Router, Tailwind) — Dockerfile propio
-backend/    Spring Boot (Java 21, Maven) — Dockerfile propio
+backend/    Spring Boot (Java 25, Maven) — Dockerfile propio
 infra/      docker-compose (Postgres + Redis + backend + frontend)
 ```
 
 ## Requisitos
 
-- Node.js 20.9+ y npm
-- Java 21+ y Maven (o usar `./mvnw` incluido en `backend/`)
+- Node.js 24 LTS y npm
+- Java 25 (LTS) y Maven (o usar `./mvnw` incluido en `backend/`)
 - Docker (para PostgreSQL/Redis locales)
 
 ## Puesta en marcha (desarrollo local)

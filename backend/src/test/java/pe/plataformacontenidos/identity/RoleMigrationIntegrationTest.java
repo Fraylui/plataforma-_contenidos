@@ -24,7 +24,7 @@ import org.testcontainers.utility.DockerImageName;
  */
 class RoleMigrationIntegrationTest {
 
-    private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>(DockerImageName.parse("postgres:16-alpine"));
+    private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>(DockerImageName.parse("postgres:18-alpine"));
     private static JdbcTemplate jdbc;
     private static Flyway flyway;
 
