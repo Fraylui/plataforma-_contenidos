@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { FeedScreen } from "@/components/feed/feed-screen";
+import { sectionHasContent } from "@/lib/api/client";
 
 const BASE_PATH = "/publicaciones";
 
@@ -17,7 +19,9 @@ export const metadata: Metadata = {
  * filtrar en Instagram — sin portada de sección ni desplegables. Las URLs
  * viejas con ?page= siguen respondiendo (canonical a la sección).
  */
-export default function PublicationsPage() {
+export default async function PublicationsPage() {
+  // Sección sin nada publicado: no existe hasta que tenga contenido (CONTEXTO.md 43.5).
+  if (!(await sectionHasContent(BASE_PATH))) notFound();
   return (
     <FeedScreen
       heading="Publicaciones"

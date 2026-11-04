@@ -331,6 +331,16 @@ const NAV_PRESENCE_CHECKS: { href: string; checks: () => Promise<PageResponse<un
  * del mismo request), así que llamar esta función otra vez desde el footer
  * no repite trabajo real.
  */
+/**
+ * Para la página de una sección (/lugares, /series…): si todavía no tiene
+ * nada publicado, la página no existe (404) en vez de mostrar "Todavía no
+ * hay…" — misma verificación que la navegación (CONTEXTO.md 43.5).
+ */
+export async function sectionHasContent(href: string): Promise<boolean> {
+  const visibility = await getPrimaryNavVisibility();
+  return visibility[href] === true;
+}
+
 export async function getPrimaryNavVisibility(): Promise<Record<string, boolean>> {
   const results = await Promise.all(
     NAV_PRESENCE_CHECKS.map(async ({ href, checks }) => {

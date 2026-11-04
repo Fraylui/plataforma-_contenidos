@@ -1542,6 +1542,25 @@ Memoria de decisiones   → decisiones importantes (por qué PostgreSQL, por
                         modular) se documentan, no se asumen de memoria
 ```
 
+### 42.1 Ciclo de trabajo obligatorio (regla del dueño, 2026-11-04)
+
+Todo cambio, grande o chico, se hace en este ciclo, y se repite hasta que
+no quede nada rojo:
+
+```text
+1. REVISAR    → antes de tocar código: inconsistencias, bugs conocidos,
+                logs (backend, Vercel, CI de GitHub) y avisos de seguridad.
+2. CAMBIAR    → un paso pequeño a la vez, no "todo junto".
+3. VERIFICAR  → tipos, lint, pruebas, build; leer los logs del CI.
+                Un fallo se investiga hasta su causa (nunca "es inestable").
+4. CORREGIR   → y volver a 3. Si la causa no es del cambio, se arregla
+                igual o se deja dicho exactamente qué falta y por qué.
+5. DOCUMENTAR → decisión o regla nueva → este documento.
+```
+
+Nada se da por terminado solo porque "compila": tiene que pasar el ciclo
+completo y, si es interfaz, la revisión visual de 43.4.
+
 Multi-agente (un orquestador con agentes especializados en backend, frontend,
 seguridad, QA) queda como posibilidad futura, no como punto de partida: al
 inicio, un agente principal con buen contexto y estos loops es suficiente.
@@ -1611,6 +1630,22 @@ Después de implementar una interfaz, antes de darla por terminada, responder:
 **Regla dura:** no terminar una funcionalidad frontend solo porque funciona
 técnicamente. Debe funcionar y ofrecer una experiencia profesional. Si el
 resultado es visualmente mediocre, no se considera terminado.
+
+### 43.5 Lo vacío no existe (regla del dueño, 2026-11-04)
+
+Nada sin contenido aparece en el sitio público hasta que lo tenga:
+
+| Pieza | Cómo se cumple |
+|---|---|
+| Secciones en la barra lateral, la barra inferior y los chips del feed | `getPrimaryNavVisibility` (≥1 publicado) |
+| Página de una sección vacía (`/publicaciones`, `/lugares`, `/galerias`, `/celebraciones`, `/series`) | 404 (`sectionHasContent`), no "Todavía no hay…" |
+| Temas | `listCategoriesWithContent`; `/categorias/[slug]` vacío → 404 |
+| Contacto | Sin correo configurado no se muestran "Escríbenos" ni "Tus datos" |
+| Sitemap | Solo secciones con contenido |
+
+Un borrador, algo en revisión o programado **no** cuenta como contenido. La
+única excepción es el inicio antes del primer contenido publicado (sitio
+recién instalado): ahí se dice que todavía no hay nada.
 
 ---
 
