@@ -1203,6 +1203,11 @@ Kubernetes
 El proyecto no puede depender solo de "buenas prácticas" sueltas: debe
 anclarse a marcos reconocidos, de forma progresiva (no todo desde el día 1).
 
+> Matriz completa de leyes, normas ISO y marcos (ITIL, COBIT 2019, NIST CSF,
+> OWASP), con estado, evidencia, bancos de datos para la ANPD, procedimiento
+> ante incidentes y pendientes del dueño: **`CUMPLIMIENTO.md`**. Se
+> actualiza en el mismo PR que cambie algo de lo que describe.
+
 ### 35.1 Marcos de referencia
 
 ```text
@@ -1211,7 +1216,9 @@ Privacidad / datos personales → ISO/IEC 27701
 Continuidad de negocio        → ISO 22301 (cuando exista dependencia crítica)
 Calidad de software           → ISO/IEC 25010 (características de calidad)
 Desarrollo seguro             → OWASP ASVS, OWASP SAMM, OWASP Top 10
-Gestión de riesgos            → ISO 31000 / NIST CSF (como guía, no certificación)
+Gestión de riesgos            → ISO 31000 / NIST CSF 2.0 (como guía, no certificación)
+Gobierno y servicios de TI    → COBIT 2019 / ITIL 4 (guía de procesos, no certificación)
+Ciclo de vida / accesibilidad → ISO/IEC 12207 / ISO/IEC 40500 (WCAG 2.2 AA)
 ```
 
 No se busca certificar ISO 27001 desde el inicio (es costoso y prematuro para
