@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
+import { History } from "lucide-react";
+import { useLocalDraft } from "@/lib/admin/local-draft";
 import type { Article, ArticleType, Category, ContentImage } from "@/lib/api/types";
 import type { AdminImage, ArticleInput, ContentVideoInput } from "@/lib/api/admin-types";
 import type { ArticlePermissions } from "@/lib/admin/article-permissions";
@@ -54,7 +56,13 @@ function toOptionalInt(value: string): number | null {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
-const ROBOTS_OPTIONS = ["index,follow", "noindex,follow", "index,nofollow", "noindex,nofollow"];
+/** Valores técnicos de "robots" con palabras que se entienden sin saber SEO. */
+const ROBOTS_OPTIONS = [
+  { id: "index,follow", label: "Visible en Google (recomendado)" },
+  { id: "noindex,follow", label: "No mostrar en Google" },
+  { id: "index,nofollow", label: "Visible, sin seguir sus enlaces" },
+  { id: "noindex,nofollow", label: "Oculto para buscadores" },
+];
 
 interface ArticleFormProps {
   categories: Category[];
@@ -102,6 +110,28 @@ export function ArticleForm({
   const [rejectReason, setRejectReason] = useState("");
   const [scheduleAt, setScheduleAt] = useState("");
 
+  // Lo último guardado en el servidor: con qué se compara para saber si hay cambios sin guardar.
+  const [savedInput, setSavedInput] = useState<ArticleInput>(() => buildInput());
+  const draft = useLocalDraft(`articulo:${article?.id ?? "nuevo"}`, buildInput(), savedInput);
+
+  function applyInput(input: ArticleInput) {
+    setTitle(input.title);
+    setExcerpt(input.excerpt ?? "");
+    setBody(input.body);
+    setArticleType(input.articleType);
+    setCategoryId(input.categoryId);
+    setSeoTitle(input.seoTitle ?? "");
+    setMetaDescription(input.metaDescription ?? "");
+    setCanonicalUrl(input.canonicalUrl ?? "");
+    setOgImageUrl(input.ogImageUrl ?? "");
+    setImages(input.images);
+    setVideos(input.videos);
+    setRobots(input.robots);
+    setMemorableDay(input.memorableDay?.toString() ?? "");
+    setMemorableMonth(input.memorableMonth?.toString() ?? "");
+    setMemorableYear(input.memorableYear?.toString() ?? "");
+  }
+
   function buildInput(): ArticleInput {
     return {
       title,
@@ -125,7 +155,14 @@ export function ArticleForm({
   async function handleSubmit() {
     setPending(true);
     setError(null);
-    const result = mode === "create" ? await createArticleAction(buildInput()) : await updateArticleAction(article!.id, buildInput());
+    const input = buildInput();
+    // Crear redirige a la edición del contenido nuevo: el borrador local se descarta antes.
+    if (mode === "create") draft.clear();
+    const result = mode === "create" ? await createArticleAction(input) : await updateArticleAction(article!.id, input);
+    if (result.ok) {
+      setSavedInput(input);
+      draft.clear();
+    }
     applyResult(result, "Cambios guardados.");
   }
 
@@ -160,13 +197,46 @@ export function ArticleForm({
 
       {readOnly && (
         <p className="rounded-md border border-border bg-accent-soft px-4 py-3 text-sm text-accent">
-          Esta publicación no se puede editar en su estado/rol actual. Puedes seguir viendo el contenido.
+          Este contenido no se puede editar en su estado actual o con tu rol. Puedes seguir viéndolo.
         </p>
       )}
 
+      {draft.recoverable && !readOnly && (
+        <div className="flex flex-wrap items-center gap-3 rounded-md border border-accent/40 bg-accent-soft px-4 py-3 text-sm">
+          <History className="h-4 w-4 text-accent" aria-hidden="true" />
+          <span className="text-foreground">
+            Hay cambios sin guardar de la última vez ({new Date(draft.recoverable.savedAt).toLocaleString("es-PE")}).
+          </span>
+          <div className="ml-auto flex gap-2">
+            <AdminButton
+              type="button"
+              onClick={() => {
+                applyInput(draft.recoverable!.value as ArticleInput);
+                draft.dismissRecoverable();
+              }}
+            >
+              Recuperar
+            </AdminButton>
+            <AdminButton type="button" variant="secondary" onClick={() => draft.discardRecoverable()}>
+              Descartar
+            </AdminButton>
+          </div>
+        </div>
+      )}
+
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
-        {/* Columna principal: lo que se escribe */}
+        {/* Columna principal: primero lo visual (es lo que se ve en la portada y al compartir), después el texto. */}
         <div className="space-y-6">
+          <SectionCard title="Portada, fotos y videos">
+            <FormField label="Fotos — la primera es la portada" name="images">
+              <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
+            </FormField>
+
+            <FormField label="Videos — sube el video a YouTube y pega aquí su enlace" name="videos">
+              <VideoLinksEditor value={videos} onChange={setVideos} disabled={readOnly} />
+            </FormField>
+          </SectionCard>
+
           <SectionCard title="Contenido">
             <FormField label="Título" name="title">
               <input
@@ -178,7 +248,7 @@ export function ArticleForm({
               />
             </FormField>
 
-            <FormField label="Extracto (resumen corto, opcional)" name="excerpt">
+            <FormField label="Resumen corto — se muestra en las tarjetas y al compartir (opcional)" name="excerpt">
               <textarea
                 value={excerpt}
                 disabled={readOnly}
@@ -188,33 +258,29 @@ export function ArticleForm({
               />
             </FormField>
 
-            <FormField label="Cuerpo" name="body">
+            <FormField label="Contenido" name="body">
               <RichTextEditor value={body} onChange={setBody} disabled={readOnly} allImages={allImages} />
             </FormField>
           </SectionCard>
 
-          <CollapsibleSection title="SEO">
-            <FormField label="Título SEO (opcional, si no se define usa el título)" name="seoTitle">
-              <input type="text" value={seoTitle} disabled={readOnly} onChange={(e) => setSeoTitle(e.target.value)} className={formInputClass} />
+          <CollapsibleSection title="Avanzado: Google y redes sociales">
+            <p className="text-xs text-muted">
+              No hace falta tocar nada: si lo dejas vacío se usan el título, el resumen y la portada.
+            </p>
+            <FormField label="Título en Google" name="seoTitle">
+              <input type="text" value={seoTitle} placeholder={title} disabled={readOnly} onChange={(e) => setSeoTitle(e.target.value)} className={formInputClass} />
             </FormField>
-            <FormField label="Meta descripción (opcional)" name="metaDescription">
-              <textarea value={metaDescription} disabled={readOnly} onChange={(e) => setMetaDescription(e.target.value)} rows={2} className={formInputClass} />
+            <FormField label="Descripción en Google y al compartir" name="metaDescription">
+              <textarea value={metaDescription} placeholder={excerpt} disabled={readOnly} onChange={(e) => setMetaDescription(e.target.value)} rows={2} className={formInputClass} />
             </FormField>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField label="URL canónica (opcional)" name="canonicalUrl">
-                <input type="text" value={canonicalUrl} disabled={readOnly} onChange={(e) => setCanonicalUrl(e.target.value)} className={formInputClass} />
-              </FormField>
-              <FormField label="Imagen para Open Graph (URL, opcional)" name="ogImageUrl">
-                <input type="text" value={ogImageUrl} disabled={readOnly} onChange={(e) => setOgImageUrl(e.target.value)} className={formInputClass} />
-              </FormField>
-            </div>
-            <FormField label="Robots" name="robots">
-              <Combobox
-                options={ROBOTS_OPTIONS.map((option) => ({ id: option, label: option }))}
-                value={robots}
-                disabled={readOnly}
-                onSelect={(id) => id && setRobots(id)}
-              />
+            <FormField label="Imagen al compartir (enlace) — si está vacío, se usa la portada" name="ogImageUrl">
+              <input type="text" value={ogImageUrl} disabled={readOnly} onChange={(e) => setOgImageUrl(e.target.value)} className={formInputClass} />
+            </FormField>
+            <FormField label="Dirección original — solo si esto se publicó antes en otro sitio" name="canonicalUrl">
+              <input type="text" value={canonicalUrl} disabled={readOnly} onChange={(e) => setCanonicalUrl(e.target.value)} className={formInputClass} />
+            </FormField>
+            <FormField label="Visibilidad en buscadores" name="robots">
+              <Combobox options={ROBOTS_OPTIONS} value={robots} disabled={readOnly} onSelect={(id) => id && setRobots(id)} />
             </FormField>
           </CollapsibleSection>
         </div>
@@ -223,6 +289,11 @@ export function ArticleForm({
         <div className="space-y-6">
           <SectionCard title="Publicar">
             {error && <FormError message={error} />}
+            {!readOnly && (
+              <p className="text-xs text-muted" aria-live="polite">
+                {draft.dirty ? "Cambios sin guardar (mientras tanto se guardan en este navegador)." : "Todo guardado."}
+              </p>
+            )}
             {!readOnly && (
               <AdminButton
                 disabled={pending || !title || !body || !categoryId}
@@ -327,8 +398,8 @@ export function ArticleForm({
             )}
           </SectionCard>
 
-          <SectionCard title="Organización">
-            <FormField label="Tipo" name="articleType">
+          <SectionCard title="Formato y tema">
+            <FormField label="Formato" name="articleType">
               <Combobox
                 options={(ARTICLE_TYPES.includes(articleType) ? ARTICLE_TYPES : [articleType, ...ARTICLE_TYPES]).map((type) => ({
                   id: type,
@@ -342,7 +413,7 @@ export function ArticleForm({
               />
             </FormField>
 
-            <FormField label="Categoría" name="categoryId">
+            <FormField label="Tema" name="categoryId">
               <Combobox
                 options={categories.map((category) => ({ id: category.id, label: category.name }))}
                 value={categoryId}
@@ -401,15 +472,6 @@ export function ArticleForm({
             </div>
           </SectionCard>
 
-          <SectionCard title="Medios">
-            <FormField label="Imágenes (opcional — la primera es la portada de tarjeta/feed)" name="images">
-              <ContentImagesPicker allImages={allImages} value={images} onChange={setImages} disabled={readOnly} />
-            </FormField>
-
-            <FormField label="Videos de YouTube (opcional)" name="videos">
-              <VideoLinksEditor value={videos} onChange={setVideos} disabled={readOnly} />
-            </FormField>
-          </SectionCard>
         </div>
       </div>
     </div>

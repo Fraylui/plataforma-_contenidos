@@ -22,6 +22,7 @@ import { ContentImageGallery } from "@/components/content/content-image-gallery"
 import { ContentVideoGallery } from "@/components/content/content-video-gallery";
 import { AdBlock } from "@/components/legal/ad-block";
 import { SITE_URL } from "@/lib/site-url";
+import { imageUrl } from "@/lib/image-url";
 import type { Article, Category } from "@/lib/api/types";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
 
@@ -72,11 +73,23 @@ export async function generateMetadata(props: PageProps<"/publicaciones/[slug]">
       title,
       description,
       type: "article",
-      images: article.ogImageUrl ? [article.ogImageUrl] : undefined,
+      images: shareImage(article) ? [shareImage(article)!] : undefined,
       publishedTime: article.publishedAt ?? undefined,
       siteName: settings.name,
     },
   };
+}
+
+/**
+ * Imagen al compartir (WhatsApp, Facebook, X) y para Google: la elegida a
+ * mano en "Avanzado" o, si no hay, la portada. Antes sin la imagen manual
+ * los enlaces compartidos salían sin foto.
+ */
+function shareImage(article: Article): string | undefined {
+  if (article.ogImageUrl) return article.ogImageUrl;
+  const cover = article.images[0];
+  if (!cover) return undefined;
+  return cover.externalUrl ?? (cover.imageId ? imageUrl(`/api/v1/images/${cover.imageId}/file`) : undefined);
 }
 
 function articleJsonLd(article: Article, category: Category | null, siteName: string) {
@@ -86,7 +99,7 @@ function articleJsonLd(article: Article, category: Category | null, siteName: st
     "@type": "Article",
     headline: article.seoTitle || article.title,
     description: article.metaDescription || article.excerpt || undefined,
-    image: article.ogImageUrl ? [article.ogImageUrl] : undefined,
+    image: shareImage(article) ? [shareImage(article)!] : undefined,
     datePublished: article.publishedAt ?? undefined,
     dateModified: article.updatedAt ?? article.publishedAt ?? undefined,
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
