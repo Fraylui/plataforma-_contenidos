@@ -1892,7 +1892,11 @@ Decididos para más adelante:
 
 ## 45.4 Recomendaciones y publicidad: regla de cumplimiento
 
-Recomendar contenido editorial (una leyenda, un lugar público, una fiesta
+> La plataforma no es un medio editorial ni periodístico (sección 1.1). Aquí
+> "orgánico" solo significa "no pagado": la distinción que la ley exige
+> entre contenido propio y publicidad.
+
+Recomendar contenido orgánico — el propio de la plataforma, no pagado — (una leyenda, un lugar público, una fiesta
 tradicional) no es publicidad. Pasa a serlo cuando hay **pago,
 contraprestación o interés comercial** de por medio, y en ese caso la ley
 peruana exige que se reconozca como tal: D. Leg. 1044 (competencia
@@ -1903,7 +1907,7 @@ Indecopi. Ver también 35.2, 43.2 y 44.10.
 Reglas para todo algoritmo de la sección 45 (feed, relacionados, "Lo más
 gustado", "Elige tu camino", búsqueda):
 
-1. **Solo contenido editorial.** Hoy recomiendan únicamente Publicaciones,
+1. **Solo contenido orgánico.** Hoy recomiendan únicamente Publicaciones,
    Lugares y Eventos (`FeedService.FEED_TYPES`). El Directorio (negocios,
    restaurantes, recreos, hoteles) **nunca** entra en recomendaciones
    automáticas.
@@ -1915,7 +1919,7 @@ gustado", "Elige tu camino", búsqueda):
    opciones se agrega al modelo un campo explícito de patrocinio y un test
    que garantice esta exclusión.
 3. **Sin relación comercial oculta.** Un evento de un negocio privado (una
-   fiesta en un recreo, una promoción) solo se publica como editorial si no
+   fiesta en un recreo, una promoción) solo se publica como contenido orgánico si no
    hubo pago ni acuerdo con el negocio. Si lo hubo, aplica la regla 2.
 4. **Criterio declarado.** Los algoritmos ordenan solo por señales reales y
    públicas (fecha, categoría, me gusta). Nunca por quién paga.
