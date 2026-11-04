@@ -14,6 +14,7 @@ import { NotFoundError } from "@/lib/api/client";
 import { formatEventDateTime, isEventFinished } from "@/lib/content-labels";
 import { LikeShareBar } from "@/components/content/like-share-bar";
 import { DetailSidebar } from "@/components/content/detail-sidebar";
+import { ChoosePath } from "@/components/content/choose-path";
 import { ContentImageGallery } from "@/components/content/content-image-gallery";
 import { ContentVideoGallery } from "@/components/content/content-video-gallery";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -260,6 +261,15 @@ export default async function EventPage(props: PageProps<"/eventos/[slug]">) {
           </div>
 
           <LikeShareBar contentType="events" slug={event.slug} initialLikeCount={event.likeCount} title={event.title} />
+
+          <ChoosePath
+            currentId={event.id}
+            currentType="EVENT"
+            categoryId={event.categoryId}
+            categoryName={category?.name ?? null}
+            related={related}
+            categoryNames={categoryNames}
+          />
         </article>
 
         {hasSidebar && (

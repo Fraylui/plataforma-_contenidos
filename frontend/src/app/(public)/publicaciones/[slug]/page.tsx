@@ -16,6 +16,7 @@ import { LikeShareBar } from "@/components/content/like-share-bar";
 import { NeighborNav } from "@/components/article/neighbor-nav";
 import { ReadingProgressBar } from "@/components/article/reading-progress-bar";
 import { DetailSidebar } from "@/components/content/detail-sidebar";
+import { ChoosePath } from "@/components/content/choose-path";
 import { ContentImageGallery } from "@/components/content/content-image-gallery";
 import { ContentVideoGallery } from "@/components/content/content-video-gallery";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -251,6 +252,15 @@ export default async function ArticlePage(props: PageProps<"/publicaciones/[slug
           </div>
 
           <LikeShareBar contentType="articles" slug={article.slug} initialLikeCount={article.likeCount} title={article.title} />
+
+          <ChoosePath
+            currentId={article.id}
+            currentType="ARTICLE"
+            categoryId={article.categoryId}
+            categoryName={category?.name ?? null}
+            related={related}
+            categoryNames={categoryNames}
+          />
 
           <NeighborNav neighbors={neighbors} />
         </article>

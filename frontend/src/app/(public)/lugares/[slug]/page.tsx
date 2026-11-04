@@ -11,6 +11,7 @@ import {
 import { NotFoundError } from "@/lib/api/client";
 import { LikeShareBar } from "@/components/content/like-share-bar";
 import { DetailSidebar } from "@/components/content/detail-sidebar";
+import { ChoosePath } from "@/components/content/choose-path";
 import { ContentImageGallery } from "@/components/content/content-image-gallery";
 import { ContentVideoGallery } from "@/components/content/content-video-gallery";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -247,6 +248,15 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
           </div>
 
           <LikeShareBar contentType="places" slug={place.slug} initialLikeCount={place.likeCount} title={place.name} />
+
+          <ChoosePath
+            currentId={place.id}
+            currentType="PLACE"
+            categoryId={place.categoryId}
+            categoryName={category?.name ?? null}
+            related={related}
+            categoryNames={categoryNames}
+          />
         </article>
 
         {hasSidebar && (
