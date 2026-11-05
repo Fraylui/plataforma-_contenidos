@@ -29,6 +29,7 @@ export function publicationCopy(p: Publication): PublicationInput {
     images: p.images,
     videos: videosFromContent(p.videos),
     robots: p.robots,
+    sources: p.sources ?? [],
   };
 }
 
@@ -47,6 +48,7 @@ export function placeCopy(p: Place): PlaceInput {
     ogImageUrl: null,
     videos: videosFromContent(p.videos),
     robots: p.robots,
+    sources: p.sources ?? [],
   };
 }
 

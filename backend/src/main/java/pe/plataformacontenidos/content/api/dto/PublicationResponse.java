@@ -25,7 +25,9 @@ public record PublicationResponse(
         String ogImageUrl,
         List<ContentImageResponse> images,
         List<ContentVideoResponse> videos,
-        String robots,
+        String robots,
+        List<String> sources,
+
         Instant publishedAt,
         Instant scheduledAt,
         Instant createdAt,
@@ -38,7 +40,7 @@ public record PublicationResponse(
                 publication.getCategoryId(), publication.getSeoTitle(),
                 publication.getMetaDescription(), publication.getCanonicalUrl(), publication.getOgImageUrl(),
                 publication.getImages().stream().map(ContentImageResponse::from).toList(),
-                publication.getVideos().stream().map(ContentVideoResponse::from).toList(), publication.getRobots(),
+                publication.getVideos().stream().map(ContentVideoResponse::from).toList(), publication.getRobots(), publication.getSources(),
                 publication.getPublishedAt(), publication.getScheduledAt(),
                 publication.getCreatedAt(), publication.getUpdatedAt(), likeCount);
     }

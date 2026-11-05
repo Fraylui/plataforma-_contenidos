@@ -184,6 +184,6 @@ class StoryServiceIntegrationTest {
 
     private PublicationInput publicationInput(String title) {
         return new PublicationInput(title, "Resumen", "<p>Cuerpo</p>", PublicationType.GENERAL, topic, null, null, null,
-                null, List.of(new ContentImageInput(null, "https://example.com/foto.jpg", "Foto", null)), List.of(), null);
+                null, List.of(new ContentImageInput(null, "https://example.com/foto.jpg", "Foto", null)), List.of(), null, List.of());
     }
 }

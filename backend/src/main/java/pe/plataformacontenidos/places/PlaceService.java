@@ -16,6 +16,7 @@ import pe.plataformacontenidos.shared.YouTubeUrlParser;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.publishing.InvalidPhotoCreditException;
 import pe.plataformacontenidos.shared.ContentVideo;
 import pe.plataformacontenidos.shared.ContentVideoInput;
 import pe.plataformacontenidos.shared.publishing.PostBody;
@@ -61,6 +62,7 @@ public class PlaceService {
         place.updateContent(input.name(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.latitude(), input.longitude(), images, input.seoTitle(), input.metaDescription(),
                 input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
+        place.setSources(input.sources());
 
         Place saved = placeRepository.save(place);
         audit("PLACE_CREATED", saved, authorId);
@@ -81,6 +83,7 @@ public class PlaceService {
         place.updateContent(input.name(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.latitude(), input.longitude(), images, input.seoTitle(), input.metaDescription(),
                 input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
+        place.setSources(input.sources());
         Place saved = placeRepository.save(place);
         audit("PLACE_UPDATED", saved, actingUserId);
         return saved;
@@ -173,12 +176,13 @@ public class PlaceService {
             if (!input.isValidShape() || (input.hasExternalUrl() && !input.isValidExternalUrl())) {
                 throw new InvalidPlaceImageException();
             }
+            if (!input.hasValidCredit()) {
+                throw new InvalidPhotoCreditException();
+            }
             if (input.hasImageId()) {
                 imageService.getOrThrow(input.imageId());
-                result.add(ContentImage.uploaded(input.imageId(), input.title(), input.caption()));
-            } else {
-                result.add(ContentImage.external(input.externalUrl(), input.title(), input.caption()));
             }
+            result.add(input.toContentImage());
         }
         return result;
     }

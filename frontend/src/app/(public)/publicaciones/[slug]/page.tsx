@@ -3,6 +3,7 @@ import { ReactionBar } from "@/components/content/reaction-bar";
 import { notFound } from "next/navigation";
 import { getCategoryById, getPlatformSettings, getPublishedPublicationBySlug, getRelatedWithFallback, listAffiliateLinks } from "@/lib/api/client";
 import { AffiliateRecommendations } from "@/components/post/affiliate-recommendations";
+import { PostSources } from "@/components/post/post-sources";
 import { NotFoundError } from "@/lib/api/client";
 import { ViewBeacon } from "@/components/content/view-beacon";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -188,6 +189,7 @@ export default async function PublicationPage(props: PageProps<"/publicaciones/[
             ) : (
               <div className={PROSE} dangerouslySetInnerHTML={{ __html: publication.body }} />
             )}
+            <PostSources sources={publication.sources} />
             <AffiliateRecommendations links={affiliateLinks} />
             <WhatsAppFollow channelUrl={settings.whatsappChannelUrl} siteName={settings.name} />
           </>

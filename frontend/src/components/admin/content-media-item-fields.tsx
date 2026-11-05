@@ -27,6 +27,7 @@ export function ContentMediaItemFields({
   disabled,
   warning,
   fullLabel,
+  children,
 }: {
   index: number;
   thumbnail?: React.ReactNode;
@@ -41,6 +42,8 @@ export function ContentMediaItemFields({
   onCaptionChange: (value: string) => void;
   onRemove: () => void;
   disabled?: boolean;
+  /** Campos extra bajo el pie (p. ej. de quién es la foto). */
+  children?: React.ReactNode;
 }) {
   return (
     <li className="flex gap-3 rounded-md border border-border p-3">
@@ -93,6 +96,7 @@ export function ContentMediaItemFields({
           placeholder="Pie de foto (opcional)"
           className={GROWING}
         />
+        {children}
       </div>
     </li>
   );

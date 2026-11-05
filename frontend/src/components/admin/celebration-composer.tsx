@@ -17,7 +17,8 @@ import { ComposerShell, MediaCard, TopicCard, useCoverUrl, WritingCard } from ".
 import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
 import { PhonePreview } from "./composer/phone-preview";
-import { baseDefaults, baseFields, baseInput, emptyToNull, toDateTimeLocal, videosField, videosFromContent, hasSomethingToShow } from "./composer/schema";
+import { SourcesCard } from "./composer/sources-card";
+import { baseDefaults, baseFields, baseInput, emptyToNull, toDateTimeLocal, videosField, videosFromContent, hasSomethingToShow, sourcesField, sourcesDefaults, sourcesInput } from "./composer/schema";
 
 const THIS_YEAR = new Date().getFullYear();
 
@@ -33,6 +34,7 @@ const schema = z
     ...baseFields,
     body: z.string(),
     videos: videosField,
+    sources: sourcesField,
     recursYearly: z.boolean(),
     allDay: z.boolean(),
     sinceYear: z
@@ -75,6 +77,7 @@ function startsAtIso(values: Pick<Values, "startsAt" | "allDay">): string {
 function toInput(values: Values): CelebrationInput {
   return {
     ...baseInput(values),
+    sources: sourcesInput(values.sources),
     title: values.title.trim(),
     body: values.body,
     videos: values.videos,
@@ -127,6 +130,7 @@ export function CelebrationComposer({ categories, places, allImages, celebration
       ...baseDefaults(celebration?.title, celebration),
       body: celebration?.body ?? "",
       videos: videosFromContent(celebration?.videos),
+      sources: sourcesDefaults(celebration?.sources),
       // Lo más común: fechas cívicas que vuelven cada año, de todo el día.
       recursYearly: celebration?.recursYearly ?? true,
       allDay: celebration?.allDay ?? true,
@@ -212,6 +216,7 @@ function CelebrationBody({
             metaDescriptionDefault={celebration?.metaDescription ?? ""}
             readOnly={readOnly}
           />
+          <SourcesCard readOnly={readOnly} />
         </>
       }
       publish={publish}

@@ -15,7 +15,8 @@ import { ComposerShell, MediaCard, TopicCard, useCoverUrl, WritingCard } from ".
 import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
 import { PhonePreview } from "./composer/phone-preview";
-import { baseDefaults, baseFields, baseInput, videosField, videosFromContent, hasSomethingToShow } from "./composer/schema";
+import { SourcesCard } from "./composer/sources-card";
+import { baseDefaults, baseFields, baseInput, videosField, videosFromContent, hasSomethingToShow, sourcesField, sourcesDefaults, sourcesInput } from "./composer/schema";
 
 const PUBLICATION_TYPES: PublicationType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA"];
 
@@ -30,6 +31,7 @@ const schema = z
     body: z.string(),
     publicationType: z.enum(PUBLICATION_TYPES as [PublicationType, ...PublicationType[]]),
     videos: videosField,
+    sources: sourcesField,
   })
   .refine((values) => hasSomethingToShow(values.body, values.images, values.videos), {
     path: ["body"],
@@ -39,7 +41,14 @@ const schema = z
 type Values = z.infer<typeof schema>;
 
 function toInput(values: Values): PublicationInput {
-  return { ...baseInput(values), title: values.title.trim(), body: values.body, publicationType: values.publicationType, videos: values.videos };
+  return {
+    ...baseInput(values),
+    title: values.title.trim(),
+    body: values.body,
+    publicationType: values.publicationType,
+    videos: values.videos,
+    sources: sourcesInput(values.sources),
+  };
 }
 
 interface PublicationComposerProps {
@@ -67,6 +76,7 @@ export function PublicationComposer({ categories, allImages, publication, permis
       body: publication?.body ?? template?.body ?? "",
       publicationType: publication?.publicationType ?? template?.type ?? "GENERAL",
       videos: videosFromContent(publication?.videos),
+      sources: sourcesDefaults(publication?.sources),
     },
     initialId: publication?.id ?? "",
     status,
@@ -132,6 +142,7 @@ function ComposerBody({
             metaDescriptionDefault={publication?.metaDescription ?? ""}
             readOnly={readOnly}
           />
+          <SourcesCard readOnly={readOnly} />
         </>
       }
       publish={publish}

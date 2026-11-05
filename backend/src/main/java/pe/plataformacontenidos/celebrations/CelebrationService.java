@@ -23,6 +23,7 @@ import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.publishing.InvalidPhotoCreditException;
 import pe.plataformacontenidos.shared.ContentVideo;
 import pe.plataformacontenidos.shared.ContentVideoInput;
 import pe.plataformacontenidos.shared.publishing.PostBody;
@@ -82,6 +83,7 @@ public class CelebrationService {
         celebration.updateContent(input.title(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.placeId(), input.venueName(), input.startsAt(), input.endsAt(), images, input.seoTitle(),
                 input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
+        celebration.setSources(input.sources());
         celebration.setSchedule(input.recursYearly(), input.allDay(), input.sinceYear());
         celebration.setScope(scopeCountry, scopeRegion);
         celebration.refreshNextOccurrence(siteZone, today());
@@ -112,6 +114,7 @@ public class CelebrationService {
         celebration.updateContent(input.title(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.placeId(), input.venueName(), input.startsAt(), input.endsAt(), images, input.seoTitle(),
                 input.metaDescription(), input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
+        celebration.setSources(input.sources());
         celebration.setSchedule(input.recursYearly(), input.allDay(), input.sinceYear());
         celebration.setScope(scopeCountry, scopeRegion);
         celebration.refreshNextOccurrence(siteZone, today());
@@ -290,12 +293,13 @@ public class CelebrationService {
             if (!input.isValidShape() || (input.hasExternalUrl() && !input.isValidExternalUrl())) {
                 throw new InvalidCelebrationImageException();
             }
+            if (!input.hasValidCredit()) {
+                throw new InvalidPhotoCreditException();
+            }
             if (input.hasImageId()) {
                 imageService.getOrThrow(input.imageId());
-                result.add(ContentImage.uploaded(input.imageId(), input.title(), input.caption()));
-            } else {
-                result.add(ContentImage.external(input.externalUrl(), input.title(), input.caption()));
             }
+            result.add(input.toContentImage());
         }
         return result;
     }

@@ -24,11 +24,13 @@ public record PlaceRequest(
         String canonicalUrl,
         String ogImageUrl,
         List<ContentVideoInput> videos,
-        String robots) {
+        String robots,
+        /** Enlaces de las fuentes, hasta 10 (ver PostSources). */
+        List<String> sources) {
 
     public PlaceInput toInput() {
         return new PlaceInput(name, excerpt, body, categoryId, latitude, longitude,
                 images == null ? List.of() : images, seoTitle, metaDescription, canonicalUrl, ogImageUrl,
-                videos == null ? List.of() : videos, robots);
+                videos == null ? List.of() : videos, robots, sources);
     }
 }

@@ -63,10 +63,13 @@ cada post.
 3. **Título** corto y **¿Qué quieres contar?** en una o dos frases.
 4. ¿Hace falta más? **Contar más** (o empieza con una plantilla: Lista,
    Guía, Tutorial, Historia).
-5. Si diste un dato preciso, dilo así: **«Según [fuente], …»**.
-6. Elige el **Tema**.
-7. **Ver como en el celular** para revisar cómo se verá.
-8. Si tienes un **enlace de afiliado** (tour, hotel, libro), agrégalo abajo
+5. Si diste un dato preciso, dilo así: **«Según [fuente], …»** y pega su
+   enlace en **Fuentes** (sale al final: «Fuentes: promperu.gob.pe»).
+6. En cada foto, **¿De quién es?** → «Mía» o «De otra persona» (su nombre
+   sale como «Foto: …» y debes confirmar que tienes su permiso).
+7. Elige el **Tema**.
+8. **Ver como en el celular** para revisar cómo se verá.
+9. Si tienes un **enlace de afiliado** (tour, hotel, libro), agrégalo abajo
    en «Enlaces de afiliado». Solo lo que de verdad recomendarías.
 
 ### Paso 5 — Revisar y publicar (30 segundos)

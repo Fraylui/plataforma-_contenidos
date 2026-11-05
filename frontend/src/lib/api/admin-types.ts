@@ -90,6 +90,8 @@ export interface PublicationInput {
   images: ContentImage[];
   videos: ContentVideoInput[];
   robots: string;
+  /** Enlaces de las fuentes (hasta 10). */
+  sources: string[];
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/places — ver PlaceRequest.java (CONTEXTO.md sección 6). */
@@ -107,6 +109,8 @@ export interface PlaceInput {
   ogImageUrl: string | null;
   videos: ContentVideoInput[];
   robots: string;
+  /** Enlaces de las fuentes (hasta 10). */
+  sources: string[];
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/celebrations — ver EventRequest.java. */
@@ -136,6 +140,8 @@ export interface CelebrationInput {
   ogImageUrl: string | null;
   videos: ContentVideoInput[];
   robots: string;
+  /** Enlaces de las fuentes (hasta 10). */
+  sources: string[];
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/galleries — ver GalleryRequest.java. */

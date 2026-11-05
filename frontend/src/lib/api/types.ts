@@ -15,6 +15,10 @@ export interface ContentImage {
   externalUrl: string | null;
   title: string | null;
   caption: string | null;
+  /** Autor si la foto es de otra persona; null/ausente = foto propia (GUIA-CREAR-CONTENIDO.md §4). */
+  credit?: string | null;
+  /** Con crédito: se confirmó permiso por escrito o licencia libre (D.Leg. 822 art. 39). */
+  rightsConfirmed?: boolean;
 }
 
 /** Ver ContentVideoResponse.java — solo la referencia (Video ID de YouTube), nunca el video en sí. */
@@ -57,6 +61,8 @@ export interface Publication {
   images: ContentImage[];
   videos: ContentVideo[];
   robots: string;
+  /** Enlaces de las fuentes, en orden (ver PostSources en el backend). */
+  sources?: string[];
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;
@@ -135,6 +141,8 @@ export interface Place {
   ogImageUrl: string | null;
   videos: ContentVideo[];
   robots: string;
+  /** Enlaces de las fuentes, en orden (ver PostSources en el backend). */
+  sources?: string[];
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;
@@ -197,6 +205,8 @@ export interface Celebration {
   ogImageUrl: string | null;
   videos: ContentVideo[];
   robots: string;
+  /** Enlaces de las fuentes, en orden (ver PostSources en el backend). */
+  sources?: string[];
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;

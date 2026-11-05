@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { NavigationArrow } from "@phosphor-icons/react/dist/ssr";
 import { getCategoryById, getPlatformSettings, getPublishedPlaceBySlug, getRelatedWithFallback, listAffiliateLinks } from "@/lib/api/client";
 import { AffiliateRecommendations } from "@/components/post/affiliate-recommendations";
+import { PostSources } from "@/components/post/post-sources";
 import { NotFoundError } from "@/lib/api/client";
 import { POST_ACTION_PILL } from "@/components/content/like-share-bar";
 import { FloatingReactions } from "@/components/post/immersive/floating-reactions";
@@ -173,6 +174,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
           // de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
           <>
             <div className={PROSE} dangerouslySetInnerHTML={{ __html: place.body }} />
+            <PostSources sources={place.sources} />
             <AffiliateRecommendations links={affiliateLinks} />
           </>
         }

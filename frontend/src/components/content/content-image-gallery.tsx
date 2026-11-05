@@ -47,12 +47,12 @@ export function ContentImageGallery({
         <div className={`relative ${aspect} w-full overflow-hidden sm:rounded-card ${background}`}>
           <ContentImageDisplay image={image} alt={image.title ?? alt} className="object-cover" priority />
         </div>
-        <MediaCaption title={image.title} caption={image.caption} />
+        <MediaCaption title={image.title} caption={image.caption} credit={image.credit} />
       </figure>
     );
   }
 
-  const captions = images.map((image) => ({ title: image.title, caption: image.caption }));
+  const captions = images.map((image) => ({ title: image.title, caption: image.caption, credit: image.credit }));
   const slides = images.map((image, index) => (
     <div key={image.imageId ?? image.externalUrl ?? index} className={`relative ${aspect} w-full`}>
       <ContentImageDisplay

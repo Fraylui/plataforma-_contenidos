@@ -91,6 +91,10 @@ public class Publication extends PublishableContent {
     @Column(nullable = false)
     private String robots = "index,follow";
 
+    /** Fuentes del post, una por línea (ver PostSources). */
+    @Column(name = "sources")
+    private String sources;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -168,6 +172,15 @@ public class Publication extends PublishableContent {
 
     public List<ContentVideo> getVideos() {
         return videos;
+    }
+
+    public java.util.List<String> getSources() {
+        return pe.plataformacontenidos.shared.publishing.PostSources.fromColumn(sources);
+    }
+
+    /** Valida y guarda las fuentes (ver PostSources). */
+    public void setSources(java.util.List<String> sources) {
+        this.sources = pe.plataformacontenidos.shared.publishing.PostSources.toColumn(sources);
     }
 
     public String getRobots() {

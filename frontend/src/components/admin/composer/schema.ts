@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { ContentVideoInput } from "@/lib/api/admin-types";
 import type { ContentImage, ContentVideo } from "@/lib/api/types";
+import { photoCreditError } from "@/lib/admin/photo-credit";
+import { cleanSources, isValidSourceUrl, MAX_SOURCES } from "@/lib/admin/sources";
 
 export const ROBOTS_OPTIONS = ["index,follow", "noindex,follow", "index,nofollow", "noindex,nofollow"];
 
@@ -24,6 +26,20 @@ export const bodyField = z.string().refine((html) => visibleText(html).trim().le
 
 export const videosField = z.array(z.custom<ContentVideoInput>());
 
+/** Fuentes del post (SourcesCard): una fila por enlace; las vacías se ignoran. */
+export const sourcesField = z
+  .array(z.object({ url: z.string() }))
+  .refine((rows) => rows.every((row) => !row.url.trim() || isValidSourceUrl(row.url)), "Revisa los enlaces de las fuentes.")
+  .refine((rows) => cleanSources(rows.map((row) => row.url)).length <= MAX_SOURCES, `Hasta ${MAX_SOURCES} fuentes.`);
+
+export function sourcesDefaults(sources: string[] | undefined): { url: string }[] {
+  return (sources ?? []).map((url) => ({ url }));
+}
+
+export function sourcesInput(rows: { url: string }[]): string[] {
+  return cleanSources(rows.map((row) => row.url));
+}
+
 /** Coordenada opcional escrita a mano o puesta por el mapa (texto, como el input). */
 export function coordinateField(min: number, max: number, message: string) {
   return z
@@ -46,7 +62,10 @@ export const baseFields = {
   canonicalUrl: optionalUrl,
   ogImageUrl: optionalUrl,
   robots: z.string(),
-  images: z.array(z.custom<ContentImage>()),
+  // Foto de otra persona: nombre del autor y permiso confirmado (GUIA-CREAR-CONTENIDO.md §4).
+  images: z
+    .array(z.custom<ContentImage>())
+    .refine((images) => images.every((image) => !photoCreditError(image.credit, image.rightsConfirmed)), "Revisa de quién es cada foto."),
 };
 
 export interface BaseComposerValues {

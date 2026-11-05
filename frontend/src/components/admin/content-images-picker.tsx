@@ -7,6 +7,7 @@ import type { ContentImage } from "@/lib/api/types";
 import { imageUrl } from "@/lib/image-url";
 import { PhotoDropZone } from "./photo-drop-zone";
 import { ContentMediaItemFields } from "./content-media-item-fields";
+import { PhotoCreditFields } from "./photo-credit-fields";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/admin/ui";
 import { Button } from "@/components/ui";
 import { BrokenImageNotice, PreviewImage } from "@/components/ui/preview-image";
@@ -172,7 +173,16 @@ export function ContentImagesPicker({
                       />
                     ) : undefined
                   }
-                />
+                >
+                  <PhotoCreditFields
+                    index={index}
+                    credit={item.credit}
+                    rightsConfirmed={item.rightsConfirmed}
+                    onChange={(patch) => updateAt(index, patch)}
+                    disabled={disabled}
+                    showError
+                  />
+                </ContentMediaItemFields>
               );
             })}
           </ul>

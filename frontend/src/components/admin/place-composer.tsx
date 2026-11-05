@@ -14,8 +14,9 @@ import { ComposerShell, MediaCard, TopicCard, useCoverUrl, WritingCard } from ".
 import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
 import { PhonePreview } from "./composer/phone-preview";
+import { SourcesCard } from "./composer/sources-card";
 import { LocationFields } from "./composer/location-fields";
-import { baseDefaults, baseFields, baseInput, coordinateField, coordinateOrNull, videosField, videosFromContent, hasSomethingToShow } from "./composer/schema";
+import { baseDefaults, baseFields, baseInput, coordinateField, coordinateOrNull, videosField, videosFromContent, hasSomethingToShow, sourcesField, sourcesDefaults, sourcesInput } from "./composer/schema";
 
 const schema = z
   .object({
@@ -23,6 +24,7 @@ const schema = z
   title: z.string().trim().min(1, "Escribe el nombre del lugar.").max(200, "Máximo 200 caracteres."),
   body: z.string(),
   videos: videosField,
+  sources: sourcesField,
   latitude: coordinateField(-90, 90, "La latitud va de -90 a 90."),
   longitude: coordinateField(-180, 180, "La longitud va de -180 a 180."),
   })
@@ -37,6 +39,7 @@ type Values = z.infer<typeof schema>;
 function toInput(values: Values): PlaceInput {
   return {
     ...baseInput(values),
+    sources: sourcesInput(values.sources),
     name: values.title.trim(),
     body: values.body,
     videos: values.videos,
@@ -65,6 +68,7 @@ export function PlaceComposer({ categories, allImages, place, permissions, siteN
       ...baseDefaults(place?.name, place),
       body: place?.body ?? "",
       videos: videosFromContent(place?.videos),
+      sources: sourcesDefaults(place?.sources),
       latitude: place?.latitude != null ? String(place.latitude) : "",
       longitude: place?.longitude != null ? String(place.longitude) : "",
     },
@@ -137,6 +141,7 @@ function PlaceBody({
             metaDescriptionDefault={place?.metaDescription ?? ""}
             readOnly={readOnly}
           />
+          <SourcesCard readOnly={readOnly} />
         </>
       }
       publish={publish}

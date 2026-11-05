@@ -25,7 +25,9 @@ public record PlaceResponse(
         String canonicalUrl,
         String ogImageUrl,
         List<ContentVideoResponse> videos,
-        String robots,
+        String robots,
+        List<String> sources,
+
         Instant publishedAt,
         Instant scheduledAt,
         Instant createdAt,
@@ -37,7 +39,7 @@ public record PlaceResponse(
                 place.getLatitude(), place.getLongitude(),
                 place.getImages().stream().map(ContentImageResponse::from).toList(), place.getSeoTitle(),
                 place.getMetaDescription(), place.getCanonicalUrl(), place.getOgImageUrl(),
-                place.getVideos().stream().map(ContentVideoResponse::from).toList(), place.getRobots(),
+                place.getVideos().stream().map(ContentVideoResponse::from).toList(), place.getRobots(), place.getSources(),
                 place.getPublishedAt(), place.getScheduledAt(), place.getCreatedAt(),
                 likeCount);
     }

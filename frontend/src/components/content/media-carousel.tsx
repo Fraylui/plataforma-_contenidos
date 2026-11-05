@@ -4,13 +4,19 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 
-export function MediaCaption({ title, caption }: { title: string | null; caption: string | null }) {
-  if (!title && !caption) return null;
+/** Pie de una foto o video: título, pie y, si la foto es de otra persona, «Foto: [autor]». */
+export function MediaCaption({ title, caption, credit = null }: { title: string | null; caption: string | null; credit?: string | null }) {
+  if (!title && !caption && !credit) return null;
   return (
     <figcaption className="mt-2 px-4 text-sm text-muted sm:px-0">
       {title && <span className="font-medium text-foreground">{title}</span>}
       {title && caption && " — "}
       {caption}
+      {credit && (
+        <span className="block text-xs">
+          Foto: <span className="font-medium">{credit}</span>
+        </span>
+      )}
     </figcaption>
   );
 }
@@ -35,7 +41,7 @@ export function MediaCarousel({
   spacing: string;
   background: string;
   slides: ReactNode[];
-  captions: { title: string | null; caption: string | null }[];
+  captions: { title: string | null; caption: string | null; credit?: string | null }[];
   prevLabel: string;
   nextLabel: string;
   /** Prefijo del aria-label de cada punto — el número de slide se agrega acá (no se puede pasar una función server→client). */
@@ -106,7 +112,7 @@ export function MediaCarousel({
           ))}
         </div>
       </div>
-      {current && <MediaCaption title={current.title} caption={current.caption} />}
+      {current && <MediaCaption title={current.title} caption={current.caption} credit={current.credit} />}
     </div>
   );
 }

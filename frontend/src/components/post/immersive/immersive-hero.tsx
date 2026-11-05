@@ -6,13 +6,14 @@ import { cn } from "@/lib/utils";
 import { PostHeader } from "../post-header";
 
 /** Portada del detalle: foto subida (pasa por next/image) o una URL (enlace externo o miniatura de YouTube). */
-export type HeroCover = { kind: "uploaded"; imageId: string } | { kind: "url"; url: string };
+/** `credit`: autor si la foto de portada es de otra persona (sale «Foto: …» sobre la portada). */
+export type HeroCover = ({ kind: "uploaded"; imageId: string } | { kind: "url"; url: string }) & { credit?: string | null };
 
 /** La primera foto o, si solo hay video, su miniatura de YouTube. */
 export function heroCover(images: ContentImage[], videos: ContentVideo[]): HeroCover | null {
   const first = images[0];
-  if (first?.imageId) return { kind: "uploaded", imageId: first.imageId };
-  if (first?.externalUrl) return { kind: "url", url: first.externalUrl };
+  if (first?.imageId) return { kind: "uploaded", imageId: first.imageId, credit: first.credit ?? null };
+  if (first?.externalUrl) return { kind: "url", url: first.externalUrl, credit: first.credit ?? null };
   const video = videos[0];
   return video ? { kind: "url", url: `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg` } : null;
 }
@@ -63,6 +64,11 @@ export function ImmersiveHero({
       {/* Degradado: el texto blanco se lee sobre cualquier foto (y si la foto no cargó). */}
       {photo && <div aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-black/85 via-black/35 to-transparent" />}
       {badge && <div className="absolute top-4 left-4 sm:top-6 sm:left-6">{badge}</div>}
+      {cover?.credit && (
+        <p className="absolute top-4 right-4 max-w-[60%] truncate rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm sm:top-6 sm:right-6">
+          Foto: {cover.credit}
+        </p>
+      )}
       {/* pr: bajo lg, FloatingReactions (fixed, a la derecha) cae sobre el título al abrir la página. */}
       <div className="relative space-y-3 p-5 pr-16 sm:p-8 sm:pr-20 lg:pr-8">
         <PostHeader {...header} onImage={photo} className="flex items-center gap-3" />
