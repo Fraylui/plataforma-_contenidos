@@ -46,7 +46,8 @@
 :root {
   /* slate-50/blanco puro: distinción sutil (no cero, no exagerada) entre
      el lienzo y las tarjetas, sin recurrir a tintar el neutro con verde. */
-  --background: #f8fafc;
+  /* Modo claro con fondo blanco (pedido del dueño, 2026-11-05), como el logo sobre blanco. */
+  --background: #ffffff;
   --surface: #ffffff;
   /* Negro de la marca khipu (el fondo de su logo). */
   --foreground: #111111;
@@ -91,7 +92,8 @@
      verde solo en marca y acciones. Contraste WCAG: foreground 15.9,
      muted 6.76, accent 5.22 sobre el lienzo; 4.69 del accent sobre
      --canvas-strong. */
-  --canvas: #f0f2f5;
+  /* Blanco también detrás del feed: las tarjetas se separan por su sombra y el espacio. */
+  --canvas: #ffffff;
   --canvas-strong: #e4e6eb;
   --canvas-border: #dadde1;
 
