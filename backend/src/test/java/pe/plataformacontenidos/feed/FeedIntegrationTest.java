@@ -99,6 +99,19 @@ class FeedIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.reactions['" + id + "'].LOVE", is(2)))
                 .andExpect(jsonPath("$.reactions['" + id + "'].WOW", is(1)));
+
+        // «Según cómo te quieres sentir»: con mood solo sale lo que provocó esa reacción.
+        mockMvc.perform(get("/api/v1/feed").param("size", "100").param("mood", "WOW"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].id", hasItem(id)));
+        mockMvc.perform(get("/api/v1/feed").param("size", "100").param("mood", "INSPIRED"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[*].id", not(hasItem(id))));
+        mockMvc.perform(get("/api/v1/feed/moods"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasItem("WOW")));
+        mockMvc.perform(get("/api/v1/feed").param("mood", "ABURRIDO"))
+                .andExpect(status().isBadRequest());
     }
 
     /**

@@ -61,7 +61,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/affiliate-links", "/api/v1/affiliate-links/*/go").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/search").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/feed", "/api/v1/feed/related", "/api/v1/feed/top",
-                        "/api/v1/feed/topics").permitAll()
+                        "/api/v1/feed/topics", "/api/v1/feed/moods").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/images/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/platform-settings").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/ad-placements").permitAll()

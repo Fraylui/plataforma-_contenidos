@@ -384,6 +384,8 @@ export function getFeed(params: {
   categoryId?: string;
   /** Celebraciones: con type CELEBRATION, por la próxima vez que tocan. */
   sort?: "upcoming";
+  /** Ánimo (FUNNY, WOW…): lo que más provocó esa reacción. */
+  mood?: string;
 }): Promise<FeedPage> {
   const query = new URLSearchParams();
   query.set("size", String(params.size ?? 12));
@@ -391,8 +393,14 @@ export function getFeed(params: {
   if (params.type) query.set("type", params.type);
   if (params.categoryId) query.set("categoryId", params.categoryId);
   if (params.sort) query.set("sort", params.sort);
+  if (params.mood) query.set("mood", params.mood);
   for (const id of params.exclude ?? []) query.append("exclude", id);
   return apiFetch(`/api/v1/feed?${query.toString()}`, 60);
+}
+
+/** Ánimos con contenido (botones «Quiero reírme»…). Si falla, no se muestran botones. */
+export function getFeedMoods(): Promise<string[]> {
+  return apiFetch("/api/v1/feed/moods", 60);
 }
 
 /** Círculos de temas del feed — ver FeedController.getTopics. Si falla, el feed sigue sin círculos. */

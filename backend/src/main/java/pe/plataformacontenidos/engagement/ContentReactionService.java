@@ -87,6 +87,18 @@ public class ContentReactionService {
         return new Reactions(counts, mine);
     }
 
+    /** Cuántas reacciones de un tipo tiene cada contenido (solo los que tienen alguna): el feed «según cómo te quieres sentir». */
+    public Map<UUID, Long> countsOf(Reaction reaction) {
+        Map<UUID, Long> result = new HashMap<>();
+        jdbc.query("""
+                SELECT content_id, COUNT(*) FROM engagement.content_reactions
+                 WHERE reaction = ? GROUP BY content_id
+                """, rs -> {
+            result.put(rs.getObject(1, UUID.class), rs.getLong(2));
+        }, reaction.name());
+        return result;
+    }
+
     /**
      * Conteos de varios contenidos en una sola consulta (tarjetas del feed).
      * Solo aparecen los que tienen al menos una reacción.

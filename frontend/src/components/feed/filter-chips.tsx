@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -5,6 +6,8 @@ export interface FilterChipOption {
   label: string;
   href: string;
   active: boolean;
+  /** Ícono a la izquierda (los ánimos llevan el de su reacción). */
+  leading?: ReactNode;
 }
 
 /**
@@ -25,12 +28,14 @@ export function FilterChips({ label, options, className }: { label: string; opti
               aria-current={option.active ? "page" : undefined}
               scroll={false}
               className={cn(
-                "inline-flex min-h-10 items-center rounded-full px-4 text-sm font-semibold whitespace-nowrap transition-colors",
+                "inline-flex min-h-10 items-center gap-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors",
+                option.leading ? "pr-4 pl-1.5" : "px-4",
                 option.active
                   ? "bg-foreground text-background"
                   : "bg-canvas-strong text-foreground hover:bg-border/60",
               )}
             >
+              {option.leading}
               {option.label}
             </Link>
           </li>

@@ -19,6 +19,7 @@ import pe.plataformacontenidos.content.Publication;
 import pe.plataformacontenidos.content.PublicationService;
 import pe.plataformacontenidos.engagement.ContentLikeService;
 import pe.plataformacontenidos.engagement.ContentReactionService;
+import pe.plataformacontenidos.engagement.Reaction;
 import pe.plataformacontenidos.catalog.ContentType;
 import pe.plataformacontenidos.celebrations.Celebration;
 import pe.plataformacontenidos.celebrations.CelebrationService;
@@ -104,6 +105,16 @@ public class FeedService {
      */
     public FeedPageResponse getFeed(int size, List<UUID> excludeIds, String seed, ContentType type, UUID categoryId,
             boolean upcoming) {
+        return getFeed(size, excludeIds, seed, type, categoryId, upcoming, null);
+    }
+
+    /**
+     * {@code mood}: «según cómo te quieres sentir» — solo lo que tiene esa
+     * reacción, de lo que más la provocó a lo que menos (empate: lo más
+     * reciente). Las reacciones las dejó la gente: el orden lo decide el público.
+     */
+    public FeedPageResponse getFeed(int size, List<UUID> excludeIds, String seed, ContentType type, UUID categoryId,
+            boolean upcoming, Reaction mood) {
         if (type != null && !FEED_TYPES.contains(type)) {
             throw new InvalidFeedTypeException(type);
         }
@@ -115,6 +126,17 @@ public class FeedService {
             Set<UUID> topic = categoryService.descendants(categoryId);
             pool = pool.stream().filter(item -> topic.contains(item.categoryId())).toList();
         }
+        if (mood != null) {
+            Map<UUID, Long> moodCounts = reactionService.countsOf(mood);
+            List<FeedItemResponse> byMood = pool.stream()
+                    .filter(item -> moodCounts.getOrDefault(item.id(), 0L) > 0)
+                    .sorted(Comparator.comparingLong((FeedItemResponse item) -> moodCounts.get(item.id())).reversed()
+                            .thenComparing(FeedItemResponse::publishedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                    .toList();
+            List<FeedItemResponse> moodPage = byMood.stream().limit(size).toList();
+            return new FeedPageResponse(moodPage, byMood.size() > moodPage.size(),
+                    reactionService.countsFor(moodPage.stream().map(FeedItemResponse::id).toList()));
+        }
         List<FeedItemResponse> ordered = upcoming && type == ContentType.CELEBRATION
                 ? pool.stream().sorted(Comparator.comparing(FeedItemResponse::startsAt,
                         Comparator.nullsLast(Comparator.naturalOrder()))).toList()
@@ -124,6 +146,19 @@ public class FeedService {
         boolean hasMore = ordered.size() > page.size();
         return new FeedPageResponse(page, hasMore,
                 reactionService.countsFor(page.stream().map(FeedItemResponse::id).toList()));
+    }
+
+    /** Ánimos con al menos un contenido publicado que los provocó (lo vacío no aparece en los botones). */
+    public List<Reaction> availableMoods() {
+        Set<UUID> published = new HashSet<>();
+        candidateCache.candidates(null, () -> buildCandidates(null)).forEach(item -> published.add(item.id()));
+        List<Reaction> result = new ArrayList<>();
+        for (Reaction reaction : Reaction.values()) {
+            if (reactionService.countsOf(reaction).keySet().stream().anyMatch(published::contains)) {
+                result.add(reaction);
+            }
+        }
+        return result;
     }
 
     /** Candidatos de un tipo (o de todos) sin filtrar: los mismos para cualquier visitante (ver FeedCandidateCache). */

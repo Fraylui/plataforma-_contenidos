@@ -8,6 +8,8 @@ export interface FeedFilter {
   type?: FeedItemType;
   categoryId?: string;
   sort?: "upcoming";
+  /** «Según cómo te quieres sentir» (ver lib/moods.ts): lo que más provocó esa reacción. */
+  mood?: "FUNNY" | "WOW" | "INSPIRED" | "LOVE";
 }
 
 /**
@@ -47,6 +49,7 @@ export function useFeedPages({
       if (filter.type) query.set("type", filter.type);
       if (filter.categoryId) query.set("categoryId", filter.categoryId);
       if (filter.sort) query.set("sort", filter.sort);
+      if (filter.mood) query.set("mood", filter.mood);
       for (const id of seenRef.current) query.append("exclude", id);
       const res = await fetch(`/api/feed?${query.toString()}`);
       if (!res.ok) throw new Error("feed");
@@ -61,7 +64,7 @@ export function useFeedPages({
       loadingRef.current = false;
       setLoading(false);
     }
-  }, [filter.categoryId, filter.sort, filter.type, hasMore, pageSize, seed]);
+  }, [filter.categoryId, filter.mood, filter.sort, filter.type, hasMore, pageSize, seed]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
