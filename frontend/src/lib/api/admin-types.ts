@@ -473,3 +473,23 @@ export interface AdminCategory extends Category {
   publishedCount: number;
   visibleOnSite: boolean;
 }
+
+/** Calendario de publicaciones (GET /api/v1/admin/calendar?month=AAAA-MM, ver CalendarService). */
+export type CalendarEntryKind = "PUBLISHED" | "SCHEDULED" | "CELEBRATION_DATE";
+
+export interface CalendarEntry {
+  kind: CalendarEntryKind;
+  type: FeedItemType;
+  id: string;
+  title: string;
+  status: PublicationStatus;
+  /** Día AAAA-MM-DD en la hora del sitio. */
+  date: string;
+  /** HH:mm; null en las fechas de celebración. */
+  time: string | null;
+}
+
+export interface CalendarMonth {
+  month: string;
+  entries: CalendarEntry[];
+}

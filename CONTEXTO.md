@@ -483,6 +483,12 @@ Debe ser posible programar publicaciones.
 
 ---
 
+
+### 12.1 Crear y planear (panel, 2026-11)
+
+* **Botón «Crear»**: abre «¿Qué quieres crear?» con cada tipo, su ícono y para qué sirve en una línea (`components/admin/shell/create-menu.tsx`, textos en `lib/admin/nav.ts`). Mismo diálogo en computadora y en la barra del celular.
+* **Calendario** (`/admin/calendario?mes=AAAA-MM`, `GET /api/v1/admin/calendar`): por mes, lo publicado, lo programado y las fechas de Celebraciones (las anuales, en su día de ese año). Cada entrada abre su contenido. Cada persona ve solo los tipos de sus módulos.
+
 # 13. Usuarios y roles
 
 Roles iniciales:

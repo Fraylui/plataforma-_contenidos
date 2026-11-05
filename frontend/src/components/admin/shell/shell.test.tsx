@@ -21,8 +21,8 @@ const GROUPS = [
   },
 ];
 const CREATE = [
-  { label: "Publicación", href: "/admin/publicaciones/nuevo" },
-  { label: "Celebración", href: "/admin/celebraciones/nuevo" },
+  { kind: "publicacion" as const, label: "Publicación", href: "/admin/publicaciones/nuevo", description: "Texto con fotos o videos: guías, listas, tutoriales y más." },
+  { kind: "celebracion" as const, label: "Celebración", href: "/admin/celebraciones/nuevo", description: "Una fecha importante que vuelve cada año." },
 ];
 
 describe("Menú de cuenta", () => {
@@ -42,7 +42,11 @@ describe("Botón Crear", () => {
   it("lista lo que la persona puede crear", async () => {
     render(<CreateMenu items={CREATE} />);
     await userEvent.click(screen.getByRole("button", { name: "Crear" }));
-    expect(await screen.findByRole("menuitem", { name: /Publicación/ })).toHaveAttribute("href", "/admin/publicaciones/nuevo");
+    expect(await screen.findByRole("dialog", { name: "¿Qué quieres crear?" })).toBeInTheDocument();
+    const link = screen.getByRole("link", { name: /Publicación/ });
+    expect(link).toHaveAttribute("href", "/admin/publicaciones/nuevo");
+    // Cada tipo dice para qué sirve, no solo su nombre.
+    expect(link).toHaveTextContent("Texto con fotos o videos");
   });
 
   it("sin nada que crear no se muestra", () => {

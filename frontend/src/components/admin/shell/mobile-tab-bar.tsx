@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as RadixDialog from "@radix-ui/react-dialog";
 import { House, List, MagnifyingGlass, PlusCircle, X } from "@phosphor-icons/react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/admin/ui";
+import { CreateMenu } from "./create-menu";
 import type { CreateItem } from "@/lib/admin/nav";
 import { cn } from "@/lib/utils";
 import { AdminNav, type NavGroupData } from "../admin-nav";
@@ -60,23 +60,12 @@ export function MobileTabBar({
       >
         {home && tabLink(home.href, "Inicio", <House aria-hidden="true" />, <House weight="fill" aria-hidden="true" />)}
         {content && tabLink(content.href, content.label, content.icon, content.activeIcon)}
-        {createItems.length > 0 && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button type="button" className={cn(TAB, "text-accent")}>
-                <PlusCircle weight="fill" aria-hidden="true" />
-                <span>Crear</span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="top" align="center">
-              {createItems.map((item) => (
-                <DropdownMenuItem key={item.href} asChild>
-                  <Link href={item.href}>{item.label}</Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+        <CreateMenu items={createItems}>
+          <button type="button" className={cn(TAB, "text-accent")}>
+            <PlusCircle weight="fill" aria-hidden="true" />
+            <span>Crear</span>
+          </button>
+        </CreateMenu>
         <button type="button" onClick={openPalette} className={cn(TAB, "text-muted")}>
           <MagnifyingGlass aria-hidden="true" />
           <span>Buscar</span>
