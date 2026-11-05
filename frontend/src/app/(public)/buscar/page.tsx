@@ -124,7 +124,7 @@ export default async function SearchPage(props: PageProps<"/buscar">) {
       {query && (
         <div className="mb-4">
           <h1 className="text-lg font-bold text-foreground sm:text-xl">
-            «{query}»
+            «{query}»{" "}
             {result && (
               <span className="ml-2 text-sm font-medium text-muted">
                 {result.totalElements.toLocaleString("es")} {result.totalElements === 1 ? "resultado" : "resultados"}
