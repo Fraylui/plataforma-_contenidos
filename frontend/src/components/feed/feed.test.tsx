@@ -95,6 +95,17 @@ describe("Feed", () => {
     render(<Feed initialItems={[]} initialHasMore={false} seed="s" filter={{}} brand={brand} categoryNames={{}} feedAd={null} />);
     expect(screen.getByText("Todavía no hay publicaciones.")).toBeInTheDocument();
   });
+
+  it("al acabarse el contenido avisa y ofrece Explorar (no se corta sin aviso)", () => {
+    render(<Feed initialItems={[post(1)]} initialHasMore={false} seed="s" filter={{}} brand={brand} categoryNames={{}} feedAd={null} />);
+    expect(screen.getByText("¡Ya lo viste todo!")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Explorar" })).toHaveAttribute("href", "/explorar");
+  });
+
+  it("mientras queda contenido no muestra el cierre", () => {
+    render(<Feed initialItems={[post(1)]} initialHasMore seed="s" filter={{}} brand={brand} categoryNames={{}} feedAd={null} />);
+    expect(screen.queryByText("¡Ya lo viste todo!")).not.toBeInTheDocument();
+  });
 });
 
 describe("Feed con ritmo (Inicio 2026-10-21)", () => {

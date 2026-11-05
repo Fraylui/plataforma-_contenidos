@@ -9,6 +9,7 @@ import { PostCard } from "@/components/post/post-card";
 import { FeatureCard } from "@/components/post/feature-card";
 import type { PostBrand } from "@/components/post/post-header";
 import { useFeedPages, type FeedFilter } from "./use-feed-pages";
+import { FeedEnd } from "./feed-end";
 
 const PAGE_SIZE = 12;
 /** Un anuncio cada 6 posts y nunca antes del 6º (~14 %, tope Better Ads 30 %). */
@@ -96,6 +97,8 @@ export function Feed({
           </button>
         </div>
       )}
+
+      {!hasMore && !error && <FeedEnd />}
 
       {hasMore && !error && (
         <div ref={sentinelRef} aria-hidden={!loading} className="flex flex-col gap-6">
