@@ -487,6 +487,9 @@ Debe ser posible programar publicaciones.
 ### 12.1 Crear y planear (panel, 2026-11)
 
 * **Botón «Crear»**: abre «¿Qué quieres crear?» con cada tipo, su ícono y para qué sirve en una línea (`components/admin/shell/create-menu.tsx`, textos en `lib/admin/nav.ts`). Mismo diálogo en computadora y en la barra del celular.
+* **Qué hacer hoy** (Inicio del panel, `GET /api/v1/admin/calendar/today`): fechas especiales de los próximos 14 días con atajo para crear, lo que sale hoy y los 5 últimos borradores para retomar.
+* **Plantillas** al crear una publicación (`?plantilla=lista|guia|tutorial|historia`, `lib/admin/publication-templates.ts`): estructura de secciones con guías entre corchetes; solo etiquetas que acepta el HtmlSanitizer.
+* **Duplicar** publicaciones, lugares y galerías: copia en borrador «Copia de …» con texto, fotos, videos y tema (sin canonical ni imagen para compartir propia) y abre la copia.
 * **Calendario** (`/admin/calendario?mes=AAAA-MM`, `GET /api/v1/admin/calendar`): por mes, lo publicado, lo programado y las fechas de Celebraciones (las anuales, en su día de ese año). Cada entrada abre su contenido. Cada persona ve solo los tipos de sus módulos.
 
 # 13. Usuarios y roles

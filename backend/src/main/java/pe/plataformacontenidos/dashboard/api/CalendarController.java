@@ -37,6 +37,12 @@ public class CalendarController {
         return calendarService.month(permissionService.forUser(principal.userId()), month);
     }
 
+    @GetMapping("/today")
+    @RequiresAnyModule({ Module.PUBLICATIONS, Module.PLACES, Module.CELEBRATIONS, Module.GALLERIES })
+    public CalendarService.Today today(@AuthenticationPrincipal UserPrincipal principal) {
+        return calendarService.today(permissionService.forUser(principal.userId()));
+    }
+
     /** 400 directo: el reenvío a /error lo convertiría en 403 (ver DashboardController). */
     @ExceptionHandler(InvalidCalendarMonthException.class)
     public ResponseEntity<ProblemDetail> invalidMonth(InvalidCalendarMonthException ex) {

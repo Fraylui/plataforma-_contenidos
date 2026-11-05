@@ -10,6 +10,8 @@ import { getCategoryById, getPlatformSettings } from "@/lib/api/client";
 import { computePublicationPermissions } from "@/lib/admin/publication";
 import { PlaceComposer } from "@/components/admin/place-composer";
 import { AdminPageHeader } from "@/components/admin/ui";
+import { DuplicateButton } from "@/components/admin/duplicate-button";
+import { duplicatePlaceAction } from "../actions";
 import { AffiliateLinksEditor } from "@/components/admin/affiliate-links-editor";
 import { listAffiliateLinks } from "@/lib/api/admin/affiliates";
 import type { Category } from "@/lib/api/types";
@@ -56,6 +58,9 @@ export default async function EditPlacePage(props: PageProps<"/admin/lugares/[id
   return (
     <div className="space-y-6">
       <AdminPageHeader title={place.name} back={{ href: "/admin/lugares", label: "Lugares" }} />
+      <div className="-mt-4 flex justify-end">
+        <DuplicateButton action={duplicatePlaceAction.bind(null, id)} />
+      </div>
       <PlaceComposer
         place={place}
         categories={categories}

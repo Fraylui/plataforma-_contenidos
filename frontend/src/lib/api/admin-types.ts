@@ -509,3 +509,11 @@ export interface AffiliateLinkInput {
   label: string;
   url: string;
 }
+
+/** «Qué hacer hoy» del Inicio (GET /api/v1/admin/calendar/today, CalendarService.Today). */
+export interface CalendarToday {
+  today: string;
+  upcomingDates: CalendarEntry[];
+  scheduledToday: CalendarEntry[];
+  drafts: { type: FeedItemType; id: string; title: string; updatedAt: string }[];
+}

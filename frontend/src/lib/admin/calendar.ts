@@ -59,3 +59,15 @@ export function entriesByDay(entries: CalendarEntry[]): Map<string, CalendarEntr
   }
   return byDay;
 }
+
+/** Días entre dos fechas AAAA-MM-DD (0 = el mismo día). */
+export function daysBetween(from: string, to: string): number {
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
+}
+
+/** «Hoy», «Mañana», «En 5 días». */
+export function whenLabel(days: number): string {
+  if (days <= 0) return "Hoy";
+  if (days === 1) return "Mañana";
+  return `En ${days} días`;
+}

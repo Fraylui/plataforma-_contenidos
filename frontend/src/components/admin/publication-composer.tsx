@@ -6,6 +6,7 @@ import type { AdminImage, PublicationInput } from "@/lib/api/admin-types";
 import type { Publication, PublicationType, Category } from "@/lib/api/types";
 import type { PublicationPermissions } from "@/lib/admin/publication";
 import { publicationTypeLabel } from "@/lib/content-labels";
+import type { PublicationTemplate } from "@/lib/admin/publication-templates";
 import { Combobox, Field } from "@/components/ui";
 import { createPublicationAction, updatePublicationAction } from "@/app/admin/(protected)/publicaciones/actions";
 import { PublishPanel } from "./publish-panel";
@@ -36,6 +37,8 @@ interface PublicationComposerProps {
   publication?: Publication;
   permissions: PublicationPermissions;
   siteName: string;
+  /** Solo al crear: estructura inicial del texto y formato (ver publication-templates). */
+  template?: PublicationTemplate;
 }
 
 /**
@@ -43,15 +46,15 @@ interface PublicationComposerProps {
  * grande, descripción corta y texto; Publicar, tema y formato, vista previa
  * en el feed y «Cómo se ve al compartir». Las piezas viven en ./composer.
  */
-export function PublicationComposer({ categories, allImages, publication, permissions, siteName }: PublicationComposerProps) {
+export function PublicationComposer({ categories, allImages, publication, permissions, siteName, template }: PublicationComposerProps) {
   const status = publication?.status ?? "DRAFT";
   const readOnly = !permissions.canEdit;
   const { form, id, save, saving, savedAt, error } = useComposer({
     schema,
     defaultValues: {
       ...baseDefaults(publication?.title, publication),
-      body: publication?.body ?? "",
-      publicationType: publication?.publicationType ?? "GENERAL",
+      body: publication?.body ?? template?.body ?? "",
+      publicationType: publication?.publicationType ?? template?.type ?? "GENERAL",
       videos: videosFromContent(publication?.videos),
     },
     initialId: publication?.id ?? "",

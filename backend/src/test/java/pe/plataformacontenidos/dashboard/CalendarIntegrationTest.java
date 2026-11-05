@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Map;
@@ -102,6 +103,31 @@ class CalendarIntegrationTest {
         assertThat(month.entries()).extracting(Entry::date).isSorted();
     }
 
+    /**
+     * «Qué hacer hoy»: una celebración anual que cae en 3 días aparece en
+     * «Se acerca»; una de dentro de 20 días, no. El borrador se marca como
+     * editado en el futuro para quedar primero aunque la base sea compartida.
+     */
+    @Test
+    void todayShowsUpcomingDatesWithinTwoWeeksAndLatestDrafts() {
+        LocalDate today = LocalDate.now(LIMA);
+        LocalDate soon = today.plusDays(3);
+        UUID nearYearly = celebration(true, lima(2001, soon.getMonthValue(), soon.getDayOfMonth(), 0, 0));
+        LocalDate later = today.plusDays(20);
+        UUID farOnce = celebration(false, lima(later.getYear(), later.getMonthValue(), later.getDayOfMonth(), 12, 0));
+        UUID draft = gallery("DRAFT", "scheduled_at", lima(2093, 1, 1, 0, 0));
+        jdbc.update("UPDATE galleries.galleries SET updated_at = '2999-01-01' WHERE id = ?", draft);
+
+        CalendarService.Today summary = calendarService.today(owner());
+
+        assertThat(summary.today()).isEqualTo(today.toString());
+        assertThat(summary.upcomingDates()).filteredOn(e -> e.id().equals(nearYearly)).singleElement()
+                .satisfies(e -> assertThat(e.date()).isEqualTo(soon.toString()));
+        assertThat(summary.upcomingDates()).extracting(Entry::id).doesNotContain(farOnce);
+        assertThat(summary.drafts()).hasSizeLessThanOrEqualTo(5);
+        assertThat(summary.drafts().get(0).id()).isEqualTo(draft);
+    }
+
     @Test
     void onlyTheModulesTheWorkerHas() {
         UUID scheduled = gallery("SCHEDULED", "scheduled_at", lima(2094, 3, 5, 12, 0));
@@ -124,6 +150,9 @@ class CalendarIntegrationTest {
         mockMvc.perform(get("/api/v1/admin/calendar?month=2093-06").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.month").value("2093-06"));
+        mockMvc.perform(get("/api/v1/admin/calendar/today").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.drafts").isArray());
         mockMvc.perform(get("/api/v1/admin/calendar?month=junio").header("Authorization", "Bearer " + token))
                 .andExpect(status().isBadRequest());
         mockMvc.perform(get("/api/v1/admin/calendar")).andExpect(status().isForbidden());

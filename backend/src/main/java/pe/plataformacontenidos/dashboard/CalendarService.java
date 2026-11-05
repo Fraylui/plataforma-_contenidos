@@ -55,6 +55,21 @@ public class CalendarService {
     public record Month(String month, List<Entry> entries) {
     }
 
+    /** Borrador para retomar desde el Inicio del panel. */
+    public record Draft(ContentType type, UUID id, String title, Instant updatedAt) {
+    }
+
+    /**
+     * «Qué hacer hoy» del Inicio: fechas especiales de los próximos
+     * {@link #UPCOMING_DAYS} días (incluido hoy), lo programado para hoy y los
+     * últimos borradores editados.
+     */
+    public record Today(String today, List<Entry> upcomingDates, List<Entry> scheduledToday, List<Draft> drafts) {
+    }
+
+    static final int UPCOMING_DAYS = 14;
+    static final int MAX_DRAFTS = 5;
+
     private final JdbcTemplate jdbc;
     private final ContentRegistry contents;
     private final ZoneId siteZone;
@@ -107,6 +122,40 @@ public class CalendarService {
                 .thenComparing(entry -> entry.time() == null ? "" : entry.time())
                 .thenComparing(Entry::title, Comparator.nullsLast(Comparator.naturalOrder())));
         return new Month(ym.toString(), entries);
+    }
+
+    public Today today(Permissions permissions) {
+        LocalDate today = LocalDate.now(clock.withZone(siteZone));
+        LocalDate until = today.plusDays(UPCOMING_DAYS - 1L);
+        List<Entry> entries = new ArrayList<>(month(permissions, YearMonth.from(today).toString()).entries());
+        if (!YearMonth.from(until).equals(YearMonth.from(today))) {
+            entries.addAll(month(permissions, YearMonth.from(until).toString()).entries());
+        }
+        String todayText = today.toString();
+        List<Entry> upcoming = entries.stream()
+                .filter(e -> e.kind() == Kind.CELEBRATION_DATE)
+                .filter(e -> e.date().compareTo(todayText) >= 0 && e.date().compareTo(until.toString()) <= 0)
+                .toList();
+        List<Entry> scheduledToday = entries.stream()
+                .filter(e -> e.kind() == Kind.SCHEDULED && e.date().equals(todayText))
+                .toList();
+        return new Today(todayText, upcoming, scheduledToday, drafts(permissions));
+    }
+
+    private List<Draft> drafts(Permissions permissions) {
+        List<Draft> drafts = new ArrayList<>();
+        for (ContentSource source : contents.where(s -> s.type() != null && s.inDashboard() && s.createdInPanel())) {
+            if (!permissions.can(source.module(), AccessLevel.PUBLISH)) {
+                continue;
+            }
+            // Nombres validados como identificadores en ContentSource; nunca del usuario.
+            drafts.addAll(jdbc.query("SELECT id, " + source.titleColumn() + ", updated_at FROM " + source.table()
+                    + " WHERE status = 'DRAFT' ORDER BY updated_at DESC LIMIT " + MAX_DRAFTS,
+                    (rs, n) -> new Draft(source.type(), rs.getObject(1, UUID.class), rs.getString(2),
+                            rs.getTimestamp(3).toInstant())));
+        }
+        drafts.sort(Comparator.comparing(Draft::updatedAt).reversed());
+        return drafts.size() > MAX_DRAFTS ? List.copyOf(drafts.subList(0, MAX_DRAFTS)) : drafts;
     }
 
     /** Días del mes en que cae cada celebración (las que se repiten, en su día de este año). */

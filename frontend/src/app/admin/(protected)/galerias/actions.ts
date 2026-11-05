@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createGallery, updateGallery } from "@/lib/api/admin/content";
+import { redirect } from "next/navigation";
+import { createGallery, getAdminGallery, updateGallery } from "@/lib/api/admin/content";
+import { galleryCopy } from "@/lib/admin/duplicate";
 import type { GalleryInput } from "@/lib/api/admin-types";
 import { runAdminMutation, type ActionResult, type MutationResult } from "@/lib/admin/action-helpers";
 
@@ -24,3 +26,14 @@ export async function updateGalleryAction(id: string, input: GalleryInput): Prom
   return result;
 }
 
+
+/**
+ * «Duplicar»: crea un borrador nuevo con todo lo del original y abre su
+ * edición. Si falla, devuelve el error para mostrarlo junto al botón.
+ */
+export async function duplicateGalleryAction(id: string): Promise<ActionResult> {
+  const result = await runAdminMutation(async (token) => createGallery(token, galleryCopy(await getAdminGallery(token, id))));
+  if (!result.ok) return result;
+  revalidatePath("/admin/galerias");
+  redirect(`/admin/galerias/${result.data.id}`);
+}

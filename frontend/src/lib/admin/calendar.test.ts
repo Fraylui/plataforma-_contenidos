@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currentMonth, entriesByDay, monthLabel, monthWeeks, parseCalendarMonth, shiftMonth, todayIn } from "./calendar";
+import { currentMonth, daysBetween, whenLabel, entriesByDay, monthLabel, monthWeeks, parseCalendarMonth, shiftMonth, todayIn } from "./calendar";
 import type { CalendarEntry } from "@/lib/api/admin-types";
 
 describe("calendario del panel", () => {
@@ -45,5 +45,12 @@ describe("calendario del panel", () => {
     const byDay = entriesByDay([entry("a", "2026-11-02"), entry("b", "2026-11-02"), entry("c", "2026-11-05")]);
     expect(byDay.get("2026-11-02")?.map((e) => e.id)).toEqual(["a", "b"]);
     expect(byDay.get("2026-11-05")).toHaveLength(1);
+  });
+
+  it("cuenta los días que faltan, también entre meses", () => {
+    expect(daysBetween("2026-11-28", "2026-12-02")).toBe(4);
+    expect(whenLabel(0)).toBe("Hoy");
+    expect(whenLabel(1)).toBe("Mañana");
+    expect(whenLabel(6)).toBe("En 6 días");
   });
 });

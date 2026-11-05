@@ -47,9 +47,9 @@ function EntryLink({ entry, compact = false }: { entry: CalendarEntry; compact?:
       )}
     >
       <KindIcon weight="fill" className={cn("shrink-0", compact ? "size-3" : "size-4")} aria-hidden="true" />
-      <span className="sr-only">{kind.label}:</span>
-      {entry.time && <span className="shrink-0 tabular-nums">{entry.time}</span>}
-      <span className="truncate">{entry.title}</span>
+      <span className="sr-only">{kind.label}: </span>
+      {entry.time && <span className="shrink-0 tabular-nums">{entry.time}</span>}{" "}
+      <span className="truncate">{entry.title}</span>{" "}
       {!compact && <span className="ml-auto shrink-0 text-xs opacity-80">{typeLabel}</span>}
     </Link>
   );
