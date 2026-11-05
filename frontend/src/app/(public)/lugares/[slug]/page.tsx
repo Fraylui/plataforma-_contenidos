@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { ReactionBar } from "@/components/content/reaction-bar";
 import { PROSE } from "@/lib/prose";
@@ -10,6 +11,7 @@ import { FloatingReactions } from "@/components/post/immersive/floating-reaction
 import { heroCover } from "@/components/post/immersive/immersive-hero";
 import { ViewBeacon } from "@/components/content/view-beacon";
 import { PassportButtons } from "@/components/passport/passport-buttons";
+import { regionName, regionSlug } from "@/lib/peru-regions";
 import { AdBlock } from "@/components/legal/ad-block";
 import { PostView } from "@/components/post/post-view";
 import { PostDetailMedia } from "@/components/post/post-detail-media";
@@ -181,6 +183,13 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
           <>
             <ViewBeacon type="PLACE" id={place.id} />
             <PassportButtons slug={place.slug} name={place.name} href={`/lugares/${place.slug}`} region={place.region ?? null} country={place.country ?? null} />
+            {place.region && regionName(place.region) && (
+              <p className="mt-4 px-4 sm:px-0">
+                <Link href={`/lugares/region/${regionSlug(place.region)}`} className="text-sm font-semibold text-accent hover:underline">
+                  Más lugares de {regionName(place.region)}
+                </Link>
+              </p>
+            )}
           </>
         }
         reactions={<FloatingReactions contentType="places" slug={place.slug} initialLikeCount={place.likeCount} title={place.name} />}

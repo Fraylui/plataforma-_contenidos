@@ -1,5 +1,5 @@
 import "server-only";
-import type { FeedItem, FeedPage, SearchResult } from "@/lib/api/types";
+import type { FeedItem, FeedPage, PlaceSummary, SearchResult } from "@/lib/api/types";
 import { searchResultHref } from "@/lib/content-labels";
 import { formatCelebrationDate } from "@/lib/celebration-date";
 import { serverImageUrl } from "@/lib/server-image-url";
@@ -172,6 +172,31 @@ export function fromSearchResult(r: SearchResult): HomeItem {
   };
 }
 
+
+/** Lugar del listado público como miniatura de cuadrícula (páginas por región). */
+export function fromPlaceSummary(p: PlaceSummary): HomeItem {
+  const cover = coverImage(p.coverImageId, p.coverImageUrl);
+  return {
+    id: p.id,
+    kind: "lugar",
+    slug: p.slug,
+    likeKey: p.slug,
+    href: `/lugares/${p.slug}`,
+    likeCount: p.likeCount,
+    title: p.name,
+    excerpt: p.excerpt,
+    imageUrl: cover.url,
+    imageIsExternal: cover.isExternal,
+    categoryId: p.categoryId ?? "",
+    typeLabel: KIND_LABEL.lugar,
+    sortDate: p.publishedAt ?? "",
+    dateLabel: "",
+    images: coverAsImages(cover),
+    hasVideo: p.hasVideo,
+    latitude: p.latitude,
+    longitude: p.longitude,
+  };
+}
 
 /**
  * Detalle inmersivo: el primer relacionado (mismo tema primero) es «Sigue»,

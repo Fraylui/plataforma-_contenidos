@@ -12,6 +12,7 @@ import type {
   Publication,
   PublicationSummary,
   Category,
+  PlaceRegionCount,
   Episode,
   EpisodeView,
   Celebration,
@@ -114,13 +115,16 @@ export async function listAllPublishedPublicationsForSitemap(): Promise<Publicat
   return items;
 }
 
-function listPublishedPlaces(params?: {
+export function listPublishedPlaces(params?: {
   categoryId?: string;
+  /** Clave de PeruRegion (AYACUCHO…): la página «Lugares de Ayacucho». */
+  region?: string;
   page?: number;
   size?: number;
 }): Promise<PageResponse<PlaceSummary>> {
   const query = new URLSearchParams();
   if (params?.categoryId) query.set("categoryId", params.categoryId);
+  if (params?.region) query.set("region", params.region);
   query.set("page", String(params?.page ?? 0));
   query.set("size", String(params?.size ?? 20));
   return apiFetch(`/api/v1/places?${query.toString()}`, 60);
@@ -128,6 +132,11 @@ function listPublishedPlaces(params?: {
 
 export function getPublishedPlaceBySlug(slug: string): Promise<Place> {
   return apiFetch(`/api/v1/places/${encodeURIComponent(slug)}`, 300);
+}
+
+/** Regiones del Perú con lugares publicados y cuántos (páginas por región y sitemap). */
+export function getPlaceRegions(): Promise<PlaceRegionCount[]> {
+  return apiFetch("/api/v1/places/regions", 300);
 }
 
 /** Usado por la página de detalle de Celebración para resolver el nombre/slug de un lugar vinculado (placeId). */

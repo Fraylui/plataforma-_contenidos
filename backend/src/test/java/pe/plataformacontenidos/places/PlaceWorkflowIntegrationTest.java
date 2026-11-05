@@ -73,6 +73,19 @@ class PlaceWorkflowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[?(@.slug == 'pampa-de-la-quinua')]").exists());
 
+        // Página por región: lista los lugares de la región y la región aparece con su cantidad.
+        mockMvc.perform(get("/api/v1/places").param("region", "AYACUCHO"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.slug == 'pampa-de-la-quinua')].region").value(org.hamcrest.Matchers.hasItem("AYACUCHO")));
+        mockMvc.perform(get("/api/v1/places").param("region", "CUSCO"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.slug == 'pampa-de-la-quinua')]").doesNotExist());
+        mockMvc.perform(get("/api/v1/places/regions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.region == 'AYACUCHO')].count").exists());
+        mockMvc.perform(get("/api/v1/places").param("region", "ATLANTIDA"))
+                .andExpect(status().isBadRequest());
+
         // Archivar lo retira de la vista pública
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/archive")
                         .header("Authorization", "Bearer " + publisherToken))

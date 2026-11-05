@@ -121,6 +121,14 @@ export interface PlaceSummary {
   hasVideo: boolean;
   publishedAt: string | null;
   likeCount: number;
+  /** Región del Perú (ver PeruRegion.java); null si no se indicó. */
+  region?: string | null;
+}
+
+/** Ver PlacePublicController.regions: regiones del Perú con lugares publicados. */
+export interface PlaceRegionCount {
+  region: string;
+  count: number;
 }
 
 export interface Place {

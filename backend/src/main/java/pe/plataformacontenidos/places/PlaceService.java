@@ -146,10 +146,27 @@ public class PlaceService {
     }
 
     public Page<Place> listPublished(UUID categoryId, Pageable pageable) {
+        return listPublished(categoryId, null, pageable);
+    }
+
+    /** {@code region} (si viene) manda sobre el tema: es la página «Lugares de Ayacucho». */
+    public Page<Place> listPublished(UUID categoryId, PeruRegion region, Pageable pageable) {
+        if (region != null) {
+            return placeRepository.findByStatusAndRegion(PublicationStatus.PUBLISHED, region, pageable);
+        }
         if (categoryId != null) {
             return placeRepository.findByStatusAndCategoryId(PublicationStatus.PUBLISHED, categoryId, pageable);
         }
         return placeRepository.findByStatus(PublicationStatus.PUBLISHED, pageable);
+    }
+
+    /** Regiones con lugares publicados, en el orden de PeruRegion, con su cantidad. Sin lugares, no aparece. */
+    public java.util.Map<PeruRegion, Long> publishedRegions() {
+        java.util.Map<PeruRegion, Long> result = new java.util.EnumMap<>(PeruRegion.class);
+        for (Object[] row : placeRepository.countByRegion(PublicationStatus.PUBLISHED)) {
+            result.put((PeruRegion) row[0], (Long) row[1]);
+        }
+        return result;
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que PublicationService.search (query en blanco: página vacía, no error). */

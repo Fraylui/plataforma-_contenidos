@@ -32,3 +32,14 @@ export type PeruRegion = (typeof PERU_REGIONS)[number]["key"];
 export function regionName(key: string | null | undefined): string | null {
   return PERU_REGIONS.find((r) => r.key === key)?.name ?? null;
 }
+
+/** «LA_LIBERTAD» → «la-libertad»: la parte de la dirección /lugares/region/… */
+export function regionSlug(key: string): string {
+  return key.toLowerCase().replace(/_/g, "-");
+}
+
+/** «la-libertad» → «LA_LIBERTAD»; null si no es una región del Perú. */
+export function regionFromSlug(slug: string): PeruRegion | null {
+  const key = slug.toUpperCase().replace(/-/g, "_");
+  return PERU_REGIONS.find((r) => r.key === key)?.key ?? null;
+}

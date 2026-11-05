@@ -6,19 +6,29 @@ import {
   listAllPublishedGalleriesForSitemap,
   listAllPublishedPlacesForSitemap,
   listAllSeriesWithEpisodesForSitemap,
+  getPlaceRegions,
 } from "@/lib/api/client";
+import { regionSlug } from "@/lib/peru-regions";
 import { SITE_URL } from "@/lib/site-url";
 import { isCelebrationFinished } from "@/lib/content-labels";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [publications, places, celebrations, galleries, categories, series] = await Promise.all([
+  const [publications, places, celebrations, galleries, categories, series, regions] = await Promise.all([
     listAllPublishedPublicationsForSitemap(),
     listAllPublishedPlacesForSitemap(),
     listAllPublishedCelebrationsForSitemap(),
     listAllPublishedGalleriesForSitemap(),
     listCategoriesWithContent(),
     listAllSeriesWithEpisodesForSitemap(),
+    // Solo regiones con lugares publicados (las demás no tienen página).
+    getPlaceRegions().catch(() => []),
   ]);
+
+  const regionEntries: MetadataRoute.Sitemap = regions.map((r) => ({
+    url: `${SITE_URL}/lugares/region/${regionSlug(r.region)}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }));
 
   // Series y episodios: cada episodio es una página propia con su video (VideoObject).
   const seriesEntries: MetadataRoute.Sitemap = series.flatMap(({ series: s, episodes }) => [
@@ -96,6 +106,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...sectionEntries,
     ...publicationEntries,
     ...placeEntries,
+    ...regionEntries,
     ...celebrationEntries,
     ...galleryEntries,
     ...categoryEntries,
