@@ -21,7 +21,7 @@ import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
 import pe.plataformacontenidos.shared.ContentVideo;
 import pe.plataformacontenidos.shared.ContentVideoInput;
-import pe.plataformacontenidos.shared.HtmlSanitizer;
+import pe.plataformacontenidos.shared.publishing.PostBody;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.shared.publishing.InvalidPublicationTransitionException;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
@@ -57,7 +57,7 @@ public class PublicationService {
         }
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
-        String sanitizedBody = bodyOrEmpty(input.body(), images, videos);
+        String sanitizedBody = PostBody.orEmpty(input.body(), images, videos);
 
         Publication publication = new Publication(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), sanitizedBody,
                 input.publicationType(), authorId, input.categoryId());
@@ -79,7 +79,7 @@ public class PublicationService {
         }
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
-        String sanitizedBody = bodyOrEmpty(input.body(), images, videos);
+        String sanitizedBody = PostBody.orEmpty(input.body(), images, videos);
 
         publication.updateContent(input.title(), input.excerpt(), sanitizedBody, input.publicationType(), input.categoryId(),
                 input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
@@ -169,20 +169,6 @@ public class PublicationService {
 
     /** Mismo patrón que PlaceService.validateImages, pero para una sola imagen (destacada, no galería). */
     /** Cada imagen es subida (se valida contra Media) o un enlace externo (se valida la forma de URL). */
-    /**
-     * El texto es opcional si hay fotos o un video: una publicación puede ser
-     * solo eso con su descripción corta, como un post de red social. Sin nada
-     * que mostrar, no se guarda.
-     */
-    static String bodyOrEmpty(String body, List<?> images, List<?> videos) {
-        String sanitized = body == null || body.isBlank() ? "" : HtmlSanitizer.sanitize(body);
-        boolean hasText = !sanitized.replaceAll("<[^>]*>", "").replaceAll("&nbsp;|&#160;|\u00a0", " ").isBlank();
-        if (!hasText && images.isEmpty() && videos.isEmpty()) {
-            throw new EmptyPublicationException();
-        }
-        return hasText ? sanitized : "";
-    }
-
     private List<ContentImage> validateImages(List<ContentImageInput> images) {
         if (images == null) {
             return new ArrayList<>();

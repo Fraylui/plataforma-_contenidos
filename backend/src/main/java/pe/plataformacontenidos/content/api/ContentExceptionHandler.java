@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import pe.plataformacontenidos.shared.api.Problems;
 import pe.plataformacontenidos.content.PublicationNotFoundException;
-import pe.plataformacontenidos.content.EmptyPublicationException;
 import pe.plataformacontenidos.content.InvalidPublicationImageException;
 import pe.plataformacontenidos.content.InvalidYouTubeUrlException;
 
@@ -21,11 +20,6 @@ public class ContentExceptionHandler {
 
     @ExceptionHandler(InvalidYouTubeUrlException.class)
     public ResponseEntity<ProblemDetail> handleInvalidYouTubeUrl(InvalidYouTubeUrlException ex) {
-        return Problems.of(HttpStatus.BAD_REQUEST, ex.getMessage());
-    }
-
-    @ExceptionHandler(EmptyPublicationException.class)
-    public ResponseEntity<ProblemDetail> handleEmpty(EmptyPublicationException ex) {
         return Problems.of(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 

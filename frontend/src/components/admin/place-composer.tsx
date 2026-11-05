@@ -15,25 +15,22 @@ import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
 import { PhonePreview } from "./composer/phone-preview";
 import { LocationFields } from "./composer/location-fields";
-import {
-  baseDefaults,
-  baseFields,
-  baseInput,
-  bodyField,
-  coordinateField,
-  coordinateOrNull,
-  videosField,
-  videosFromContent,
-} from "./composer/schema";
+import { baseDefaults, baseFields, baseInput, coordinateField, coordinateOrNull, videosField, videosFromContent, hasSomethingToShow } from "./composer/schema";
 
-const schema = z.object({
+const schema = z
+  .object({
   ...baseFields,
   title: z.string().trim().min(1, "Escribe el nombre del lugar.").max(200, "Máximo 200 caracteres."),
-  body: bodyField,
+  body: z.string(),
   videos: videosField,
   latitude: coordinateField(-90, 90, "La latitud va de -90 a 90."),
   longitude: coordinateField(-180, 180, "La longitud va de -180 a 180."),
-});
+  })
+  // Como un post: con fotos o un video el texto largo es opcional (PostBody en el backend).
+  .refine((values) => hasSomethingToShow(values.body, values.images, values.videos), {
+    path: ["body"],
+    message: "Agrega fotos, un video o un texto.",
+  });
 
 type Values = z.infer<typeof schema>;
 
@@ -124,6 +121,11 @@ function PlaceBody({
             excerptDefault={place?.excerpt ?? ""}
             allImages={allImages}
             readOnly={readOnly}
+            collapsibleBody
+            excerptLabel="¿Qué tiene de especial?"
+            excerptHint="Una o dos frases: es lo que verá la gente junto a tus fotos."
+            excerptPlaceholder="Escribe algo…"
+            bodyHint="Opcional si subiste fotos o un video."
           />
           <Card title="Ubicación">
             <LocationFields readOnly={readOnly} startAt={mapStartAt} />

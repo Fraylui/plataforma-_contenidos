@@ -17,7 +17,7 @@ import { ComposerShell, MediaCard, TopicCard, useCoverUrl, WritingCard } from ".
 import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
 import { PhonePreview } from "./composer/phone-preview";
-import { baseDefaults, baseFields, baseInput, bodyField, emptyToNull, toDateTimeLocal, videosField, videosFromContent } from "./composer/schema";
+import { baseDefaults, baseFields, baseInput, emptyToNull, toDateTimeLocal, videosField, videosFromContent, hasSomethingToShow } from "./composer/schema";
 
 const THIS_YEAR = new Date().getFullYear();
 
@@ -31,7 +31,7 @@ type ScopeKind = "WORLD" | "COUNTRY" | "REGION";
 const schema = z
   .object({
     ...baseFields,
-    body: bodyField,
+    body: z.string(),
     videos: videosField,
     recursYearly: z.boolean(),
     allDay: z.boolean(),
@@ -46,6 +46,11 @@ const schema = z
     scopeKind: z.enum(["WORLD", "COUNTRY", "REGION"]),
     scopeCountry: z.string(),
     scopeRegion: z.string().max(100, "Máximo 100 caracteres."),
+  })
+  // Como un post: con fotos o un video el texto largo es opcional (PostBody en el backend).
+  .refine((values) => hasSomethingToShow(values.body, values.images, values.videos), {
+    path: ["body"],
+    message: "Agrega fotos, un video o un texto.",
   })
   .refine((values) => values.scopeKind === "WORLD" || /^[A-Z]{2}$/.test(values.scopeCountry), {
     path: ["scopeCountry"],
@@ -188,7 +193,16 @@ function CelebrationBody({
       main={
         <>
           <MediaCard allImages={allImages} readOnly={readOnly} />
-          <WritingCard excerptDefault={celebration?.excerpt ?? ""} allImages={allImages} readOnly={readOnly} />
+          <WritingCard
+            excerptDefault={celebration?.excerpt ?? ""}
+            allImages={allImages}
+            readOnly={readOnly}
+            collapsibleBody
+            excerptLabel="¿Qué se celebra?"
+            excerptHint="Una o dos frases: es lo que verá la gente junto a tus fotos."
+            excerptPlaceholder="Escribe algo…"
+            bodyHint="Opcional si subiste fotos o un video."
+          />
           <WhenAndWhereCard places={places} readOnly={readOnly} />
           <ScopeCard readOnly={readOnly} />
           <ShareCard

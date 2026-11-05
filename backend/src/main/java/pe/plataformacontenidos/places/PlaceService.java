@@ -18,7 +18,7 @@ import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
 import pe.plataformacontenidos.shared.ContentVideo;
 import pe.plataformacontenidos.shared.ContentVideoInput;
-import pe.plataformacontenidos.shared.HtmlSanitizer;
+import pe.plataformacontenidos.shared.publishing.PostBody;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
@@ -54,7 +54,7 @@ public class PlaceService {
         }
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
-        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
+        String sanitizedBody = PostBody.orEmpty(input.body(), images, videos);
 
         Place place = new Place(uniqueSlugFrom(input.name()), input.name(), input.excerpt(), sanitizedBody, authorId,
                 input.categoryId());
@@ -76,7 +76,7 @@ public class PlaceService {
         }
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
-        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
+        String sanitizedBody = PostBody.orEmpty(input.body(), images, videos);
 
         place.updateContent(input.name(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.latitude(), input.longitude(), images, input.seoTitle(), input.metaDescription(),

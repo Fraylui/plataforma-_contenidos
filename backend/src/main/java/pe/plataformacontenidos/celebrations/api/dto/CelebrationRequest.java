@@ -13,7 +13,7 @@ import pe.plataformacontenidos.shared.ContentVideoInput;
 public record CelebrationRequest(
         @NotBlank @Size(max = 200) String title,
         @Size(max = 500) String excerpt,
-        @NotBlank String body,
+        String body,
         @NotNull UUID categoryId,
         UUID placeId,
         @Size(max = 200) String venueName,

@@ -61,6 +61,7 @@ describe("Compositor de Lugares", () => {
     vi.mocked(createPlaceAction).mockResolvedValue(created as never);
     render(<PlaceComposer {...common} />);
     await userEvent.type(screen.getByLabelText("Nombre"), "Laguna de Paca");
+    await userEvent.click(screen.getByRole("button", { name: /Contar más/ }));
     await userEvent.type(screen.getByLabelText("Texto"), "Una laguna andina.");
     await chooseTopic();
     await userEvent.type(screen.getByLabelText("Latitud"), "-11.85");
@@ -91,6 +92,7 @@ describe("Compositor de Celebraciones", () => {
     expect(screen.getByRole("radio", { name: "Se repite cada año" })).toBeChecked();
     expect(screen.getByRole("checkbox", { name: "Todo el día" })).toBeChecked();
     await userEvent.type(screen.getByLabelText("Título"), "Fiestas Patrias");
+    await userEvent.click(screen.getByRole("button", { name: /Contar más/ }));
     await userEvent.type(screen.getByLabelText("Texto"), "La independencia del Perú.");
     await chooseTopic();
     await userEvent.type(screen.getByLabelText(/^Fecha/), "2026-07-28");
@@ -115,6 +117,7 @@ describe("Compositor de Celebraciones", () => {
     vi.mocked(createCelebrationAction).mockResolvedValue(created as never);
     render(<CelebrationComposer {...common} places={[]} homeCountry="PE" />);
     await userEvent.type(screen.getByLabelText("Título"), "Semana Santa ayacuchana");
+    await userEvent.click(screen.getByRole("button", { name: /Contar más/ }));
     await userEvent.type(screen.getByLabelText("Texto"), "Procesiones en Huamanga.");
     await chooseTopic();
     await userEvent.type(screen.getByLabelText(/^Fecha/), "2026-04-02");
@@ -132,6 +135,7 @@ describe("Compositor de Celebraciones", () => {
     vi.mocked(createCelebrationAction).mockResolvedValue(created as never);
     render(<CelebrationComposer {...common} places={[]} homeCountry="PE" />);
     await userEvent.type(screen.getByLabelText("Título"), "Año Nuevo");
+    await userEvent.click(screen.getByRole("button", { name: /Contar más/ }));
     await userEvent.type(screen.getByLabelText("Texto"), "Empieza el año.");
     await chooseTopic();
     await userEvent.type(screen.getByLabelText(/^Fecha/), "2026-01-01");
@@ -147,6 +151,7 @@ describe("Compositor de Celebraciones", () => {
     await userEvent.click(screen.getByRole("checkbox", { name: "Todo el día" }));
     expect(screen.queryByLabelText("Desde el año (opcional)")).toBeNull();
     await userEvent.type(screen.getByLabelText("Título"), "Eclipse");
+    await userEvent.click(screen.getByRole("button", { name: /Contar más/ }));
     await userEvent.type(screen.getByLabelText("Texto"), "Se verá desde Ayacucho.");
     await userEvent.type(screen.getByLabelText(/^Empieza/), "2030-05-10T18:00");
     await userEvent.type(screen.getByLabelText("Termina (opcional)"), "2030-05-10T16:00");

@@ -25,7 +25,7 @@ import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
 import pe.plataformacontenidos.shared.ContentVideo;
 import pe.plataformacontenidos.shared.ContentVideoInput;
-import pe.plataformacontenidos.shared.HtmlSanitizer;
+import pe.plataformacontenidos.shared.publishing.PostBody;
 import pe.plataformacontenidos.shared.RegionNames;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
@@ -75,7 +75,7 @@ public class CelebrationService {
         String scopeRegion = scopeRegion(input, scopeCountry);
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
-        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
+        String sanitizedBody = PostBody.orEmpty(input.body(), images, videos);
 
         Celebration celebration = new Celebration(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), sanitizedBody,
                 authorId, input.categoryId(), input.startsAt());
@@ -107,7 +107,7 @@ public class CelebrationService {
         String scopeRegion = scopeRegion(input, scopeCountry);
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
-        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
+        String sanitizedBody = PostBody.orEmpty(input.body(), images, videos);
 
         celebration.updateContent(input.title(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.placeId(), input.venueName(), input.startsAt(), input.endsAt(), images, input.seoTitle(),

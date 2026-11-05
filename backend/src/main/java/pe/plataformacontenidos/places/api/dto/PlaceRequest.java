@@ -14,7 +14,7 @@ import pe.plataformacontenidos.shared.ContentVideoInput;
 public record PlaceRequest(
         @NotBlank @Size(max = 200) String name,
         @Size(max = 500) String excerpt,
-        @NotBlank String body,
+        String body,
         @NotNull UUID categoryId,
         @DecimalMin("-90") @DecimalMax("90") Double latitude,
         @DecimalMin("-180") @DecimalMax("180") Double longitude,
