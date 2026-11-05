@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: settings.description || undefined,
     alternates: { canonical: "/", types: { "application/rss+xml": "/rss.xml" } },
-    openGraph: { images: [ogImage] },
+    openGraph: { images: [ogImage], siteName: settings.name, locale: "es_PE", type: "website" },
     verification: settings.googleSearchConsoleVerification
       ? { google: settings.googleSearchConsoleVerification }
       : undefined,
@@ -31,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${inter.variable} h-full antialiased`}>
+    <html lang="es-PE" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full bg-background text-foreground">
         {children}
       </body>

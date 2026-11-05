@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: PageProps<"/en-vivo/[slug]">)
     title: stream.title,
     description: stream.description ?? "Transmisión en vivo.",
     alternates: { canonical: `/en-vivo/${stream.slug}` },
-    openGraph: { images: [`https://i.ytimg.com/vi/${stream.youtubeVideoId}/hqdefault.jpg`] },
+    openGraph: { locale: "es_PE", images: [`https://i.ytimg.com/vi/${stream.youtubeVideoId}/hqdefault.jpg`] },
   };
 }
 

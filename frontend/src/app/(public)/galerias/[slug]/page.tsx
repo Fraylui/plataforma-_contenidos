@@ -60,6 +60,7 @@ export async function generateMetadata(props: PageProps<"/galerias/[slug]">): Pr
     alternates: { canonical: gallery.canonicalUrl || `/galerias/${slug}` },
     robots: robotsWithLargePreview(gallery.robots),
     openGraph: {
+      locale: "es_PE",
       title,
       description,
       type: "website",

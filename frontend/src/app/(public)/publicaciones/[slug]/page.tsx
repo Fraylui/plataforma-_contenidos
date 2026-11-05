@@ -72,6 +72,7 @@ export async function generateMetadata(props: PageProps<"/publicaciones/[slug]">
     alternates: { canonical: publication.canonicalUrl || `/publicaciones/${slug}` },
     robots: robotsWithLargePreview(publication.robots),
     openGraph: {
+      locale: "es_PE",
       title,
       description,
       type: "article",

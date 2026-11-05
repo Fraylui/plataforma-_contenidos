@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: PageProps<"/series/[slug]/[ep
     title: `${episode.title} · ${series.title}`,
     description: plainExcerpt(episode.notes, episode.description),
     alternates: { canonical: `/series/${series.slug}/${episode.slug}` },
-    openGraph: { images: [youtubeThumb(episode.youtubeVideoId)], type: "video.episode" },
+    openGraph: { locale: "es_PE", images: [youtubeThumb(episode.youtubeVideoId)], type: "video.episode" },
   };
 }
 

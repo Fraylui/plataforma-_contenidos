@@ -67,6 +67,7 @@ export async function generateMetadata(props: PageProps<"/lugares/[slug]">): Pro
     alternates: { canonical: place.canonicalUrl || `/lugares/${slug}` },
     robots: robotsWithLargePreview(place.robots),
     openGraph: {
+      locale: "es_PE",
       title,
       description,
       type: "website",

@@ -76,6 +76,7 @@ export async function generateMetadata(props: PageProps<"/celebraciones/[slug]">
     alternates: { canonical: celebration.canonicalUrl || `/celebraciones/${slug}` },
     robots: robotsWithLargePreview(celebration.robots),
     openGraph: {
+      locale: "es_PE",
       title,
       description,
       type: "website",

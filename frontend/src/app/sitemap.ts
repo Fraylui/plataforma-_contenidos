@@ -74,6 +74,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const anyContent = publications.length + places.length + celebrations.length + galleries.length + series.length > 0;
   const SECTIONS: { path: string; has: boolean; changeFrequency: "daily" | "weekly"; priority: number }[] = [
     { path: "/publicaciones", has: publications.length > 0, changeFrequency: "daily", priority: 0.6 },
+    { path: "/lugares", has: places.length > 0, changeFrequency: "weekly", priority: 0.6 },
     { path: "/celebraciones", has: celebrations.length > 0, changeFrequency: "daily", priority: 0.6 },
     { path: "/galerias", has: galleries.length > 0, changeFrequency: "weekly", priority: 0.5 },
     { path: "/series", has: series.length > 0, changeFrequency: "daily", priority: 0.6 },
