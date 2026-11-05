@@ -29,6 +29,7 @@ public record PlaceResponse(
         String robots,
         List<String> sources,
         PeruRegion region,
+        String country,
 
         Instant publishedAt,
         Instant scheduledAt,
@@ -41,7 +42,7 @@ public record PlaceResponse(
                 place.getLatitude(), place.getLongitude(),
                 place.getImages().stream().map(ContentImageResponse::from).toList(), place.getSeoTitle(),
                 place.getMetaDescription(), place.getCanonicalUrl(), place.getOgImageUrl(),
-                place.getVideos().stream().map(ContentVideoResponse::from).toList(), place.getRobots(), place.getSources(), place.getRegion(),
+                place.getVideos().stream().map(ContentVideoResponse::from).toList(), place.getRobots(), place.getSources(), place.getRegion(), place.getCountry(),
                 place.getPublishedAt(), place.getScheduledAt(), place.getCreatedAt(),
                 likeCount);
     }

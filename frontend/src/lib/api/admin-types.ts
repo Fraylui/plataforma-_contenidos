@@ -112,8 +112,10 @@ export interface PlaceInput {
   robots: string;
   /** Enlaces de las fuentes (hasta 10). */
   sources: string[];
-  /** Región del Perú (sello del Pasaporte); null si no se indicó. */
+  /** Región del Perú (sello en «Mis viajes»); null si no se indicó. */
   region: PeruRegion | null;
+  /** País ISO 3166-1 alfa-2 (PE, CL…); null si no se indicó. */
+  country: string | null;
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/celebrations — ver EventRequest.java. */

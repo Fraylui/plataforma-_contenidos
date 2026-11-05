@@ -66,6 +66,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/articulos", destination: "/publicaciones", permanent: true },
+      // «Pasaporte» pasó a llamarse «Mis viajes» (2026-11-05): no se limita al Perú.
+      { source: "/pasaporte", destination: "/mis-viajes", permanent: true },
       { source: "/articulos/:slug", destination: "/publicaciones/:slug", permanent: true },
       // /eventos y /agenda -> /celebraciones (2026-10-16): «Eventos» sonaba a publicidad; el modelo es el de
       // Google (la portada cambia el día que toca + un archivo de celebraciones).

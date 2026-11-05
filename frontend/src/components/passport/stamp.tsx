@@ -2,14 +2,20 @@ import { SealCheck } from "@phosphor-icons/react/dist/ssr";
 import { PERU_REGIONS } from "@/lib/peru-regions";
 import { cn } from "@/lib/utils";
 
-/** Un tono propio por región (repartidos en el círculo de color), para que el pasaporte se vea variado. */
-export function regionHue(region: string): number {
-  const index = PERU_REGIONS.findIndex((r) => r.key === region);
-  return Math.round(((index < 0 ? 0 : index) * 360) / PERU_REGIONS.length);
+/**
+ * Un tono propio por sello, para que la colección se vea variada: las
+ * regiones del Perú repartidas en el círculo de color; los países, por su código.
+ */
+export function regionHue(key: string): number {
+  const index = PERU_REGIONS.findIndex((r) => r.key === key);
+  if (index >= 0) return Math.round((index * 360) / PERU_REGIONS.length);
+  let hash = 0;
+  for (const ch of key) hash = (hash * 31 + ch.charCodeAt(0)) % 360;
+  return hash;
 }
 
 /**
- * Sello de una región. Con sello: tinta de color, borde doble y un poco
+ * Sello de una región o de un país. Con sello: tinta de color, borde doble y un poco
  * torcido, como el de un pasaporte de verdad. Sin sello: solo el contorno
  * punteado esperando.
  */

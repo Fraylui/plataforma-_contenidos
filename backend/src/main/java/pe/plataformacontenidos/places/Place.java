@@ -88,6 +88,10 @@ public class Place extends PublishableContent {
     @Column(name = "region")
     private PeruRegion region;
 
+    /** País ISO 3166-1 alfa-2 (PE, CL…); null si no se indicó. */
+    @Column(name = "country", length = 2)
+    private String country;
+
     @Column(name = "sources")
     private String sources;
 
@@ -176,8 +180,21 @@ public class Place extends PublishableContent {
         return region;
     }
 
-    public void setRegion(PeruRegion region) {
-        this.region = region;
+    public String getCountry() {
+        return country;
+    }
+
+    /**
+     * País y región juntos: la región del Perú solo tiene sentido si el país
+     * es PE (sin país pero con región, se asume Perú).
+     */
+    public void setLocation(String country, PeruRegion region) {
+        String normalized = country == null || country.isBlank() ? null : country.trim().toUpperCase(java.util.Locale.ROOT);
+        if (normalized == null && region != null) {
+            normalized = "PE";
+        }
+        this.country = normalized;
+        this.region = "PE".equals(normalized) ? region : null;
     }
 
     public java.util.List<String> getSources() {

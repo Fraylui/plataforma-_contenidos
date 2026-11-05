@@ -145,6 +145,8 @@ export interface Place {
   sources?: string[];
   /** Región del Perú (ver PeruRegion.java); null si no se indicó. */
   region?: string | null;
+  /** País ISO 3166-1 alfa-2; null si no se indicó. */
+  country?: string | null;
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;

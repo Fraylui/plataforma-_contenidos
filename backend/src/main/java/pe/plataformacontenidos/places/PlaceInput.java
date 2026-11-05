@@ -27,5 +27,6 @@ public record PlaceInput(
         List<ContentVideoInput> videos,
         String robots,
         java.util.List<String> sources,
-        PeruRegion region) {
+        PeruRegion region,
+        String country) {
 }

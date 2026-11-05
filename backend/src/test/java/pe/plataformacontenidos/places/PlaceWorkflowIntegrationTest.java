@@ -66,7 +66,8 @@ class PlaceWorkflowIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Pampa de la Quinua"))
                 .andExpect(jsonPath("$.latitude").value(-13.04))
-                .andExpect(jsonPath("$.region").value("AYACUCHO"));
+                .andExpect(jsonPath("$.region").value("AYACUCHO"))
+                .andExpect(jsonPath("$.country").value("PE"));
 
         mockMvc.perform(get("/api/v1/places").param("categoryId", categoryId))
                 .andExpect(status().isOk())
@@ -108,6 +109,29 @@ class PlaceWorkflowIntegrationTest {
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/publish")
                         .header("Authorization", "Bearer " + otherCreatorToken))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void placeOutsidePeruKeepsItsCountryAndDropsThePeruvianRegion() throws Exception {
+        String creatorToken = createUserAndLogin("places-creador-pais@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
+        String publisherToken = createUserAndLogin("places-publicador-pais@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String categoryId = createCategory(publisherToken, "Categoría País Test");
+
+        mockMvc.perform(post("/api/v1/admin/places")
+                        .header("Authorization", "Bearer " + creatorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Salar de Uyuni\",\"body\":\"Historia.\","
+                                + "\"categoryId\":\"" + categoryId + "\",\"country\":\"bo\",\"region\":\"PUNO\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.country").value("BO"))
+                .andExpect(jsonPath("$.region").doesNotExist());
+
+        mockMvc.perform(post("/api/v1/admin/places")
+                        .header("Authorization", "Bearer " + creatorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"País inválido\",\"body\":\"Historia.\","
+                                + "\"categoryId\":\"" + categoryId + "\",\"country\":\"PER\"}"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

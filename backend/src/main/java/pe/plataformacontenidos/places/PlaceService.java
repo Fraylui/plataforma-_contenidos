@@ -63,7 +63,7 @@ public class PlaceService {
                 input.latitude(), input.longitude(), images, input.seoTitle(), input.metaDescription(),
                 input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
         place.setSources(input.sources());
-        place.setRegion(input.region());
+        place.setLocation(input.country(), input.region());
 
         Place saved = placeRepository.save(place);
         audit("PLACE_CREATED", saved, authorId);
@@ -85,7 +85,7 @@ public class PlaceService {
                 input.latitude(), input.longitude(), images, input.seoTitle(), input.metaDescription(),
                 input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
         place.setSources(input.sources());
-        place.setRegion(input.region());
+        place.setLocation(input.country(), input.region());
         Place saved = placeRepository.save(place);
         audit("PLACE_UPDATED", saved, actingUserId);
         return saved;

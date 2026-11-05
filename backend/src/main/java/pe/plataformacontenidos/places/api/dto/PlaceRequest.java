@@ -29,11 +29,13 @@ public record PlaceRequest(
         /** Enlaces de las fuentes, hasta 10 (ver PostSources). */
         List<String> sources,
         /** Región del Perú (opcional): sello del Pasaporte. */
-        PeruRegion region) {
+        PeruRegion region,
+        /** País ISO 3166-1 alfa-2 (PE, CL, ES…); opcional. */
+        @jakarta.validation.constraints.Pattern(regexp = "^[A-Za-z]{2}$") String country) {
 
     public PlaceInput toInput() {
         return new PlaceInput(name, excerpt, body, categoryId, latitude, longitude,
                 images == null ? List.of() : images, seoTitle, metaDescription, canonicalUrl, ogImageUrl,
-                videos == null ? List.of() : videos, robots, sources, region);
+                videos == null ? List.of() : videos, robots, sources, region, country);
     }
 }

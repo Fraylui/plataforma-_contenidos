@@ -182,7 +182,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
         actions={
           <>
             <ViewBeacon type="PLACE" id={place.id} />
-            <PassportButtons slug={place.slug} name={place.name} href={`/lugares/${place.slug}`} region={place.region ?? null} />
+            <PassportButtons slug={place.slug} name={place.name} href={`/lugares/${place.slug}`} region={place.region ?? null} country={place.country ?? null} />
             {map && (
               <div className="mt-6 px-4 sm:px-0">
                 <a href={mapsDirections(map.latitude, map.longitude)} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL}>

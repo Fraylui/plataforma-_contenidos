@@ -29,6 +29,7 @@ const schema = z
   latitude: coordinateField(-90, 90, "La latitud va de -90 a 90."),
   longitude: coordinateField(-180, 180, "La longitud va de -180 a 180."),
   region: z.string(),
+  country: z.string(),
   })
   // Como un post: con fotos o un video el texto largo es opcional (PostBody en el backend).
   .refine((values) => hasSomethingToShow(values.body, values.images, values.videos), {
@@ -47,7 +48,9 @@ function toInput(values: Values): PlaceInput {
     videos: values.videos,
     latitude: coordinateOrNull(values.latitude),
     longitude: coordinateOrNull(values.longitude),
-    region: (values.region || null) as PlaceInput["region"],
+    country: values.country || null,
+    // La región del Perú solo vale con país Perú (el servidor también lo hace cumplir).
+    region: (values.country === "PE" && values.region ? values.region : null) as PlaceInput["region"],
   };
 }
 
@@ -75,6 +78,8 @@ export function PlaceComposer({ categories, allImages, place, permissions, siteN
       latitude: place?.latitude != null ? String(place.latitude) : "",
       longitude: place?.longitude != null ? String(place.longitude) : "",
       region: place?.region ?? "",
+      // Lugar nuevo: Perú por defecto (la mayoría del contenido es de aquí).
+      country: place ? (place.country ?? "") : "PE",
     },
     initialId: place?.id ?? "",
     status,

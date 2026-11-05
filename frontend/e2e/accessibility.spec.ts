@@ -20,7 +20,7 @@ async function expectNoViolations(page: Page, path: string) {
 
 const PUBLIC_PAGES = [
   "/", "/explorar", "/buscar?q=ayacucho", "/publicaciones", "/lugares", "/celebraciones", "/galerias",
-  "/series", "/en-vivo", "/contacto", "/privacidad", "/terminos", "/pasaporte", "/no-existe-esta-pagina",
+  "/series", "/en-vivo", "/contacto", "/privacidad", "/terminos", "/mis-viajes", "/no-existe-esta-pagina",
 ];
 
 for (const path of PUBLIC_PAGES) {

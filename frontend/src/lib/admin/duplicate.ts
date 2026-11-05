@@ -42,6 +42,7 @@ export function placeCopy(p: Place): PlaceInput {
     latitude: p.latitude,
     longitude: p.longitude,
     region: (p.region as PlaceInput["region"]) ?? null,
+    country: p.country ?? null,
     images: p.images,
     seoTitle: null,
     metaDescription: p.metaDescription,

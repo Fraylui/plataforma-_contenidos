@@ -10,7 +10,7 @@ import type { SocialKey } from "@/lib/social-links";
 /** En el celular, el archivo de Celebraciones (sin pestaña propia, modelo Google) se encuentra aquí. */
 const SHEET_LINKS = [
   { href: "/celebraciones", label: "Celebraciones" },
-  { href: "/pasaporte", label: "Mi Pasaporte" },
+  { href: "/mis-viajes", label: "Mis viajes" },
   ...MORE_LINKS,
 ];
 
