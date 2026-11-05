@@ -85,7 +85,9 @@ export function PostView({
     return (
       <div className="mx-auto w-full max-w-[1040px] pb-8 sm:px-4 sm:pt-4">
         <ReadingProgress />
-        <article className="mx-auto max-w-[760px]">
+        {/* relative: en pantallas anchas, «me gusta» y compartir acompañan al post por su costado (no al borde de la ventana). */}
+        <div className="relative mx-auto max-w-[760px]">
+        <article>
           <ImmersiveHero
             cover={cover}
             badge={heroBadge}
@@ -93,8 +95,9 @@ export function PostView({
             header={{ brand, typeLabel, categoryName, time }}
           />
           <div className="mx-auto max-w-[680px] pt-6">
-            {facts && <div className="px-4 sm:px-0">{facts}</div>}
-            {excerpt && <p className="mt-2 px-4 text-lg leading-relaxed font-medium text-foreground sm:px-0">{excerpt}</p>}
+            {/* Como un post: primero la frase y después los datos (mapa, fecha). */}
+            {excerpt && <p className="px-4 text-lg leading-relaxed font-medium text-foreground sm:px-0">{excerpt}</p>}
+            {facts && <div className={cn("px-4 sm:px-0", excerpt && "mt-4")}>{facts}</div>}
             {media && <div className="mt-6">{media}</div>}
             {body && <div className="mt-6 px-4 sm:px-0">{body}</div>}
             {reactionBar && <div className="px-4 sm:px-0">{reactionBar}</div>}
@@ -102,7 +105,8 @@ export function PostView({
             {ad && <div className="mt-8 px-4 sm:px-0">{ad}</div>}
           </div>
         </article>
-        {reactions}
+        {reactions && <div className="xl:absolute xl:inset-y-0 xl:left-full xl:ml-4">{reactions}</div>}
+        </div>
         <div className="mx-auto max-w-[760px]">
           {moreSection}
           {/* Al final de todo: subirla hasta llenar la pantalla es la intención de pasar. */}

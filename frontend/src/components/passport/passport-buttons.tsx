@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { Stamp } from "./stamp";
 
 const PILL =
-  "inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-4 text-sm font-semibold outline-none transition-[background-color,border-color,scale] active:scale-95 focus-visible:ring-[3px] focus-visible:ring-ring";
+  "inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-full border px-4 text-sm font-semibold outline-none transition-[background-color,border-color,scale] active:scale-95 focus-visible:ring-[3px] focus-visible:ring-ring";
 
 type Earned = { key: string; name: string; title: string; detail: string };
 
@@ -66,12 +66,15 @@ export function PassportButtons({
   href,
   region,
   country,
+  children,
 }: {
   slug: string;
   name: string;
   href: string;
   region: string | null;
   country: string | null;
+  /** Otra acción del lugar en la misma fila (ej. «Cómo llegar»), antes de los botones. */
+  children?: React.ReactNode;
 }) {
   const passport = useSyncExternalStore(subscribePassport, readPassport, serverPassport);
   const status = passport[slug]?.status ?? null;
@@ -96,7 +99,9 @@ export function PassportButtons({
 
   return (
     <div className="mt-6 px-4 sm:px-0">
-      <div role="group" aria-label="Mis viajes" className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
+        {children}
+        <div role="group" aria-label="Mis viajes" className="flex flex-wrap gap-2">
         <button
           type="button"
           aria-pressed={status === "WANT"}
@@ -121,6 +126,7 @@ export function PassportButtons({
           <Footprints weight={status === "BEEN" ? "fill" : "regular"} className="size-5" aria-hidden="true" />
           Ya fui
         </button>
+        </div>
       </div>
 
       <div aria-live="polite">

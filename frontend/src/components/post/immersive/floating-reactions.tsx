@@ -65,6 +65,8 @@ export function FloatingReactions({
       data-hidden={hidden}
       className={cn(
         "fixed right-3 bottom-[calc(var(--bottom-bar-h)+7rem)] z-30 flex flex-col items-center gap-3 lg:right-8 lg:bottom-10",
+        // Pantalla ancha: al costado del post (ver PostView), fijos mientras se lee.
+        "xl:sticky xl:top-[45vh] xl:right-auto xl:bottom-auto",
         "transition-[translate,opacity] duration-200 ease-out motion-reduce:transition-none",
         hidden && "pointer-events-none translate-x-[150%] opacity-0 lg:pointer-events-auto lg:translate-x-0 lg:opacity-100",
       )}
