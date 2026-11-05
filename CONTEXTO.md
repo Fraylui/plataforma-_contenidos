@@ -486,6 +486,8 @@ Debe ser posible programar publicaciones.
 
 ### 12.1 Crear y planear (panel, 2026-11)
 
+Forma de trabajar del equipo (rutina de 5 pasos, fuentes, fotos ajenas, qué no se publica): [`GUIA-CREAR-CONTENIDO.md`](GUIA-CREAR-CONTENIDO.md).
+
 * **Botón «Crear»**: abre «¿Qué quieres crear?» con cada tipo, su ícono y para qué sirve en una línea (`components/admin/shell/create-menu.tsx`, textos en `lib/admin/nav.ts`). Mismo diálogo en computadora y en la barra del celular.
 * **Qué hacer hoy** (Inicio del panel, `GET /api/v1/admin/calendar/today`): fechas especiales de los próximos 14 días con atajo para crear, lo que sale hoy y los 5 últimos borradores para retomar.
 * **Publicación, lugar y celebración = post** (2026-11, dueño: «nada de blog, fácil de crear y publicar»): con fotos o un video el texto largo es opcional; basta título y la frase corta. Sin nada que mostrar no se guarda (`shared.publishing.PostBody`, `hasSomethingToShow`). El texto largo queda plegado tras «Contar más»; la frase corta se pide como «¿Qué quieres contar?», «¿Qué tiene de especial?» o «¿Qué se celebra?». «Post rápido» es la opción por defecto al crear.
