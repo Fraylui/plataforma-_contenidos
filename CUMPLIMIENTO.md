@@ -19,7 +19,7 @@ Estado: ✅ cumplido · 🟡 parcial · 👤 trámite del dueño (fuera del cód
 | | Atender derechos ARCO | 🟡 | El canal es el correo de contacto (`/contacto`). Falta configurar ese correo en el panel → Configuración |
 | | Comunicar a la ANPD los incidentes de seguridad | 🟡 | Procedimiento en la §6; el plazo exacto se confirma con el abogado |
 | **Ley 29571** Código de Protección del Consumidor | Publicidad identificable, información veraz | ✅ | Lo pagado va con «Patrocinado»; los anuncios están separados del contenido (`CONTEXTO.md` 43.2) |
-| **D. Leg. 1044** Competencia Desleal | Nada de publicidad encubierta (principio de autenticidad) | ✅ | Se quitó el Directorio; reglas «Antes de publicar» en el panel; `CONTEXTO.md` 45.4 |
+| **D. Leg. 1044** Competencia Desleal | Nada de publicidad encubierta (principio de autenticidad) | ✅ | Se quitó el Directorio; reglas «Antes de publicar» en el panel; enlaces de afiliado siempre marcados «Enlace de afiliado» con aviso de comisión y `rel="sponsored"`; `CONTEXTO.md` 44.7.1 y 45.4 |
 | **Ley 30021**, **Ley 28681**, **Ley 31557** | Advertencias en anuncios de alimentos procesados, alcohol y apuestas | ✅ | El rubro del anunciante obliga la advertencia (migración V68) |
 | **D. Leg. 822** Derechos de Autor | Usar solo obras propias o con permiso | ✅ | Fotos subidas por el dueño (sin enlaces a fotos ajenas); videos del canal propio o con permiso |
 | **Ley 30096** Delitos Informáticos | — (ampara a la plataforma si la atacan) | ✅ | Registro de auditoría como evidencia |

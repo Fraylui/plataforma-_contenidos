@@ -27,6 +27,7 @@ import type {
   Place,
   PlaceSummary,
   PlatformSettings,
+  PublicAffiliateLink,
   SearchResult,
   SearchResultType,
   SeriesCard,
@@ -462,6 +463,11 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
 }
 
 /** Identidad/marca (CONTEXTO.md sección 14): reemplaza src/lib/platform-placeholder.ts. */
+/** Enlaces de afiliado de una publicación o un lugar publicado (vacío si no tiene). */
+export function listAffiliateLinks(type: "PUBLICATION" | "PLACE", id: string): Promise<PublicAffiliateLink[]> {
+  return apiFetch(`/api/v1/affiliate-links?type=${type}&id=${encodeURIComponent(id)}`, 60);
+}
+
 export function getPlatformSettings(): Promise<PlatformSettings> {
   return apiFetch(`/api/v1/platform-settings`, 300);
 }

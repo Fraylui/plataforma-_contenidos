@@ -494,3 +494,11 @@ export interface LiveStream {
   endedAt: string | null;
   createdAt: string;
 }
+
+/** Enlace de afiliado público (AffiliatePublicController.PublicLink): el destino nunca viaja, se abre por /go. */
+export interface PublicAffiliateLink {
+  id: string;
+  label: string;
+  /** Dominio de la tienda (sin www.), para saber a dónde lleva antes de tocar. */
+  store: string;
+}

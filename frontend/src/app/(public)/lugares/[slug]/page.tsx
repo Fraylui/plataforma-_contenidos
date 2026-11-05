@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { PROSE } from "@/lib/prose";
 import { notFound } from "next/navigation";
 import { NavigationArrow } from "@phosphor-icons/react/dist/ssr";
-import { getCategoryById, getPlatformSettings, getPublishedPlaceBySlug, getRelatedWithFallback } from "@/lib/api/client";
+import { getCategoryById, getPlatformSettings, getPublishedPlaceBySlug, getRelatedWithFallback, listAffiliateLinks } from "@/lib/api/client";
+import { AffiliateRecommendations } from "@/components/post/affiliate-recommendations";
 import { NotFoundError } from "@/lib/api/client";
 import { POST_ACTION_PILL } from "@/components/content/like-share-bar";
 import { FloatingReactions } from "@/components/post/immersive/floating-reactions";
@@ -20,7 +21,7 @@ import { SITE_URL } from "@/lib/site-url";
 import type { Category, Place } from "@/lib/api/types";
 import { contentImageUrl, robotsWithLargePreview, shareImageUrl } from "@/lib/share-image";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
-import { orNull } from "@/lib/server-log";
+import { orDefault, orNull } from "@/lib/server-log";
 
 /** "Más como esto": 3 filas de la cuadrícula de 3. */
 const MORE_SIZE = 9;
@@ -116,10 +117,11 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
   const { slug } = await props.params;
   const place = await loadPlace(slug);
 
-  const [category, settings, relatedPage] = await Promise.all([
+  const [category, settings, relatedPage, affiliateLinks] = await Promise.all([
     getCategoryById(place.categoryId).catch(orNull("lugar.tema")),
     getPlatformSettings(),
     getRelatedWithFallback({ excludeType: "PLACE", excludeId: place.id, categoryId: place.categoryId, size: MORE_SIZE }),
+    listAffiliateLinks("PLACE", place.id).catch(orDefault("lugar.afiliados", [])),
   ]);
   const { upNext, more } = splitUpNext([...relatedPage.related, ...relatedPage.more].map(fromFeedItem));
 
@@ -167,7 +169,10 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
         body={
           // place.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
           // de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
-          <div className={PROSE} dangerouslySetInnerHTML={{ __html: place.body }} />
+          <>
+            <div className={PROSE} dangerouslySetInnerHTML={{ __html: place.body }} />
+            <AffiliateRecommendations links={affiliateLinks} />
+          </>
         }
         actions={
           <>

@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { CaretLeft, CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { getPublishedEpisode, NotFoundError } from "@/lib/api/client";
 import { formatPublishedDate } from "@/lib/content-labels";
+import { YouTubeSubscribe } from "@/components/content/youtube-subscribe";
 import { YouTubeEmbed } from "@/components/content/youtube-embed";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -57,6 +58,7 @@ export default async function EpisodePage({ params }: PageProps<"/series/[slug]/
       />
 
       <YouTubeEmbed videoId={episode.youtubeVideoId} title={episode.title} priority />
+      <YouTubeSubscribe className="mt-3" />
 
       <header className="mt-5">
         <Link href={`/series/${series.slug}`} className="text-sm font-semibold text-accent hover:underline">

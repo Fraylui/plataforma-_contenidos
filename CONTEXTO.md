@@ -1794,6 +1794,11 @@ datos muestran demanda real:
 Regla de diseño: el contenido propio, el contenido patrocinado y la
 publicidad deben distinguirse visualmente sin ambigüedad (ver 43.2).
 
+### 44.7.1 Ya implementado (2026-11)
+
+* **Suscríbete en YouTube**: botón bajo cada video (publicaciones, lugares, celebraciones, episodios, en vivo) que abre el canal de Configuración → Redes con la ventana de suscripción (`?sub_confirmation=1`). Sin canal configurado no aparece.
+* **Enlaces de afiliado** (`affiliates`, V75): hasta 10 por publicación o lugar, se editan bajo el compositor con sus clics. En el sitio salen en «Recomendados», cada uno con la marca «Enlace de afiliado», aviso de comisión y `rel="sponsored nofollow"` (D.Leg. 1044). El clic pasa por `GET /api/v1/affiliate-links/{id}/go` (cuenta como las visitas, sin cookies ni IP guardada) y redirige; solo en contenido publicado.
+
 ### 44.8 Costos, métricas y economía unitaria
 
 ```text

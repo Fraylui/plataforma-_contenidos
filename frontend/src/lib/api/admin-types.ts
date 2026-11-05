@@ -493,3 +493,19 @@ export interface CalendarMonth {
   month: string;
   entries: CalendarEntry[];
 }
+
+/** Enlace de afiliado de una publicación o un lugar (AffiliateLink.java); clicks = veces que se abrió. */
+export type AffiliateContentType = "PUBLICATION" | "PLACE";
+
+export interface AffiliateLink {
+  id: string;
+  position: number;
+  label: string;
+  url: string;
+  clicks: number;
+}
+
+export interface AffiliateLinkInput {
+  label: string;
+  url: string;
+}
