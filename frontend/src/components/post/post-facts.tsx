@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { LazyMap } from "./lazy-map";
 import type { Icon } from "@phosphor-icons/react";
 
 const ROW_LINK = "-mx-2 flex items-center gap-3 rounded-control px-2 py-1.5 transition-colors hover:bg-canvas-strong";
@@ -63,17 +64,7 @@ export function PostFacts({
           })}
         </ul>
       )}
-      {map && (
-        <div className="aspect-video w-full overflow-hidden rounded-card bg-canvas-strong">
-          <iframe
-            src={`https://www.google.com/maps?q=${map.latitude},${map.longitude}&z=15&output=embed`}
-            title={`Mapa de ${map.title}`}
-            className="h-full w-full"
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
-        </div>
-      )}
+      {map && <LazyMap latitude={map.latitude} longitude={map.longitude} title={map.title} />}
     </div>
   );
 }

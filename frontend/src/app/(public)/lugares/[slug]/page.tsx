@@ -2,12 +2,10 @@ import type { Metadata } from "next";
 import { ReactionBar } from "@/components/content/reaction-bar";
 import { PROSE } from "@/lib/prose";
 import { notFound } from "next/navigation";
-import { NavigationArrow } from "@phosphor-icons/react/dist/ssr";
 import { getCategoryById, getPlatformSettings, getPublishedPlaceBySlug, getRelatedWithFallback, listAffiliateLinks } from "@/lib/api/client";
 import { AffiliateRecommendations } from "@/components/post/affiliate-recommendations";
 import { PostSources } from "@/components/post/post-sources";
 import { NotFoundError } from "@/lib/api/client";
-import { POST_ACTION_PILL } from "@/components/content/like-share-bar";
 import { FloatingReactions } from "@/components/post/immersive/floating-reactions";
 import { heroCover } from "@/components/post/immersive/immersive-hero";
 import { ViewBeacon } from "@/components/content/view-beacon";
@@ -17,7 +15,6 @@ import { PostView } from "@/components/post/post-view";
 import { PostDetailMedia } from "@/components/post/post-detail-media";
 import { PostFacts } from "@/components/post/post-facts";
 import { headerTimeFor } from "@/components/post/post-header";
-import { mapsDirections } from "@/components/post/post-actions";
 import { KIND_LABEL } from "@/lib/content-kind";
 import { fromFeedItem, splitUpNext } from "@/lib/home-items";
 import { SITE_URL } from "@/lib/site-url";
@@ -182,14 +179,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
         actions={
           <>
             <ViewBeacon type="PLACE" id={place.id} />
-            <PassportButtons slug={place.slug} name={place.name} href={`/lugares/${place.slug}`} region={place.region ?? null} country={place.country ?? null}>
-              {map && (
-                <a href={mapsDirections(map.latitude, map.longitude)} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL}>
-                  <NavigationArrow className="h-4 w-4" aria-hidden="true" />
-                  Cómo llegar
-                </a>
-              )}
-            </PassportButtons>
+            <PassportButtons slug={place.slug} name={place.name} href={`/lugares/${place.slug}`} region={place.region ?? null} country={place.country ?? null} />
           </>
         }
         reactions={<FloatingReactions contentType="places" slug={place.slug} initialLikeCount={place.likeCount} title={place.name} />}
