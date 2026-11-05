@@ -290,6 +290,10 @@ export interface DailyCount {
 export interface EngagementCounts {
   likes: number;
   views: number;
+  /** Reacciones con ícono (me encanta, me divierte, me sorprende, me inspira), juntas. */
+  reactions?: number;
+  /** Clics en sus enlaces de afiliado (solo publicaciones y lugares). */
+  affiliateClicks?: number;
 }
 
 /** Página de un listado de contenido del panel (AdminContentPage.java): PageResponse + engagement por id. */

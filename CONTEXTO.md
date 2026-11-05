@@ -1806,6 +1806,7 @@ publicidad deben distinguirse visualmente sin ambigüedad (ver 43.2).
 ### 44.7.2 Participación sin cuentas (2026-11)
 
 * **Reacciones** (V76, `engagement.content_reactions`, `GET/POST /api/v1/reactions`): «¿Qué te pareció?» con Me encanta (corazón), Me divierte (carita), Me sorprende (rayo) y Me inspira (aplauso), además del «me gusta». Íconos propios a color con rebote, partículas y número que salta al tocar (no emoji del sistema; sin animación si el celular pide menos movimiento). Una por visitante anónimo (mismo id del navegador que los «me gusta»), se cambia o se quita; solo en contenido publicado (publicaciones, lugares, celebraciones, galerías, episodios).
+* **Cifras por contenido en el panel**: cada fila de Publicaciones, Lugares, Celebraciones y Galerías muestra visitas, me gusta, reacciones y clics de afiliado (`ContentEngagementService.Counts`; reacciones y clics solo si hay).
 * **Comentarios: no por ahora** (decisión del dueño, 2026-11-05). Requieren cuentas de lectores (datos personales, banco ANPD), moderación diaria y protección contra spam. Encuestas: más adelante.
 
 ### 44.8 Costos, métricas y economía unitaria
