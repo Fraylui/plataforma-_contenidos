@@ -83,6 +83,24 @@ class FeedIntegrationTest {
                 .andExpect(jsonPath("$.items[*].type", hasItem("CELEBRATION")));
     }
 
+    @Test
+    void feedPageCarriesReactionCountsForItsItems() throws Exception {
+        String publisherToken = createUserAndLogin("feed-reacciones@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String creatorToken = createUserAndLogin("feed-reacciones-c@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
+        String categoryId = createCategory(publisherToken, "Feed Reacciones");
+        String id = publishPublication(creatorToken, publisherToken, categoryId, "Feed: con reacciones " + UUID.randomUUID());
+        for (String reaction : new String[] {"LOVE", "LOVE", "WOW"}) {
+            mockMvc.perform(post("/api/v1/reactions").contentType(MediaType.APPLICATION_JSON).content("""
+                    {"type":"PUBLICATION","id":"%s","visitorId":"%s","reaction":"%s"}
+                    """.formatted(id, UUID.randomUUID(), reaction))).andExpect(status().isOk());
+        }
+
+        mockMvc.perform(get("/api/v1/feed").param("size", "100").param("type", "PUBLICATION"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.reactions['" + id + "'].LOVE", is(2)))
+                .andExpect(jsonPath("$.reactions['" + id + "'].WOW", is(1)));
+    }
+
     /**
      * Hallado con la simulación de carga (k6, 2026-10-07): cada ítem del pool
      * cargaba sus fotos y videos con una consulta propia (N+1) y el backend se

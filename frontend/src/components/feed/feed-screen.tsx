@@ -12,7 +12,7 @@ import {
   listActiveStories,
 } from "@/lib/api/client";
 import type { AdSection } from "@/lib/ads/ad-context";
-import { fromFeedItem } from "@/lib/home-items";
+import { fromFeedItem, fromFeedPage } from "@/lib/home-items";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { LiveBanner } from "@/components/live/live-banner";
 import { TodayCelebrations } from "@/components/celebrations/today-celebrations";
@@ -152,7 +152,7 @@ export async function FeedScreen({
             <FilterChips label="Tipo de contenido" options={typeChipOptions(visibility, activePath)} className="mt-2 mb-3" />
           </div>
           <Feed
-            initialItems={feedPage.items.map(fromFeedItem)}
+            initialItems={fromFeedPage(feedPage)}
             initialHasMore={feedPage.hasMore}
             seed={seed}
             filter={filter}

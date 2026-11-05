@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { fromFeedItem } from "@/lib/home-items";
-import type { FeedItem } from "@/lib/api/types";
+import { fromFeedPage } from "@/lib/home-items";
+import type { FeedPage } from "@/lib/api/types";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const MAX_SIZE = 30; // = MAX_PAGE_SIZE en FeedController
@@ -44,6 +44,6 @@ export async function GET(request: NextRequest) {
   if (!res.ok) {
     return NextResponse.json({ items: [], hasMore: false }, { status: res.status });
   }
-  const page: { items: FeedItem[]; hasMore: boolean } = await res.json();
-  return NextResponse.json({ items: page.items.map(fromFeedItem), hasMore: page.hasMore });
+  const page: FeedPage = await res.json();
+  return NextResponse.json({ items: fromFeedPage(page), hasMore: page.hasMore });
 }

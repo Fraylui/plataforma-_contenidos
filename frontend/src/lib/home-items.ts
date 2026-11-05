@@ -1,5 +1,5 @@
 import "server-only";
-import type { FeedItem, SearchResult } from "@/lib/api/types";
+import type { FeedItem, FeedPage, SearchResult } from "@/lib/api/types";
 import { searchResultHref } from "@/lib/content-labels";
 import { formatCelebrationDate } from "@/lib/celebration-date";
 import { serverImageUrl } from "@/lib/server-image-url";
@@ -45,6 +45,19 @@ export interface HomeItem {
   recursYearly?: boolean | null;
   latitude?: number | null;
   longitude?: number | null;
+  /** Reacciones con al menos un voto (solo en páginas del feed); ausente si no hay. */
+  reactions?: Partial<Record<FeedReactionKey, number>>;
+}
+
+export type FeedReactionKey = "LOVE" | "FUNNY" | "WOW" | "INSPIRED";
+
+/** Los ítems de una página del feed con sus reacciones (vienen aparte, por id). */
+export function fromFeedPage(page: FeedPage): HomeItem[] {
+  return page.items.map((item) => {
+    const home = fromFeedItem(item);
+    const reactions = page.reactions?.[item.id];
+    return reactions ? { ...home, reactions } : home;
+  });
 }
 
 export interface HomeImage {

@@ -167,7 +167,7 @@ export function ReactionBar({ type, id }: { type: FeedItemType; id: string }) {
   const top = topReactions(state.counts);
 
   return (
-    <section aria-label="¿Qué te pareció?" className="not-prose mt-8 rounded-card bg-surface p-4 shadow-card">
+    <section id="reacciones" aria-label="¿Qué te pareció?" className="not-prose mt-8 scroll-mt-20 rounded-card bg-surface p-4 shadow-card">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-base font-bold text-foreground">¿Qué te pareció?</p>
         <p className="flex items-center gap-2 text-xs text-muted" aria-live="polite">

@@ -1,6 +1,8 @@
 package pe.plataformacontenidos.engagement;
 
+import java.util.Collection;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -83,5 +85,24 @@ public class ContentReactionService {
                 """, (rs, n) -> Reaction.valueOf(rs.getString(1)), type.name(), contentId, visitorId)
                 .stream().findFirst().orElse(null);
         return new Reactions(counts, mine);
+    }
+
+    /**
+     * Conteos de varios contenidos en una sola consulta (tarjetas del feed).
+     * Solo aparecen los que tienen al menos una reacción.
+     */
+    public Map<UUID, Map<Reaction, Long>> countsFor(Collection<UUID> contentIds) {
+        Map<UUID, Map<Reaction, Long>> result = new HashMap<>();
+        if (contentIds == null || contentIds.isEmpty()) {
+            return result;
+        }
+        jdbc.query("""
+                SELECT content_id, reaction, COUNT(*) FROM engagement.content_reactions
+                 WHERE content_id = ANY(?) GROUP BY content_id, reaction
+                """, ps -> ps.setArray(1, ps.getConnection().createArrayOf("uuid", contentIds.toArray())), rs -> {
+            result.computeIfAbsent(rs.getObject(1, UUID.class), id -> new EnumMap<>(Reaction.class))
+                    .put(Reaction.valueOf(rs.getString(2)), rs.getLong(3));
+        });
+        return result;
     }
 }

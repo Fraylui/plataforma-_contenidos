@@ -396,6 +396,8 @@ export interface FeedTopic {
 export interface FeedPage {
   items: FeedItem[];
   hasMore: boolean;
+  /** Reacciones por id de ítem; solo los que tienen alguna. */
+  reactions?: Record<string, Partial<Record<"LOVE" | "FUNNY" | "WOW" | "INSPIRED", number>>>;
 }
 
 /** Serie pública (SeriesDtos.PublicSeriesResponse): un programa que se transmite en YouTube. */

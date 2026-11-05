@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import pe.plataformacontenidos.content.Publication;
 import pe.plataformacontenidos.content.PublicationService;
 import pe.plataformacontenidos.engagement.ContentLikeService;
+import pe.plataformacontenidos.engagement.ContentReactionService;
 import pe.plataformacontenidos.catalog.ContentType;
 import pe.plataformacontenidos.celebrations.Celebration;
 import pe.plataformacontenidos.celebrations.CelebrationService;
@@ -68,12 +69,14 @@ public class FeedService {
     private final GalleryService galleryService;
     private final CategoryService categoryService;
     private final ContentLikeService contentLikeService;
+    private final ContentReactionService reactionService;
     private final FeedCandidateCache candidateCache;
     private final SeriesService seriesService;
 
     public FeedService(PublicationService publicationService, PlaceService placeService, CelebrationService celebrationService,
             GalleryService galleryService, CategoryService categoryService,
-            ContentLikeService contentLikeService, FeedCandidateCache candidateCache, SeriesService seriesService) {
+            ContentLikeService contentLikeService, FeedCandidateCache candidateCache, SeriesService seriesService,
+            ContentReactionService reactionService) {
         this.publicationService = publicationService;
         this.placeService = placeService;
         this.celebrationService = celebrationService;
@@ -82,6 +85,7 @@ public class FeedService {
         this.contentLikeService = contentLikeService;
         this.candidateCache = candidateCache;
         this.seriesService = seriesService;
+        this.reactionService = reactionService;
     }
 
     /** Tipos que forman parte del feed (las pestañas del home solo pueden pedir uno de estos). */
@@ -118,7 +122,8 @@ public class FeedService {
 
         List<FeedItemResponse> page = ordered.stream().limit(size).toList();
         boolean hasMore = ordered.size() > page.size();
-        return new FeedPageResponse(page, hasMore);
+        return new FeedPageResponse(page, hasMore,
+                reactionService.countsFor(page.stream().map(FeedItemResponse::id).toList()));
     }
 
     /** Candidatos de un tipo (o de todos) sin filtrar: los mismos para cualquier visitante (ver FeedCandidateCache). */

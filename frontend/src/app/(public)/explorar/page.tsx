@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getFeed, getPrimaryNavVisibility } from "@/lib/api/client";
-import { fromFeedItem } from "@/lib/home-items";
+import { fromFeedPage } from "@/lib/home-items";
 import type { FeedItemType } from "@/lib/api/types";
 import { ExploreGrid } from "@/components/feed/explore-grid";
 import { FilterChips } from "@/components/feed/filter-chips";
@@ -39,7 +39,7 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explorar
       </div>
       <ExploreGrid
         key={type ?? "todo"}
-        initialItems={page.items.map(fromFeedItem)}
+        initialItems={fromFeedPage(page)}
         initialHasMore={page.hasMore}
         seed={seed}
         filter={type ? { type } : {}}
