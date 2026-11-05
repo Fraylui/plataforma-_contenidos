@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Compass, House, MagnifyingGlass } from "@phosphor-icons/react/dist/ssr";
 
 const PILL =
   "inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold transition-colors";
+
+export const metadata: Metadata = { title: "Página no encontrada", robots: { index: false } };
 
 /** 404 con forma de pantalla de app: ícono, mensaje corto y a dónde ir (inicio, Explorar, buscar). */
 export default function NotFound() {

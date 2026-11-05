@@ -11,7 +11,8 @@ const inter = Inter({
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPlatformSettings();
-  const ogImage = settings.ogImageUrl || undefined;
+  // Sin imagen propia, una generada con el nombre del sitio (ver app/og/sitio).
+  const ogImage = settings.ogImageUrl || "/og/sitio";
   return {
     metadataBase: new URL(SITE_URL),
     title: {
@@ -20,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: settings.description || undefined,
     alternates: { canonical: "/", types: { "application/rss+xml": "/rss.xml" } },
-    openGraph: ogImage ? { images: [ogImage] } : undefined,
+    openGraph: { images: [ogImage] },
     verification: settings.googleSearchConsoleVerification
       ? { google: settings.googleSearchConsoleVerification }
       : undefined,
