@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CalendarCheck, FloppyDisk, PaperPlaneTilt, X } from "@phosphor-icons/react";
@@ -45,6 +45,25 @@ const TIME = new Intl.DateTimeFormat("es-PE", { timeZone: SITE_TIME_ZONE, hour: 
  * directo, sin paso de aprobación (decisión del dueño 2026-10-15). Publicar,
  * guardar, programar, quitar la programación y archivar.
  */
+/**
+ * En celular (y tablet) el panel de Publicar queda al final de la página;
+ * esta barra fija repite la acción principal sobre la barra de pestañas para
+ * que publicar esté siempre a un toque, como en cualquier app. Solo se monta
+ * en pantallas angostas (matchMedia), así no hay dos «Publicar» en la página.
+ */
+function useNarrowScreen(): boolean {
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia?.("(max-width: 1023.98px)");
+    if (!query) return;
+    const update = () => setNarrow(query.matches);
+    update();
+    query.addEventListener?.("change", update);
+    return () => query.removeEventListener?.("change", update);
+  }, []);
+  return narrow;
+}
+
 export function PublishPanel({ kind, item, permissions, dirty, saving, onSave, savedAt }: PublishPanelProps) {
   const router = useRouter();
   const [busy, setBusy] = useState<PublicationStep | null>(null);
@@ -83,89 +102,116 @@ export function PublishPanel({ kind, item, permissions, dirty, saving, onSave, s
 
   const saveLabel = item.status === "DRAFT" ? "Guardar borrador" : "Guardar cambios";
   const primaryIsSave = !permissions.canPublish;
+  const narrow = useNarrowScreen();
+  const showBar = narrow && (permissions.canPublish || permissions.canEdit);
 
   return (
-    <section aria-label="Publicar" className="space-y-4 rounded-card bg-surface p-5 shadow-card">
-      <header className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold tracking-tight text-foreground">Publicar</h2>
-        <Badge tone={publicationStatusTone(item.status)} dot>
-          {publicationStatusLabel(item.status)}
-        </Badge>
-      </header>
-
-
-      {isScheduled && item.scheduledAt && (
-        <p className="flex items-center gap-2 text-sm font-medium text-foreground">
-          <CalendarCheck weight="fill" aria-hidden="true" className="size-4 shrink-0 text-warning" />
-          {`Se publicará ${formatEventDateTime(item.scheduledAt)}`}
-        </p>
-      )}
-
-      <div className="flex flex-col gap-2">
-        {permissions.canPublish && (
-          <Button size="lg" icon={<PaperPlaneTilt weight="fill" aria-hidden="true" />} loading={busy === "publish"} disabled={working} onClick={() => run("publish")}>
-            {isScheduled ? "Publicar ahora" : "Publicar"}
-          </Button>
-        )}
-        {permissions.canEdit && (
-          <Button
-            size={primaryIsSave ? "lg" : "md"}
-            variant={primaryIsSave ? "primary" : "secondary"}
-            icon={<FloppyDisk aria-hidden="true" />}
-            loading={saving && busy === null}
-            disabled={working}
-            onClick={save}
-          >
-            {saveLabel}
-          </Button>
-        )}
-        {permissions.canSchedule && !scheduling && (
-          <Button variant="ghost" icon={<CalendarCheck aria-hidden="true" />} disabled={working} onClick={() => setScheduling(true)}>
-            {isScheduled ? "Cambiar fecha" : "Programar"}
-          </Button>
-        )}
-      </div>
-
-      {scheduling && (
-        <div className="space-y-3 rounded-control bg-field p-3">
-          <Field label="Fecha y hora de publicación" name="publish-schedule-at">
-            <DateTimeInput value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} />
-          </Field>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              disabled={!scheduleAt || working}
-              loading={busy === "schedule"}
-              onClick={() => run("schedule", { scheduledAt: new Date(scheduleAt).toISOString() })}
-            >
-              Confirmar programación
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => setScheduling(false)}>
-              Cancelar
-            </Button>
+    <>
+      {showBar && (
+        <div className="fixed inset-x-0 bottom-[calc(3.6rem+env(safe-area-inset-bottom))] z-30 flex items-center gap-2 border-t border-border bg-surface/95 px-4 py-2 backdrop-blur lg:hidden">
+          <Badge tone={publicationStatusTone(item.status)} dot>
+            {publicationStatusLabel(item.status)}
+          </Badge>
+          <div className="ml-auto flex gap-2">
+            {permissions.canEdit && !primaryIsSave && (
+              <Button size="md" variant="secondary" icon={<FloppyDisk aria-hidden="true" />} loading={saving && busy === null} disabled={working} onClick={save}>
+                Guardar
+              </Button>
+            )}
+            {permissions.canPublish ? (
+              <Button size="md" icon={<PaperPlaneTilt weight="fill" aria-hidden="true" />} loading={busy === "publish"} disabled={working} onClick={() => run("publish")}>
+                {isScheduled ? "Publicar ahora" : "Publicar"}
+              </Button>
+            ) : (
+              <Button size="md" icon={<FloppyDisk aria-hidden="true" />} loading={saving && busy === null} disabled={working} onClick={save}>
+                {saveLabel}
+              </Button>
+            )}
           </div>
         </div>
       )}
+      <section aria-label="Publicar" className="space-y-4 rounded-card bg-surface p-5 shadow-card">
+        <header className="flex items-center justify-between gap-3">
+          <h2 className="text-base font-semibold tracking-tight text-foreground">Publicar</h2>
+          <Badge tone={publicationStatusTone(item.status)} dot>
+            {publicationStatusLabel(item.status)}
+          </Badge>
+        </header>
 
-      {(permissions.canReturnToDraft || permissions.canArchive) && (
-        <div className="flex flex-wrap gap-2 border-t border-field-border pt-4">
-          {permissions.canReturnToDraft && (
-            <Button size="sm" variant="ghost" icon={<X aria-hidden="true" />} disabled={working} onClick={() => run("return-to-draft")}>
-              Quitar programación
+
+        {isScheduled && item.scheduledAt && (
+          <p className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <CalendarCheck weight="fill" aria-hidden="true" className="size-4 shrink-0 text-warning" />
+            {`Se publicará ${formatEventDateTime(item.scheduledAt)}`}
+          </p>
+        )}
+
+        <div className="flex flex-col gap-2">
+          {permissions.canPublish && (
+            <Button size="lg" icon={<PaperPlaneTilt weight="fill" aria-hidden="true" />} loading={busy === "publish"} disabled={working} onClick={() => run("publish")}>
+              {isScheduled ? "Publicar ahora" : "Publicar"}
             </Button>
           )}
-          {permissions.canArchive && (
-            <ArchiveButton itemLabel={`esta ${PUBLICATION_KINDS[kind].noun}`} disabled={working} onConfirm={() => run("archive")} />
+          {permissions.canEdit && (
+            <Button
+              size={primaryIsSave ? "lg" : "md"}
+              variant={primaryIsSave ? "primary" : "secondary"}
+              icon={<FloppyDisk aria-hidden="true" />}
+              loading={saving && busy === null}
+              disabled={working}
+              onClick={save}
+            >
+              {saveLabel}
+            </Button>
+          )}
+          {permissions.canSchedule && !scheduling && (
+            <Button variant="ghost" icon={<CalendarCheck aria-hidden="true" />} disabled={working} onClick={() => setScheduling(true)}>
+              {isScheduled ? "Cambiar fecha" : "Programar"}
+            </Button>
           )}
         </div>
-      )}
 
-      {savedAt && (
-        <p className="text-xs text-muted" aria-live="polite">
-          Guardado · {TIME.format(savedAt)}
-        </p>
-      )}
+        {scheduling && (
+          <div className="space-y-3 rounded-control bg-field p-3">
+            <Field label="Fecha y hora de publicación" name="publish-schedule-at">
+              <DateTimeInput value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} />
+            </Field>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                disabled={!scheduleAt || working}
+                loading={busy === "schedule"}
+                onClick={() => run("schedule", { scheduledAt: new Date(scheduleAt).toISOString() })}
+              >
+                Confirmar programación
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setScheduling(false)}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        )}
 
-    </section>
+        {(permissions.canReturnToDraft || permissions.canArchive) && (
+          <div className="flex flex-wrap gap-2 border-t border-field-border pt-4">
+            {permissions.canReturnToDraft && (
+              <Button size="sm" variant="ghost" icon={<X aria-hidden="true" />} disabled={working} onClick={() => run("return-to-draft")}>
+                Quitar programación
+              </Button>
+            )}
+            {permissions.canArchive && (
+              <ArchiveButton itemLabel={`esta ${PUBLICATION_KINDS[kind].noun}`} disabled={working} onConfirm={() => run("archive")} />
+            )}
+          </div>
+        )}
+
+        {savedAt && (
+          <p className="text-xs text-muted" aria-live="polite">
+            Guardado · {TIME.format(savedAt)}
+          </p>
+        )}
+
+      </section>
+    </>
   );
 }

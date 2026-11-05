@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Plus } from "@phosphor-icons/react";
 import { Controller, useController, useFormContext, useWatch } from "react-hook-form";
 import type { AdminImage } from "@/lib/api/admin-types";
 import type { Category, ContentImage } from "@/lib/api/types";
 import { imageUrl } from "@/lib/image-url";
 import { FormError } from "@/components/admin/ui";
-import { Card, Combobox, Field, TextArea } from "@/components/ui";
+import { Button, Card, Combobox, Field, TextArea } from "@/components/ui";
 import { ContentImagesPicker } from "../content-images-picker";
 import { VideoLinksEditor } from "../video-links-editor";
 import { RichTextEditor } from "../rich-text-editor";
@@ -36,7 +37,8 @@ export function ComposerShell({
     <form
       onSubmit={(event) => event.preventDefault()}
       noValidate
-      className="mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start"
+      // pb-20: en celular, la barra fija de Publicar no tapa lo último.
+      className="mx-auto grid max-w-6xl grid-cols-1 gap-6 pb-20 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:pb-0"
     >
       <div className="min-w-0 space-y-6">
         {readOnlyNotice && <p className="rounded-control bg-info-soft px-4 py-3 text-sm text-foreground">{readOnlyNotice}</p>}
@@ -107,6 +109,11 @@ const TITLE_CLASS =
   "h-auto min-h-0 resize-none overflow-hidden field-sizing-content border-0 bg-transparent px-0 py-1 text-[28px] leading-tight font-bold tracking-tight " +
   "placeholder:text-muted/50 hover:bg-transparent focus:border-0 focus:bg-transparent focus:ring-0";
 
+/** ¿El HTML tiene algo de texto? Sin DOM: sirve en el servidor y en el navegador. */
+export function hasPlainText(html: string): boolean {
+  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;|&#160;|\u00a0/g, " ").trim().length > 0;
+}
+
 /** Título grande, descripción corta con contador y, si el tipo lo tiene, el texto. */
 export function WritingCard({
   titleLabel = "Título",
@@ -114,6 +121,10 @@ export function WritingCard({
   excerptDefault,
   withBody = true,
   bodyHint,
+  collapsibleBody = false,
+  excerptLabel = "Descripción corta",
+  excerptHint = "Una o dos frases que inviten a abrirla.",
+  excerptPlaceholder = "¿De qué trata?",
   allImages,
   readOnly,
   children,
@@ -123,12 +134,21 @@ export function WritingCard({
   excerptDefault: string;
   withBody?: boolean;
   bodyHint?: string;
+  /** El texto largo empieza plegado tras «Contar más» (posts: lo normal es foto + frase). */
+  collapsibleBody?: boolean;
+  excerptLabel?: string;
+  excerptHint?: string;
+  excerptPlaceholder?: string;
   allImages: AdminImage[];
   readOnly: boolean;
   children?: ReactNode;
 }) {
-  const { control, register, formState } = useFormContext<BaseComposerValues & { body?: string }>();
+  const { control, register, formState, getValues } = useFormContext<BaseComposerValues & { body?: string }>();
   const { errors } = formState;
+  // Abierto si ya hay texto (editar), si no se pliega o si hay un error en el texto.
+  // Sin DOMParser: este estado inicial también se calcula en el servidor.
+  const [bodyOpen, setBodyOpen] = useState(() => !collapsibleBody || hasPlainText(getValues("body") ?? ""));
+  const showBody = bodyOpen || Boolean(errors.body);
   return (
     <Card>
       <Field label={titleLabel} name="title" hideLabel error={errors.title?.message}>
@@ -142,17 +162,22 @@ export function WritingCard({
           {...register("title")}
         />
       </Field>
-      <Field label="Descripción corta" name="excerpt" hint="Una o dos frases que inviten a abrirla." error={errors.excerpt?.message}>
+      <Field label={excerptLabel} name="excerpt" hint={excerptHint} error={errors.excerpt?.message}>
         <TextArea
           rows={2}
           maxLength={500}
           disabled={readOnly}
-          placeholder="¿De qué trata?"
+          placeholder={excerptPlaceholder}
           defaultValue={excerptDefault}
           {...register("excerpt")}
         />
       </Field>
-      {withBody && (
+      {withBody && !showBody && (
+        <Button variant="ghost" icon={<Plus aria-hidden="true" />} onClick={() => setBodyOpen(true)} disabled={readOnly}>
+          Contar más (texto largo, opcional)
+        </Button>
+      )}
+      {withBody && showBody && (
         <Field label="Texto" name="body" hint={bodyHint} error={errors.body?.message}>
           <Controller
             control={control}

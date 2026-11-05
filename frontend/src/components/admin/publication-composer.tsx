@@ -119,7 +119,11 @@ function ComposerBody({
             excerptDefault={publication?.excerpt ?? ""}
             allImages={allImages}
             readOnly={readOnly}
-            bodyHint="Opcional si subiste fotos o un video: con la descripción corta basta."
+            bodyHint="Opcional si subiste fotos o un video."
+            collapsibleBody
+            excerptLabel="¿Qué quieres contar?"
+            excerptHint="Una o dos frases: es lo que verá la gente junto a tus fotos."
+            excerptPlaceholder="Escribe algo…"
           />
           <ShareCard
             siteName={siteName}
@@ -133,8 +137,8 @@ function ComposerBody({
       publish={publish}
       aside={
         <>
-          <TopicCard title="Tema y formato" categories={categories} readOnly={readOnly}>
-            <Field label="Formato" name="publicationType">
+          <TopicCard title="Tema" categories={categories} readOnly={readOnly}>
+            <Field label="Tipo de post (opcional)" name="publicationType">
               <Controller
                 name="publicationType"
                 render={({ field }) => (
