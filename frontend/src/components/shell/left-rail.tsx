@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Confetti, CaretDown, ImagesSquare, MapPin, Notepad, Television, type Icon } from "@phosphor-icons/react";
+import { Confetti, CaretDown, ImagesSquare, MapPin, Notepad, SealCheck, Television, type Icon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { SocialFollow } from "./social-follow";
 import { BrandLogo } from "./brand-logo";
@@ -33,6 +33,7 @@ const SECTIONS: { href: string; label: string; icon: Icon; tile: string }[] = [
   { href: "/series", label: "Series", icon: Television, tile: "bg-linear-to-br from-rose-500 to-red-600" },
   { href: "/galerias", label: "Galerías", icon: ImagesSquare, tile: "bg-linear-to-br from-fuchsia-500 to-pink-600" },
   { href: "/celebraciones", label: "Celebraciones", icon: Confetti, tile: "bg-linear-to-br from-violet-500 to-purple-600" },
+  { href: "/pasaporte", label: "Mi Pasaporte", icon: SealCheck, tile: "bg-linear-to-br from-red-500 to-rose-600" },
 ];
 /** Temas visibles antes de "Ver más" (como los accesos directos de Facebook): el menú cabe en pantalla sin barra de desplazamiento. */
 const VISIBLE_TOPICS = 5;

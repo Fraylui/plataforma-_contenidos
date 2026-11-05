@@ -18,7 +18,7 @@ export function ReactionPeek({ href, counts }: { href: string; counts?: Partial<
   return (
     <Link
       href={`${href}#reacciones`}
-      className="inline-flex min-h-8 items-center gap-1.5 rounded-full text-[13px] text-muted outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring"
+      className="mb-1 inline-flex min-h-8 items-center gap-1.5 rounded-full text-[13px] text-muted outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring"
     >
       <span className="flex -space-x-1.5" aria-hidden="true">
         {top.map((key) => {

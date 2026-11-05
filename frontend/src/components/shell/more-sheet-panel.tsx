@@ -8,7 +8,11 @@ import { SocialFollow } from "./social-follow";
 import type { SocialKey } from "@/lib/social-links";
 
 /** En el celular, el archivo de Celebraciones (sin pestaña propia, modelo Google) se encuentra aquí. */
-const SHEET_LINKS = [{ href: "/celebraciones", label: "Celebraciones" }, ...MORE_LINKS];
+const SHEET_LINKS = [
+  { href: "/celebraciones", label: "Celebraciones" },
+  { href: "/pasaporte", label: "Mi Pasaporte" },
+  ...MORE_LINKS,
+];
 
 /**
  * Hoja inferior "Más" (celular): lo que antes vivía en el pie de página y en
