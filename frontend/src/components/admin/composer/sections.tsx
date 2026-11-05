@@ -113,6 +113,7 @@ export function WritingCard({
   titlePlaceholder = "Escribe un título",
   excerptDefault,
   withBody = true,
+  bodyHint,
   allImages,
   readOnly,
   children,
@@ -121,6 +122,7 @@ export function WritingCard({
   titlePlaceholder?: string;
   excerptDefault: string;
   withBody?: boolean;
+  bodyHint?: string;
   allImages: AdminImage[];
   readOnly: boolean;
   children?: ReactNode;
@@ -151,7 +153,7 @@ export function WritingCard({
         />
       </Field>
       {withBody && (
-        <Field label="Texto" name="body" error={errors.body?.message}>
+        <Field label="Texto" name="body" hint={bodyHint} error={errors.body?.message}>
           <Controller
             control={control}
             name="body"

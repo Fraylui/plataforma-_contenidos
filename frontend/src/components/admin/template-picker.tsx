@@ -13,19 +13,21 @@ const ICONS: Record<TemplateKey | "blanco", Icon> = {
 };
 
 /**
- * «¿Cómo quieres empezar?» en Nueva publicación: en blanco o con una
+ * «¿Cómo quieres empezar?» en Nueva publicación: un post rápido (fotos o
+ * video con una frase, lo normal en una red social) o una
  * plantilla que ya trae las secciones. La elección va en la URL
  * (?plantilla=lista), así el compositor arranca con ese texto.
  */
 export function TemplatePicker({ selected }: { selected?: TemplateKey }) {
   const options = [
-    { key: "blanco" as const, label: "En blanco", description: "Escribe libre, sin estructura.", href: "/admin/publicaciones/nuevo" },
+    { key: "blanco" as const, label: "Post rápido", description: "Fotos o un video con una frase. Lo más rápido.", href: "/admin/publicaciones/nuevo" },
     ...PUBLICATION_TEMPLATES.map((t) => ({ key: t.key, label: t.label, description: t.description, href: `/admin/publicaciones/nuevo?plantilla=${t.key}` })),
   ];
   const current = selected ?? "blanco";
   return (
     <nav aria-label="Cómo quieres empezar">
       <p className="mb-2 text-sm font-semibold text-foreground">¿Cómo quieres empezar?</p>
+      <p className="-mt-1 mb-2 text-xs text-muted">Para la mayoría basta un post rápido. Las demás traen secciones listas si quieres contar más.</p>
       <ul className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0">
         {options.map((option) => {
           const OptionIcon = ICONS[option.key];

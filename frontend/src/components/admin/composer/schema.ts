@@ -10,11 +10,16 @@ export const optionalUrl = z
   .refine((value) => value === "" || /^https?:\/\/\S+$/i.test(value), "Usa una dirección completa, que empiece con https://");
 
 /** Texto visible de un HTML del editor, leído con el parser del navegador (no con expresiones regulares). */
-function visibleText(html: string): string {
+export function visibleText(html: string): string {
   return new DOMParser().parseFromString(html, "text/html").body.textContent ?? "";
 }
 
 /** Texto del editor: obligatorio con contenido real, no solo etiquetas vacías. Se limpia en el backend (HtmlSanitizer). */
+/** Un post necesita algo que mostrar: texto, fotos o un video (PublicationService.bodyOrEmpty). */
+export function hasSomethingToShow(body: string, images: unknown[], videos: unknown[]): boolean {
+  return visibleText(body).trim().length > 0 || images.length > 0 || videos.length > 0;
+}
+
 export const bodyField = z.string().refine((html) => visibleText(html).trim().length > 0, "Escribe el texto.");
 
 export const videosField = z.array(z.custom<ContentVideoInput>());

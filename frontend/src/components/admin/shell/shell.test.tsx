@@ -21,7 +21,7 @@ const GROUPS = [
   },
 ];
 const CREATE = [
-  { kind: "publicacion" as const, label: "Publicación", href: "/admin/publicaciones/nuevo", description: "Texto con fotos o videos: guías, listas, tutoriales y más." },
+  { kind: "publicacion" as const, label: "Publicación", href: "/admin/publicaciones/nuevo", description: "Fotos o un video con una frase, como un post. El texto largo es opcional." },
   { kind: "celebracion" as const, label: "Celebración", href: "/admin/celebraciones/nuevo", description: "Una fecha importante que vuelve cada año." },
 ];
 
@@ -46,7 +46,7 @@ describe("Botón Crear", () => {
     const link = screen.getByRole("link", { name: /Publicación/ });
     expect(link).toHaveAttribute("href", "/admin/publicaciones/nuevo");
     // Cada tipo dice para qué sirve, no solo su nombre.
-    expect(link).toHaveTextContent("Texto con fotos o videos");
+    expect(link).toHaveTextContent("Fotos o un video con una frase");
   });
 
   it("sin nada que crear no se muestra", () => {

@@ -180,7 +180,7 @@ export interface CreateItem {
 /** Lo que se puede crear, uno por tipo de contenido (en el orden del menú). */
 const CREATE_ITEMS: Array<CreateItem & { navHref: string }> = [
   { kind: "historia", label: "Historia", href: "/admin/historias/nueva", navHref: "/admin/historias", description: "Foto o video corto que se ve 24 horas en la barra de arriba." },
-  { kind: "publicacion", label: "Publicación", href: "/admin/publicaciones/nuevo", navHref: "/admin/publicaciones", description: "Texto con fotos o videos: guías, listas, tutoriales y más." },
+  { kind: "publicacion", label: "Publicación", href: "/admin/publicaciones/nuevo", navHref: "/admin/publicaciones", description: "Fotos o un video con una frase, como un post. El texto largo es opcional." },
   { kind: "lugar", label: "Lugar", href: "/admin/lugares/nuevo", navHref: "/admin/lugares", description: "Un sitio para conocer, con fotos, mapa y cómo llegar." },
   { kind: "celebracion", label: "Celebración", href: "/admin/celebraciones/nuevo", navHref: "/admin/celebraciones", description: "Una fecha importante que vuelve cada año." },
   { kind: "galeria", label: "Galería", href: "/admin/galerias/nuevo", navHref: "/admin/galerias", description: "Muchas fotos juntas sobre un mismo tema." },

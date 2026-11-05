@@ -13,7 +13,7 @@ import pe.plataformacontenidos.shared.ContentVideoInput;
 public record PublicationRequest(
         @NotBlank @Size(max = 200) String title,
         @Size(max = 500) String excerpt,
-        @NotBlank String body,
+        String body,
         @NotNull PublicationType publicationType,
         @NotNull UUID categoryId,
         String seoTitle,

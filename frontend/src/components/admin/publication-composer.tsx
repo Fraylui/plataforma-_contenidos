@@ -14,16 +14,26 @@ import { useComposer } from "./composer/use-composer";
 import { ComposerShell, MediaCard, TopicCard, useCoverUrl, WritingCard } from "./composer/sections";
 import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
-import { baseDefaults, baseFields, baseInput, bodyField, videosField, videosFromContent } from "./composer/schema";
+import { baseDefaults, baseFields, baseInput, videosField, videosFromContent, hasSomethingToShow } from "./composer/schema";
 
 const PUBLICATION_TYPES: PublicationType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA"];
 
-const schema = z.object({
-  ...baseFields,
-  body: bodyField,
-  publicationType: z.enum(PUBLICATION_TYPES as [PublicationType, ...PublicationType[]]),
-  videos: videosField,
-});
+/*
+ * Como un post de red social: con fotos o un video, el texto es opcional
+ * (basta la descripción corta). Sin nada que mostrar, se pide algo.
+ * Misma regla que PublicationService.bodyOrEmpty en el backend.
+ */
+const schema = z
+  .object({
+    ...baseFields,
+    body: z.string(),
+    publicationType: z.enum(PUBLICATION_TYPES as [PublicationType, ...PublicationType[]]),
+    videos: videosField,
+  })
+  .refine((values) => hasSomethingToShow(values.body, values.images, values.videos), {
+    path: ["body"],
+    message: "Agrega fotos, un video o un texto.",
+  });
 
 type Values = z.infer<typeof schema>;
 
@@ -104,7 +114,12 @@ function ComposerBody({
       main={
         <>
           <MediaCard allImages={allImages} readOnly={readOnly} />
-          <WritingCard excerptDefault={publication?.excerpt ?? ""} allImages={allImages} readOnly={readOnly} />
+          <WritingCard
+            excerptDefault={publication?.excerpt ?? ""}
+            allImages={allImages}
+            readOnly={readOnly}
+            bodyHint="Opcional si subiste fotos o un video: con la descripción corta basta."
+          />
           <ShareCard
             siteName={siteName}
             path={`/publicaciones/${publication?.slug ?? "…"}`}
