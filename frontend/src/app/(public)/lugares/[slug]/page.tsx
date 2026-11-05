@@ -11,6 +11,7 @@ import { POST_ACTION_PILL } from "@/components/content/like-share-bar";
 import { FloatingReactions } from "@/components/post/immersive/floating-reactions";
 import { heroCover } from "@/components/post/immersive/immersive-hero";
 import { ViewBeacon } from "@/components/content/view-beacon";
+import { PassportButtons } from "@/components/passport/passport-buttons";
 import { AdBlock } from "@/components/legal/ad-block";
 import { PostView } from "@/components/post/post-view";
 import { PostDetailMedia } from "@/components/post/post-detail-media";
@@ -181,6 +182,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
         actions={
           <>
             <ViewBeacon type="PLACE" id={place.id} />
+            <PassportButtons slug={place.slug} name={place.name} href={`/lugares/${place.slug}`} region={place.region ?? null} />
             {map && (
               <div className="mt-6 px-4 sm:px-0">
                 <a href={mapsDirections(map.latitude, map.longitude)} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL}>

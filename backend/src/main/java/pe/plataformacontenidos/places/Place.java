@@ -84,6 +84,10 @@ public class Place extends PublishableContent {
     private String robots = "index,follow";
 
     /** Fuentes del post, una por línea (ver PostSources). */
+    @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
+    @Column(name = "region")
+    private PeruRegion region;
+
     @Column(name = "sources")
     private String sources;
 
@@ -166,6 +170,14 @@ public class Place extends PublishableContent {
 
     public String getOgImageUrl() {
         return ogImageUrl;
+    }
+
+    public PeruRegion getRegion() {
+        return region;
+    }
+
+    public void setRegion(PeruRegion region) {
+        this.region = region;
     }
 
     public java.util.List<String> getSources() {

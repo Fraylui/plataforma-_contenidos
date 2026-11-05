@@ -15,6 +15,7 @@ import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
 import { PhonePreview } from "./composer/phone-preview";
 import { SourcesCard } from "./composer/sources-card";
+import { RegionField } from "./composer/region-field";
 import { LocationFields } from "./composer/location-fields";
 import { baseDefaults, baseFields, baseInput, coordinateField, coordinateOrNull, videosField, videosFromContent, hasSomethingToShow, sourcesField, sourcesDefaults, sourcesInput } from "./composer/schema";
 
@@ -27,6 +28,7 @@ const schema = z
   sources: sourcesField,
   latitude: coordinateField(-90, 90, "La latitud va de -90 a 90."),
   longitude: coordinateField(-180, 180, "La longitud va de -180 a 180."),
+  region: z.string(),
   })
   // Como un post: con fotos o un video el texto largo es opcional (PostBody en el backend).
   .refine((values) => hasSomethingToShow(values.body, values.images, values.videos), {
@@ -45,6 +47,7 @@ function toInput(values: Values): PlaceInput {
     videos: values.videos,
     latitude: coordinateOrNull(values.latitude),
     longitude: coordinateOrNull(values.longitude),
+    region: (values.region || null) as PlaceInput["region"],
   };
 }
 
@@ -71,6 +74,7 @@ export function PlaceComposer({ categories, allImages, place, permissions, siteN
       sources: sourcesDefaults(place?.sources),
       latitude: place?.latitude != null ? String(place.latitude) : "",
       longitude: place?.longitude != null ? String(place.longitude) : "",
+      region: place?.region ?? "",
     },
     initialId: place?.id ?? "",
     status,
@@ -133,6 +137,7 @@ function PlaceBody({
           />
           <Card title="Ubicación">
             <LocationFields readOnly={readOnly} startAt={mapStartAt} />
+            <RegionField readOnly={readOnly} />
           </Card>
           <ShareCard
             siteName={siteName}

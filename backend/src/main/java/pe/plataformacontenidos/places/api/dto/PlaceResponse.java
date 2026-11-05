@@ -3,6 +3,7 @@ package pe.plataformacontenidos.places.api.dto;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import pe.plataformacontenidos.places.PeruRegion;
 import pe.plataformacontenidos.places.Place;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import pe.plataformacontenidos.shared.ContentImageResponse;
@@ -27,6 +28,7 @@ public record PlaceResponse(
         List<ContentVideoResponse> videos,
         String robots,
         List<String> sources,
+        PeruRegion region,
 
         Instant publishedAt,
         Instant scheduledAt,
@@ -39,7 +41,7 @@ public record PlaceResponse(
                 place.getLatitude(), place.getLongitude(),
                 place.getImages().stream().map(ContentImageResponse::from).toList(), place.getSeoTitle(),
                 place.getMetaDescription(), place.getCanonicalUrl(), place.getOgImageUrl(),
-                place.getVideos().stream().map(ContentVideoResponse::from).toList(), place.getRobots(), place.getSources(),
+                place.getVideos().stream().map(ContentVideoResponse::from).toList(), place.getRobots(), place.getSources(), place.getRegion(),
                 place.getPublishedAt(), place.getScheduledAt(), place.getCreatedAt(),
                 likeCount);
     }

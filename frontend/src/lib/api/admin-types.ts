@@ -1,3 +1,4 @@
+import type { PeruRegion } from "@/lib/peru-regions";
 import type { AdSection } from "@/lib/ads/ad-context";
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
@@ -111,6 +112,8 @@ export interface PlaceInput {
   robots: string;
   /** Enlaces de las fuentes (hasta 10). */
   sources: string[];
+  /** Región del Perú (sello del Pasaporte); null si no se indicó. */
+  region: PeruRegion | null;
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/celebrations — ver EventRequest.java. */

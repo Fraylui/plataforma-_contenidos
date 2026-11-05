@@ -25,6 +25,7 @@ export const SHELL_NAV: ShellNavItem[] = [
 
 /** Enlaces de la hoja "Más" (celular) y del pie del riel (escritorio). */
 export const MORE_LINKS: { href: string; label: string }[] = [
+  { href: "/pasaporte", label: "Mi Pasaporte" },
   { href: "/contacto", label: "Contacto" },
   { href: "/privacidad", label: "Privacidad" },
   { href: "/terminos", label: "Términos" },

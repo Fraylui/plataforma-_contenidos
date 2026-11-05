@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
+import pe.plataformacontenidos.places.PeruRegion;
 import pe.plataformacontenidos.places.PlaceInput;
 import pe.plataformacontenidos.shared.ContentImageInput;
 import pe.plataformacontenidos.shared.ContentVideoInput;
@@ -26,11 +27,13 @@ public record PlaceRequest(
         List<ContentVideoInput> videos,
         String robots,
         /** Enlaces de las fuentes, hasta 10 (ver PostSources). */
-        List<String> sources) {
+        List<String> sources,
+        /** Región del Perú (opcional): sello del Pasaporte. */
+        PeruRegion region) {
 
     public PlaceInput toInput() {
         return new PlaceInput(name, excerpt, body, categoryId, latitude, longitude,
                 images == null ? List.of() : images, seoTitle, metaDescription, canonicalUrl, ogImageUrl,
-                videos == null ? List.of() : videos, robots, sources);
+                videos == null ? List.of() : videos, robots, sources, region);
     }
 }

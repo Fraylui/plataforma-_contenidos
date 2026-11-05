@@ -143,6 +143,8 @@ export interface Place {
   robots: string;
   /** Enlaces de las fuentes, en orden (ver PostSources en el backend). */
   sources?: string[];
+  /** Región del Perú (ver PeruRegion.java); null si no se indicó. */
+  region?: string | null;
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;

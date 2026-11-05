@@ -65,7 +65,8 @@ class PlaceWorkflowIntegrationTest {
         mockMvc.perform(get("/api/v1/places/pampa-de-la-quinua"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Pampa de la Quinua"))
-                .andExpect(jsonPath("$.latitude").value(-13.04));
+                .andExpect(jsonPath("$.latitude").value(-13.04))
+                .andExpect(jsonPath("$.region").value("AYACUCHO"));
 
         mockMvc.perform(get("/api/v1/places").param("categoryId", categoryId))
                 .andExpect(status().isOk())
@@ -129,7 +130,7 @@ class PlaceWorkflowIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"" + name + "\",\"excerpt\":\"Resumen breve\","
                                 + "\"body\":\"Historia completa del lugar, con suficiente contenido.\","
-                                + "\"categoryId\":\"" + categoryId + "\",\"latitude\":-13.04,\"longitude\":-74.15}"))
+                                + "\"categoryId\":\"" + categoryId + "\",\"latitude\":-13.04,\"longitude\":-74.15,\"region\":\"AYACUCHO\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("DRAFT"))
                 .andReturn();
