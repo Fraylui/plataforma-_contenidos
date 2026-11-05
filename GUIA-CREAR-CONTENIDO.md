@@ -67,7 +67,8 @@ cada post.
    enlace en **Fuentes** (sale al final: «Fuentes: promperu.gob.pe»).
 6. En cada foto, **¿De quién es?** → «Mía» o «De otra persona» (su nombre
    sale como «Foto: …» y debes confirmar que tienes su permiso).
-7. Elige el **Tema**.
+7. Elige el **Tema**. Si es un **Lugar**, elige también su **Región**: con
+   ella, quien toque «Ya fui» gana el sello de esa región en su Pasaporte.
 8. **Ver como en el celular** para revisar cómo se verá.
 9. Si tienes un **enlace de afiliado** (tour, hotel, libro), agrégalo abajo
    en «Enlaces de afiliado». Solo lo que de verdad recomendarías.
