@@ -341,6 +341,25 @@ body {
   100% { transform: scale(1); }
 }
 
+/* Reacciones (ReactionBar): rebote del ícono, partículas que salen hacia
+   afuera y el número que salta. Solo transform/opacity; en el componente van
+   con motion-safe, así quien pide menos movimiento no las ve. */
+@keyframes reaction-pop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.35) rotate(-8deg); }
+  55% { transform: scale(0.9) rotate(4deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@keyframes reaction-burst {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.4); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1); }
+}
+@keyframes count-bump {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-4px); }
+  100% { transform: translateY(0); }
+}
+
 /* Barra de progreso de lectura (ReadingProgress) y del «Sigue» (UpNext):
    CSS puro con scroll-driven animations, sin JS. Donde no hay soporte la
    barra queda vacía (scale-x-0) y no estorba. */
