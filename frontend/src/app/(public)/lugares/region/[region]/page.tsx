@@ -86,7 +86,8 @@ export default async function RegionPage(props: PageProps<"/lugares/region/[regi
           </Link>{" "}
           › <span className="text-white">{name}</span>
         </nav>
-        <div className="relative flex items-end justify-between gap-4 p-4 sm:p-6">
+        <RegionStampBadge region={region} name={name} />
+        <div className="relative p-4 sm:p-6">
           <div className="min-w-0 text-white">
             <p className="inline-flex items-center gap-1.5 rounded-full bg-accent-fill px-3 py-1 text-xs font-bold text-accent-foreground">
               <MapPin weight="fill" className="size-3.5" aria-hidden="true" />
@@ -95,7 +96,6 @@ export default async function RegionPage(props: PageProps<"/lugares/region/[regi
             <h1 className="mt-2 text-3xl leading-tight font-black text-balance sm:text-4xl">Lugares para visitar en {name}</h1>
             <p className="mt-1 text-sm text-white/85">Toca «Ya fui» en cada lugar y gana el sello de {name}.</p>
           </div>
-          <RegionStampBadge region={region} name={name} />
         </div>
       </header>
 
