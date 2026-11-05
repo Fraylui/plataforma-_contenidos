@@ -21,12 +21,16 @@ import pe.plataformacontenidos.affiliates.AffiliateLinkService.LinkInput;
 import pe.plataformacontenidos.affiliates.InvalidAffiliateLinkException;
 import pe.plataformacontenidos.catalog.ContentType;
 import pe.plataformacontenidos.identity.UserPrincipal;
+import pe.plataformacontenidos.identity.permission.Module;
 import pe.plataformacontenidos.identity.permission.PermissionService;
+import pe.plataformacontenidos.identity.permission.RequiresAnyModule;
 import pe.plataformacontenidos.shared.api.Problems;
 
 /**
  * Panel: los enlaces de afiliado de una publicación o un lugar, con sus clics.
- * Puede editarlos quien puede publicar en el módulo de ese contenido.
+ * Puede editarlos quien puede publicar en el módulo de ese contenido:
+ * @RequiresAnyModule deja pasar a quien tiene alguno de los dos, y
+ * canEdit comprueba el del tipo pedido.
  */
 @RestController
 @RequestMapping("/api/v1/admin/affiliate-links/{type}/{contentId}")
@@ -44,6 +48,7 @@ public class AffiliateAdminController {
     }
 
     @GetMapping
+    @RequiresAnyModule({ Module.PUBLICATIONS, Module.PLACES })
     public ResponseEntity<?> list(@PathVariable ContentType type, @PathVariable UUID contentId,
             @AuthenticationPrincipal UserPrincipal principal) {
         if (!links.canEdit(permissionService.forUser(principal.userId()), type)) {
@@ -53,6 +58,7 @@ public class AffiliateAdminController {
     }
 
     @PutMapping
+    @RequiresAnyModule({ Module.PUBLICATIONS, Module.PLACES })
     public ResponseEntity<?> replace(@PathVariable ContentType type, @PathVariable UUID contentId,
             @RequestBody ReplaceRequest body, @AuthenticationPrincipal UserPrincipal principal) {
         if (!links.canEdit(permissionService.forUser(principal.userId()), type)) {
