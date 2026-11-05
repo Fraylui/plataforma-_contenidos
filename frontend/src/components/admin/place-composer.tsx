@@ -13,6 +13,7 @@ import { useComposer } from "./composer/use-composer";
 import { ComposerShell, MediaCard, TopicCard, useCoverUrl, WritingCard } from "./composer/sections";
 import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
+import { PhonePreview } from "./composer/phone-preview";
 import { LocationFields } from "./composer/location-fields";
 import {
   baseDefaults,
@@ -141,6 +142,7 @@ function PlaceBody({
         <>
           <TopicCard categories={categories} readOnly={readOnly} />
           <FeedCardPreview siteName={siteName} coverUrl={coverUrl} categories={categories} />
+          <PhonePreview siteName={siteName} categories={categories} allImages={allImages} />
         </>
       }
     />

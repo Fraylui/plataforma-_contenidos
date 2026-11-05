@@ -491,6 +491,7 @@ Debe ser posible programar publicaciones.
 * **Publicación = post** (2026-11, dueño: «nada de blog, fácil de crear y publicar»): con fotos o un video el texto es opcional; basta título y descripción corta. Sin nada que mostrar no se guarda (`PublicationService.bodyOrEmpty`, `hasSomethingToShow`). «Post rápido» es la opción por defecto al crear.
 * **Plantillas** (opcionales) al crear una publicación (`?plantilla=lista|guia|tutorial|historia`, `lib/admin/publication-templates.ts`): estructura de secciones con guías entre corchetes; solo etiquetas que acepta el HtmlSanitizer.
 * **Duplicar** publicaciones, lugares y galerías: copia en borrador «Copia de …» con texto, fotos, videos y tema (sin canonical ni imagen para compartir propia) y abre la copia.
+* **Ver como en el celular** (compositores de publicación, lugar, celebración y galería): el post completo en un marco de teléfono de 375 px con lo escrito ahora, aunque sea borrador (fotos, título, descripción, videos, texto y cómo termina). Solo para mirar.
 * **Calendario** (`/admin/calendario?mes=AAAA-MM`, `GET /api/v1/admin/calendar`): por mes, lo publicado, lo programado y las fechas de Celebraciones (las anuales, en su día de ese año). Cada entrada abre su contenido. Cada persona ve solo los tipos de sus módulos.
 
 # 13. Usuarios y roles

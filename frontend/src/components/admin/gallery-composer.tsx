@@ -12,6 +12,7 @@ import { useComposer } from "./composer/use-composer";
 import { ComposerShell, MediaCard, TopicCard, useCoverUrl, WritingCard } from "./composer/sections";
 import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
+import { PhonePreview } from "./composer/phone-preview";
 import { baseDefaults, baseFields, baseInput } from "./composer/schema";
 
 /** Una galería son sus fotos: al menos una (como exige el backend). */
@@ -107,6 +108,7 @@ function GalleryBody({
         <>
           <TopicCard categories={categories} readOnly={readOnly} />
           <FeedCardPreview siteName={siteName} coverUrl={coverUrl} categories={categories} />
+          <PhonePreview siteName={siteName} categories={categories} allImages={allImages} />
         </>
       }
     />

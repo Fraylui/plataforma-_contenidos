@@ -16,6 +16,7 @@ import { useComposer } from "./composer/use-composer";
 import { ComposerShell, MediaCard, TopicCard, useCoverUrl, WritingCard } from "./composer/sections";
 import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
+import { PhonePreview } from "./composer/phone-preview";
 import { baseDefaults, baseFields, baseInput, bodyField, emptyToNull, toDateTimeLocal, videosField, videosFromContent } from "./composer/schema";
 
 const THIS_YEAR = new Date().getFullYear();
@@ -218,6 +219,7 @@ function CelebrationBody({
                 : null
             }
           />
+          <PhonePreview siteName={siteName} categories={categories} allImages={allImages} />
         </>
       }
     />

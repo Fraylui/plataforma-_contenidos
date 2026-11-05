@@ -14,6 +14,7 @@ import { useComposer } from "./composer/use-composer";
 import { ComposerShell, MediaCard, TopicCard, useCoverUrl, WritingCard } from "./composer/sections";
 import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
+import { PhonePreview } from "./composer/phone-preview";
 import { baseDefaults, baseFields, baseInput, videosField, videosFromContent, hasSomethingToShow } from "./composer/schema";
 
 const PUBLICATION_TYPES: PublicationType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA"];
@@ -148,6 +149,7 @@ function ComposerBody({
             </Field>
           </TopicCard>
           <FeedCardPreview siteName={siteName} coverUrl={coverUrl} categories={categories} />
+          <PhonePreview siteName={siteName} categories={categories} allImages={allImages} />
         </>
       }
     />
