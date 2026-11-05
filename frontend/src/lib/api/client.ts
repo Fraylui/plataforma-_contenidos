@@ -318,6 +318,8 @@ const NAV_PRESENCE_CHECKS: { href: string; checks: () => Promise<PageResponse<un
   },
   { href: "/galerias", checks: () => [listPublishedGalleries({ size: 1 })] },
   { href: "/series", checks: () => [listPublishedSeries({ size: 1 })] },
+  // «Mis viajes» se arma con los lugares: sin lugares publicados no hay dónde tocar «Ya fui».
+  { href: "/mis-viajes", checks: () => [listPublishedPlaces({ size: 1 })] },
 ];
 
 /**

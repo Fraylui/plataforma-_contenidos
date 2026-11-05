@@ -60,7 +60,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
           <YouTubeChannelProvider url={settings.youtubeUrl}>{children}</YouTubeChannelProvider>
         </main>
       </div>
-      <BottomTabBar brandName={settings.name} social={social} />
+      <BottomTabBar brandName={settings.name} social={social} sections={visibility} />
       <AnchorAdSlot />
       <CookieConsentBanner adsenseEnabled={settings.adsenseEnabled} />
       {settings.adsenseEnabled && settings.adsenseClientId && (

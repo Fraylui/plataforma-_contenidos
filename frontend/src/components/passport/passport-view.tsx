@@ -83,6 +83,8 @@ export function PassportView() {
         </button>
       </header>
 
+      {/* Lo vacío no aparece: «Por el mundo» sale con el primer sello de país. */}
+      {countries > 0 && (
       <section aria-labelledby="mundo" className="mt-6">
         <h2 id="mundo" className="flex items-center gap-2 text-lg font-bold text-foreground">
           <GlobeHemisphereWest weight="fill" className="size-5 text-violet-600" aria-hidden="true" />
@@ -97,10 +99,11 @@ export function PassportView() {
             </li>
           ))}
           <li>
-            <Stamp region="?" name={countries === 0 ? "Tu primer país" : "Tu próximo país"} stamped={false} />
+            <Stamp region="?" name="Tu próximo país" stamped={false} />
           </li>
         </ul>
       </section>
+      )}
 
       <section aria-labelledby="sellos" className="mt-8">
         <h2 id="sellos" className="text-lg font-bold text-foreground">

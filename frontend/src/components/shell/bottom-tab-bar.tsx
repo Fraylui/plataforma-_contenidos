@@ -18,7 +18,16 @@ const TAB =
  * variable CSS --bottom-bar-h (globals.css), que usan el anuncio fijo, el
  * aviso de cookies y el `main` para no quedar debajo.
  */
-export function BottomTabBar({ brandName = "", social = [] }: { brandName?: string; social?: { key: SocialKey; label: string; url: string }[] } = {}) {
+export function BottomTabBar({
+  brandName = "",
+  social = [],
+  sections = {},
+}: {
+  brandName?: string;
+  social?: { key: SocialKey; label: string; url: string }[];
+  /** Qué secciones tienen contenido (lo vacío no aparece). */
+  sections?: Record<string, boolean>;
+} = {}) {
   const current = activeTab(usePathname());
 
   return (
@@ -43,7 +52,7 @@ export function BottomTabBar({ brandName = "", social = [] }: { brandName?: stri
             </Link>
           );
         })}
-        <MoreSheet triggerClassName={cn(TAB, "cursor-pointer hover:text-foreground")} brandName={brandName} social={social} />
+        <MoreSheet triggerClassName={cn(TAB, "cursor-pointer hover:text-foreground")} brandName={brandName} social={social} sections={sections} />
       </div>
     </nav>
   );
