@@ -191,7 +191,7 @@ export function ReactionBar({ type, id }: { type: FeedItemType; id: string }) {
         </p>
       </div>
 
-      <div role="group" aria-label="Reacciones" className="mt-3 grid grid-cols-4 gap-2">
+      <div role="group" aria-label="Elige una reacción" className="mt-3 grid grid-cols-4 gap-2">
         {REACTIONS.map((reaction) => {
           const count = state.counts[reaction.key] ?? 0;
           const active = state.mine === reaction.key;
