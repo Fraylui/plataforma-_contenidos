@@ -7,13 +7,18 @@ import { PostHeader } from "../post-header";
 
 /** Portada del detalle: foto subida (pasa por next/image) o una URL (enlace externo o miniatura de YouTube). */
 /** `credit`: autor si la foto de portada es de otra persona (sale «Foto: …» sobre la portada). */
-export type HeroCover = ({ kind: "uploaded"; imageId: string } | { kind: "url"; url: string }) & { credit?: string | null };
+/** `alt`: título o pie de la foto si lo tiene; si no, la portada usa el título del post (Google Imágenes lo lee). */
+export type HeroCover = ({ kind: "uploaded"; imageId: string } | { kind: "url"; url: string }) & {
+  credit?: string | null;
+  alt?: string | null;
+};
 
 /** La primera foto o, si solo hay video, su miniatura de YouTube. */
 export function heroCover(images: ContentImage[], videos: ContentVideo[]): HeroCover | null {
   const first = images[0];
-  if (first?.imageId) return { kind: "uploaded", imageId: first.imageId, credit: first.credit ?? null };
-  if (first?.externalUrl) return { kind: "url", url: first.externalUrl, credit: first.credit ?? null };
+  const alt = first?.title || first?.caption || null;
+  if (first?.imageId) return { kind: "uploaded", imageId: first.imageId, credit: first.credit ?? null, alt };
+  if (first?.externalUrl) return { kind: "url", url: first.externalUrl, credit: first.credit ?? null, alt };
   const video = videos[0];
   return video ? { kind: "url", url: `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg` } : null;
 }
@@ -51,7 +56,7 @@ export function ImmersiveHero({
         <div className="absolute inset-0">
           <ContentImageDisplay
             image={{ imageId: cover.imageId, externalUrl: null, title: null, caption: null }}
-            alt=""
+            alt={cover.alt || title}
             priority
             sizes="(min-width: 1024px) 760px, 100vw"
             className="object-cover"
@@ -59,7 +64,7 @@ export function ImmersiveHero({
         </div>
       )}
       {cover?.kind === "url" && (
-        <PreviewImage src={cover.url} priority fallback={null} className="absolute inset-0 size-full object-cover" />
+        <PreviewImage src={cover.url} alt={cover.alt || title} priority fallback={null} className="absolute inset-0 size-full object-cover" />
       )}
       {/* Degradado: el texto blanco se lee sobre cualquier foto (y si la foto no cargó). */}
       {photo && <div aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-black/85 via-black/35 to-transparent" />}
