@@ -12,7 +12,7 @@ describe("CookieConsentBanner (integración de componente con localStorage y rut
     expect(region).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Rechazar" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Aceptar" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Más información sobre nuestra política de cookies" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Política de cookies" })).toHaveAttribute(
       "href",
       "/privacidad",
     );
