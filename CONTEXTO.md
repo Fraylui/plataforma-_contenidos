@@ -2393,7 +2393,7 @@ Pedido del dueño: «los anuncios se tienen que mostrar como lo hacen las grande
 
 | Qué | Commits |
 |---|---|
-| Backend: `Campaign.format` BANNER/NATIVE; nativo solo en `en-feed`; texto ≤ 500, titular ≤ 60, botón de lista cerrada (`CallToAction`), un medio: foto de la biblioteca 1:1, 4:5 o 1.91:1 (≥ 600 px) **o** video de YouTube (Shorts = 9:16); destino solo http(s); logo del anunciante; `POST /ads/campaigns/{id}/play` + `plays` diarios (V61) | 41d4b32 |
+| Backend: `Campaign.format` BANNER/NATIVE; nativo solo en `en-feed`; texto ≤ 500, título ≤ 60, botón de lista cerrada (`CallToAction`), un medio: foto de la biblioteca 1:1, 4:5 o 1.91:1 (≥ 600 px) **o** video de YouTube (Shorts = 9:16); destino solo http(s); logo del anunciante; `POST /ads/campaigns/{id}/play` + `plays` diarios (V61) | 41d4b32 |
 | Sitio: `NativeAdPost` — logo y nombre, «Patrocinado», menú ⋯ («Ocultar este anuncio», recordado en el navegador; «¿Por qué veo este anuncio?»: contextual, sin datos personales), medio a todo el ancho sin márgenes, video que carga al tocar (nocookie) y cuenta la reproducción, barra dominio + titular + botón, texto con «más». Sin me gusta ni compartir | 204d1a7 |
 | Panel: formato «Post en el feed» / «Banner», vista previa en vivo al lado (como el Administrador de anuncios de Meta), logo en el anunciante, reproducciones y tasa en el reporte. **Corregido**: el formulario de campañas se caía (`Field` con varios hijos) | 70c6c62 |
 

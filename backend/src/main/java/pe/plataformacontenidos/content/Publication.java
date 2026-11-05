@@ -22,8 +22,9 @@ import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentVideo;
 
 /**
- * Un artículo de texto (sección 3: noticia, reportaje, crónica, etc. — todos
- * comparten la misma forma, solo cambia publicationType). author_id y
+ * Una publicación: un post con fotos o video, una frase y, si hace falta,
+ * texto largo (sección 3; el formato —General, Guía, Lista, Tutorial,
+ * Historia— solo cambia publicationType). author_id y
  * category_id son UUID sin FK: pertenecen a los módulos Identity y Taxonomy
  * respectivamente, y este módulo no hace joins cruzados de esquema
  * (CONTEXTO.md sección 38). Se validan en PublicationService llamando a los
