@@ -48,7 +48,7 @@ export function TodayCelebrations({ initial }: { initial: TodayCelebration[] }) 
     <section aria-labelledby="hoy-se-celebra" className="mb-3">
       <Link
         href={`/celebraciones/${main.slug}`}
-        className="group relative flex min-h-36 overflow-hidden rounded-card bg-linear-to-br from-brand-from to-brand-to shadow-card focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none"
+        className="group relative flex min-h-[5.5rem] overflow-hidden rounded-card sm:min-h-36 bg-linear-to-br from-brand-from to-brand-to shadow-card focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none"
       >
         {main.coverSrc ? (
           // Arriba de todo en el inicio: es la imagen principal de la pantalla (LCP), con prioridad como la primera del feed.
@@ -59,14 +59,15 @@ export function TodayCelebrations({ initial }: { initial: TodayCelebration[] }) 
         ) : null}
         {/* Degradado para leer el texto blanco sobre cualquier foto (contraste AA). */}
         <span aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-black/10" />
-        <span className="relative mt-auto flex w-full items-end justify-between gap-3 p-4 text-white">
+        <span className="relative mt-auto flex w-full items-end justify-between gap-3 p-3 text-white sm:p-4">
           <span className="min-w-0">
             <span id="hoy-se-celebra" className="flex items-center gap-1.5 text-sm font-bold">
               <Confetti className="size-4" weight="fill" aria-hidden="true" />
               Hoy se celebra
             </span>
-            <span className="mt-1 block text-xl leading-tight font-extrabold tracking-tight">{main.title}</span>
-            <span className="mt-0.5 block text-sm text-white/85">{main.dateLabel}</span>
+            <span className="mt-0.5 block text-lg leading-tight font-extrabold tracking-tight sm:mt-1 sm:text-xl">{main.title}</span>
+            {/* En celular la fecha sobra (es hoy) y la franja queda baja: el primer post aparece antes. */}
+            <span className="mt-0.5 hidden text-sm text-white/85 sm:block">{main.dateLabel}</span>
           </span>
           <CaretRight className="size-5 shrink-0" weight="bold" aria-hidden="true" />
         </span>
