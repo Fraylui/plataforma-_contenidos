@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MapPin } from "@phosphor-icons/react/dist/ssr";
 import { getPlaceRegions, listPublishedPlaces } from "@/lib/api/client";
 import { fromPlaceSummary } from "@/lib/home-items";
 import { regionFromSlug, regionName, regionSlug } from "@/lib/peru-regions";
 import { SITE_URL } from "@/lib/site-url";
-import { GridTile } from "@/components/post/grid-tile";
+import { CoverImage } from "@/components/region/cover-image";
+import { RegionPlaceCard } from "@/components/region/region-place-card";
+import { RegionStampBadge } from "@/components/passport/region-stamp-badge";
 
 /** Tope de lugares por página de región (si una región pasa de esto, se agrega paginación). */
 const MAX_PLACES = 60;
@@ -16,7 +19,7 @@ async function loadRegion(slug: string) {
   const page = await listPublishedPlaces({ region, size: MAX_PLACES });
   // Lo vacío no existe: una región sin lugares publicados no tiene página (ni llega a Google).
   if (page.items.length === 0) notFound();
-  return { region, name: regionName(region)!, places: page.items, total: page.totalElements };
+  return { region, name: regionName(region)!, places: page.items.map(fromPlaceSummary), total: page.totalElements };
 }
 
 export async function generateMetadata(props: PageProps<"/lugares/region/[region]">): Promise<Metadata> {
@@ -33,15 +36,18 @@ export async function generateMetadata(props: PageProps<"/lugares/region/[region
 
 /**
  * «Lugares de Ayacucho»: todos los lugares publicados de una región del Perú.
- * Responde a búsquedas generales («qué visitar en Ayacucho») que ningún post
- * suelto responde, y ayuda a completar los sellos de «Mis viajes». Se arma
- * sola con la región que se elige al crear cada lugar.
+ * Portada con la foto de uno de sus lugares, el sello de la región de «Mis
+ * viajes» y tarjetas grandes de cada lugar. Responde a búsquedas generales
+ * («qué visitar en Ayacucho») que ningún post suelto responde. Se arma sola
+ * con la región que se elige al crear cada lugar.
  */
 export default async function RegionPage(props: PageProps<"/lugares/region/[region]">) {
   const { region: slug } = await props.params;
   const { region, name, places, total } = await loadRegion(slug);
   const others = (await getPlaceRegions().catch(() => [])).filter((r) => r.region !== region);
   const url = `${SITE_URL}/lugares/region/${slug}`;
+  // Portada: el lugar con más «me gusta» (el más representativo para la gente).
+  const cover = [...places].sort((a, b) => b.likeCount - a.likeCount)[0];
 
   const jsonLd = [
     {
@@ -50,7 +56,7 @@ export default async function RegionPage(props: PageProps<"/lugares/region/[regi
       name: `Lugares para visitar en ${name}`,
       url,
       numberOfItems: total,
-      itemListElement: places.map((p, i) => ({ "@type": "ListItem", position: i + 1, url: `${SITE_URL}/lugares/${p.slug}`, name: p.name })),
+      itemListElement: places.map((p, i) => ({ "@type": "ListItem", position: i + 1, url: `${SITE_URL}${p.href}`, name: p.title })),
     },
     {
       "@context": "https://schema.org",
@@ -64,30 +70,40 @@ export default async function RegionPage(props: PageProps<"/lugares/region/[regi
   ];
 
   return (
-    <div className="mx-auto w-full max-w-[760px] pb-10 sm:px-4 sm:pt-4">
+    <div className="mx-auto w-full max-w-[920px] pb-12 sm:px-4 sm:pt-4">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-      <nav aria-label="Ruta" className="px-4 pt-4 text-sm text-muted sm:px-0">
-        <Link href="/" className="hover:underline">
-          Inicio
-        </Link>{" "}
-        ›{" "}
-        <Link href="/lugares" className="hover:underline">
-          Lugares
-        </Link>{" "}
-        › <span className="text-foreground">{name}</span>
-      </nav>
-      <header className="px-4 pt-2 pb-5 sm:px-0">
-        <h1 className="text-3xl leading-tight font-black text-foreground">Lugares para visitar en {name}</h1>
-        <p className="mt-1 text-muted">
-          {total} {total === 1 ? "lugar" : "lugares"} de {name}, Perú. Toca «Ya fui» en cada uno para ganar el sello de la región.
-        </p>
+
+      <header className="relative flex min-h-[340px] flex-col justify-end overflow-hidden bg-canvas-strong sm:min-h-[380px] sm:rounded-card">
+        <CoverImage item={cover} sizes="(min-width: 920px) 920px, 100vw" priority />
+        <div aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-black/85 via-black/40 to-black/10" />
+        <nav aria-label="Ruta" className="absolute top-4 left-4 text-sm font-medium text-white/85 sm:left-6">
+          <Link href="/" className="hover:underline">
+            Inicio
+          </Link>{" "}
+          ›{" "}
+          <Link href="/lugares" className="hover:underline">
+            Lugares
+          </Link>{" "}
+          › <span className="text-white">{name}</span>
+        </nav>
+        <div className="relative flex items-end justify-between gap-4 p-4 sm:p-6">
+          <div className="min-w-0 text-white">
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-accent-fill px-3 py-1 text-xs font-bold text-accent-foreground">
+              <MapPin weight="fill" className="size-3.5" aria-hidden="true" />
+              {total} {total === 1 ? "lugar" : "lugares"} · Perú
+            </p>
+            <h1 className="mt-2 text-3xl leading-tight font-black text-balance sm:text-4xl">Lugares para visitar en {name}</h1>
+            <p className="mt-1 text-sm text-white/85">Toca «Ya fui» en cada lugar y gana el sello de {name}.</p>
+          </div>
+          <RegionStampBadge region={region} name={name} />
+        </div>
       </header>
 
-      <ul className="grid grid-cols-2 gap-0.5 sm:grid-cols-3 sm:gap-1">
+      {/* Un solo lugar: la tarjeta a todo el ancho, sin hueco al lado. */}
+      <ul className={`mt-6 grid grid-cols-1 gap-4 px-4 sm:px-0 ${places.length > 1 ? "sm:grid-cols-2" : ""}`}>
         {places.map((place, index) => (
           <li key={place.id}>
-            <GridTile item={fromPlaceSummary(place)} priority={index === 0} />
-            <p className="truncate px-1 pt-1 pb-2 text-sm font-semibold text-foreground">{place.name}</p>
+            <RegionPlaceCard item={place} priority={index === 0} />
           </li>
         ))}
       </ul>
