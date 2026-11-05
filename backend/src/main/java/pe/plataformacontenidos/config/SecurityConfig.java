@@ -56,6 +56,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/stories/*/cta").permitAll()
                 // Visitas anónimas (sin cookies ni IP guardada) — ver ContentViewCounter.
                 .requestMatchers(HttpMethod.POST, "/api/v1/views").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/reactions").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/reactions").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/affiliate-links", "/api/v1/affiliate-links/*/go").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/search").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/feed", "/api/v1/feed/related", "/api/v1/feed/top",

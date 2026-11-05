@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ReactionBar } from "@/components/content/reaction-bar";
 import { notFound } from "next/navigation";
 import { getCategoryById, getPlatformSettings, getPublishedPublicationBySlug, getRelatedWithFallback, listAffiliateLinks } from "@/lib/api/client";
 import { AffiliateRecommendations } from "@/components/post/affiliate-recommendations";
@@ -166,6 +167,7 @@ export default async function PublicationPage(props: PageProps<"/publicaciones/[
       />
 
       <PostView
+        reactionBar={<ReactionBar type="PUBLICATION" id={publication.id} />}
         variant="immersive"
         cover={cover}
         brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}

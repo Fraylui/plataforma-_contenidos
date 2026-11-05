@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ReactionBar } from "@/components/content/reaction-bar";
 import { PROSE } from "@/lib/prose";
 import { notFound } from "next/navigation";
 import { NavigationArrow } from "@phosphor-icons/react/dist/ssr";
@@ -152,6 +153,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
       />
 
       <PostView
+        reactionBar={<ReactionBar type="PLACE" id={place.id} />}
         variant="immersive"
         cover={heroCover(place.images, place.videos)}
         brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}

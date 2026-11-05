@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ReactionBar } from "@/components/content/reaction-bar";
 import { notFound } from "next/navigation";
 import { getCategoryById, getPlatformSettings, getPublishedGalleryBySlug, getRelatedWithFallback } from "@/lib/api/client";
 import { NotFoundError } from "@/lib/api/client";
@@ -128,6 +129,7 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
       />
 
       <PostView
+        reactionBar={<ReactionBar type="GALLERY" id={gallery.id} />}
         variant="immersive"
         cover={heroCover(gallery.images, [])}
         brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}

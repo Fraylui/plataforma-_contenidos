@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { CaretLeft, CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { getPublishedEpisode, NotFoundError } from "@/lib/api/client";
 import { formatPublishedDate } from "@/lib/content-labels";
+import { ReactionBar } from "@/components/content/reaction-bar";
 import { YouTubeSubscribe } from "@/components/content/youtube-subscribe";
 import { YouTubeEmbed } from "@/components/content/youtube-embed";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
@@ -70,6 +71,7 @@ export default async function EpisodePage({ params }: PageProps<"/series/[slug]/
           <ViewBeacon type="EPISODE" id={episode.id} />
           <LikeShareBar contentType="episodes" slug={episode.id} initialLikeCount={likeCount} title={episode.title} />
         </div>
+        <ReactionBar type="EPISODE" id={episode.id} />
       </header>
 
       {episode.notes ? (

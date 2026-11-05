@@ -40,6 +40,7 @@ export function PostView({
   reactions,
   upNext = null,
   heroBadge,
+  reactionBar,
 }: {
   variant: "visual" | "text" | "immersive";
   brand: PostBrand;
@@ -62,6 +63,8 @@ export function PostView({
   upNext?: HomeItem | null;
   /** Solo "immersive": sello sobre la portada (fecha de una celebración). */
   heroBadge?: ReactNode;
+  /** «¿Qué te pareció?»: reacciones con emoji, al terminar el contenido. */
+  reactionBar?: ReactNode;
 }) {
   // Filas completas de 3: un hueco al final de la grilla se lee como abandono.
   const tiles = more.length >= 3 ? more.slice(0, more.length - (more.length % 3)) : more;
@@ -94,6 +97,7 @@ export function PostView({
             {excerpt && <p className="mt-2 px-4 text-lg leading-relaxed font-medium text-foreground sm:px-0">{excerpt}</p>}
             {media && <div className="mt-6">{media}</div>}
             {body && <div className="mt-6 px-4 sm:px-0">{body}</div>}
+            {reactionBar && <div className="px-4 sm:px-0">{reactionBar}</div>}
             {actions}
             {ad && <div className="mt-8 px-4 sm:px-0">{ad}</div>}
           </div>
@@ -116,6 +120,7 @@ export function PostView({
       {facts && <div className="mt-4 px-4 sm:px-0">{facts}</div>}
       {excerpt && <p className="mt-4 px-4 text-base leading-relaxed text-foreground sm:px-0">{excerpt}</p>}
       {body && <div className="mt-4 px-4 sm:px-0">{body}</div>}
+      {reactionBar && <div className="px-4 sm:px-0">{reactionBar}</div>}
       <section
         aria-label="Acciones"
         className="sticky bottom-(--bottom-bar-h) z-20 mt-4 bg-canvas/95 px-4 backdrop-blur-md sm:px-0 lg:static lg:bg-transparent lg:backdrop-blur-none"

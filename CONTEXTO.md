@@ -1803,6 +1803,11 @@ publicidad deben distinguirse visualmente sin ambigüedad (ver 43.2).
 * **Suscríbete en YouTube**: botón bajo cada video (publicaciones, lugares, celebraciones, episodios, en vivo) que abre el canal de Configuración → Redes con la ventana de suscripción (`?sub_confirmation=1`). Sin canal configurado no aparece.
 * **Enlaces de afiliado** (`affiliates`, V75): hasta 10 por publicación o lugar, se editan bajo el compositor con sus clics. En el sitio salen en «Recomendados», cada uno con la marca «Enlace de afiliado», aviso de comisión y `rel="sponsored nofollow"` (D.Leg. 1044). El clic pasa por `GET /api/v1/affiliate-links/{id}/go` (cuenta como las visitas, sin cookies ni IP guardada) y redirige; solo en contenido publicado.
 
+### 44.7.2 Participación sin cuentas (2026-11)
+
+* **Reacciones** (V76, `engagement.content_reactions`, `GET/POST /api/v1/reactions`): «¿Qué te pareció?» con 😍 Me encanta, 😂 Me divierte, 😮 Me sorprende y 🙌 Me inspira, además del «me gusta». Una por visitante anónimo (mismo id del navegador que los «me gusta»), se cambia o se quita; solo en contenido publicado (publicaciones, lugares, celebraciones, galerías, episodios).
+* **Comentarios: no por ahora** (decisión del dueño, 2026-11-05). Requieren cuentas de lectores (datos personales, banco ANPD), moderación diaria y protección contra spam. Encuestas: más adelante.
+
 ### 44.8 Costos, métricas y economía unitaria
 
 ```text

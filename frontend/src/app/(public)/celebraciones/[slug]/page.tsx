@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ReactionBar } from "@/components/content/reaction-bar";
 import { PROSE } from "@/lib/prose";
 import { notFound } from "next/navigation";
 import { CalendarBlank, CalendarPlus, DownloadSimple, GlobeHemisphereWest, MapPin } from "@phosphor-icons/react/dist/ssr";
@@ -191,6 +192,7 @@ export default async function CelebrationPage(props: PageProps<"/celebraciones/[
       />
 
       <PostView
+        reactionBar={<ReactionBar type="CELEBRATION" id={celebration.id} />}
         variant="immersive"
         cover={heroCover(celebration.images, celebration.videos)}
         heroBadge={finished ? undefined : <CelebrationStamp nextAt={celebration.nextOccurrenceAt} />}
