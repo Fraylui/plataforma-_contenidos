@@ -126,7 +126,7 @@ export function LeftRail({
           </span>
         )}
         {/* Sin aria-label en el enlace: el nombre accesible es este texto (WCAG 2.5.3, «etiqueta en el nombre»); bajo 1280 px queda solo para lectores de pantalla. */}
-        <span className="sr-only truncate text-xl font-black tracking-tight text-foreground xl:not-sr-only xl:block">{brand.name}</span>
+        <span className="sr-only truncate font-display text-2xl font-black tracking-tight text-foreground xl:not-sr-only xl:block">{brand.name}</span>
       </Link>
 
       {/* Desplazable solo con etiquetas (≥ 1280 px): en el modo de íconos el menú cabe y las etiquetas flotantes deben poder salir de la columna. Sin barra visible (como Facebook/Instagram). */}

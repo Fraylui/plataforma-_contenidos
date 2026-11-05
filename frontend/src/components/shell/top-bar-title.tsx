@@ -30,7 +30,7 @@ export function TopBarTitle({ brand }: { brand: ShellBrand }) {
         {brand.logoUrl && (
           <BrandLogo logoUrl={brand.logoUrl} logoDarkUrl={brand.logoDarkUrl} className="h-8 w-8 shrink-0 rounded-lg object-cover" />
         )}
-        <span className="truncate text-lg font-extrabold tracking-tight text-foreground">{brand.name}</span>
+        <span className="truncate font-display text-xl font-black tracking-tight text-foreground">{brand.name}</span>
       </Link>
     </div>
   );

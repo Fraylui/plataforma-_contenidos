@@ -48,31 +48,28 @@
      el lienzo y las tarjetas, sin recurrir a tintar el neutro con verde. */
   --background: #f8fafc;
   --surface: #ffffff;
-  --foreground: #0f172a;
+  /* Negro de la marca khipu (el fondo de su logo). */
+  --foreground: #111111;
   /* slate-600 — el mínimo que recomienda la propia guía de diseño para
      texto secundario en modo claro. 7.36:1 contra --background, 7.58:1
      contra --surface (fórmula de luminancia relativa WCAG, muy por encima
      del 4.5:1 exigido — antes el ajuste anterior apenas rozaba el mínimo). */
   --muted: #475569;
   --border: #e2e8f0;
-  /* Marca (2026-10-21, decisión del dueño: fuera el verde). Naranja
-     «curiosidad»: entusiasmo, aventura y calidez —viajes, curiosidades,
-     celebraciones— y resalta sobre fotos de naturaleza, donde el verde se
-     perdía. Dos tonos del mismo matiz, medidos con la fórmula WCAG:
-       --accent      texto/enlaces/bordes: #b3390b → 5.99 sobre blanco,
-                     5.34 sobre el lienzo y 4.74 sobre su propio tinte
-                     suave (accent-soft: el ítem activo del panel; #c2410c
-                     daba 4.14 ahí y axe lo marcó).
-       --accent-fill rellenos (botones, píldoras, pestaña activa): #ff6b2c
-                     con texto oscuro encima → 6.28. Separado del rojo de
-                     «me gusta» (#ff3040) para no confundirse. */
-  --accent: #b3390b;
-  --accent-fill: #ff6b2c;
-  --accent-foreground: #0f172a;
-  /* Degradado de marca (anillos de temas, tarjetas destacadas): naranja →
-     magenta, la energía de creador de Instagram/TikTok. */
-  --brand-from: #ff6b2c;
-  --brand-to: #e1306c;
+  /* Marca khipu (2026-11-05, logo del dueño): negro, blanco y la estrella
+     amarilla. Medido con la fórmula WCAG:
+       --accent      texto/enlaces: dorado oscuro #7a5600 → 6.65 sobre
+                     blanco, 5.32 sobre canvas-strong, 5.34 sobre su tinte.
+                     (El amarillo como texto sobre blanco da 1.45: ilegible.)
+       --accent-fill rellenos (botones, píldoras, pestaña activa): el
+                     amarillo de la estrella #ffd21f con texto negro → 13.03. */
+  --accent: #7a5600;
+  --accent-fill: #ffd21f;
+  --accent-foreground: #111111;
+  /* Degradado de marca (anillos de temas, tarjetas destacadas): amarillo de
+     la estrella → ámbar. */
+  --brand-from: #ffd21f;
+  --brand-to: #ff8a00;
   /* Fondos de las historias de solo texto: la familia de marca en tonos
      profundos, porque el texto va en blanco (contraste ≥ 3:1 para texto
      grande, probado en lib/stories/backgrounds.test.ts). Iguales en oscuro:
@@ -105,7 +102,7 @@
   --field: #f1f5f9;
   --field-hover: #e8edf4;
   --field-border: rgb(15 23 42 / 0.08);
-  --ring: color-mix(in srgb, var(--accent-fill) 38%, transparent);
+  --ring: color-mix(in srgb, var(--accent) 55%, transparent);
   --success: #047857;
   --warning: #92400e;
   /* Índigo: confianza y conocimiento (enlaces, avisos de información). 7.9 sobre blanco. */
@@ -129,25 +126,27 @@
 /* Modo oscuro: sigue al dispositivo del visitante, sin selector (decisión del dueño). */
 :root {
   @media (prefers-color-scheme: dark) {
-    --background: #0f172a;
-    --surface: #1e293b;
-    --foreground: #f1f5f9;
-    --muted: #94a3b8;
-    --border: #334155;
+    /* Negro de la marca khipu; superficies en grises neutros, sin azul. */
+    --background: #111111;
+    --surface: #1c1c1c;
+    --foreground: #f5f5f5;
+    --muted: #a3a3a3;
+    --border: #333333;
     /* Oscuro: texto naranja claro (#ff8a4c: 6.26 sobre tarjetas, 7.64 sobre
        el fondo) y el mismo relleno con texto oscuro encima (6.28). */
-    --accent: #ff8a4c;
-    --accent-fill: #ff6b2c;
-    --accent-foreground: #0f172a;
+    /* El amarillo de la estrella sirve también como texto sobre negro (11.76). */
+    --accent: #ffd21f;
+    --accent-fill: #ffd21f;
+    --accent-foreground: #111111;
     --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
     --danger: #dc2626;
     --danger-foreground: #ffffff;
     /* Lienzo con un tinte índigo apenas visible (antes verde). */
-    --canvas: color-mix(in srgb, #4338ca 6%, #0f172a);
-    --canvas-strong: color-mix(in srgb, #4338ca 8%, #1e293b);
-    --canvas-border: color-mix(in srgb, #4338ca 10%, #334155);
-    --field: #0f172a;
-    --field-hover: #131d33;
+    --canvas: #111111;
+    --canvas-strong: #262626;
+    --canvas-border: #333333;
+    --field: #161616;
+    --field-hover: #1f1f1f;
     --field-border: rgb(255 255 255 / 0.08);
     --ring: color-mix(in srgb, var(--accent-fill) 40%, transparent);
     --success: #34d399;
@@ -211,6 +210,13 @@
   --text-label--line-height: 1.25rem;
 
   --font-sans: var(--font-sans);
+  --font-display: var(--font-display), var(--font-sans), system-ui, sans-serif;
+}
+
+/* Títulos con la letra redondeada del logo (Nunito 800/900). */
+h1,
+h2 {
+  font-family: var(--font-display);
 }
 
 body {

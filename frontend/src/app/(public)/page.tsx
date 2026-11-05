@@ -19,7 +19,7 @@ export default async function Home() {
       "@type": "Organization",
       name: settings.name,
       url: SITE_URL,
-      ...(settings.logoUrl ? { logo: settings.logoUrl } : {}),
+      ...(settings.logoUrl ? { logo: settings.logoUrl.startsWith("/") ? `${SITE_URL}${settings.logoUrl}` : settings.logoUrl } : {}),
       ...(officialSocialLinks(settings).length > 0 ? { sameAs: officialSocialLinks(settings).map((s) => s.url) } : {}),
     },
   ];
