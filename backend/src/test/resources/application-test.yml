@@ -14,3 +14,5 @@ app:
 # Las pruebas vuelcan las visitas a mano (ContentViewIntegrationTest), sin la tarea periódica.
 engagement:
   views-flush-ms: 3600000
+  # Las pruebas reaccionan muchas veces seguidas desde la misma IP: sin tope práctico.
+  writes-per-minute: 100000

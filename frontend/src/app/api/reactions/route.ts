@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { visitorHeaders } from "@/lib/forward-visitor";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 
@@ -18,7 +19,8 @@ export async function POST(request: NextRequest) {
   const body = await request.text();
   const res = await fetch(`${BACKEND_API_URL}/api/v1/reactions`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    // La IP real del visitante: el backend limita cuántas reacciones seguidas acepta (EngagementWriteGuardFilter).
+    headers: { ...visitorHeaders(request), "Content-Type": "application/json" },
     body,
     cache: "no-store",
   });

@@ -1,3 +1,4 @@
+import { visitorHeaders } from "@/lib/forward-visitor";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -35,7 +36,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const res = await fetch(
     `${BACKEND_API_URL}/api/v1/${backendPath}/${encodeURIComponent(slug)}/like?visitorId=${encodeURIComponent(visitorId)}`,
-    { method: "POST", cache: "no-store" },
+    // La IP real del visitante: el backend limita cuántos «me gusta» seguidos acepta (EngagementWriteGuardFilter).
+    { method: "POST", cache: "no-store", headers: visitorHeaders(request) },
   );
   if (!res.ok) {
     return NextResponse.json({ error: "No se pudo registrar el me gusta" }, { status: res.status });
