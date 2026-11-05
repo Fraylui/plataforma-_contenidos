@@ -360,6 +360,36 @@ body {
   100% { transform: translateY(0); }
 }
 
+/* Reacciones con vida: cada ícono hace su gesto cada pocos segundos
+   (solo el primer tramo del ciclo se mueve), íconos que flotan hacia arriba
+   al reaccionar y confeti. motion-safe en el componente. */
+@keyframes idle-heartbeat {
+  0%, 12%, 24%, 100% { transform: scale(1); }
+  6%, 18% { transform: scale(1.18); }
+}
+@keyframes idle-giggle {
+  0%, 20%, 100% { transform: rotate(0); }
+  5% { transform: rotate(-12deg); }
+  10% { transform: rotate(10deg); }
+  15% { transform: rotate(-6deg); }
+}
+@keyframes idle-flicker {
+  0%, 16%, 100% { opacity: 1; transform: scale(1); }
+  4% { opacity: 0.55; transform: scale(1.12); }
+  8% { opacity: 1; transform: scale(0.96); }
+  12% { opacity: 0.7; transform: scale(1.08); }
+}
+@keyframes idle-clap {
+  0%, 18%, 100% { transform: scale(1) rotate(0); }
+  4%, 12% { transform: scale(0.86) rotate(-6deg); }
+  8%, 16% { transform: scale(1.1) rotate(4deg); }
+}
+@keyframes float-up {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(0.5); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--sx)), -110px) scale(1.15) rotate(var(--rot)); }
+}
+
 /* Barra de progreso de lectura (ReadingProgress) y del «Sigue» (UpNext):
    CSS puro con scroll-driven animations, sin JS. Donde no hay soporte la
    barra queda vacía (scale-x-0) y no estorba. */
