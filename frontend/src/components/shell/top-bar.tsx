@@ -18,7 +18,7 @@ export async function TopBar({ brand }: { brand: ShellBrand }) {
     <header className="sticky top-0 z-30 bg-canvas/85 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-[1040px] items-center gap-4 px-4 lg:h-16 lg:px-6">
         <TopBarTitle brand={brand} />
-        <div className="ml-auto flex items-center sm:hidden">
+        <div className="flex min-w-0 flex-1 items-center sm:hidden">
           <SearchBox variant="mobile" categoryNames={categoryNames} />
         </div>
         <div className="ml-auto hidden w-full max-w-md sm:block">
