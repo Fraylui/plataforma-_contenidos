@@ -56,15 +56,15 @@ export const REACTIONS: {
   },
 ];
 
-const CONFETTI_COLORS = ["bg-rose-500", "bg-amber-400", "bg-violet-500", "bg-sky-500", "bg-emerald-400"];
+export const CONFETTI_COLORS = ["bg-rose-500", "bg-amber-400", "bg-violet-500", "bg-sky-500", "bg-emerald-400"];
 
 /** Partículas del confeti: dirección (px) y color, fijas para que el render sea estable. */
-const CONFETTI = [
+export const CONFETTI = [
   [0, -34], [24, -24], [34, 0], [24, 24], [0, 34], [-24, 24], [-34, 0], [-24, -24], [14, -36], [-14, -36],
 ].map(([dx, dy], i) => ({ dx, dy, color: CONFETTI_COLORS[i % CONFETTI_COLORS.length] }));
 
 /** Íconos que suben flotando al reaccionar: desvío lateral, giro y retraso. */
-const FLOATERS = [
+export const FLOATERS = [
   { sx: -18, rot: -14, delay: 0 },
   { sx: 14, rot: 10, delay: 90 },
   { sx: -6, rot: -6, delay: 180 },

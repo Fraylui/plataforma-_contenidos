@@ -159,7 +159,7 @@ export function LikeShareBar({
 
   return (
     <div className="flex flex-wrap items-center gap-1 py-2">
-      <ReactionButton mine={reaction.mine} onReact={(next) => void reaction.react(next)} />
+      <ReactionButton mine={reaction.mine} counts={reaction.counts} onReact={(next) => void reaction.react(next)} />
 
       <button
         type="button"

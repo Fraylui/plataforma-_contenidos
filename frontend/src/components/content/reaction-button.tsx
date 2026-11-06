@@ -1,56 +1,63 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { REACTIONS } from "@/components/content/reaction-bar";
-import type { ReactionKey } from "@/components/content/use-reaction";
+import { CONFETTI, FLOATERS, REACTIONS, topReactions } from "@/components/content/reaction-bar";
+import type { ReactionCounts, ReactionKey } from "@/components/content/use-reaction";
 import { cn } from "@/lib/utils";
 
-/** Los cuatro íconos chicos encimados: dice «aquí se reacciona» sin texto. */
-function ReactionStack({ size = "sm" }: { size?: "sm" | "md" }) {
-  return (
-    <span className="flex -space-x-1.5" aria-hidden="true">
-      {REACTIONS.map((r) => {
-        const Icon = r.icon;
-        return (
-          <span
-            key={r.key}
-            className={cn(
-              "flex items-center justify-center rounded-full bg-linear-to-br text-white ring-2 ring-surface",
-              size === "sm" ? "size-5" : "size-6",
-              r.color,
-            )}
-          >
-            <Icon weight="fill" className={size === "sm" ? "size-3" : "size-3.5"} />
-          </span>
-        );
-      })}
-    </span>
-  );
+const NUMBER = new Intl.NumberFormat("es-PE", { notation: "compact", maximumFractionDigits: 1 });
+
+/**
+ * Qué íconos van en la píldora: la reacción propia primero, luego las más
+ * usadas (hasta tres). Sin reacciones todavía, las cuatro: invitan a tocar.
+ */
+export function pillReactions(counts: ReactionCounts, mine: ReactionKey | null): ReactionKey[] {
+  const top = topReactions(counts).filter((k) => k !== mine);
+  const keys = mine ? [mine, ...top].slice(0, 3) : top;
+  return keys.length > 0 ? keys : REACTIONS.map((r) => r.key);
+}
+
+/** «Reaccionar», «Me divierte: tu reacción»… más el total; empieza con lo que se ve (WCAG 2.5.3). */
+export function triggerLabel(mine: ReactionKey | null, total: number): string {
+  const totalText = total > 0 ? `${total}, ` : "";
+  if (!mine) return `${totalText}Reaccionar`;
+  const label = REACTIONS.find((r) => r.key === mine)!.label;
+  return `${totalText}${label}: tu reacción. Cambiar o quitar`;
 }
 
 /**
- * Reaccionar desde el feed o el detalle, como en Facebook: el botón muestra
- * las cuatro reacciones encimadas (o la que elegiste, con su nombre); al
- * tocarlo se abre una bandeja con las cuatro grandes. Elegir otra la cambia;
- * tocar la tuya la quita. Cierra con Escape, al tocar fuera o al elegir.
+ * Reaccionar en una sola píldora, sin texto (2026-11-05, tras ver que la
+ * versión con «Reaccionar» y la fila «N reacciones» ocupaba dos líneas):
+ * íconos encimados con vida (cada uno hace su gesto) y el total al lado. Si
+ * ya reaccionaste, tu ícono va primero, más grande y con aro. Al tocar se
+ * abre la bandeja con las cuatro grandes; al elegir, suben íconos flotando,
+ * sale confeti y el celular vibra. Tocar la tuya la quita. Cierra con
+ * Escape, al tocar fuera o al elegir. Sin animación si se pide menos
+ * movimiento.
  *
- * `variant="floating"`: botón redondo del detalle (columna a la derecha) y
- * la bandeja se abre hacia la izquierda.
+ * `variant="floating"`: columna derecha del detalle; la bandeja se abre
+ * hacia la izquierda y el total va debajo (lo pone FloatingReactions).
  */
 export function ReactionButton({
   mine,
+  counts,
   onReact,
   variant = "bar",
 }: {
   mine: ReactionKey | null;
+  counts: ReactionCounts;
   onReact: (next: ReactionKey | null) => void;
   variant?: "bar" | "floating";
 }) {
   const [open, setOpen] = useState(false);
+  // Cambia en cada reacción puesta: vuelve a montar confeti y flotantes.
+  const [burst, setBurst] = useState<{ key: ReactionKey; n: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const trayId = useId();
-  const current = mine ? REACTIONS.find((r) => r.key === mine)! : null;
+  const floating = variant === "floating";
+  const total = REACTIONS.reduce((sum, r) => sum + (counts[r.key] ?? 0), 0);
+  const shown = pillReactions(counts, mine);
 
   useEffect(() => {
     if (!open) return;
@@ -66,8 +73,9 @@ export function ReactionButton({
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
     // Foco en la reacción propia (o la primera) para elegir con teclado.
-    const first = rootRef.current?.querySelector<HTMLButtonElement>('[aria-pressed="true"]') ??
-      rootRef.current?.querySelector<HTMLButtonElement>(`[data-reaction]`);
+    const first =
+      rootRef.current?.querySelector<HTMLButtonElement>('[data-reaction][aria-pressed="true"]') ??
+      rootRef.current?.querySelector<HTMLButtonElement>("[data-reaction]");
     first?.focus();
     return () => {
       document.removeEventListener("pointerdown", onPointerDown);
@@ -78,8 +86,12 @@ export function ReactionButton({
   function choose(key: ReactionKey) {
     setOpen(false);
     triggerRef.current?.focus();
-    if (mine !== key && typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(12);
-    onReact(mine === key ? null : key);
+    const next = mine === key ? null : key;
+    if (next) {
+      setBurst((b) => ({ key: next, n: (b?.n ?? 0) + 1 }));
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(12);
+    }
+    onReact(next);
   }
 
   /** Flechas para moverse dentro de la bandeja. */
@@ -92,8 +104,8 @@ export function ReactionButton({
     event.preventDefault();
   }
 
-  const floating = variant === "floating";
-  const CurrentIcon = current?.icon;
+  const bursting = burst && mine === burst.key ? REACTIONS.find((r) => r.key === burst.key)! : null;
+  const BurstIcon = bursting?.icon;
 
   return (
     <div ref={rootRef} className="relative">
@@ -103,49 +115,77 @@ export function ReactionButton({
         aria-expanded={open}
         aria-controls={trayId}
         aria-haspopup="true"
-        // El nombre empieza con el texto visible (WCAG 2.5.3) y dice qué hace.
-        aria-label={current ? `${current.label}: tu reacción. Cambiar o quitar` : "Reaccionar"}
+        aria-label={triggerLabel(mine, floating ? 0 : total)}
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          "cursor-pointer outline-none focus-visible:ring-[3px] focus-visible:ring-ring",
+          "relative flex cursor-pointer items-center outline-none focus-visible:ring-[3px] focus-visible:ring-ring active:scale-95",
+          "transition-[scale,background-color] duration-150",
           floating
-            ? "flex size-12 items-center justify-center rounded-full bg-surface/90 shadow-card backdrop-blur-md transition-[scale,background-color] duration-150 hover:bg-surface active:scale-95"
-            : "inline-flex h-11 items-center gap-2 rounded-full px-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-canvas active:scale-95",
+            ? "size-12 justify-center rounded-full bg-surface/90 shadow-card backdrop-blur-md hover:bg-surface"
+            : "h-11 gap-1.5 rounded-full px-2 hover:bg-canvas",
         )}
       >
-        {current && CurrentIcon ? (
-          <>
-            <span
-              key={current.key}
-              className={cn(
-                "flex items-center justify-center rounded-full bg-linear-to-br text-white shadow-sm motion-safe:animate-[reaction-pop_450ms_ease-out]",
-                floating ? "size-9" : "size-7",
-                current.color,
-              )}
-              aria-hidden="true"
-            >
-              <CurrentIcon weight="fill" className={floating ? "size-5" : "size-4"} />
-            </span>
-            {!floating && <span>{current.label}</span>}
-          </>
-        ) : (
-          <>
-            {floating ? (
-              <span className="grid grid-cols-2 gap-0.5" aria-hidden="true">
-                {REACTIONS.map((r) => {
-                  const Icon = r.icon;
-                  return (
-                    <span key={r.key} className={cn("flex size-4 items-center justify-center rounded-full bg-linear-to-br text-white", r.color)}>
-                      <Icon weight="fill" className="size-2.5" />
-                    </span>
-                  );
-                })}
+        <span className={cn("flex items-center", floating ? "-space-x-2.5" : "-space-x-1.5")} aria-hidden="true">
+          {(floating && mine ? [mine] : floating ? shown.slice(0, 2) : shown).map((key, i) => {
+            const r = REACTIONS.find((x) => x.key === key)!;
+            const Icon = r.icon;
+            const isMine = key === mine;
+            return (
+              <span
+                key={isMine && burst ? `${key}-${burst.n}` : key}
+                style={{ zIndex: 10 - i }}
+                className={cn(
+                  "relative flex items-center justify-center rounded-full bg-linear-to-br text-white ring-2 ring-surface",
+                  r.color,
+                  floating ? (isMine ? "size-9" : "size-7") : isMine ? "size-7" : "size-6",
+                  isMine ? "motion-safe:animate-[reaction-pop_450ms_ease-out] shadow-md" : r.idle,
+                )}
+              >
+                <Icon weight="fill" className={floating && isMine ? "size-5" : isMine ? "size-4" : "size-3.5"} />
               </span>
-            ) : (
-              <ReactionStack />
+            );
+          })}
+        </span>
+        {!floating && total > 0 && (
+          <span
+            key={total}
+            aria-hidden="true"
+            className={cn(
+              "text-sm font-bold tabular-nums motion-safe:animate-[count-bump_300ms_ease-out]",
+              mine ? "text-foreground" : "text-muted",
             )}
-            {!floating && <span>Reaccionar</span>}
-          </>
+          >
+            {NUMBER.format(total)}
+          </span>
+        )}
+
+        {bursting && BurstIcon && (
+          <span className="pointer-events-none absolute top-1/2 left-5" aria-hidden="true">
+            {CONFETTI.map((p, i) => (
+              <span
+                key={`c-${burst?.n}-${i}`}
+                style={{ "--dx": `${p.dx}px`, "--dy": `${p.dy}px` } as React.CSSProperties}
+                className={cn(
+                  "absolute top-0 left-0 size-1.5 rounded-sm opacity-0",
+                  p.color,
+                  "motion-safe:animate-[reaction-burst_600ms_ease-out_forwards]",
+                )}
+              />
+            ))}
+            {FLOATERS.map((f, i) => (
+              <span
+                key={`f-${burst?.n}-${i}`}
+                style={{ "--sx": `${f.sx}px`, "--rot": `${f.rot}deg`, animationDelay: `${f.delay}ms` } as React.CSSProperties}
+                className={cn(
+                  "absolute bottom-0 left-0 z-10 flex size-6 items-center justify-center rounded-full bg-linear-to-br text-white opacity-0 shadow",
+                  bursting.color,
+                  "motion-safe:animate-[float-up_1100ms_ease-out_forwards]",
+                )}
+              >
+                <BurstIcon weight="fill" className="size-3.5" />
+              </span>
+            ))}
+          </span>
         )}
       </button>
 
@@ -158,7 +198,7 @@ export function ReactionButton({
           className={cn(
             "absolute z-40 flex gap-1 rounded-full bg-surface p-1.5 shadow-[0_8px_30px_rgb(0_0_0/0.18)] ring-1 ring-border",
             "motion-safe:animate-[tray-in_180ms_cubic-bezier(0.2,0.9,0.3,1.2)]",
-            floating ? "top-1/2 right-full mr-2 -translate-y-1/2 origin-right" : "bottom-full left-0 mb-2 origin-bottom-left",
+            floating ? "top-1/2 right-full mr-2 origin-right -translate-y-1/2" : "bottom-full left-0 mb-1 origin-bottom-left",
           )}
         >
           {REACTIONS.map((r, i) => {
@@ -170,6 +210,7 @@ export function ReactionButton({
                 type="button"
                 data-reaction={r.key}
                 aria-pressed={active}
+                aria-label={r.label}
                 onClick={() => choose(r.key)}
                 style={{ animationDelay: `${i * 35}ms` }}
                 className={cn(
@@ -177,13 +218,13 @@ export function ReactionButton({
                   "motion-safe:animate-[tray-item-in_260ms_ease-out_both] focus-visible:ring-[3px] focus-visible:ring-ring",
                 )}
               >
-                {/* Nombre encima al pasar o enfocar (en celular se ve la bandeja y se elige). */}
+                {/* Nombre encima al pasar o enfocar. */}
                 <span
+                  aria-hidden="true"
                   className={cn(
                     "pointer-events-none absolute -top-8 rounded-full bg-foreground px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap text-surface opacity-0 transition-opacity",
                     "group-hover:opacity-100 group-focus-visible:opacity-100",
                   )}
-                  aria-hidden="true"
                 >
                   {r.label}
                 </span>
@@ -192,12 +233,17 @@ export function ReactionButton({
                     "flex size-11 items-center justify-center rounded-full bg-linear-to-br text-white shadow-md",
                     "transition-transform duration-150 motion-safe:group-hover:-translate-y-1.5 motion-safe:group-hover:scale-125 group-active:scale-90",
                     r.color,
+                    r.idle,
                     active && "ring-[3px] ring-foreground/70 ring-offset-2 ring-offset-surface",
                   )}
                 >
                   <Icon weight="fill" aria-hidden="true" className="size-6" />
                 </span>
-                <span className="sr-only">{r.label}</span>
+                {counts[r.key] > 0 && (
+                  <span aria-hidden="true" className="mt-0.5 text-[11px] leading-none font-bold text-muted tabular-nums">
+                    {NUMBER.format(counts[r.key])}
+                  </span>
+                )}
               </button>
             );
           })}

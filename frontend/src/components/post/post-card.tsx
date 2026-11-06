@@ -14,7 +14,6 @@ import { PostMedia } from "./post-media";
 import { GalleryMosaic } from "./gallery-mosaic";
 import { CelebrationStamp } from "./immersive/celebration-stamp";
 import { typeActions } from "./post-actions";
-import { ReactionPeek } from "./reaction-peek";
 
 const noSubscribe = () => () => {};
 
@@ -99,6 +98,7 @@ export function PostCard({
       <div className="flex items-center gap-1 px-2 pt-1.5">
         <ReactionButton
           mine={reaction.mine}
+          counts={reaction.counts}
           onReact={(next) => {
             lovedByTap.current = false;
             void reaction.react(next);
@@ -125,7 +125,6 @@ export function PostCard({
       </div>
 
       <div className="px-4 pt-1 pb-4">
-        <ReactionPeek href={item.href} counts={reaction.counts} />
         <h2 id={titleId} className="text-[15px] leading-snug font-bold text-foreground">
           <Link href={item.href} className="hover:underline">
             {item.title}

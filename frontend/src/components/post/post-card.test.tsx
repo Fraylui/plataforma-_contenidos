@@ -93,9 +93,10 @@ describe("PostCard", () => {
     expect(screen.getByRole("button", { name: /Me divierte: tu reacción/ })).toBeInTheDocument();
   });
 
-  it("los «me gusta» de antes cuentan como ❤️ Me encanta en el resumen", () => {
+  it("una sola fila: el total va en la píldora (los «me gusta» de antes cuentan como ❤️), sin línea «N reacciones»", () => {
     render(<PostCard item={item({ likeCount: 12 })} brand={brand} />);
-    expect(screen.getByRole("link", { name: /12 reacciones/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "12, Reaccionar" })).toHaveTextContent("12");
+    expect(screen.queryByText(/reacciones/)).not.toBeInTheDocument();
   });
 
   it("quien ya dio «me gusta» antes ve su ❤️ Me encanta marcado", () => {

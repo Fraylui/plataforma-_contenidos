@@ -81,7 +81,7 @@ export function FloatingReactions({
       )}
     >
       <div className="flex flex-col items-center gap-1">
-        <ReactionButton variant="floating" mine={reaction.mine} onReact={(next) => void reaction.react(next)} />
+        <ReactionButton variant="floating" mine={reaction.mine} counts={reaction.counts} onReact={(next) => void reaction.react(next)} />
         {reaction.total > 0 && (
           <span aria-hidden="true" className="text-xs font-semibold text-foreground tabular-nums [text-shadow:0_0_6px_var(--canvas)]">
             {reaction.total}

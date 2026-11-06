@@ -24,7 +24,7 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
 
   it("reaccionar y un único botón Compartir, accesible", async () => {
     const { container } = render(<LikeShareBar {...props} />);
-    expect(screen.getByRole("button", { name: "Reaccionar" })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("button", { name: "7, Reaccionar" })).toHaveAttribute("aria-expanded", "false");
     expect(screen.getByRole("button", { name: "Compartir" })).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
   });
@@ -46,10 +46,10 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
     );
     render(<LikeShareBar {...props} />);
 
-    await user.click(screen.getByRole("button", { name: "Reaccionar" }));
+    await user.click(screen.getByRole("button", { name: /Reaccionar/ }));
     await user.click(screen.getByRole("button", { name: "Me encanta" }));
 
-    await waitFor(() => expect(screen.getByRole("button", { name: /Me encanta: tu reacción/ })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("button", { name: "8, Me encanta: tu reacción. Cambiar o quitar" })).toBeInTheDocument());
     const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
     expect(url).toBe("/api/reactions");
     expect(JSON.parse(init.body as string)).toMatchObject({ type: "EPISODE", id: "e1", reaction: "LOVE" });
@@ -62,10 +62,10 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
     vi.mocked(fetch).mockResolvedValue(new Response("", { status: 500 }));
     render(<LikeShareBar {...props} />);
 
-    await user.click(screen.getByRole("button", { name: "Reaccionar" }));
+    await user.click(screen.getByRole("button", { name: /Reaccionar/ }));
     await user.click(screen.getByRole("button", { name: "Me encanta" }));
 
-    await waitFor(() => expect(screen.getByRole("button", { name: "Reaccionar" })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("button", { name: "7, Reaccionar" })).toBeInTheDocument());
     expect(localStorage.getItem("reaction:EPISODE:e1")).toBe("");
   });
 
