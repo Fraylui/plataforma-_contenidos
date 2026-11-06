@@ -1,0 +1,9 @@
+# Avisa al dueño cuando otra unidad falla (se usa con OnFailure=).
+# %i es el nombre de la unidad que falló.
+[Unit]
+Description=Aviso de falla: %i
+
+[Service]
+Type=oneshot
+User=deploy
+ExecStart=/opt/plataforma-contenidos/scripts/avisar.sh "Falló %i. Revisa: journalctl -u %i -n 50"

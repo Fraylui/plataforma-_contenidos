@@ -1,15 +1,39 @@
+import type { PeruRegion } from "@/lib/peru-regions";
+import type { AdSection } from "@/lib/ads/ad-context";
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
-import type { ArticleStatus, ArticleType, BusinessType, ContentImage } from "./types";
+import type { PublicationStatus, PublicationType, ContentImage, FeedItemType } from "./types";
+import type { CallToAction, CampaignFormat, Category, NativeMediaAspect, PlatformSettings } from "./types";
+import type { CaptionPosition, StoryBackground, StoryLinkType, StoryView } from "./types";
 
-/** Cuerpo de un video en ArticleInput/PlaceInput/EventInput — ver ContentVideoInput.java. */
+/** Cuerpo de un video en PublicationInput/PlaceInput/CelebrationInput — ver ContentVideoInput.java. */
 export interface ContentVideoInput {
   url: string;
   title: string | null;
   caption: string | null;
 }
 
-export type Role = "SUPER_ADMIN" | "ADMIN" | "EDITOR" | "AUTHOR" | "MODERATOR" | "COLLABORATOR" | "USER";
+/** Roles del panel (spec 2a): el dueño puede todo; el trabajador, lo que digan sus permisos. */
+export type Role = "OWNER" | "WORKER";
+
+/** Módulos que se asignan a un trabajador (espejo de Module.java). */
+export type Module =
+  | "PUBLICATIONS"
+  | "PLACES"
+  | "CELEBRATIONS"
+  | "GALLERIES"
+  | "SERIES"
+  | "STORIES"
+  | "CATEGORIES"
+  | "STATS"
+  | "ADVERTISING"
+  | "WORKERS"
+  | "SETTINGS";
+
+/** PUBLISH: módulo de contenido (crea y publica directo) · ACCESS: módulos que no son de contenido. */
+export type AccessLevel = "PUBLISH" | "ACCESS";
+
+export type ModulePermissions = Partial<Record<Module, AccessLevel>>;
 
 export interface TokenResponse {
   accessToken: string;
@@ -17,23 +41,48 @@ export interface TokenResponse {
   tokenType: string;
 }
 
+/** Lugar para elegir en Celebraciones — PlaceOptionsController (acceso a Lugares o Celebraciones). */
+export interface PlaceOption {
+  id: string;
+  name: string;
+}
+
+/** Trabajador del panel — WorkerAdminController.WorkerResponse. */
+export interface Worker {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  status: "ACTIVE" | "DISABLED";
+  mustChangePassword: boolean;
+  lastLoginAt: string | null;
+  permissions: ModulePermissions;
+}
+
+export interface CreateWorkerInput {
+  email: string;
+  firstName: string;
+  lastName: string;
+  permissions: ModulePermissions;
+}
+
+/** Sesión actual del panel — GET /api/v1/users/me (MeResponse.java). */
 export interface AdminUser {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
   role: Role;
-  status: string;
-  createdAt: string;
-  lastLoginAt: string | null;
+  mustChangePassword: boolean;
+  permissions: ModulePermissions;
 }
 
-/** Cuerpo de POST/PUT /api/v1/admin/articles — ver ArticleRequest.java. */
-export interface ArticleInput {
+/** Cuerpo de POST/PUT /api/v1/admin/publications — ver PublicationRequest.java. */
+export interface PublicationInput {
   title: string;
   excerpt: string | null;
   body: string;
-  articleType: ArticleType;
+  publicationType: PublicationType;
   categoryId: string;
   seoTitle: string | null;
   metaDescription: string | null;
@@ -42,6 +91,8 @@ export interface ArticleInput {
   images: ContentImage[];
   videos: ContentVideoInput[];
   robots: string;
+  /** Enlaces de las fuentes (hasta 10). */
+  sources: string[];
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/places — ver PlaceRequest.java (CONTEXTO.md sección 6). */
@@ -59,10 +110,16 @@ export interface PlaceInput {
   ogImageUrl: string | null;
   videos: ContentVideoInput[];
   robots: string;
+  /** Enlaces de las fuentes (hasta 10). */
+  sources: string[];
+  /** Región del Perú (sello en «Mis viajes»); null si no se indicó. */
+  region: PeruRegion | null;
+  /** País ISO 3166-1 alfa-2 (PE, CL…); null si no se indicó. */
+  country: string | null;
 }
 
-/** Cuerpo de POST/PUT /api/v1/admin/events — ver EventRequest.java. */
-export interface EventInput {
+/** Cuerpo de POST/PUT /api/v1/admin/celebrations — ver EventRequest.java. */
+export interface CelebrationInput {
   title: string;
   excerpt: string | null;
   body: string;
@@ -71,6 +128,16 @@ export interface EventInput {
   venueName: string | null;
   startsAt: string;
   endsAt: string | null;
+  /** Celebración que se repite cada año (28 de julio); false = única. */
+  recursYearly: boolean;
+  /** Todo el día, sin hora. */
+  allDay: boolean;
+  /** «Desde 1821»: solo si se repite. */
+  sinceYear: number | null;
+  /** Dónde se celebra: país ISO-2; null = en todo el mundo. */
+  scopeCountry: string | null;
+  /** Región de ese país; exige scopeCountry. */
+  scopeRegion: string | null;
   images: ContentImage[];
   seoTitle: string | null;
   metaDescription: string | null;
@@ -78,6 +145,8 @@ export interface EventInput {
   ogImageUrl: string | null;
   videos: ContentVideoInput[];
   robots: string;
+  /** Enlaces de las fuentes (hasta 10). */
+  sources: string[];
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/galleries — ver GalleryRequest.java. */
@@ -90,29 +159,6 @@ export interface GalleryInput {
   metaDescription: string | null;
   canonicalUrl: string | null;
   ogImageUrl: string | null;
-  robots: string;
-}
-
-/** Cuerpo de POST/PUT /api/v1/admin/directory — ver BusinessRequest.java. */
-export interface BusinessInput {
-  name: string;
-  excerpt: string | null;
-  body: string;
-  categoryId: string;
-  businessType: BusinessType;
-  placeId: string | null;
-  address: string | null;
-  phone: string | null;
-  email: string | null;
-  website: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  images: ContentImage[];
-  seoTitle: string | null;
-  metaDescription: string | null;
-  canonicalUrl: string | null;
-  ogImageUrl: string | null;
-  videos: ContentVideoInput[];
   robots: string;
 }
 
@@ -129,50 +175,29 @@ export interface CategoryUpdateInput extends CategoryCreateInput {
 }
 
 /** Cuerpo de POST /api/v1/admin/users — ver CreateUserRequest.java. */
-export interface CreateUserInput {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  role: Role;
-}
 
-/** Cuerpo de PUT /api/v1/admin/platform-settings — ver UpdatePlatformSettingsRequest.java. */
-export interface PlatformSettingsInput {
-  name: string;
-  shortName: string | null;
-  description: string | null;
-  logoUrl: string | null;
-  logoDarkUrl: string | null;
-  faviconUrl: string | null;
-  ogImageUrl: string | null;
-  primaryColor: string | null;
-  secondaryColor: string | null;
-  backgroundColor: string | null;
-  fontFamily: string | null;
-  theme: "LIGHT" | "DARK" | "AUTO";
-  seoDefaultTitle: string | null;
-  seoDefaultDescription: string | null;
-  seoDefaultImageUrl: string | null;
-  googleSearchConsoleVerification: string | null;
-  contactEmail: string | null;
-  adsenseEnabled: boolean;
-  adsenseClientId: string | null;
-  analyticsId: string | null;
-}
+/** Cuerpo de PUT /api/v1/admin/platform-settings: la misma forma que la lectura (UpdatePlatformSettingsRequest.java). */
+export type PlatformSettingsInput = PlatformSettings;
 
 /** Cuerpo de POST /api/v1/admin/ad-placements — ver CreateAdPlacementRequest.java. */
 export interface AdPlacementCreateInput {
   key: string;
   label: string;
   adsenseSlotId: string | null;
+  width: number;
+  height: number;
 }
 
 /** Cuerpo de PUT /api/v1/admin/ad-placements/{id} — ver UpdateAdPlacementRequest.java. */
 export interface AdPlacementUpdateInput {
   label: string;
   adsenseSlotId: string | null;
+  width: number;
+  height: number;
 }
+
+/** Rubro del anunciante — ver AdvertiserIndustry.java y lib/ads/industry.ts. */
+export type AdvertiserIndustry = "GENERAL" | "PROCESSED_FOOD" | "ALCOHOL" | "BETTING";
 
 /** Ver Advertiser.java. */
 export interface Advertiser {
@@ -180,6 +205,9 @@ export interface Advertiser {
   name: string;
   contactEmail: string | null;
   contactPhone: string | null;
+  /** Logo de sus anuncios nativos (imagen de la biblioteca); null = iniciales. */
+  logoImageId: string | null;
+  industry: AdvertiserIndustry;
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/advertisers — ver AdvertiserRequest.java. */
@@ -187,13 +215,16 @@ export interface AdvertiserInput {
   name: string;
   contactEmail: string | null;
   contactPhone: string | null;
+  logoImageId: string | null;
+  industry: AdvertiserIndustry;
 }
 
 /** Ver CampaignResponse.java. La creatividad es XOR: imageId o externalImageUrl, nunca ambas. */
-export interface Campaign {
+export interface Campaign extends NativeAdInputFields {
   id: string;
   advertiserId: string;
   placementKey: string;
+  format: CampaignFormat;
   imageId: string | null;
   externalImageUrl: string | null;
   imageAlt: string | null;
@@ -203,14 +234,45 @@ export interface Campaign {
   active: boolean;
   impressionCount: number;
   clickCount: number;
+  /** Reproducciones del video (solo anuncio nativo con video). */
+  playCount: number;
+  youtubeVideoId: string | null;
+  mediaAspect: NativeMediaAspect | null;
   amount: number | null;
   currency: string | null;
+  /** 1–10: cuánto más seguido sale frente a otras campañas de la misma posición. */
+  weight: number;
+  targetSections: AdSection[];
+  targetCategoryIds: string[];
+  targetCountries: string[];
+  targetRegions: string[];
+  /** Última confirmación de las condiciones de la oferta (D.L. 1044, art. 17.3.f); null = campaña anterior a la regla. */
+  complianceConfirmedAt: string | null;
+}
+
+/** Ver CampaignDailyStatResponse.java — un día (UTC) del reporte de una campaña. */
+export interface CampaignDailyStat {
+  day: string;
+  impressions: number;
+  clicks: number;
+  plays: number;
+}
+
+/** Lo propio del anuncio nativo (null en un banner) — ver CampaignRequest.java. */
+export interface NativeAdInputFields {
+  primaryText: string | null;
+  headline: string | null;
+  callToAction: CallToAction | null;
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/campaigns — ver CampaignRequest.java. */
-export interface CampaignInput {
+export interface CampaignInput extends NativeAdInputFields {
   advertiserId: string;
-  placementKey: string;
+  /** null en el anuncio nativo: siempre va en el feed. */
+  placementKey: string | null;
+  format: CampaignFormat;
+  /** Solo anuncio nativo con video: el link de YouTube. */
+  videoUrl: string | null;
   imageId: string | null;
   externalImageUrl: string | null;
   imageAlt: string | null;
@@ -219,6 +281,13 @@ export interface CampaignInput {
   endsAt: string | null;
   amount: number | null;
   currency: string | null;
+  weight: number;
+  targetSections: AdSection[];
+  targetCategoryIds: string[];
+  targetCountries: string[];
+  targetRegions: string[];
+  /** Tiene que ser true en cada guardado: el anuncio muestra vigencia, stock y condiciones. */
+  complianceConfirmed: boolean;
 }
 
 /** Ver PlatformStatsResponse.java (CONTEXTO.md sección 34, estadísticas básicas). */
@@ -228,19 +297,148 @@ export interface DailyCount {
   count: number;
 }
 
+/** Me gusta y visitas totales de una fila de listado (ContentEngagementService.Counts). */
+export interface EngagementCounts {
+  likes: number;
+  views: number;
+  /** Reacciones con ícono (me encanta, me divierte, me sorprende, me inspira), juntas. */
+  reactions?: number;
+  /** Clics en sus enlaces de afiliado (solo publicaciones y lugares). */
+  affiliateClicks?: number;
+}
+
+/** Página de un listado de contenido del panel (AdminContentPage.java): PageResponse + engagement por id. */
+export interface AdminContentPage<T> {
+  items: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  engagement: Record<string, EngagementCounts>;
+}
+
+/** Programar o editar una transmisión en vivo (LiveDtos.LiveRequest). */
+export interface LiveInput {
+  videoUrl: string;
+  title: string;
+  description?: string;
+  categoryId: string;
+  seriesId?: string | null;
+  /** ISO; vacío = "muy pronto", sin hora. */
+  scheduledStart?: string | null;
+}
+
+/** Historia en el panel (StoryDtos.AdminStory): lo del visitante más tema, vistas y toques del botón. */
+export interface AdminStory extends StoryView {
+  categoryId: string;
+  categoryName: string;
+  views: number;
+  ctaClicks: number;
+  /** Lo enlazado aunque se haya despublicado (para editar); `link` es null en ese caso. */
+  linkContentType: StoryLinkType | null;
+  linkContentId: string | null;
+}
+
+export type AdminStoryTab = "ACTIVE" | "HIGHLIGHTED" | "ENDED";
+
+/** Una historia del lote (StoryDtos.StoryItemRequest): foto o fondo; enlace a contenido o Short, opcionales. */
+export interface StoryItemInput {
+  imageId: string | null;
+  background: StoryBackground | null;
+  caption: string | null;
+  captionPosition: CaptionPosition;
+  linkType: StoryLinkType | null;
+  linkId: string | null;
+  youtubeUrl: string | null;
+  highlighted: boolean;
+}
+
+/** Serie en el panel (SeriesDtos.SeriesResponse): incluye el estado de la sincronización con YouTube. */
+export interface AdminSeries {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  categoryId: string;
+  /** Arte del programa (imagen de la biblioteca); null = miniatura del último episodio. */
+  coverImageId: string | null;
+  youtubePlaylistId: string;
+  status: PublicationStatus;
+  publishedAt: string | null;
+  scheduledAt: string | null;
+  lastSyncedAt: string | null;
+  lastSyncError: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSeriesInput {
+  playlistUrl: string;
+  title?: string;
+  description?: string;
+  categoryId: string;
+}
+
+export interface UpdateSeriesInput {
+  title?: string;
+  description?: string;
+  categoryId: string;
+  /** null quita la portada. */
+  coverImageId: string | null;
+}
+
+export interface SeriesSyncResult {
+  added: number;
+  lastSyncedAt: string | null;
+  lastSyncError: string | null;
+}
+
+/** Resumen del inicio del panel (GET /api/v1/admin/dashboard, ver DashboardService). */
+export type DashboardRange = 7 | 30 | 90;
+
+export interface DashboardKpi {
+  current: number;
+  previous: number;
+}
+
+export interface DashboardContentRow {
+  type: FeedItemType;
+  id: string;
+  title: string;
+  status: PublicationStatus;
+  createdAt: string;
+}
+
+export interface DashboardSummary {
+  rangeDays: DashboardRange;
+  from: string;
+  to: string;
+  views: DashboardKpi;
+  likes: DashboardKpi;
+  published: DashboardKpi;
+  series: { day: string; views: number; likes: number; published: number }[];
+  topViewed: { type: FeedItemType; id: string; title: string; slug: string; views: number }[];
+  byTypeAndStatus: Partial<Record<FeedItemType, Partial<Record<PublicationStatus, number>>>>;
+  recent: DashboardContentRow[];
+  /** null si el usuario no tiene el módulo de publicidad. */
+  ads: { impressions: number; clicks: number; previousImpressions: number; previousClicks: number } | null;
+}
+
 export interface PlatformStats {
-  articlesByStatus: Record<ArticleStatus, number>;
-  articlesPublishedLast30Days: number;
+  publicationsByStatus: Record<PublicationStatus, number>;
+  publicationsPublishedLast30Days: number;
   publishedTrendLast30Days: DailyCount[];
-  placesByStatus: Record<ArticleStatus, number>;
-  eventsByStatus: Record<ArticleStatus, number>;
-  galleriesByStatus: Record<ArticleStatus, number>;
-  businessesByStatus: Record<ArticleStatus, number>;
+  placesByStatus: Record<PublicationStatus, number>;
+  celebrationsByStatus: Record<PublicationStatus, number>;
+  galleriesByStatus: Record<PublicationStatus, number>;
   totalCategories: number;
   activeCategories: number;
   usersByRole: Record<Role, number>;
   activeUsers: number;
 }
+
+/** Para qué se subió (ver ImagePurpose.java): la biblioteca de contenido no muestra las de publicidad. */
+export type ImagePurpose = "CONTENT" | "AD" | "STORY";
 
 /** Ver ImageResponse.java. `url` es relativa — resolver con src/lib/image-url.ts. */
 export interface AdminImage {
@@ -252,6 +450,7 @@ export interface AdminImage {
   width: number;
   height: number;
   altText: string | null;
+  purpose: ImagePurpose;
   uploadedBy: string;
   createdAt: string;
 }
@@ -269,6 +468,8 @@ export interface AuditEvent {
   resourceId: string | null;
   ipAddress: string | null;
   result: AuditResult;
+  /** "Antes → después" cuando la acción lo registra (p. ej. permisos de un trabajador). */
+  details: string | null;
 }
 
 export interface AuditSearchFilters {
@@ -280,4 +481,54 @@ export interface AuditSearchFilters {
   to?: string;
   page?: number;
   size?: number;
+}
+
+/** Ver AdminCategoryResponse.java: el tema con su contenido publicado propio y si el visitante lo ve. */
+export interface AdminCategory extends Category {
+  publishedCount: number;
+  visibleOnSite: boolean;
+}
+
+/** Calendario de publicaciones (GET /api/v1/admin/calendar?month=AAAA-MM, ver CalendarService). */
+export type CalendarEntryKind = "PUBLISHED" | "SCHEDULED" | "CELEBRATION_DATE";
+
+export interface CalendarEntry {
+  kind: CalendarEntryKind;
+  type: FeedItemType;
+  id: string;
+  title: string;
+  status: PublicationStatus;
+  /** Día AAAA-MM-DD en la hora del sitio. */
+  date: string;
+  /** HH:mm; null en las fechas de celebración. */
+  time: string | null;
+}
+
+export interface CalendarMonth {
+  month: string;
+  entries: CalendarEntry[];
+}
+
+/** Enlace de afiliado de una publicación o un lugar (AffiliateLink.java); clicks = veces que se abrió. */
+export type AffiliateContentType = "PUBLICATION" | "PLACE";
+
+export interface AffiliateLink {
+  id: string;
+  position: number;
+  label: string;
+  url: string;
+  clicks: number;
+}
+
+export interface AffiliateLinkInput {
+  label: string;
+  url: string;
+}
+
+/** «Qué hacer hoy» del Inicio (GET /api/v1/admin/calendar/today, CalendarService.Today). */
+export interface CalendarToday {
+  today: string;
+  upcomingDates: CalendarEntry[];
+  scheduledToday: CalendarEntry[];
+  drafts: { type: FeedItemType; id: string; title: string; updatedAt: string }[];
 }

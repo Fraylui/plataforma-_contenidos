@@ -15,12 +15,12 @@ class JwtServiceTest {
     void issuedTokenParsesBackToSameClaims() {
         UUID userId = UUID.randomUUID();
 
-        String token = jwtService.issueAccessToken(userId, Role.EDITOR);
+        String token = jwtService.issueAccessToken(userId, Role.WORKER);
         var claims = jwtService.parse(token);
 
         assertThat(claims).isPresent();
         assertThat(claims.get().userId()).isEqualTo(userId);
-        assertThat(claims.get().role()).isEqualTo(Role.EDITOR);
+        assertThat(claims.get().role()).isEqualTo(Role.WORKER);
     }
 
     @Test
@@ -32,7 +32,7 @@ class JwtServiceTest {
     void tokenSignedWithDifferentSecretIsRejected() {
         JwtService other = new JwtService(
                 new JwtProperties("a-completely-different-secret-also-32-bytes-plus", 15, 30));
-        String token = other.issueAccessToken(UUID.randomUUID(), Role.USER);
+        String token = other.issueAccessToken(UUID.randomUUID(), Role.WORKER);
 
         assertThat(jwtService.parse(token)).isEmpty();
     }

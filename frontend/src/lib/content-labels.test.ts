@@ -1,50 +1,33 @@
 import { describe, expect, it } from "vitest";
-import { articleStatusLabel, articleStatusTone, articleTypeLabel, formatPublishedDate } from "./content-labels";
-import type { ArticleStatus, ArticleType } from "@/lib/api/types";
+import { publicationTypeLabel, formatEventDateTime, formatPublishedDate, formatShortDate, publicationStatusLabel, publicationStatusTone } from "./content-labels";
+import type { PublicationType, PublicationStatus } from "@/lib/api/types";
 
-const ALL_ARTICLE_TYPES: ArticleType[] = [
-  "ARTICULO",
-  "NOTICIA",
-  "REPORTAJE",
-  "CRONICA",
-  "GUIA",
-  "ENTREVISTA",
-  "HISTORIA",
-  "RANKING",
-  "TUTORIAL",
-  "OPINION",
-];
+const ALL_PUBLICATION_TYPES: PublicationType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA"];
 
-const ALL_ARTICLE_STATUSES: ArticleStatus[] = [
-  "DRAFT",
-  "IN_REVIEW",
-  "APPROVED",
-  "SCHEDULED",
-  "PUBLISHED",
-  "ARCHIVED",
-  "REJECTED",
-];
+const ALL_STATUSES: PublicationStatus[] = ["DRAFT", "SCHEDULED", "PUBLISHED", "ARCHIVED"];
 
 // Sobre todo para que un nuevo valor del enum (backend) que se olvide
 // agregar acá explote en un test en vez de mostrar `undefined` en la UI.
 describe("mapas de etiquetas", () => {
-  it.each(ALL_ARTICLE_TYPES)("articleTypeLabel(%s) devuelve una etiqueta no vacía", (type) => {
-    expect(articleTypeLabel(type)).toBeTruthy();
+  it.each(ALL_PUBLICATION_TYPES)("publicationTypeLabel(%s) devuelve una etiqueta no vacía", (type) => {
+    expect(publicationTypeLabel(type)).toBeTruthy();
   });
 
-  it.each(ALL_ARTICLE_STATUSES)("articleStatusLabel(%s) y articleStatusTone(%s) están definidos", (status) => {
-    expect(articleStatusLabel(status)).toBeTruthy();
-    expect(["neutral", "warning", "success", "danger"]).toContain(articleStatusTone(status));
+  it("formatos de plataforma, sin géneros periodísticos", () => {
+    expect(ALL_PUBLICATION_TYPES.map(publicationTypeLabel)).toEqual(["General", "Guía", "Lista", "Tutorial", "Historia"]);
   });
 
-  it("PUBLISHED es el único estado con tono success", () => {
-    const successStatuses = ALL_ARTICLE_STATUSES.filter((s) => articleStatusTone(s) === "success");
-    expect(successStatuses).toEqual(["PUBLISHED"]);
+  it("estados de plataforma, sin pasos de redacción", () => {
+    expect(ALL_STATUSES.map(publicationStatusLabel)).toEqual([
+      "Borrador",
+      "Programado",
+      "Publicado",
+      "Archivado",
+    ]);
   });
 
-  it("REJECTED es el único estado con tono danger", () => {
-    const dangerStatuses = ALL_ARTICLE_STATUSES.filter((s) => articleStatusTone(s) === "danger");
-    expect(dangerStatuses).toEqual(["REJECTED"]);
+  it("cada estado tiene su color y solo lo publicado es verde de éxito", () => {
+    expect(ALL_STATUSES.map(publicationStatusTone)).toEqual(["neutral", "warning", "success", "neutral"]);
   });
 });
 
@@ -57,5 +40,19 @@ describe("formatPublishedDate", () => {
     // Mediodía UTC, no medianoche: evita que el resultado cambie de día
     // según la zona horaria local de quien corre el test.
     expect(formatPublishedDate("2026-03-15T12:00:00Z")).toBe("15 de marzo de 2026");
+  });
+});
+
+// Las pruebas corren en UTC (vitest.config.mts), como el servidor: las fechas se
+// leen en la zona del sitio (America/Lima por defecto), no en la de la máquina.
+describe("fechas en la zona del sitio", () => {
+  it("un evento a las 11 p. m. de Lima no pasa al día siguiente en un servidor UTC", () => {
+    const label = formatEventDateTime("2026-10-18T23:00:00-05:00");
+    expect(label).toMatch(/18 oct/);
+    expect(label).toMatch(/11:00\sp\.\s?m\./);
+  });
+
+  it("la fecha corta tampoco cambia de día", () => {
+    expect(formatShortDate("2026-10-18T23:30:00-05:00")).toMatch(/18 oct/);
   });
 });

@@ -1,5 +1,6 @@
 package pe.plataformacontenidos.media;
 
+import pe.plataformacontenidos.identity.internal.WorkerPermissionRepository;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -20,9 +21,9 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import pe.plataformacontenidos.TestcontainersConfiguration;
-import pe.plataformacontenidos.identity.Role;
-import pe.plataformacontenidos.identity.User;
-import pe.plataformacontenidos.identity.UserRepository;
+import pe.plataformacontenidos.identity.permission.TestProfile;
+import pe.plataformacontenidos.identity.internal.User;
+import pe.plataformacontenidos.identity.internal.UserRepository;
 import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -42,11 +43,14 @@ class MediaUploadRateLimitIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private WorkerPermissionRepository workerPermissions;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Test
     void blocksUploadsAfterConfiguredLimit() throws Exception {
-        String token = createUserAndLogin("media-rate-limit@plataforma-contenidos.test", Role.AUTHOR);
+        String token = createUserAndLogin("media-rate-limit@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         byte[] png = generatePng();
 
         for (int i = 0; i < 2; i++) {
@@ -69,10 +73,10 @@ class MediaUploadRateLimitIntegrationTest {
         return out.toByteArray();
     }
 
-    private String createUserAndLogin(String email, Role role) throws Exception {
+    private String createUserAndLogin(String email, TestProfile role) throws Exception {
         String password = "SomeStrongPassword123!";
-        userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role));
-
+        User created = userRepository.save(new User(email, passwordEncoder.encode(password), "Test", "User", role.toRole()));
+        role.grant(workerPermissions, created.getId());
         MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))

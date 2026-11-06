@@ -38,7 +38,7 @@ export function VideoJsonLd({
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(objects.length === 1 ? objects[0] : objects).replace(/</g, "\u003c") }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(objects.length === 1 ? objects[0] : objects).replace(/</g, "\\u003c") }}
     />
   );
 }

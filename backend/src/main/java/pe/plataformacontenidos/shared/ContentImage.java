@@ -7,7 +7,7 @@ import java.util.UUID;
 /**
  * Una imagen de contenido: o bien una imagen subida (imageId, módulo
  * Media) o bien un enlace externo (externalUrl) — nunca ambas ni ninguna.
- * Article/Place/Event comparten esto (CONTEXTO.md sección 3): antes cada
+ * Publication/Place/Celebration comparten esto (CONTEXTO.md sección 3): antes cada
  * uno guardaba solo UUID de imágenes subidas; ahora una publicación puede
  * tener imágenes subidas, por enlace, o una mezcla, según lo que tenga a
  * mano quien la redacta.
@@ -27,6 +27,14 @@ public class ContentImage {
     @Column(name = "caption")
     private String caption;
 
+    /** Autor de la foto si no es del dueño (null = foto propia). */
+    @Column(name = "credit")
+    private String credit;
+
+    /** Con crédito: se confirmó permiso por escrito o licencia libre (D.Leg. 822 art. 39). */
+    @Column(name = "rights_confirmed")
+    private Boolean rightsConfirmed;
+
     protected ContentImage() {
         // JPA
     }
@@ -36,6 +44,14 @@ public class ContentImage {
         this.externalUrl = externalUrl;
         this.title = title;
         this.caption = caption;
+    }
+
+    /** La misma foto con su crédito (ver ContentImageInput.validCredit). */
+    public ContentImage withCredit(String credit, boolean rightsConfirmed) {
+        ContentImage copy = new ContentImage(imageId, externalUrl, title, caption);
+        copy.credit = credit;
+        copy.rightsConfirmed = credit == null ? null : rightsConfirmed;
+        return copy;
     }
 
     public static ContentImage uploaded(UUID imageId, String title, String caption) {
@@ -62,7 +78,11 @@ public class ContentImage {
         return caption;
     }
 
-    public boolean isUploaded() {
-        return imageId != null;
+    public String getCredit() {
+        return credit;
+    }
+
+    public boolean isRightsConfirmed() {
+        return Boolean.TRUE.equals(rightsConfirmed);
     }
 }

@@ -1,5 +1,8 @@
 package pe.plataformacontenidos.configuration.api;
 
+import pe.plataformacontenidos.identity.permission.RequiresModule;
+import pe.plataformacontenidos.identity.permission.Module;
+import pe.plataformacontenidos.identity.permission.AccessLevel;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -11,15 +14,15 @@ import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.configuration.PlatformSettingsService;
 import pe.plataformacontenidos.configuration.api.dto.PlatformSettingsResponse;
 import pe.plataformacontenidos.configuration.api.dto.UpdatePlatformSettingsRequest;
-import pe.plataformacontenidos.identity.security.UserPrincipal;
+import pe.plataformacontenidos.identity.UserPrincipal;
 
 /**
  * Edición de la configuración de marca (CONTEXTO.md sección 14). Restringido
- * a SUPER_ADMIN/ADMIN en SecurityConfig — es configuración crítica de
- * identidad, no contenido de publicación (sección 36.4: distinta de
- * ADMIN_CONTENIDO).
+ * al módulo Configuración (el dueño o quien él designe) — es configuración
+ * crítica de identidad, no contenido.
  */
 @RestController
+@RequiresModule(value = Module.SETTINGS, level = AccessLevel.ACCESS)
 @RequestMapping("/api/v1/admin/platform-settings")
 public class PlatformSettingsAdminController {
 

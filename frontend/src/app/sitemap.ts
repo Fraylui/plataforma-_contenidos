@@ -1,28 +1,49 @@
 import type { MetadataRoute } from "next";
 import {
-  listActiveCategories,
-  listAllPublishedArticlesForSitemap,
-  listAllPublishedBusinessesForSitemap,
-  listAllPublishedEventsForSitemap,
+  listCategoriesWithContent,
+  listAllPublishedPublicationsForSitemap,
+  listAllPublishedCelebrationsForSitemap,
   listAllPublishedGalleriesForSitemap,
   listAllPublishedPlacesForSitemap,
+  listAllSeriesWithEpisodesForSitemap,
+  getPlaceRegions,
 } from "@/lib/api/client";
+import { regionSlug } from "@/lib/peru-regions";
 import { SITE_URL } from "@/lib/site-url";
-import { isEventFinished } from "@/lib/content-labels";
+import { isCelebrationFinished } from "@/lib/content-labels";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [articles, places, events, galleries, businesses, categories] = await Promise.all([
-    listAllPublishedArticlesForSitemap(),
+  const [publications, places, celebrations, galleries, categories, series, regions] = await Promise.all([
+    listAllPublishedPublicationsForSitemap(),
     listAllPublishedPlacesForSitemap(),
-    listAllPublishedEventsForSitemap(),
+    listAllPublishedCelebrationsForSitemap(),
     listAllPublishedGalleriesForSitemap(),
-    listAllPublishedBusinessesForSitemap(),
-    listActiveCategories(),
+    listCategoriesWithContent(),
+    listAllSeriesWithEpisodesForSitemap(),
+    // Solo regiones con lugares publicados (las demás no tienen página).
+    getPlaceRegions().catch(() => []),
   ]);
 
-  const articleEntries: MetadataRoute.Sitemap = articles.map((article) => ({
-    url: `${SITE_URL}/publicaciones/${article.slug}`,
-    lastModified: article.publishedAt ?? undefined,
+  const regionEntries: MetadataRoute.Sitemap = regions.map((r) => ({
+    url: `${SITE_URL}/lugares/region/${regionSlug(r.region)}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }));
+
+  // Series y episodios: cada episodio es una página propia con su video (VideoObject).
+  const seriesEntries: MetadataRoute.Sitemap = series.flatMap(({ series: s, episodes }) => [
+    { url: `${SITE_URL}/series/${s.slug}`, changeFrequency: "weekly" as const, priority: 0.6 },
+    ...episodes.map((episode) => ({
+      url: `${SITE_URL}/series/${s.slug}/${episode.slug}`,
+      lastModified: episode.publishedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
+  ]);
+
+  const publicationEntries: MetadataRoute.Sitemap = publications.map((publication) => ({
+    url: `${SITE_URL}/publicaciones/${publication.slug}`,
+    lastModified: publication.publishedAt ?? undefined,
     changeFrequency: "weekly",
     priority: 0.7,
   }));
@@ -34,10 +55,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  const eventEntries: MetadataRoute.Sitemap = events.map((event) => {
-    const finished = isEventFinished(event);
+  const celebrationEntries: MetadataRoute.Sitemap = celebrations.map((celebration) => {
+    const finished = isCelebrationFinished(celebration);
     return {
-      url: `${SITE_URL}/eventos/${event.slug}`,
+      url: `${SITE_URL}/celebraciones/${celebration.slug}`,
       // Un evento pasado ya no cambia y ya no es prioridad de rastreo (crawl
       // budget mejor gastado en próximos/nuevos) — sigue indexado, solo baja.
       changeFrequency: finished ? "yearly" : "weekly",
@@ -52,17 +73,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  const businessEntries: MetadataRoute.Sitemap = businesses.map((business) => ({
-    url: `${SITE_URL}/directorio/${business.slug}`,
-    lastModified: business.publishedAt ?? undefined,
-    changeFrequency: "monthly",
-    priority: 0.5,
-  }));
-
   const categoryEntries: MetadataRoute.Sitemap = categories.map((category) => ({
     url: `${SITE_URL}/categorias/${category.slug}`,
     changeFrequency: "weekly",
     priority: 0.5,
+  }));
+
+  // Páginas de sección: solo las que tienen contenido; las vacías dan 404 y
+  // no deben llegarle a Google (CONTEXTO.md 43.5). Se usa lo que ya se trajo.
+  const anyContent = publications.length + places.length + celebrations.length + galleries.length + series.length > 0;
+  const SECTIONS: { path: string; has: boolean; changeFrequency: "daily" | "weekly"; priority: number }[] = [
+    { path: "/publicaciones", has: publications.length > 0, changeFrequency: "daily", priority: 0.6 },
+    { path: "/lugares", has: places.length > 0, changeFrequency: "weekly", priority: 0.6 },
+    { path: "/celebraciones", has: celebrations.length > 0, changeFrequency: "daily", priority: 0.6 },
+    { path: "/galerias", has: galleries.length > 0, changeFrequency: "weekly", priority: 0.5 },
+    { path: "/series", has: series.length > 0, changeFrequency: "daily", priority: 0.6 },
+    { path: "/explorar", has: anyContent, changeFrequency: "daily", priority: 0.6 },
+  ];
+  const sectionEntries: MetadataRoute.Sitemap = SECTIONS.filter((section) => section.has).map((section) => ({
+    url: `${SITE_URL}${section.path}`,
+    changeFrequency: section.changeFrequency,
+    priority: section.priority,
   }));
 
   return [
@@ -72,32 +103,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 1,
     },
-    {
-      url: `${SITE_URL}/publicaciones`,
-      changeFrequency: "daily",
-      priority: 0.6,
-    },
-    {
-      url: `${SITE_URL}/eventos`,
-      changeFrequency: "daily",
-      priority: 0.6,
-    },
-    {
-      url: `${SITE_URL}/galerias`,
-      changeFrequency: "weekly",
-      priority: 0.5,
-    },
-    {
-      url: `${SITE_URL}/directorio`,
-      changeFrequency: "weekly",
-      priority: 0.5,
-    },
-    ...articleEntries,
+    ...sectionEntries,
+    ...publicationEntries,
     ...placeEntries,
-    ...eventEntries,
+    ...regionEntries,
+    ...celebrationEntries,
     ...galleryEntries,
-    ...businessEntries,
     ...categoryEntries,
+    ...seriesEntries,
     {
       url: `${SITE_URL}/privacidad`,
       changeFrequency: "yearly",

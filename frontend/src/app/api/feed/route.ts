@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { fromFeedItem } from "@/lib/home-items";
-import type { FeedItem } from "@/lib/api/types";
+import { fromFeedPage } from "@/lib/home-items";
+import type { FeedPage } from "@/lib/api/types";
+import { isMoodKey } from "@/lib/moods";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const MAX_SIZE = 30; // = MAX_PAGE_SIZE en FeedController
-// Pestañas del home: solo los tipos que el feed incluye (FeedService.FEED_TYPES).
-const FEED_TYPES = new Set(["ARTICLE", "PLACE", "EVENT"]);
+// Filtros del feed: solo los tipos que el feed incluye (FeedService.FEED_TYPES).
+const FEED_TYPES = new Set(["PUBLICATION", "PLACE", "CELEBRATION", "GALLERY"]);
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Proxy de GET /api/v1/feed (público, sin autenticación) para el scroll
@@ -34,12 +36,17 @@ export async function GET(request: NextRequest) {
   if (seed) query.set("seed", seed);
   const type = params.get("type");
   if (type && FEED_TYPES.has(type)) query.set("type", type);
+  const categoryId = params.get("categoryId");
+  if (categoryId && UUID.test(categoryId)) query.set("categoryId", categoryId);
+  if (params.get("sort") === "upcoming") query.set("sort", "upcoming");
+  const mood = params.get("mood");
+  if (isMoodKey(mood)) query.set("mood", mood);
   for (const id of exclude) query.append("exclude", id);
 
   const res = await fetch(`${BACKEND_API_URL}/api/v1/feed?${query.toString()}`, { cache: "no-store" });
   if (!res.ok) {
     return NextResponse.json({ items: [], hasMore: false }, { status: res.status });
   }
-  const page: { items: FeedItem[]; hasMore: boolean } = await res.json();
-  return NextResponse.json({ items: page.items.map(fromFeedItem), hasMore: page.hasMore });
+  const page: FeedPage = await res.json();
+  return NextResponse.json({ items: fromFeedPage(page), hasMore: page.hasMore });
 }

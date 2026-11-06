@@ -6,9 +6,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Service
 public class AuditService {
+
+    /**
+     * Atributo que marca la petición actual como ya auditada con un evento
+     * propio; AdminActionAuditInterceptor no la vuelve a registrar.
+     */
+    public static final String RECORDED_ATTRIBUTE = AuditService.class.getName() + ".recorded";
 
     private final AuditEventRepository repository;
 
@@ -18,12 +26,22 @@ public class AuditService {
 
     public void record(String action, AuditResult result, UUID actorUserId, String actorEmail,
             String resourceType, String resourceId, String ipAddress) {
+        record(action, result, actorUserId, actorEmail, resourceType, resourceId, ipAddress, null);
+    }
+
+    /** Con detalle (p. ej. permisos antes → después). */
+    public void record(String action, AuditResult result, UUID actorUserId, String actorEmail,
+            String resourceType, String resourceId, String ipAddress, String details) {
         AuditEvent event = AuditEvent.builder(action, result)
                 .actor(actorUserId, actorEmail)
                 .resource(resourceType, resourceId)
                 .ipAddress(ipAddress)
+                .details(details)
                 .build();
         repository.save(event);
+        if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes) {
+            attributes.getRequest().setAttribute(RECORDED_ATTRIBUTE, Boolean.TRUE);
+        }
     }
 
     /**

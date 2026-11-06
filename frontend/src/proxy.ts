@@ -6,6 +6,7 @@ import {
   accessTokenCookieOptions,
   refreshTokenCookieOptions,
 } from "@/lib/admin/session";
+import { adminCsp } from "@/lib/security/csp";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 
@@ -15,17 +16,38 @@ const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
  * pero evita que Server Components sin sesión intenten renderizar y fallen
  * con un 401 a mitad de página, y renueva el access token de forma
  * transparente cuando expiró pero el refresh token todavía es válido.
+ *
+ * También pone la CSP estricta del panel: un nonce nuevo por visita, que Next
+ * lee de la cabecera de la petición y aplica a sus propios <script>
+ * (lib/security/csp.ts explica por qué el sitio público no puede usarlo).
  */
 export async function proxy(request: NextRequest) {
+  const nonce = btoa(crypto.randomUUID());
+  const csp = adminCsp(nonce, { dev: process.env.NODE_ENV !== "production" });
+  const response = await guard(request, () => forward(request, nonce, csp));
+  response.headers.set("Content-Security-Policy", csp);
+  return response;
+}
+
+/** Sigue al render con el nonce en la petición (Next lo extrae de content-security-policy). */
+function forward(request: NextRequest, nonce: string, csp: string) {
+  const headers = new Headers(request.headers);
+  headers.set("x-nonce", nonce);
+  headers.set("content-security-policy", csp);
+  return NextResponse.next({ request: { headers } });
+}
+
+async function guard(request: NextRequest, next: () => NextResponse): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
-  if (pathname === "/admin/login") {
-    return NextResponse.next();
+  // /admin/muestra/** (sistema de diseño y compositor con datos de ejemplo) en producción no existe.
+  if (pathname === "/admin/login" || (process.env.NODE_ENV !== "production" && (pathname === "/admin/muestra" || pathname.startsWith("/admin/muestra/")))) {
+    return next();
   }
 
   const accessToken = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
   if (accessToken) {
-    return NextResponse.next();
+    return next();
   }
 
   const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
@@ -45,7 +67,7 @@ export async function proxy(request: NextRequest) {
   // navegador (response), para no forzar una segunda ida y vuelta.
   request.cookies.set(ACCESS_TOKEN_COOKIE, renewed.accessToken);
   request.cookies.set(REFRESH_TOKEN_COOKIE, renewed.refreshToken);
-  const response = NextResponse.next({ request });
+  const response = next();
   response.cookies.set(ACCESS_TOKEN_COOKIE, renewed.accessToken, accessTokenCookieOptions());
   response.cookies.set(REFRESH_TOKEN_COOKIE, renewed.refreshToken, refreshTokenCookieOptions());
   return response;
@@ -58,7 +80,7 @@ async function tryRefresh(
   try {
     const res = await fetch(`${BACKEND_API_URL}/api/v1/auth/refresh`, {
       method: "POST",
-      // IP real del visitante (ver clientIpHeaders en lib/api/admin-client.ts).
+      // IP real del visitante (ver clientIpHeaders en lib/api/admin/http.ts).
       headers: { "Content-Type": "application/json", ...(clientIp ? { "X-Forwarded-For": clientIp } : {}) },
       body: JSON.stringify({ refreshToken }),
       cache: "no-store",

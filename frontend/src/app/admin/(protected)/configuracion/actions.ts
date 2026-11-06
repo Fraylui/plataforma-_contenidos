@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { updatePlatformSettings } from "@/lib/api/admin-client";
+import { updatePlatformSettings } from "@/lib/api/admin/settings";
 import type { PlatformSettingsInput } from "@/lib/api/admin-types";
 import { runAdminMutation, type ActionResult } from "@/lib/admin/action-helpers";
 

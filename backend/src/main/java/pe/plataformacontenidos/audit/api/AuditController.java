@@ -11,12 +11,12 @@ import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.audit.AuditService.AuditSearchCriteria;
 import pe.plataformacontenidos.audit.api.dto.AuditEventResponse;
-import pe.plataformacontenidos.audit.api.dto.PageResponse;
+import pe.plataformacontenidos.shared.PageResponse;
 
 /**
  * Consulta del audit log (CONTEXTO.md secciones 18, 35.3 fase 1 y 37).
- * Restringido a SUPER_ADMIN/ADMIN en SecurityConfig: los eventos incluyen
- * IPs y acciones de todos los usuarios (incluidos otros administradores),
+ * Solo del dueño (OwnerOnlyPaths, exigido en SecurityConfig): los eventos incluyen
+ * IPs y acciones de todas las personas del panel,
  * información más sensible que un listado de contenido normal. Solo lectura —
  * no existe endpoint de edición/borrado, el log es append-only.
  */

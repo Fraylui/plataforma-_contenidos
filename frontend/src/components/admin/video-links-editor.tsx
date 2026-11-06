@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus } from "@phosphor-icons/react";
 import type { ContentVideoInput } from "@/lib/api/admin-types";
-import { formInputClass } from "@/components/admin/ui";
 import { ContentMediaItemFields } from "./content-media-item-fields";
+import { Button, TextInput } from "@/components/ui";
 
 /**
  * Lista de videos de YouTube por URL (varios por publicación/lugar/evento).
@@ -73,22 +73,23 @@ export function VideoLinksEditor({
       )}
       {!disabled && (
         <div className="flex items-end gap-2">
-          <input
+          <TextInput
             type="text"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="https://www.youtube.com/watch?v=…"
-            className={`${formInputClass} flex-1`}
+            className="flex-1"
+            onKeyDown={(e) => {
+              // Enter agrega el video en vez de enviar el formulario.
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (draft.trim() && !fetchingTitle) void add();
+              }
+            }}
           />
-          <button
-            type="button"
-            disabled={!draft.trim() || fetchingTitle}
-            onClick={add}
-            className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent-soft hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
+          <Button variant="secondary" size="lg" icon={<Plus />} disabled={!draft.trim() || fetchingTitle} onClick={() => void add()}>
             {fetchingTitle ? "Agregando…" : "Agregar"}
-          </button>
+          </Button>
         </div>
       )}
     </div>

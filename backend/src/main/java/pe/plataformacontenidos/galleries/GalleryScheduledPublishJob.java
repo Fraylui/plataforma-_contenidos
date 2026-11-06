@@ -8,8 +8,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
-/** Publica galerías SCHEDULED cuya fecha ya pasó. Corre cada minuto, igual que EventScheduledPublishJob. */
+/** Publica galerías SCHEDULED cuya fecha ya pasó. Corre cada minuto, igual que CelebrationScheduledPublishJob. */
 @Component
 public class GalleryScheduledPublishJob {
 
@@ -25,9 +26,9 @@ public class GalleryScheduledPublishJob {
 
     @Scheduled(fixedDelay = 60_000)
     public void publishDueGalleries() {
-        List<Gallery> due = galleryRepository.findByStatusAndScheduledAtBefore(GalleryStatus.SCHEDULED, Instant.now());
+        List<Gallery> due = galleryRepository.findByStatusAndScheduledAtBefore(PublicationStatus.SCHEDULED, Instant.now());
         for (Gallery gallery : due) {
-            gallery.publishFromSchedule();
+            gallery.publishFromSchedule(Instant.now());
             galleryRepository.save(gallery);
             auditService.record("GALLERY_PUBLISHED_FROM_SCHEDULE", AuditResult.SUCCESS, null, null,
                     "gallery", gallery.getId().toString(), null);

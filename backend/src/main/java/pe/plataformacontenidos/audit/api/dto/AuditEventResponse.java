@@ -13,7 +13,8 @@ public record AuditEventResponse(
         String resourceType,
         String resourceId,
         String ipAddress,
-        String result) {
+        String result,
+        String details) {
 
     public static AuditEventResponse from(AuditEvent event) {
         return new AuditEventResponse(
@@ -25,6 +26,7 @@ public record AuditEventResponse(
                 event.getResourceType(),
                 event.getResourceId(),
                 event.getIpAddress(),
-                event.getResult());
+                event.getResult(),
+                event.getDetails());
     }
 }

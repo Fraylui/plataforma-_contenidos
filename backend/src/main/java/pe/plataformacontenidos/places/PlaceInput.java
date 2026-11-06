@@ -10,7 +10,7 @@ import pe.plataformacontenidos.shared.ContentVideoInput;
  * Las coordenadas son opcionales. Cada imagen es subida o por enlace
  * externo (ver ContentImageInput); cada video trae la URL pegada por quien
  * redacta (sección 8) — PlaceService la convierte a Video ID antes de
- * guardar, igual que Article.
+ * guardar, igual que Publication.
  */
 public record PlaceInput(
         String name,
@@ -25,5 +25,8 @@ public record PlaceInput(
         String canonicalUrl,
         String ogImageUrl,
         List<ContentVideoInput> videos,
-        String robots) {
+        String robots,
+        java.util.List<String> sources,
+        PeruRegion region,
+        String country) {
 }

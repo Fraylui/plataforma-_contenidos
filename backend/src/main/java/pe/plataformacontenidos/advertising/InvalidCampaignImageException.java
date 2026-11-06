@@ -5,4 +5,8 @@ public class InvalidCampaignImageException extends RuntimeException {
     public InvalidCampaignImageException() {
         super("La creatividad debe tener exactamente una fuente: una imagen subida o un enlace externo http(s) válido.");
     }
+
+    public InvalidCampaignImageException(String message) {
+        super(message);
+    }
 }

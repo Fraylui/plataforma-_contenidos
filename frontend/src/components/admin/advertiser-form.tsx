@@ -2,23 +2,32 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import type { Advertiser } from "@/lib/api/admin-types";
+import type { AdminImage, Advertiser, AdvertiserIndustry } from "@/lib/api/admin-types";
+import { INDUSTRY_OPTIONS } from "@/lib/ads/industry";
+import { isNearSquare } from "@/lib/ads/logo";
 import {
   createAdvertiserAction,
   updateAdvertiserAction,
   type ActionResult,
 } from "@/app/admin/(protected)/anunciantes/actions";
-import { AdminButton, FormError, FormField, formInputClass } from "@/components/admin/ui";
+import { FormError } from "@/components/admin/ui";
+import { Button, Field, Select, TextInput } from "@/components/ui";
+import { IndustryWarningNotice } from "@/components/admin/industry-warning";
+import { CampaignCreativePicker } from "@/components/admin/campaign-creative-picker";
+
 
 interface AdvertiserFormProps {
   mode: "create" | "edit";
   advertiser?: Advertiser;
+  allImages: AdminImage[];
 }
 
-export function AdvertiserForm({ mode, advertiser }: AdvertiserFormProps) {
+export function AdvertiserForm({ mode, advertiser, allImages }: AdvertiserFormProps) {
   const [name, setName] = useState(advertiser?.name ?? "");
   const [contactEmail, setContactEmail] = useState(advertiser?.contactEmail ?? "");
   const [contactPhone, setContactPhone] = useState(advertiser?.contactPhone ?? "");
+  const [logoImageId, setLogoImageId] = useState<string | null>(advertiser?.logoImageId ?? null);
+  const [industry, setIndustry] = useState<AdvertiserIndustry>(advertiser?.industry ?? "GENERAL");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,6 +38,8 @@ export function AdvertiserForm({ mode, advertiser }: AdvertiserFormProps) {
       name,
       contactEmail: contactEmail.trim() || null,
       contactPhone: contactPhone.trim() || null,
+      logoImageId,
+      industry,
     };
     const result: ActionResult =
       mode === "create" ? await createAdvertiserAction(input) : await updateAdvertiserAction(advertiser!.id, input);
@@ -42,33 +53,59 @@ export function AdvertiserForm({ mode, advertiser }: AdvertiserFormProps) {
   }
 
   return (
-    <div className="max-w-lg space-y-4 rounded-xl border border-border/60 bg-surface p-5">
-      <FormField label="Nombre del negocio/empresa" name="name">
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={formInputClass} />
-      </FormField>
+    <div className="max-w-lg space-y-4 rounded-card bg-surface shadow-card p-5">
+      <Field label="Nombre del negocio/empresa" name="name">
+        <TextInput type="text" value={name} onChange={(e) => setName(e.target.value)} />
+      </Field>
 
-      <FormField label="Email de contacto (opcional)" name="contactEmail">
-        <input
+      <Field label="Rubro" name="industry" hint="Algunos rubros obligan a llevar una advertencia en el anuncio.">
+        <Select value={industry} onChange={(e) => setIndustry(e.target.value as AdvertiserIndustry)}>
+          {INDUSTRY_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </Select>
+      </Field>
+      <IndustryWarningNotice industry={industry} />
+
+      <fieldset className="min-w-0">
+        <legend className="mb-1.5 block text-label font-medium text-foreground">Logo (opcional)</legend>
+        <p className="mb-2 text-xs text-muted">
+          Encabeza sus posts patrocinados en el feed, como la foto de perfil en Instagram. Cuadrado, de 400×400 px o más. Sin
+          logo se muestra la inicial del nombre.
+        </p>
+        <CampaignCreativePicker
+          allImages={allImages.filter((image) => image.id === logoImageId || isNearSquare(image))}
+          value={{ imageId: logoImageId, externalImageUrl: null, imageAlt: null }}
+          onChange={(v) => setLogoImageId(v.imageId)}
+          allowExternal={false}
+          showAlt={false}
+          previewClassName="size-20 rounded-full"
+        />
+      </fieldset>
+
+      <Field label="Email de contacto (opcional)" name="contactEmail">
+        <TextInput
           type="email"
+          autoComplete="off"
           value={contactEmail}
           onChange={(e) => setContactEmail(e.target.value)}
-          className={formInputClass}
         />
-      </FormField>
+      </Field>
 
-      <FormField label="Teléfono de contacto (opcional)" name="contactPhone">
-        <input
+      <Field label="Teléfono de contacto (opcional)" name="contactPhone">
+        <TextInput
           type="text"
           value={contactPhone}
           onChange={(e) => setContactPhone(e.target.value)}
-          className={formInputClass}
         />
-      </FormField>
+      </Field>
 
       {error && <FormError message={error} />}
-      <AdminButton disabled={pending || !name.trim()} onClick={handleSubmit}>
+      <Button type="submit" disabled={pending || !name.trim()} onClick={handleSubmit}>
         {pending ? "Guardando…" : mode === "create" ? "Crear anunciante" : "Guardar cambios"}
-      </AdminButton>
+      </Button>
     </div>
   );
 }

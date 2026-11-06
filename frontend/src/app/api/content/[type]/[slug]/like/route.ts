@@ -1,15 +1,19 @@
+import { visitorHeaders } from "@/lib/forward-visitor";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 
-/** `type` -> segmento base del backend (ver ArticlePublicController y hermanos). */
+/** `type` -> segmento base del backend (ver PublicationPublicController y hermanos). */
 const BACKEND_PATH: Record<string, string> = {
-  articles: "articles",
+  publications: "publications",
   places: "places",
-  events: "events",
+  celebrations: "celebrations",
   galleries: "galleries",
-  directory: "directory",
+  // Episodios por id: /api/v1/series/episodes/{id}/like.
+  episodes: "series/episodes",
+  // Historias por id: /api/v1/stories/{id}/like.
+  stories: "stories",
 };
 
 /**
@@ -32,7 +36,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const res = await fetch(
     `${BACKEND_API_URL}/api/v1/${backendPath}/${encodeURIComponent(slug)}/like?visitorId=${encodeURIComponent(visitorId)}`,
-    { method: "POST", cache: "no-store" },
+    // La IP real del visitante: el backend limita cuántos «me gusta» seguidos acepta (EngagementWriteGuardFilter).
+    { method: "POST", cache: "no-store", headers: visitorHeaders(request) },
   );
   if (!res.ok) {
     return NextResponse.json({ error: "No se pudo registrar el me gusta" }, { status: res.status });

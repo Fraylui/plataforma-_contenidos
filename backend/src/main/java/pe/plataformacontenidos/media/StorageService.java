@@ -1,10 +1,12 @@
 package pe.plataformacontenidos.media;
 
+import java.util.Optional;
+
 /**
- * Abstracción de almacenamiento de binarios. Implementación local para el
- * MVP (CONTEXTO.md sección 10); una futura implementación S3-compatible
- * (Object Storage + CDN, sección 9) solo necesita otra clase que cumpla
- * esta interfaz — nada en ImageService cambia.
+ * Abstracción de almacenamiento de binarios (patrón Strategy): disco local
+ * (LocalFilesystemStorageService, por defecto) o Cloudflare R2
+ * (R2StorageService, {@code app.media.storage=r2}). ImageService no sabe
+ * cuál se usa.
  */
 public interface StorageService {
 
@@ -13,4 +15,13 @@ public interface StorageService {
     byte[] load(String storedFilename);
 
     void delete(String storedFilename);
+
+    /**
+     * Dirección pública desde la que el navegador puede bajar el archivo sin
+     * pasar por el backend (p. ej. el dominio del bucket de R2). Vacío = lo
+     * sirve el backend.
+     */
+    default Optional<String> publicUrl(String storedFilename) {
+        return Optional.empty();
+    }
 }

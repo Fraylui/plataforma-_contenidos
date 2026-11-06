@@ -2,6 +2,8 @@ package pe.plataformacontenidos.advertising;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -33,6 +35,15 @@ public class Advertiser {
     @Column(name = "contact_phone")
     private String contactPhone;
 
+    /** Logo (imagen de la biblioteca) que encabeza sus anuncios nativos; null = iniciales. */
+    @Column(name = "logo_image_id")
+    private UUID logoImageId;
+
+    /** Define qué advertencia obligatoria debe llevar el anuncio (ver AdvertiserIndustry). */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AdvertiserIndustry industry = AdvertiserIndustry.GENERAL;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -43,10 +54,13 @@ public class Advertiser {
         // JPA
     }
 
-    public Advertiser(String name, String contactEmail, String contactPhone) {
+    public Advertiser(String name, String contactEmail, String contactPhone, UUID logoImageId,
+            AdvertiserIndustry industry) {
         this.name = name;
         this.contactEmail = contactEmail;
         this.contactPhone = contactPhone;
+        this.logoImageId = logoImageId;
+        this.industry = industry;
     }
 
     public UUID getId() {
@@ -65,14 +79,25 @@ public class Advertiser {
         return contactPhone;
     }
 
+    public UUID getLogoImageId() {
+        return logoImageId;
+    }
+
+    public AdvertiserIndustry getIndustry() {
+        return industry;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void update(String name, String contactEmail, String contactPhone) {
+    public void update(String name, String contactEmail, String contactPhone, UUID logoImageId,
+            AdvertiserIndustry industry) {
         this.name = name;
         this.contactEmail = contactEmail;
         this.contactPhone = contactPhone;
+        this.logoImageId = logoImageId;
+        this.industry = industry;
         this.updatedAt = Instant.now();
     }
 }

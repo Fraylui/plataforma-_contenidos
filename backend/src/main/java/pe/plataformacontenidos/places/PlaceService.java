@@ -12,21 +12,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.plataformacontenidos.audit.AuditResult;
 import pe.plataformacontenidos.audit.AuditService;
-import pe.plataformacontenidos.content.YouTubeUrlParser;
-import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.shared.YouTubeUrlParser;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.publishing.InvalidPhotoCreditException;
 import pe.plataformacontenidos.shared.ContentVideo;
 import pe.plataformacontenidos.shared.ContentVideoInput;
-import pe.plataformacontenidos.shared.HtmlSanitizer;
+import pe.plataformacontenidos.shared.publishing.PostBody;
 import pe.plataformacontenidos.shared.Slugify;
+import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
 import pe.plataformacontenidos.taxonomy.CategoryService;
+import pe.plataformacontenidos.shared.publishing.InvalidPublicationTransitionException;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 
 /**
  * Orquesta el ciclo de publicación de Lugares (CONTEXTO.md sección 12), mismo
- * patrón que ArticleService. La autorización a nivel de objeto vive acá
+ * patrón que PublicationService. La autorización a nivel de objeto vive acá
  * (SecurityConfig solo decide quién llega al endpoint).
  */
 @Service
@@ -52,157 +55,121 @@ public class PlaceService {
         }
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
-        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
+        String sanitizedBody = PostBody.orEmpty(input.body(), images, videos);
 
         Place place = new Place(uniqueSlugFrom(input.name()), input.name(), input.excerpt(), sanitizedBody, authorId,
                 input.categoryId());
         place.updateContent(input.name(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.latitude(), input.longitude(), images, input.seoTitle(), input.metaDescription(),
                 input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
+        place.setSources(input.sources());
+        place.setLocation(input.country(), input.region());
 
         Place saved = placeRepository.save(place);
         audit("PLACE_CREATED", saved, authorId);
         return saved;
     }
 
-    public Place update(UUID placeId, PlaceInput input, UUID actingUserId, Role actingRole) {
+    public Place update(UUID placeId, PlaceInput input, UUID actingUserId) {
         Place place = getOrThrow(placeId);
-        requireCanEdit(place, actingUserId, actingRole);
+        requireEditable(place);
 
         if (!place.getCategoryId().equals(input.categoryId()) && !categoryService.existsActive(input.categoryId())) {
             throw new CategoryNotFoundException(input.categoryId());
         }
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
-        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
+        String sanitizedBody = PostBody.orEmpty(input.body(), images, videos);
 
         place.updateContent(input.name(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.latitude(), input.longitude(), images, input.seoTitle(), input.metaDescription(),
                 input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
+        place.setSources(input.sources());
+        place.setLocation(input.country(), input.region());
         Place saved = placeRepository.save(place);
         audit("PLACE_UPDATED", saved, actingUserId);
         return saved;
     }
 
-    public Place submit(UUID placeId, UUID actingUserId) {
+    public Place publish(UUID placeId, UUID actingUserId) {
         Place place = getOrThrow(placeId);
-        if (!place.isOwnedBy(actingUserId)) {
-            throw new PlaceAccessDeniedException();
-        }
-        if (place.getStatus() != PlaceStatus.DRAFT && place.getStatus() != PlaceStatus.REJECTED) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "enviar a revisión");
-        }
-        place.submitForReview();
-        Place saved = placeRepository.save(place);
-        audit("PLACE_SUBMITTED", saved, actingUserId);
-        return saved;
+        place.publishNow(Instant.now());
+        return saveAndAudit(place, "PLACE_PUBLISHED", actingUserId);
     }
 
-    public Place approve(UUID placeId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Place schedule(UUID placeId, Instant when, UUID actingUserId) {
         Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.IN_REVIEW) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "aprobar");
-        }
-        place.approve();
-        Place saved = placeRepository.save(place);
-        audit("PLACE_APPROVED", saved, actingUserId);
-        return saved;
+        place.schedule(when, Instant.now());
+        return saveAndAudit(place, "PLACE_SCHEDULED", actingUserId);
     }
 
-    public Place reject(UUID placeId, String reason, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    /** Cancela la programación: vuelve a borrador. */
+    public Place returnToDraft(UUID placeId, UUID actingUserId) {
         Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.IN_REVIEW) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "rechazar");
-        }
-        place.reject(reason);
-        Place saved = placeRepository.save(place);
-        audit("PLACE_REJECTED", saved, actingUserId);
-        return saved;
+        place.returnToDraft();
+        return saveAndAudit(place, "PLACE_RETURNED_TO_DRAFT", actingUserId);
     }
 
-    public Place publish(UUID placeId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
+    public Place archive(UUID placeId, UUID actingUserId) {
         Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.APPROVED) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "publicar");
-        }
-        place.publishNow();
-        Place saved = placeRepository.save(place);
-        audit("PLACE_PUBLISHED", saved, actingUserId);
-        return saved;
-    }
-
-    public Place schedule(UUID placeId, Instant when, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
-        if (when.isBefore(Instant.now())) {
-            throw new InvalidScheduleException("La fecha de publicación programada debe ser futura");
-        }
-        Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.APPROVED) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "programar");
-        }
-        place.schedule(when);
-        Place saved = placeRepository.save(place);
-        audit("PLACE_SCHEDULED", saved, actingUserId);
-        return saved;
-    }
-
-    public Place archive(UUID placeId, UUID actingUserId, Role actingRole) {
-        requireEditorOrAbove(actingRole);
-        Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.PUBLISHED) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "archivar");
-        }
         place.archive();
-        Place saved = placeRepository.save(place);
-        audit("PLACE_ARCHIVED", saved, actingUserId);
-        return saved;
+        return saveAndAudit(place, "PLACE_ARCHIVED", actingUserId);
     }
 
-    public Place getForAdmin(UUID placeId, UUID actingUserId, Role actingRole) {
-        Place place = getOrThrow(placeId);
-        if (!isEditorOrAbove(actingRole) && !place.isOwnedBy(actingUserId)) {
-            throw new PlaceAccessDeniedException();
-        }
-        return place;
+    public Place getForAdmin(UUID placeId) {
+        return getOrThrow(placeId);
     }
 
-    public List<Place> listForAdmin(UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
-            return placeRepository.findAll();
-        }
-        return placeRepository.findByAuthorIdOrderByCreatedAtDesc(actingUserId);
+    /** Página del listado del panel (ver AdminListQuery). */
+    public Page<Place> listForAdmin(AdminListQuery query) {
+        return placeRepository.findAll(query.specification("name"),
+                query.pageable("name"));
     }
 
-    /** Usado por otros módulos (ej. Events) para validar un placeId sin exponer el objeto Place completo (sección 38). */
+    /** Usado por otros módulos (ej. Celebrations) para validar un placeId sin exponer el objeto Place completo (sección 38). */
     public boolean existsById(UUID placeId) {
         return placeRepository.existsById(placeId);
     }
 
     public Place getPublishedBySlug(String slug) {
-        return placeRepository.findBySlugAndStatus(slug, PlaceStatus.PUBLISHED)
+        return placeRepository.findBySlugAndStatus(slug, PublicationStatus.PUBLISHED)
                 .orElseThrow(() -> new PlaceNotFoundException(slug));
     }
 
-    /** Usado por Events para resolver el nombre/slug de un lugar vinculado (placeId) sin exponer su body completo. */
+    /** Usado por Celebrations para resolver el nombre/slug de un lugar vinculado (placeId) sin exponer su body completo. */
     public Place getPublishedById(UUID placeId) {
         Place place = getOrThrow(placeId);
-        if (place.getStatus() != PlaceStatus.PUBLISHED) {
+        if (place.getStatus() != PublicationStatus.PUBLISHED) {
             throw new PlaceNotFoundException(placeId);
         }
         return place;
     }
 
     public Page<Place> listPublished(UUID categoryId, Pageable pageable) {
-        if (categoryId != null) {
-            return placeRepository.findByStatusAndCategoryId(PlaceStatus.PUBLISHED, categoryId, pageable);
-        }
-        return placeRepository.findByStatus(PlaceStatus.PUBLISHED, pageable);
+        return listPublished(categoryId, null, pageable);
     }
 
-    /** CONTEXTO.md sección 16. Mismo criterio que ArticleService.search (query en blanco: página vacía, no error). */
+    /** {@code region} (si viene) manda sobre el tema: es la página «Lugares de Ayacucho». */
+    public Page<Place> listPublished(UUID categoryId, PeruRegion region, Pageable pageable) {
+        if (region != null) {
+            return placeRepository.findByStatusAndRegion(PublicationStatus.PUBLISHED, region, pageable);
+        }
+        if (categoryId != null) {
+            return placeRepository.findByStatusAndCategoryId(PublicationStatus.PUBLISHED, categoryId, pageable);
+        }
+        return placeRepository.findByStatus(PublicationStatus.PUBLISHED, pageable);
+    }
+
+    /** Regiones con lugares publicados, en el orden de PeruRegion, con su cantidad. Sin lugares, no aparece. */
+    public java.util.Map<PeruRegion, Long> publishedRegions() {
+        java.util.Map<PeruRegion, Long> result = new java.util.EnumMap<>(PeruRegion.class);
+        for (Object[] row : placeRepository.countByRegion(PublicationStatus.PUBLISHED)) {
+            result.put((PeruRegion) row[0], (Long) row[1]);
+        }
+        return result;
+    }
+
+    /** CONTEXTO.md sección 16. Mismo criterio que PublicationService.search (query en blanco: página vacía, no error). */
     public Page<Place> search(String query, UUID categoryId, Pageable pageable) {
         if (query == null || query.isBlank()) {
             return Page.empty(pageable);
@@ -211,9 +178,9 @@ public class PlaceService {
     }
 
     /** CONTEXTO.md sección 34 (estadísticas básicas) — consumido por el módulo Stats. */
-    public Map<PlaceStatus, Long> countByStatus() {
-        Map<PlaceStatus, Long> counts = new EnumMap<>(PlaceStatus.class);
-        for (PlaceStatus status : PlaceStatus.values()) {
+    public Map<PublicationStatus, Long> countByStatus() {
+        Map<PublicationStatus, Long> counts = new EnumMap<>(PublicationStatus.class);
+        for (PublicationStatus status : PublicationStatus.values()) {
             counts.put(status, placeRepository.countByStatus(status));
         }
         return counts;
@@ -228,12 +195,13 @@ public class PlaceService {
             if (!input.isValidShape() || (input.hasExternalUrl() && !input.isValidExternalUrl())) {
                 throw new InvalidPlaceImageException();
             }
+            if (!input.hasValidCredit()) {
+                throw new InvalidPhotoCreditException();
+            }
             if (input.hasImageId()) {
                 imageService.getOrThrow(input.imageId());
-                result.add(ContentImage.uploaded(input.imageId(), input.title(), input.caption()));
-            } else {
-                result.add(ContentImage.external(input.externalUrl(), input.title(), input.caption()));
             }
+            result.add(input.toContentImage());
         }
         return result;
     }
@@ -250,34 +218,15 @@ public class PlaceService {
             }
             String videoId = YouTubeUrlParser.extractVideoId(input.url())
                     .orElseThrow(() -> new InvalidPlaceYouTubeUrlException(input.url()));
-            result.add(new ContentVideo(videoId, input.title(), input.caption()));
+            result.add(new ContentVideo(videoId, input.title(), input.caption(), YouTubeUrlParser.isShort(input.url())));
         }
         return result;
     }
 
-    private void requireCanEdit(Place place, UUID actingUserId, Role actingRole) {
-        if (isEditorOrAbove(actingRole)) {
-            if (!place.isEditable()) {
-                throw new InvalidPlaceTransitionException(place.getStatus(), "editar");
-            }
-            return;
+    private void requireEditable(Place place) {
+        if (!place.isEditable()) {
+            throw new InvalidPublicationTransitionException(place.getStatus(), "editar");
         }
-        if (!place.isOwnedBy(actingUserId)) {
-            throw new PlaceAccessDeniedException();
-        }
-        if (place.getStatus() != PlaceStatus.DRAFT && place.getStatus() != PlaceStatus.REJECTED) {
-            throw new InvalidPlaceTransitionException(place.getStatus(), "editar");
-        }
-    }
-
-    private void requireEditorOrAbove(Role role) {
-        if (!isEditorOrAbove(role)) {
-            throw new PlaceAccessDeniedException();
-        }
-    }
-
-    private boolean isEditorOrAbove(Role role) {
-        return role == Role.EDITOR || role == Role.ADMIN || role == Role.SUPER_ADMIN;
     }
 
     private Place getOrThrow(UUID id) {
@@ -294,8 +243,15 @@ public class PlaceService {
         return candidate;
     }
 
+    private Place saveAndAudit(Place place, String action, UUID actingUserId) {
+        Place saved = placeRepository.save(place);
+        audit(action, saved, actingUserId);
+        return saved;
+    }
+
     private void audit(String action, Place place, UUID actingUserId) {
         auditService.record(action, AuditResult.SUCCESS, actingUserId, null, "place", place.getId().toString(),
                 null);
     }
+
 }

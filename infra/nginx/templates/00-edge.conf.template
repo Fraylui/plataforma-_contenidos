@@ -43,6 +43,22 @@ limit_req_zone $binary_remote_addr zone=pages:10m rate=20r/s;
 limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
 limit_req_status 429;
 
+# --- Conexiones abusivas (bots, ataques de conexión lenta "slowloris") ---
+# Tiempos cortos: un cliente que manda las cabeceras o el cuerpo de a
+# poco ya no puede retener una conexión 60 s (el valor por defecto). Tope
+# de conexiones simultáneas por IP real (ver set_real_ip_from): un
+# navegador normal abre pocas; un bot que abre cientos recibe 429.
+# server_tokens off: nginx no anuncia su versión en las cabeceras.
+# (keepalive_timeout ya lo define el nginx.conf de la imagen: repetirlo
+# aquí rompe el arranque con "directive is duplicate".)
+server_tokens off;
+client_header_timeout 10s;
+client_body_timeout 10s;
+send_timeout 15s;
+limit_conn_zone $binary_remote_addr zone=perip:10m;
+limit_conn perip 30;
+limit_conn_status 429;
+
 # --- Caché local de nginx ---
 # Segunda capa detrás de Cloudflare (que no guarda copia en todos sus nodos
 # a la vez): absorbe los pedidos que Cloudflare deja pasar. Solo guarda lo

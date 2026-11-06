@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Link as LinkIcon } from "lucide-react";
+import { LinkSimple as LinkIcon } from "@phosphor-icons/react";
 import type { AdminImage } from "@/lib/api/admin-types";
 import { imageUrl } from "@/lib/image-url";
-import { Dialog, DialogContent, DialogTitle, DialogDescription, formInputClass } from "@/components/admin/ui";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/admin/ui";
 import { InlineImageUpload } from "./inline-image-upload";
+import { TextInput } from "@/components/ui";
 
 /**
  * Modal para insertar una imagen dentro del cuerpo del editor (posición
@@ -46,13 +47,12 @@ export function ImageInsertDialog({
               <label className="mb-1 block text-xs font-medium text-muted" htmlFor="rte-image-external-url">
                 Por enlace externo
               </label>
-              <input
+              <TextInput
                 id="rte-image-external-url"
                 type="text"
                 value={externalUrlDraft}
                 onChange={(e) => setExternalUrlDraft(e.target.value)}
                 placeholder="https://…"
-                className={formInputClass}
               />
             </div>
             <button

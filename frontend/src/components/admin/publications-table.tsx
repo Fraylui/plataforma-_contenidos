@@ -2,52 +2,52 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { Article } from "@/lib/api/types";
-import type { AdminUser } from "@/lib/api/admin-types";
-import { computeArticlePermissions } from "@/lib/admin/article-permissions";
-import { articleStatusLabel, articleStatusTone, articleTypeLabel, formatPublishedDate } from "@/lib/content-labels";
-import { StatusPill, DataTable } from "@/components/admin/ui";
+import type { Publication } from "@/lib/api/types";
+import type { AdminContentPage, AdminUser } from "@/lib/api/admin-types";
+import { EngagementCell, TitleCell } from "@/components/admin/content-cells";
+import { computePublicationPermissions } from "@/lib/admin/publication";
+import { publicationStatusLabel, publicationStatusTone, publicationTypeLabel, formatPublishedDate } from "@/lib/content-labels";
+import { DataTable } from "@/components/admin/ui";
 import { ContentRowActions } from "@/components/admin/content-row-actions";
 import { ContentBulkActions } from "@/components/admin/content-bulk-actions";
-import {
-  approveArticleAction,
-  archiveArticleAction,
-  publishArticleAction,
-  rejectArticleAction,
-  submitArticleAction,
-} from "@/app/admin/(protected)/publicaciones/actions";
+import { Badge } from "@/components/ui";
 
-export function PublicationsTable({ articles, currentUser }: { articles: Article[]; currentUser: AdminUser }) {
+/** Columna → campo de orden del backend (AdminListQuery). */
+const SORT_KEYS: Record<string, string> = { title: "title", status: "status", createdAt: "createdAt" };
+
+export function PublicationsTable({ page, currentUser }: { page: AdminContentPage<Publication>; currentUser: AdminUser }) {
   const router = useRouter();
-  const [selected, setSelected] = useState<Article[]>([]);
+  const [selected, setSelected] = useState<Publication[]>([]);
 
-  const columns = useMemo<ColumnDef<Article, unknown>[]>(
+  const columns = useMemo<ColumnDef<Publication, unknown>[]>(
     () => [
       {
         accessorKey: "title",
         header: "Título",
         cell: ({ row }) => (
-          <Link href={`/admin/publicaciones/${row.original.id}`} className="font-medium text-foreground hover:text-accent hover:underline">
-            {row.original.title}
-          </Link>
+          <TitleCell href={`/admin/publicaciones/${row.original.id}`} title={row.original.title} images={row.original.images} />
         ),
       },
       {
-        accessorKey: "articleType",
+        accessorKey: "publicationType",
         header: "Tipo",
-        cell: ({ row }) => <span className="text-muted">{articleTypeLabel(row.original.articleType)}</span>,
+        cell: ({ row }) => <span className="text-muted">{publicationTypeLabel(row.original.publicationType)}</span>,
       },
       {
         accessorKey: "status",
         header: "Estado",
-        cell: ({ row }) => <StatusPill tone={articleStatusTone(row.original.status)} label={articleStatusLabel(row.original.status)} />,
+        cell: ({ row }) => <Badge tone={publicationStatusTone(row.original.status)} dot>{publicationStatusLabel(row.original.status)}</Badge>,
       },
       {
         accessorKey: "createdAt",
         header: "Creado",
         cell: ({ row }) => <span className="text-muted">{formatPublishedDate(row.original.createdAt)}</span>,
+      },
+      {
+        id: "engagement",
+        header: "Interacción",
+        cell: ({ row }) => <EngagementCell counts={page.engagement[row.original.id]} />,
       },
       {
         id: "actions",
@@ -57,20 +57,14 @@ export function PublicationsTable({ articles, currentUser }: { articles: Article
           <ContentRowActions
             id={row.original.id}
             editHref={`/admin/publicaciones/${row.original.id}`}
-            permissions={computeArticlePermissions(row.original, currentUser)}
+            permissions={computePublicationPermissions(row.original, currentUser, "publications")}
             itemLabel="esta publicación"
-            actions={{
-              submit: submitArticleAction,
-              approve: approveArticleAction,
-              reject: rejectArticleAction,
-              publish: publishArticleAction,
-              archive: archiveArticleAction,
-            }}
+          kind="publications"
           />
         ),
       },
     ],
-    [currentUser],
+    [currentUser, page.engagement],
   );
 
   return (
@@ -78,17 +72,19 @@ export function PublicationsTable({ articles, currentUser }: { articles: Article
       <ContentBulkActions
         selected={selected}
         permissions={{
-          canPublish: (item) => computeArticlePermissions(item, currentUser).canPublish,
-          canArchive: (item) => computeArticlePermissions(item, currentUser).canArchive,
+          canPublish: (item) => computePublicationPermissions(item, currentUser, "publications").canPublish,
+          canArchive: (item) => computePublicationPermissions(item, currentUser, "publications").canArchive,
         }}
-        actions={{ publish: publishArticleAction, archive: archiveArticleAction }}
+        kind="publications"
         onDone={() => router.refresh()}
       />
       <DataTable
         columns={columns}
-        data={articles}
+        data={page.items}
+        serverPage={page}
+        sortKeys={SORT_KEYS}
         searchPlaceholder="Buscar publicaciones…"
-        emptyMessage="Ninguna publicación coincide con la búsqueda."
+        emptyMessage="Ninguna publicación coincide con la búsqueda o el filtro."
         getRowId={(row) => row.id}
         onSelectionChange={setSelected}
       />

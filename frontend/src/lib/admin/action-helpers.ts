@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidateTag } from "next/cache";
 import { PUBLIC_CONTENT_TAG } from "@/lib/cache-tags";
-import { AdminApiError, AdminSessionExpiredError } from "@/lib/api/admin-client";
+import { AdminApiError, AdminSessionExpiredError } from "@/lib/api/admin/http";
 import { ACCESS_TOKEN_COOKIE } from "./session";
 
 /**

@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Archive, CheckCircle2, MoreHorizontal, Pencil, Send, Undo2, XCircle } from "lucide-react";
-import type { ActionResult } from "@/lib/admin/action-helpers";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Archive, DotsThree, PaperPlaneTilt, PencilSimple, X } from "@phosphor-icons/react";
 import {
-  AdminButton,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -14,110 +14,77 @@ import {
   AlertDialogFooter,
   AlertDialogTitle,
   AlertDialogTrigger,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/admin/ui";
+import { Button, IconButton } from "@/components/ui";
+import { publicationStepAction } from "@/app/admin/(protected)/publication-actions";
+import type { PublicationKind, PublicationPermissions, PublicationStep } from "@/lib/admin/publication";
 
-export interface ContentPermissions {
-  canSubmit: boolean;
-  canApprove: boolean;
-  canReject: boolean;
-  canPublish: boolean;
-  canArchive: boolean;
-}
-
-export interface ContentActions {
-  submit: (id: string) => Promise<ActionResult>;
-  approve: (id: string) => Promise<ActionResult>;
-  reject: (id: string, reason: string) => Promise<ActionResult>;
-  publish: (id: string) => Promise<ActionResult>;
-  archive: (id: string) => Promise<ActionResult>;
-}
+const ICON_LINK =
+  "flex size-8 items-center justify-center rounded-full text-muted outline-none transition-colors hover:bg-field hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring";
 
 /**
- * Acciones rápidas de flujo de publicación desde un listado — genérico para
- * Publicaciones/Lugares/Eventos/Galerías/Directorio, que comparten
- * el mismo ciclo (ver ArticleStatus/PlaceStatus/etc. en el backend, todos
- * idénticos). Un solo componente en vez de 6 copias casi iguales.
+ * Acciones rápidas del flujo desde un listado, iguales para los 5 tipos de
+ * contenido: editar y, en el menú, publicar, quitar la programación y
+ * archivar — según el estado (quien tiene el módulo publica directo).
  */
 export function ContentRowActions({
+  kind,
   id,
   editHref,
   permissions,
-  actions,
   itemLabel,
 }: {
+  kind: PublicationKind;
   id: string;
   editHref: string;
-  permissions: ContentPermissions;
-  actions: ContentActions;
+  permissions: PublicationPermissions;
   itemLabel: string;
 }) {
+  const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [rejectOpen, setRejectOpen] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
 
-  async function run(action: () => Promise<ActionResult>) {
+  async function run(step: PublicationStep) {
     setPending(true);
-    setError(null);
-    const result = await action();
+    const result = await publicationStepAction(kind, id, step);
     setPending(false);
-    if (!result.ok) setError(result.error);
+    if (!result.ok) {
+      toast.error(result.error);
+      return false;
+    }
+    router.refresh();
+    return true;
   }
 
-  const hasAnyAction = permissions.canSubmit || permissions.canApprove || permissions.canReject || permissions.canPublish || permissions.canArchive;
+  const hasAnyAction = permissions.canPublish || permissions.canReturnToDraft || permissions.canArchive;
 
   return (
     <div className="flex items-center justify-end gap-1">
-      {error && <span className="text-xs text-danger">{error}</span>}
-      <Link href={editHref} className="rounded-md p-1.5 text-muted transition-colors hover:bg-accent-soft hover:text-accent" title="Editar">
-        <Pencil className="h-4 w-4" aria-hidden="true" />
+      <Link href={editHref} className={ICON_LINK} title="Editar">
+        <PencilSimple className="size-4" aria-hidden="true" />
         <span className="sr-only">Editar</span>
       </Link>
 
       {hasAnyAction && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              disabled={pending}
-              className="rounded-md p-1.5 text-muted transition-colors hover:bg-accent-soft hover:text-accent disabled:opacity-40"
-            >
-              <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-              <span className="sr-only">Más acciones</span>
-            </button>
+            <IconButton label="Más acciones" size="sm" disabled={pending} icon={<DotsThree weight="bold" aria-hidden="true" />} />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            {permissions.canSubmit && (
-              <DropdownMenuItem onSelect={() => run(() => actions.submit(id))}>
-                <Send className="h-4 w-4" aria-hidden="true" />
-                Enviar a revisión
-              </DropdownMenuItem>
-            )}
-            {permissions.canApprove && (
-              <DropdownMenuItem onSelect={() => run(() => actions.approve(id))}>
-                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                Aprobar
-              </DropdownMenuItem>
-            )}
             {permissions.canPublish && (
-              <DropdownMenuItem onSelect={() => run(() => actions.publish(id))}>
-                <Undo2 className="h-4 w-4 rotate-180" aria-hidden="true" />
+              <DropdownMenuItem onSelect={() => run("publish")}>
+                <PaperPlaneTilt weight="fill" aria-hidden="true" />
                 Publicar ahora
               </DropdownMenuItem>
             )}
-            {permissions.canReject && (
-              <DropdownMenuItem onSelect={() => setRejectOpen(true)}>
-                <XCircle className="h-4 w-4" aria-hidden="true" />
-                Rechazar
+            {permissions.canReturnToDraft && (
+              <DropdownMenuItem onSelect={() => run("return-to-draft")}>
+                <X aria-hidden="true" />
+                Quitar programación
               </DropdownMenuItem>
             )}
             {permissions.canArchive && (
@@ -126,25 +93,21 @@ export function ContentRowActions({
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <DropdownMenuItem variant="danger" onSelect={(e) => e.preventDefault()}>
-                      <Archive className="h-4 w-4" aria-hidden="true" />
+                      <Archive aria-hidden="true" />
                       Archivar
                     </DropdownMenuItem>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogTitle>¿Archivar {itemLabel}?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Dejará de aparecer en el sitio público. No se puede deshacer desde acá.
-                    </AlertDialogDescription>
+                    <AlertDialogDescription>Dejará de aparecer en el sitio público. No se puede deshacer desde acá.</AlertDialogDescription>
                     <AlertDialogFooter>
                       <AlertDialogCancel asChild>
-                        <AdminButton type="button" variant="secondary">
-                          Cancelar
-                        </AdminButton>
+                        <Button variant="secondary">Cancelar</Button>
                       </AlertDialogCancel>
                       <AlertDialogAction asChild>
-                        <AdminButton type="button" variant="danger" onClick={() => run(() => actions.archive(id))}>
+                        <Button variant="danger" onClick={() => run("archive")}>
                           Archivar
-                        </AdminButton>
+                        </Button>
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -154,37 +117,6 @@ export function ContentRowActions({
           </DropdownMenuContent>
         </DropdownMenu>
       )}
-
-      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
-        <DialogContent>
-          <DialogTitle>Rechazar {itemLabel}</DialogTitle>
-          <DialogDescription>Explica brevemente el motivo — el autor lo verá para corregirlo.</DialogDescription>
-          <textarea
-            value={rejectReason}
-            onChange={(e) => setRejectReason(e.target.value)}
-            rows={3}
-            className="mt-4 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-accent"
-            placeholder="Motivo de rechazo"
-          />
-          <div className="mt-4 flex justify-end gap-2">
-            <AdminButton type="button" variant="secondary" onClick={() => setRejectOpen(false)}>
-              Cancelar
-            </AdminButton>
-            <AdminButton
-              type="button"
-              variant="danger"
-              disabled={!rejectReason.trim() || pending}
-              onClick={async () => {
-                await run(() => actions.reject(id, rejectReason));
-                setRejectOpen(false);
-                setRejectReason("");
-              }}
-            >
-              Rechazar
-            </AdminButton>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -1,15 +1,10 @@
 package pe.plataformacontenidos.identity;
 
 /**
- * Roles RBAC del sistema (CONTEXTO.md sección 13). VISITOR no se modela
- * aquí porque representa "no autenticado", no una fila en la base de datos.
+ * Roles del panel (spec 2a, V50): el dueño puede todo; un trabajador puede
+ * lo que digan sus permisos por módulo (identity.worker_permissions).
  */
 public enum Role {
-    SUPER_ADMIN,
-    ADMIN,
-    EDITOR,
-    AUTHOR,
-    MODERATOR,
-    COLLABORATOR,
-    USER
+    OWNER,
+    WORKER
 }

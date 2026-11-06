@@ -1,0 +1,155 @@
+package pe.plataformacontenidos.identity.internal;
+
+import pe.plataformacontenidos.identity.Role;
+import pe.plataformacontenidos.identity.UserStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.time.Instant;
+import java.util.UUID;
+import org.hibernate.annotations.UuidGenerator;
+
+@Entity
+@Table(name = "users", schema = "identity")
+public class User {
+
+    @Id
+    @GeneratedValue
+    @UuidGenerator
+    private UUID id;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserStatus status = UserStatus.ACTIVE;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt = Instant.now();
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt = Instant.now();
+
+    @Column(name = "last_login_at")
+    private Instant lastLoginAt;
+
+    /** Contraseña temporal pendiente de cambio: solo puede cambiarla (spec 2a §4.3). */
+    @Column(name = "must_change_password", nullable = false)
+    private boolean mustChangePassword;
+
+    /** Sesiones (refresh tokens) emitidas antes de este instante ya no valen (V51). */
+    @Column(name = "sessions_valid_after")
+    private Instant sessionsValidAfter;
+
+    protected User() {
+        // JPA
+    }
+
+    public User(String email, String passwordHash, String firstName, String lastName, Role role) {
+        this.email = email.toLowerCase();
+        this.passwordHash = passwordHash;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.role = role;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public Instant getSessionsValidAfter() {
+        return sessionsValidAfter;
+    }
+
+    /**
+     * Invalida todas las sesiones emitidas hasta ahora (cambio o
+     * restablecimiento de contraseña, desactivación), aunque no estén en el
+     * índice de Redis — p. ej. emitidas antes de que existiera.
+     */
+    public void invalidateSessions(Instant when) {
+        // Milisegundos: la misma precisión con que se sella cada sesión (RefreshTokenService).
+        this.sessionsValidAfter = when.truncatedTo(java.time.temporal.ChronoUnit.MILLIS);
+    }
+
+    public boolean isMustChangePassword() {
+        return mustChangePassword;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public UserStatus getStatus() {
+        return status;
+    }
+
+    public boolean isActive() {
+        return status == UserStatus.ACTIVE;
+    }
+
+    public void setActive(boolean active) {
+        this.status = active ? UserStatus.ACTIVE : UserStatus.DISABLED;
+        this.updatedAt = Instant.now();
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getLastLoginAt() {
+        return lastLoginAt;
+    }
+
+    /** Cambio de contraseña por el propio usuario: deja de ser temporal. */
+    public void changePassword(String newPasswordHash) {
+        this.passwordHash = newPasswordHash;
+        this.mustChangePassword = false;
+        this.updatedAt = Instant.now();
+    }
+
+    /** Contraseña temporal puesta por el dueño: el próximo ingreso obliga a cambiarla. */
+    public void setTemporaryPassword(String passwordHash) {
+        this.passwordHash = passwordHash;
+        this.mustChangePassword = true;
+        this.updatedAt = Instant.now();
+    }
+
+    public void recordLogin(Instant when) {
+        this.lastLoginAt = when;
+        this.updatedAt = when;
+    }
+}

@@ -17,15 +17,18 @@ public class AdPlacementService {
     }
 
     /** `key` es lo que un desarrollador pega en `<AdBlock position="..." />` — se normaliza igual que un slug. */
-    public AdPlacement create(String key, String label, String adsenseSlotId) {
+    public AdPlacement create(String key, String label, String adsenseSlotId, Integer width, Integer height) {
         String normalizedKey = Slugify.slugify(key);
         validateUniqueKey(normalizedKey, null);
-        return repository.save(new AdPlacement(normalizedKey, label, adsenseSlotId));
+        return repository.save(new AdPlacement(normalizedKey, label, adsenseSlotId,
+                width != null ? width : AdPlacement.DEFAULT_WIDTH, height != null ? height : AdPlacement.DEFAULT_HEIGHT));
     }
 
-    public AdPlacement update(UUID id, String label, String adsenseSlotId) {
+    /** Sin medida en el pedido se conserva la actual (los clientes viejos no la mandan). */
+    public AdPlacement update(UUID id, String label, String adsenseSlotId, Integer width, Integer height) {
         AdPlacement placement = getOrThrow(id);
-        placement.update(label, adsenseSlotId);
+        placement.update(label, adsenseSlotId, width != null ? width : placement.getWidth(),
+                height != null ? height : placement.getHeight());
         return repository.save(placement);
     }
 

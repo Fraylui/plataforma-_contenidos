@@ -1,32 +1,32 @@
-import type { Metadata } from "next";
 import Link from "next/link";
+import type { Metadata } from "next";
+import { ReactionBar } from "@/components/content/reaction-bar";
+import { PROSE } from "@/lib/prose";
 import { notFound } from "next/navigation";
-import {
-  getCategoryById,
-  getPlatformSettings,
-  getPublishedPlaceBySlug,
-  getRelatedWithFallback,
-  listActiveCategories,
-} from "@/lib/api/client";
+import { getCategoryById, getPlatformSettings, getPublishedPlaceBySlug, getRelatedWithFallback, listAffiliateLinks } from "@/lib/api/client";
+import { AffiliateRecommendations } from "@/components/post/affiliate-recommendations";
+import { PostSources } from "@/components/post/post-sources";
 import { NotFoundError } from "@/lib/api/client";
-import { LikeShareBar } from "@/components/content/like-share-bar";
-import { DetailSidebar } from "@/components/content/detail-sidebar";
-import { ContentImageGallery } from "@/components/content/content-image-gallery";
-import { ContentVideoGallery } from "@/components/content/content-video-gallery";
+import { FloatingReactions } from "@/components/post/immersive/floating-reactions";
+import { heroCover } from "@/components/post/immersive/immersive-hero";
+import { ViewBeacon } from "@/components/content/view-beacon";
+import { PassportButtons } from "@/components/passport/passport-buttons";
+import { regionName, regionSlug } from "@/lib/peru-regions";
 import { AdBlock } from "@/components/legal/ad-block";
-import { imageUrl } from "@/lib/image-url";
+import { PostView } from "@/components/post/post-view";
+import { PostDetailMedia } from "@/components/post/post-detail-media";
+import { PostFacts } from "@/components/post/post-facts";
+import { headerTimeFor } from "@/components/post/post-header";
+import { KIND_LABEL } from "@/lib/content-kind";
+import { fromFeedItem, splitUpNext } from "@/lib/home-items";
 import { SITE_URL } from "@/lib/site-url";
-import { NoImagePlaceholder } from "@/components/ui/no-image-placeholder";
-import { MapPin } from "lucide-react";
-import type { Category, ContentImage, Place } from "@/lib/api/types";
+import type { Category, Place } from "@/lib/api/types";
+import { contentImageUrl, robotsWithLargePreview, shareImageUrl } from "@/lib/share-image";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
+import { orDefault, orNull } from "@/lib/server-log";
 
-const RELATED_SIZE = 6;
-
-/** Para metadatos (OpenGraph/JSON-LD): siempre una URL alcanzable desde la web pública, nunca desde el servidor de Next. */
-function resolveImageUrl(image: ContentImage): string {
-  return image.imageId ? imageUrl(`/api/v1/images/${image.imageId}/file`) : (image.externalUrl ?? "");
-}
+/** "Más como esto": 3 filas de la cuadrícula de 3. */
+const MORE_SIZE = 9;
 
 async function loadPlace(slug: string) {
   try {
@@ -60,15 +60,16 @@ export async function generateMetadata(props: PageProps<"/lugares/[slug]">): Pro
 
   const title = place.seoTitle || place.name;
   const description = place.metaDescription || place.excerpt || undefined;
-  const coverImage = place.images[0] ? resolveImageUrl(place.images[0]) : place.ogImageUrl;
+  const coverImage = shareImageUrl(place);
 
   return {
     title,
     description,
-    // Cada lugar es canónico de sí mismo por defecto (sección 15), igual que Article.
+    // Cada lugar es canónico de sí mismo por defecto (sección 15), igual que Publication.
     alternates: { canonical: place.canonicalUrl || `/lugares/${slug}` },
-    robots: place.robots,
+    robots: robotsWithLargePreview(place.robots),
     openGraph: {
+      locale: "es_PE",
       title,
       description,
       type: "website",
@@ -85,7 +86,7 @@ function placeJsonLd(place: Place, category: Category | null, siteName: string) 
     "@type": "TouristAttraction",
     name: place.name,
     description: place.metaDescription || place.excerpt || undefined,
-    image: place.images.map(resolveImageUrl),
+    image: place.images.map(contentImageUrl).filter(Boolean),
     geo:
       place.latitude != null && place.longitude != null
         ? { "@type": "GeoCoordinates", latitude: place.latitude, longitude: place.longitude }
@@ -119,29 +120,21 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
   const { slug } = await props.params;
   const place = await loadPlace(slug);
 
-  const [category, settings, categories] = await Promise.all([
-    getCategoryById(place.categoryId).catch(() => null),
+  const [category, settings, relatedPage, affiliateLinks] = await Promise.all([
+    getCategoryById(place.categoryId).catch(orNull("lugar.tema")),
     getPlatformSettings(),
-    listActiveCategories(),
+    getRelatedWithFallback({ excludeType: "PLACE", excludeId: place.id, categoryId: place.categoryId, size: MORE_SIZE }),
+    listAffiliateLinks("PLACE", place.id).catch(orDefault("lugar.afiliados", [])),
   ]);
-  const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
+  const { upNext, more } = splitUpNext([...relatedPage.related, ...relatedPage.more].map(fromFeedItem));
 
-  const { related, more } = await getRelatedWithFallback({
-    excludeType: "PLACE",
-    excludeId: place.id,
-    categoryId: place.categoryId,
-    size: RELATED_SIZE,
-  });
-  const relatedTitle = `Relacionado con ${category?.name ?? "esto"}`;
-
-  const hasSidebar = related.length > 0 || more.length > 0;
-  const mapsUrl =
+  const map =
     place.latitude != null && place.longitude != null
-      ? `https://www.google.com/maps?q=${place.latitude},${place.longitude}`
+      ? { latitude: place.latitude, longitude: place.longitude, title: place.name }
       : null;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+    <>
       <VideoJsonLd
         videos={place.videos}
         fallbackTitle={place.name}
@@ -161,104 +154,49 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
         }}
       />
 
-      <div className={hasSidebar ? "lg:grid lg:grid-cols-12 lg:gap-12" : undefined}>
-        <article className={`mx-auto max-w-3xl ${hasSidebar ? "lg:col-span-8 lg:mx-0 lg:max-w-none" : ""}`}>
-          <nav aria-label="Breadcrumb" className="mb-4 flex max-w-[280px] items-center gap-2 truncate text-xs text-muted sm:max-w-none">
-            <ol className="flex flex-wrap items-center gap-1.5 truncate">
-              <li>
-                <Link href="/" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-                  Inicio
+      <PostView
+        reactionBar={<ReactionBar type="PLACE" id={place.id} />}
+        variant="immersive"
+        cover={heroCover(place.images, place.videos)}
+        brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}
+        typeLabel={KIND_LABEL.lugar}
+        categoryName={category?.name}
+        time={headerTimeFor({ kind: "lugar", sortDate: place.publishedAt ?? "" })}
+        title={place.name}
+        media={
+          place.images.length > 1 || place.videos.length > 0 ? (
+            <PostDetailMedia images={place.images.slice(1)} videos={place.videos} title={place.name} />
+          ) : null
+        }
+        excerpt={place.excerpt}
+        facts={map ? <PostFacts facts={[]} map={map} /> : undefined}
+        body={
+          // place.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
+          // de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
+          <>
+            <div className={PROSE} dangerouslySetInnerHTML={{ __html: place.body }} />
+            <PostSources sources={place.sources} />
+            <AffiliateRecommendations links={affiliateLinks} />
+          </>
+        }
+        actions={
+          <>
+            <ViewBeacon type="PLACE" id={place.id} />
+            <PassportButtons slug={place.slug} name={place.name} href={`/lugares/${place.slug}`} region={place.region ?? null} country={place.country ?? null} />
+            {place.region && regionName(place.region) && (
+              <p className="mt-4 px-4 sm:px-0">
+                <Link href={`/lugares/region/${regionSlug(place.region)}`} className="text-sm font-semibold text-accent hover:underline">
+                  Más lugares de {regionName(place.region)}
                 </Link>
-              </li>
-              <li aria-hidden="true">/</li>
-              <li>
-                <Link href="/lugares" className="-my-2 inline-block py-2 hover:text-accent hover:underline">
-                  Lugares
-                </Link>
-              </li>
-              <li aria-hidden="true">/</li>
-              <li className="max-w-[12rem] truncate text-foreground/80 sm:max-w-[24rem]" aria-current="page">
-                {place.name}
-              </li>
-            </ol>
-          </nav>
-
-          {category && (
-            <div className="text-xs font-medium tracking-wide text-accent uppercase">
-              <span>{category.name}</span>
-            </div>
-          )}
-
-          <h1 className="mt-4 text-2xl leading-tight font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            {place.name}
-          </h1>
-
-          {mapsUrl && (
-            <div className="mt-6 border-b border-border pb-6">
-              <a
-                href={mapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-foreground/[0.08] bg-surface px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-accent/50 hover:text-accent"
-              >
-                <MapPin className="h-4 w-4 text-accent" aria-hidden="true" />
-                Ver ubicación en Google Maps
-              </a>
-              {/* Sin API key: el embed simple de Google Maps (output=embed) no la
-                  necesita, a diferencia de la Maps JavaScript API — suficiente para
-                  mostrar un mapa estático interactivo, no hace falta el widget
-                  completo de LocationPicker (ese es para elegir un punto, acá solo
-                  se muestra uno ya fijo). */}
-              <div className="mt-4 aspect-video w-full overflow-hidden rounded-2xl border border-border shadow-sm">
-                <iframe
-                  src={`https://maps.google.com/maps?q=${place.latitude},${place.longitude}&z=15&output=embed`}
-                  title={`Mapa de ${place.name}`}
-                  className="h-full w-full"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-              </div>
-            </div>
-          )}
-
-          <ContentImageGallery
-            images={place.images}
-            alt={place.name}
-            spacing="mt-8"
-            background="bg-canvas-strong"
-            fallback={<NoImagePlaceholder />}
-          />
-
-          <ContentVideoGallery videos={place.videos} title={place.name} />
-
-          {place.excerpt && (
-            <p className="mt-8 text-lg leading-relaxed font-medium text-foreground/90">{place.excerpt}</p>
-          )}
-
-          {/* place.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
-              de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí. */}
-          <div
-            className="prose prose-theme sm:prose-lg mt-6 max-w-none prose-headings:font-bold prose-a:text-accent"
-            dangerouslySetInnerHTML={{ __html: place.body }}
-          />
-
-          <div className="mt-10">
-            <AdBlock position="article" />
-          </div>
-
-          <LikeShareBar contentType="places" slug={place.slug} initialLikeCount={place.likeCount} title={place.name} />
-        </article>
-
-        {hasSidebar && (
-          <DetailSidebar
-            related={related}
-            more={more}
-            relatedTitle={relatedTitle}
-            categoryNames={categoryNames}
-            currentId={place.id}
-          />
-        )}
-      </div>
-    </div>
+              </p>
+            )}
+          </>
+        }
+        reactions={<FloatingReactions type="PLACE" id={place.id} contentType="places" slug={place.slug} initialLikeCount={place.likeCount} title={place.name} />}
+        upNext={upNext}
+        ad={<AdBlock position="article" section="PLACE" categoryId={place.categoryId} layout="band" count={2} />}
+        more={more}
+      />
+    </>
   );
 }

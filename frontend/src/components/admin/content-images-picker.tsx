@@ -1,20 +1,39 @@
 "use client";
 
 import { useState } from "react";
-import { Link as LinkIcon } from "lucide-react";
+import { Images } from "@phosphor-icons/react";
 import type { AdminImage } from "@/lib/api/admin-types";
 import type { ContentImage } from "@/lib/api/types";
 import { imageUrl } from "@/lib/image-url";
-import { formInputClass } from "@/components/admin/ui";
-import { InlineImageUpload } from "./inline-image-upload";
+import { PhotoDropZone } from "./photo-drop-zone";
 import { ContentMediaItemFields } from "./content-media-item-fields";
+import { PhotoCreditFields } from "./photo-credit-fields";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/admin/ui";
+import { Button } from "@/components/ui";
+import { BrokenImageNotice, PreviewImage } from "@/components/ui/preview-image";
 
 /**
- * Selector de imágenes de contenido (Publicaciones/Lugares/Eventos): mismo
- * comportamiento de grilla que el PlaceGalleryPicker original (clic para
- * agregar/quitar una imagen subida, orden = orden de selección) más un
- * campo para agregar imágenes por enlace externo — mayormente se agregan
- * por link, la subida es la opción secundaria. Cada imagen seleccionada
+ * Etiqueta corta de un enlace: dominio … archivo. Los enlaces de un mismo
+ * sitio comparten el principio, así que cortar al final los dejaba iguales.
+ */
+export function shortImageLabel(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const file = decodeURIComponent(parsed.pathname.split("/").filter(Boolean).pop() ?? "");
+    return file ? `${parsed.hostname} … ${file}` : parsed.hostname;
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * Selector de imágenes de contenido (Publicaciones/Lugares/Celebraciones):
+ * subir fotos propias (cuadro grande, varias a la vez) o volver a usar una
+ * ya subida desde la biblioteca (en un diálogo, para que la biblioteca entera
+ * no empuje el título fuera de la pantalla; orden = orden de selección).
+ * Ya no se ofrece pegar enlaces de otros sitios: las fotos son del dueño
+ * (CONTEXTO.md 1.4). Las que ya se guardaron así se siguen mostrando y se
+ * pueden quitar. Cada imagen seleccionada
  * gana un título y un pie de foto opcionales (bloque tipo NYT/Medium). La
  * portada de tarjeta/feed es siempre la primera de la lista (ver ContentImage).
  */
@@ -30,7 +49,9 @@ export function ContentImagesPicker({
   disabled?: boolean;
 }) {
   const [images, setImages] = useState(allImages);
-  const [externalUrlDraft, setExternalUrlDraft] = useState("");
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  // Enlaces que no cargaron: se avisa en su fila en vez de mostrar un ícono roto.
+  const [brokenSrcs, setBrokenSrcs] = useState<string[]>([]);
 
   function uploadedIndex(imageId: string): number {
     return value.findIndex((v) => v.imageId === imageId);
@@ -46,16 +67,9 @@ export function ContentImagesPicker({
     );
   }
 
-  function handleUploaded(image: AdminImage) {
-    setImages((prev) => [image, ...prev]);
-    onChange([...value, { imageId: image.id, externalUrl: null, title: null, caption: null }]);
-  }
-
-  function addExternalUrl() {
-    const url = externalUrlDraft.trim();
-    if (!url) return;
-    onChange([...value, { imageId: null, externalUrl: url, title: null, caption: null }]);
-    setExternalUrlDraft("");
+  function handleUploaded(uploaded: AdminImage[]) {
+    setImages((prev) => [...uploaded, ...prev]);
+    onChange([...value, ...uploaded.map((image) => ({ imageId: image.id, externalUrl: null, title: null, caption: null }))]);
   }
 
   function removeAt(index: number) {
@@ -68,71 +82,65 @@ export function ContentImagesPicker({
 
   return (
     <div className="mt-1 space-y-3">
-      <div className="flex items-end gap-2">
-        <div className="flex-1">
-          <label className="mb-1 block text-xs font-medium text-muted" htmlFor="content-image-external-url">
-            Agregar imagen por enlace externo (lo más común)
-          </label>
-          <input
-            id="content-image-external-url"
-            type="text"
-            value={externalUrlDraft}
-            disabled={disabled}
-            onChange={(e) => setExternalUrlDraft(e.target.value)}
-            placeholder="https://…"
-            className={formInputClass}
-          />
-        </div>
-        <button
-          type="button"
-          disabled={disabled || !externalUrlDraft.trim()}
-          onClick={addExternalUrl}
-          className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-accent-soft hover:text-accent disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <LinkIcon className="h-4 w-4" aria-hidden="true" />
-          Agregar
-        </button>
-      </div>
-
-      <InlineImageUpload disabled={disabled} onUploaded={handleUploaded} compact />
-
+      <PhotoDropZone disabled={disabled} onUploaded={handleUploaded} />
       {images.length > 0 && (
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {images.map((image) => {
-            const index = uploadedIndex(image.id);
-            const selected = index >= 0;
-            return (
-              <button
-                key={image.id}
-                type="button"
-                disabled={disabled}
-                onClick={() => toggleUploaded(image.id)}
-                aria-pressed={selected}
-                className={`group relative aspect-square overflow-hidden rounded-md border-2 disabled:opacity-60 ${
-                  selected ? "border-accent" : "border-transparent hover:border-border"
-                }`}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element -- host propio del backend */}
-                <img
-                  src={imageUrl(image.url)}
-                  alt={image.altText ?? image.originalFilename}
-                  className="h-full w-full object-cover"
-                />
-                {selected && (
-                  <span className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent-fill text-xs font-medium text-accent-foreground">
-                    {index + 1}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+        <Button variant="secondary" size="sm" icon={<Images />} disabled={disabled} onClick={() => setLibraryOpen(true)}>
+          Usar una foto que ya subiste
+        </Button>
       )}
+
+      <Dialog open={libraryOpen} onOpenChange={setLibraryOpen}>
+        <DialogContent className="flex max-h-[85dvh] max-w-2xl flex-col">
+          <DialogTitle>Tus fotos subidas</DialogTitle>
+          <DialogDescription>Toca para elegir o quitar. El número es el orden; la 1 es la portada.</DialogDescription>
+          <div className="-mx-2 mt-3 min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+              {images.map((image) => {
+                const index = uploadedIndex(image.id);
+                const selected = index >= 0;
+                return (
+                  <button
+                    key={image.id}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => toggleUploaded(image.id)}
+                    aria-pressed={selected}
+                    aria-label={image.altText ?? image.originalFilename}
+                    className={`group relative aspect-square cursor-pointer overflow-hidden rounded-control outline-none focus-visible:ring-[3px] focus-visible:ring-ring disabled:opacity-60 ${
+                      selected ? "ring-[3px] ring-accent" : ""
+                    }`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element -- host propio del backend */}
+                    <img
+                      src={imageUrl(image.url)}
+                      alt=""
+                      loading="lazy"
+                      width={image.width}
+                      height={image.height}
+                      className="h-full w-full object-cover transition-opacity group-hover:opacity-90"
+                    />
+                    {selected && (
+                      <span className="absolute top-1.5 right-1.5 flex size-6 items-center justify-center rounded-full bg-accent-fill text-xs font-semibold text-accent-foreground tabular-nums">
+                        {index + 1}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Button onClick={() => setLibraryOpen(false)}>
+              {value.length > 0 ? `Listo (${value.length})` : "Listo"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {value.length > 0 && (
         <>
           <p className="text-xs text-muted">
-            {value.length} imagen{value.length === 1 ? "" : "es"} seleccionada{value.length === 1 ? "" : "s"} — la
+            {value.length} {value.length === 1 ? "imagen seleccionada" : "imágenes seleccionadas"} — la
             primera es la portada. Título y pie de foto son opcionales.
           </p>
           <ul className="space-y-2">
@@ -143,7 +151,13 @@ export function ContentImagesPicker({
                 <ContentMediaItemFields
                   key={`${item.imageId ?? item.externalUrl}-${index}`}
                   index={index}
-                  label={item.externalUrl ?? uploaded?.originalFilename ?? "Imagen subida"}
+                  label={item.externalUrl ? shortImageLabel(item.externalUrl) : (uploaded?.originalFilename ?? "Imagen subida")}
+                  fullLabel={item.externalUrl ?? undefined}
+                  warning={
+                    thumbnailSrc && brokenSrcs.includes(thumbnailSrc)
+                      ? "No se pudo cargar esta imagen. Quítala y sube la foto desde tu celular o computadora."
+                      : null
+                  }
                   title={item.title ?? ""}
                   caption={item.caption ?? ""}
                   onTitleChange={(title) => updateAt(index, { title: title || null })}
@@ -152,11 +166,23 @@ export function ContentImagesPicker({
                   disabled={disabled}
                   thumbnail={
                     thumbnailSrc ? (
-                      // eslint-disable-next-line @next/next/no-img-element -- miniatura de un host externo o propio, según el ítem
-                      <img src={thumbnailSrc} alt="" className="h-full w-full object-cover" />
+                      <PreviewImage
+                        src={thumbnailSrc}
+                        fallback={<BrokenImageNotice compact />}
+                        onError={() => setBrokenSrcs((prev) => (prev.includes(thumbnailSrc) ? prev : [...prev, thumbnailSrc]))}
+                      />
                     ) : undefined
                   }
-                />
+                >
+                  <PhotoCreditFields
+                    index={index}
+                    credit={item.credit}
+                    rightsConfirmed={item.rightsConfirmed}
+                    onChange={(patch) => updateAt(index, patch)}
+                    disabled={disabled}
+                    showError
+                  />
+                </ContentMediaItemFields>
               );
             })}
           </ul>

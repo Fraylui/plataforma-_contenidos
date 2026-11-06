@@ -1,8 +1,11 @@
 package pe.plataformacontenidos.media.api;
 
+import java.net.URI;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +34,15 @@ public class ImagePublicController {
     @GetMapping("/{id}/file")
     public ResponseEntity<byte[]> getFile(@PathVariable UUID id) {
         Image image = imageService.getOrThrow(id);
+        // Con R2 y dominio público: redirección permanente (Cloudflare la cachea) y
+        // el VPS no envía los bytes de la imagen.
+        Optional<String> publicUrl = imageService.publicUrl(image);
+        if (publicUrl.isPresent()) {
+            return ResponseEntity.status(HttpStatus.MOVED_PERMANENTLY)
+                    .location(URI.create(publicUrl.get()))
+                    .cacheControl(CacheControl.maxAge(Duration.ofDays(365)).cachePublic())
+                    .build();
+        }
         byte[] content = imageService.loadFile(id);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(image.getContentType()))

@@ -30,4 +30,12 @@ class SlugifyTest {
         // El servicio que llama debe tratar el slug vacío (fallback a id/fecha); acá solo se fija el contrato.
         assertEquals("", Slugify.slugify(input));
     }
+
+    /** CodeQL (ReDoS): con miles de guiones y símbolos sigue siendo inmediato. */
+    @org.junit.jupiter.api.Test
+    @org.junit.jupiter.api.Timeout(1)
+    void longRunsOfSymbolsStayFast() {
+        String hostile = "-".repeat(50_000) + "a" + "!-".repeat(50_000);
+        assertEquals("a", Slugify.slugify(hostile));
+    }
 }

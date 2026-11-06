@@ -1,5 +1,7 @@
 package pe.plataformacontenidos.galleries;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import pe.plataformacontenidos.shared.publishing.PublicationStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -10,25 +12,24 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface GalleryRepository extends JpaRepository<Gallery, UUID> {
+public interface GalleryRepository extends JpaRepository<Gallery, UUID>, JpaSpecificationExecutor<Gallery> {
 
-    Optional<Gallery> findBySlugAndStatus(String slug, GalleryStatus status);
+    Optional<Gallery> findBySlugAndStatus(String slug, PublicationStatus status);
 
     boolean existsBySlug(String slug);
 
-    Page<Gallery> findByStatus(GalleryStatus status, Pageable pageable);
+    Page<Gallery> findByStatus(PublicationStatus status, Pageable pageable);
 
-    Page<Gallery> findByStatusAndCategoryId(GalleryStatus status, UUID categoryId, Pageable pageable);
+    Page<Gallery> findByStatusAndCategoryId(PublicationStatus status, UUID categoryId, Pageable pageable);
 
-    List<Gallery> findByAuthorIdOrderByCreatedAtDesc(UUID authorId);
 
-    List<Gallery> findByStatusAndScheduledAtBefore(GalleryStatus status, Instant threshold);
+    List<Gallery> findByStatusAndScheduledAtBefore(PublicationStatus status, Instant threshold);
 
-    long countByStatus(GalleryStatus status);
+    long countByStatus(PublicationStatus status);
 
     /**
      * Búsqueda de texto completo (CONTEXTO.md sección 16) sobre galerías
-     * publicadas — mismo patrón que PlaceRepository/EventRepository.search
+     * publicadas — mismo patrón que PlaceRepository/CelebrationRepository.search
      * (V19__gallery_search.sql, unaccent en V36__search_unaccent.sql). Solo
      * title+excerpt: no hay body que indexar.
      */

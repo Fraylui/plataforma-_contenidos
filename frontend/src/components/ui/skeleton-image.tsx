@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 /**
  * next/image (fill) + skeleton pulsante mientras carga. Siempre dentro de un
  * contenedor `relative` con aspect-ratio fijo (fill se posiciona absoluto y
- * llena ese contenedor) — CardMedia es Server Component, así que el estado
+ * llena ese contenedor) — quien la usa suele ser Server Component, así que el estado
  * de "cargando" vive acá, el único punto que sí necesita ser Client Component.
  *
  * `fade={false}` desactiva el pulso + aparición gradual: para imágenes que
@@ -15,6 +15,11 @@ import { cn } from "@/lib/utils";
  * el fade-in de cada vuelta se sentía como un parpadeo/aparición no pedida
  * ("que no aparezcan, que simplemente cambien"). Ahí conviene mostrar la
  * imagen de una vez, sin la animación de entrada.
+ *
+ * Con `priority` (la imagen principal de la pantalla) tampoco hay fundido:
+ * la imagen arranca invisible hasta que React hidrata y Chrome no cuenta
+ * para el LCP algo invisible, así que el LCP esperaba ~3 s de JavaScript
+ * aunque la foto ya había llegado (Lighthouse CI, 2026-10-16).
  */
 export function SkeletonImage({
   src,
@@ -35,13 +40,26 @@ export function SkeletonImage({
   const [loaded, setLoaded] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  if (!fade) {
-    return <Image src={src} alt={alt} fill sizes={sizes} className={className} priority={priority} />;
+  if (!fade || priority) {
+    // preload (reemplaza a `priority`, obsoleto en Next 16): <link rel="preload"> en el <head> y sin lazy.
+    // fetchPriority alta también en esa precarga: sin ella Chrome baja la foto con prioridad baja y el LCP
+    // esperaba ~1,1 s solo en empezar la descarga (Lighthouse CI, 2026-10-22).
+    return (
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes={sizes}
+        className={className}
+        preload={priority}
+        fetchPriority={priority ? "high" : undefined}
+      />
+    );
   }
 
   return (
     <>
-      {!loaded && <div className="absolute inset-0 animate-pulse bg-zinc-100" aria-hidden="true" />}
+      {!loaded && <div className="absolute inset-0 animate-pulse bg-canvas-strong" aria-hidden="true" />}
       <Image
         ref={(el) => {
           imgRef.current = el;
@@ -57,7 +75,6 @@ export function SkeletonImage({
         alt={alt}
         fill
         sizes={sizes}
-        priority={priority}
         onLoad={() => setLoaded(true)}
         className={cn(className, "transition-[opacity,transform] duration-300", loaded ? "opacity-100" : "opacity-0")}
       />

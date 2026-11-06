@@ -1,0 +1,98 @@
+import { render, screen, waitFor } from "@testing-library/react";
+import { axe } from "vitest-axe";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { HomeItem } from "@/lib/home-items";
+import { ExploreGrid } from "./explore-grid";
+
+function item(n: number, extra: Partial<HomeItem> = {}): HomeItem {
+  return {
+    id: `id-${n}`,
+    kind: "lugar",
+    slug: `lugar-${n}`,
+    likeKey: `lugar-${n}`,
+    href: `/lugares/lugar-${n}`,
+    likeCount: n,
+    title: `Lugar ${n}`,
+    excerpt: null,
+    imageUrl: null,
+    imageIsExternal: false,
+    categoryId: "c1",
+    typeLabel: "Lugar",
+    sortDate: "2026-10-01T00:00:00Z",
+    dateLabel: "",
+    images: [],
+    ...extra,
+  };
+}
+
+afterEach(() => vi.unstubAllGlobals());
+
+describe("ExploreGrid — cuadrícula de descubrimiento (Instagram)", () => {
+  it("la primera miniatura (la grande, el LCP) carga ya y visible; las demás esperan", () => {
+    const items = [1, 2, 3].map((n) => item(n, { images: [{ url: `/foto-${n}.jpg`, isExternal: false }] }));
+    const { container } = render(<ExploreGrid initialItems={items} initialHasMore={false} seed="s" />);
+    const [first, second] = Array.from(container.querySelectorAll("img"));
+    // Sin lazy ni fundido: antes la foto arrancaba en opacity-0 hasta hidratar (~3 s de LCP en Lighthouse CI).
+    expect(first).not.toHaveAttribute("loading", "lazy");
+    expect(first.className).not.toContain("opacity-0");
+    expect(second).toHaveAttribute("loading", "lazy");
+  });
+
+  it("cuadrícula de 3 con enlace al detalle e ícono según carrusel, video o evento", () => {
+    const items = [
+      item(1, { images: [{ url: "/a.jpg", isExternal: false }, { url: "/b.jpg", isExternal: false }] }),
+      item(2, { hasVideo: true }),
+      item(3, { kind: "celebracion", href: "/celebraciones/e-3", typeLabel: "Celebración" }),
+    ];
+    render(<ExploreGrid initialItems={items} initialHasMore={false} seed="s" />);
+    const grid = screen.getByRole("list", { name: "Explorar" });
+    expect(grid).toHaveClass("grid-cols-3");
+    expect(screen.getByRole("link", { name: /Lugar 1/ })).toHaveAttribute("href", "/lugares/lugar-1");
+    expect(screen.getByRole("img", { name: "Varias imágenes" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Video" })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Celebración" })).toBeInTheDocument();
+  });
+
+  it("al llegar al final pide más a /api/feed sin repetir lo visto", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ items: [item(1), item(2)], hasMore: false }) });
+    vi.stubGlobal("fetch", fetchMock);
+    let trigger: (entries: { isIntersecting: boolean }[]) => void = () => {};
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(cb: typeof trigger) {
+          trigger = cb;
+        }
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    render(<ExploreGrid initialItems={[item(1)]} initialHasMore seed="s" />);
+    trigger([{ isIntersecting: true }]);
+    await waitFor(() => expect(screen.getAllByRole("listitem")).toHaveLength(2));
+    const url = String(fetchMock.mock.calls[0][0]);
+    expect(url).toContain("/api/feed?");
+    expect(url).toContain("exclude=id-1");
+  });
+
+  it("sin contenido muestra un mensaje", () => {
+    render(<ExploreGrid initialItems={[]} initialHasMore={false} seed="s" />);
+    expect(screen.getByText(/Todavía no hay nada para explorar/)).toBeInTheDocument();
+  });
+
+  it("es accesible", async () => {
+    const { container } = render(<ExploreGrid initialItems={[item(1), item(2)]} initialHasMore={false} seed="s" />);
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("con ritmo, como el Explorar de Instagram: una grande (2×2) por cada 6, alternando lado", () => {
+    const items = Array.from({ length: 12 }, (_, i) => item(i + 1));
+    render(<ExploreGrid initialItems={items} initialHasMore={false} seed="s" />);
+    const tiles = screen.getAllByRole("listitem");
+    const large = tiles.filter((li) => li.dataset.size === "large");
+    expect(large).toEqual([tiles[0], tiles[6]]);
+    expect(tiles[0]).toHaveClass("col-span-2", "row-span-2");
+    expect(tiles[6]).toHaveClass("col-start-2");
+  });
+});

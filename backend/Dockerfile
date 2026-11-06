@@ -6,7 +6,7 @@
 # necesita el socket de Docker del host, no tiene sentido dentro del propio
 # build) — este Dockerfile solo empaqueta lo que ya pasó CI.
 
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM eclipse-temurin:25-jdk-alpine AS build
 WORKDIR /app
 
 # Capa de dependencias separada del código fuente para aprovechar la caché
@@ -18,7 +18,7 @@ RUN chmod +x mvnw && ./mvnw -B -q dependency:go-offline
 COPY src src
 RUN ./mvnw -B -q -DskipTests package && mv target/*.jar target/app.jar
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
 COPY --from=build /app/target/app.jar app.jar

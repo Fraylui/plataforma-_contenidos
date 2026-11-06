@@ -2,6 +2,8 @@ package pe.plataformacontenidos.media;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
@@ -46,6 +48,10 @@ public class Image {
     @Column(name = "alt_text")
     private String altText;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ImagePurpose purpose = ImagePurpose.CONTENT;
+
     @Column(name = "uploaded_by", nullable = false)
     private UUID uploadedBy;
 
@@ -57,7 +63,7 @@ public class Image {
     }
 
     public Image(String originalFilename, String storedFilename, String contentType, long sizeBytes, int width,
-            int height, String altText, UUID uploadedBy) {
+            int height, String altText, ImagePurpose purpose, UUID uploadedBy) {
         this.originalFilename = originalFilename;
         this.storedFilename = storedFilename;
         this.contentType = contentType;
@@ -65,6 +71,7 @@ public class Image {
         this.width = width;
         this.height = height;
         this.altText = altText;
+        this.purpose = purpose;
         this.uploadedBy = uploadedBy;
     }
 
@@ -98,6 +105,10 @@ public class Image {
 
     public String getAltText() {
         return altText;
+    }
+
+    public ImagePurpose getPurpose() {
+        return purpose;
     }
 
     public UUID getUploadedBy() {

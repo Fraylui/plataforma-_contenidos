@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { requireAdminUser } from "@/lib/admin/auth";
-import { getAdminStats } from "@/lib/api/admin-client";
+import { getAdminStats } from "@/lib/api/admin/stats";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { AccessDenied } from "@/components/admin/access-denied";
 import { StatsDashboard } from "@/components/admin/stats-dashboard";

@@ -1,0 +1,46 @@
+import { hasAnyContentModule } from "@/lib/admin/permissions";
+import type { Metadata } from "next";
+import { requireAdminUser } from "@/lib/admin/auth";
+import { listAdminImages } from "@/lib/api/admin/media";
+import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
+import { AccessDenied } from "@/components/admin/access-denied";
+import { ImageUploadForm } from "@/components/admin/image-upload-form";
+import { ImageCard } from "@/components/admin/image-card";
+import { AdminPageHeader, EmptyState } from "@/components/admin/ui";
+
+export const metadata: Metadata = {
+  title: "Imágenes",
+  robots: "noindex,nofollow",
+};
+
+
+export default async function AdminMediaPage() {
+  const { user, accessToken } = await requireAdminUser();
+  const result = await fetchOrAccessDenied(() => listAdminImages(accessToken));
+  if ("denied" in result) return <AccessDenied />;
+  const sorted = [...result.data].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const canManageAll = hasAnyContentModule(user);
+
+  return (
+    <div>
+      <AdminPageHeader
+        title="Imágenes"
+        description="Sube cada foto una sola vez y elígela después en cualquier publicación, lugar, celebración o galería."
+      />
+
+      <div className="mt-6">
+        <ImageUploadForm />
+      </div>
+
+      {sorted.length === 0 ? (
+        <EmptyState title="Todavía no hay imágenes" />
+      ) : (
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 2xl:grid-cols-4">
+          {sorted.map((image) => (
+            <ImageCard key={image.id} image={image} canManage={canManageAll || image.uploadedBy === user.id} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

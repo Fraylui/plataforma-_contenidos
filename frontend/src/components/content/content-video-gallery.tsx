@@ -1,41 +1,46 @@
 import type { ContentVideo } from "@/lib/api/types";
-import { YouTubeEmbed } from "@/components/article/youtube-embed";
+import { YouTubeEmbed } from "@/components/content/youtube-embed";
 import { MediaCarousel, MediaCaption } from "./media-carousel";
+import { YouTubeSubscribe } from "./youtube-subscribe";
 
 /**
  * Bloque de videos de YouTube de un contenido — mismo criterio que
  * ContentImageGallery: un solo video se muestra fijo, varios se navegan
  * como carrusel (ver MediaCarousel).
  */
-export function ContentVideoGallery({ videos, title }: { videos: ContentVideo[]; title: string }) {
+export function ContentVideoGallery({ videos, title, spacing = "" }: { videos: ContentVideo[]; title: string; spacing?: string }) {
   if (videos.length === 0) return null;
 
   if (videos.length === 1) {
     const video = videos[0];
     return (
-      <figure className="my-8">
-        <div className="overflow-hidden rounded-2xl border border-border shadow-lg">
-          <YouTubeEmbed videoId={video.videoId} title={video.title ?? title} />
+      <figure className={spacing}>
+        <div className="overflow-hidden sm:rounded-card">
+          <YouTubeEmbed videoId={video.videoId} title={video.title ?? title} vertical={video.vertical} />
         </div>
         <MediaCaption title={video.title} caption={video.caption} />
+        <YouTubeSubscribe className="mt-3" />
       </figure>
     );
   }
 
   const captions = videos.map((video) => ({ title: video.title, caption: video.caption }));
   const slides = videos.map((video, index) => (
-    <YouTubeEmbed key={video.videoId} videoId={video.videoId} title={video.title ?? `${title} — video ${index + 1}`} />
+    <YouTubeEmbed key={video.videoId} videoId={video.videoId} title={video.title ?? `${title} — video ${index + 1}`} vertical={video.vertical} />
   ));
 
   return (
-    <MediaCarousel
-      spacing="my-8"
-      background=""
-      slides={slides}
-      captions={captions}
-      prevLabel="Video anterior"
-      nextLabel="Video siguiente"
-      dotLabelPrefix="Ir al video"
-    />
+    <div className={spacing}>
+      <MediaCarousel
+        spacing=""
+        background=""
+        slides={slides}
+        captions={captions}
+        prevLabel="Video anterior"
+        nextLabel="Video siguiente"
+        dotLabelPrefix="Ir al video"
+      />
+      <YouTubeSubscribe className="mt-3" />
+    </div>
   );
 }

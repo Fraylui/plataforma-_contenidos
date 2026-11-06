@@ -1,0 +1,252 @@
+"use client";
+
+import { useEffect, useState, type ReactNode } from "react";
+import { Plus } from "@phosphor-icons/react";
+import { Controller, useController, useFormContext, useWatch } from "react-hook-form";
+import type { AdminImage } from "@/lib/api/admin-types";
+import type { Category, ContentImage } from "@/lib/api/types";
+import { imageUrl } from "@/lib/image-url";
+import { FormError } from "@/components/admin/ui";
+import { Button, Card, Combobox, Field, TextArea } from "@/components/ui";
+import { ContentImagesPicker } from "../content-images-picker";
+import { VideoLinksEditor } from "../video-links-editor";
+import { RichTextEditor } from "../rich-text-editor";
+import { PublishRulesCard } from "../guide/content-guide";
+import type { BaseComposerValues } from "./schema";
+import { pickRememberedTopic, readLastTopic, rememberTopic } from "@/lib/admin/last-topic";
+
+/**
+ * Distribución de los compositores: contenido a la izquierda; a la derecha
+ * Publicar (fijo en escritorio) y lo de organizar. En celular Publicar cierra
+ * el flujo, como «Compartir» en Instagram.
+ */
+export function ComposerShell({
+  readOnlyNotice,
+  main,
+  publish,
+  aside,
+  error,
+}: {
+  readOnlyNotice: string | null;
+  main: ReactNode;
+  publish: ReactNode;
+  aside: ReactNode;
+  error: string | null;
+}) {
+  return (
+    <form
+      onSubmit={(event) => event.preventDefault()}
+      noValidate
+      // pb-20: en celular, la barra fija de Publicar no tapa lo último.
+      className="mx-auto grid max-w-6xl grid-cols-1 gap-6 pb-20 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:pb-0"
+    >
+      <div className="min-w-0 space-y-6">
+        {readOnlyNotice && <p className="rounded-control bg-info-soft px-4 py-3 text-sm text-foreground">{readOnlyNotice}</p>}
+        {main}
+      </div>
+      <aside className="flex flex-col gap-6 lg:sticky lg:top-6">
+        <div className="order-last space-y-4 lg:order-none">
+          {error && <FormError message={error} />}
+          {publish}
+        </div>
+        {aside}
+        {/* Qué se puede publicar (dueño 2026-10-21): en los cuatro tipos, al lado de Publicar. */}
+        <PublishRulesCard />
+      </aside>
+    </form>
+  );
+}
+
+/** Fotos (la primera es la portada) y, si el tipo los admite, videos de YouTube. */
+export function MediaCard({
+  allImages,
+  readOnly,
+  withVideos = true,
+  description = "La primera foto es la portada en el feed y al compartir.",
+}: {
+  allImages: AdminImage[];
+  readOnly: boolean;
+  withVideos?: boolean;
+  description?: string;
+}) {
+  const { control, formState } = useFormContext<BaseComposerValues & { videos?: unknown[] }>();
+  const imagesError = formState.errors.images?.message;
+  return (
+    <Card title={withVideos ? "Fotos y videos" : "Fotos"} description={description}>
+      <Controller
+        control={control}
+        name="images"
+        render={({ field }) => (
+          <ContentImagesPicker allImages={allImages} value={field.value} onChange={field.onChange} disabled={readOnly} />
+        )}
+      />
+      {imagesError && (
+        <p role="alert" className="text-xs font-medium text-danger-ink">
+          {imagesError}
+        </p>
+      )}
+      {withVideos && (
+        <Field
+          label="Tus videos de YouTube (opcional)"
+          name="videos"
+          hint="Sube el video a tu canal; en YouTube toca Compartir → Copiar enlace y pégalo aquí. Solo videos tuyos o con permiso de su dueño."
+        >
+          <Controller
+            control={control}
+            name="videos"
+            render={({ field }) => (
+              <VideoLinksEditor value={(field.value ?? []) as never} onChange={field.onChange} disabled={readOnly} />
+            )}
+          />
+        </Field>
+      )}
+    </Card>
+  );
+}
+
+// Crece con el texto (field-sizing): un título largo se lee entero mientras se escribe.
+const TITLE_CLASS =
+  "h-auto min-h-0 resize-none overflow-hidden field-sizing-content border-0 bg-transparent px-0 py-1 text-[28px] leading-tight font-bold tracking-tight " +
+  "placeholder:text-muted/50 hover:bg-transparent focus:border-0 focus:bg-transparent focus:ring-0";
+
+/** ¿El HTML tiene algo de texto? Sin DOM: sirve en el servidor y en el navegador. */
+export function hasPlainText(html: string): boolean {
+  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;|&#160;|\u00a0/g, " ").trim().length > 0;
+}
+
+/** Título grande, descripción corta con contador y, si el tipo lo tiene, el texto. */
+export function WritingCard({
+  titleLabel = "Título",
+  titlePlaceholder = "Escribe un título",
+  excerptDefault,
+  withBody = true,
+  bodyHint,
+  collapsibleBody = false,
+  excerptLabel = "Descripción corta",
+  excerptHint = "Una o dos frases que inviten a abrirla.",
+  excerptPlaceholder = "¿De qué trata?",
+  allImages,
+  readOnly,
+  children,
+}: {
+  titleLabel?: string;
+  titlePlaceholder?: string;
+  excerptDefault: string;
+  withBody?: boolean;
+  bodyHint?: string;
+  /** El texto largo empieza plegado tras «Contar más» (posts: lo normal es foto + frase). */
+  collapsibleBody?: boolean;
+  excerptLabel?: string;
+  excerptHint?: string;
+  excerptPlaceholder?: string;
+  allImages: AdminImage[];
+  readOnly: boolean;
+  children?: ReactNode;
+}) {
+  const { control, register, formState, getValues } = useFormContext<BaseComposerValues & { body?: string }>();
+  const { errors } = formState;
+  // Abierto si ya hay texto (editar), si no se pliega o si hay un error en el texto.
+  // Sin DOMParser: este estado inicial también se calcula en el servidor.
+  const [bodyOpen, setBodyOpen] = useState(() => !collapsibleBody || hasPlainText(getValues("body") ?? ""));
+  const showBody = bodyOpen || Boolean(errors.body);
+  return (
+    <Card>
+      <Field label={titleLabel} name="title" hideLabel error={errors.title?.message}>
+        <TextArea
+          rows={1}
+          placeholder={titlePlaceholder}
+          disabled={readOnly}
+          className={TITLE_CLASS}
+          // Un título es una línea: Enter no agrega saltos.
+          onKeyDown={(event) => event.key === "Enter" && event.preventDefault()}
+          {...register("title")}
+        />
+      </Field>
+      <Field label={excerptLabel} name="excerpt" hint={excerptHint} error={errors.excerpt?.message}>
+        <TextArea
+          rows={2}
+          maxLength={500}
+          disabled={readOnly}
+          placeholder={excerptPlaceholder}
+          defaultValue={excerptDefault}
+          {...register("excerpt")}
+        />
+      </Field>
+      {withBody && !showBody && (
+        <Button variant="ghost" icon={<Plus aria-hidden="true" />} onClick={() => setBodyOpen(true)} disabled={readOnly}>
+          Contar más (texto largo, opcional)
+        </Button>
+      )}
+      {withBody && showBody && (
+        <Field label="Texto" name="body" hint={bodyHint} error={errors.body?.message}>
+          <Controller
+            control={control}
+            name="body"
+            render={({ field }) => (
+              <RichTextEditor value={field.value ?? ""} onChange={field.onChange} disabled={readOnly} allImages={allImages} />
+            )}
+          />
+        </Field>
+      )}
+      {children}
+    </Card>
+  );
+}
+
+/** Tema (obligatorio) y lo propio de cada tipo que organiza el contenido (formato, tipo de negocio). */
+export function TopicCard({
+  title = "Tema",
+  categories,
+  readOnly,
+  children,
+}: {
+  title?: string;
+  categories: Category[];
+  readOnly: boolean;
+  children?: ReactNode;
+}) {
+  // useController (no <Controller>) para que el Combobox sea hijo directo de Field y reciba la ayuda y el error.
+  const { field, fieldState } = useController<BaseComposerValues, "categoryId">({ name: "categoryId" });
+  const { resetField } = useFormContext<BaseComposerValues>();
+  const empty = !field.value;
+  // Al crear, viene elegido el último tema usado (como en Historias): sin tema el
+  // borrador no se guarda solo. Se fija como valor inicial, no como cambio, para
+  // que abrir «Nueva» y salir no avise de cambios sin guardar.
+  useEffect(() => {
+    if (!empty || readOnly) return;
+    const remembered = pickRememberedTopic(categories, readLastTopic());
+    if (remembered) resetField("categoryId", { defaultValue: remembered });
+  }, [empty, readOnly, categories, resetField]);
+  return (
+    <Card title={title}>
+      <Field
+        label="Tema"
+        name="categoryId"
+        // Sin tema el borrador no es válido y el guardado automático espera: se dice aquí.
+        hint={field.value ? undefined : "Elígelo primero: sin tema el borrador no se guarda solo."}
+        error={fieldState.error?.message}
+      >
+        <Combobox
+          options={categories.map((category) => ({ id: category.id, label: category.name }))}
+          value={field.value}
+          disabled={readOnly}
+          placeholder="Elige un tema"
+          onSelect={(value) => {
+            if (!value) return;
+            field.onChange(value);
+            rememberTopic(value);
+          }}
+        />
+      </Field>
+      {children}
+    </Card>
+  );
+}
+
+/** URL de la portada (primera foto), subida o externa, para las vistas previas. */
+export function useCoverUrl(allImages: AdminImage[]): string | null {
+  const images = useWatch<BaseComposerValues, "images">({ name: "images" }) as ContentImage[] | undefined;
+  const cover = images?.[0];
+  const uploaded = cover?.imageId ? allImages.find((image) => image.id === cover.imageId) : undefined;
+  return uploaded ? imageUrl(uploaded.url) : (cover?.externalUrl ?? null);
+}
