@@ -1,4 +1,5 @@
-import { CalendarPlus, NavigationArrow, type Icon } from "@phosphor-icons/react";
+import { CalendarPlus, NavigationArrow } from "@phosphor-icons/react/dist/ssr";
+import type { Icon } from "@phosphor-icons/react";
 import type { HomeItem } from "@/lib/home-items";
 import { calendarLinks } from "./calendar-link";
 

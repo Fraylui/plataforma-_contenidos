@@ -2,6 +2,7 @@ package pe.plataformacontenidos.places.api.dto;
 
 import java.time.Instant;
 import java.util.UUID;
+import pe.plataformacontenidos.places.PeruRegion;
 import pe.plataformacontenidos.places.Place;
 import pe.plataformacontenidos.shared.ContentImage;
 
@@ -18,13 +19,15 @@ public record PlaceSummaryResponse(
         String coverImageUrl,
         boolean hasVideo,
         Instant publishedAt,
-        long likeCount) {
+        long likeCount,
+        /** Región del Perú (si tiene): la página por región y «Mis viajes» la usan. */
+        PeruRegion region) {
 
     public static PlaceSummaryResponse from(Place place, long likeCount) {
         ContentImage cover = place.getCoverImage();
         return new PlaceSummaryResponse(place.getId(), place.getSlug(), place.getName(), place.getExcerpt(),
                 place.getCategoryId(), place.getLatitude(), place.getLongitude(),
                 cover == null ? null : cover.getImageId(), cover == null ? null : cover.getExternalUrl(),
-                !place.getVideos().isEmpty(), place.getPublishedAt(), likeCount);
+                !place.getVideos().isEmpty(), place.getPublishedAt(), likeCount, place.getRegion());
     }
 }

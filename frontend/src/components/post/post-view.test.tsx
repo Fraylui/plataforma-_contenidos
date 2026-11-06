@@ -54,7 +54,7 @@ describe("PostView", () => {
   it("es un post: encabezado de marca, título h1, medio, texto y acciones; sin patrones de diario", () => {
     const { container } = view("visual");
     expect(screen.getByRole("heading", { level: 1, name: "Mirador de Acuchimay" })).toBeInTheDocument();
-    expect(screen.getByTestId("post-header")).toHaveTextContent("Ecos · Lugar");
+    expect(screen.getByTestId("post-header")).toHaveTextContent(/Ecos\s*Lugar/);
     expect(screen.getByTestId("media")).toBeInTheDocument();
     expect(screen.getByText("Datos útiles")).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Acciones" })).toBeInTheDocument();

@@ -1,5 +1,5 @@
 import "server-only";
-import type { FeedItem, SearchResult } from "@/lib/api/types";
+import type { FeedItem, FeedPage, PlaceSummary, SearchResult } from "@/lib/api/types";
 import { searchResultHref } from "@/lib/content-labels";
 import { formatCelebrationDate } from "@/lib/celebration-date";
 import { serverImageUrl } from "@/lib/server-image-url";
@@ -45,6 +45,19 @@ export interface HomeItem {
   recursYearly?: boolean | null;
   latitude?: number | null;
   longitude?: number | null;
+  /** Reacciones con al menos un voto (solo en páginas del feed); ausente si no hay. */
+  reactions?: Partial<Record<FeedReactionKey, number>>;
+}
+
+export type FeedReactionKey = "LOVE" | "FUNNY" | "WOW" | "INSPIRED";
+
+/** Los ítems de una página del feed con sus reacciones (vienen aparte, por id). */
+export function fromFeedPage(page: FeedPage): HomeItem[] {
+  return page.items.map((item) => {
+    const home = fromFeedItem(item);
+    const reactions = page.reactions?.[item.id];
+    return reactions ? { ...home, reactions } : home;
+  });
 }
 
 export interface HomeImage {
@@ -159,6 +172,31 @@ export function fromSearchResult(r: SearchResult): HomeItem {
   };
 }
 
+
+/** Lugar del listado público como miniatura de cuadrícula (páginas por región). */
+export function fromPlaceSummary(p: PlaceSummary): HomeItem {
+  const cover = coverImage(p.coverImageId, p.coverImageUrl);
+  return {
+    id: p.id,
+    kind: "lugar",
+    slug: p.slug,
+    likeKey: p.slug,
+    href: `/lugares/${p.slug}`,
+    likeCount: p.likeCount,
+    title: p.name,
+    excerpt: p.excerpt,
+    imageUrl: cover.url,
+    imageIsExternal: cover.isExternal,
+    categoryId: p.categoryId ?? "",
+    typeLabel: KIND_LABEL.lugar,
+    sortDate: p.publishedAt ?? "",
+    dateLabel: "",
+    images: coverAsImages(cover),
+    hasVideo: p.hasVideo,
+    latitude: p.latitude,
+    longitude: p.longitude,
+  };
+}
 
 /**
  * Detalle inmersivo: el primer relacionado (mismo tema primero) es «Sigue»,

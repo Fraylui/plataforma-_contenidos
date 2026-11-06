@@ -16,9 +16,10 @@ import pe.plataformacontenidos.shared.YouTubeUrlParser;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.publishing.InvalidPhotoCreditException;
 import pe.plataformacontenidos.shared.ContentVideo;
 import pe.plataformacontenidos.shared.ContentVideoInput;
-import pe.plataformacontenidos.shared.HtmlSanitizer;
+import pe.plataformacontenidos.shared.publishing.PostBody;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
@@ -54,13 +55,15 @@ public class PlaceService {
         }
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
-        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
+        String sanitizedBody = PostBody.orEmpty(input.body(), images, videos);
 
         Place place = new Place(uniqueSlugFrom(input.name()), input.name(), input.excerpt(), sanitizedBody, authorId,
                 input.categoryId());
         place.updateContent(input.name(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.latitude(), input.longitude(), images, input.seoTitle(), input.metaDescription(),
                 input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
+        place.setSources(input.sources());
+        place.setLocation(input.country(), input.region());
 
         Place saved = placeRepository.save(place);
         audit("PLACE_CREATED", saved, authorId);
@@ -76,11 +79,13 @@ public class PlaceService {
         }
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
-        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
+        String sanitizedBody = PostBody.orEmpty(input.body(), images, videos);
 
         place.updateContent(input.name(), input.excerpt(), sanitizedBody, input.categoryId(),
                 input.latitude(), input.longitude(), images, input.seoTitle(), input.metaDescription(),
                 input.canonicalUrl(), input.ogImageUrl(), videos, input.robots());
+        place.setSources(input.sources());
+        place.setLocation(input.country(), input.region());
         Place saved = placeRepository.save(place);
         audit("PLACE_UPDATED", saved, actingUserId);
         return saved;
@@ -141,10 +146,27 @@ public class PlaceService {
     }
 
     public Page<Place> listPublished(UUID categoryId, Pageable pageable) {
+        return listPublished(categoryId, null, pageable);
+    }
+
+    /** {@code region} (si viene) manda sobre el tema: es la página «Lugares de Ayacucho». */
+    public Page<Place> listPublished(UUID categoryId, PeruRegion region, Pageable pageable) {
+        if (region != null) {
+            return placeRepository.findByStatusAndRegion(PublicationStatus.PUBLISHED, region, pageable);
+        }
         if (categoryId != null) {
             return placeRepository.findByStatusAndCategoryId(PublicationStatus.PUBLISHED, categoryId, pageable);
         }
         return placeRepository.findByStatus(PublicationStatus.PUBLISHED, pageable);
+    }
+
+    /** Regiones con lugares publicados, en el orden de PeruRegion, con su cantidad. Sin lugares, no aparece. */
+    public java.util.Map<PeruRegion, Long> publishedRegions() {
+        java.util.Map<PeruRegion, Long> result = new java.util.EnumMap<>(PeruRegion.class);
+        for (Object[] row : placeRepository.countByRegion(PublicationStatus.PUBLISHED)) {
+            result.put((PeruRegion) row[0], (Long) row[1]);
+        }
+        return result;
     }
 
     /** CONTEXTO.md sección 16. Mismo criterio que PublicationService.search (query en blanco: página vacía, no error). */
@@ -173,12 +195,13 @@ public class PlaceService {
             if (!input.isValidShape() || (input.hasExternalUrl() && !input.isValidExternalUrl())) {
                 throw new InvalidPlaceImageException();
             }
+            if (!input.hasValidCredit()) {
+                throw new InvalidPhotoCreditException();
+            }
             if (input.hasImageId()) {
                 imageService.getOrThrow(input.imageId());
-                result.add(ContentImage.uploaded(input.imageId(), input.title(), input.caption()));
-            } else {
-                result.add(ContentImage.external(input.externalUrl(), input.title(), input.caption()));
             }
+            result.add(input.toContentImage());
         }
         return result;
     }

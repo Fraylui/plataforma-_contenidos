@@ -36,15 +36,26 @@ describe("BottomTabBar", () => {
     expect(screen.queryByRole("link", { name: "Agenda" })).not.toBeInTheDocument();
   });
 
-  it("«Más» abre una hoja con Celebraciones, Contacto, Privacidad y Términos", async () => {
+  it("«Más» abre una hoja con Celebraciones, Mis viajes, Contacto, Privacidad y Términos", async () => {
     pathname = "/";
-    render(<BottomTabBar />);
+    render(<BottomTabBar sections={{ "/celebraciones": true, "/mis-viajes": true }} />);
     await userEvent.click(screen.getByRole("button", { name: "Más" }));
     const sheet = await screen.findByRole("dialog", { name: "Más" });
     expect(sheet).toHaveTextContent("Celebraciones");
+    expect(sheet).toHaveTextContent("Mis viajes");
     expect(sheet).toHaveTextContent("Contacto");
     expect(sheet).toHaveTextContent("Privacidad");
     expect(sheet).toHaveTextContent("Términos");
+  });
+
+  it("lo vacío no aparece: sin celebraciones ni lugares, la hoja no los ofrece", async () => {
+    pathname = "/";
+    render(<BottomTabBar sections={{}} />);
+    await userEvent.click(screen.getByRole("button", { name: "Más" }));
+    const sheet = await screen.findByRole("dialog", { name: "Más" });
+    expect(sheet).not.toHaveTextContent("Celebraciones");
+    expect(sheet).not.toHaveTextContent("Mis viajes");
+    expect(sheet).toHaveTextContent("Contacto");
   });
 
   it("no tiene problemas de accesibilidad", async () => {

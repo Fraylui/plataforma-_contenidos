@@ -83,6 +83,18 @@ public class Place extends PublishableContent {
     @Column(nullable = false)
     private String robots = "index,follow";
 
+    /** Fuentes del post, una por línea (ver PostSources). */
+    @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
+    @Column(name = "region")
+    private PeruRegion region;
+
+    /** País ISO 3166-1 alfa-2 (PE, CL…); null si no se indicó. */
+    @Column(name = "country", length = 2)
+    private String country;
+
+    @Column(name = "sources")
+    private String sources;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -162,6 +174,36 @@ public class Place extends PublishableContent {
 
     public String getOgImageUrl() {
         return ogImageUrl;
+    }
+
+    public PeruRegion getRegion() {
+        return region;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    /**
+     * País y región juntos: la región del Perú solo tiene sentido si el país
+     * es PE (sin país pero con región, se asume Perú).
+     */
+    public void setLocation(String country, PeruRegion region) {
+        String normalized = country == null || country.isBlank() ? null : country.trim().toUpperCase(java.util.Locale.ROOT);
+        if (normalized == null && region != null) {
+            normalized = "PE";
+        }
+        this.country = normalized;
+        this.region = "PE".equals(normalized) ? region : null;
+    }
+
+    public java.util.List<String> getSources() {
+        return pe.plataformacontenidos.shared.publishing.PostSources.fromColumn(sources);
+    }
+
+    /** Valida y guarda las fuentes (ver PostSources). */
+    public void setSources(java.util.List<String> sources) {
+        this.sources = pe.plataformacontenidos.shared.publishing.PostSources.toColumn(sources);
     }
 
     public String getRobots() {

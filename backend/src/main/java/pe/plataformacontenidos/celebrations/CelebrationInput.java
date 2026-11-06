@@ -33,5 +33,6 @@ public record CelebrationInput(
         boolean allDay,
         Integer sinceYear,
         String scopeCountry,
-        String scopeRegion) {
+        String scopeRegion,
+        java.util.List<String> sources) {
 }

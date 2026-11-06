@@ -11,7 +11,8 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { requireAdminUser } from "@/lib/admin/auth";
 import { listAdminAuditLog } from "@/lib/api/admin/audit";
-import { getAdminDashboard } from "@/lib/api/admin/stats";
+import { getAdminDashboard, getAdminToday } from "@/lib/api/admin/stats";
+import { TodayCard } from "@/components/admin/today-card";
 import { fetchOrAccessDenied } from "@/lib/admin/fetch-or-access-denied";
 import { accountLabel } from "@/lib/admin/role-labels";
 import { visibleNavItems } from "@/lib/admin/nav";
@@ -47,10 +48,12 @@ export default async function AdminDashboardPage(props: PageProps<"/admin">) {
   const canSeeAudit = allowedHrefs.has("/admin/actividad");
   const canSeeStats = allowedHrefs.has("/admin/estadisticas");
 
-  const [dashboardResult, auditResult] = await Promise.all([
+  const [dashboardResult, auditResult, todayResult] = await Promise.all([
     canSeeContent ? fetchOrAccessDenied(() => getAdminDashboard(accessToken, range)) : Promise.resolve(null),
     canSeeAudit ? fetchOrAccessDenied(() => listAdminAuditLog(accessToken, { size: 8 })) : Promise.resolve(null),
+    canSeeContent ? fetchOrAccessDenied(() => getAdminToday(accessToken)) : Promise.resolve(null),
   ]);
+  const today = todayResult && "data" in todayResult ? todayResult.data : null;
   const dashboard = dashboardResult && "data" in dashboardResult ? dashboardResult.data : null;
   const auditEvents = auditResult && "data" in auditResult ? auditResult.data.items : [];
 
@@ -69,6 +72,12 @@ export default async function AdminDashboardPage(props: PageProps<"/admin">) {
         {dashboard && <RangeNav range={range} hrefFor={(option) => (option === 30 ? "/admin" : `/admin?range=${option}`)} />}
       </div>
 
+
+      {today && (
+        <div className="mt-6">
+          <TodayCard data={today} canCreatePublication={allowedHrefs.has("/admin/publicaciones")} />
+        </div>
+      )}
 
       {dashboard && <DashboardBody dashboard={dashboard} canSeeStats={canSeeStats} />}
 

@@ -25,7 +25,7 @@ const TEXT_PREVIEW_CHARS = 125;
  *  2. Medio a todo el ancho, sin márgenes: foto (lleva al destino) o video de
  *     YouTube que carga recién al tocar (dominio -nocookie) y cuenta la
  *     reproducción. Alto reservado por su proporción: sin saltos.
- *  3. Barra de acción: dominio y titular a la izquierda, botón a la derecha.
+ *  3. Barra de acción: dominio y título a la izquierda, botón a la derecha.
  *  4. Pie: nombre en negrita y el texto, con «más» si es largo.
  *
  * Sin me gusta ni compartir: los «me gusta» del sitio son del contenido

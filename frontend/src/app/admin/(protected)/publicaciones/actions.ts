@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createPublication, updatePublication } from "@/lib/api/admin/content";
+import { redirect } from "next/navigation";
+import { createPublication, getAdminPublication, updatePublication } from "@/lib/api/admin/content";
+import { publicationCopy } from "@/lib/admin/duplicate";
 import type { PublicationInput } from "@/lib/api/admin-types";
 import { runAdminMutation, type ActionResult, type MutationResult } from "@/lib/admin/action-helpers";
 
@@ -27,3 +29,14 @@ export async function updatePublicationAction(id: string, input: PublicationInpu
   return result;
 }
 
+
+/**
+ * «Duplicar»: crea un borrador nuevo con todo lo del original y abre su
+ * edición. Si falla, devuelve el error para mostrarlo junto al botón.
+ */
+export async function duplicatePublicationAction(id: string): Promise<ActionResult> {
+  const result = await runAdminMutation(async (token) => createPublication(token, publicationCopy(await getAdminPublication(token, id))));
+  if (!result.ok) return result;
+  revalidatePath("/admin/publicaciones");
+  redirect(`/admin/publicaciones/${result.data.id}`);
+}

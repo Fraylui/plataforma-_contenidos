@@ -16,9 +16,9 @@ function user(overrides: Partial<AdminUser> = {}): AdminUser {
 }
 
 describe("menú del panel según permisos (espejo del servidor)", () => {
-  it("un trabajador solo con Celebraciones ve Inicio, Celebraciones, Imágenes, la guía y Mi cuenta", () => {
+  it("un trabajador solo con Celebraciones ve Inicio, Calendario, Celebraciones, Imágenes, la guía y Mi cuenta", () => {
     const labels = visibleNavItems(user({ permissions: { CELEBRATIONS: "PUBLISH" } })).map((i) => i.label);
-    expect(labels).toEqual(["Inicio", "Celebraciones", "Imágenes", "Qué se puede publicar", "Mi cuenta"]);
+    expect(labels).toEqual(["Inicio", "Calendario", "Celebraciones", "Imágenes", "Qué se puede publicar", "Mi cuenta"]);
   });
 
   it("las secciones del dueño no aparecen para un trabajador con todos los módulos", () => {
@@ -39,7 +39,7 @@ describe("lenguaje de plataforma (no de redacción)", () => {
   it("grupos y secciones del menú del dueño con nombres de plataforma", () => {
     const menu = groupedNavItems(user({ role: "OWNER" })).map(({ group, items }) => [ADMIN_NAV_GROUP_LABELS[group], items.map((i) => i.label)]);
     expect(menu).toEqual([
-      [null, ["Inicio", "Estadísticas"]],
+      [null, ["Inicio", "Calendario", "Estadísticas"]],
       ["Contenido", ["Historias", "Publicaciones", "Lugares", "Celebraciones", "Galerías", "Series", "En vivo", "Temas", "Imágenes", "Qué se puede publicar"]],
       ["Publicidad", ["Espacios publicitarios", "Anunciantes"]],
       ["Equipo y ajustes", ["Trabajadores", "Configuración", "Registro de actividad", "Mi cuenta"]],
@@ -74,12 +74,21 @@ describe("qué puede crear cada persona (botón Crear, paleta y barra del celula
 describe("Historias en el menú", () => {
   it("con el módulo Historias, «Historia» va primero en Crear (lo más frecuente)", () => {
     const items = createItems(user({ permissions: { STORIES: "PUBLISH", PUBLICATIONS: "PUBLISH" } }));
-    expect(items[0]).toEqual({ label: "Historia", href: "/admin/historias/nueva" });
+    expect(items[0]).toMatchObject({ label: "Historia", href: "/admin/historias/nueva" });
     expect(visibleNavItems(user({ permissions: { STORIES: "PUBLISH" } })).map((i) => i.label)).toContain("Historias");
   });
 
   it("sin el módulo no aparece", () => {
     const items = createItems(user({ permissions: { PUBLICATIONS: "PUBLISH" } }));
     expect(items.map((i) => i.label)).not.toContain("Historia");
+  });
+});
+
+describe("Calendario en el menú", () => {
+  it("lo ve quien tiene alguna sección de contenido, no quien solo tiene publicidad", () => {
+    const hrefs = (permissions: Record<string, string>) => visibleNavItems(user({ permissions })).map((i) => i.href);
+    expect(hrefs({ GALLERIES: "PUBLISH" })).toContain("/admin/calendario");
+    expect(hrefs({ ADVERTISING: "ACCESS" })).not.toContain("/admin/calendario");
+    expect(visibleNavItems(user({ role: "OWNER" })).map((i) => i.href)).toContain("/admin/calendario");
   });
 });

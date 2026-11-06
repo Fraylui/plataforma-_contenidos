@@ -15,6 +15,10 @@ export interface ContentImage {
   externalUrl: string | null;
   title: string | null;
   caption: string | null;
+  /** Autor si la foto es de otra persona; null/ausente = foto propia (GUIA-CREAR-CONTENIDO.md §4). */
+  credit?: string | null;
+  /** Con crédito: se confirmó permiso por escrito o licencia libre (D.Leg. 822 art. 39). */
+  rightsConfirmed?: boolean;
 }
 
 /** Ver ContentVideoResponse.java — solo la referencia (Video ID de YouTube), nunca el video en sí. */
@@ -57,6 +61,8 @@ export interface Publication {
   images: ContentImage[];
   videos: ContentVideo[];
   robots: string;
+  /** Enlaces de las fuentes, en orden (ver PostSources en el backend). */
+  sources?: string[];
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;
@@ -115,6 +121,14 @@ export interface PlaceSummary {
   hasVideo: boolean;
   publishedAt: string | null;
   likeCount: number;
+  /** Región del Perú (ver PeruRegion.java); null si no se indicó. */
+  region?: string | null;
+}
+
+/** Ver PlacePublicController.regions: regiones del Perú con lugares publicados. */
+export interface PlaceRegionCount {
+  region: string;
+  count: number;
 }
 
 export interface Place {
@@ -135,6 +149,12 @@ export interface Place {
   ogImageUrl: string | null;
   videos: ContentVideo[];
   robots: string;
+  /** Enlaces de las fuentes, en orden (ver PostSources en el backend). */
+  sources?: string[];
+  /** Región del Perú (ver PeruRegion.java); null si no se indicó. */
+  region?: string | null;
+  /** País ISO 3166-1 alfa-2; null si no se indicó. */
+  country?: string | null;
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;
@@ -197,6 +217,8 @@ export interface Celebration {
   ogImageUrl: string | null;
   videos: ContentVideo[];
   robots: string;
+  /** Enlaces de las fuentes, en orden (ver PostSources en el backend). */
+  sources?: string[];
   publishedAt: string | null;
   scheduledAt: string | null;
   createdAt: string;
@@ -386,6 +408,8 @@ export interface FeedTopic {
 export interface FeedPage {
   items: FeedItem[];
   hasMore: boolean;
+  /** Reacciones por id de ítem; solo los que tienen alguna. */
+  reactions?: Record<string, Partial<Record<"LOVE" | "FUNNY" | "WOW" | "INSPIRED", number>>>;
 }
 
 /** Serie pública (SeriesDtos.PublicSeriesResponse): un programa que se transmite en YouTube. */
@@ -493,4 +517,12 @@ export interface LiveStream {
   startedAt: string | null;
   endedAt: string | null;
   createdAt: string;
+}
+
+/** Enlace de afiliado público (AffiliatePublicController.PublicLink): el destino nunca viaja, se abre por /go. */
+export interface PublicAffiliateLink {
+  id: string;
+  label: string;
+  /** Dominio de la tienda (sin www.), para saber a dónde lleva antes de tocar. */
+  store: string;
 }

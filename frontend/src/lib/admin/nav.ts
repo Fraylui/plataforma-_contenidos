@@ -1,5 +1,5 @@
 import type { Icon } from "@phosphor-icons/react";
-import { ChartBar, Buildings, CalendarDots, ClockCountdown, Article, TreeStructure, House, Image as ImageIcon, Images, MapPin, Megaphone, GearSix, Scales, ShieldCheck, Television, Broadcast, UserCircle, Users } from "@phosphor-icons/react/dist/ssr";
+import { ChartBar, Buildings, CalendarBlank, CalendarDots, ClockCountdown, Article, TreeStructure, House, Image as ImageIcon, Images, MapPin, Megaphone, GearSix, Scales, ShieldCheck, Television, Broadcast, UserCircle, Users } from "@phosphor-icons/react/dist/ssr";
 import type { AdminUser, Module } from "@/lib/api/admin-types";
 import { canAccess, isOwner } from "./permissions";
 
@@ -14,6 +14,8 @@ export interface AdminNavItem {
   module?: Module;
   /** Solo el dueño (OwnerOnlyPaths en el backend). */
   ownerOnly?: true;
+  /** Basta con uno de estos módulos (ver @RequiresAnyModule en el backend). */
+  anyModule?: Module[];
 }
 
 export const ADMIN_NAV_GROUP_LABELS: Record<AdminNavGroup, string | null> = {
@@ -27,6 +29,13 @@ export const ADMIN_NAV_GROUP_LABELS: Record<AdminNavGroup, string | null> = {
 // términos de redacción ("Medios", "Monetización", "Administración").
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { href: "/admin", label: "Inicio", group: "principal", icon: House },
+  {
+    href: "/admin/calendario",
+    label: "Calendario",
+    group: "principal",
+    icon: CalendarBlank,
+    anyModule: ["PUBLICATIONS", "PLACES", "CELEBRATIONS", "GALLERIES"],
+  },
   {
     href: "/admin/estadisticas",
     label: "Estadísticas",
@@ -139,7 +148,13 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
 
 export function visibleNavItems(user: AdminUser): AdminNavItem[] {
   return ADMIN_NAV_ITEMS.filter((item) =>
-    item.ownerOnly ? isOwner(user) : item.module ? canAccess(user, item.module) : true,
+    item.ownerOnly
+      ? isOwner(user)
+      : item.module
+        ? canAccess(user, item.module)
+        : item.anyModule
+          ? item.anyModule.some((module) => canAccess(user, module))
+          : true,
   );
 }
 
@@ -151,24 +166,30 @@ export function groupedNavItems(user: AdminUser): Array<{ group: AdminNavGroup; 
     .filter((entry) => entry.items.length > 0);
 }
 
+/** Tipo de contenido que se puede crear (el ícono lo pone CreateMenu, en el cliente). */
+export type CreateKind = "historia" | "publicacion" | "lugar" | "celebracion" | "galeria" | "serie" | "en-vivo";
+
 export interface CreateItem {
   label: string;
   href: string;
+  kind: CreateKind;
+  /** Una línea, en palabras simples: para qué sirve este tipo. */
+  description: string;
 }
 
 /** Lo que se puede crear, uno por tipo de contenido (en el orden del menú). */
 const CREATE_ITEMS: Array<CreateItem & { navHref: string }> = [
-  { label: "Historia", href: "/admin/historias/nueva", navHref: "/admin/historias" },
-  { label: "Publicación", href: "/admin/publicaciones/nuevo", navHref: "/admin/publicaciones" },
-  { label: "Lugar", href: "/admin/lugares/nuevo", navHref: "/admin/lugares" },
-  { label: "Celebración", href: "/admin/celebraciones/nuevo", navHref: "/admin/celebraciones" },
-  { label: "Galería", href: "/admin/galerias/nuevo", navHref: "/admin/galerias" },
-  { label: "Serie", href: "/admin/series/nueva", navHref: "/admin/series" },
-  { label: "Transmisión en vivo", href: "/admin/en-vivo/nueva", navHref: "/admin/en-vivo" },
+  { kind: "historia", label: "Historia", href: "/admin/historias/nueva", navHref: "/admin/historias", description: "Foto o video corto que se ve 24 horas en la barra de arriba." },
+  { kind: "publicacion", label: "Publicación", href: "/admin/publicaciones/nuevo", navHref: "/admin/publicaciones", description: "Fotos o un video con una frase, como un post. El texto largo es opcional." },
+  { kind: "lugar", label: "Lugar", href: "/admin/lugares/nuevo", navHref: "/admin/lugares", description: "Un sitio para conocer, con fotos, mapa y cómo llegar." },
+  { kind: "celebracion", label: "Celebración", href: "/admin/celebraciones/nuevo", navHref: "/admin/celebraciones", description: "Una fecha importante que vuelve cada año." },
+  { kind: "galeria", label: "Galería", href: "/admin/galerias/nuevo", navHref: "/admin/galerias", description: "Muchas fotos juntas sobre un mismo tema." },
+  { kind: "serie", label: "Serie", href: "/admin/series/nueva", navHref: "/admin/series", description: "Videos de YouTube en capítulos, uno tras otro." },
+  { kind: "en-vivo", label: "Transmisión en vivo", href: "/admin/en-vivo/nueva", navHref: "/admin/en-vivo", description: "Tu directo de YouTube, visible aquí mientras dura." },
 ];
 
 /** Qué puede crear esta persona: un tipo por cada módulo de contenido al que accede. Lo usan Crear, la paleta y la barra del celular. */
 export function createItems(user: AdminUser): CreateItem[] {
   const allowed = new Set(visibleNavItems(user).map((item) => item.href));
-  return CREATE_ITEMS.filter((item) => allowed.has(item.navHref)).map(({ label, href }) => ({ label, href }));
+  return CREATE_ITEMS.filter((item) => allowed.has(item.navHref)).map(({ kind, label, href, description }) => ({ kind, label, href, description }));
 }

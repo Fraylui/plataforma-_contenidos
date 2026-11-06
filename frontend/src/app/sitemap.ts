@@ -6,19 +6,29 @@ import {
   listAllPublishedGalleriesForSitemap,
   listAllPublishedPlacesForSitemap,
   listAllSeriesWithEpisodesForSitemap,
+  getPlaceRegions,
 } from "@/lib/api/client";
+import { regionSlug } from "@/lib/peru-regions";
 import { SITE_URL } from "@/lib/site-url";
 import { isCelebrationFinished } from "@/lib/content-labels";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [publications, places, celebrations, galleries, categories, series] = await Promise.all([
+  const [publications, places, celebrations, galleries, categories, series, regions] = await Promise.all([
     listAllPublishedPublicationsForSitemap(),
     listAllPublishedPlacesForSitemap(),
     listAllPublishedCelebrationsForSitemap(),
     listAllPublishedGalleriesForSitemap(),
     listCategoriesWithContent(),
     listAllSeriesWithEpisodesForSitemap(),
+    // Solo regiones con lugares publicados (las demás no tienen página).
+    getPlaceRegions().catch(() => []),
   ]);
+
+  const regionEntries: MetadataRoute.Sitemap = regions.map((r) => ({
+    url: `${SITE_URL}/lugares/region/${regionSlug(r.region)}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }));
 
   // Series y episodios: cada episodio es una página propia con su video (VideoObject).
   const seriesEntries: MetadataRoute.Sitemap = series.flatMap(({ series: s, episodes }) => [
@@ -69,6 +79,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
+  // Páginas de sección: solo las que tienen contenido; las vacías dan 404 y
+  // no deben llegarle a Google (CONTEXTO.md 43.5). Se usa lo que ya se trajo.
+  const anyContent = publications.length + places.length + celebrations.length + galleries.length + series.length > 0;
+  const SECTIONS: { path: string; has: boolean; changeFrequency: "daily" | "weekly"; priority: number }[] = [
+    { path: "/publicaciones", has: publications.length > 0, changeFrequency: "daily", priority: 0.6 },
+    { path: "/lugares", has: places.length > 0, changeFrequency: "weekly", priority: 0.6 },
+    { path: "/celebraciones", has: celebrations.length > 0, changeFrequency: "daily", priority: 0.6 },
+    { path: "/galerias", has: galleries.length > 0, changeFrequency: "weekly", priority: 0.5 },
+    { path: "/series", has: series.length > 0, changeFrequency: "daily", priority: 0.6 },
+    { path: "/explorar", has: anyContent, changeFrequency: "daily", priority: 0.6 },
+  ];
+  const sectionEntries: MetadataRoute.Sitemap = SECTIONS.filter((section) => section.has).map((section) => ({
+    url: `${SITE_URL}${section.path}`,
+    changeFrequency: section.changeFrequency,
+    priority: section.priority,
+  }));
+
   return [
     {
       url: SITE_URL,
@@ -76,33 +103,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 1,
     },
-    {
-      url: `${SITE_URL}/publicaciones`,
-      changeFrequency: "daily",
-      priority: 0.6,
-    },
-    {
-      url: `${SITE_URL}/celebraciones`,
-      changeFrequency: "daily",
-      priority: 0.6,
-    },
-    {
-      url: `${SITE_URL}/galerias`,
-      changeFrequency: "weekly",
-      priority: 0.5,
-    },
-    {
-      url: `${SITE_URL}/series`,
-      changeFrequency: "daily",
-      priority: 0.6,
-    },
-    {
-      url: `${SITE_URL}/explorar`,
-      changeFrequency: "daily",
-      priority: 0.6,
-    },
+    ...sectionEntries,
     ...publicationEntries,
     ...placeEntries,
+    ...regionEntries,
     ...celebrationEntries,
     ...galleryEntries,
     ...categoryEntries,

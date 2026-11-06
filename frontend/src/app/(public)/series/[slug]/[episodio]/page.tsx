@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { CaretLeft, CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { getPublishedEpisode, NotFoundError } from "@/lib/api/client";
 import { formatPublishedDate } from "@/lib/content-labels";
+import { ReactionBar } from "@/components/content/reaction-bar";
+import { YouTubeSubscribe } from "@/components/content/youtube-subscribe";
 import { YouTubeEmbed } from "@/components/content/youtube-embed";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -34,7 +36,7 @@ export async function generateMetadata({ params }: PageProps<"/series/[slug]/[ep
     title: `${episode.title} · ${series.title}`,
     description: plainExcerpt(episode.notes, episode.description),
     alternates: { canonical: `/series/${series.slug}/${episode.slug}` },
-    openGraph: { images: [youtubeThumb(episode.youtubeVideoId)], type: "video.episode" },
+    openGraph: { locale: "es_PE", images: [youtubeThumb(episode.youtubeVideoId)], type: "video.episode" },
   };
 }
 
@@ -57,6 +59,7 @@ export default async function EpisodePage({ params }: PageProps<"/series/[slug]/
       />
 
       <YouTubeEmbed videoId={episode.youtubeVideoId} title={episode.title} priority />
+      <YouTubeSubscribe className="mt-3" />
 
       <header className="mt-5">
         <Link href={`/series/${series.slug}`} className="text-sm font-semibold text-accent hover:underline">
@@ -68,6 +71,7 @@ export default async function EpisodePage({ params }: PageProps<"/series/[slug]/
           <ViewBeacon type="EPISODE" id={episode.id} />
           <LikeShareBar contentType="episodes" slug={episode.id} initialLikeCount={likeCount} title={episode.title} />
         </div>
+        <ReactionBar type="EPISODE" id={episode.id} />
       </header>
 
       {episode.notes ? (

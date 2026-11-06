@@ -16,7 +16,9 @@ import { useComposer } from "./composer/use-composer";
 import { ComposerShell, MediaCard, TopicCard, useCoverUrl, WritingCard } from "./composer/sections";
 import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
-import { baseDefaults, baseFields, baseInput, bodyField, emptyToNull, toDateTimeLocal, videosField, videosFromContent } from "./composer/schema";
+import { PhonePreview } from "./composer/phone-preview";
+import { SourcesCard } from "./composer/sources-card";
+import { baseDefaults, baseFields, baseInput, emptyToNull, toDateTimeLocal, videosField, videosFromContent, hasSomethingToShow, sourcesField, sourcesDefaults, sourcesInput } from "./composer/schema";
 
 const THIS_YEAR = new Date().getFullYear();
 
@@ -30,8 +32,9 @@ type ScopeKind = "WORLD" | "COUNTRY" | "REGION";
 const schema = z
   .object({
     ...baseFields,
-    body: bodyField,
+    body: z.string(),
     videos: videosField,
+    sources: sourcesField,
     recursYearly: z.boolean(),
     allDay: z.boolean(),
     sinceYear: z
@@ -45,6 +48,11 @@ const schema = z
     scopeKind: z.enum(["WORLD", "COUNTRY", "REGION"]),
     scopeCountry: z.string(),
     scopeRegion: z.string().max(100, "Máximo 100 caracteres."),
+  })
+  // Como un post: con fotos o un video el texto largo es opcional (PostBody en el backend).
+  .refine((values) => hasSomethingToShow(values.body, values.images, values.videos), {
+    path: ["body"],
+    message: "Agrega fotos, un video o un texto.",
   })
   .refine((values) => values.scopeKind === "WORLD" || /^[A-Z]{2}$/.test(values.scopeCountry), {
     path: ["scopeCountry"],
@@ -69,6 +77,7 @@ function startsAtIso(values: Pick<Values, "startsAt" | "allDay">): string {
 function toInput(values: Values): CelebrationInput {
   return {
     ...baseInput(values),
+    sources: sourcesInput(values.sources),
     title: values.title.trim(),
     body: values.body,
     videos: values.videos,
@@ -121,6 +130,7 @@ export function CelebrationComposer({ categories, places, allImages, celebration
       ...baseDefaults(celebration?.title, celebration),
       body: celebration?.body ?? "",
       videos: videosFromContent(celebration?.videos),
+      sources: sourcesDefaults(celebration?.sources),
       // Lo más común: fechas cívicas que vuelven cada año, de todo el día.
       recursYearly: celebration?.recursYearly ?? true,
       allDay: celebration?.allDay ?? true,
@@ -187,7 +197,16 @@ function CelebrationBody({
       main={
         <>
           <MediaCard allImages={allImages} readOnly={readOnly} />
-          <WritingCard excerptDefault={celebration?.excerpt ?? ""} allImages={allImages} readOnly={readOnly} />
+          <WritingCard
+            excerptDefault={celebration?.excerpt ?? ""}
+            allImages={allImages}
+            readOnly={readOnly}
+            collapsibleBody
+            excerptLabel="¿Qué se celebra?"
+            excerptHint="Una o dos frases: es lo que verá la gente junto a tus fotos."
+            excerptPlaceholder="Escribe algo…"
+            bodyHint="Opcional si subiste fotos o un video."
+          />
           <WhenAndWhereCard places={places} readOnly={readOnly} />
           <ScopeCard readOnly={readOnly} />
           <ShareCard
@@ -197,6 +216,7 @@ function CelebrationBody({
             metaDescriptionDefault={celebration?.metaDescription ?? ""}
             readOnly={readOnly}
           />
+          <SourcesCard readOnly={readOnly} />
         </>
       }
       publish={publish}
@@ -218,6 +238,7 @@ function CelebrationBody({
                 : null
             }
           />
+          <PhonePreview siteName={siteName} categories={categories} allImages={allImages} />
         </>
       }
     />

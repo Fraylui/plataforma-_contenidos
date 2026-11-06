@@ -1,5 +1,6 @@
 import {
   getFeed,
+  getFeedMoods,
   getFeedTopics,
   getLiveNow,
   getPlatformSettings,
@@ -12,7 +13,7 @@ import {
   listActiveStories,
 } from "@/lib/api/client";
 import type { AdSection } from "@/lib/ads/ad-context";
-import { fromFeedItem } from "@/lib/home-items";
+import { fromFeedItem, fromFeedPage } from "@/lib/home-items";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { LiveBanner } from "@/components/live/live-banner";
 import { TodayCelebrations } from "@/components/celebrations/today-celebrations";
@@ -24,6 +25,8 @@ import { TopicHighlights } from "@/components/stories/topic-highlights";
 import type { StoryTopicRef, StoryView } from "@/lib/api/types";
 import { FilterChips } from "./filter-chips";
 import { typeChipOptions } from "./type-chips";
+import { MoodIcon } from "./mood-icon";
+import { MOODS } from "@/lib/moods";
 import { Feed } from "./feed";
 import { RightColumn } from "./right-column";
 import type { FeedFilter } from "./use-feed-pages";
@@ -76,7 +79,9 @@ export async function FeedScreen({
   const celebrationsFeed = filter.sort === "upcoming";
   // «Hoy se celebra» va en el inicio y en Celebraciones; no en cada sección ni tema.
   const showToday = activePath === "/" || celebrationsFeed;
-  const [settings, categories, topics, feedPage, upcoming, visibility, placements, topLikedRaw, liveNow, todayCelebrations, activeStories] = await Promise.all([
+  // Ánimos («Quiero reírme»…) en el inicio y en sus propias pantallas.
+  const showMoods = activePath === "/" || activePath.startsWith("/animo/");
+  const [settings, categories, topics, feedPage, upcoming, visibility, placements, topLikedRaw, liveNow, todayCelebrations, activeStories, moods] = await Promise.all([
     getPlatformSettings(),
     listActiveCategories(),
     getFeedTopics().catch(orDefault("inicio.temas", [])),
@@ -91,7 +96,17 @@ export async function FeedScreen({
     showToday ? listTodayCelebrations().catch(orDefault("inicio.hoy-se-celebra", [])) : Promise.resolve([]),
     // Historias solo en el Inicio; si fallan, la fila queda como la de temas de siempre.
     activePath === "/" ? listActiveStories().catch(orDefault("inicio.historias", [])) : Promise.resolve([]),
+    showMoods ? getFeedMoods().catch(orDefault("inicio.animos", [] as string[])) : Promise.resolve([] as string[]),
   ]);
+  // Lo vacío no aparece: solo los ánimos que ya provocó algún contenido.
+  const moodChips = MOODS.filter((m) => moods.includes(m.key)).map((m) => ({
+    label: m.label,
+    href: `/animo/${m.slug}`,
+    active: activePath === `/animo/${m.slug}`,
+    leading: <MoodIcon mood={m.key} />,
+  }));
+  const [allChip, ...typeChips] = typeChipOptions(visibility, activePath);
+  const chipOptions = [allChip, ...moodChips, ...typeChips];
 
   const categoryNames: Record<string, string> = Object.fromEntries(categories.map((c) => [c.id, c.name]));
   const topicBubbles: TopicStory[] = topics.map((t) => ({
@@ -149,10 +164,10 @@ export async function FeedScreen({
             <StoriesLauncher topics={activeStories} imageSrc={storyImageSrc} recent={feedPage.items.slice(0, 6).map(fromFeedItem)}>
               <TopicStories topics={stories} activeCategoryId={activeCategoryId} />
             </StoriesLauncher>
-            <FilterChips label="Tipo de contenido" options={typeChipOptions(visibility, activePath)} className="mt-2 mb-3" />
+            <FilterChips label="Qué ver" options={chipOptions} className="mt-2 mb-3" />
           </div>
           <Feed
-            initialItems={feedPage.items.map(fromFeedItem)}
+            initialItems={fromFeedPage(feedPage)}
             initialHasMore={feedPage.hasMore}
             seed={seed}
             filter={filter}

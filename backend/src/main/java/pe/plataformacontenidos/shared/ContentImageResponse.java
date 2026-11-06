@@ -3,10 +3,11 @@ package pe.plataformacontenidos.shared;
 import java.util.UUID;
 
 /** Espejo de ContentImage para la API: exactamente uno de los dos campos viene con valor. */
-public record ContentImageResponse(UUID imageId, String externalUrl, String title, String caption) {
+public record ContentImageResponse(UUID imageId, String externalUrl, String title, String caption, String credit,
+        boolean rightsConfirmed) {
 
     public static ContentImageResponse from(ContentImage image) {
         return new ContentImageResponse(image.getImageId(), image.getExternalUrl(), image.getTitle(),
-                image.getCaption());
+                image.getCaption(), image.getCredit(), image.isRightsConfirmed());
     }
 }

@@ -12,6 +12,7 @@ import { PostMedia } from "./post-media";
 import { GalleryMosaic } from "./gallery-mosaic";
 import { CelebrationStamp } from "./immersive/celebration-stamp";
 import { typeActions } from "./post-actions";
+import { ReactionPeek } from "./reaction-peek";
 
 const noSubscribe = () => () => {};
 
@@ -121,6 +122,7 @@ export function PostCard({
       </div>
 
       <div className="px-4 pt-1 pb-4">
+        <ReactionPeek href={item.href} counts={item.reactions} />
         <h2 id={titleId} className="text-[15px] leading-snug font-bold text-foreground">
           <Link href={item.href} className="hover:underline">
             {item.title}

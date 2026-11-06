@@ -13,6 +13,7 @@ import pe.plataformacontenidos.engagement.ContentLikeService;
 import pe.plataformacontenidos.catalog.ContentType;
 import pe.plataformacontenidos.engagement.LikeResponse;
 import pe.plataformacontenidos.places.Place;
+import pe.plataformacontenidos.places.PeruRegion;
 import pe.plataformacontenidos.places.PlaceService;
 import pe.plataformacontenidos.shared.PageResponse;
 import pe.plataformacontenidos.places.api.dto.PlaceResponse;
@@ -36,6 +37,7 @@ public class PlacePublicController {
     @GetMapping
     public PageResponse<PlaceSummaryResponse> list(
             @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false) PeruRegion region,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         // Clamp defensivo: page<0/size<1 lanzan IllegalArgumentException, y un page
@@ -45,10 +47,21 @@ public class PlacePublicController {
         int safePage = Math.min(Math.max(page, 0), 10_000_000);
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
         var pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "publishedAt"));
-        var result = placeService.listPublished(categoryId, pageable);
+        var result = placeService.listPublished(categoryId, region, pageable);
         var likes = contentLikeService.countLikes(ContentType.PLACE,
                 result.getContent().stream().map(Place::getId).toList());
         return PageResponse.from(result, item -> PlaceSummaryResponse.from(item, likes.getOrDefault(item.getId(), 0L)));
+    }
+
+    /** Regiones del Perú con lugares publicados: [{region, count}] en el orden de PeruRegion. */
+    @GetMapping("/regions")
+    public java.util.List<RegionCount> regions() {
+        return placeService.publishedRegions().entrySet().stream()
+                .map(e -> new RegionCount(e.getKey(), e.getValue()))
+                .toList();
+    }
+
+    public record RegionCount(PeruRegion region, long count) {
     }
 
     @GetMapping("/{slug}")

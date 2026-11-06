@@ -207,6 +207,53 @@ class PublicationWorkflowIntegrationTest {
                 .andExpect(jsonPath("$.videos[0].videoId").value("dQw4w9WgXcQ"));
     }
 
+    /**
+     * Post como red social (GUIA-CREAR-CONTENIDO.md): una foto sin texto largo
+     * basta; una foto de otra persona exige confirmar el permiso; las fuentes
+     * se guardan y se devuelven en orden.
+     */
+    @Test
+    void photoOnlyPostWithCreditedPhotoAndSources() throws Exception {
+        String publisherToken = createUserAndLogin("wf-publicador-8@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String categoryId = createCategory(publisherToken, "Fuentes Test");
+        String withoutPermission = postJson(categoryId, false);
+
+        mockMvc.perform(post("/api/v1/admin/publications")
+                        .header("Authorization", "Bearer " + publisherToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(withoutPermission))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(post("/api/v1/admin/publications")
+                        .header("Authorization", "Bearer " + publisherToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(postJson(categoryId, true)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.body").value(""))
+                .andExpect(jsonPath("$.images[0].credit").value("Ana Ríos"))
+                .andExpect(jsonPath("$.images[0].rightsConfirmed").value(true))
+                .andExpect(jsonPath("$.sources[0]").value("https://www.promperu.gob.pe/destinos"))
+                .andExpect(jsonPath("$.sources[1]").value("https://www.inei.gob.pe"));
+
+        mockMvc.perform(post("/api/v1/admin/publications")
+                        .header("Authorization", "Bearer " + publisherToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Vacío\",\"publicationType\":\"GENERAL\",\"categoryId\":\"" + categoryId + "\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    private String postJson(String categoryId, boolean rightsConfirmed) {
+        return "{"
+                + "\"title\":\"Atardecer en Paracas\","
+                + "\"excerpt\":\"Así se ve desde la playa.\","
+                + "\"publicationType\":\"GENERAL\","
+                + "\"categoryId\":\"" + categoryId + "\","
+                + "\"images\":[{\"externalUrl\":\"https://example.com/paracas.jpg\",\"credit\":\"Ana Ríos\","
+                + "\"rightsConfirmed\":" + rightsConfirmed + "}],"
+                + "\"sources\":[\"https://www.promperu.gob.pe/destinos\",\"https://www.inei.gob.pe\"]"
+                + "}";
+    }
+
     private String publicationJsonWithYoutube(String categoryId, String youtubeUrl, String title) {
         return "{"
                 + "\"title\":\"" + title + "\","

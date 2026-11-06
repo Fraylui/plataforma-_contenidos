@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import pe.plataformacontenidos.catalog.ContentType;
+import pe.plataformacontenidos.engagement.Reaction;
 import pe.plataformacontenidos.feed.FeedService;
 import pe.plataformacontenidos.feed.api.dto.FeedItemResponse;
 import pe.plataformacontenidos.feed.api.dto.FeedTopicResponse;
@@ -45,9 +46,16 @@ public class FeedController {
             @RequestParam(required = false) String seed,
             @RequestParam(required = false) ContentType type,
             @RequestParam(required = false) UUID categoryId,
-            @RequestParam(required = false) String sort) {
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) Reaction mood) {
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
-        return feedService.getFeed(safeSize, exclude, seed, type, categoryId, "upcoming".equals(sort));
+        return feedService.getFeed(safeSize, exclude, seed, type, categoryId, "upcoming".equals(sort), mood);
+    }
+
+    /** Ánimos con contenido («Quiero reírme»…): los botones del inicio solo muestran estos. */
+    @GetMapping("/moods")
+    public List<Reaction> getMoods() {
+        return feedService.availableMoods();
     }
 
     /** Círculos de temas del feed — ver FeedService.getTopics. */

@@ -25,5 +25,8 @@ public record PlaceInput(
         String canonicalUrl,
         String ogImageUrl,
         List<ContentVideoInput> videos,
-        String robots) {
+        String robots,
+        java.util.List<String> sources,
+        PeruRegion region,
+        String country) {
 }

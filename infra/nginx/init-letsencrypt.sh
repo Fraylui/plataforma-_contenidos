@@ -12,12 +12,12 @@
 # certificado autofirmado "de mentira" solo para que nginx pueda arrancar
 # la primera vez; se borra apenas se obtiene el real.
 #
-# Uso: infra/init-letsencrypt.sh   (desde la raíz del repo, en el servidor)
+# Uso: infra/nginx/init-letsencrypt.sh   (desde la raíz del repo, en el servidor)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-COMPOSE_FILE="$SCRIPT_DIR/docker-compose.yml"
+COMPOSE_FILE="$REPO_ROOT/infra/docker-compose.yml"
 
 if [ -f "$REPO_ROOT/.env" ]; then
   set -a

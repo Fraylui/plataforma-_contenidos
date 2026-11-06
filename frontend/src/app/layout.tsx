@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Nunito } from "next/font/google";
 import "./globals.css";
 import { getPlatformSettings } from "@/lib/api/client";
 import { SITE_URL } from "@/lib/site-url";
@@ -9,9 +9,17 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+/** Títulos con la letra redondeada y gruesa del logo de khipu. */
+const nunito = Nunito({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["800", "900"],
+});
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPlatformSettings();
-  const ogImage = settings.ogImageUrl || undefined;
+  // Sin imagen propia, una generada con el nombre del sitio (ver app/og/sitio).
+  const ogImage = settings.ogImageUrl || "/og/sitio";
   return {
     metadataBase: new URL(SITE_URL),
     title: {
@@ -20,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: settings.description || undefined,
     alternates: { canonical: "/", types: { "application/rss+xml": "/rss.xml" } },
-    openGraph: ogImage ? { images: [ogImage] } : undefined,
+    openGraph: { images: [ogImage], siteName: settings.name, locale: "es_PE", type: "website" },
     verification: settings.googleSearchConsoleVerification
       ? { google: settings.googleSearchConsoleVerification }
       : undefined,
@@ -30,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${inter.variable} h-full antialiased`}>
+    <html lang="es-PE" className={`${inter.variable} ${nunito.variable} h-full antialiased`}>
       <body className="min-h-full bg-background text-foreground">
         {children}
       </body>

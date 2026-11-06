@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 import pe.plataformacontenidos.catalog.ContentType;
 
 /**
- * Me gusta y visitas totales de una página de un listado del panel: dos
- * consultas por página (no una por fila). Las visitas son las ya volcadas a
+ * Me gusta, visitas, reacciones y clics de afiliado de una página de un
+ * listado del panel: una consulta por cifra y página (no una por fila). Las visitas son las ya volcadas a
  * la base (ContentViewFlushJob), así que pueden ir hasta un minuto atrás.
  */
 @Service
@@ -46,12 +46,34 @@ public class ContentEngagementService {
                 rs -> {
                     viewCounts.put(rs.getObject(1, UUID.class), rs.getLong(2));
                 }, params);
+        Map<UUID, Long> reactionCounts = grouped("SELECT content_id, COUNT(*) FROM engagement.content_reactions"
+                + " WHERE content_type = ? AND content_id IN (" + placeholders + ") GROUP BY content_id", params);
+        // Clics en enlaces de afiliado (módulo affiliates): se lee la tabla, sin depender del módulo.
+        Map<UUID, Long> affiliateClicks = grouped("SELECT content_id, SUM(clicks) FROM affiliates.affiliate_links"
+                + " WHERE content_type = ? AND content_id IN (" + placeholders + ") GROUP BY content_id", params);
         for (UUID id : ids) {
-            result.put(id, new Counts(likeCounts.getOrDefault(id, 0L), viewCounts.getOrDefault(id, 0L)));
+            result.put(id, new Counts(likeCounts.getOrDefault(id, 0L), viewCounts.getOrDefault(id, 0L),
+                    reactionCounts.getOrDefault(id, 0L), affiliateClicks.getOrDefault(id, 0L)));
         }
         return result;
     }
 
-    public record Counts(long likes, long views) {
+    private Map<UUID, Long> grouped(String sql, Object[] params) {
+        Map<UUID, Long> counts = new HashMap<>();
+        jdbc.query(sql, rs -> {
+            counts.put(rs.getObject(1, UUID.class), rs.getLong(2));
+        }, params);
+        return counts;
+    }
+
+    /**
+     * Cifras de una fila: me gusta, visitas, reacciones (😍 😂 😮 🙌 juntas) y
+     * clics en sus enlaces de afiliado.
+     */
+    public record Counts(long likes, long views, long reactions, long affiliateClicks) {
+
+        public Counts(long likes, long views) {
+            this(likes, views, 0, 0);
+        }
     }
 }

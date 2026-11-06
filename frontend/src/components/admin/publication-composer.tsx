@@ -6,6 +6,7 @@ import type { AdminImage, PublicationInput } from "@/lib/api/admin-types";
 import type { Publication, PublicationType, Category } from "@/lib/api/types";
 import type { PublicationPermissions } from "@/lib/admin/publication";
 import { publicationTypeLabel } from "@/lib/content-labels";
+import type { PublicationTemplate } from "@/lib/admin/publication-templates";
 import { Combobox, Field } from "@/components/ui";
 import { createPublicationAction, updatePublicationAction } from "@/app/admin/(protected)/publicaciones/actions";
 import { PublishPanel } from "./publish-panel";
@@ -13,21 +14,41 @@ import { useComposer } from "./composer/use-composer";
 import { ComposerShell, MediaCard, TopicCard, useCoverUrl, WritingCard } from "./composer/sections";
 import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
-import { baseDefaults, baseFields, baseInput, bodyField, videosField, videosFromContent } from "./composer/schema";
+import { PhonePreview } from "./composer/phone-preview";
+import { SourcesCard } from "./composer/sources-card";
+import { baseDefaults, baseFields, baseInput, videosField, videosFromContent, hasSomethingToShow, sourcesField, sourcesDefaults, sourcesInput } from "./composer/schema";
 
 const PUBLICATION_TYPES: PublicationType[] = ["GENERAL", "GUIA", "LISTA", "TUTORIAL", "HISTORIA"];
 
-const schema = z.object({
-  ...baseFields,
-  body: bodyField,
-  publicationType: z.enum(PUBLICATION_TYPES as [PublicationType, ...PublicationType[]]),
-  videos: videosField,
-});
+/*
+ * Como un post de red social: con fotos o un video, el texto es opcional
+ * (basta la descripción corta). Sin nada que mostrar, se pide algo.
+ * Misma regla que PublicationService.bodyOrEmpty en el backend.
+ */
+const schema = z
+  .object({
+    ...baseFields,
+    body: z.string(),
+    publicationType: z.enum(PUBLICATION_TYPES as [PublicationType, ...PublicationType[]]),
+    videos: videosField,
+    sources: sourcesField,
+  })
+  .refine((values) => hasSomethingToShow(values.body, values.images, values.videos), {
+    path: ["body"],
+    message: "Agrega fotos, un video o un texto.",
+  });
 
 type Values = z.infer<typeof schema>;
 
 function toInput(values: Values): PublicationInput {
-  return { ...baseInput(values), title: values.title.trim(), body: values.body, publicationType: values.publicationType, videos: values.videos };
+  return {
+    ...baseInput(values),
+    title: values.title.trim(),
+    body: values.body,
+    publicationType: values.publicationType,
+    videos: values.videos,
+    sources: sourcesInput(values.sources),
+  };
 }
 
 interface PublicationComposerProps {
@@ -36,6 +57,8 @@ interface PublicationComposerProps {
   publication?: Publication;
   permissions: PublicationPermissions;
   siteName: string;
+  /** Solo al crear: estructura inicial del texto y formato (ver publication-templates). */
+  template?: PublicationTemplate;
 }
 
 /**
@@ -43,16 +66,17 @@ interface PublicationComposerProps {
  * grande, descripción corta y texto; Publicar, tema y formato, vista previa
  * en el feed y «Cómo se ve al compartir». Las piezas viven en ./composer.
  */
-export function PublicationComposer({ categories, allImages, publication, permissions, siteName }: PublicationComposerProps) {
+export function PublicationComposer({ categories, allImages, publication, permissions, siteName, template }: PublicationComposerProps) {
   const status = publication?.status ?? "DRAFT";
   const readOnly = !permissions.canEdit;
   const { form, id, save, saving, savedAt, error } = useComposer({
     schema,
     defaultValues: {
       ...baseDefaults(publication?.title, publication),
-      body: publication?.body ?? "",
-      publicationType: publication?.publicationType ?? "GENERAL",
+      body: publication?.body ?? template?.body ?? "",
+      publicationType: publication?.publicationType ?? template?.type ?? "GENERAL",
       videos: videosFromContent(publication?.videos),
+      sources: sourcesDefaults(publication?.sources),
     },
     initialId: publication?.id ?? "",
     status,
@@ -101,7 +125,16 @@ function ComposerBody({
       main={
         <>
           <MediaCard allImages={allImages} readOnly={readOnly} />
-          <WritingCard excerptDefault={publication?.excerpt ?? ""} allImages={allImages} readOnly={readOnly} />
+          <WritingCard
+            excerptDefault={publication?.excerpt ?? ""}
+            allImages={allImages}
+            readOnly={readOnly}
+            bodyHint="Opcional si subiste fotos o un video."
+            collapsibleBody
+            excerptLabel="¿Qué quieres contar?"
+            excerptHint="Una o dos frases: es lo que verá la gente junto a tus fotos."
+            excerptPlaceholder="Escribe algo…"
+          />
           <ShareCard
             siteName={siteName}
             path={`/publicaciones/${publication?.slug ?? "…"}`}
@@ -109,13 +142,14 @@ function ComposerBody({
             metaDescriptionDefault={publication?.metaDescription ?? ""}
             readOnly={readOnly}
           />
+          <SourcesCard readOnly={readOnly} />
         </>
       }
       publish={publish}
       aside={
         <>
-          <TopicCard title="Tema y formato" categories={categories} readOnly={readOnly}>
-            <Field label="Formato" name="publicationType">
+          <TopicCard title="Tema" categories={categories} readOnly={readOnly}>
+            <Field label="Tipo de post (opcional)" name="publicationType">
               <Controller
                 name="publicationType"
                 render={({ field }) => (
@@ -130,6 +164,7 @@ function ComposerBody({
             </Field>
           </TopicCard>
           <FeedCardPreview siteName={siteName} coverUrl={coverUrl} categories={categories} />
+          <PhonePreview siteName={siteName} categories={categories} allImages={allImages} />
         </>
       }
     />

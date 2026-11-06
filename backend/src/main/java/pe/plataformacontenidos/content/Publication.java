@@ -22,8 +22,9 @@ import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentVideo;
 
 /**
- * Un artículo de texto (sección 3: noticia, reportaje, crónica, etc. — todos
- * comparten la misma forma, solo cambia publicationType). author_id y
+ * Una publicación: un post con fotos o video, una frase y, si hace falta,
+ * texto largo (sección 3; el formato —General, Guía, Lista, Tutorial,
+ * Historia— solo cambia publicationType). author_id y
  * category_id son UUID sin FK: pertenecen a los módulos Identity y Taxonomy
  * respectivamente, y este módulo no hace joins cruzados de esquema
  * (CONTEXTO.md sección 38). Se validan en PublicationService llamando a los
@@ -90,6 +91,10 @@ public class Publication extends PublishableContent {
 
     @Column(nullable = false)
     private String robots = "index,follow";
+
+    /** Fuentes del post, una por línea (ver PostSources). */
+    @Column(name = "sources")
+    private String sources;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
@@ -168,6 +173,15 @@ public class Publication extends PublishableContent {
 
     public List<ContentVideo> getVideos() {
         return videos;
+    }
+
+    public java.util.List<String> getSources() {
+        return pe.plataformacontenidos.shared.publishing.PostSources.fromColumn(sources);
+    }
+
+    /** Valida y guarda las fuentes (ver PostSources). */
+    public void setSources(java.util.List<String> sources) {
+        this.sources = pe.plataformacontenidos.shared.publishing.PostSources.toColumn(sources);
     }
 
     public String getRobots() {

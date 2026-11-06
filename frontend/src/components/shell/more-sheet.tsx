@@ -16,8 +16,10 @@ export function MoreSheet({
   triggerClassName,
   brandName,
   social,
+  sections = {},
 }: {
   triggerClassName: string;
+  sections?: Record<string, boolean>;
   brandName: string;
   social: { key: SocialKey; label: string; url: string }[];
 }) {
@@ -51,6 +53,7 @@ export function MoreSheet({
             onClosed={() => buttonRef.current?.focus()}
             brandName={brandName}
             social={social}
+            sections={sections}
           />
         </Suspense>
       )}

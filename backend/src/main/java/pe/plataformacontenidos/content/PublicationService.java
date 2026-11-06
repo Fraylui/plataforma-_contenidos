@@ -19,9 +19,10 @@ import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.publishing.InvalidPhotoCreditException;
 import pe.plataformacontenidos.shared.ContentVideo;
 import pe.plataformacontenidos.shared.ContentVideoInput;
-import pe.plataformacontenidos.shared.HtmlSanitizer;
+import pe.plataformacontenidos.shared.publishing.PostBody;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.shared.publishing.InvalidPublicationTransitionException;
 import pe.plataformacontenidos.shared.publishing.PublicationStatus;
@@ -57,13 +58,14 @@ public class PublicationService {
         }
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
-        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
+        String sanitizedBody = PostBody.orEmpty(input.body(), images, videos);
 
         Publication publication = new Publication(uniqueSlugFrom(input.title()), input.title(), input.excerpt(), sanitizedBody,
                 input.publicationType(), authorId, input.categoryId());
         publication.updateContent(input.title(), input.excerpt(), sanitizedBody, input.publicationType(), input.categoryId(),
                 input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
                 input.ogImageUrl(), images, videos, input.robots());
+        publication.setSources(input.sources());
 
         Publication saved = publicationRepository.save(publication);
         audit("PUBLICATION_CREATED", saved, authorId);
@@ -79,11 +81,12 @@ public class PublicationService {
         }
         List<ContentImage> images = validateImages(input.images());
         List<ContentVideo> videos = resolveVideos(input.videos());
-        String sanitizedBody = HtmlSanitizer.sanitize(input.body());
+        String sanitizedBody = PostBody.orEmpty(input.body(), images, videos);
 
         publication.updateContent(input.title(), input.excerpt(), sanitizedBody, input.publicationType(), input.categoryId(),
                 input.seoTitle(), input.metaDescription(), input.canonicalUrl(),
                 input.ogImageUrl(), images, videos, input.robots());
+        publication.setSources(input.sources());
         Publication saved = publicationRepository.save(publication);
         audit("PUBLICATION_UPDATED", saved, actingUserId);
         return saved;
@@ -178,12 +181,13 @@ public class PublicationService {
             if (!input.isValidShape() || (input.hasExternalUrl() && !input.isValidExternalUrl())) {
                 throw new InvalidPublicationImageException();
             }
+            if (!input.hasValidCredit()) {
+                throw new InvalidPhotoCreditException();
+            }
             if (input.hasImageId()) {
                 imageService.getOrThrow(input.imageId());
-                result.add(ContentImage.uploaded(input.imageId(), input.title(), input.caption()));
-            } else {
-                result.add(ContentImage.external(input.externalUrl(), input.title(), input.caption()));
             }
+            result.add(input.toContentImage());
         }
         return result;
     }

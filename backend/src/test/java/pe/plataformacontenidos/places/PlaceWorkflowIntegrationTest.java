@@ -65,11 +65,26 @@ class PlaceWorkflowIntegrationTest {
         mockMvc.perform(get("/api/v1/places/pampa-de-la-quinua"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Pampa de la Quinua"))
-                .andExpect(jsonPath("$.latitude").value(-13.04));
+                .andExpect(jsonPath("$.latitude").value(-13.04))
+                .andExpect(jsonPath("$.region").value("AYACUCHO"))
+                .andExpect(jsonPath("$.country").value("PE"));
 
         mockMvc.perform(get("/api/v1/places").param("categoryId", categoryId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[?(@.slug == 'pampa-de-la-quinua')]").exists());
+
+        // Página por región: lista los lugares de la región y la región aparece con su cantidad.
+        mockMvc.perform(get("/api/v1/places").param("region", "AYACUCHO"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.slug == 'pampa-de-la-quinua')].region").value(org.hamcrest.Matchers.hasItem("AYACUCHO")));
+        mockMvc.perform(get("/api/v1/places").param("region", "CUSCO"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.slug == 'pampa-de-la-quinua')]").doesNotExist());
+        mockMvc.perform(get("/api/v1/places/regions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.region == 'AYACUCHO')].count").exists());
+        mockMvc.perform(get("/api/v1/places").param("region", "ATLANTIDA"))
+                .andExpect(status().isBadRequest());
 
         // Archivar lo retira de la vista pública
         mockMvc.perform(post("/api/v1/admin/places/" + placeId + "/archive")
@@ -110,6 +125,29 @@ class PlaceWorkflowIntegrationTest {
     }
 
     @Test
+    void placeOutsidePeruKeepsItsCountryAndDropsThePeruvianRegion() throws Exception {
+        String creatorToken = createUserAndLogin("places-creador-pais@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
+        String publisherToken = createUserAndLogin("places-publicador-pais@plataforma-contenidos.test", TestProfile.PUBLICADOR);
+        String categoryId = createCategory(publisherToken, "Categoría País Test");
+
+        mockMvc.perform(post("/api/v1/admin/places")
+                        .header("Authorization", "Bearer " + creatorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Salar de Uyuni\",\"body\":\"Historia.\","
+                                + "\"categoryId\":\"" + categoryId + "\",\"country\":\"bo\",\"region\":\"PUNO\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.country").value("BO"))
+                .andExpect(jsonPath("$.region").doesNotExist());
+
+        mockMvc.perform(post("/api/v1/admin/places")
+                        .header("Authorization", "Bearer " + creatorToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"País inválido\",\"body\":\"Historia.\","
+                                + "\"categoryId\":\"" + categoryId + "\",\"country\":\"PER\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void rejectsInvalidCoordinates() throws Exception {
         String creatorToken = createUserAndLogin("places-creador-5@plataforma-contenidos.test", TestProfile.SOLO_CONTENIDO);
         String publisherToken = createUserAndLogin("places-publicador-5@plataforma-contenidos.test", TestProfile.PUBLICADOR);
@@ -129,7 +167,7 @@ class PlaceWorkflowIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"" + name + "\",\"excerpt\":\"Resumen breve\","
                                 + "\"body\":\"Historia completa del lugar, con suficiente contenido.\","
-                                + "\"categoryId\":\"" + categoryId + "\",\"latitude\":-13.04,\"longitude\":-74.15}"))
+                                + "\"categoryId\":\"" + categoryId + "\",\"latitude\":-13.04,\"longitude\":-74.15,\"region\":\"AYACUCHO\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("DRAFT"))
                 .andReturn();

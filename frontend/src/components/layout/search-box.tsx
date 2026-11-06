@@ -181,7 +181,7 @@ export function SearchBox({
   const showDropdown = open && query.trim().length > 0;
 
   return (
-    <div ref={containerRef} className={cn("relative", panel ? "w-full" : desktop ? "hidden w-full sm:block" : "sm:hidden")}>
+    <div ref={containerRef} className={cn("relative", panel ? "w-full" : desktop ? "hidden w-full sm:block" : "w-full sm:hidden")}>
       <form
         role="search"
         onSubmit={(e) => {
@@ -196,7 +196,8 @@ export function SearchBox({
           className={cn(
             "group flex items-center rounded-full border border-transparent bg-canvas-strong transition-[background-color,border-color,box-shadow,width] duration-200",
             "focus-within:border-accent focus-within:bg-surface focus-within:ring-4 focus-within:ring-accent/15",
-            wide ? "h-11 w-full" : "h-10 w-10 focus-within:w-[min(18rem,calc(100vw-8rem))]",
+            // Celular: barra completa (antes un círculo junto a un hueco vacío en la franja superior).
+            wide ? "h-11 w-full" : "h-10 w-full",
           )}
         >
           <MagnifyingGlass
@@ -223,7 +224,7 @@ export function SearchBox({
             onFocus={() => setOpen(true)}
             onKeyDown={onKeyDown}
             autoFocus={panel}
-            placeholder={wide ? "Buscar lugares, celebraciones, publicaciones…" : "Buscar…"}
+            placeholder={wide ? "Buscar lugares, celebraciones, publicaciones…" : "Buscar lugares, fotos…"}
             className="h-full min-w-0 flex-1 bg-transparent px-3 text-sm text-foreground placeholder-muted outline-none focus-visible:outline-none! [&::-webkit-search-cancel-button]:hidden"
           />
           {query && (
@@ -256,7 +257,7 @@ export function SearchBox({
             panel
               ? "mt-3 -mx-2 overflow-hidden"
               : "absolute top-full z-50 mt-2 overflow-hidden rounded-card border border-border bg-surface shadow-pop",
-            !panel && (desktop ? "inset-x-0" : "right-0 w-[min(22rem,calc(100vw-2rem))]"),
+            !panel && "inset-x-0",
           )}
         >
           {loading && results.length === 0 ? (

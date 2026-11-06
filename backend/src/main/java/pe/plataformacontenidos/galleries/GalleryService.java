@@ -15,6 +15,7 @@ import pe.plataformacontenidos.audit.AuditService;
 import pe.plataformacontenidos.media.ImageService;
 import pe.plataformacontenidos.shared.ContentImage;
 import pe.plataformacontenidos.shared.ContentImageInput;
+import pe.plataformacontenidos.shared.publishing.InvalidPhotoCreditException;
 import pe.plataformacontenidos.shared.Slugify;
 import pe.plataformacontenidos.shared.publishing.AdminListQuery;
 import pe.plataformacontenidos.taxonomy.CategoryNotFoundException;
@@ -150,12 +151,13 @@ public class GalleryService {
             if (!input.isValidShape() || (input.hasExternalUrl() && !input.isValidExternalUrl())) {
                 throw new InvalidGalleryImageException();
             }
+            if (!input.hasValidCredit()) {
+                throw new InvalidPhotoCreditException();
+            }
             if (input.hasImageId()) {
                 imageService.getOrThrow(input.imageId());
-                result.add(ContentImage.uploaded(input.imageId(), input.title(), input.caption()));
-            } else {
-                result.add(ContentImage.external(input.externalUrl(), input.title(), input.caption()));
             }
+            result.add(input.toContentImage());
         }
         return result;
     }

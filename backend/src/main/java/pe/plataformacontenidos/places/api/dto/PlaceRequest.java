@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
+import pe.plataformacontenidos.places.PeruRegion;
 import pe.plataformacontenidos.places.PlaceInput;
 import pe.plataformacontenidos.shared.ContentImageInput;
 import pe.plataformacontenidos.shared.ContentVideoInput;
@@ -14,7 +15,7 @@ import pe.plataformacontenidos.shared.ContentVideoInput;
 public record PlaceRequest(
         @NotBlank @Size(max = 200) String name,
         @Size(max = 500) String excerpt,
-        @NotBlank String body,
+        String body,
         @NotNull UUID categoryId,
         @DecimalMin("-90") @DecimalMax("90") Double latitude,
         @DecimalMin("-180") @DecimalMax("180") Double longitude,
@@ -24,11 +25,17 @@ public record PlaceRequest(
         String canonicalUrl,
         String ogImageUrl,
         List<ContentVideoInput> videos,
-        String robots) {
+        String robots,
+        /** Enlaces de las fuentes, hasta 10 (ver PostSources). */
+        List<String> sources,
+        /** Región del Perú (opcional): sello del Pasaporte. */
+        PeruRegion region,
+        /** País ISO 3166-1 alfa-2 (PE, CL, ES…); opcional. */
+        @jakarta.validation.constraints.Pattern(regexp = "^[A-Za-z]{2}$") String country) {
 
     public PlaceInput toInput() {
         return new PlaceInput(name, excerpt, body, categoryId, latitude, longitude,
                 images == null ? List.of() : images, seoTitle, metaDescription, canonicalUrl, ogImageUrl,
-                videos == null ? List.of() : videos, robots);
+                videos == null ? List.of() : videos, robots, sources, region, country);
     }
 }

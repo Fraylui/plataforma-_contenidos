@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { PostSources } from "@/components/post/post-sources";
+import { ReactionBar } from "@/components/content/reaction-bar";
 import { PROSE } from "@/lib/prose";
 import { notFound } from "next/navigation";
 import { CalendarBlank, CalendarPlus, DownloadSimple, GlobeHemisphereWest, MapPin } from "@phosphor-icons/react/dist/ssr";
@@ -74,6 +76,7 @@ export async function generateMetadata(props: PageProps<"/celebraciones/[slug]">
     alternates: { canonical: celebration.canonicalUrl || `/celebraciones/${slug}` },
     robots: robotsWithLargePreview(celebration.robots),
     openGraph: {
+      locale: "es_PE",
       title,
       description,
       type: "website",
@@ -191,6 +194,7 @@ export default async function CelebrationPage(props: PageProps<"/celebraciones/[
       />
 
       <PostView
+        reactionBar={<ReactionBar type="CELEBRATION" id={celebration.id} />}
         variant="immersive"
         cover={heroCover(celebration.images, celebration.videos)}
         heroBadge={finished ? undefined : <CelebrationStamp nextAt={celebration.nextOccurrenceAt} />}
@@ -210,7 +214,10 @@ export default async function CelebrationPage(props: PageProps<"/celebraciones/[
         body={
           // celebration.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
           // de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
-          <div className={PROSE} dangerouslySetInnerHTML={{ __html: celebration.body }} />
+          <>
+            <div className={PROSE} dangerouslySetInnerHTML={{ __html: celebration.body }} />
+            <PostSources sources={celebration.sources} />
+          </>
         }
         actions={
           <>

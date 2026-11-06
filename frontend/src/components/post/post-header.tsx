@@ -96,9 +96,11 @@ export function PostHeader({
       <div className="min-w-0 leading-tight">
         <p className="truncate text-sm">
           <span className={`font-bold ${strong}`}>{brand.name}</span>
-          <span className={soft}> · {typeLabel}</span>
         </p>
+        {/* El tipo va abajo con el tema: arriba se cortaba («· Public…») junto al nombre. */}
         <p className={`truncate text-xs ${soft}`}>
+          {typeLabel}
+          {(categoryName || time) && " · "}
           {categoryName && (
             <>
               {categoryName}

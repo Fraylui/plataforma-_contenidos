@@ -13,37 +13,44 @@ import { useComposer } from "./composer/use-composer";
 import { ComposerShell, MediaCard, TopicCard, useCoverUrl, WritingCard } from "./composer/sections";
 import { ShareCard } from "./composer/share-card";
 import { FeedCardPreview } from "./composer/feed-card-preview";
+import { PhonePreview } from "./composer/phone-preview";
+import { SourcesCard } from "./composer/sources-card";
+import { RegionField } from "./composer/region-field";
 import { LocationFields } from "./composer/location-fields";
-import {
-  baseDefaults,
-  baseFields,
-  baseInput,
-  bodyField,
-  coordinateField,
-  coordinateOrNull,
-  videosField,
-  videosFromContent,
-} from "./composer/schema";
+import { baseDefaults, baseFields, baseInput, coordinateField, coordinateOrNull, videosField, videosFromContent, hasSomethingToShow, sourcesField, sourcesDefaults, sourcesInput } from "./composer/schema";
 
-const schema = z.object({
+const schema = z
+  .object({
   ...baseFields,
   title: z.string().trim().min(1, "Escribe el nombre del lugar.").max(200, "Máximo 200 caracteres."),
-  body: bodyField,
+  body: z.string(),
   videos: videosField,
+  sources: sourcesField,
   latitude: coordinateField(-90, 90, "La latitud va de -90 a 90."),
   longitude: coordinateField(-180, 180, "La longitud va de -180 a 180."),
-});
+  region: z.string(),
+  country: z.string(),
+  })
+  // Como un post: con fotos o un video el texto largo es opcional (PostBody en el backend).
+  .refine((values) => hasSomethingToShow(values.body, values.images, values.videos), {
+    path: ["body"],
+    message: "Agrega fotos, un video o un texto.",
+  });
 
 type Values = z.infer<typeof schema>;
 
 function toInput(values: Values): PlaceInput {
   return {
     ...baseInput(values),
+    sources: sourcesInput(values.sources),
     name: values.title.trim(),
     body: values.body,
     videos: values.videos,
     latitude: coordinateOrNull(values.latitude),
     longitude: coordinateOrNull(values.longitude),
+    country: values.country || null,
+    // La región del Perú solo vale con país Perú (el servidor también lo hace cumplir).
+    region: (values.country === "PE" && values.region ? values.region : null) as PlaceInput["region"],
   };
 }
 
@@ -67,8 +74,12 @@ export function PlaceComposer({ categories, allImages, place, permissions, siteN
       ...baseDefaults(place?.name, place),
       body: place?.body ?? "",
       videos: videosFromContent(place?.videos),
+      sources: sourcesDefaults(place?.sources),
       latitude: place?.latitude != null ? String(place.latitude) : "",
       longitude: place?.longitude != null ? String(place.longitude) : "",
+      region: place?.region ?? "",
+      // Lugar nuevo: Perú por defecto (la mayoría del contenido es de aquí).
+      country: place ? (place.country ?? "") : "PE",
     },
     initialId: place?.id ?? "",
     status,
@@ -123,9 +134,15 @@ function PlaceBody({
             excerptDefault={place?.excerpt ?? ""}
             allImages={allImages}
             readOnly={readOnly}
+            collapsibleBody
+            excerptLabel="¿Qué tiene de especial?"
+            excerptHint="Una o dos frases: es lo que verá la gente junto a tus fotos."
+            excerptPlaceholder="Escribe algo…"
+            bodyHint="Opcional si subiste fotos o un video."
           />
           <Card title="Ubicación">
             <LocationFields readOnly={readOnly} startAt={mapStartAt} />
+            <RegionField readOnly={readOnly} />
           </Card>
           <ShareCard
             siteName={siteName}
@@ -134,6 +151,7 @@ function PlaceBody({
             metaDescriptionDefault={place?.metaDescription ?? ""}
             readOnly={readOnly}
           />
+          <SourcesCard readOnly={readOnly} />
         </>
       }
       publish={publish}
@@ -141,6 +159,7 @@ function PlaceBody({
         <>
           <TopicCard categories={categories} readOnly={readOnly} />
           <FeedCardPreview siteName={siteName} coverUrl={coverUrl} categories={categories} />
+          <PhonePreview siteName={siteName} categories={categories} allImages={allImages} />
         </>
       }
     />

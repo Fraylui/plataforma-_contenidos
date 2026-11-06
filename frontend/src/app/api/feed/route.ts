@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { fromFeedItem } from "@/lib/home-items";
-import type { FeedItem } from "@/lib/api/types";
+import { fromFeedPage } from "@/lib/home-items";
+import type { FeedPage } from "@/lib/api/types";
+import { isMoodKey } from "@/lib/moods";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL ?? "http://localhost:8080";
 const MAX_SIZE = 30; // = MAX_PAGE_SIZE en FeedController
@@ -38,12 +39,14 @@ export async function GET(request: NextRequest) {
   const categoryId = params.get("categoryId");
   if (categoryId && UUID.test(categoryId)) query.set("categoryId", categoryId);
   if (params.get("sort") === "upcoming") query.set("sort", "upcoming");
+  const mood = params.get("mood");
+  if (isMoodKey(mood)) query.set("mood", mood);
   for (const id of exclude) query.append("exclude", id);
 
   const res = await fetch(`${BACKEND_API_URL}/api/v1/feed?${query.toString()}`, { cache: "no-store" });
   if (!res.ok) {
     return NextResponse.json({ items: [], hasMore: false }, { status: res.status });
   }
-  const page: { items: FeedItem[]; hasMore: boolean } = await res.json();
-  return NextResponse.json({ items: page.items.map(fromFeedItem), hasMore: page.hasMore });
+  const page: FeedPage = await res.json();
+  return NextResponse.json({ items: fromFeedPage(page), hasMore: page.hasMore });
 }

@@ -1,26 +1,29 @@
+import Link from "next/link";
 import type { Metadata } from "next";
+import { ReactionBar } from "@/components/content/reaction-bar";
 import { PROSE } from "@/lib/prose";
 import { notFound } from "next/navigation";
-import { NavigationArrow } from "@phosphor-icons/react/dist/ssr";
-import { getCategoryById, getPlatformSettings, getPublishedPlaceBySlug, getRelatedWithFallback } from "@/lib/api/client";
+import { getCategoryById, getPlatformSettings, getPublishedPlaceBySlug, getRelatedWithFallback, listAffiliateLinks } from "@/lib/api/client";
+import { AffiliateRecommendations } from "@/components/post/affiliate-recommendations";
+import { PostSources } from "@/components/post/post-sources";
 import { NotFoundError } from "@/lib/api/client";
-import { POST_ACTION_PILL } from "@/components/content/like-share-bar";
 import { FloatingReactions } from "@/components/post/immersive/floating-reactions";
 import { heroCover } from "@/components/post/immersive/immersive-hero";
 import { ViewBeacon } from "@/components/content/view-beacon";
+import { PassportButtons } from "@/components/passport/passport-buttons";
+import { regionName, regionSlug } from "@/lib/peru-regions";
 import { AdBlock } from "@/components/legal/ad-block";
 import { PostView } from "@/components/post/post-view";
 import { PostDetailMedia } from "@/components/post/post-detail-media";
 import { PostFacts } from "@/components/post/post-facts";
 import { headerTimeFor } from "@/components/post/post-header";
-import { mapsDirections } from "@/components/post/post-actions";
 import { KIND_LABEL } from "@/lib/content-kind";
 import { fromFeedItem, splitUpNext } from "@/lib/home-items";
 import { SITE_URL } from "@/lib/site-url";
 import type { Category, Place } from "@/lib/api/types";
 import { contentImageUrl, robotsWithLargePreview, shareImageUrl } from "@/lib/share-image";
 import { VideoJsonLd } from "@/components/seo/video-json-ld";
-import { orNull } from "@/lib/server-log";
+import { orDefault, orNull } from "@/lib/server-log";
 
 /** "Más como esto": 3 filas de la cuadrícula de 3. */
 const MORE_SIZE = 9;
@@ -66,6 +69,7 @@ export async function generateMetadata(props: PageProps<"/lugares/[slug]">): Pro
     alternates: { canonical: place.canonicalUrl || `/lugares/${slug}` },
     robots: robotsWithLargePreview(place.robots),
     openGraph: {
+      locale: "es_PE",
       title,
       description,
       type: "website",
@@ -116,10 +120,11 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
   const { slug } = await props.params;
   const place = await loadPlace(slug);
 
-  const [category, settings, relatedPage] = await Promise.all([
+  const [category, settings, relatedPage, affiliateLinks] = await Promise.all([
     getCategoryById(place.categoryId).catch(orNull("lugar.tema")),
     getPlatformSettings(),
     getRelatedWithFallback({ excludeType: "PLACE", excludeId: place.id, categoryId: place.categoryId, size: MORE_SIZE }),
+    listAffiliateLinks("PLACE", place.id).catch(orDefault("lugar.afiliados", [])),
   ]);
   const { upNext, more } = splitUpNext([...relatedPage.related, ...relatedPage.more].map(fromFeedItem));
 
@@ -150,6 +155,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
       />
 
       <PostView
+        reactionBar={<ReactionBar type="PLACE" id={place.id} />}
         variant="immersive"
         cover={heroCover(place.images, place.videos)}
         brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}
@@ -167,18 +173,22 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
         body={
           // place.body es HTML ya sanitizado en el backend (HtmlSanitizer, whitelist
           // de tags) antes de persistirse — nunca se renderiza HTML sin pasar por ahí.
-          <div className={PROSE} dangerouslySetInnerHTML={{ __html: place.body }} />
+          <>
+            <div className={PROSE} dangerouslySetInnerHTML={{ __html: place.body }} />
+            <PostSources sources={place.sources} />
+            <AffiliateRecommendations links={affiliateLinks} />
+          </>
         }
         actions={
           <>
             <ViewBeacon type="PLACE" id={place.id} />
-            {map && (
-              <div className="mt-6 px-4 sm:px-0">
-                <a href={mapsDirections(map.latitude, map.longitude)} target="_blank" rel="noopener noreferrer" className={POST_ACTION_PILL}>
-                  <NavigationArrow className="h-4 w-4" aria-hidden="true" />
-                  Cómo llegar
-                </a>
-              </div>
+            <PassportButtons slug={place.slug} name={place.name} href={`/lugares/${place.slug}`} region={place.region ?? null} country={place.country ?? null} />
+            {place.region && regionName(place.region) && (
+              <p className="mt-4 px-4 sm:px-0">
+                <Link href={`/lugares/region/${regionSlug(place.region)}`} className="text-sm font-semibold text-accent hover:underline">
+                  Más lugares de {regionName(place.region)}
+                </Link>
+              </p>
             )}
           </>
         }

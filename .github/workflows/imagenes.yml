@@ -1,0 +1,110 @@
+name: Imágenes Docker
+
+# Construye las imágenes de backend y frontend en GitHub y las publica en
+# GitHub Container Registry (ghcr.io). El VPS solo las descarga
+# (scripts/desplegar.sh): compilar Java y Next.js en el VPS lo dejaba lento
+# varios minutos en cada actualización (infra/DESPLIEGUE.md §2.3).
+#
+# Requisito (una vez): variable del repositorio SITE_URL (Settings → Secrets
+# and variables → Actions → Variables), ej. https://midominio.com. Next.js
+# la hornea en el bundle del navegador para pedir las fotos.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: imagenes
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  imagenes:
+    name: Construir y publicar
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      # Base y caché efímeras: next build necesita un backend arriba para
+      # generar las páginas (igual que el job frontend de ci.yml). Los datos
+      # reales llegan en el VPS por ISR, no se hornean aquí.
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: plataforma_contenidos
+          POSTGRES_USER: plataforma_contenidos
+          POSTGRES_PASSWORD: build_only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U plataforma_contenidos"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Revisar configuración
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          if [ -z "$SITE_URL" ]; then
+            echo "::error::Falta la variable SITE_URL del repositorio (ej. https://midominio.com)."
+            exit 1
+          fi
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          echo "BACKEND_IMAGE=ghcr.io/$owner/plataforma-contenidos-backend" >> "$GITHUB_ENV"
+          echo "FRONTEND_IMAGE=ghcr.io/$owner/plataforma-contenidos-frontend" >> "$GITHUB_ENV"
+
+      - name: Entrar a ghcr.io
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Backend
+        run: |
+          docker build -t "$BACKEND_IMAGE:latest" -t "$BACKEND_IMAGE:${GITHUB_SHA::12}" backend
+          docker push --all-tags "$BACKEND_IMAGE"
+
+      - name: Levantar backend para el build del frontend
+        run: |
+          docker run -d --name backend --network host \
+            -e DB_HOST=localhost -e DB_PORT=5432 -e DB_NAME=plataforma_contenidos \
+            -e DB_USER=plataforma_contenidos -e DB_PASSWORD=build_only \
+            -e REDIS_HOST=localhost -e REDIS_PORT=6379 \
+            -e JWT_SECRET=build-only-secret-never-used-outside-this-job-32b \
+            "$BACKEND_IMAGE:latest"
+          for i in $(seq 1 45); do
+            curl -sf http://localhost:8080/actuator/health && exit 0
+            sleep 2
+          done
+          echo "El backend no respondió a tiempo"; docker logs backend; exit 1
+
+      - name: Frontend
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          docker build --network host \
+            --build-arg NEXT_PUBLIC_BACKEND_ASSET_URL="$SITE_URL" \
+            --build-arg BACKEND_API_URL=http://localhost:8080 \
+            --build-arg RUNTIME_BACKEND_INTERNAL_URL=http://backend:8080 \
+            -t "$FRONTEND_IMAGE:latest" -t "$FRONTEND_IMAGE:${GITHUB_SHA::12}" frontend
+          docker push --all-tags "$FRONTEND_IMAGE"
+
+      - name: Resumen
+        run: |
+          {
+            echo "### Imágenes publicadas"
+            echo "- \`$BACKEND_IMAGE:latest\`"
+            echo "- \`$FRONTEND_IMAGE:latest\`"
+            echo
+            echo "En el VPS: \`scripts/desplegar.sh\`"
+          } >> "$GITHUB_STEP_SUMMARY"

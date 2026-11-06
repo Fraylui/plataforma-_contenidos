@@ -10,6 +10,10 @@ import { getCategoryById, getPlatformSettings } from "@/lib/api/client";
 import { computePublicationPermissions } from "@/lib/admin/publication";
 import { PublicationComposer } from "@/components/admin/publication-composer";
 import { AdminPageHeader } from "@/components/admin/ui";
+import { DuplicateButton } from "@/components/admin/duplicate-button";
+import { duplicatePublicationAction } from "../actions";
+import { AffiliateLinksEditor } from "@/components/admin/affiliate-links-editor";
+import { listAffiliateLinks } from "@/lib/api/admin/affiliates";
 import type { Category } from "@/lib/api/types";
 import { orNull } from "@/lib/server-log";
 
@@ -42,10 +46,11 @@ export default async function EditPublicationPage(props: PageProps<"/admin/publi
     throw error;
   }
 
-  const [activeCategories, allImages, settings] = await Promise.all([
+  const [activeCategories, allImages, settings, affiliateLinks] = await Promise.all([
     listActiveCategoriesFresh(),
     listAdminImages(accessToken, "CONTENT"),
     getPlatformSettings(),
+    listAffiliateLinks(accessToken, "PUBLICATION", id),
   ]);
   const categories = await resolveCategories(activeCategories, publication.categoryId);
   const permissions = computePublicationPermissions(publication, user, "publications");
@@ -53,6 +58,9 @@ export default async function EditPublicationPage(props: PageProps<"/admin/publi
   return (
     <div className="space-y-6">
       <AdminPageHeader title={publication.title} back={{ href: "/admin/publicaciones", label: "Publicaciones" }} />
+      <div className="-mt-4 flex justify-end">
+        <DuplicateButton action={duplicatePublicationAction.bind(null, id)} />
+      </div>
       <PublicationComposer
         publication={publication}
         categories={categories}
@@ -60,6 +68,7 @@ export default async function EditPublicationPage(props: PageProps<"/admin/publi
         permissions={permissions}
         siteName={settings.name}
       />
+      <AffiliateLinksEditor type="PUBLICATION" contentId={id} initialLinks={affiliateLinks} />
     </div>
   );
 }

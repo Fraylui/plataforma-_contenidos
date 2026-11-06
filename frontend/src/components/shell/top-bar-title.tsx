@@ -28,9 +28,10 @@ export function TopBarTitle({ brand }: { brand: ShellBrand }) {
       )}
       <Link href="/" className="flex min-w-0 items-center gap-2 lg:hidden">
         {brand.logoUrl && (
-          <BrandLogo logoUrl={brand.logoUrl} logoDarkUrl={brand.logoDarkUrl} className="h-8 w-8 shrink-0 rounded-lg object-cover" />
+          <BrandLogo logoUrl={brand.logoUrl} logoDarkUrl={brand.logoDarkUrl} className="h-11 w-11 shrink-0 rounded-lg object-cover" />
         )}
-        <span className="truncate text-lg font-extrabold tracking-tight text-foreground">{brand.name}</span>
+        {/* Con logo, el logo ya dice el nombre: el texto queda para lectores de pantalla. */}
+        <span className={brand.logoUrl ? "sr-only" : "truncate font-display text-xl font-black tracking-tight text-foreground"}>{brand.name}</span>
       </Link>
     </div>
   );

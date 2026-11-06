@@ -1,18 +1,37 @@
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { shortImageLabel } from "./content-images-picker";
+import type { ContentImage } from "@/lib/api/types";
+import { ContentImagesPicker } from "./content-images-picker";
 
-vi.mock("@/app/admin/(protected)/imagenes/actions", () => ({ uploadImageInlineAction: vi.fn() }));
+const { upload } = vi.hoisted(() => ({ upload: vi.fn() }));
+vi.mock("@/app/admin/(protected)/imagenes/actions", () => ({ uploadImageInlineAction: upload }));
 
-describe("shortImageLabel", () => {
-  it("deja el dominio y el archivo, legible, para distinguir enlaces del mismo sitio", () => {
-    expect(
-      shortImageLabel(
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Procesi%C3%B3n_en_Huamanga.jpg/1280px-Procesi%C3%B3n_en_Huamanga.jpg",
-      ),
-    ).toBe("upload.wikimedia.org … 1280px-Procesión_en_Huamanga.jpg");
+function Harness() {
+  const [value, setValue] = useState<ContentImage[]>([]);
+  return <ContentImagesPicker allImages={[]} value={value} onChange={setValue} />;
+}
+
+describe("ContentImagesPicker", () => {
+  it("subir varias fotos de una vez las agrega todas, en orden", async () => {
+    upload.mockImplementation(async (formData: FormData) => {
+      const name = (formData.get("file") as File).name;
+      return { ok: true, data: { id: name, url: `/api/v1/images/${name}/file`, originalFilename: name, width: 10, height: 10 } };
+    });
+    render(<Harness />);
+
+    await userEvent.upload(screen.getByLabelText(/Sube tus fotos/), [
+      new File(["x"], "a.jpg", { type: "image/jpeg" }),
+      new File(["x"], "b.jpg", { type: "image/jpeg" }),
+      new File(["x"], "c.jpg", { type: "image/jpeg" }),
+    ]);
+
+    await waitFor(() => expect(screen.getByText(/3 imágenes seleccionadas/)).toBeInTheDocument());
   });
 
-  it("lo que no es un enlace válido se muestra tal cual", () => {
-    expect(shortImageLabel("foto sin enlace")).toBe("foto sin enlace");
+  it("ya no ofrece pegar enlaces de otros sitios", () => {
+    render(<Harness />);
+    expect(screen.queryByText(/pega el enlace/i)).not.toBeInTheDocument();
   });
 });

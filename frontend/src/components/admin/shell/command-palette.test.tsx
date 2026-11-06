@@ -10,7 +10,7 @@ const NAV = [
   { href: "/admin/celebraciones", label: "Celebraciones" },
   { href: "/admin/cuenta", label: "Mi cuenta" },
 ];
-const CREATE = [{ label: "Celebración", href: "/admin/celebraciones/nuevo" }];
+const CREATE = [{ kind: "celebracion" as const, label: "Celebración", href: "/admin/celebraciones/nuevo", description: "Una fecha importante que vuelve cada año." }];
 
 function renderPalette() {
   const push = vi.fn();

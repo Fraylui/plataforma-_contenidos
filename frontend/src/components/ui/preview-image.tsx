@@ -16,8 +16,11 @@ export function PreviewImage({
   onError,
   className = "size-full object-cover",
   priority = false,
+  alt = "",
 }: {
   src: string;
+  /** Vacío por defecto (vista previa decorativa); la portada de un post le pasa su descripción. */
+  alt?: string;
   fallback: ReactNode;
   onError?: () => void;
   className?: string;
@@ -44,7 +47,7 @@ export function PreviewImage({
     <img
       ref={ref}
       src={src}
-      alt=""
+      alt={alt}
       className={className}
       {...(priority ? { fetchPriority: "high" as const, loading: "eager" as const } : { loading: "lazy" as const })}
       onError={() => {

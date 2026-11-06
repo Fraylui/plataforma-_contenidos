@@ -10,6 +10,8 @@ import { getCategoryById, getPlatformSettings } from "@/lib/api/client";
 import { computePublicationPermissions } from "@/lib/admin/publication";
 import { GalleryComposer } from "@/components/admin/gallery-composer";
 import { AdminPageHeader } from "@/components/admin/ui";
+import { DuplicateButton } from "@/components/admin/duplicate-button";
+import { duplicateGalleryAction } from "../actions";
 import type { Category } from "@/lib/api/types";
 import { orNull } from "@/lib/server-log";
 
@@ -53,6 +55,9 @@ export default async function EditGalleryPage(props: PageProps<"/admin/galerias/
   return (
     <div className="space-y-6">
       <AdminPageHeader title={gallery.title} back={{ href: "/admin/galerias", label: "Galerías" }} />
+      <div className="-mt-4 flex justify-end">
+        <DuplicateButton action={duplicateGalleryAction.bind(null, id)} />
+      </div>
       <GalleryComposer
         gallery={gallery}
         categories={categories}

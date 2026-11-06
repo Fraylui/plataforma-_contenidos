@@ -22,6 +22,12 @@ public interface PlaceRepository extends JpaRepository<Place, UUID>, JpaSpecific
 
     Page<Place> findByStatusAndCategoryId(PublicationStatus status, UUID categoryId, Pageable pageable);
 
+    Page<Place> findByStatusAndRegion(PublicationStatus status, PeruRegion region, Pageable pageable);
+
+    /** Regiones del Perú con lugares publicados y cuántos tiene cada una (páginas por región, sitemap). */
+    @Query("select p.region, count(p) from Place p where p.status = :status and p.region is not null group by p.region")
+    List<Object[]> countByRegion(@Param("status") PublicationStatus status);
+
 
     List<Place> findByStatusAndScheduledAtBefore(PublicationStatus status, Instant threshold);
 

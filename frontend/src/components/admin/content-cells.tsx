@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Eye, Heart, ImageSquare } from "@phosphor-icons/react/dist/ssr";
+import { ArrowSquareOut, Eye, Heart, ImageSquare, Smiley } from "@phosphor-icons/react/dist/ssr";
 import type { ContentImage } from "@/lib/api/types";
 import type { EngagementCounts } from "@/lib/api/admin-types";
 import { imageUrl } from "@/lib/image-url";
@@ -38,8 +38,10 @@ export function TitleCell({ href, title, images }: { href: string; title: string
 export function EngagementCell({ counts }: { counts: EngagementCounts | undefined }) {
   const views = counts?.views ?? 0;
   const likes = counts?.likes ?? 0;
+  const reactions = counts?.reactions ?? 0;
+  const clicks = counts?.affiliateClicks ?? 0;
   return (
-    <span className="inline-flex items-center gap-3 text-xs tabular-nums text-muted">
+    <span className="inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-xs tabular-nums text-muted">
       <span className="inline-flex items-center gap-1" title={`${views} visitas`}>
         <Eye className="size-3.5" aria-hidden="true" />
         <span className="sr-only">Visitas:</span>
@@ -50,6 +52,20 @@ export function EngagementCell({ counts }: { counts: EngagementCounts | undefine
         <span className="sr-only">Me gusta:</span>
         {NUMBER.format(likes)}
       </span>
+      {reactions > 0 && (
+        <span className="inline-flex items-center gap-1" title={`${reactions} reacciones`}>
+          <Smiley className="size-3.5" aria-hidden="true" />
+          <span className="sr-only">Reacciones:</span>
+          {NUMBER.format(reactions)}
+        </span>
+      )}
+      {clicks > 0 && (
+        <span className="inline-flex items-center gap-1" title={`${clicks} clics en enlaces de afiliado`}>
+          <ArrowSquareOut className="size-3.5" aria-hidden="true" />
+          <span className="sr-only">Clics de afiliado:</span>
+          {NUMBER.format(clicks)}
+        </span>
+      )}
     </span>
   );
 }

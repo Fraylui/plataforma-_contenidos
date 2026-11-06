@@ -12,6 +12,7 @@ import type {
   Publication,
   PublicationSummary,
   Category,
+  PlaceRegionCount,
   Episode,
   EpisodeView,
   Celebration,
@@ -27,6 +28,7 @@ import type {
   Place,
   PlaceSummary,
   PlatformSettings,
+  PublicAffiliateLink,
   SearchResult,
   SearchResultType,
   SeriesCard,
@@ -113,13 +115,16 @@ export async function listAllPublishedPublicationsForSitemap(): Promise<Publicat
   return items;
 }
 
-function listPublishedPlaces(params?: {
+export function listPublishedPlaces(params?: {
   categoryId?: string;
+  /** Clave de PeruRegion (AYACUCHO…): la página «Lugares de Ayacucho». */
+  region?: string;
   page?: number;
   size?: number;
 }): Promise<PageResponse<PlaceSummary>> {
   const query = new URLSearchParams();
   if (params?.categoryId) query.set("categoryId", params.categoryId);
+  if (params?.region) query.set("region", params.region);
   query.set("page", String(params?.page ?? 0));
   query.set("size", String(params?.size ?? 20));
   return apiFetch(`/api/v1/places?${query.toString()}`, 60);
@@ -127,6 +132,11 @@ function listPublishedPlaces(params?: {
 
 export function getPublishedPlaceBySlug(slug: string): Promise<Place> {
   return apiFetch(`/api/v1/places/${encodeURIComponent(slug)}`, 300);
+}
+
+/** Regiones del Perú con lugares publicados y cuántos (páginas por región y sitemap). */
+export function getPlaceRegions(): Promise<PlaceRegionCount[]> {
+  return apiFetch("/api/v1/places/regions", 300);
 }
 
 /** Usado por la página de detalle de Celebración para resolver el nombre/slug de un lugar vinculado (placeId). */
@@ -317,6 +327,8 @@ const NAV_PRESENCE_CHECKS: { href: string; checks: () => Promise<PageResponse<un
   },
   { href: "/galerias", checks: () => [listPublishedGalleries({ size: 1 })] },
   { href: "/series", checks: () => [listPublishedSeries({ size: 1 })] },
+  // «Mis viajes» se arma con los lugares: sin lugares publicados no hay dónde tocar «Ya fui».
+  { href: "/mis-viajes", checks: () => [listPublishedPlaces({ size: 1 })] },
 ];
 
 /**
@@ -331,6 +343,16 @@ const NAV_PRESENCE_CHECKS: { href: string; checks: () => Promise<PageResponse<un
  * del mismo request), así que llamar esta función otra vez desde el footer
  * no repite trabajo real.
  */
+/**
+ * Para la página de una sección (/lugares, /series…): si todavía no tiene
+ * nada publicado, la página no existe (404) en vez de mostrar "Todavía no
+ * hay…" — misma verificación que la navegación (CONTEXTO.md 43.5).
+ */
+export async function sectionHasContent(href: string): Promise<boolean> {
+  const visibility = await getPrimaryNavVisibility();
+  return visibility[href] === true;
+}
+
 export async function getPrimaryNavVisibility(): Promise<Record<string, boolean>> {
   const results = await Promise.all(
     NAV_PRESENCE_CHECKS.map(async ({ href, checks }) => {
@@ -362,6 +384,8 @@ export function getFeed(params: {
   categoryId?: string;
   /** Celebraciones: con type CELEBRATION, por la próxima vez que tocan. */
   sort?: "upcoming";
+  /** Ánimo (FUNNY, WOW…): lo que más provocó esa reacción. */
+  mood?: string;
 }): Promise<FeedPage> {
   const query = new URLSearchParams();
   query.set("size", String(params.size ?? 12));
@@ -369,8 +393,14 @@ export function getFeed(params: {
   if (params.type) query.set("type", params.type);
   if (params.categoryId) query.set("categoryId", params.categoryId);
   if (params.sort) query.set("sort", params.sort);
+  if (params.mood) query.set("mood", params.mood);
   for (const id of params.exclude ?? []) query.append("exclude", id);
   return apiFetch(`/api/v1/feed?${query.toString()}`, 60);
+}
+
+/** Ánimos con contenido (botones «Quiero reírme»…). Si falla, no se muestran botones. */
+export function getFeedMoods(): Promise<string[]> {
+  return apiFetch("/api/v1/feed/moods", 60);
 }
 
 /** Círculos de temas del feed — ver FeedController.getTopics. Si falla, el feed sigue sin círculos. */
@@ -452,6 +482,11 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
 }
 
 /** Identidad/marca (CONTEXTO.md sección 14): reemplaza src/lib/platform-placeholder.ts. */
+/** Enlaces de afiliado de una publicación o un lugar publicado (vacío si no tiene). */
+export function listAffiliateLinks(type: "PUBLICATION" | "PLACE", id: string): Promise<PublicAffiliateLink[]> {
+  return apiFetch(`/api/v1/affiliate-links?type=${type}&id=${encodeURIComponent(id)}`, 60);
+}
+
 export function getPlatformSettings(): Promise<PlatformSettings> {
   return apiFetch(`/api/v1/platform-settings`, 300);
 }

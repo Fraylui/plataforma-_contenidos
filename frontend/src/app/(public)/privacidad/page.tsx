@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacidad" },
 };
 
-const UPDATED_AT = "23 de octubre de 2026";
+const UPDATED_AT = "4 de noviembre de 2026";
 
 export default async function PrivacyPolicyPage() {
   const settings = await getPlatformSettings();
@@ -118,6 +118,41 @@ export default async function PrivacyPolicyPage() {
             </p>
           )}
         </>
+      ),
+    },
+    {
+      id: "proveedores",
+      title: "Proveedores y datos fuera del Perú",
+      content: (
+        <>
+          <p>Para que el sitio funcione usamos proveedores que tratan datos por encargo nuestro:</p>
+          <ul className="list-disc space-y-1.5 pl-6">
+            <li>
+              <strong>Cloudflare:</strong> protege el sitio y lo entrega rápido (y, si está activado, guarda nuestras
+              fotos). Para eso ve tu IP y datos técnicos de la visita.
+            </li>
+            <li>
+              <strong>Proveedor del servidor:</strong> aloja el sitio y su base de datos.
+            </li>
+          </ul>
+          <p>
+            Estos proveedores pueden procesar los datos fuera del Perú (por ejemplo, en Estados Unidos o Europa). Lo
+            hacen bajo contrato y con medidas de seguridad, como permite la Ley N.º 29733 para el flujo
+            transfronterizo de datos.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: "conservacion",
+      title: "Cuánto tiempo guardamos los datos",
+      content: (
+        <ul className="list-disc space-y-1.5 pl-6">
+          <li>Registro de seguridad del panel (correo e IP de quien entra): hasta un año, y después se borra solo.</li>
+          <li>Correos que nos escribas: lo necesario para responderte.</li>
+          <li>Datos de anunciantes: mientras dure la relación y lo que pidan las normas tributarias.</li>
+          <li>Datos técnicos de visitas en Cloudflare: según sus plazos, que no controlamos nosotros.</li>
+        </ul>
       ),
     },
     {

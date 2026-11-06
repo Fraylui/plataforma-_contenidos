@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { FeedScreen } from "@/components/feed/feed-screen";
+import { sectionHasContent } from "@/lib/api/client";
 
 const BASE_PATH = "/celebraciones";
 
@@ -17,7 +19,9 @@ export const metadata: Metadata = {
  * (las que se repiten cada año y las únicas) por la próxima vez que tocan,
  * en el mismo feed del inicio.
  */
-export default function CelebrationsPage() {
+export default async function CelebrationsPage() {
+  // Sección sin nada publicado: no existe hasta que tenga contenido (CONTEXTO.md 43.5).
+  if (!(await sectionHasContent(BASE_PATH))) notFound();
   return (
     <FeedScreen
       heading="Celebraciones"

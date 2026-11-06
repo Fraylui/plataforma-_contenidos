@@ -282,7 +282,7 @@ export function CampaignForm({
               </div>
             </FieldGroup>
 
-            <Field label="Titular (opcional)" name="headline">
+            <Field label="Título del anuncio (opcional)" name="headline">
               <TextInput
                 type="text"
                 value={headline}

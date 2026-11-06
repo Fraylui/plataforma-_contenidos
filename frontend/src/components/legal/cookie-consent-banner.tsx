@@ -25,38 +25,36 @@ export function CookieConsentBanner({ adsenseEnabled }: { adsenseEnabled: boolea
       {/* Reserva el espacio que ocupa el banner fijo: sin esto, tapa el
           footer (links Privacidad/Términos quedaban inalcanzables mientras
           el banner estaba visible — encontrado al revisar la página real). */}
-      <div aria-hidden="true" className="h-[124px] sm:h-[68px]" />
+      <div aria-hidden="true" className="h-[64px]" />
+      {/* Compacto (2026-11): antes ocupaba casi media pantalla del celular en
+          la primera visita. Una franja, texto corto y los dos botones del
+          mismo tamaño (rechazar tan fácil como aceptar). */}
       <div
         role="region"
         aria-label="Aviso de cookies"
         // En escritorio empieza después del menú lateral (como el anuncio fijo): no tapa «Información» ni los enlaces legales.
-        className="fixed inset-x-0 bottom-(--bottom-bar-h) z-50 border-t border-border bg-surface px-4 py-4 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] sm:px-6 lg:left-[76px] xl:left-[17.5rem]"
+        className="fixed inset-x-0 bottom-(--bottom-bar-h) z-50 border-t border-border bg-surface/95 px-3 py-2 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] backdrop-blur sm:px-6 lg:left-[76px] xl:left-[17.5rem]"
       >
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted">
-            {adsenseEnabled
-              ? "Usamos cookies técnicas necesarias y, si aceptas, cookies de terceros (Google) para mostrar publicidad."
-              : "Usamos cookies técnicas necesarias para el funcionamiento del sitio. Si en el futuro sumamos publicidad o analítica de terceros, te lo vamos a preguntar de nuevo."}{" "}
-            {/* "Más información" es genérico fuera de contexto (lectores de pantalla
-                anuncian los links de una página en lista, sin la frase alrededor) —
-                hallazgo real de Lighthouse (SEO: link-text). */}
-            <Link href="/privacidad" className="text-foreground underline underline-offset-2 hover:text-accent">
-              Más información sobre nuestra política de cookies
+        <div className="mx-auto flex max-w-5xl items-center gap-3">
+          <p className="min-w-0 flex-1 text-xs leading-snug text-muted">
+            {adsenseEnabled ? "Cookies necesarias y, si aceptas, de Google para anuncios." : "Solo usamos cookies necesarias."}{" "}
+            {/* Texto que se entiende fuera de contexto (Lighthouse: link-text). */}
+            <Link href="/privacidad" className="whitespace-nowrap text-foreground underline underline-offset-2 hover:text-accent">
+              Política de cookies
             </Link>
-            .
           </p>
-          <div className="flex shrink-0 gap-2">
+          <div className="flex shrink-0 gap-1.5">
             <button
               type="button"
               onClick={() => setCookieConsent("rejected")}
-              className="cursor-pointer rounded-full border border-foreground/[0.08] px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-accent/50 hover:text-accent"
+              className="min-h-9 cursor-pointer rounded-full border border-foreground/[0.08] px-3 text-xs font-semibold text-foreground transition-colors hover:border-accent/50 hover:text-accent"
             >
               Rechazar
             </button>
             <button
               type="button"
               onClick={() => setCookieConsent("accepted")}
-              className="cursor-pointer rounded-full bg-accent-fill px-4 py-2 text-sm font-semibold text-accent-foreground transition-colors hover:opacity-90"
+              className="min-h-9 cursor-pointer rounded-full bg-accent-fill px-3 text-xs font-semibold text-accent-foreground transition-colors hover:opacity-90"
             >
               Aceptar
             </button>

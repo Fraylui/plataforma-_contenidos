@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Television } from "@phosphor-icons/react/dist/ssr";
-import { getFeed, listPublishedSeries } from "@/lib/api/client";
+import { notFound } from "next/navigation";
+import { getFeed, listPublishedSeries, sectionHasContent } from "@/lib/api/client";
 import { fromFeedItem } from "@/lib/home-items";
 import { KeepExploring } from "@/components/feed/keep-exploring";
 import { Pagination } from "@/components/ui/pagination";
@@ -20,6 +21,8 @@ const PAGE_SIZE = 24;
  * plataforma de streaming. Cada portada lleva a la serie con sus episodios.
  */
 export default async function SeriesListPage({ searchParams }: PageProps<"/series">) {
+  // Sin series publicadas la sección no existe todavía (CONTEXTO.md 43.5).
+  if (!(await sectionHasContent("/series"))) notFound();
   const { page: pageParam } = await searchParams;
   const page = Math.max(0, Number.parseInt(typeof pageParam === "string" ? pageParam : "0", 10) || 0);
   const result = await listPublishedSeries({ page, size: PAGE_SIZE });

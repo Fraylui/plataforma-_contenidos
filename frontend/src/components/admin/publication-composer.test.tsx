@@ -39,10 +39,13 @@ function renderNew() {
 afterEach(() => vi.useRealTimers());
 
 describe("PublicationComposer", () => {
-  it("lenguaje de plataforma: título, descripción corta y texto; nada de extracto ni cuerpo", async () => {
+  it("como un post: título, «¿Qué quieres contar?» y el texto largo plegado; nada de extracto ni cuerpo", async () => {
     const { container } = renderNew();
     expect(screen.getByLabelText("Título")).toBeInTheDocument();
-    expect(screen.getByLabelText("Descripción corta")).toBeInTheDocument();
+    expect(screen.getByLabelText("¿Qué quieres contar?")).toBeInTheDocument();
+    // El texto largo no se impone: aparece solo si se pide.
+    expect(screen.queryByLabelText("Texto")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /Contar más/ }));
     expect(screen.getByLabelText("Texto")).toBeInTheDocument();
     expect(screen.getByText("Fotos y videos")).toBeInTheDocument();
     expect(container.textContent).not.toMatch(/Extracto|Cuerpo|SEO|Open Graph/);
@@ -81,6 +84,7 @@ describe("PublicationComposer", () => {
     const user = userEvent.setup();
     renderNew();
     await user.type(screen.getByLabelText("Título"), "Una ruta por el valle");
+    await user.click(screen.getByRole("button", { name: /Contar más/ }));
     await user.type(screen.getByLabelText("Texto"), "Tres días caminando.");
     await user.click(screen.getByRole("combobox", { name: "Tema" }));
     await user.click(await screen.findByText("Viajes"));

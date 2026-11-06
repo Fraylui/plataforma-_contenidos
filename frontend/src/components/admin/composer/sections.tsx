@@ -1,17 +1,19 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Plus } from "@phosphor-icons/react";
 import { Controller, useController, useFormContext, useWatch } from "react-hook-form";
 import type { AdminImage } from "@/lib/api/admin-types";
 import type { Category, ContentImage } from "@/lib/api/types";
 import { imageUrl } from "@/lib/image-url";
 import { FormError } from "@/components/admin/ui";
-import { Card, Combobox, Field, TextArea } from "@/components/ui";
+import { Button, Card, Combobox, Field, TextArea } from "@/components/ui";
 import { ContentImagesPicker } from "../content-images-picker";
 import { VideoLinksEditor } from "../video-links-editor";
 import { RichTextEditor } from "../rich-text-editor";
 import { PublishRulesCard } from "../guide/content-guide";
 import type { BaseComposerValues } from "./schema";
+import { pickRememberedTopic, readLastTopic, rememberTopic } from "@/lib/admin/last-topic";
 
 /**
  * Distribución de los compositores: contenido a la izquierda; a la derecha
@@ -35,7 +37,8 @@ export function ComposerShell({
     <form
       onSubmit={(event) => event.preventDefault()}
       noValidate
-      className="mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start"
+      // pb-20: en celular, la barra fija de Publicar no tapa lo último.
+      className="mx-auto grid max-w-6xl grid-cols-1 gap-6 pb-20 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:pb-0"
     >
       <div className="min-w-0 space-y-6">
         {readOnlyNotice && <p className="rounded-control bg-info-soft px-4 py-3 text-sm text-foreground">{readOnlyNotice}</p>}
@@ -83,7 +86,11 @@ export function MediaCard({
         </p>
       )}
       {withVideos && (
-        <Field label="Videos de YouTube (opcional)" name="videos">
+        <Field
+          label="Tus videos de YouTube (opcional)"
+          name="videos"
+          hint="Sube el video a tu canal; en YouTube toca Compartir → Copiar enlace y pégalo aquí. Solo videos tuyos o con permiso de su dueño."
+        >
           <Controller
             control={control}
             name="videos"
@@ -102,12 +109,22 @@ const TITLE_CLASS =
   "h-auto min-h-0 resize-none overflow-hidden field-sizing-content border-0 bg-transparent px-0 py-1 text-[28px] leading-tight font-bold tracking-tight " +
   "placeholder:text-muted/50 hover:bg-transparent focus:border-0 focus:bg-transparent focus:ring-0";
 
+/** ¿El HTML tiene algo de texto? Sin DOM: sirve en el servidor y en el navegador. */
+export function hasPlainText(html: string): boolean {
+  return html.replace(/<[^>]*>/g, "").replace(/&nbsp;|&#160;|\u00a0/g, " ").trim().length > 0;
+}
+
 /** Título grande, descripción corta con contador y, si el tipo lo tiene, el texto. */
 export function WritingCard({
   titleLabel = "Título",
   titlePlaceholder = "Escribe un título",
   excerptDefault,
   withBody = true,
+  bodyHint,
+  collapsibleBody = false,
+  excerptLabel = "Descripción corta",
+  excerptHint = "Una o dos frases que inviten a abrirla.",
+  excerptPlaceholder = "¿De qué trata?",
   allImages,
   readOnly,
   children,
@@ -116,12 +133,22 @@ export function WritingCard({
   titlePlaceholder?: string;
   excerptDefault: string;
   withBody?: boolean;
+  bodyHint?: string;
+  /** El texto largo empieza plegado tras «Contar más» (posts: lo normal es foto + frase). */
+  collapsibleBody?: boolean;
+  excerptLabel?: string;
+  excerptHint?: string;
+  excerptPlaceholder?: string;
   allImages: AdminImage[];
   readOnly: boolean;
   children?: ReactNode;
 }) {
-  const { control, register, formState } = useFormContext<BaseComposerValues & { body?: string }>();
+  const { control, register, formState, getValues } = useFormContext<BaseComposerValues & { body?: string }>();
   const { errors } = formState;
+  // Abierto si ya hay texto (editar), si no se pliega o si hay un error en el texto.
+  // Sin DOMParser: este estado inicial también se calcula en el servidor.
+  const [bodyOpen, setBodyOpen] = useState(() => !collapsibleBody || hasPlainText(getValues("body") ?? ""));
+  const showBody = bodyOpen || Boolean(errors.body);
   return (
     <Card>
       <Field label={titleLabel} name="title" hideLabel error={errors.title?.message}>
@@ -135,18 +162,23 @@ export function WritingCard({
           {...register("title")}
         />
       </Field>
-      <Field label="Descripción corta" name="excerpt" hint="Una o dos frases que inviten a abrirla." error={errors.excerpt?.message}>
+      <Field label={excerptLabel} name="excerpt" hint={excerptHint} error={errors.excerpt?.message}>
         <TextArea
           rows={2}
           maxLength={500}
           disabled={readOnly}
-          placeholder="¿De qué trata?"
+          placeholder={excerptPlaceholder}
           defaultValue={excerptDefault}
           {...register("excerpt")}
         />
       </Field>
-      {withBody && (
-        <Field label="Texto" name="body" error={errors.body?.message}>
+      {withBody && !showBody && (
+        <Button variant="ghost" icon={<Plus aria-hidden="true" />} onClick={() => setBodyOpen(true)} disabled={readOnly}>
+          Contar más (texto largo, opcional)
+        </Button>
+      )}
+      {withBody && showBody && (
+        <Field label="Texto" name="body" hint={bodyHint} error={errors.body?.message}>
           <Controller
             control={control}
             name="body"
@@ -175,6 +207,16 @@ export function TopicCard({
 }) {
   // useController (no <Controller>) para que el Combobox sea hijo directo de Field y reciba la ayuda y el error.
   const { field, fieldState } = useController<BaseComposerValues, "categoryId">({ name: "categoryId" });
+  const { resetField } = useFormContext<BaseComposerValues>();
+  const empty = !field.value;
+  // Al crear, viene elegido el último tema usado (como en Historias): sin tema el
+  // borrador no se guarda solo. Se fija como valor inicial, no como cambio, para
+  // que abrir «Nueva» y salir no avise de cambios sin guardar.
+  useEffect(() => {
+    if (!empty || readOnly) return;
+    const remembered = pickRememberedTopic(categories, readLastTopic());
+    if (remembered) resetField("categoryId", { defaultValue: remembered });
+  }, [empty, readOnly, categories, resetField]);
   return (
     <Card title={title}>
       <Field
@@ -189,7 +231,11 @@ export function TopicCard({
           value={field.value}
           disabled={readOnly}
           placeholder="Elige un tema"
-          onSelect={(value) => value && field.onChange(value)}
+          onSelect={(value) => {
+            if (!value) return;
+            field.onChange(value);
+            rememberTopic(value);
+          }}
         />
       </Field>
       {children}

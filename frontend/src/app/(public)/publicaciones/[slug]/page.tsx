@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { ReactionBar } from "@/components/content/reaction-bar";
 import { notFound } from "next/navigation";
-import { getCategoryById, getPlatformSettings, getPublishedPublicationBySlug, getRelatedWithFallback } from "@/lib/api/client";
+import { getCategoryById, getPlatformSettings, getPublishedPublicationBySlug, getRelatedWithFallback, listAffiliateLinks } from "@/lib/api/client";
+import { AffiliateRecommendations } from "@/components/post/affiliate-recommendations";
+import { PostSources } from "@/components/post/post-sources";
 import { NotFoundError } from "@/lib/api/client";
 import { ViewBeacon } from "@/components/content/view-beacon";
 import { AdBlock } from "@/components/legal/ad-block";
@@ -19,7 +22,7 @@ import { InlineRelated } from "@/components/post/inline-related";
 import { WhatsAppFollow } from "@/components/post/whatsapp-follow";
 import { splitBodyInHalf } from "@/lib/split-body";
 import { PROSE } from "@/lib/prose";
-import { orNull } from "@/lib/server-log";
+import { orDefault, orNull } from "@/lib/server-log";
 
 /** "Más como esto": 3 filas de la cuadrícula de 3. */
 const MORE_SIZE = 9;
@@ -69,6 +72,7 @@ export async function generateMetadata(props: PageProps<"/publicaciones/[slug]">
     alternates: { canonical: publication.canonicalUrl || `/publicaciones/${slug}` },
     robots: robotsWithLargePreview(publication.robots),
     openGraph: {
+      locale: "es_PE",
       title,
       description,
       type: "article",
@@ -127,10 +131,11 @@ export default async function PublicationPage(props: PageProps<"/publicaciones/[
   const { slug } = await props.params;
   const publication = await loadPublication(slug);
 
-  const [category, settings, relatedPage] = await Promise.all([
+  const [category, settings, relatedPage, affiliateLinks] = await Promise.all([
     getCategoryById(publication.categoryId).catch(orNull("publicacion.tema")),
     getPlatformSettings(),
     getRelatedWithFallback({ excludeType: "PUBLICATION", excludeId: publication.id, categoryId: publication.categoryId, size: MORE_SIZE }),
+    listAffiliateLinks("PUBLICATION", publication.id).catch(orDefault("publicacion.afiliados", [])),
   ]);
   // Portada inmersiva: la primera foto o, si solo hay video, su miniatura; debajo va el resto del medio.
   const cover = heroCover(publication.images, publication.videos);
@@ -164,6 +169,7 @@ export default async function PublicationPage(props: PageProps<"/publicaciones/[
       />
 
       <PostView
+        reactionBar={<ReactionBar type="PUBLICATION" id={publication.id} />}
         variant="immersive"
         cover={cover}
         brand={{ name: settings.name, logoUrl: settings.logoUrl ?? null }}
@@ -184,6 +190,8 @@ export default async function PublicationPage(props: PageProps<"/publicaciones/[
             ) : (
               <div className={PROSE} dangerouslySetInnerHTML={{ __html: publication.body }} />
             )}
+            <PostSources sources={publication.sources} />
+            <AffiliateRecommendations links={affiliateLinks} />
             <WhatsAppFollow channelUrl={settings.whatsappChannelUrl} siteName={settings.name} />
           </>
         }

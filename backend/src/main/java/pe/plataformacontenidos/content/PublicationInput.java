@@ -23,5 +23,6 @@ public record PublicationInput(
         String ogImageUrl,
         List<ContentImageInput> images,
         List<ContentVideoInput> videos,
-        String robots) {
+        String robots,
+        java.util.List<String> sources) {
 }

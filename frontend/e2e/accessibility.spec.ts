@@ -20,7 +20,7 @@ async function expectNoViolations(page: Page, path: string) {
 
 const PUBLIC_PAGES = [
   "/", "/explorar", "/buscar?q=ayacucho", "/publicaciones", "/lugares", "/celebraciones", "/galerias",
-  "/series", "/en-vivo", "/contacto", "/privacidad", "/terminos", "/no-existe-esta-pagina",
+  "/series", "/en-vivo", "/contacto", "/privacidad", "/terminos", "/mis-viajes", "/no-existe-esta-pagina",
 ];
 
 for (const path of PUBLIC_PAGES) {
@@ -60,7 +60,7 @@ test.describe("Panel con sesión", () => {
   test.skip(!ADMIN_PASSWORD, "Requiere E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD");
 
   const ADMIN_PAGES = [
-    "/admin", "/admin/estadisticas", "/admin/historias", "/admin/historias/nueva", "/admin/publicaciones",
+    "/admin", "/admin/calendario", "/admin/estadisticas", "/admin/historias", "/admin/historias/nueva", "/admin/publicaciones",
     "/admin/publicaciones/nuevo", "/admin/lugares",
     "/admin/celebraciones", "/admin/celebraciones/nuevo", "/admin/galerias", "/admin/series",
     "/admin/temas", "/admin/imagenes", "/admin/anunciantes", "/admin/espacios", "/admin/trabajadores",

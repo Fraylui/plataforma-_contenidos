@@ -7,8 +7,14 @@ import { MORE_LINKS } from "./shell-nav";
 import { SocialFollow } from "./social-follow";
 import type { SocialKey } from "@/lib/social-links";
 
-/** En el celular, el archivo de Celebraciones (sin pestaña propia, modelo Google) se encuentra aquí. */
-const SHEET_LINKS = [{ href: "/celebraciones", label: "Celebraciones" }, ...MORE_LINKS];
+/**
+ * En el celular, Celebraciones (sin pestaña propia, modelo Google) y «Mis
+ * viajes» se encuentran aquí, solo si tienen contenido (lo vacío no aparece).
+ */
+const CONTENT_LINKS = [
+  { href: "/celebraciones", label: "Celebraciones" },
+  { href: "/mis-viajes", label: "Mis viajes" },
+];
 
 /**
  * Hoja inferior "Más" (celular): lo que antes vivía en el pie de página y en
@@ -20,6 +26,7 @@ export default function MoreSheetPanel({
   onClosed,
   brandName,
   social,
+  sections = {},
 }: {
   brandName: string;
   social: { key: SocialKey; label: string; url: string }[];
@@ -27,7 +34,9 @@ export default function MoreSheetPanel({
   onOpenChange: (open: boolean) => void;
   /** Devuelve el foco al botón «Más» (vive en more-sheet.tsx, no acá). */
   onClosed: () => void;
+  sections?: Record<string, boolean>;
 }) {
+  const links = [...CONTENT_LINKS.filter((l) => sections[l.href]), ...MORE_LINKS];
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -52,7 +61,7 @@ export default function MoreSheetPanel({
           </div>
           <nav aria-label="Más enlaces" className="mt-2">
             <ul className="divide-y divide-border/60">
-              {SHEET_LINKS.map((link) => (
+              {links.map((link) => (
                 <li key={link.href}>
                   <Dialog.Close asChild>
                     <Link

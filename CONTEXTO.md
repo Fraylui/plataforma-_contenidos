@@ -75,19 +75,16 @@ Contenido relacionado
 
 El sistema debe soportar inicialmente y/o posteriormente:
 
-### Texto
+### Publicaciones (formatos de la plataforma)
 
-* Artículos
-* Noticias
-* Reportajes
-* Crónicas
+* General
+* Historias (relatos, leyendas, memoria)
 * Guías
-* Entrevistas
-* Historias
-* Rankings
-* Reseñas
+* Listas
 * Tutoriales
-* Opinión
+
+Sin formatos de periódico (noticia, reportaje, crónica, entrevista,
+opinión): la plataforma no es un medio (sección 1).
 
 ### Multimedia
 
@@ -250,7 +247,7 @@ Esto permitirá construir progresivamente una base de conocimiento geográfica.
 ## 6.1 Eventos
 
 Segundo tipo de contenido implementado más allá de Artículo (sección 3,
-"Información estructurada"). Mismo flujo editorial que Artículo/Lugar
+"Información estructurada"). Mismo flujo de publicación que Artículo/Lugar
 (sección 12), con dos diferencias de fondo:
 
 * **Fecha de inicio (obligatoria) y fin (opcional)** en vez de solo fecha
@@ -269,7 +266,7 @@ publicar un evento.
 ## 6.2 Galerías
 
 Tercer tipo de contenido implementado (sección 3, "Multimedia" →
-"Galerías"). Mismo flujo editorial que el resto, pero sin cuerpo de texto
+"Galerías"). Mismo flujo de publicación que el resto, pero sin cuerpo de texto
 largo: el contenido *es* la colección de fotografías, así que
 `GalleryService` exige al menos una imagen — la única regla de negocio
 de este tipo que no existe en ningún otro módulo de contenido.
@@ -277,7 +274,7 @@ de este tipo que no existe en ningún otro módulo de contenido.
 ## 6.3 Reseñas
 
 Cuarto tipo de contenido implementado (sección 3, "Información
-estructurada"). Mismo flujo editorial que el resto, con cuerpo de texto
+estructurada"). Mismo flujo de publicación que el resto, con cuerpo de texto
 largo (a diferencia de Galería). Su diferenciador real: una calificación
 (`rating`, 1-5, validada tanto en la API como con un CHECK real en la
 base de datos). Puede reseñar un Lugar ya existente (`placeId`) o algo
@@ -392,6 +389,37 @@ Usuario
 
 La base de datos almacenará metadatos y referencias, no necesariamente archivos pesados.
 
+### 10.1 Implementado (2026-11-04): Cloudflare R2
+
+Decisión del dueño: las fotos no deben llenar ni hacer lento el VPS.
+
+```text
+Panel (sube la foto) → backend la reduce (≤2560 px) y la recomprime
+                     → StorageService
+                         ├─ local (MEDIA_STORAGE=local, por defecto): disco del VPS
+                         └─ r2    (MEDIA_STORAGE=r2): bucket de Cloudflare R2
+Visitante → /api/v1/images/{id}/file
+              ├─ local: el backend envía los bytes (Cloudflare los cachea 30 días)
+              └─ r2 con dominio público: 301 a https://media.…/archivo
+                 (Cloudflare la entrega; el VPS no envía bytes)
+```
+
+- **Fotos y videos propios** (1.4): el panel ya no ofrece pegar enlaces de
+  imágenes de otros sitios; los videos son de YouTube, del canal propio o
+  con permiso de su dueño, y solo se guarda su id.
+- **Diseño:** patrón Strategy sobre `StorageService`; R2StorageService es una
+  clase nueva y ImageService no cambió (SOLID: abierto/cerrado, inversión de
+  dependencias). Configuración incompleta → no arranca y dice qué falta
+  (fallar rápido).
+- **Seguridad y gobierno:** credenciales solo por variables de entorno
+  (ISO 27001 A.8.24, OWASP A02); token de R2 con permiso solo sobre el bucket
+  (mínimo privilegio, A.5.15); nombres de archivo revalidados (defensa en
+  profundidad). El cambio de modo y la migración de fotos están escritos como
+  procedimiento en `infra/DESPLIEGUE.md` §2.5 (ITIL: gestión de cambios;
+  COBIT 2019 BAI06/BAI10: cambios y configuración documentados y
+  reversibles).
+- **Costo:** R2 es gratis hasta 10 GB y no cobra por las descargas.
+
 ---
 
 # 11. CMS / Panel administrativo
@@ -421,7 +449,7 @@ Dashboard
 
 ---
 
-# 12. Sistema editorial
+# 12. Flujo de publicación
 
 Los contenidos deben tener estados.
 
@@ -454,6 +482,21 @@ Publicación
 Debe ser posible programar publicaciones.
 
 ---
+
+
+### 12.1 Crear y planear (panel, 2026-11)
+
+Forma de trabajar del equipo (rutina de 5 pasos, fuentes, fotos ajenas, qué no se publica): [`GUIA-CREAR-CONTENIDO.md`](GUIA-CREAR-CONTENIDO.md).
+
+* **Botón «Crear»**: abre «¿Qué quieres crear?» con cada tipo, su ícono y para qué sirve en una línea (`components/admin/shell/create-menu.tsx`, textos en `lib/admin/nav.ts`). Mismo diálogo en computadora y en la barra del celular.
+* **Qué hacer hoy** (Inicio del panel, `GET /api/v1/admin/calendar/today`): fechas especiales de los próximos 14 días con atajo para crear, lo que sale hoy y los 5 últimos borradores para retomar.
+* **Publicación, lugar y celebración = post** (2026-11, dueño: «nada de blog, fácil de crear y publicar»): con fotos o un video el texto largo es opcional; basta título y la frase corta. Sin nada que mostrar no se guarda (`shared.publishing.PostBody`, `hasSomethingToShow`). El texto largo queda plegado tras «Contar más»; la frase corta se pide como «¿Qué quieres contar?», «¿Qué tiene de especial?» o «¿Qué se celebra?». «Post rápido» es la opción por defecto al crear.
+* **Crear como en una app** (2026-11): en celular, barra fija abajo con «Publicar» y «Guardar» (sobre las pestañas del panel); en publicaciones, «¿Qué quieres contar?» en vez de «Descripción corta», el texto largo plegado tras «Contar más (opcional)» y «Tipo de post (opcional)» en vez de «Formato».
+* **Fuentes y crédito de fotos** (V77): en publicaciones, lugares y celebraciones, tarjeta «Fuentes (opcional)» (hasta 10 enlaces, `shared.publishing.PostSources`) que sale al final como «Fuentes: promperu.gob.pe · …». En cada foto, «¿De quién es?»: propia o de otra persona; si es ajena, nombre del autor («Foto: …» en el pie y en la portada) y confirmación obligatoria de permiso por escrito o licencia libre (`ContentImageInput.hasValidCredit`, D.Leg. 822 art. 39).
+* **Plantillas** (opcionales) al crear una publicación (`?plantilla=lista|guia|tutorial|historia`, `lib/admin/publication-templates.ts`): estructura de secciones con guías entre corchetes; solo etiquetas que acepta el HtmlSanitizer.
+* **Duplicar** publicaciones, lugares y galerías: copia en borrador «Copia de …» con texto, fotos, videos y tema (sin canonical ni imagen para compartir propia) y abre la copia.
+* **Ver como en el celular** (compositores de publicación, lugar, celebración y galería): el post completo en un marco de teléfono de 375 px con lo escrito ahora, aunque sea borrador (fotos, título, descripción, videos, texto y cómo termina). Solo para mirar.
+* **Calendario** (`/admin/calendario?mes=AAAA-MM`, `GET /api/v1/admin/calendar`): por mes, lo publicado, lo programado y las fechas de Celebraciones (las anuales, en su día de ese año). Cada entrada abre su contenido. Cada persona ve solo los tipos de sus módulos.
 
 # 13. Usuarios y roles
 
@@ -1172,6 +1215,11 @@ Kubernetes
 El proyecto no puede depender solo de "buenas prácticas" sueltas: debe
 anclarse a marcos reconocidos, de forma progresiva (no todo desde el día 1).
 
+> Matriz completa de leyes, normas ISO y marcos (ITIL, COBIT 2019, NIST CSF,
+> OWASP), con estado, evidencia, bancos de datos para la ANPD, procedimiento
+> ante incidentes y pendientes del dueño: **`CUMPLIMIENTO.md`**. Se
+> actualiza en el mismo PR que cambie algo de lo que describe.
+
 ### 35.1 Marcos de referencia
 
 ```text
@@ -1180,7 +1228,9 @@ Privacidad / datos personales → ISO/IEC 27701
 Continuidad de negocio        → ISO 22301 (cuando exista dependencia crítica)
 Calidad de software           → ISO/IEC 25010 (características de calidad)
 Desarrollo seguro             → OWASP ASVS, OWASP SAMM, OWASP Top 10
-Gestión de riesgos            → ISO 31000 / NIST CSF (como guía, no certificación)
+Gestión de riesgos            → ISO 31000 / NIST CSF 2.0 (como guía, no certificación)
+Gobierno y servicios de TI    → COBIT 2019 / ITIL 4 (guía de procesos, no certificación)
+Ciclo de vida / accesibilidad → ISO/IEC 12207 / ISO/IEC 40500 (WCAG 2.2 AA)
 ```
 
 No se busca certificar ISO 27001 desde el inicio (es costoso y prematuro para
@@ -1254,7 +1304,7 @@ sistema, sección 13). El primero es organizacional; el segundo es técnico.
 Un mismo trabajador puede tener un rol de negocio y uno o más permisos
 técnicos.
 
-### 36.1 Personal de contenido (equipo editorial)
+### 36.1 Personal de contenido (equipo de creación)
 
 ```text
 Redactor / Autor            → crea borradores, no publica
@@ -1301,7 +1351,7 @@ SUPER_ADMIN     → control total, incluida gestión de otros admins y config
                   mínimo posible (1-2 personas) — ver 36.5 sobre MFA.
 ADMIN           → gestión operativa completa, sin acceso a configuración
                   crítica de infraestructura ni a la gestión de SUPER_ADMIN.
-ADMIN_CONTENIDO → gestiona todo lo editorial (categorías, taxonomía,
+ADMIN_CONTENIDO → gestiona todo el contenido (categorías, taxonomía,
                   lugares, contenidos), sin acceso a usuarios/roles.
 ADMIN_TECNICO   → gestiona configuración técnica (SEO global, integraciones,
                   caché, backups), sin publicar contenido.
@@ -1309,7 +1359,7 @@ ADMIN_TECNICO   → gestiona configuración técnica (SEO global, integraciones,
 
 Esto amplía la lista de roles de la sección 13 sin reemplazarla: los roles
 `SUPER_ADMIN … VISITOR` siguen siendo la base de RBAC; lo anterior es cómo se
-agrupan en la práctica según función de negocio. Los roles editoriales de
+agrupan en la práctica según función de negocio. Los roles de contenido de
 36.1 (investigador cultural, corresponsal, curador, gestor de eventos/
 directorio) se implementan técnicamente como variaciones de `AUTHOR` /
 `EDITOR` con permisos y alcance (scope geográfico o de módulo) acotados, no
@@ -1348,7 +1398,7 @@ Tipo de log          Contenido                              Retención sugerida
 Application log      Errores, warnings, trazas técnicas     7-30 días
 Access log            (Nginx) IP, endpoint, status, latencia 30-90 días
 Security log          Login fallido, bloqueo, rate limit hit 90-180 días
-Audit log             Acción admin/editorial (sec. 18 y 35)  Indefinida / años
+Audit log             Acción del panel (sec. 18 y 35)  Indefinida / años
 Business/analytics    Vistas, clics, conversiones            Según política
 ```
 
@@ -1382,9 +1432,9 @@ interfaz pública (servicio/puerto), nunca directamente a sus tablas.**
         ┌───────────┬────────────────┼────────────────┬───────────┐
         ▼           ▼                ▼                ▼           ▼
     Identity     Content          Taxonomy         Geography     Media
-    (users,      (artículos,      (categorías,     (país/región/ (imágenes,
+    (users,      (publicaciones,  (categorías,     (país/región/ (imágenes,
      roles,       estados,         etiquetas)        provincia)   video refs)
-     auth)        editorial)
+     auth)        publicación)
         │           │                │                │           │
         └───────────┴────────────────┴────────────────┴───────────┘
                                       │
@@ -1542,6 +1592,25 @@ Memoria de decisiones   → decisiones importantes (por qué PostgreSQL, por
                         modular) se documentan, no se asumen de memoria
 ```
 
+### 42.1 Ciclo de trabajo obligatorio (regla del dueño, 2026-11-04)
+
+Todo cambio, grande o chico, se hace en este ciclo, y se repite hasta que
+no quede nada rojo:
+
+```text
+1. REVISAR    → antes de tocar código: inconsistencias, bugs conocidos,
+                logs (backend, Vercel, CI de GitHub) y avisos de seguridad.
+2. CAMBIAR    → un paso pequeño a la vez, no "todo junto".
+3. VERIFICAR  → tipos, lint, pruebas, build; leer los logs del CI.
+                Un fallo se investiga hasta su causa (nunca "es inestable").
+4. CORREGIR   → y volver a 3. Si la causa no es del cambio, se arregla
+                igual o se deja dicho exactamente qué falta y por qué.
+5. DOCUMENTAR → decisión o regla nueva → este documento.
+```
+
+Nada se da por terminado solo porque "compila": tiene que pasar el ciclo
+completo y, si es interfaz, la revisión visual de 43.4.
+
 Multi-agente (un orquestador con agentes especializados en backend, frontend,
 seguridad, QA) queda como posibilidad futura, no como punto de partida: al
 inicio, un agente principal con buen contexto y estos loops es suficiente.
@@ -1581,7 +1650,7 @@ Prohibido: cubrir contenido inesperadamente, generar clics accidentales,
 romper la navegación, degradar el rendimiento, verse como spam.
 ```
 
-Debe existir separación visual clara entre contenido editorial y
+Debe existir separación visual clara entre contenido propio y
 publicidad. La arquitectura frontend debe soportar distintas posiciones de
 anuncio mediante slots configurables, sin editar manualmente cada página.
 
@@ -1591,7 +1660,7 @@ Antes de implementar una funcionalidad frontend compleja, identificar qué
 conocimiento aplica (UI/UX, design systems, accesibilidad, responsive, SEO,
 performance/Core Web Vitals, arquitectura de componentes, animación,
 seguridad frontend, testing, optimización de imágenes, estado/datos, diseño
-editorial) y usar las herramientas/skills realmente disponibles en el
+de contenido) y usar las herramientas/skills realmente disponibles en el
 entorno de desarrollo antes de improvisar una solución inferior. No inventar
 herramientas que no existen.
 
@@ -1611,6 +1680,22 @@ Después de implementar una interfaz, antes de darla por terminada, responder:
 **Regla dura:** no terminar una funcionalidad frontend solo porque funciona
 técnicamente. Debe funcionar y ofrecer una experiencia profesional. Si el
 resultado es visualmente mediocre, no se considera terminado.
+
+### 43.5 Lo vacío no existe (regla del dueño, 2026-11-04)
+
+Nada sin contenido aparece en el sitio público hasta que lo tenga:
+
+| Pieza | Cómo se cumple |
+|---|---|
+| Secciones en la barra lateral, la barra inferior y los chips del feed | `getPrimaryNavVisibility` (≥1 publicado) |
+| Página de una sección vacía (`/publicaciones`, `/lugares`, `/galerias`, `/celebraciones`, `/series`) | 404 (`sectionHasContent`), no "Todavía no hay…" |
+| Temas | `listCategoriesWithContent`; `/categorias/[slug]` vacío → 404 |
+| Contacto | Sin correo configurado no se muestran "Escríbenos" ni "Tus datos" |
+| Sitemap | Solo secciones con contenido |
+
+Un borrador, algo en revisión o programado **no** cuenta como contenido. La
+única excepción es el inicio antes del primer contenido publicado (sitio
+recién instalado): ahí se dice que todavía no hay nada.
 
 ---
 
@@ -1715,8 +1800,28 @@ datos muestran demanda real:
 7.  Afiliados
 ```
 
-Regla de diseño: el contenido editorial, el contenido patrocinado y la
+Regla de diseño: el contenido propio, el contenido patrocinado y la
 publicidad deben distinguirse visualmente sin ambigüedad (ver 43.2).
+
+### 44.7.1 Ya implementado (2026-11)
+
+* **Suscríbete en YouTube**: botón bajo cada video (publicaciones, lugares, celebraciones, episodios, en vivo) que abre el canal de Configuración → Redes con la ventana de suscripción (`?sub_confirmation=1`). Sin canal configurado no aparece.
+* **Enlaces de afiliado** (`affiliates`, V75): hasta 10 por publicación o lugar, se editan bajo el compositor con sus clics. En el sitio salen en «Recomendados», cada uno con la marca «Enlace de afiliado», aviso de comisión y `rel="sponsored nofollow"` (D.Leg. 1044). El clic pasa por `GET /api/v1/affiliate-links/{id}/go` (cuenta como las visitas, sin cookies ni IP guardada) y redirige; solo en contenido publicado.
+
+### 44.7.2 Participación sin cuentas (2026-11)
+
+* **Reacciones** (V76, `engagement.content_reactions`, `GET/POST /api/v1/reactions`): «¿Qué te pareció?» con Me encanta (corazón), Me divierte (carita), Me sorprende (rayo) y Me inspira (aplauso), además del «me gusta». Íconos propios a color con vida: cada uno hace su gesto cada pocos segundos (late, se ríe, parpadea, aplaude); al tocar suben íconos flotando como en un en vivo, sale confeti y el celular vibra un instante. Arriba, resumen social («Tú y 20 personas más» con los íconos más usados). Sin animación si el celular pide menos movimiento. Una por visitante anónimo (mismo id del navegador que los «me gusta»), se cambia o se quita; solo en contenido publicado (publicaciones, lugares, celebraciones, galerías, episodios).
+* **Cifras por contenido en el panel**: cada fila de Publicaciones, Lugares, Celebraciones y Galerías muestra visitas, me gusta, reacciones y clics de afiliado (`ContentEngagementService.Counts`; reacciones y clics solo si hay).
+* **Reacciones en el feed**: `GET /api/v1/feed` trae `reactions` (conteos por id de ítem, una sola consulta por página, `ContentReactionService.countsFor`); la tarjeta muestra los íconos más usados y el total, con enlace a `#reacciones` del post. Sin reacciones no se muestra nada.
+* **«Mis viajes»** (antes «Pasaporte»; V79 `places.region` = `PeruRegion`, V80 `places.country` ISO alfa-2, región solo con país PE): en cada lugar «Quiero ir» y «Ya fui». «Ya fui» estampa un sello: el de la región dentro del Perú (25, hitos 1/5/13/25) y el del país fuera de él («¡Nuevo país: Bolivia!»). `/mis-viajes` (redirige desde `/pasaporte`) muestra «Por el mundo» (países con sello y «Tu próximo país»), las 25 regiones del Perú, «Donde ya fui», «Quiero ir» y botón para compartir; se llega desde «Más» (celular) y el riel (computadora). Vive solo en el navegador (`localStorage`, `lib/passport.ts`): sin cuenta ni datos personales en el servidor (Ley 29733). País y región se eligen en el compositor de Lugar (Perú por defecto).
+  * **Límite (decisión del dueño, 2026-11-05):** se queda como complemento ligero de los lugares. **No** se agregan mapas de lo visitado, rankings ni tablas de posiciones, cuentas de lectores, verificación por GPS ni sellos patrocinados: eso lo convertiría en una app de viajes, que es otro negocio.
+* **Mapa al tocar** (`LazyMap`): en el lugar se ve un mapa ilustrado propio (SVG, pin que cae) con «Ver mapa» y «Cómo llegar»; el mapa de Google (embebido gratuito, sin clave ni cobro) se carga solo al tocar. Google no recibe la visita ni pone cookies antes de que la persona lo elija (coherente con el aviso «Solo usamos cookies necesarias» y la Ley 29733) y la página carga más rápido.
+* **Páginas por región** (`/lugares/region/{region}`, p. ej. `/lugares/region/ayacucho`): todos los lugares publicados de esa región del Perú (`GET /api/v1/places?region=…`), con título «Lugares para visitar en …», ItemList y BreadcrumbList para Google, y «Otras regiones» (`GET /api/v1/places/regions`, solo las que tienen lugares). Región sin lugares: 404 y fuera del sitemap (lo vacío no existe). Cada lugar con región enlaza a «Más lugares de …».
+* **Tope a «me gusta» y reacciones** (`EngagementWriteGuardFilter`): 30 por minuto por visitante (hash corto de IP + navegador; la IP no se guarda), 429 pasado eso. Next reenvía la IP real (`lib/forward-visitor.ts`). Evita inflar las cifras que ven la gente y los anunciantes.
+* **Feed según cómo te quieres sentir** (`/animo/{reirme|sorprenderme|inspirarme|enamorarme}`, `GET /api/v1/feed?mood=FUNNY|WOW|INSPIRED|LOVE`, `GET /api/v1/feed/moods`): botones «Quiero reírme», «Quiero sorprenderme»… en la fila de chips del inicio, con el ícono de su reacción; el feed trae solo lo que provocó esa reacción, de más a menos (el orden lo decide la gente). Solo aparecen los ánimos que algún contenido ya provocó; sin eso, 404. Páginas noindex (cambian a cada reacción).
+* **Cierre del feed**: al acabarse el contenido, «¡Ya lo viste todo!» con Explorar y Volver arriba.
+* **Compartir el sitio**: sin `ogImageUrl` en Configuración, el layout usa `/og/sitio` (imagen generada con nombre y descripción). V78 cambia la descripción inicial por una para el público, solo si nadie la editó.
+* **Comentarios: no por ahora** (decisión del dueño, 2026-11-05). Requieren cuentas de lectores (datos personales, banco ANPD), moderación diaria y protección contra spam. Encuestas: más adelante.
 
 ### 44.8 Costos, métricas y economía unitaria
 
@@ -1756,7 +1861,7 @@ existir (progresivamente) estrategia de: derechos de autor y atribución,
 licencias, manejo de contenido enviado por usuarios, proceso de retiro de
 contenido ante reclamos. Credibilidad por encima de clics: fuentes,
 correcciones visibles, fecha de actualización, marcado claro de contenido
-patrocinado, política editorial, política de privacidad, términos de uso,
+patrocinado, política de contenido, política de privacidad, términos de uso,
 política de cookies cuando aplique (ver también sección 35.2, marco legal).
 
 No depender completamente de Facebook/TikTok/YouTube/Google: son canales de
@@ -2297,7 +2402,7 @@ Pedido del dueño: «los anuncios se tienen que mostrar como lo hacen las grande
 
 | Qué | Commits |
 |---|---|
-| Backend: `Campaign.format` BANNER/NATIVE; nativo solo en `en-feed`; texto ≤ 500, titular ≤ 60, botón de lista cerrada (`CallToAction`), un medio: foto de la biblioteca 1:1, 4:5 o 1.91:1 (≥ 600 px) **o** video de YouTube (Shorts = 9:16); destino solo http(s); logo del anunciante; `POST /ads/campaigns/{id}/play` + `plays` diarios (V61) | 41d4b32 |
+| Backend: `Campaign.format` BANNER/NATIVE; nativo solo en `en-feed`; texto ≤ 500, título ≤ 60, botón de lista cerrada (`CallToAction`), un medio: foto de la biblioteca 1:1, 4:5 o 1.91:1 (≥ 600 px) **o** video de YouTube (Shorts = 9:16); destino solo http(s); logo del anunciante; `POST /ads/campaigns/{id}/play` + `plays` diarios (V61) | 41d4b32 |
 | Sitio: `NativeAdPost` — logo y nombre, «Patrocinado», menú ⋯ («Ocultar este anuncio», recordado en el navegador; «¿Por qué veo este anuncio?»: contextual, sin datos personales), medio a todo el ancho sin márgenes, video que carga al tocar (nocookie) y cuenta la reproducción, barra dominio + titular + botón, texto con «más». Sin me gusta ni compartir | 204d1a7 |
 | Panel: formato «Post en el feed» / «Banner», vista previa en vivo al lado (como el Administrador de anuncios de Meta), logo en el anunciante, reproducciones y tasa en el reporte. **Corregido**: el formulario de campañas se caía (`Field` con varios hijos) | 70c6c62 |
 
@@ -2597,7 +2702,7 @@ Ordenadas por prioridad.
 9     Videos propios (futuro)            30    Monetización
 10    Imágenes                           31    Distribución de contenido
 11    CMS / Panel administrativo         32    Principio de escalabilidad
-12    Sistema editorial                  33    Principio fundamental
+12    Flujo de publicación           33    Principio fundamental
 13    Usuarios y roles (base RBAC)       34    MVP recomendado
 14    Identidad de plataforma (marca)    35    Cumplimiento normativo / ISO / legal
 15    SEO                                36    Trabajadores y administradores

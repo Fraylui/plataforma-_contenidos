@@ -1,4 +1,5 @@
 import { getFeedTopics, getPlatformSettings, getPrimaryNavVisibility, listActiveCategories } from "@/lib/api/client";
+import { YouTubeChannelProvider } from "@/components/content/youtube-subscribe";
 import { serverImageUrl } from "@/lib/server-image-url";
 import { CookieConsentBanner } from "@/components/legal/cookie-consent-banner";
 import { AdsenseLoader } from "@/components/legal/adsense-loader";
@@ -56,10 +57,10 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar brand={brand} />
         <main id="main-content" className="flex-1 pb-(--bottom-bar-h)">
-          {children}
+          <YouTubeChannelProvider url={settings.youtubeUrl}>{children}</YouTubeChannelProvider>
         </main>
       </div>
-      <BottomTabBar brandName={settings.name} social={social} />
+      <BottomTabBar brandName={settings.name} social={social} sections={visibility} />
       <AnchorAdSlot />
       <CookieConsentBanner adsenseEnabled={settings.adsenseEnabled} />
       {settings.adsenseEnabled && settings.adsenseClientId && (

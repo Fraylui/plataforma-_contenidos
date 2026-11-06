@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Confetti, CaretDown, ImagesSquare, MapPin, Notepad, Television, type Icon } from "@phosphor-icons/react";
+import { Confetti, CaretDown, ImagesSquare, MapPin, Notepad, SealCheck, Television, type Icon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { SocialFollow } from "./social-follow";
 import { BrandLogo } from "./brand-logo";
@@ -33,6 +33,7 @@ const SECTIONS: { href: string; label: string; icon: Icon; tile: string }[] = [
   { href: "/series", label: "Series", icon: Television, tile: "bg-linear-to-br from-rose-500 to-red-600" },
   { href: "/galerias", label: "Galerías", icon: ImagesSquare, tile: "bg-linear-to-br from-fuchsia-500 to-pink-600" },
   { href: "/celebraciones", label: "Celebraciones", icon: Confetti, tile: "bg-linear-to-br from-violet-500 to-purple-600" },
+  { href: "/mis-viajes", label: "Mis viajes", icon: SealCheck, tile: "bg-linear-to-br from-indigo-500 to-violet-600" },
 ];
 /** Temas visibles antes de "Ver más" (como los accesos directos de Facebook): el menú cabe en pantalla sin barra de desplazamiento. */
 const VISIBLE_TOPICS = 5;
@@ -113,10 +114,9 @@ export function LeftRail({
       <Link
         href="/"
         className="mb-6 flex items-center gap-3 rounded-card px-2 py-1.5 transition-colors hover:bg-canvas"
-        aria-label={brand.name}
       >
         {brand.logoUrl ? (
-          <BrandLogo logoUrl={brand.logoUrl} logoDarkUrl={brand.logoDarkUrl} className="h-9 w-9 shrink-0 rounded-control object-cover" />
+          <BrandLogo logoUrl={brand.logoUrl} logoDarkUrl={brand.logoDarkUrl} className="h-11 w-11 shrink-0 rounded-control object-cover xl:h-16 xl:w-16" />
         ) : (
           <span
             aria-hidden="true"
@@ -125,7 +125,8 @@ export function LeftRail({
             {brand.name.charAt(0)}
           </span>
         )}
-        <span className="hidden truncate text-xl font-black tracking-tight text-foreground xl:block">{brand.name}</span>
+        {/* Sin aria-label en el enlace: el nombre accesible es este texto (WCAG 2.5.3, «etiqueta en el nombre»); bajo 1280 px queda solo para lectores de pantalla. */}
+        <span className={cn("sr-only", !brand.logoUrl && "truncate font-display text-2xl font-black tracking-tight text-foreground xl:not-sr-only xl:block")}>{brand.name}</span>
       </Link>
 
       {/* Desplazable solo con etiquetas (≥ 1280 px): en el modo de íconos el menú cabe y las etiquetas flotantes deben poder salir de la columna. Sin barra visible (como Facebook/Instagram). */}

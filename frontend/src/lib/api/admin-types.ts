@@ -1,3 +1,4 @@
+import type { PeruRegion } from "@/lib/peru-regions";
 import type { AdSection } from "@/lib/ads/ad-context";
 // Tipos de las respuestas admin del backend (identity + content module). Ver
 // backend/src/main/java/pe/plataformacontenidos/{identity,content}/api/dto/*.
@@ -90,6 +91,8 @@ export interface PublicationInput {
   images: ContentImage[];
   videos: ContentVideoInput[];
   robots: string;
+  /** Enlaces de las fuentes (hasta 10). */
+  sources: string[];
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/places — ver PlaceRequest.java (CONTEXTO.md sección 6). */
@@ -107,6 +110,12 @@ export interface PlaceInput {
   ogImageUrl: string | null;
   videos: ContentVideoInput[];
   robots: string;
+  /** Enlaces de las fuentes (hasta 10). */
+  sources: string[];
+  /** Región del Perú (sello en «Mis viajes»); null si no se indicó. */
+  region: PeruRegion | null;
+  /** País ISO 3166-1 alfa-2 (PE, CL…); null si no se indicó. */
+  country: string | null;
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/celebrations — ver EventRequest.java. */
@@ -136,6 +145,8 @@ export interface CelebrationInput {
   ogImageUrl: string | null;
   videos: ContentVideoInput[];
   robots: string;
+  /** Enlaces de las fuentes (hasta 10). */
+  sources: string[];
 }
 
 /** Cuerpo de POST/PUT /api/v1/admin/galleries — ver GalleryRequest.java. */
@@ -290,6 +301,10 @@ export interface DailyCount {
 export interface EngagementCounts {
   likes: number;
   views: number;
+  /** Reacciones con ícono (me encanta, me divierte, me sorprende, me inspira), juntas. */
+  reactions?: number;
+  /** Clics en sus enlaces de afiliado (solo publicaciones y lugares). */
+  affiliateClicks?: number;
 }
 
 /** Página de un listado de contenido del panel (AdminContentPage.java): PageResponse + engagement por id. */
@@ -472,4 +487,48 @@ export interface AuditSearchFilters {
 export interface AdminCategory extends Category {
   publishedCount: number;
   visibleOnSite: boolean;
+}
+
+/** Calendario de publicaciones (GET /api/v1/admin/calendar?month=AAAA-MM, ver CalendarService). */
+export type CalendarEntryKind = "PUBLISHED" | "SCHEDULED" | "CELEBRATION_DATE";
+
+export interface CalendarEntry {
+  kind: CalendarEntryKind;
+  type: FeedItemType;
+  id: string;
+  title: string;
+  status: PublicationStatus;
+  /** Día AAAA-MM-DD en la hora del sitio. */
+  date: string;
+  /** HH:mm; null en las fechas de celebración. */
+  time: string | null;
+}
+
+export interface CalendarMonth {
+  month: string;
+  entries: CalendarEntry[];
+}
+
+/** Enlace de afiliado de una publicación o un lugar (AffiliateLink.java); clicks = veces que se abrió. */
+export type AffiliateContentType = "PUBLICATION" | "PLACE";
+
+export interface AffiliateLink {
+  id: string;
+  position: number;
+  label: string;
+  url: string;
+  clicks: number;
+}
+
+export interface AffiliateLinkInput {
+  label: string;
+  url: string;
+}
+
+/** «Qué hacer hoy» del Inicio (GET /api/v1/admin/calendar/today, CalendarService.Today). */
+export interface CalendarToday {
+  today: string;
+  upcomingDates: CalendarEntry[];
+  scheduledToday: CalendarEntry[];
+  drafts: { type: FeedItemType; id: string; title: string; updatedAt: string }[];
 }

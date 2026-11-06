@@ -1,6 +1,7 @@
 import type { ContentVideo } from "@/lib/api/types";
 import { YouTubeEmbed } from "@/components/content/youtube-embed";
 import { MediaCarousel, MediaCaption } from "./media-carousel";
+import { YouTubeSubscribe } from "./youtube-subscribe";
 
 /**
  * Bloque de videos de YouTube de un contenido — mismo criterio que
@@ -18,6 +19,7 @@ export function ContentVideoGallery({ videos, title, spacing = "" }: { videos: C
           <YouTubeEmbed videoId={video.videoId} title={video.title ?? title} vertical={video.vertical} />
         </div>
         <MediaCaption title={video.title} caption={video.caption} />
+        <YouTubeSubscribe className="mt-3" />
       </figure>
     );
   }
@@ -28,14 +30,17 @@ export function ContentVideoGallery({ videos, title, spacing = "" }: { videos: C
   ));
 
   return (
-    <MediaCarousel
-      spacing={spacing}
-      background=""
-      slides={slides}
-      captions={captions}
-      prevLabel="Video anterior"
-      nextLabel="Video siguiente"
-      dotLabelPrefix="Ir al video"
-    />
+    <div className={spacing}>
+      <MediaCarousel
+        spacing=""
+        background=""
+        slides={slides}
+        captions={captions}
+        prevLabel="Video anterior"
+        nextLabel="Video siguiente"
+        dotLabelPrefix="Ir al video"
+      />
+      <YouTubeSubscribe className="mt-3" />
+    </div>
   );
 }

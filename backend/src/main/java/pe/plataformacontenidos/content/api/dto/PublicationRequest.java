@@ -13,7 +13,7 @@ import pe.plataformacontenidos.shared.ContentVideoInput;
 public record PublicationRequest(
         @NotBlank @Size(max = 200) String title,
         @Size(max = 500) String excerpt,
-        @NotBlank String body,
+        String body,
         @NotNull PublicationType publicationType,
         @NotNull UUID categoryId,
         String seoTitle,
@@ -22,11 +22,13 @@ public record PublicationRequest(
         String ogImageUrl,
         List<ContentImageInput> images,
         List<ContentVideoInput> videos,
-        String robots) {
+        String robots,
+        /** Enlaces de las fuentes, hasta 10 (ver PostSources). */
+        List<String> sources) {
 
     public PublicationInput toInput() {
         return new PublicationInput(title, excerpt, body, publicationType, categoryId, seoTitle,
                 metaDescription, canonicalUrl, ogImageUrl, images == null ? List.of() : images,
-                videos == null ? List.of() : videos, robots);
+                videos == null ? List.of() : videos, robots, sources);
     }
 }

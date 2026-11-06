@@ -34,6 +34,7 @@ public record CelebrationResponse(
         String ogImageUrl,
         List<ContentVideoResponse> videos,
         String robots,
+        List<String> sources,
 
         Instant publishedAt,
         Instant scheduledAt,
@@ -47,7 +48,7 @@ public record CelebrationResponse(
                 celebration.getEndsAt(), celebration.isRecursYearly(), celebration.isAllDay(), celebration.getSinceYear(),
                 celebration.getScopeCountry(), celebration.getScopeRegion(), celebration.getNextOccurrence(), celebration.getImages().stream().map(ContentImageResponse::from).toList(),
                 celebration.getSeoTitle(), celebration.getMetaDescription(), celebration.getCanonicalUrl(), celebration.getOgImageUrl(),
-                celebration.getVideos().stream().map(ContentVideoResponse::from).toList(), celebration.getRobots(),
+                celebration.getVideos().stream().map(ContentVideoResponse::from).toList(), celebration.getRobots(), celebration.getSources(),
                 celebration.getPublishedAt(), celebration.getScheduledAt(), celebration.getCreatedAt(),
                 likeCount);
     }
