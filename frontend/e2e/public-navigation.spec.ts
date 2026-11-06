@@ -55,13 +55,14 @@ test.describe("Navegación pública", () => {
     // «¿Qué te pareció?» del mismo post queda igual (estado compartido).
     await expect(page.getByRole("group", { name: "Elige una reacción" }).getByRole("button", { name: /encanta/ })).toHaveAttribute("aria-pressed", "true");
 
+    // Sin «networkidle»: Next precarga los enlaces del menú y con el servidor
+    // ocupado eso tardaba más que el test; se espera lo que importa.
     await page.reload();
-    await page.waitForLoadState("networkidle");
     const again = page.getByRole("group", { name: "Reacciones" });
-    await expect(again.getByRole("button", { name: /Me encanta: tu reacción/ })).toBeVisible();
+    await expect(again.getByRole("button", { name: /Me encanta: tu reacción/ })).toBeVisible({ timeout: 15_000 });
+    await again.getByRole("button", { name: /Me encanta: tu reacción/ }).click();
 
     // Quitarla deja todo como estaba (no ensucia otras corridas).
-    await again.getByRole("button", { name: /Me encanta: tu reacción/ }).click();
     await again.getByRole("button", { name: /^Me encanta(, \d+)?$/ }).click();
     await expect(again.getByRole("button", { name: "Reaccionar" })).toBeVisible();
   });
