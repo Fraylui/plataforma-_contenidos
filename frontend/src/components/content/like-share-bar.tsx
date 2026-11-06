@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useSyncExternalStore, type ReactNode } from "react";
-import { Check, Heart, PaperPlaneTilt } from "@phosphor-icons/react";
+import { Check, PaperPlaneTilt } from "@phosphor-icons/react";
+import type { FeedItemType } from "@/lib/api/types";
 import { getOrCreateVisitorId } from "@/lib/visitor-id";
+import { ReactionButton } from "./reaction-button";
+import { useReaction } from "./use-reaction";
 
 /** "episodes" se identifica por id (el slug de un episodio solo es único dentro de su serie). */
 export type LikeableContentType = "publications" | "places" | "celebrations" | "galleries" | "episodes" | "stories";
@@ -129,50 +132,34 @@ export const POST_ACTION_PILL =
   "inline-flex min-h-10 items-center gap-1.5 rounded-full bg-canvas-strong px-4 text-sm font-semibold text-foreground transition-colors hover:bg-accent-soft hover:text-accent";
 
 /**
- * Barra de acciones de la vista de post, como la de Instagram: corazón (rojo
- * relleno al dar me gusta) con su conteo y avión de papel para compartir; a
- * la derecha, las acciones del tipo que manda la página (`children`). Sin
- * bordes ni cajas.
+ * Barra de acciones de la vista de post: reaccionar (ReactionButton, ❤️ es
+ * el «me gusta») y avión de papel para compartir; a la derecha, las
+ * acciones del tipo que manda la página (`children`). Sin bordes ni cajas.
  */
 export function LikeShareBar({
+  type,
+  id,
   contentType,
   slug,
   initialLikeCount,
   title,
   children,
 }: {
+  type: FeedItemType;
+  id: string;
   contentType: LikeableContentType;
   slug: string;
   initialLikeCount: number;
   title: string;
-  /** Acciones del tipo (POST_ACTION_PILL), a la derecha de me gusta y compartir. */
+  /** Acciones del tipo (POST_ACTION_PILL), a la derecha de reaccionar y compartir. */
   children?: ReactNode;
 }) {
-  const { liked, likeCount, pending, copied, toggleLike, share } = useContentReactions({
-    contentType,
-    slug,
-    initialLikeCount,
-    title,
-  });
+  const { copied, share } = useContentReactions({ contentType, slug, initialLikeCount, title });
+  const reaction = useReaction({ type, id, likeKey: slug, initialCounts: { LOVE: initialLikeCount } });
 
   return (
     <div className="flex flex-wrap items-center gap-1 py-2">
-      <button
-        type="button"
-        onClick={toggleLike}
-        disabled={pending}
-        aria-pressed={liked}
-        className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-foreground transition-colors hover:bg-canvas-strong disabled:opacity-60"
-      >
-        <Heart
-          className={`h-7 w-7 transition-transform motion-safe:active:scale-90 ${liked ? "text-like" : ""}`}
-          weight={liked ? "fill" : "regular"}
-          aria-hidden="true"
-        />
-        <span className="text-[15px] font-semibold tabular-nums">{likeCount}</span>
-        {" "}
-        <span className="sr-only">Me gusta</span>
-      </button>
+      <ReactionButton mine={reaction.mine} onReact={(next) => void reaction.react(next)} />
 
       <button
         type="button"

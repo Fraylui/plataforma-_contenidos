@@ -2,19 +2,21 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { FloatingReactions } from "./floating-reactions";
 
-const base = { contentType: "publications" as const, slug: "mercado", title: "Mercado" };
+const base = { type: "PUBLICATION" as const, id: "p1", contentType: "publications" as const, slug: "mercado", title: "Mercado" };
 
 describe("FloatingReactions", () => {
-  it("sin me gusta todavía no muestra «0» (como en el feed)", () => {
+  it("sin reacciones todavía no muestra «0»; el botón abre las cuatro reacciones", () => {
     render(<FloatingReactions {...base} initialLikeCount={0} />);
-    const like = screen.getByRole("button", { name: /Me gusta/ });
-    expect(like).not.toHaveTextContent("0");
+    const group = screen.getByRole("group", { name: "Reacciones" });
+    expect(group).not.toHaveTextContent("0");
+    fireEvent.click(screen.getByRole("button", { name: "Reaccionar" }));
+    expect(screen.getAllByRole("button", { name: /^Me (encanta|divierte|sorprende|inspira)$/ })).toHaveLength(4);
     expect(screen.getByRole("button", { name: "Compartir" })).toBeInTheDocument();
   });
 
-  it("con me gusta muestra el número", () => {
+  it("los «me gusta» de antes cuentan como reacciones", () => {
     render(<FloatingReactions {...base} initialLikeCount={12} />);
-    expect(screen.getByRole("button", { name: /Me gusta/ })).toHaveTextContent("12");
+    expect(screen.getByRole("group", { name: "Reacciones" })).toHaveTextContent("12");
   });
 
   it("en celular se aparta mientras se baja leyendo y vuelve al detenerse o subir", () => {

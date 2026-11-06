@@ -1,6 +1,9 @@
 package pe.plataformacontenidos.engagement;
 
-/** Reacciones expresivas, además del «me gusta» (ver V76__reacciones.sql). */
+/**
+ * Las cuatro reacciones (V76, V83). LOVE («Me encanta») es el «me gusta» y
+ * se guarda en content_likes; las demás en content_reactions.
+ */
 public enum Reaction {
     LOVE,
     FUNNY,

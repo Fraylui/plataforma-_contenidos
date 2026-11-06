@@ -12,7 +12,7 @@ async function skipCookieNotice(page: Page): Promise<void> {
 
 /**
  * E2E del recorrido público real (diseño estilo red social 2026-10-06):
- * inicio -> sección (feed filtrado) -> post -> me gusta, y las pantallas de
+ * inicio -> sección (feed filtrado) -> post -> reaccionar, y las pantallas de
  * cada tipo de contenido. Corre contra el stack
  * completo (frontend + backend + Postgres + Redis reales), no mocks.
  */
@@ -41,23 +41,29 @@ test.describe("Navegación pública", () => {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
 
-  test("me gusta en el detalle incrementa el contador y persiste tras recargar", async ({ page }) => {
+  test("reaccionar en el detalle (❤️ es el me gusta) persiste tras recargar y se puede quitar", async ({ page }) => {
     await skipCookieNotice(page);
     await page.goto("/publicaciones");
     const firstLink = page.locator("a[href^='/publicaciones/']").first();
     await firstLink.click();
     await page.waitForLoadState("networkidle");
 
-    const likeButton = page.getByRole("button", { name: /Me gusta/ });
-    await expect(likeButton).toBeVisible();
-    const before = await likeButton.textContent();
-
-    await likeButton.click();
-    await expect(likeButton).toHaveAttribute("aria-pressed", "true");
+    const floating = page.getByRole("group", { name: "Reacciones" });
+    await floating.getByRole("button", { name: "Reaccionar" }).click();
+    await floating.getByRole("button", { name: "Me encanta", exact: true }).click();
+    await expect(floating.getByRole("button", { name: /Me encanta: tu reacción/ })).toBeVisible();
+    // «¿Qué te pareció?» del mismo post queda igual (estado compartido).
+    await expect(page.getByRole("group", { name: "Elige una reacción" }).getByRole("button", { name: /encanta/ })).toHaveAttribute("aria-pressed", "true");
 
     await page.reload();
-    await expect(page.getByRole("button", { name: /Me gusta/ })).toHaveAttribute("aria-pressed", "true");
-    void before;
+    await page.waitForLoadState("networkidle");
+    const again = page.getByRole("group", { name: "Reacciones" });
+    await expect(again.getByRole("button", { name: /Me encanta: tu reacción/ })).toBeVisible();
+
+    // Quitarla deja todo como estaba (no ensucia otras corridas).
+    await again.getByRole("button", { name: /Me encanta: tu reacción/ }).click();
+    await again.getByRole("button", { name: "Me encanta", exact: true }).click();
+    await expect(again.getByRole("button", { name: "Reaccionar" })).toBeVisible();
   });
 
   for (const [path, label] of [

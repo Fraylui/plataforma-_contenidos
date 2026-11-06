@@ -4,7 +4,14 @@ import { axe } from "vitest-axe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LikeShareBar } from "./like-share-bar";
 
-const props = { contentType: "publications" as const, slug: "mi-articulo", initialLikeCount: 7, title: "Mi publicación" };
+const props = {
+  type: "EPISODE" as const,
+  id: "e1",
+  contentType: "episodes" as const,
+  slug: "e1",
+  initialLikeCount: 7,
+  title: "Mi episodio",
+};
 
 describe("LikeShareBar (integración de componente: fetch, localStorage, Web Share API/clipboard)", () => {
   beforeEach(() => {
@@ -15,9 +22,9 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
     vi.unstubAllGlobals();
   });
 
-  it("muestra el conteo inicial, un único botón Compartir, y es accesible", async () => {
+  it("reaccionar y un único botón Compartir, accesible", async () => {
     const { container } = render(<LikeShareBar {...props} />);
-    expect(screen.getByRole("button", { name: /7\s*Me gusta/ })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "Reaccionar" })).toHaveAttribute("aria-expanded", "false");
     expect(screen.getByRole("button", { name: "Compartir" })).toBeInTheDocument();
     expect(await axe(container)).toHaveNoViolations();
   });
@@ -32,34 +39,34 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
     expect(screen.getByRole("link", { name: "Cómo llegar" })).toBeInTheDocument();
   });
 
-  it("Me gusta llama al endpoint con el visitorId, actualiza el conteo y recuerda el estado", async () => {
+  it("elegir una reacción la manda con el visitorId y la recuerda", async () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockResolvedValue(
-      new Response(JSON.stringify({ liked: true, likeCount: 8 }), { status: 200 }),
+      new Response(JSON.stringify({ counts: { LOVE: 8, FUNNY: 0, WOW: 0, INSPIRED: 0 }, mine: "LOVE" }), { status: 200 }),
     );
     render(<LikeShareBar {...props} />);
 
-    await user.click(screen.getByRole("button", { name: /Me gusta/ }));
+    await user.click(screen.getByRole("button", { name: "Reaccionar" }));
+    await user.click(screen.getByRole("button", { name: "Me encanta" }));
 
-    await waitFor(() => expect(screen.getByRole("button", { name: /8\s*Me gusta/ })).toHaveAttribute("aria-pressed", "true"));
-    const url = vi.mocked(fetch).mock.calls[0][0] as string;
-    expect(url).toMatch(/^\/api\/content\/publications\/mi-articulo\/like\?visitorId=[0-9a-f-]{36}$/);
-    expect(vi.mocked(fetch).mock.calls[0][1]).toMatchObject({ method: "POST" });
-    expect(localStorage.getItem("liked:publications:mi-articulo")).toBe("1");
-    // El visitorId se persiste para deduplicar en el backend.
+    await waitFor(() => expect(screen.getByRole("button", { name: /Me encanta: tu reacción/ })).toBeInTheDocument());
+    const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("/api/reactions");
+    expect(JSON.parse(init.body as string)).toMatchObject({ type: "EPISODE", id: "e1", reaction: "LOVE" });
+    expect(localStorage.getItem("reaction:EPISODE:e1")).toBe("LOVE");
     expect(localStorage.getItem("visitor-id")).toMatch(/[0-9a-f-]{36}/);
   });
 
-  it("si el backend falla no cambia el conteo ni marca como gustado", async () => {
+  it("si el backend falla, vuelve a como estaba", async () => {
     const user = userEvent.setup();
     vi.mocked(fetch).mockResolvedValue(new Response("", { status: 500 }));
     render(<LikeShareBar {...props} />);
 
-    await user.click(screen.getByRole("button", { name: /Me gusta/ }));
+    await user.click(screen.getByRole("button", { name: "Reaccionar" }));
+    await user.click(screen.getByRole("button", { name: "Me encanta" }));
 
-    await waitFor(() => expect(screen.getByRole("button", { name: /Me gusta/ })).toBeEnabled());
-    expect(screen.getByRole("button", { name: /7\s*Me gusta/ })).toHaveAttribute("aria-pressed", "false");
-    expect(localStorage.getItem("liked:publications:mi-articulo")).toBeNull();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Reaccionar" })).toBeInTheDocument());
+    expect(localStorage.getItem("reaction:EPISODE:e1")).toBe("");
   });
 
   it("Compartir usa el diálogo nativo cuando existe", async () => {

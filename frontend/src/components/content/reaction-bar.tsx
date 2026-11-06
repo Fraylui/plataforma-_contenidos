@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { HandsClapping, Heart, Lightning, Smiley, type Icon } from "@phosphor-icons/react";
 import type { FeedItemType } from "@/lib/api/types";
-import { getOrCreateVisitorId } from "@/lib/visitor-id";
 import { cn } from "@/lib/utils";
+import { applyReaction, nextReaction, useReaction, type ReactionKey } from "./use-reaction";
 
-export type ReactionKey = "LOVE" | "FUNNY" | "WOW" | "INSPIRED";
+export type { ReactionKey };
+export { applyReaction, nextReaction };
 
 /**
  * Íconos propios a color (no emoji del sistema: se ven distintos en cada
@@ -71,24 +72,6 @@ const FLOATERS = [
   { sx: -24, rot: -18, delay: 340 },
 ];
 
-interface ReactionsState {
-  counts: Record<ReactionKey, number>;
-  mine: ReactionKey | null;
-}
-
-/** Toque en la reacción propia = quitarla; en otra = cambiarla. */
-export function nextReaction(mine: ReactionKey | null, tapped: ReactionKey): ReactionKey | null {
-  return mine === tapped ? null : tapped;
-}
-
-/** Conteo optimista: se ve al instante y luego se corrige con lo que diga el servidor. */
-export function applyReaction(state: ReactionsState, next: ReactionKey | null): ReactionsState {
-  const counts = { ...state.counts };
-  if (state.mine) counts[state.mine] = Math.max(0, counts[state.mine] - 1);
-  if (next) counts[next] = (counts[next] ?? 0) + 1;
-  return { counts, mine: next };
-}
-
 /** Las reacciones con votos, de la más a la menos usada (para el resumen de arriba). */
 export function topReactions(counts: Record<ReactionKey, number>, max = 3): ReactionKey[] {
   return REACTIONS.filter((r) => (counts[r.key] ?? 0) > 0)
@@ -106,7 +89,7 @@ export function reactionSummary(total: number, mine: boolean): string {
 }
 
 /**
- * «¿Qué te pareció?»: reacciones con vida, además del «me gusta». Arriba, el
+ * «¿Qué te pareció?»: reacciones con vida (❤️ es el «me gusta», V83). Arriba, el
  * resumen social (íconos más usados encimados y cuántas personas). Cada
  * ícono hace su gesto de vez en cuando; al tocar, suben íconos flotando
  * como en un en vivo, sale confeti y el celular vibra un instante. Una
@@ -115,51 +98,21 @@ export function reactionSummary(total: number, mine: boolean): string {
  * movimiento.
  */
 export function ReactionBar({ type, id }: { type: FeedItemType; id: string }) {
-  const [state, setState] = useState<ReactionsState | null>(null);
-  const [pending, setPending] = useState(false);
+  const live = useReaction({ type, id, fetchOnMount: true });
   // Cambia en cada toque que pone una reacción: vuelve a montar los efectos.
   const [burst, setBurst] = useState<{ key: ReactionKey; n: number } | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    const visitorId = getOrCreateVisitorId();
-    fetch(`/api/reactions?type=${type}&id=${encodeURIComponent(id)}&visitorId=${visitorId}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: ReactionsState | null) => {
-        if (!cancelled && data?.counts) setState(data);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [type, id]);
-
-  async function react(tapped: ReactionKey) {
-    if (!state || pending) return;
-    const next = nextReaction(state.mine, tapped);
-    const previous = state;
-    setState(applyReaction(state, next));
+  function react(tapped: ReactionKey) {
+    const next = nextReaction(live.mine, tapped);
     if (next) {
       setBurst((b) => ({ key: next, n: (b?.n ?? 0) + 1 }));
       // Un toque corto en el celular (donde se puede); en la computadora no hace nada.
       if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(12);
     }
-    setPending(true);
-    try {
-      const res = await fetch("/api/reactions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, id, visitorId: getOrCreateVisitorId(), reaction: next }),
-      });
-      if (!res.ok) throw new Error();
-      setState(await res.json());
-    } catch {
-      setState(previous);
-    } finally {
-      setPending(false);
-    }
+    void live.react(next);
   }
 
+  const state = live.loaded ? live : null;
   // Hasta saber los conteos (o si el contenido no admite reacciones) no se dibuja nada.
   if (!state) return null;
 
@@ -202,8 +155,7 @@ export function ReactionBar({ type, id }: { type: FeedItemType; id: string }) {
               key={reaction.key}
               type="button"
               aria-pressed={active}
-              disabled={pending}
-              onClick={() => void react(reaction.key)}
+              onClick={() => react(reaction.key)}
               className={cn(
                 "group relative flex cursor-pointer flex-col items-center gap-1 rounded-2xl border px-1 pt-2.5 pb-2 text-xs font-medium",
                 "transition-[scale,background-color,border-color,box-shadow] duration-150 active:scale-90",

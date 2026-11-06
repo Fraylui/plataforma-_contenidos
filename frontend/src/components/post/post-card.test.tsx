@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { axe } from "vitest-axe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { HomeItem } from "@/lib/home-items";
@@ -28,7 +29,12 @@ function item(overrides: Partial<HomeItem>): HomeItem {
 }
 
 describe("PostCard", () => {
-  const fetchMock = vi.fn(async () => new Response(JSON.stringify({ liked: true, likeCount: 25 }), { status: 200 }));
+  // El backend de reacciones: devuelve la reacción pedida como la propia.
+  const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+    const mine = init?.body ? JSON.parse(init.body as string).reaction : null;
+    const counts = { LOVE: 0, FUNNY: 0, WOW: 0, INSPIRED: 0, ...(mine ? { [mine]: 1 } : {}) };
+    return new Response(JSON.stringify({ counts, mine }), { status: 200 });
+  });
 
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
@@ -68,14 +74,34 @@ describe("PostCard", () => {
     expect(screen.getByTestId("post-header").querySelector("time")).toBeNull();
   });
 
-  it("el nombre accesible de me gusta incluye el número visible (WCAG 2.5.3)", () => {
-    render(<PostCard item={item({ likeCount: 12 })} brand={brand} />);
-    expect(screen.getByRole("button", { name: "12 Me gusta" })).toHaveAttribute("aria-pressed", "false");
+  it("en vez de un corazón, las reacciones: el botón abre las cuatro y elegir una la guarda", async () => {
+    const user = userEvent.setup();
+    render(<PostCard item={item({ likeCount: 0 })} brand={brand} />);
+    expect(screen.queryByRole("button", { name: /^Me gusta/ })).not.toBeInTheDocument();
+    const trigger = screen.getByRole("button", { name: "Reaccionar" });
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(trigger);
+    const tray = screen.getByRole("group", { name: "Elige una reacción" });
+    expect(within(tray).getAllByRole("button")).toHaveLength(4);
+    await user.click(within(tray).getByRole("button", { name: "Me divierte" }));
+
+    expect(screen.queryByRole("group", { name: "Elige una reacción" })).not.toBeInTheDocument();
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string);
+    expect(body).toMatchObject({ type: "PUBLICATION", id: "1", reaction: "FUNNY" });
+    expect(localStorage.getItem("reaction:PUBLICATION:1")).toBe("FUNNY");
+    expect(screen.getByRole("button", { name: /Me divierte: tu reacción/ })).toBeInTheDocument();
   });
 
-  it("sin «me gusta» muestra solo el corazón, sin un «0»", () => {
-    render(<PostCard item={item({ likeCount: 0 })} brand={brand} />);
-    expect(screen.getByRole("button", { name: "Me gusta" })).not.toHaveTextContent("0");
+  it("los «me gusta» de antes cuentan como ❤️ Me encanta en el resumen", () => {
+    render(<PostCard item={item({ likeCount: 12 })} brand={brand} />);
+    expect(screen.getByRole("link", { name: /12 reacciones/ })).toBeInTheDocument();
+  });
+
+  it("quien ya dio «me gusta» antes ve su ❤️ Me encanta marcado", () => {
+    localStorage.setItem("liked:publications:hola", "1");
+    render(<PostCard item={item({ likeCount: 3 })} brand={brand} />);
+    expect(screen.getByRole("button", { name: /Me encanta: tu reacción/ })).toBeInTheDocument();
   });
 
   it("los puntos del carrusel son fáciles de tocar (objetivo ≥ 24 px, WCAG 2.5.8)", () => {
@@ -113,7 +139,7 @@ describe("PostCard", () => {
     expect(screen.getAllByRole("button", { name: /Ir a la imagen/ })).toHaveLength(3);
   });
 
-  it("doble toque en la imagen da me gusta una sola vez (nunca lo quita)", async () => {
+  it("doble toque en la imagen pone ❤️ una sola vez (nunca lo quita)", async () => {
     vi.useFakeTimers();
     render(<PostCard item={item({})} brand={brand} />);
     const media = screen.getByTestId("post-media");
@@ -125,6 +151,7 @@ describe("PostCard", () => {
     });
     vi.useRealTimers();
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)).toMatchObject({ reaction: "LOVE" });
   });
 
   it("no usa antetítulos en mayúsculas ni bajada larga, y es accesible", async () => {

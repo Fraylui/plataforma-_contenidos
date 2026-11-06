@@ -392,6 +392,16 @@ body {
   4%, 12% { transform: scale(0.86) rotate(-6deg); }
   8%, 16% { transform: scale(1.1) rotate(4deg); }
 }
+/* Bandeja de reacciones (ReactionButton): aparece creciendo desde el botón
+   y cada ícono sube un poco, uno tras otro. motion-safe en el componente. */
+@keyframes tray-in {
+  0% { opacity: 0; transform: scale(0.6); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes tray-item-in {
+  0% { opacity: 0; transform: translateY(10px) scale(0.7); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
 @keyframes float-up {
   0% { opacity: 0; transform: translate(-50%, 0) scale(0.5); }
   15% { opacity: 1; }

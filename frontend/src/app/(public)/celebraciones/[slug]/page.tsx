@@ -238,7 +238,7 @@ export default async function CelebrationPage(props: PageProps<"/celebraciones/[
           </>
         }
         reactions={
-          <FloatingReactions contentType="celebrations" slug={celebration.slug} initialLikeCount={celebration.likeCount} title={celebration.title} />
+          <FloatingReactions type="CELEBRATION" id={celebration.id} contentType="celebrations" slug={celebration.slug} initialLikeCount={celebration.likeCount} title={celebration.title} />
         }
         ad={<AdBlock position="article" section="CELEBRATION" categoryId={celebration.categoryId} layout="band" count={2} />}
         upNext={upNext}

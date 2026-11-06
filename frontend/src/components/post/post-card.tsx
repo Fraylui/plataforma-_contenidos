@@ -2,11 +2,13 @@
 
 import { useId, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { Check, Heart, PaperPlaneTilt } from "@phosphor-icons/react";
+import { Check, PaperPlaneTilt } from "@phosphor-icons/react";
 import type { HomeItem } from "@/lib/home-items";
-import { homeLikeType } from "@/lib/content-kind";
+import { homeLikeType, type HomeItemKind } from "@/lib/content-kind";
 import { useContentReactions } from "@/components/content/like-share-bar";
-import { cn } from "@/lib/utils";
+import { ReactionButton } from "@/components/content/reaction-button";
+import { useReaction } from "@/components/content/use-reaction";
+import type { FeedItemType } from "@/lib/api/types";
 import { PostHeader, headerTimeFor, type PostBrand } from "./post-header";
 import { PostMedia } from "./post-media";
 import { GalleryMosaic } from "./gallery-mosaic";
@@ -16,15 +18,24 @@ import { ReactionPeek } from "./reaction-peek";
 
 const noSubscribe = () => () => {};
 
+const REACTION_TYPE: Record<HomeItemKind, FeedItemType> = {
+  publicacion: "PUBLICATION",
+  lugar: "PLACE",
+  celebracion: "CELEBRATION",
+  galeria: "GALLERY",
+  episodio: "EPISODE",
+};
+
 const ICON_BUTTON =
   "inline-flex h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5 rounded-full px-2 text-foreground transition-colors hover:bg-canvas disabled:cursor-default";
 
 /**
  * Publicación del feed, estilo Instagram (diseño 2026-10-06): encabezado de
- * la marca, medio cuadrado con carrusel y doble toque = me gusta, barra de
- * acciones (me gusta, compartir y la acción útil del tipo) y el texto como
- * pie: título en negrita y dos líneas. Sin antetítulo, sin bajada larga,
- * sin botón "Ver".
+ * la marca, medio cuadrado con carrusel y doble toque = ❤️ Me encanta, barra
+ * de acciones (reaccionar, compartir y la acción útil del tipo) y el texto
+ * como pie: título en negrita y dos líneas. Sin antetítulo, sin bajada
+ * larga, sin botón "Ver". Desde 2026-11-05 no hay corazón aparte: las
+ * cuatro reacciones están aquí mismo (ReactionButton) y ❤️ es el «me gusta».
  */
 export function PostCard({
   item,
@@ -38,21 +49,27 @@ export function PostCard({
   priority?: boolean;
 }) {
   const titleId = useId();
-  const { liked, likeCount, pending, copied, toggleLike, share } = useContentReactions({
+  const { copied, share } = useContentReactions({
     contentType: homeLikeType(item.kind),
     slug: item.likeKey,
     initialLikeCount: item.likeCount,
     title: item.title,
     path: item.href,
   });
-  // El doble toque solo da "me gusta" (como Instagram): este ref evita que
-  // dos dobles toques seguidos lo quiten antes de que vuelva la respuesta.
-  const likedByTap = useRef(false);
+  const reaction = useReaction({
+    type: REACTION_TYPE[item.kind],
+    id: item.id,
+    likeKey: item.likeKey,
+    initialCounts: { ...item.reactions, LOVE: item.reactions?.LOVE ?? item.likeCount },
+  });
+  // El doble toque solo pone ❤️ (como Instagram), nunca quita ni cambia otra
+  // reacción: este ref evita que dos dobles toques seguidos la quiten.
+  const lovedByTap = useRef(false);
 
-  function likeFromDoubleTap() {
-    if (liked || likedByTap.current) return;
-    likedByTap.current = true;
-    void toggleLike();
+  function loveFromDoubleTap() {
+    if (reaction.mine || lovedByTap.current) return;
+    lovedByTap.current = true;
+    void reaction.react("LOVE");
   }
 
   // En el servidor no hay origen: "" y React lo completa al hidratar, sin
@@ -73,34 +90,20 @@ export function PostCard({
           images={item.images}
           title={item.title}
           href={item.href}
-          onDoubleTap={likeFromDoubleTap}
+          onDoubleTap={loveFromDoubleTap}
           priority={priority}
           overlay={item.kind === "celebracion" && item.startsAt ? <CelebrationStamp nextAt={item.startsAt} /> : undefined}
         />
       )}
 
       <div className="flex items-center gap-1 px-2 pt-1.5">
-        <button
-          type="button"
-          onClick={() => {
-            likedByTap.current = false;
-            void toggleLike();
+        <ReactionButton
+          mine={reaction.mine}
+          onReact={(next) => {
+            lovedByTap.current = false;
+            void reaction.react(next);
           }}
-          disabled={pending}
-          aria-pressed={liked}
-          className={ICON_BUTTON}
-        >
-          <Heart
-            className={cn("h-6 w-6 transition-transform motion-safe:active:scale-90", liked && "text-like")}
-            weight={liked ? "fill" : "regular"}
-            aria-hidden="true"
-          />
-          {/* Sin «me gusta» todavía, solo el corazón (como Instagram): un «0» se lee como abandono. */}
-          {likeCount > 0 && <span className="text-sm font-semibold tabular-nums">{likeCount}</span>}
-          {/* El nombre accesible incluye el número visible (WCAG 2.5.3); aria-pressed dice si ya está marcado. */}
-          {" "}
-          <span className="sr-only">Me gusta</span>
-        </button>
+        />
         <button type="button" onClick={() => void share()} aria-label="Compartir" className={ICON_BUTTON}>
           {copied ? <Check className="h-6 w-6 text-accent" aria-hidden="true" /> : <PaperPlaneTilt className="h-6 w-6" aria-hidden="true" />}
         </button>
@@ -122,7 +125,7 @@ export function PostCard({
       </div>
 
       <div className="px-4 pt-1 pb-4">
-        <ReactionPeek href={item.href} counts={item.reactions} />
+        <ReactionPeek href={item.href} counts={reaction.counts} />
         <h2 id={titleId} className="text-[15px] leading-snug font-bold text-foreground">
           <Link href={item.href} className="hover:underline">
             {item.title}

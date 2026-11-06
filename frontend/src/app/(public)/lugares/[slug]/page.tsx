@@ -192,7 +192,7 @@ export default async function PlacePage(props: PageProps<"/lugares/[slug]">) {
             )}
           </>
         }
-        reactions={<FloatingReactions contentType="places" slug={place.slug} initialLikeCount={place.likeCount} title={place.name} />}
+        reactions={<FloatingReactions type="PLACE" id={place.id} contentType="places" slug={place.slug} initialLikeCount={place.likeCount} title={place.name} />}
         upNext={upNext}
         ad={<AdBlock position="article" section="PLACE" categoryId={place.categoryId} layout="band" count={2} />}
         more={more}

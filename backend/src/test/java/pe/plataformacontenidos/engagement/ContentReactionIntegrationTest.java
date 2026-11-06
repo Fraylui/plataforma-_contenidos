@@ -34,6 +34,13 @@ class ContentReactionIntegrationTest {
     @Autowired
     private ContentEngagementService engagement;
 
+    @Autowired
+    private ContentReactionService reactionService;
+
+    private long likes(UUID contentId) {
+        return jdbc.queryForObject("SELECT COUNT(*) FROM engagement.content_likes WHERE content_id = ?", Long.class, contentId);
+    }
+
     @Test
     void oneReactionPerVisitorThatCanChangeOrBeRemoved() throws Exception {
         UUID gallery = gallery("PUBLISHED");
@@ -57,6 +64,34 @@ class ContentReactionIntegrationTest {
                 .andExpect(jsonPath("$.counts.LOVE").value(1))
                 .andExpect(jsonPath("$.counts.FUNNY").value(0))
                 .andExpect(jsonPath("$.mine").value("LOVE"));
+    }
+
+    /** «Me encanta» y el «me gusta» del corazón son lo mismo: una sola reacción por visitante. */
+    @Test
+    void loveIsTheLikeAndOnlyOneReactionPerVisitor() throws Exception {
+        UUID gallery = gallery("PUBLISHED");
+        String slug = "galeria-reacciones-" + gallery;
+        UUID ana = UUID.randomUUID();
+
+        // ❤️ por reacciones = un me gusta.
+        react(gallery, ana, "\"LOVE\"").andExpect(jsonPath("$.counts.LOVE").value(1));
+        org.assertj.core.api.Assertions.assertThat(likes(gallery)).isEqualTo(1);
+
+        // Cambiar a otra reacción quita el me gusta.
+        react(gallery, ana, "\"FUNNY\"").andExpect(jsonPath("$.counts.LOVE").value(0))
+                .andExpect(jsonPath("$.counts.FUNNY").value(1));
+        org.assertj.core.api.Assertions.assertThat(likes(gallery)).isZero();
+
+        // Dar me gusta con el corazón quita la otra reacción.
+        mockMvc.perform(post("/api/v1/galleries/" + slug + "/like?visitorId=" + ana))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.liked").value(true));
+        mockMvc.perform(get("/api/v1/reactions?type=GALLERY&id=" + gallery + "&visitorId=" + ana))
+                .andExpect(jsonPath("$.counts.LOVE").value(1))
+                .andExpect(jsonPath("$.counts.FUNNY").value(0))
+                .andExpect(jsonPath("$.mine").value("LOVE"));
+        org.assertj.core.api.Assertions.assertThat(reactionService.countsOf(Reaction.LOVE)).containsEntry(gallery, 1L);
+        org.assertj.core.api.Assertions.assertThat(reactionService.countsFor(java.util.List.of(gallery)).get(gallery))
+                .containsEntry(Reaction.LOVE, 1L);
     }
 
     @Test
@@ -95,7 +130,9 @@ class ContentReactionIntegrationTest {
 
         ContentEngagementService.Counts counts = engagement.countsFor(ContentType.PLACE, java.util.List.of(place)).get(place);
 
-        org.assertj.core.api.Assertions.assertThat(counts.reactions()).isEqualTo(2);
+        // «Me encanta» cuenta como me gusta; «reacciones» son las otras tres.
+        org.assertj.core.api.Assertions.assertThat(counts.likes()).isEqualTo(1);
+        org.assertj.core.api.Assertions.assertThat(counts.reactions()).isEqualTo(1);
         org.assertj.core.api.Assertions.assertThat(counts.affiliateClicks()).isEqualTo(10);
     }
 

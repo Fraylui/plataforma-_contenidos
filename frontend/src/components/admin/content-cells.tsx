@@ -47,15 +47,15 @@ export function EngagementCell({ counts }: { counts: EngagementCounts | undefine
         <span className="sr-only">Visitas:</span>
         {NUMBER.format(views)}
       </span>
-      <span className="inline-flex items-center gap-1" title={`${likes} me gusta`}>
+      <span className="inline-flex items-center gap-1" title={`${likes} Me encanta`}>
         <Heart className="size-3.5" aria-hidden="true" />
-        <span className="sr-only">Me gusta:</span>
+        <span className="sr-only">Me encanta:</span>
         {NUMBER.format(likes)}
       </span>
       {reactions > 0 && (
-        <span className="inline-flex items-center gap-1" title={`${reactions} reacciones`}>
+        <span className="inline-flex items-center gap-1" title={`${reactions} otras reacciones`}>
           <Smiley className="size-3.5" aria-hidden="true" />
-          <span className="sr-only">Reacciones:</span>
+          <span className="sr-only">Otras reacciones:</span>
           {NUMBER.format(reactions)}
         </span>
       )}

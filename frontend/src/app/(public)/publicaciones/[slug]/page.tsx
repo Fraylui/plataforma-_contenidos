@@ -196,7 +196,7 @@ export default async function PublicationPage(props: PageProps<"/publicaciones/[
           </>
         }
         actions={<ViewBeacon type="PUBLICATION" id={publication.id} />}
-        reactions={<FloatingReactions contentType="publications" slug={publication.slug} initialLikeCount={publication.likeCount} title={publication.title} />}
+        reactions={<FloatingReactions type="PUBLICATION" id={publication.id} contentType="publications" slug={publication.slug} initialLikeCount={publication.likeCount} title={publication.title} />}
         upNext={upNext}
         ad={<AdBlock position="article" section="PUBLICATION" categoryId={publication.categoryId} layout="band" count={2} />}
         more={more}

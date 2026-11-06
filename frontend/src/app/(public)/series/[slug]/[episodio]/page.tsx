@@ -69,7 +69,7 @@ export default async function EpisodePage({ params }: PageProps<"/series/[slug]/
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-muted">{formatPublishedDate(episode.publishedAt)}</p>
           <ViewBeacon type="EPISODE" id={episode.id} />
-          <LikeShareBar contentType="episodes" slug={episode.id} initialLikeCount={likeCount} title={episode.title} />
+          <LikeShareBar type="EPISODE" id={episode.id} contentType="episodes" slug={episode.id} initialLikeCount={likeCount} title={episode.title} />
         </div>
         <ReactionBar type="EPISODE" id={episode.id} />
       </header>

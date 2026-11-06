@@ -6,6 +6,7 @@ import * as axeMatchers from "vitest-axe/matchers";
 import { cleanup } from "@testing-library/react";
 import { afterEach, expect, vi } from "vitest";
 import { usePathname } from "next/navigation";
+import { resetReactionStoreForTests } from "@/components/content/use-reaction";
 
 expect.extend(axeMatchers);
 
@@ -21,6 +22,7 @@ vi.mock("next/navigation", () => ({
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  resetReactionStoreForTests();
   vi.clearAllMocks();
   vi.mocked(usePathname).mockReturnValue("/");
 });

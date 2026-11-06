@@ -142,7 +142,7 @@ export default async function GalleryPage(props: PageProps<"/galerias/[slug]">) 
         media={<PhotoStack images={gallery.images.slice(1)} alt={gallery.title} />}
         excerpt={gallery.excerpt}
         actions={<ViewBeacon type="GALLERY" id={gallery.id} />}
-        reactions={<FloatingReactions contentType="galleries" slug={gallery.slug} initialLikeCount={gallery.likeCount} title={gallery.title} />}
+        reactions={<FloatingReactions type="GALLERY" id={gallery.id} contentType="galleries" slug={gallery.slug} initialLikeCount={gallery.likeCount} title={gallery.title} />}
         upNext={upNext}
         ad={<AdBlock position="article" section="GALLERY" categoryId={gallery.categoryId} layout="band" count={2} />}
         more={more}

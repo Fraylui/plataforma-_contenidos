@@ -14,9 +14,11 @@ import pe.plataformacontenidos.catalog.ContentType;
 public class ContentLikeService {
 
     private final ContentLikeRepository contentLikeRepository;
+    private final ContentReactionService reactions;
 
-    public ContentLikeService(ContentLikeRepository contentLikeRepository) {
+    public ContentLikeService(ContentLikeRepository contentLikeRepository, ContentReactionService reactions) {
         this.contentLikeRepository = contentLikeRepository;
+        this.reactions = reactions;
     }
 
     public long countLikes(ContentType type, UUID contentId) {
@@ -53,6 +55,8 @@ public class ContentLikeService {
         // "sin me gusta" y la segunda chocaba con la restricción única (500).
         boolean liked = contentLikeRepository.deleteLike(type, contentId, visitorId) == 0;
         if (liked) {
+            // El «me gusta» es «Me encanta»: una sola reacción por visitante (ContentReactionService).
+            reactions.clearOtherReaction(type, contentId, visitorId);
             contentLikeRepository.insertLikeIfAbsent(type.name(), contentId, visitorId);
         }
         return new LikeResult(liked, contentLikeRepository.countByContentTypeAndContentId(type, contentId));
