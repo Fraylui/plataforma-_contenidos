@@ -32,7 +32,9 @@ describe("ReactionButton", () => {
     expect(trigger).toHaveTextContent(/^5$/);
 
     await userEvent.click(trigger);
-    expect(screen.getByRole("group", { name: "Elige una reacción" })).toHaveTextContent(/Me encanta4.*Me divierte1/);
+    expect(screen.getByRole("group", { name: "Elige una reacción" })).toHaveTextContent(/4Encanta1Divierte/);
+    // Cada una con su nombre a la vista (un ícono solo no se entiende).
+    expect(screen.getByRole("group", { name: "Elige una reacción" })).toHaveTextContent(/Encanta.*Divierte.*Sorprende.*Inspira/);
     await userEvent.click(screen.getByRole("button", { name: "Me inspira" }));
     expect(onReact).toHaveBeenCalledWith("INSPIRED");
     expect(await axe(container)).toHaveNoViolations();
@@ -42,12 +44,12 @@ describe("ReactionButton", () => {
     const onReact = vi.fn();
     render(<ReactionButton mine="LOVE" counts={fullCounts({ LOVE: 1 })} onReact={onReact} />);
     await userEvent.click(screen.getByRole("button", { name: /Me encanta: tu reacción/ }));
-    expect(screen.getByRole("button", { name: "Me encanta" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Me encanta, 1" })).toHaveAttribute("aria-pressed", "true");
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("group", { name: "Elige una reacción" })).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: /Me encanta: tu reacción/ }));
-    await userEvent.click(screen.getByRole("button", { name: "Me encanta" }));
+    await userEvent.click(screen.getByRole("button", { name: "Me encanta, 1" }));
     expect(onReact).toHaveBeenCalledWith(null);
   });
 

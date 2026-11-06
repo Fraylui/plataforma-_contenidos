@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useWatch } from "react-hook-form";
-import { DeviceMobile, HandsClapping, Heart, Lightning, Play, Smiley } from "@phosphor-icons/react";
+import { DeviceMobile, Heart, Lightbulb, Play, Smiley, Sparkle } from "@phosphor-icons/react";
 import type { AdminImage, ContentVideoInput } from "@/lib/api/admin-types";
 import type { Category, ContentImage } from "@/lib/api/types";
 import { youtubeVideoId } from "@/lib/ads/native-media";
@@ -27,8 +27,8 @@ const PHONE_PROSE = PROSE.replace(/\bsm:prose-lg\b/, "");
 const REACTION_PREVIEW = [
   { icon: Heart, label: "Encanta", color: "from-rose-400 to-pink-600" },
   { icon: Smiley, label: "Divierte", color: "from-amber-300 to-orange-500" },
-  { icon: Lightning, label: "Sorprende", color: "from-violet-400 to-indigo-600" },
-  { icon: HandsClapping, label: "Inspira", color: "from-sky-400 to-cyan-600" },
+  { icon: Sparkle, label: "Sorprende", color: "from-violet-400 to-indigo-600" },
+  { icon: Lightbulb, label: "Inspira", color: "from-sky-400 to-cyan-600" },
 ];
 
 /**

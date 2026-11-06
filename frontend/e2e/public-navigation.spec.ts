@@ -50,7 +50,7 @@ test.describe("Navegación pública", () => {
 
     const floating = page.getByRole("group", { name: "Reacciones" });
     await floating.getByRole("button", { name: "Reaccionar" }).click();
-    await floating.getByRole("button", { name: "Me encanta", exact: true }).click();
+    await floating.getByRole("button", { name: /^Me encanta(, \d+)?$/ }).click();
     await expect(floating.getByRole("button", { name: /Me encanta: tu reacción/ })).toBeVisible();
     // «¿Qué te pareció?» del mismo post queda igual (estado compartido).
     await expect(page.getByRole("group", { name: "Elige una reacción" }).getByRole("button", { name: /encanta/ })).toHaveAttribute("aria-pressed", "true");
@@ -62,7 +62,7 @@ test.describe("Navegación pública", () => {
 
     // Quitarla deja todo como estaba (no ensucia otras corridas).
     await again.getByRole("button", { name: /Me encanta: tu reacción/ }).click();
-    await again.getByRole("button", { name: "Me encanta", exact: true }).click();
+    await again.getByRole("button", { name: /^Me encanta(, \d+)?$/ }).click();
     await expect(again.getByRole("button", { name: "Reaccionar" })).toBeVisible();
   });
 

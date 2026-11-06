@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { HandsClapping, Heart, Lightning, Smiley, type Icon } from "@phosphor-icons/react";
+import { Heart, Lightbulb, Smiley, Sparkle, type Icon } from "@phosphor-icons/react";
 import type { FeedItemType } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import { applyReaction, nextReaction, useReaction, type ReactionKey } from "./use-reaction";
@@ -12,7 +12,9 @@ export { applyReaction, nextReaction };
 /**
  * Íconos propios a color (no emoji del sistema: se ven distintos en cada
  * celular). Cada uno tiene su gesto (`idle`): el corazón late, la carita se
- * ríe, el rayo parpadea y las manos aplauden, a destiempo entre sí.
+ * ríe, el destello brilla y el foco se enciende, a destiempo entre sí. El
+ * destello (sorpresa) y el foco (inspira) reemplazaron al rayo y al aplauso
+ * el 2026-11-05: no se entendía qué eran.
  */
 export const REACTIONS: {
   key: ReactionKey;
@@ -40,7 +42,7 @@ export const REACTIONS: {
   },
   {
     key: "WOW",
-    icon: Lightning,
+    icon: Sparkle,
     label: "Me sorprende",
     color: "from-violet-400 to-indigo-600",
     active: "border-violet-300 bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300",
@@ -48,7 +50,7 @@ export const REACTIONS: {
   },
   {
     key: "INSPIRED",
-    icon: HandsClapping,
+    icon: Lightbulb,
     label: "Me inspira",
     color: "from-sky-400 to-cyan-600",
     active: "border-sky-300 bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300",

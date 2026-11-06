@@ -17,6 +17,12 @@ export function pillReactions(counts: ReactionCounts, mine: ReactionKey | null):
   return keys.length > 0 ? keys : REACTIONS.map((r) => r.key);
 }
 
+/** «Me encanta» → «Encanta»: cabe bajo el ícono en la bandeja. */
+export function shortName(label: string): string {
+  const word = label.replace(/^Me /, "");
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
 /** «Reaccionar», «Me divierte: tu reacción»… más el total; empieza con lo que se ve (WCAG 2.5.3). */
 export function triggerLabel(mine: ReactionKey | null, total: number): string {
   const totalText = total > 0 ? `${total}, ` : "";
@@ -196,7 +202,7 @@ export function ReactionButton({
           aria-label="Elige una reacción"
           onKeyDown={onTrayKeyDown}
           className={cn(
-            "absolute z-40 flex gap-1 rounded-full bg-surface p-1.5 shadow-[0_8px_30px_rgb(0_0_0/0.18)] ring-1 ring-border",
+            "absolute z-40 flex gap-0.5 rounded-3xl bg-surface px-1.5 pt-2 pb-1.5 shadow-[0_8px_30px_rgb(0_0_0/0.18)] ring-1 ring-border",
             "motion-safe:animate-[tray-in_180ms_cubic-bezier(0.2,0.9,0.3,1.2)]",
             floating ? "top-1/2 right-full mr-2 origin-right -translate-y-1/2" : "bottom-full left-0 mb-1 origin-bottom-left",
           )}
@@ -204,46 +210,49 @@ export function ReactionButton({
           {REACTIONS.map((r, i) => {
             const Icon = r.icon;
             const active = mine === r.key;
+            const count = counts[r.key] ?? 0;
             return (
               <button
                 key={r.key}
                 type="button"
                 data-reaction={r.key}
                 aria-pressed={active}
-                aria-label={r.label}
+                aria-label={count > 0 ? `${r.label}, ${count}` : r.label}
                 onClick={() => choose(r.key)}
                 style={{ animationDelay: `${i * 35}ms` }}
                 className={cn(
-                  "group relative flex cursor-pointer flex-col items-center rounded-full p-1 outline-none",
-                  "motion-safe:animate-[tray-item-in_260ms_ease-out_both] focus-visible:ring-[3px] focus-visible:ring-ring",
+                  "group flex w-[4.25rem] cursor-pointer flex-col items-center gap-1 rounded-2xl px-0.5 py-1 outline-none",
+                  "transition-colors hover:bg-canvas focus-visible:ring-[3px] focus-visible:ring-ring",
+                  "motion-safe:animate-[tray-item-in_260ms_ease-out_both]",
+                  active && "bg-canvas",
                 )}
               >
-                {/* Nombre encima al pasar o enfocar. */}
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "pointer-events-none absolute -top-8 rounded-full bg-foreground px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap text-surface opacity-0 transition-opacity",
-                    "group-hover:opacity-100 group-focus-visible:opacity-100",
-                  )}
-                >
-                  {r.label}
-                </span>
-                <span
-                  className={cn(
-                    "flex size-11 items-center justify-center rounded-full bg-linear-to-br text-white shadow-md",
-                    "transition-transform duration-150 motion-safe:group-hover:-translate-y-1.5 motion-safe:group-hover:scale-125 group-active:scale-90",
-                    r.color,
-                    r.idle,
-                    active && "ring-[3px] ring-foreground/70 ring-offset-2 ring-offset-surface",
-                  )}
-                >
-                  <Icon weight="fill" aria-hidden="true" className="size-6" />
-                </span>
-                {counts[r.key] > 0 && (
-                  <span aria-hidden="true" className="mt-0.5 text-[11px] leading-none font-bold text-muted tabular-nums">
-                    {NUMBER.format(counts[r.key])}
+                <span className="relative">
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "flex size-11 items-center justify-center rounded-full bg-linear-to-br text-white shadow-md",
+                      "transition-transform duration-150 motion-safe:group-hover:-translate-y-1 motion-safe:group-hover:scale-110 group-active:scale-90",
+                      r.color,
+                      r.idle,
+                    )}
+                  >
+                    <Icon weight="fill" className="size-6" />
                   </span>
-                )}
+                  {/* Cuántas personas: globito arriba a la derecha, no debajo (antes quedaba cortado). */}
+                  {count > 0 && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute -top-1.5 -right-2 min-w-5 rounded-full bg-foreground px-1 text-center text-[11px] leading-5 font-bold text-surface tabular-nums ring-2 ring-surface"
+                    >
+                      {NUMBER.format(count)}
+                    </span>
+                  )}
+                </span>
+                {/* El nombre siempre a la vista: un ícono solo no dice qué significa. */}
+                <span aria-hidden="true" className={cn("text-[11px] leading-tight font-semibold", active ? "text-foreground" : "text-muted")}>
+                  {shortName(r.label)}
+                </span>
               </button>
             );
           })}

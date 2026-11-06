@@ -1,12 +1,12 @@
-import { HandsClapping, Heart, Lightning, Smiley } from "@phosphor-icons/react/dist/ssr";
+import { Heart, Lightbulb, Smiley, Sparkle } from "@phosphor-icons/react/dist/ssr";
 import type { MoodKey } from "@/lib/moods";
 import { cn } from "@/lib/utils";
 
 /** Mismo ícono y color que la reacción del post (ver ReactionBar), en versión de servidor. */
 const STYLE: Record<MoodKey, { icon: typeof Heart; color: string }> = {
   FUNNY: { icon: Smiley, color: "from-amber-300 to-orange-500" },
-  WOW: { icon: Lightning, color: "from-violet-400 to-indigo-600" },
-  INSPIRED: { icon: HandsClapping, color: "from-sky-400 to-cyan-600" },
+  WOW: { icon: Sparkle, color: "from-violet-400 to-indigo-600" },
+  INSPIRED: { icon: Lightbulb, color: "from-sky-400 to-cyan-600" },
   LOVE: { icon: Heart, color: "from-rose-400 to-pink-600" },
 };
 

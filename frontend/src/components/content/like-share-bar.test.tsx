@@ -47,7 +47,7 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
     render(<LikeShareBar {...props} />);
 
     await user.click(screen.getByRole("button", { name: /Reaccionar/ }));
-    await user.click(screen.getByRole("button", { name: "Me encanta" }));
+    await user.click(screen.getByRole("button", { name: "Me encanta, 7" }));
 
     await waitFor(() => expect(screen.getByRole("button", { name: "8, Me encanta: tu reacción. Cambiar o quitar" })).toBeInTheDocument());
     const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
@@ -63,7 +63,7 @@ describe("LikeShareBar (integración de componente: fetch, localStorage, Web Sha
     render(<LikeShareBar {...props} />);
 
     await user.click(screen.getByRole("button", { name: /Reaccionar/ }));
-    await user.click(screen.getByRole("button", { name: "Me encanta" }));
+    await user.click(screen.getByRole("button", { name: "Me encanta, 7" }));
 
     await waitFor(() => expect(screen.getByRole("button", { name: "7, Reaccionar" })).toBeInTheDocument());
     expect(localStorage.getItem("reaction:EPISODE:e1")).toBe("");
